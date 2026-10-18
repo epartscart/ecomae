@@ -256,7 +256,7 @@ public sealed class StorefrontCustomerWriteService : IStorefrontCustomerWriteSer
 
             if (count != countNeed)
             {
-                return ErpSimpleWriteResult.Fail("split", "Partial-quantity returns stay on the classic form.");
+                return ErpSimpleWriteResult.Fail("split", "Partial-quantity returns are not available on this page.");
             }
 
             var already = await ErpDb.LongAsync(

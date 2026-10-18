@@ -122,9 +122,18 @@ public sealed class ErpPurchaseOrderWriteService : IErpPurchaseOrderWriteService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpSupplierWriteService.RequireApprovedForPurchaseAsync(connection, input.SupplierId, cancellationToken)
+            .ConfigureAwait(false);
 
         var amountEx = ErpTaxAmountCalculator.Round2(input.AmountExVat);
         var tax = await _tax.CalcPurchaseAsync(connection, null, amountEx, input.SupplierId, false, cancellationToken).ConfigureAwait(false);
+        await ErpSupplierWriteService.RequireKycForCoveredPurchaseAsync(
+            connection,
+            input.SupplierId,
+            tax.TotalAmount,
+            input.Id,
+            "epc_erp_purchase_orders",
+            cancellationToken).ConfigureAwait(false);
         var status = AllowedStatuses.Contains(input.Status, StringComparer.Ordinal) ? input.Status : "draft";
         var notes = (input.Notes ?? string.Empty).Trim();
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -517,6 +526,27 @@ public sealed class ErpPurchaseOrderWriteService : IErpPurchaseOrderWriteService
                 ["qty_open"] = totals.QtyOpen.ToString(CultureInfo.InvariantCulture),
             },
             cancellationToken).ConfigureAwait(false);
+
+        if (totals.QtyReceived > 0m)
+        {
+            try
+            {
+                await ErpD365LinkWriteService.RecordOfficialAsync(
+                    connection,
+                    "purchase_orders",
+                    purchaseOrderId,
+                    "PO-" + purchaseOrderId.ToString(CultureInfo.InvariantCulture),
+                    "proc_receipts",
+                    0,
+                    "GRN-" + purchaseOrderId.ToString(CultureInfo.InvariantCulture),
+                    adminId,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is DbException or InvalidOperationException)
+            {
+                _ = ex;
+            }
+        }
 
         return new ErpPoReceiveResult(purchaseOrderId, status, totals.QtyReceived, totals.QtyOpen);
     }

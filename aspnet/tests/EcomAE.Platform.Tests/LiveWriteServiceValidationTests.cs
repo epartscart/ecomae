@@ -2297,6 +2297,14 @@ public sealed class LiveWriteServiceValidationTests
             .SetAsync(new ErpGoldRateSetRequest(BuyRate: 240, Currency: "AED"));
         Assert.False(goldRateDb.Succeeded);
         Assert.Equal("db", goldRateDb.Code);
+        var goldRateDaily = await new ErpGoldRateSetWriteService(new ConfiguredNeverOpened())
+            .PublishDailyAsync(new ErpGoldRateDailyRequest());
+        Assert.False(goldRateDaily.Succeeded);
+        Assert.Equal("invalid", goldRateDaily.Code);
+        var goldRateDailyDb = await new ErpGoldRateSetWriteService(new UnconfiguredConnections())
+            .PublishDailyAsync(new ErpGoldRateDailyRequest(BaseSell: 250, Currency: "AED"));
+        Assert.False(goldRateDailyDb.Succeeded);
+        Assert.Equal("db", goldRateDailyDb.Code);
 
         var amlKyc = await new ErpAmlKycSaveWriteService(new ConfiguredNeverOpened())
             .SaveAsync(new ErpAmlKycSaveWriteRequest());

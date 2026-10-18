@@ -16,6 +16,21 @@ public sealed class ErpCpClassicChromeParityTests
     }
 
     [Fact]
+    public void GhostScaffold_OwnsDumpFlashAndTabs()
+    {
+        var text = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpParityModuleBody.razor"));
+        var ghost = text.IndexOf("@if (ShowGhostScaffold)", StringComparison.Ordinal);
+        var flash = text.IndexOf("<ErpPhpFlash", StringComparison.Ordinal);
+        var tabs = text.IndexOf("<ErpPhpViewTabs", StringComparison.Ordinal);
+        Assert.True(ghost >= 0, "dump body must gate leftover chrome");
+        Assert.True(flash > ghost, "dump flash stays inside leftover scaffold");
+        Assert.True(tabs > ghost, "dump tabs stay inside leftover scaffold");
+        Assert.Equal(1, CountOccurrences(text, "<ErpPhpFlash"));
+        Assert.Equal(1, CountOccurrences(text, "<ErpPhpViewTabs"));
+    }
+
+    [Fact]
     public void WorkflowBoard_UsesClassicPageHeaderAndHpanel()
     {
         var text = File.ReadAllText(Path.Combine(FindRepoRoot(),
@@ -132,5 +147,18 @@ public sealed class ErpCpClassicChromeParityTests
         }
 
         throw new InvalidOperationException("Could not locate repo root.");
+    }
+
+    private static int CountOccurrences(string text, string needle)
+    {
+        var count = 0;
+        var start = 0;
+        while (true)
+        {
+            var found = text.IndexOf(needle, start, StringComparison.Ordinal);
+            if (found < 0) return count;
+            count++;
+            start = found + needle.Length;
+        }
     }
 }

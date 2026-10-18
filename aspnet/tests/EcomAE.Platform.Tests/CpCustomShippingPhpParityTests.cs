@@ -26,7 +26,7 @@ public sealed class CpCustomShippingPhpParityTests
         Assert.Contains("name=\"supplierDetail\"", text, StringComparison.Ordinal);
         Assert.Contains("data-epc-cs-save", text, StringComparison.Ordinal);
         Assert.Contains("data-epc-cs-list", text, StringComparison.Ordinal);
-        Assert.Contains("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
         Assert.Contains("/CP/shop/logistics/carriers", text, StringComparison.Ordinal);
         Assert.Contains("/ERP/?epc_erp_shell=1&area=logistics&tab=custom_shipping", text, StringComparison.Ordinal);
         Assert.Contains("@page \"/cp/shop/finance/epc_custom_shipping\"", text, StringComparison.Ordinal);

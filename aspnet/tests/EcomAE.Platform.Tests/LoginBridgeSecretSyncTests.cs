@@ -10,8 +10,8 @@ public sealed class LoginBridgeSecretSyncTests
     {
         var msg = LoginErrorHelper.FromUri("https://www.ecomae.com/bos/login?error=bridge_not_configured");
         Assert.NotNull(msg);
-        Assert.Contains("cloudpanel_sync_secret_succession_from_php.sh", msg, StringComparison.Ordinal);
-        Assert.Contains("same PHP admin", msg, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Login bridge is not configured", msg, StringComparison.Ordinal);
+        Assert.Contains("same admin email/password", msg, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

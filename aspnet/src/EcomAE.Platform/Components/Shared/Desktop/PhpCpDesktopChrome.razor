@@ -20,6 +20,13 @@
         @ChildContent
     </PhpErpDesktopChrome>
 }
+else if (_useSuperBocChrome)
+{
+    @* Super /cp menu pages keep the same red BOC header as /cp home. *@
+    <PhpSuperCpCommandCentre ShowHome="false">
+        @ChildContent
+    </PhpSuperCpCommandCentre>
+}
 else
 {
 @*
@@ -173,7 +180,7 @@ else
                             </li>
                             @if (_signedIn)
                             {
-                                <li><a href="/cp/logout">Log out</a></li>
+                                <li><a href="/cp/logout" data-enhance-nav="false" rel="nofollow">Log out</a></li>
                             }
                             else
                             {
@@ -200,8 +207,6 @@ else
                 }
                 <a href="/cp">Control panel</a>
                 <a href="/attention">Attention</a>
-                <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/")" target="_blank" rel="noopener">Classic CP</a>
-                <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/")" target="_blank" rel="noopener">Classic ERP</a>
                 @if (_showBos)
                 {
                     <a href="/bos">BOS</a>
@@ -214,7 +219,7 @@ else
                 else
                 {
                     <span class="epc-cp-header-user" title="@_userLabel">@_userLabel</span>
-                    <a class="epc-cp-header-logout" href="/cp/logout" title="Log out"><i class="fa fa-sign-out" aria-hidden="true"></i> Log out</a>
+                    <a class="epc-cp-header-logout" href="/cp/logout" title="Log out" data-enhance-nav="false" rel="nofollow"><i class="fa fa-sign-out" aria-hidden="true"></i> Log out</a>
                 }
             </nav>
         </div>
@@ -287,7 +292,7 @@ else
                 {
                     <div class="epc-cp-guest-banner" role="status" style="margin:0 0 1rem;padding:.75rem .95rem;background:#fff7ed;border:1px solid #fdba74;border-radius:.45rem;color:#9a3412;font-size:.88rem;line-height:1.45;">
                         <strong>Sign in required for live CP data.</strong>
-                        Guest browse shows module chrome and PHP-reference actions only.
+                        Guest browse shows module chrome only.
                         Digests stay empty until an admin session is present.
                         <a href="/cp/login" style="margin-left:.35rem;font-weight:700;color:#c2410c;">Sign in</a>
                     </div>
@@ -453,6 +458,7 @@ else
     [Parameter] public bool IsAdmin { get; set; }
 
     private bool _useErpChrome;
+    private bool _useSuperBocChrome;
     private string _erpTitle = "Module";
     private string _erpArea = "Modules";
     private bool _showBos;
@@ -501,6 +507,7 @@ else
         var host = Http.HttpContext?.Request.Host.Host;
         _brand = LoginHostBrand.Resolve(host, "cp");
         _showBos = PlatformHostPolicy.IsSuperCpHost(host);
+        _useSuperBocChrome = SuperCpHostGate.IsAllowed(Http.HttpContext) && !_useErpChrome;
         // Tenant industry (epartscart → auto_parts) drives jewellery menu filtering.
         if (!_showBos && !string.IsNullOrWhiteSpace(host))
         {

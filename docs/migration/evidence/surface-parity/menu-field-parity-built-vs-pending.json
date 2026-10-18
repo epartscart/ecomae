@@ -4,8 +4,8 @@
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
   "menus": {
-    "totalTracked": 726,
-    "digestContract": 726,
+    "totalTracked": 734,
+    "digestContract": 734,
     "phpOnlyHoldout": 0,
     "holdoutId": null,
     "holdoutNote": "cp-debug-console ported as safe metadata-only digest (no LFI)"
@@ -67,7 +67,7 @@
     "coveragePct": 100
   },
   "built": [
-    "Menu catalog 726/726 digest-contract (cp-debug-console safe metadata-only)",
+    "Menu catalog 734/734 digest-contract (cp-debug-console safe metadata-only)",
     "Field floors cover 141/141 digest contract stems",
     "CP module-ajax write catalog 394 actions @ 100% dry-run coverage (writes=0); goldens 254",
     "ERP ajax_erp catalog 321/321 dedicated dry-run goldens",

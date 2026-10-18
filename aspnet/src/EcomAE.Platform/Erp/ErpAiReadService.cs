@@ -693,9 +693,7 @@ public sealed class ErpAiReadService : IErpAiReadService
             }
         }
 
-        var hasReorder = await ErpDb.LongAsync(c, null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'epc_erp_inv_items' AND COLUMN_NAME = 'reorder_level'"),
-            ct).ConfigureAwait(false) > 0;
+        var hasReorder = await ErpDb.ColumnKnownAsync(c, "epc_erp_inv_items", "reorder_level", ct).ConfigureAwait(false);
         var items = await RowsAsync(c,
             "SELECT `id`, `sku`, `name`, `unit`, " + (hasReorder ? "`reorder_level`" : "0 AS `reorder_level`") + " FROM `epc_erp_inv_items` WHERE `active` = 1",
             ct).ConfigureAwait(false);

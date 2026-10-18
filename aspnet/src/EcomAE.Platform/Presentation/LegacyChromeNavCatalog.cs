@@ -48,6 +48,8 @@ public static class LegacyChromeNavCatalog
         new("Pages list", "/cp/pages-app"),
         new("Menus list", "/cp/menus-app"),
         new("Tenants list", "/cp/tenants-app"),
+        new("Tenant admin users", "/cp/tenant-admins-app"),
+        new("Cloud / on-prem / hybrid", "/cp/deployment-models-app"),
         new("Currencies list", "/cp/currencies-app"),
         new("Storages list", "/cp/storages-app"),
         new("Admin sessions list", "/cp/admin-sessions-app"),
@@ -144,6 +146,7 @@ public static class LegacyChromeNavCatalog
         new("Inventory stock", "/erp/inventory-stock-app"),
         new("Stock movements", "/erp/stock-movements-app"),
         new("Report center", "/erp/report-center-app"),
+        new("Trial balance", "/erp/trial-balance-app"),
         new("Aging", "/erp/aging-app"),
         new("Bank reconciliation", "/erp/bank-reconciliation-app"),
         new("Stock transfers", "/erp/stock-transfers-app"),
@@ -153,8 +156,8 @@ public static class LegacyChromeNavCatalog
         new("Suppliers list", "/erp/suppliers-app"),
         new("Purchases list", "/erp/purchases-app"),
         new("Staff", "/erp/hr-overview-app"),
-        new("Income Statement", "/erp/report-center-app"),
-        new("Balance Sheet", "/erp/report-center-app"),
+        new("Income Statement", "/erp/report-center-app?tab=pl"),
+        new("Balance Sheet", "/erp/report-center-app?tab=balance_sheet"),
     ];
 
     /// <summary>BOS sidebar sections → ASP.NET BOS / CP / ERP routes only.</summary>

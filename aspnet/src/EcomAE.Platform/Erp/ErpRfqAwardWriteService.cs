@@ -64,11 +64,12 @@ public sealed class ErpRfqAwardWriteService : IErpRfqAwardWriteService
         decimal totalExVat;
         await using (var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false))
         {
+            await ErpRfqSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             if (!await TableExistsAsync(connection, "epc_scm_rfq", cancellationToken).ConfigureAwait(false)
                 || !await TableExistsAsync(connection, "epc_scm_rfq_lines", cancellationToken).ConfigureAwait(false)
                 || !await TableExistsAsync(connection, "epc_scm_rfq_responses", cancellationToken).ConfigureAwait(false))
             {
-                return ErpRfqAwardWriteResult.Fail("schema", "PHP SCM RFQ tables are not provisioned.");
+                return ErpRfqAwardWriteResult.Fail("schema", "RFQ tables are not provisioned.");
             }
 
             var header = await LoadHeaderAsync(connection, request.RfqId, cancellationToken).ConfigureAwait(false);
@@ -161,7 +162,27 @@ public sealed class ErpRfqAwardWriteService : IErpRfqAwardWriteService
         {
             return ErpRfqAwardWriteResult.Fail(
                 "link",
-                "Draft PO " + purchaseOrder.PoNo + " was created but the Classic RFQ link was not recorded: " + ex.Message);
+                "Draft PO " + purchaseOrder.PoNo + " was created but the RFQ link was not recorded: " + ex.Message);
+        }
+
+        try
+        {
+            await using var linkConnection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpD365LinkWriteService.RecordOfficialAsync(
+                linkConnection,
+                "rfq",
+                request.RfqId,
+                "RFQ-" + request.RfqId.ToString(CultureInfo.InvariantCulture),
+                "purchase_orders",
+                purchaseOrder.Id,
+                purchaseOrder.PoNo,
+                request.AdminId,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is DbException or InvalidOperationException)
+        {
+            // Award already committed; the official process link is best-effort.
+            _ = ex;
         }
 
         return new ErpRfqAwardWriteResult(

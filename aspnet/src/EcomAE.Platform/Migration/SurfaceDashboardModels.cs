@@ -3391,12 +3391,45 @@ public sealed record ErpProcessFlowTaskDigest(
     string AssigneeName,
     string InitiatorName);
 
+public sealed record ErpProcessFlowStepDigest(
+    long CaseId,
+    int StepNo,
+    string Name,
+    string Department,
+    string Location,
+    long AssigneeId,
+    string AssigneeName,
+    string Status,
+    string Comment,
+    long ActivatedAt,
+    long CompletedAt,
+    string ActedByName);
+
+public sealed record ErpProcessFlowTemplateStep(
+    long ProcessId,
+    int StepNo,
+    string Name,
+    string Department);
+
+public sealed record ErpProcessFlowStaffPlace(
+    long UserId,
+    string Location,
+    string BusinessUnit,
+    string LegalEntity);
+
 public sealed record ErpProcessFlowTasksDigestResult(
     ErpProcessFlowTasksSummary Summary,
     IReadOnlyList<ErpProcessFlowTaskDigest> Tasks,
     int Count,
     string Source,
-    string Message);
+    string Message)
+{
+    public IReadOnlyList<ErpProcessFlowStepDigest> Steps { get; init; } = [];
+
+    public IReadOnlyList<ErpProcessFlowTemplateStep> TemplateSteps { get; init; } = [];
+
+    public IReadOnlyList<ErpProcessFlowStaffPlace> Places { get; init; } = [];
+}
 
 /// <summary>PHP <c>epc_rc_registry</c> report metadata (run closures stay PHP).</summary>
 public sealed record ErpReportCenterReportDigest(
@@ -4427,7 +4460,8 @@ public sealed record CpJewelleryMastersKaratDigest(
     decimal RangeTo,
     decimal SpGravity,
     string Division,
-    string CreatedAt);
+    string CreatedAt,
+    string CreatedBy);
 
 public sealed record CpJewelleryMastersRateTypeDigest(
     long Id,
@@ -4438,7 +4472,9 @@ public sealed record CpJewelleryMastersRateTypeDigest(
     string Currency,
     decimal CurrRate,
     string Status,
-    int IsDefault);
+    int IsDefault,
+    string CreatedAt,
+    string CreatedBy);
 
 public sealed record CpJewelleryMastersCurrencyDigest(
     long Id,
@@ -4447,7 +4483,9 @@ public sealed record CpJewelleryMastersCurrencyDigest(
     string Description,
     string Symbol,
     decimal ConvRate,
-    string Status);
+    string Status,
+    string CreatedAt,
+    string CreatedBy);
 
 public sealed record CpJewelleryMastersDiamondDigest(
     long Id,
@@ -4459,7 +4497,9 @@ public sealed record CpJewelleryMastersDiamondDigest(
     string Type,
     string Brand,
     string Currency,
-    decimal CurrencyRate);
+    decimal CurrencyRate,
+    string CreatedAt,
+    string CreatedBy);
 
 public sealed record CpJewelleryMastersDesignDigest(
     long Id,
@@ -4469,7 +4509,9 @@ public sealed record CpJewelleryMastersDesignDigest(
     string Category,
     string Brand,
     decimal CostAmount,
-    decimal Price1Lc);
+    decimal Price1Lc,
+    string CreatedAt,
+    string CreatedBy);
 
 public sealed record CpJewelleryMastersPearlDigest(
     long Id,
@@ -4478,7 +4520,9 @@ public sealed record CpJewelleryMastersPearlDigest(
     string Description,
     string Size,
     string Color,
-    decimal Rate);
+    decimal Rate,
+    string CreatedAt,
+    string CreatedBy);
 
 public sealed record CpJewelleryMastersColorStoneDigest(
     long Id,
@@ -4488,7 +4532,9 @@ public sealed record CpJewelleryMastersColorStoneDigest(
     string Color,
     string Shape,
     string Size,
-    decimal Rate);
+    decimal Rate,
+    string CreatedAt,
+    string CreatedBy);
 
 public sealed record CpJewelleryMastersBarcodeDigest(
     long Id,
@@ -4500,7 +4546,9 @@ public sealed record CpJewelleryMastersBarcodeDigest(
     decimal GrossWt,
     decimal NetWt,
     decimal TagPrice,
-    int Printed);
+    int Printed,
+    string CreatedAt,
+    string CreatedBy);
 
 public sealed record CpJewelleryMastersTagDigest(
     long Id,
@@ -4512,7 +4560,9 @@ public sealed record CpJewelleryMastersTagDigest(
     decimal NetWeight,
     decimal SellPrice,
     string Status,
-    string Location);
+    string Location,
+    string CreatedAt,
+    string CreatedBy);
 
 public sealed record CpJewelleryMastersDigestResult(
     CpJewelleryMastersSummary Summary,
@@ -4540,6 +4590,7 @@ public sealed record CpJewelleryMastersKaratDetail(
     decimal PosRateMinMax,
     string Division,
     string CreatedAt,
+    string CreatedBy,
     int DescriptionLen,
     string DescriptionExcerpt);
 

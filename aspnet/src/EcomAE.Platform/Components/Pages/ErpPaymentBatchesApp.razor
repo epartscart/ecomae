@@ -26,15 +26,7 @@
     {
         <form method="post" action="/erp/ajax/payment-batch-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="returnUrl" value="/erp/payment-batches-app" />
-            <label>Pay from account
-                <select name="account_id">
-                    <option value="0">—</option>
-                    @foreach (var account in _accounts)
-                    {
-                        <option value="@account.Id">@account.Name (@account.CurrencyCode)</option>
-                    }
-                </select>
-            </label>
+            <ErpMasterPicker Kind="account" FieldName="account_id" InputId="pay-batch-account" Label="Pay from account" />
             <label>Type
                 <select name="batch_type">
                     <option value="sepa">SEPA</option>
@@ -48,7 +40,7 @@
             <label>Notes <input type="text" name="notes" maxlength="1000" /></label>
             @if (_dimensionCatalog.Count == 0)
             {
-                <label>Business unit <input type="number" name="dim[business_unit]" min="0" style="width:7rem" /></label>
+                <ErpMasterPicker Kind="business_unit" FieldName="dim[business_unit]" Label="Business unit" InputId="pay-dim-bu" />
                 <label>Legal entity <input type="number" name="dim[legal_entity]" min="0" style="width:7rem" /></label>
                 <label>Class unit <input type="number" name="dim[class_unit]" min="0" style="width:7rem" /></label>
             }
@@ -87,7 +79,7 @@
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Batch #</dt><dd>@(string.IsNullOrWhiteSpace(_opened.BatchNo) ? "—" : _opened.BatchNo)</dd>
                 <dt>Type</dt><dd>@(string.IsNullOrWhiteSpace(_opened.BatchType) ? "—" : _opened.BatchType)</dd>
@@ -98,8 +90,8 @@
                 <dt>Execute</dt><dd>@FormatTime(_opened.ExecutionDate)</dd>
                 <dt>Updated</dt><dd>@(_opened.TimeUpdated > 0 ? _opened.TimeUpdated.ToString(CultureInfo.InvariantCulture) : "—")</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Bank-file export remains a separate pending workflow; this form creates the PHP-compatible draft batch.</p>
-            <p class="text-muted">Draft-batch creation is guarded here; PHP remains the fallback and bank-export owner.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Bank-file export remains a separate pending workflow; this form creates the draft batch.</p>
+            <p class="text-muted">Draft-batch creation is guarded here.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>
@@ -203,7 +195,6 @@
     private const string _listHref = "/erp/payment-batches-app";
     private bool _isAdmin;
     private IReadOnlyList<ErpPaymentBatchDigest> _batches = [];
-    private IReadOnlyList<ErpCashAccountDigest> _accounts = [];
     private IReadOnlyList<ErpDimensionCatalog> _dimensionCatalog = [];
     private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private bool IsDimensionSelected(string key, long valueId)
@@ -243,7 +234,6 @@
         _batches = result.Batches;
         _source = result.Source;
         _message = result.Message;
-        _accounts = (await Dashboards.ListErpCashAccountsAsync(500, ctx.RequestAborted)).Accounts;
         _dimensionCatalog = await DimensionCatalog.LoadAsync(100, ctx.RequestAborted);
 
         if (_openedId > 0)

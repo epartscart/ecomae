@@ -54,7 +54,11 @@ public static class ErpJewelleryModuleChrome
         ("jewellery", "Jewellery"),
         ("jw_metal_sales", "Metal sales"),
         ("jw_sales_return", "Sales return"),
+        ("jw_pos_advance", "POS advance"),
         ("jw_sales_analysis", "Sales analysis"),
+        ("jw_petty_cash", "Petty cash"),
+        ("jw_journal_voucher", "Journal voucher"),
+        ("jw_tourist_vat", "Tourist VAT"),
         ("retail_barcode", "Retail barcode"),
         ("retail_commerce", "Retail commerce"),
     ];
@@ -64,22 +68,24 @@ public static class ErpJewelleryModuleChrome
         ("jw_stock_verification", "Stock verification"),
         ("jw_metal_stock", "Metal stock"),
         ("jw_stock_balance", "Stock balance"),
+        ("jw_manufacture", "Manufacture"),
+        ("jw_branch_transfer", "Business unit transfer"),
     ];
 
     public static readonly IReadOnlyList<string> RepairJobColumns =
-        ["No.", "Repair #", "Customer", "Phone", "Item", "Metal", "Karat", "Wt In (g)", "Repair Type", "Est. Cost", "Status", "Company", "Branch", "Actions"];
+        ["No.", "Repair #", "Customer", "Phone", "Item", "Metal", "Karat", "Wt In (g)", "Repair Type", "Est. Cost", "Status", "Company", "Business unit", "Actions"];
 
     public static readonly IReadOnlyList<string> RepairReceiptColumns =
         ["No.", "Job No", "Receipt Date", "Customer", "Phone", "Item", "Promise Date", "Status"];
 
     public static readonly IReadOnlyList<string> KaratColumns =
-        ["No.", "Karat Code", "Desc", "Std. Purity", "Gravity", "Division"];
+        ["No.", "Karat Code", "Desc", "Std. Purity", "Gravity", "Division", "Created date", "Created by"];
 
     public static readonly IReadOnlyList<string> GoldRateHistoryColumns =
-        ["Date", "Gold 24K", "Gold 22K", "Gold 18K", "Silver", "Change"];
+        ["Date", "Gold 24K", "Gold 22K", "Gold 21K", "Gold 18K", "Silver", "Change", "Created date", "Created by"];
 
     public static readonly IReadOnlyList<string> TagColumns =
-        ["No.", "TAG #", "Barcode", "Item Type", "Karat", "Net wt", "Sell price", "Location", "Status"];
+        ["No.", "TAG #", "Barcode", "Item Type", "Karat", "Net wt", "Sell price", "Location", "Status", "Created date", "Created by"];
 
     public static readonly IReadOnlyList<string> FixingColumns =
         ["No.", "Fix No", "Fix Date", "Ref Voc", "Party Code", "Metal", "Fixed Rate", "Net Wt", "Amount", "Status"];
@@ -88,7 +94,7 @@ public static class ErpJewelleryModuleChrome
         ["No.", "Inv No", "Inv Date", "Customer", "Salesman", "Items", "Net Amt", "Payment"];
 
     public static readonly IReadOnlyList<string> StockVerificationColumns =
-        ["Id", "Branch", "Type", "Date", "No", "Location", "Total", "Scanned", "Status"];
+        ["Id", "Business unit", "Type", "Date", "No", "Location", "Total", "Scanned", "Status"];
 
     public static readonly IReadOnlyList<string> MetalStockColumns =
         ["No.", "Metal", "Item Code", "Description", "Karat", "Purity", "Type", "Stock Pcs", "Stock Gms"];
@@ -161,43 +167,43 @@ public static class ErpJewelleryModuleChrome
 
     public static TabSpec MasterSpec(string tab) => tab switch
     {
-        "gold_rate" => new("gold_rate", "Gold rate", "Gold Rate (Live)",
-            "Fetch real-time gold, silver, and platinum rates from configured API providers. Rates bind when the shop rate board is available — demo numbers are not shown as live KPIs.",
-            GoldRateHistoryColumns, "No rate history yet — configure a provider and refresh."),
+        "gold_rate" => new("gold_rate", "Gold rate", "Daily gold rate",
+            "Publish today's 24K base. The board writes 22K / 21K / 18K from karat purity and invoices use today's sell rate when the document metal rate is blank. Demo figures are not shown as live KPIs.",
+            GoldRateHistoryColumns, "No daily rate yet — publish today's 24K base."),
         "gold_scheme" => new("gold_scheme", "Gold scheme", "Gold scheme",
-            "Savings / gold-scheme enrolments against karat and tenure.",
-            ["Scheme #", "Customer", "Karat", "Tenure", "Instalment", "Status"],
-            "No gold-scheme enrolments yet."),
+            "Create savings schemes, enroll customers, and take instalments. Tables are provisioned on this page.",
+            ["Scheme #", "Code", "Name", "Type", "Tenure", "Min instalment", "Created date", "Created by"],
+            "No gold schemes yet — create the first scheme from this panel."),
         "jewellery_tag" => new("jewellery_tag", "Jewellery tags", "Jewellery TAG System",
             "Unique TAG per jewellery item — generated at barcode level. Used for invoicing, purchase tracking, sales, and audit trail.",
             TagColumns, "No jewellery tags yet — generate the first tag from this panel."),
         "jw_barcode" => new("jw_barcode", "Barcode", "Jewellery barcode",
             "Barcode formats and prefix rules for tagged jewellery items.",
-            ["Code", "Prefix", "Format", "Division", "Status"],
+            ["No.", "Barcode", "Stock code", "Item type", "Karat", "Gr.Wt", "Net.Wt", "Tag price", "Printed", "Created date", "Created by"],
             "No barcode formats yet."),
         "jw_diamond" => new("jw_diamond", "Diamond", "Diamond master",
             "Diamond shape, color, clarity and carat masters.",
-            ["No.", "Item Code", "Description", "Color", "Clarity", "Type", "Brand", "Currency", "Curr rate"],
+            ["No.", "Item Code", "Description", "Color", "Clarity", "Type", "Brand", "Currency", "Curr rate", "Created date", "Created by"],
             "No diamond masters yet."),
         "jw_pearl" => new("jw_pearl", "Pearl", "Pearl master",
             "Pearl type, size and origin masters.",
-            ["No.", "Code", "Description", "Size", "Color", "Rate"],
+            ["No.", "Code", "Description", "Size", "Color", "Rate", "Created date", "Created by"],
             "No pearl masters yet."),
         "jw_color_stone" => new("jw_color_stone", "Color stone", "Color stone master",
             "Colored-stone type and quality masters.",
-            ["No.", "Code", "Description", "Color", "Shape", "Size", "Rate"],
+            ["No.", "Code", "Description", "Color", "Shape", "Size", "Rate", "Created date", "Created by"],
             "No color-stone masters yet."),
         "jw_design" => new("jw_design", "Design", "Design master",
             "Jewellery design codes used on tags and invoices.",
-            ["No.", "Design", "Description", "Category", "Brand", "Cost", "Price 1"],
+            ["No.", "Design", "Description", "Category", "Brand", "Cost", "Price 1", "Created date", "Created by"],
             "No design codes yet."),
         "jw_currency" => new("jw_currency", "Currency", "Jewellery currency",
             "Rate currencies used on metal purchase and POS.",
-            ["Code", "Name", "Symbol", "Conv rate", "Status"],
+            ["Code", "Name", "Symbol", "Conv rate", "Status", "Created date", "Created by"],
             "No jewellery currencies yet."),
         "jw_rate_type" => new("jw_rate_type", "Rate type", "Rate type master",
             "Purchase / sales / making rate types.",
-            ["No.", "Metal", "Rate type", "Conv factor", "Currency", "Curr rate", "Status"],
+            ["No.", "Metal", "Rate type", "Conv factor", "Currency", "Curr rate", "Status", "Created date", "Created by"],
             "No rate types yet."),
         "jw_seed_data" => new("jw_seed_data", "Seed data", "Jewellery seed data",
             "Load default karat, rate type and division rows for a new jewellery company.",
@@ -210,9 +216,9 @@ public static class ErpJewelleryModuleChrome
 
     public static TabSpec FixingSpec(string tab) => tab switch
     {
-        "jw_metal_purchase" => new("jw_metal_purchase", "Metal purchase", "Metal purchase",
-            "Unfixed and fixed metal purchase vouchers.",
-            ["Voc #", "Date", "Party", "Metal", "Karat", "Net Wt", "Amount", "Status"],
+        "jw_metal_purchase" => new("jw_metal_purchase", "Metal purchase", "Metal Purchase (FIXING GOLD)",
+            "Fixed / unfixed metal purchase — pick stock, party and add-in accounts from saved listings.",
+            ["Voc #", "Date", "Party", "Supp Inv", "Metal", "Net Amt", "Status"],
             "No metal purchases yet."),
         "jw_diamond_purchase" => new("jw_diamond_purchase", "Diamond purchase", "Diamond purchase",
             "Diamond purchase vouchers with stone details.",
@@ -251,6 +257,22 @@ public static class ErpJewelleryModuleChrome
             "Retail jewellery sales by metal, karat and salesman.",
             ["Period", "Invoices", "Pcs", "Net wt", "Metal", "Making", "Total"],
             "No sales analysis rows yet."),
+        "jw_pos_advance" => new("jw_pos_advance", "POS advance", "POS advance",
+            "ADV — customer advance payments taken at jewellery POS.",
+            ["Voc #", "Date", "Customer", "Amount", "Status"],
+            "No POS advances yet."),
+        "jw_petty_cash" => new("jw_petty_cash", "Petty cash", "Jewellery petty cash",
+            "PCV — petty cash vouchers for the jewellery company.",
+            ["Voc #", "Date", "Paid to", "Account", "Amount", "Status"],
+            "No petty cash vouchers yet."),
+        "jw_journal_voucher" => new("jw_journal_voucher", "Journal voucher", "Jewellery journal voucher",
+            "JVL — jewellery journal entries (header path; GL grid stays on the shared journals app).",
+            ["Voc #", "Date", "Description", "Amount", "Status"],
+            "No jewellery journal vouchers yet."),
+        "jw_tourist_vat" => new("jw_tourist_vat", "Tourist VAT", "Tourist VAT refund",
+            "VRV — tourist VAT refund verification for jewellery invoices.",
+            ["Voc #", "Date", "Tourist", "Invoice", "VAT", "Refund"],
+            "No tourist VAT refunds yet."),
         "retail_barcode" => new("retail_barcode", "Retail barcode", "Retail barcode",
             "Scan barcodes at jewellery POS.",
             ["No.", "Barcode", "Stock Code", "Item Type", "Karat", "Gr.Wt", "Net.Wt", "Tag Price", "Printed"],
@@ -272,6 +294,14 @@ public static class ErpJewelleryModuleChrome
             "On-hand weight and value by metal and karat.",
             ["Metal", "Karat", "Pcs", "Gross wt", "Net wt", "Value"],
             "No stock balance rows yet."),
+        "jw_manufacture" => new("jw_manufacture", "Manufacture", "Jewellery manufacture",
+            "MFG — manufactured item with metal / stone / other component lines on the manufacture voucher table.",
+            ["Voc #", "Date", "Item", "Metal wt", "Amount", "Status"],
+            "No manufacture vouchers yet."),
+        "jw_branch_transfer" => new("jw_branch_transfer", "Business unit transfer", "Jewellery business unit transfer",
+            "BTR — move tagged or metal stock from the source business unit to a destination business unit.",
+            ["Voc #", "Date", "From", "To", "Stock", "Wt", "Status"],
+            "No business unit transfers yet."),
         _ => new("jw_stock_verification", "Stock verification", "Stock Verification",
             "Physical count vs computer stock, barcode scanning.",
             StockVerificationColumns, "No records"),
@@ -293,12 +323,12 @@ public static class ErpJewelleryModuleChrome
             ["Repair #", "Customer", "Item", "Est. Cost", "Invoice", "Status"],
             "No repair sales yet."),
         "jw_repair_transfer" => new("jw_repair_transfer", "Transfer", "Repair transfer",
-            "Transfer a job to workshop or another branch.",
-            ["Repair #", "Branch", "Item", "Metal", "Status"],
+            "Transfer a job to workshop or another business unit.",
+            ["Repair #", "Business unit", "Item", "Metal", "Status"],
             "No repair transfers yet."),
         "jw_workshop_receive" => new("jw_workshop_receive", "Workshop", "Workshop receive",
             "Workshop intake of transferred repair jobs.",
-            ["Repair #", "Branch", "Item", "Metal", "Status"],
+            ["Repair #", "Business unit", "Item", "Metal", "Status"],
             "No workshop receipts yet."),
         "jw_repair_delivery" => new("jw_repair_delivery", "Delivery", "Repair delivery",
             "Deliver repaired items back to the customer.",

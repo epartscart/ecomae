@@ -1,0 +1,44 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Erp
+@*
+  Common ERP document header: date (today), voucher/invoice number (Auto until post),
+  legal entity, business unit, and cost centre. Drop into any create form.
+*@
+
+<div class="epc-erp-doc-header" role="group" aria-label="Document identity">
+    <p class="epc-erp-doc-header__title">Document identity</p>
+<label>@DateLabel
+    <input class="form-control input-sm" name="@DateFieldName" type="@DateInputType" value="@DateDefault" required="@DateRequired" />
+</label>
+<label>@NumberLabel
+    <input class="form-control input-sm" name="voc_no_preview" value="@NumberPreview" readonly title="Allocated automatically when the voucher is posted" />
+</label>
+@if (ShowLegalEntity)
+{
+    <ErpMasterPicker Kind="legal-entity" FieldName="legal_entity_id" Label="Legal entity" InputId="erp-doc-legal" />
+}
+@if (ShowBusinessUnit)
+{
+    <input type="hidden" name="branch" value="" />
+    <ErpMasterPicker Kind="business_unit" FieldName="business_unit_id" Label="Business unit" CodeFieldName="branch" />
+}
+@if (ShowCostCentre)
+{
+    <ErpMasterPicker Kind="cost-centre" FieldName="cost_centre" Label="Cost centre" ValueMode="code" InputId="erp-doc-cc" />
+}
+</div>
+
+@code {
+    [Parameter] public string DateLabel { get; set; } = "Voucher date";
+    [Parameter] public string DateFieldName { get; set; } = "voc_date";
+    [Parameter] public string DateInputType { get; set; } = "date";
+    [Parameter] public bool DateRequired { get; set; } = true;
+    [Parameter] public string? DateValue { get; set; }
+    [Parameter] public string NumberLabel { get; set; } = "Voucher no";
+    [Parameter] public string NumberPreview { get; set; } = ErpVoucherHeader.AutoNumber;
+    [Parameter] public bool ShowLegalEntity { get; set; } = true;
+    [Parameter] public bool ShowBusinessUnit { get; set; } = true;
+    [Parameter] public bool ShowCostCentre { get; set; } = true;
+
+    private string DateDefault => string.IsNullOrWhiteSpace(DateValue) ? ErpVoucherHeader.TodayDate() : DateValue;
+}

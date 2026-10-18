@@ -16,7 +16,7 @@ public sealed class CpDashboardSummaryPresentationTests
         Assert.Contains("Platform activity", source, StringComparison.Ordinal);
         Assert.Contains("Operator destinations", source, StringComparison.Ordinal);
         Assert.Contains("MetricWidth", source, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", source, StringComparison.Ordinal);
     }
 
     private static string FindRepoFile(string relative)

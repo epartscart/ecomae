@@ -1,0 +1,113 @@
+namespace EcomAE.Platform.Erp;
+
+/// <summary>
+/// Fit-out costing. Margin and markup stay different numbers.
+/// A purchase that has become a supplier invoice is actual, not still committed.
+/// An unapproved variation does not raise the contract. A cheque is not cash until it clears.
+/// </summary>
+public static class ErpFitOutCalc
+{
+    public static decimal Money(decimal value)
+        => decimal.Round(value, 2, MidpointRounding.AwayFromZero);
+
+    public static decimal DirectUnitCost(decimal material, decimal labour, decimal equipment, decimal subcontract)
+        => Money(material + labour + equipment + subcontract);
+
+    public static decimal TotalDirectCost(decimal quantity, decimal directUnit, decimal wastagePercent)
+    {
+        var factor = 1m + (wastagePercent / 100m);
+        return Money(quantity * directUnit * factor);
+    }
+
+    public static decimal EstimatedTotalCost(decimal totalDirect, decimal overhead, decimal contingency)
+        => Money(totalDirect + overhead + contingency);
+
+    /// <summary>Selling = cost / (1 − margin). Margin of 100% or more is refused.</summary>
+    public static decimal SellingFromMargin(decimal estimatedCost, decimal targetMarginPercent)
+    {
+        if (targetMarginPercent >= 100m || targetMarginPercent < 0m)
+        {
+            return 0m;
+        }
+
+        return Money(estimatedCost / (1m - (targetMarginPercent / 100m)));
+    }
+
+    public static decimal SellingFromMarkup(decimal estimatedCost, decimal markupPercent)
+        => Money(estimatedCost * (1m + (markupPercent / 100m)));
+
+    public static decimal EstimateAtCompletion(decimal actualToDate, decimal forecastRemaining)
+        => Money(actualToDate + forecastRemaining);
+
+    public static decimal ForecastProfit(decimal revisedContract, decimal forecastTotalCost)
+        => Money(revisedContract - forecastTotalCost);
+
+    public static decimal ForecastMarginPercent(decimal forecastProfit, decimal revisedContract)
+        => revisedContract == 0 ? 0 : Money(forecastProfit / revisedContract * 100m);
+
+    public static decimal BudgetVariance(decimal approvedBudget, decimal forecastTotalCost)
+        => Money(approvedBudget - forecastTotalCost);
+
+    public static decimal OpenCommitment(decimal ordered, decimal invoiced)
+        => Money(Math.Max(0, ordered - invoiced));
+
+    public static decimal RevisedContract(decimal original, decimal approvedVariations)
+        => Money(original + approvedVariations);
+
+    public static decimal ContractRevenue(decimal original, decimal approvedVariations, decimal pendingVariations)
+        => RevisedContract(original, approvedVariations);
+
+    public static decimal ProgressNet(decimal certified, decimal retention, decimal advanceRecovery, decimal vat)
+        => Money(certified - retention - advanceRecovery + vat);
+
+    public static decimal CollectionRate(decimal collectedOnDue, decimal dueReceivables)
+        => dueReceivables <= 0 ? 0 : Money(collectedOnDue / dueReceivables * 100m);
+
+    public static bool CountsAsBankCash(string? chequeStatus)
+        => string.Equals(chequeStatus?.Trim(), "cleared", StringComparison.OrdinalIgnoreCase);
+
+    public static decimal PettyBalance(decimal advance, decimal settled)
+        => Money(advance - settled);
+
+    public static decimal CurrentBudget(decimal original, decimal approvedRevisions)
+        => Money(original + approvedRevisions);
+
+    public static decimal LabourCost(decimal regularHours, decimal overtimeHours, decimal hourlyCost)
+        => Money((regularHours + overtimeHours) * hourlyCost);
+
+    public static decimal RateLine(decimal quantityPerUnit, decimal unitCost)
+        => Money(quantityPerUnit * unitCost);
+
+    public static decimal RetentionOutstanding(decimal held, decimal released)
+        => Money(Math.Max(0, held - released));
+
+    public static bool CountsTowardContract(string? variationStatus)
+        => string.Equals(variationStatus?.Trim(), "approved", StringComparison.OrdinalIgnoreCase);
+
+    public static decimal ApprovedVariationValue(string? variationStatus, decimal sellingValue)
+        => CountsTowardContract(variationStatus) ? Money(sellingValue) : 0m;
+
+    public static (decimal DirectUnit, decimal TotalCost, decimal SellingRate, decimal SellingAmount) PriceAtMargin(
+        decimal quantity,
+        decimal material,
+        decimal labour,
+        decimal equipment,
+        decimal subcontract,
+        decimal overheadPerUnit,
+        decimal wastagePercent,
+        decimal marginPercent)
+    {
+        var direct = decimal.Round(material + labour + equipment + subcontract, 4, MidpointRounding.AwayFromZero);
+        var wasted = decimal.Round(direct * (1m + (wastagePercent / 100m)), 4, MidpointRounding.AwayFromZero);
+        var totalDirect = decimal.Round(wasted * quantity, 4, MidpointRounding.AwayFromZero);
+        var estimated = decimal.Round(totalDirect + (overheadPerUnit * quantity), 4, MidpointRounding.AwayFromZero);
+        if (marginPercent >= 100m || marginPercent < 0m || quantity <= 0)
+        {
+            return (wasted, estimated, 0m, 0m);
+        }
+
+        var selling = decimal.Round(estimated / (1m - (marginPercent / 100m)), 4, MidpointRounding.AwayFromZero);
+        var rate = decimal.Round(selling / quantity, 4, MidpointRounding.AwayFromZero);
+        return (wasted, estimated, rate, selling);
+    }
+}

@@ -115,7 +115,7 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
             <label>Site key <input type="text" name="site_key" /></label>
-            <label>Customer id <input type="text" name="customer_id" /></label>
+            <ErpMasterPicker Kind="customer" FieldName="customer_id" InputId="bos-credit-hold-customer" Label="Customer" />
             <label>Reason <input type="text" name="reason" /></label>
             <button type="submit">Hold credit</button>
         </form>
@@ -123,14 +123,14 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
             <label>Site key <input type="text" name="site_key" /></label>
-            <label>Customer id <input type="text" name="customer_id" /></label>
+            <ErpMasterPicker Kind="customer" FieldName="customer_id" InputId="bos-credit-release-customer" Label="Customer" />
             <button type="submit">Release credit</button>
         </form>
         <form method="post" action="/bos/credit/set-limit" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
             <label>Site key <input type="text" name="site_key" /></label>
-            <label>Customer id <input type="text" name="customer_id" /></label>
+            <ErpMasterPicker Kind="customer" FieldName="customer_id" InputId="bos-credit-limit-customer" Label="Customer" />
             <label>Credit limit <input type="text" name="credit_limit" /></label>
             <label>Currency <input type="text" name="currency" value="AED" /></label>
             <label>Payment terms <input type="text" name="payment_terms" value="net30" /></label>
@@ -182,7 +182,7 @@
         <form method="post" action="/bos/fulfillment/pick-item" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
-            <label>Item id <input type="text" name="item_id" /></label>
+            <ErpMasterPicker Kind="item" FieldName="item_id" InputId="bos-pick-item" Label="Item" />
             <label>Qty picked <input type="text" name="qty_picked" /></label>
             <button type="submit">Pick item</button>
         </form>
@@ -291,7 +291,7 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
             <label>Site key <input type="text" name="site_key" /></label>
-            <label>Customer id <input type="text" name="customer_id" /></label>
+            <ErpMasterPicker Kind="customer" FieldName="customer_id" InputId="bos-dunning-customer" Label="Customer" NameFieldName="customer_name" />
             <label>Customer name <input type="text" name="customer_name" /></label>
             <label>Invoice ref <input type="text" name="invoice_ref" /></label>
             <label>Invoice amount <input type="text" name="invoice_amount" /></label>
@@ -382,7 +382,7 @@
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
             <label>Promotion id <input type="text" name="promotion_id" /></label>
             <label>Site key <input type="text" name="site_key" /></label>
-            <label>Customer id <input type="text" name="customer_id" /></label>
+            <ErpMasterPicker Kind="customer" FieldName="customer_id" InputId="bos-promo-customer" Label="Customer" />
             <label>Order ref <input type="text" name="order_ref" /></label>
             <label>Discount <input type="text" name="discount" /></label>
             <button type="submit">Record promo usage</button>
@@ -594,7 +594,7 @@
             <label>Grace hours <input type="text" name="grace_period_hours" value="72" /></label>
             <button type="submit">Save MFA policy</button>
         </form>
-        <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
+        <p class="help-block" style="margin:0 0 1rem">Send and broadcast are not available on this page. This page does not invent a send.</p>
     }
 
 </PhpBosDesktopChrome>

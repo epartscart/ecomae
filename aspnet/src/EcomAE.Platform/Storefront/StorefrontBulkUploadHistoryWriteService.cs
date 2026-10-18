@@ -6,7 +6,7 @@ using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Storefront;
 
-/// <summary>PHP <c>epc_bulk_save_history</c> / <c>epc_bulk_update_history</c>. Schema ensure, CP review / quote / cart stay Classic.</summary>
+/// <summary>PHP <c>epc_bulk_save_history</c> / <c>epc_bulk_update_history</c>. Schema ensure, CP review / quote / cart are not available on this page.</summary>
 public interface IStorefrontBulkUploadHistoryWriteService
 {
     Task<StorefrontBulkUploadHistoryWriteResult> SaveAsync(
@@ -161,7 +161,7 @@ public sealed class StorefrontBulkUploadHistoryWriteService : IStorefrontBulkUpl
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             if (!await TableExistsAsync(connection, cancellationToken).ConfigureAwait(false))
             {
-                return Fail("schema", "epc_bulk_upload_history is not provisioned. Schema ensure stays on the Classic twin.");
+                return Fail("schema", "epc_bulk_upload_history is not provisioned. Schema ensure is not available on this page.");
             }
 
             var groupId = await ResolveGroupIdAsync(connection, userId, isAdmin, request.AdminGroupId, cancellationToken)
@@ -243,7 +243,7 @@ public sealed class StorefrontBulkUploadHistoryWriteService : IStorefrontBulkUpl
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             if (!await TableExistsAsync(connection, cancellationToken).ConfigureAwait(false))
             {
-                return Fail("schema", "epc_bulk_upload_history is not provisioned. Schema ensure stays on the Classic twin.");
+                return Fail("schema", "epc_bulk_upload_history is not provisioned. Schema ensure is not available on this page.");
             }
 
             var owned = isAdmin

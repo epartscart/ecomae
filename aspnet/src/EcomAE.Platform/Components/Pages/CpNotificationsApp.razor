@@ -1,4 +1,5 @@
 @page "/cp/notifications-app"
+@page "/erp/notifications-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using System.Text.Json
@@ -12,6 +13,21 @@
 
 <PageTitle>@(_editor is null ? "Notification settings" : _editor.Caption) · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<style>
+    .notify-purpose{margin:0 0 14px;padding:12px 14px;border:1px solid #dbe4ea;background:#fff}
+    .notify-purpose h3{margin:0 0 4px;font-size:15px;color:#0f172a}
+    .notify-purpose__lead{margin:0 0 10px;color:#475569}
+    .notify-steps{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
+    .notify-steps li{flex:1 1 180px;border:1px solid #dbe4ea;border-top:3px solid #0f4c81;background:#f8fafc;padding:8px 10px}
+    .notify-steps strong{color:#0f172a}
+    .notify-steps p{margin:4px 0 0;font-size:12px;color:#475569}
+    .notify-counts{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
+    .notify-count{flex:1 1 140px;background:#fff;border:1px solid #dbe4ea;padding:8px 10px}
+    .notify-count span{display:block;font-size:12px;font-weight:700;color:#475569}
+    .notify-count strong{display:block;margin-top:2px;font-size:18px;color:#0f172a}
+    .notify-toggle[data-epc-inline="1"],#set_default_form[data-epc-inline="1"]{display:inline-flex !important;width:auto !important;max-width:none !important;margin:0 !important;padding:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important}
+    #set_default_form[data-epc-inline="1"]{display:none !important}
+</style>
 <HeadContent>
     <link rel="stylesheet" href="/epc-static.php?f=cp/content/control/epc_comms_notify.css&amp;v=20260922" />
 </HeadContent>
@@ -27,11 +43,11 @@
         <div class="col-lg-12 epc-cn">
             <div class="epc-cn-hero">
                 <h3>@_editor.Caption</h3>
-                <p>Edit the e-mail and SMS template for this event. Use placeholders from the variables list. Restore factory text anytime, then Save.</p>
+                <p>What this page is for: the words sent when this event happens. Turn e-mail or SMS on only when this event supports them. A code such as %order_id% is filled in when the message is sent. Restore loads the original words. Click Save to keep them, then test the send from Communications.</p>
                 <div class="epc-cn-hero__actions">
                     <button type="button" class="btn btn-sm btn-primary" onclick="document.forms['save_notification_form'].submit();"><i class="fas fa-save"></i> Save</button>
                     <button type="button" class="btn btn-sm" onclick="set_default();"><i class="fas fa-undo"></i> Restore default settings</button>
-                    <a class="btn btn-sm" href="@_listHref"><i class="fas fa-envelope-open-text"></i> Back to notifications</a>
+                    <a class="btn btn-sm" href="@ListHref"><i class="fas fa-envelope-open-text"></i> Back to notifications</a>
                     <a class="btn btn-sm" href="/cp/communications-test-app"><i class="fas fa-vial"></i> Test delivery</a>
                     <a class="btn btn-sm" href="/cp"><i class="fas fa-home"></i> Home</a>
                 </div>
@@ -47,7 +63,7 @@
             }
 
             <div class="epc-cn-guide">
-                <h4>Editing guide</h4>
+                <h4>How to use it</h4>
                 <ol class="epc-cn-steps">
                     <li><strong>Channels</strong>Enable e-mail and/or SMS only if this event supports them.</li>
                     <li><strong>Placeholders</strong>Insert codes like <code>%order_id%</code> from the variables panel — they are replaced at send time.</li>
@@ -186,7 +202,7 @@
                 <div class="epc-cn-sticky">
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
                     <button type="button" class="btn btn-default" onclick="set_default();"><i class="fas fa-undo"></i> Restore default settings</button>
-                    <a class="btn btn-default" href="@_listHref">Back to notifications</a>
+                    <a class="btn btn-default" href="@ListHref">Back to notifications</a>
                     <span class="epc-cn-sticky__hint">Changes apply after Save · then test under Communications</span>
                 </div>
             </form>
@@ -235,7 +251,7 @@
         <div class="col-lg-12 epc-cn" id="epc-cn-notify-root" data-filter="all">
             <div class="epc-cn-hero">
                 <h3>Notification settings</h3>
-                <p>Turn e-mail and SMS on or off for each shop event, edit message templates, and restore factory text when needed. Delivery itself is configured under Communications, SMTP, and SMS Operators.</p>
+                <p>What this page is for: the messages this shop sends when something happens, such as an order placed or a password reset. Each row is one event. You choose e-mail, SMS, or both, and you can change the words. The mail server is Tenant email. Platform operator notices are on Platform communication. A channel sends only after that server is set.</p>
                 <div class="epc-cn-hero__actions">
                     <button type="button" class="btn btn-sm btn-primary" onclick="set_default_checked();"><i class="fas fa-undo"></i> Restore default settings</button>
                     <a class="btn btn-sm" href="/cp/communications-test-app"><i class="fas fa-broadcast-tower"></i> Communications</a>
@@ -280,19 +296,24 @@
                 </a>
             </div>
 
-            <div class="epc-cn-guide">
-                <h4>How to use this page</h4>
-                <ol class="epc-cn-steps">
-                    <li><strong>Scan channels</strong>Green = on, red = off. Click the icon to toggle e-mail or SMS for that event.</li>
-                    <li><strong>Edit a template</strong>Open the pencil to change subject, HTML body, or SMS text and placeholders.</li>
-                    <li><strong>Restore defaults</strong>Tick rows (or one row’s undo) to reset text and channel flags to factory values.</li>
-                    <li><strong>Verify send</strong>After changes, test from Communications so SMTP / SMS credentials are confirmed.</li>
+            <section class="notify-purpose" aria-label="How notifications work">
+                <h3>How to use this page</h3>
+                <ol class="notify-steps">
+                    <li><strong>1. Find the event</strong><p>Search the caption, or filter to e-mail on, SMS on, or both off.</p></li>
+                    <li><strong>2. Turn a channel on</strong><p>A green check is on. A red mark is off. An empty circle means that channel is not available. Click it to switch.</p></li>
+                    <li><strong>3. Change the words</strong><p>Open the pencil. Edit the subject and the message. Use a code from the variables list, such as %order_id%.</p></li>
+                    <li><strong>4. Put the original back</strong><p>Tick the rows, then Restore. Confirm. Test the send from Communications after you save.</p></li>
                 </ol>
-            </div>
+                <div class="notify-counts" aria-label="Notification counts">
+                    <div class="notify-count"><span>Events</span><strong>@_rows.Count.ToString(CultureInfo.InvariantCulture)</strong></div>
+                    <div class="notify-count"><span>E-mail on</span><strong>@EmailOnCount.ToString(CultureInfo.InvariantCulture)</strong></div>
+                    <div class="notify-count"><span>SMS on</span><strong>@SmsOnCount.ToString(CultureInfo.InvariantCulture)</strong></div>
+                </div>
+            </section>
 
-            <form method="post" name="set_default_form" id="set_default_form" action="/cp/notifications/restore">
+            <form method="post" name="set_default_form" id="set_default_form" action="/cp/notifications/restore" data-epc-inline="1">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_listHref" />
+                <input type="hidden" name="returnUrl" value="@ListHref" />
                 <input type="hidden" name="notifications_ids" id="notifications_ids" value="" />
             </form>
 
@@ -340,9 +361,9 @@
                                 <td><a href="@href">@r.Event</a></td>
                                 <td><a href="@href"><span class="epc-cn-muted">@r.Description</span></a></td>
                                 <td class="text-center">
-                                    <form method="post" name="set_send_email_@(id)" action="/cp/notifications/toggle" style="display:inline">
+                                    <form method="post" name="set_send_email_@(id)" action="/cp/notifications/toggle" class="notify-toggle" data-epc-inline="1">
                                         <input type="hidden" name="confirmWrites" value="true" />
-                                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                                        <input type="hidden" name="returnUrl" value="@ListHref" />
                                         <input type="hidden" name="type" value="email" />
                                         <input type="hidden" name="notification_id" value="@id" />
                                         @if (r.ForeseenEmail == 0)
@@ -362,9 +383,9 @@
                                     </form>
                                 </td>
                                 <td class="text-center">
-                                    <form method="post" name="set_send_sms_@(id)" action="/cp/notifications/toggle" style="display:inline">
+                                    <form method="post" name="set_send_sms_@(id)" action="/cp/notifications/toggle" class="notify-toggle" data-epc-inline="1">
                                         <input type="hidden" name="confirmWrites" value="true" />
-                                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                                        <input type="hidden" name="returnUrl" value="@ListHref" />
                                         <input type="hidden" name="type" value="sms" />
                                         <input type="hidden" name="notification_id" value="@id" />
                                         @if (r.ForeseenSms == 0)
@@ -446,7 +467,36 @@
     private IReadOnlyList<CpNotificationRow> _rows = [];
     private CpNotificationDetail? _editor;
 
-    private static string EditorHref(long id) => _listHref + "?notification_id=" + id.ToString(CultureInfo.InvariantCulture);
+    private int EmailOnCount => _rows.Count(row => row.ForeseenEmail == 1 && row.EmailOn == 1);
+
+    private int SmsOnCount => _rows.Count(row => row.ForeseenSms == 1 && row.SmsOn == 1);
+
+    private string ListHref
+    {
+        get
+        {
+            var ctx = Http.HttpContext;
+            var path = ctx?.Request.Path.Value;
+            if (string.IsNullOrWhiteSpace(path) || !path.StartsWith('/'))
+            {
+                path = _listHref;
+            }
+
+            var company = ErpHostContext.ActiveCompanyIdFromQuery(ctx?.Request);
+            return company is int id
+                ? path + "?company=" + id.ToString(CultureInfo.InvariantCulture)
+                : path;
+        }
+    }
+
+    private string EditorHref(long id)
+    {
+        var href = ListHref;
+        var idText = id.ToString(CultureInfo.InvariantCulture);
+        return href.Contains('?')
+            ? href + "&notification_id=" + idText
+            : href + "?notification_id=" + idText;
+    }
 
     protected override async Task OnInitializedAsync()
     {

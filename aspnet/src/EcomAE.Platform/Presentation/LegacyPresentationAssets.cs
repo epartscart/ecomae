@@ -40,7 +40,7 @@ public static class LegacyPresentationAssets
         // (Super CP + Tenant CP). /platform-assets survives PHP pause.
         "/platform-assets/epc_cp_aspnet_module_parity.css?v=20260811scp",
         "/content/general_pages/epc_cp_aspnet_module_parity_css.php",
-        "/platform-assets/css/epc-enterprise-design-system.css?v=20260930visual"
+        "/platform-assets/css/epc-enterprise-design-system.css?v=20261016fit"
     ];
 
     /// <summary>
@@ -60,7 +60,7 @@ public static class LegacyPresentationAssets
     public static readonly IReadOnlyList<string> LoginStylesheets =
     [
         "/epc-static.php?f=bos/epc_bos_shell.css",
-        "/platform-assets/epc_bos_login_surface_accents.css?v=20260807a",
+        "/platform-assets/epc_bos_login_surface_accents.css?v=20261012sky",
         // Tenant animated cart + catalog brand logos on /cp/login & /erp/login
         "/platform-assets/eparts-animated-logo.css",
         "/platform-assets/epc_portal_tenant_brand.css",
@@ -71,7 +71,7 @@ public static class LegacyPresentationAssets
     public static readonly IReadOnlyList<string> ErpLoginStylesheets =
     [
         "/epc-static.php?f=bos/epc_bos_shell.css",
-        "/platform-assets/epc_bos_login_surface_accents.css?v=20260807a",
+        "/platform-assets/epc_bos_login_surface_accents.css?v=20261012sky",
         "/platform-assets/eparts-animated-logo.css",
         "/platform-assets/epc_portal_tenant_brand.css",
         "/content/shop/finance/epc_erp_portal_inline_css_serve.php"
@@ -99,10 +99,10 @@ public static class LegacyPresentationAssets
         "/content/general_pages/epc_cp_professional_css.php",
         // After professional: neutralize ASP.NET digest heroes → PHP page-hd / kpi / table-epc look.
         // /platform-assets survives PHP pause on Super / Tenant / ERP-only hosts.
-        "/platform-assets/epc_erp_aspnet_module_parity.css?v=20260909clip",
+        "/platform-assets/epc_erp_aspnet_module_parity.css?v=20261016topbar",
         "/content/shop/finance/epc_erp_aspnet_module_parity_css.php",
-        "/platform-assets/css/epc-enterprise-design-system.css?v=20260930visual",
-        "/platform-assets/css/erp-document-workspace.css?v=20260929workspace",
+        "/platform-assets/css/epc-enterprise-design-system.css?v=20261016fit",
+        "/platform-assets/css/erp-document-workspace.css?v=20261013row1",
         "/platform-assets/css/erp-finance-voucher-workspace.css?v=20260929finance"
     ];
 
@@ -148,8 +148,6 @@ public static class LegacyPresentationAssets
         "/platform-assets/epc_ecomae_platform_marketing.css?v=20260807a",
         "/platform-assets/epc_ecomae_home_sections.css?v=20260811footer",
         "/platform-assets/epc_ecomae_home_3d.css?v=20260807a",
-        // LifeOS film band on home (after epm-hub only)
-        "/platform-assets/epc_ecomae_marketing_lifeos_film.css?v=20260807b",
         // Layla splash/footer + demo portal — must not rely on HeadContent alone
         "/platform-assets/epc_ecomae_layla_widget.css?v=20260811footer",
         "/platform-assets/epc_ecomae_demo_portal.css?v=20260811footer",
@@ -195,7 +193,6 @@ public static class LegacyPresentationAssets
             "marketing" =>
             [
                 ".epm-hub", ".epm-hub__orbit-spin", ".epm-hub__matrix", ".epm-hub-section",
-                ".epm-lofilm", "#lifeos-film", ".epm-lofilm__video",
                 ".epc-demo-portal", ".epc-layla-splash", ".epc-layla-footer-widget"
             ],
             _ => []

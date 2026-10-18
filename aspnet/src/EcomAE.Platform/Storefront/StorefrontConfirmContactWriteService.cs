@@ -104,7 +104,7 @@ public sealed class StorefrontConfirmContactWriteService : IStorefrontConfirmCon
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             if (!await TableExistsAsync(connection, "users", cancellationToken).ConfigureAwait(false))
             {
-                return Fail("schema", "users table is not provisioned. Schema ensure stays on the Classic twin.");
+                return Fail("schema", "users table is not provisioned. Schema ensure is not available on this page.");
             }
 
             await using var select = connection.CreateCommand();

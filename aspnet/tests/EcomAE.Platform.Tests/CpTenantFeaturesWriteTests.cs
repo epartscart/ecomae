@@ -40,7 +40,7 @@ public sealed class CpTenantFeaturesWriteTests
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"save_feature_flags\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"site_key\"", razor, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", razor, StringComparison.Ordinal);
         Assert.Contains("Integrations hub", razor, StringComparison.Ordinal);
         Assert.Contains("How it works", razor, StringComparison.Ordinal);
         Assert.Contains("ListTenantsAsync", razor, StringComparison.Ordinal);

@@ -32,7 +32,7 @@
     @if (_isMasterPlanning)
     {
         <div class="epc-erp-empty" style="display:block;margin:0 0 12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-            Persisted MRP planned orders are shown below. Regeneration accepts submitted demand/on-hand inputs; PHP remains authoritative for schema creation and the Classic fallback.
+            Persisted MRP planned orders are shown below. Regeneration accepts submitted demand/on-hand inputs.
         </div>
         <form method="post" action="@EcomAeRoutes.ErpAjaxMfgrMrpRun" style="margin:0 0 12px;padding:10px;border:1px solid #dbe4ea;background:#fff">
             <input type="hidden" name="confirmWrites" value="true" />
@@ -42,7 +42,7 @@
                 <div class="col-md-4"><label>Demand JSON</label><input class="form-control input-sm" name="demand" placeholder='{"1001":10}' required /></div>
                 <div class="col-md-4"><label>On-hand JSON</label><input class="form-control input-sm" name="onHand" placeholder='{"1001":2}' /></div>
             </div>
-            <p class="text-muted" style="margin:.5rem 0">JSON keys are item IDs. This guarded action replaces prior company MRP rows and writes planned production/purchase rows in PHP-compatible level order.</p>
+            <p class="text-muted" style="margin:.5rem 0">JSON keys are item IDs. This guarded action replaces prior company MRP rows and writes planned production/purchase rows in level order.</p>
             <button type="submit" class="btn btn-sm btn-primary">Regenerate MRP</button>
         </form>
         <div class="epc-erp-table-wrap">
@@ -137,11 +137,11 @@
 <form method="post" action="/erp/order-planning/set-status" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
                 <input type="hidden" name="confirmWrites" value="true" />
-                <label>Item <input class="form-control input-sm" name="item_id" placeholder="Item id" style="width:80px;" /></label>
-                <label>Warehouse <input class="form-control input-sm" name="warehouse_id" placeholder="WH id" style="width:80px;" /></label>
+                <ErpMasterPicker Kind="item" FieldName="item_id" InputId="opl-status-item" Label="Item" />
+                <ErpMasterPicker Kind="warehouse" FieldName="warehouse_id" InputId="opl-status-wh" Label="Warehouse" />
                 <label>ROQ <input class="form-control input-sm" name="roq" placeholder="0" style="width:80px;" /></label>
                 <label>Value <input class="form-control input-sm" name="value" placeholder="0" style="width:80px;" /></label>
-                <label>Supplier <input class="form-control input-sm" name="supplier" placeholder="Supplier" style="width:140px;" /></label>
+                <ErpMasterPicker Kind="supplier" FieldName="supplier" InputId="opl-status-vendor" Label="Supplier" ValueMode="name" />
                 <label>Status
                     <select class="form-control input-sm" name="status">
                         <option value="pending">pending</option>
@@ -156,15 +156,15 @@
 <form method="post" action="@EcomAeRoutes.ErpOrderPlanningParamsSave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
                 <input type="hidden" name="confirmWrites" value="true" />
-                <label>Item <input class="form-control input-sm" name="item_id" placeholder="Item id" style="width:80px;" required /></label>
-                <label>Warehouse <input class="form-control input-sm" name="warehouse_id" placeholder="WH id" style="width:80px;" required /></label>
+                <ErpMasterPicker Kind="item" FieldName="item_id" InputId="opl-params-item" Label="Item" Required="true" Min="1" />
+                <ErpMasterPicker Kind="warehouse" FieldName="warehouse_id" InputId="opl-params-wh" Label="Warehouse" Required="true" Min="1" />
                 <label>Lead time <input class="form-control input-sm" name="lead_time_days" value="30" style="width:70px;" /></label>
                 <label>Service % <input class="form-control input-sm" name="target_service_level" value="90" style="width:70px;" /></label>
                 <label>Review days <input class="form-control input-sm" name="review_period_days" value="30" style="width:70px;" /></label>
                 <label>Min qty <input class="form-control input-sm" name="min_order_qty" placeholder="0" style="width:80px;" /></label>
                 <label>Multiple <input class="form-control input-sm" name="order_multiple" placeholder="0" style="width:80px;" /></label>
                 <label>Buffer <input class="form-control input-sm" name="manual_buffer" placeholder="0" style="width:80px;" /></label>
-                <label>Supplier <input class="form-control input-sm" name="supplier" placeholder="Supplier" style="width:140px;" /></label>
+                <ErpMasterPicker Kind="supplier" FieldName="supplier" InputId="opl-params-vendor" Label="Supplier" ValueMode="name" />
                 <label>Stocked
                     <select class="form-control input-sm" name="stocked">
                         <option value="0">no</option>
@@ -214,7 +214,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Live: <code>opl_set_status</code>. Confirm, draft POs, and autoplan stay Classic.
+        Source: @_source. Live: <code>opl_set_status</code>. Confirm, draft POs, and autoplan are not available on this page.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
@@ -281,7 +281,7 @@
         {
             _isMasterPlanning = true;
             _title = "Master planning";
-            _subtitle = "Persisted MRP planned orders from the PHP-owned manufacturing planning tables.";
+            _subtitle = "Persisted MRP planned orders from the manufacturing planning tables.";
             _phpTab = "/ERP/?epc_erp_shell=1&area=planning&tab=master_planning";
             _listHref = "/erp/order-planning-app?tab=master_planning";
         }

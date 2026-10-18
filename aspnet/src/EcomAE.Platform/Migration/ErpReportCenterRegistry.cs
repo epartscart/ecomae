@@ -21,7 +21,7 @@ public static class ErpReportCenterRegistry
         string? Table = null,
         string? FallbackTable = null);
 
-    /// <summary>All 33 PHP report-center registry entries.</summary>
+    /// <summary>PHP report-center registry plus the ASP.NET P&amp;L and balance-sheet peeks.</summary>
     public static IReadOnlyList<Entry> All { get; } =
     [
         new("ap_vendor_list", "ap", "Vendor list", "All suppliers / vendors on file.", SourceKind.Computed),
@@ -37,7 +37,9 @@ public static class ErpReportCenterRegistry
         new("proc_categories", "purchasing", "Procurement categories", "Category hierarchy.", SourceKind.Table, "epc_proc_category"),
         new("tax_withholding", "tax", "Withholding register", "Withholding tax transactions.", SourceKind.Table, "epc_wht_txn"),
         new("tax_er_runs", "tax", "Electronic reporting runs", "Generated electronic reporting runs.", SourceKind.Table, "epc_er_run"),
-        new("gl_trial_balance", "finance", "Trial balance", "Account balances as of today.", SourceKind.Computed),
+        new("gl_trial_balance", "finance", "Trial balance", "Date-range trial balance with opening, period debit/credit, and closing.", SourceKind.Computed),
+        new("gl_profit_loss", "finance", "Profit and loss", "Income and expense from the chart of accounts as of today.", SourceKind.Computed),
+        new("gl_balance_sheet", "finance", "Balance sheet", "Assets, liabilities and equity from the chart of accounts as of today.", SourceKind.Computed),
         new("gl_journals", "finance", "Journal register", "General ledger journals.", SourceKind.Table, "epc_erp_gl_journals"),
         new("proc_pos", "purchasing", "Purchase orders", "Purchase orders register.", SourceKind.Table, "epc_erp_purchase_orders"),
         new("sales_orders", "sales", "Sales orders", "Sales orders register.", SourceKind.Table, "epc_erp_sales_orders"),
@@ -61,4 +63,15 @@ public static class ErpReportCenterRegistry
 
     public static Entry? Find(string key) =>
         All.FirstOrDefault(e => string.Equals(e.Key, key, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>Finance top-menu tabs that share the report-center page keep a unique <c>?tab=</c> and a computed peek.</summary>
+    public static string? KeyForNavTab(string? tab)
+        => (tab ?? string.Empty).Trim().ToLowerInvariant() switch
+        {
+            "pl" => "gl_profit_loss",
+            "balance_sheet" => "gl_balance_sheet",
+            "enterprise_reports" or "jw_trial_balance" => "gl_trial_balance",
+            "revenue" => "exec_working_capital",
+            _ => null,
+        };
 }

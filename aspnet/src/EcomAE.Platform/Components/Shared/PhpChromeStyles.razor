@@ -50,15 +50,71 @@
     }
 
     .epc-cp-shell .epc-cp-header-bar a,
-    .epc-erp-cp-shell .epc-erp-topbar a:not(.btn),
+    .epc-erp-cp-shell .epc-erp-topbar a:not(.btn):not(.epc-erp-global-search__hit),
     .epc-erp-cp-shell .epc-erp-topbar__nav,
-    .epc-erp-cp-shell .epc-erp-topbar__user {
-        color: rgba(255, 255, 255, .9);
+    .epc-erp-cp-shell .epc-erp-topbar__user,
+    .epc-erp-cp-shell .epc-erp-topbar__brand,
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-landing,
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-landing label {
+        color: #fff !important;
     }
 
     .epc-cp-shell .epc-cp-header-bar a:hover,
-    .epc-erp-cp-shell .epc-erp-topbar a:not(.btn):hover {
-        color: #fff;
+    .epc-erp-cp-shell .epc-erp-topbar a:not(.btn):not(.epc-erp-global-search__hit):hover {
+        color: #fff !important;
+    }
+
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__input {
+        color: #0f172a !important;
+        background: #fff !important;
+        caret-color: #0f172a;
+        -webkit-text-fill-color: #0f172a;
+    }
+
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__input::placeholder {
+        color: #64748b !important;
+        opacity: 1;
+        -webkit-text-fill-color: #64748b;
+    }
+
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__label {
+        color: #64748b !important;
+    }
+
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__hit,
+    .epc-erp-cp-shell .epc-erp-topbar a.epc-erp-global-search__hit,
+    .epc-erp-cp-shell .epc-erp-topbar a.epc-erp-global-search__hit span,
+    .epc-erp-cp-shell .epc-erp-topbar a.epc-erp-global-search__hit i {
+        color: #0f172a !important;
+    }
+
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__hit small {
+        color: #64748b !important;
+    }
+
+    .epc-erp-cp-shell:has(.ns-dash) .epc-module-visual-frame,
+    .epc-erp-cp-shell:has(.ns-dash) .epc-op-context,
+    .epc-erp-cp-shell:has(.ns-dash) .epc-dash-repeat,
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-module-visual-frame,
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-op-context,
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-company-scope--panel {
+        display: none !important;
+    }
+
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-toolbar {
+        margin-bottom: .15rem;
+    }
+
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-host-sub {
+        margin: 0;
+    }
+
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-title {
+        margin-bottom: .2rem;
+    }
+
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-body {
+        padding-top: .15rem;
     }
 
     .epc-cp-shell .epc-cp-topnav,
@@ -83,6 +139,46 @@
     .epc-cp-shell .epc-cp-content-inner,
     .epc-erp-cp-shell .epc-erp-layout {
         max-width: 1600px;
+    }
+
+    .epc-erp-cp-shell .epc-erp-topbar,
+    .epc-erp-cp-shell .epc-erp-topbar__inner,
+    .epc-erp-cp-shell .epc-erp-global-search {
+        overflow: visible !important;
+    }
+
+    .epc-erp-cp-shell .epc-erp-topbar {
+        position: relative;
+        z-index: 500 !important;
+    }
+
+    .epc-erp-cp-shell .epc-erp-fav__panel {
+        z-index: 10050 !important;
+    }
+
+    .epc-erp-cp-shell .epc-erp-global-search__results {
+        z-index: 9000 !important;
+        width: min(36rem, calc(100vw - 16px)) !important;
+        max-height: min(70vh, 28rem) !important;
+    }
+
+    .epc-erp-cp-shell .epc-erp-topbar__inner,
+    .epc-erp-cp-shell .epc-erp-topnav-inner {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding-left: 4px !important;
+        box-sizing: border-box;
+    }
+
+    .epc-erp-cp-shell .epc-erp-topbar__brand,
+    .epc-erp-cp-shell .epc-erp-topnav-brand {
+        margin-left: 0 !important;
+        padding-left: 2px !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        white-space: nowrap;
+        align-items: center;
     }
 
     .epc-cp-shell .epc-cp-main-pane h1,
@@ -519,13 +615,29 @@
         letter-spacing: .03em;
     }
 
-    .epc-erp-cp-shell a {
+    .epc-erp-cp-shell a:not(.btn):not(.is-active):not(.epc-dash-customize__role) {
         color: var(--epc-erp-accent);
     }
 
-    .epc-erp-cp-shell a:hover {
+    .epc-erp-cp-shell a:not(.btn):not(.is-active):not(.epc-dash-customize__role):hover {
         color: #0e5a93;
         text-decoration: none;
+    }
+
+    .epc-erp-cp-shell a.btn-primary,
+    .epc-erp-cp-shell a.btn-primary:hover,
+    .epc-erp-cp-shell a.btn-primary:focus,
+    .epc-erp-cp-shell a.is-active,
+    .epc-erp-cp-shell a.is-active:hover,
+    .epc-erp-cp-shell a.is-active:focus,
+    .epc-erp-cp-shell .pm-module-tabs a.btn-primary,
+    .epc-erp-cp-shell .pm-module-tabs a.btn-primary:hover,
+    .epc-erp-cp-shell .epc-jw-panel-nav a.is-active,
+    .epc-erp-cp-shell .epc-jw-panel-nav a.is-active:hover,
+    .epc-erp-cp-shell .epc-dash-customize__role:hover,
+    .epc-erp-cp-shell .epc-dash-customize__role.is-active,
+    .epc-erp-cp-shell .epc-dash-customize__role.is-active:hover {
+        color: #fff !important;
     }
 
     .epc-erp-cp-shell .alert {
@@ -658,6 +770,30 @@
     html, body {
         font-family: var(--epc-php-font);
         font-size: var(--epc-php-font-size);
+    }
+
+    /* Live SSR drops HeadContent on product shells — keep selected-tab contrast in the body stream. */
+    .epc-erp-cp-shell a.btn-primary,
+    .epc-erp-cp-shell a.btn-primary:hover,
+    .epc-erp-cp-shell a.is-active,
+    .epc-erp-cp-shell a.is-active:hover,
+    .epc-erp-cp-shell .pm-module-tabs a.btn-primary,
+    .epc-erp-cp-shell .epc-jw-panel-nav a.is-active,
+    .epc-erp-cp-shell .epc-dash-customize__role:hover,
+    .epc-erp-cp-shell .epc-dash-customize__role.is-active {
+        color: #fff !important;
+    }
+
+    /* The accent rule paints every link blue. On the navy bar that blue disappears. */
+    .epc-cp-shell .epc-cp-header-bar a,
+    .epc-erp-cp-shell .epc-erp-topbar a:not(.btn):not(.epc-erp-global-search__hit),
+    .epc-erp-cp-shell .epc-erp-topbar a:not(.btn):not(.epc-erp-global-search__hit):hover,
+    .epc-erp-cp-shell .epc-erp-topbar__nav,
+    .epc-erp-cp-shell .epc-erp-topbar__user,
+    .epc-erp-cp-shell .epc-erp-topbar__brand,
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-landing,
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-landing label {
+        color: #fff !important;
     }
 </style>
 

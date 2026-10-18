@@ -12,8 +12,8 @@ namespace EcomAE.Platform.Storefront;
 public static partial class StorefrontPhpAjax
 {
     public const string CommerceChooseFile = "Choose an Excel/CSV file, or paste a file URL";
-    public const string CommerceFileStaysClassic = "File ingest stays on the classic importer.";
-    public const string CommerceUrlStaysClassic = "URL refresh stays on the classic importer.";
+    public const string CommerceFileStaysClassic = "File ingest is not available on this page.";
+    public const string CommerceUrlStaysClassic = "URL refresh is not available on this page.";
     public const string CommercePricesMissing = "Price lists are not in this database.";
 
     private static readonly Regex CommercePurchaseName = new(@"\.P$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);

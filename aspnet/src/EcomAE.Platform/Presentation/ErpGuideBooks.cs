@@ -16,6 +16,7 @@ namespace EcomAE.Platform.Presentation;
 /// </summary>
 public static class ErpGuideBooks
 {
+    public const string Areas = "areas";
     public const string Modules = "modules";
     public const string Howto = "howto";
     public const string Full = "full";
@@ -27,6 +28,10 @@ public static class ErpGuideBooks
 
     public static IReadOnlyList<Book> All { get; } =
     [
+        new(Areas, "How to use every area",
+            "Every menu area, in the order the work happens. Open a numbered step to do that work.",
+            "/erp/guide-app",
+            []),
         new(Modules, "ERP module book",
             "Step-by-step module guide from epc_guide_modules() — What it is, Setup, Daily work, Accounting impact, Tips.",
             "/ERP/?epc_erp_shell=1&area=overview&tab=guide",
@@ -55,10 +60,28 @@ public static class ErpGuideBooks
 
     public static Book Get(string? key)
     {
-        var needle = string.IsNullOrWhiteSpace(key) ? Modules : key.Trim();
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return ByKey(Areas);
+        }
+
+        var needle = key.Trim();
         foreach (var book in All)
         {
             if (book.Key.Equals(needle, StringComparison.OrdinalIgnoreCase))
+            {
+                return book;
+            }
+        }
+
+        return ByKey(Modules);
+    }
+
+    private static Book ByKey(string key)
+    {
+        foreach (var book in All)
+        {
+            if (book.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
             {
                 return book;
             }
@@ -91,11 +114,11 @@ public static class ErpGuideBooks
             "Work left-to-right: Sales / Purchases → Cash & bank → Chart of accounts → GL → P&L → Balance sheet.",
             [
                 "Open ERP module (Shop → ERP Finance, or the Open ERP button).",
-                "Live numbers on the PHP page are this company’s current books — not demo placeholders. They need the tenant shop database; without it the snapshot stays empty.",
+                "Live numbers on this page are this company’s current books — not demo placeholders. They need the tenant shop database; without it the snapshot stays empty.",
                 "Red amounts are negative (money out / overdrawn / credit balance).",
             ]),
         OperatorGuidesCatalog.Ch("Live numbers — what each figure means",
-            "PHP snapshot table (refreshed from the company DB).",
+            "Snapshot table (refreshed from the company DB).",
             [
                 "Sales revenue (ex VAT) — completed shop orders this month, before VAT. Open / in-progress orders do not count until status is Completed.",
                 "Gross margin — sales revenue minus purchase cost on those same completed orders (operational view — not the full P&L).",
@@ -109,7 +132,7 @@ public static class ErpGuideBooks
                 "Masters loaded — suppliers, purchase bills, cash accounts, warehouses (stock locations — not the same as suppliers).",
             ]),
         OperatorGuidesCatalog.Ch("Key terms (read once)",
-            "PHP legend.",
+            "Legend.",
             [
                 "Revenue vs P&L — dashboard revenue / margin come from completed orders. P&L comes from posted GL journals. Post sales to GL to keep them aligned.",
                 "Due vs wallet — Unpaid orders = money tied to invoices. Wallet balance = prepaid customer ledger. Both can be non-zero at once.",
@@ -168,7 +191,7 @@ public static class ErpGuideBooks
                 "P&L — total revenue minus expenses = net profit. Balance sheet — assets, liabilities, equity. Current period earnings sit in equity until year-end close.",
             ]),
         OperatorGuidesCatalog.Ch("Order planning, Supplier portal & dashboard",
-            "PHP “step by step” enterprise modules.",
+            "Step-by-step enterprise modules.",
             [
                 "Order planning — forecast demand, safety stock and reorder point per item × warehouse; Confirm / Confirm all due; ABC/XYZ; Redistribution; Exceptions.",
                 "Process flow — define step chains; Approve & route; Monitor GPS-style tracker; Org map; Workforce; Hierarchy.",
@@ -204,7 +227,7 @@ public static class ErpGuideBooks
                 "Go live — start daily transactions; use each module’s Reports & inquiries tab to monitor.",
             ]),
         OperatorGuidesCatalog.Ch("Industry document workflows — which document at which stage",
-            "End-to-end document chain per industry: who prepares it, the stage, and the posting impact. PHP epc_flow_registry().",
+            "End-to-end document chain per industry: who prepares it, the stage, and the posting impact.",
             [
                 "General Trading / Retail — PR → RFQ → SQ → PO → GRN → BILL → PV → EST → SO → DO → INV → RV.",
                 "Jewellery & Diamond — buy bullion → make → hallmark → sell (WO / MI / QC / FG plus old-gold CRN).",
@@ -256,7 +279,7 @@ public static class ErpGuideBooks
                 "Install more country kits any time from the Tax Toolkit.",
             ]),
         OperatorGuidesCatalog.Ch("Procurement, sales, RFQ, planning, landed cost",
-            "PHP module reference.",
+            "Module reference.",
             [
                 "Procurement & suppliers — input tax, stock and average cost, supplier balances.",
                 "Sales & invoicing — tax-correct invoices and credit notes in any currency. Convert an accepted CRM quote straight into an order.",

@@ -55,6 +55,8 @@ public sealed class ErpPhpTabRouteMapTests
     [InlineData("ap_setup", "/erp/suppliers-app?tab=ap_setup")]
     [InlineData("ar_setup", "/erp/contacts-app?tab=ar_setup")]
     [InlineData("staff", "/erp/staff-app")]
+    [InlineData("users", "/erp/users-app")]
+    [InlineData("user_control", "/erp/user-control-app")]
     [InlineData("contracts", "/erp/contracts-app")]
     [InlineData("retail_commerce", "/erp/retail-commerce-app?tab=channels")]
     [InlineData("retail_barcode", "/erp/retail-commerce-app?tab=barcode")]
@@ -72,13 +74,25 @@ public sealed class ErpPhpTabRouteMapTests
     [InlineData("product_info", "/erp/product-info-app")]
     [InlineData("report_scheduler", "/erp/report-scheduler-app")]
     [InlineData("project_accounting", "/erp/project-accounting-app")]
+    [InlineData("real_estate", "/erp/real-estate-app")]
     [InlineData("doc_attachment", "/erp/doc-attachments-app")]
     [InlineData("inventory_report", "/erp/inventory-report-app")]
-    [InlineData("dashboard", "/erp")]
+    [InlineData("dashboard", "/erp/dashboard-summary-app")]
+    [InlineData("enterprise_reports", "/erp/trial-balance-app")]
+    [InlineData("jw_trial_balance", "/erp/trial-balance-app")]
+    [InlineData("pl", "/erp/report-center-app?tab=pl")]
+    [InlineData("balance_sheet", "/erp/report-center-app?tab=balance_sheet")]
+    [InlineData("reports", "/erp/report-center-app?tab=reports")]
+    [InlineData("multi_entity", "/erp/multi-entity-app")]
+    [InlineData("account_operations", "/erp/account-operations-app")]
     [InlineData("exec_dashboard", "/erp")]
     [InlineData("ext_reports", "/erp/tax-external-reporting-app")]
     [InlineData("external_reports", "/erp/tax-external-reporting-app")]
     [InlineData("custom_shipping", "/erp/carriers-app")]
+    [InlineData("business_units", "/erp/organization-app?tab=business_units")]
+    [InlineData("org_admin", "/erp/organization-app?tab=legal_entities")]
+    [InlineData("legal_entities", "/erp/organization-app?tab=legal_entities")]
+    [InlineData("cost_centres", "/erp/organization-app?tab=cost_centres")]
     public void KnownTabsMapToDedicatedApps(string tab, string expected)
     {
         Assert.True(ErpPhpTabRouteMap.TryMapTab(tab, out var href));
@@ -128,13 +142,18 @@ public sealed class ErpPhpTabRouteMapTests
     [Theory]
     [InlineData("/ERP/?epc_erp_shell=1&area=ap&tab=payables", "/erp/payables-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=ar&tab=receivables", "/erp/receivables-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=ap", "/erp/payables-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=ar", "/erp/receivables-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=purchasing", "/erp/purchase-orders-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=sales", "/erp/sales-orders-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll", "/erp/collections-dunning-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=banking", "/erp/cash-accounts-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/gl-journals-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=ap", "/erp/payables-workspace-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=ar", "/erp/receivables-workspace-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=purchasing", "/erp/procurement-workspace-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=leave_abs", "/erp/leave-absence-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=master_planning_area", "/erp/master-planning-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=mhei", "/erp/mhei-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=payroll_area", "/erp/payroll-workspace-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=enterprise", "/erp/organization-admin-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=sales", "/erp/sales-workspace-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll", "/erp/credit-collections-workspace-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=banking", "/erp/cash-bank-workspace-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/general-ledger-workspace-app")]
     public void AreaAndTabHubsMatchModuleNames(string php, string expected)
     {
         Assert.Equal(expected, PhpSurfaceLinkMap.AspNetPrimaryHref(php));
@@ -183,7 +202,7 @@ public sealed class ErpPhpTabRouteMapTests
     }
 
     [Fact]
-    public void CatalogErpTabs_AllMapped_154Of154()
+    public void CatalogErpTabs_AllMapped_158Of158()
     {
         var root = FindRepoRoot();
         var catalogPath = Path.Combine(root, "aspnet/src/EcomAE.Platform/Presentation/Generated/php_module_catalog.json");
@@ -204,7 +223,7 @@ public sealed class ErpPhpTabRouteMapTests
             }
         }
 
-        Assert.Equal(154, total);
+        Assert.Equal(158, total);
         Assert.True(missing.Count == 0, "Unmapped catalog ERP tabs: " + string.Join(", ", missing));
     }
 

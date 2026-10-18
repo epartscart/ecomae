@@ -84,9 +84,9 @@ public static partial class StorefrontPhpAjax
                 "supplier_fulfillment_set_stage" => await orders.SetFulfillmentStageAsync(orderId, OmsField(fields, "supplier_key"), OmsField(fields, "stage"), OmsField(fields, "notes"), adminId, cancellationToken).ConfigureAwait(false),
                 "supplier_fulfillment_advance" => await orders.AdvanceFulfillmentAsync(orderId, OmsField(fields, "supplier_key"), adminId, cancellationToken).ConfigureAwait(false),
                 "lookup_warehouse_price" => ErpSimpleWriteResult.Fail("classic", "Warehouse price lookup stays on the price list."),
-                "list_messages" => ErpSimpleWriteResult.Fail("classic", "Order messages stay on the classic reader."),
+                "list_messages" => ErpSimpleWriteResult.Fail("classic", "Order messages are not available on this page."),
                 "erp_document_map" => ErpSimpleWriteResult.Fail("classic", OmsErpMapNotRead),
-                "supplier_fulfillment_status" => ErpSimpleWriteResult.Fail("classic", "Supplier fulfillment status stays on the classic reader."),
+                "supplier_fulfillment_status" => ErpSimpleWriteResult.Fail("classic", "Supplier fulfillment status is not available on this page."),
                 _ => ErpSimpleWriteResult.Fail("unknown", "Unknown action"),
             };
             if (!written.Succeeded)

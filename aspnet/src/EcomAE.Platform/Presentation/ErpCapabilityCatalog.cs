@@ -12,9 +12,10 @@ public static class ErpCapabilityCatalog
         new("Sales", "sales", "Quotations, orders, fulfilment, invoices, collections, and returns", "/erp/sales-orders-app", "fa-line-chart", "rust"),
         new("Inventory", "inventory", "Warehouses, stock, transfers, counts, planning, and quality", "/erp/inventory-stock-app", "fa-cubes", "slate"),
         new("Projects / fit-out", "projects", "BOQ, contracts, cost codes, site reports, claims, and project P&L", "/erp/project-accounting-app", "fa-building", "amber"),
+        new("Real estate", "real_estate", "Investment, property, leasing, development, construction and ROI", "/erp/real-estate-app", "fa-home", "teal"),
         new("Jewellery", "jewellery", "Metal and diamond masters, karat, workshop, tourist VAT, and verification", "/erp/jewellery-masters-app", "fa-diamond", "gold"),
         new("HR / payroll", "people", "People, leave, attendance, payroll, and recruitment", "/erp/payroll-app", "fa-users", "teal"),
-        new("Administration", "administration", "Setup, users, roles, module packs, audit, and integrations", "/erp/user-control-app", "fa-shield", "blue"),
+        new("Administration", "administration", "Setup, users, roles, module packs, audit, and integrations", "/erp/users-app", "fa-shield", "blue"),
     ];
 
     public static IReadOnlyList<string> Actions { get; } =
@@ -45,6 +46,13 @@ public static class ErpCapabilityCatalog
             return true;
         }
 
+        if (IsControlled(session))
+        {
+            return session.AreaGrants!.Any(grant =>
+                GroupEquals(grant.GroupKey, groupKey)
+                && (grant.AllActions || grant.Actions.Count > 0));
+        }
+
         if (session.Modules.Count == 0 || session.Modules.Any(m => m.OpenAccess))
         {
             return true;
@@ -55,13 +63,29 @@ public static class ErpCapabilityCatalog
 
     public static bool CanAction(LegacySessionContext session, string groupKey, string action)
     {
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return false;
+        }
+
+        if (session.Permissions.Contains(EcomAePermissions.SuperErpAccess))
+        {
+            return true;
+        }
+
+        if (IsControlled(session))
+        {
+            return session.AreaGrants!.Any(grant =>
+                GroupEquals(grant.GroupKey, groupKey)
+                && (grant.AllActions || grant.Actions.Any(saved => saved.Equals(action, StringComparison.OrdinalIgnoreCase))));
+        }
+
         if (!CanAccess(session, groupKey))
         {
             return false;
         }
 
-        if (session.Permissions.Contains(EcomAePermissions.SuperErpAccess)
-            || action is "View" or "New" or "Edit" or "Submit" or "Print" or "Export")
+        if (action is "View" or "New" or "Edit" or "Submit" or "Print" or "Export")
         {
             return true;
         }
@@ -70,6 +94,12 @@ public static class ErpCapabilityCatalog
             ModuleMatches(module.Caption, groupKey)
             && module.Caption.Contains(action, StringComparison.OrdinalIgnoreCase));
     }
+
+    private static bool IsControlled(LegacySessionContext session)
+        => session.AreaGrants is { Count: > 0 };
+
+    private static bool GroupEquals(string left, string right)
+        => string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
 
     private static bool ModuleMatches(string caption, string groupKey)
     {
@@ -81,6 +111,7 @@ public static class ErpCapabilityCatalog
             "sales" => new[] { "sales", "invoice", "customer", "order", "quotation", "receivable" },
             "inventory" => new[] { "inventory", "warehouse", "stock", "transfer", "quality" },
             "projects" => new[] { "project", "fit-out", "contract", "boq", "claim" },
+            "real_estate" => new[] { "real estate", "property", "lease", "tenant", "valuation" },
             "jewellery" => new[] { "jewel", "diamond", "karat", "metal", "workshop" },
             "people" => new[] { "hr", "human", "payroll", "staff", "employee", "leave", "attendance" },
             "administration" => new[] { "admin", "security", "role", "user", "integration", "audit" },

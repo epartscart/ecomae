@@ -829,6 +829,8 @@ function epc_jewel_voc_types(): array
         'VRV' => array('label' => 'Tourist VAT Refund', 'module' => 'finance'),
         'PCV' => array('label' => 'Petty Cash', 'module' => 'finance'),
         'JVL' => array('label' => 'Journal Voucher', 'module' => 'finance'),
+        'MFG' => array('label' => 'Manufacture', 'module' => 'stock'),
+        'BTR' => array('label' => 'Branch Transfer', 'module' => 'stock'),
     );
 }
 

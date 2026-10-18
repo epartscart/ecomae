@@ -58,6 +58,8 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
     private readonly IErpGlPostingService _gl;
     private readonly IErpAuditLogWriter _audit;
     private readonly IErpProcessFlowSyncService? _processFlow;
+    private readonly IErpInventoryReservationWriteService? _reservations;
+    private readonly IErpCreditManagementService? _credit;
 
     public ErpSalesInvoiceWriteService(
         IErpWriteConnectionFactory connections,
@@ -66,7 +68,9 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         IErpCashWriteService cash,
         IErpGlPostingService gl,
         IErpAuditLogWriter audit,
-        IErpProcessFlowSyncService? processFlow = null)
+        IErpProcessFlowSyncService? processFlow = null,
+        IErpInventoryReservationWriteService? reservations = null,
+        IErpCreditManagementService? credit = null)
     {
         _connections = connections;
         _vouchers = vouchers;
@@ -75,6 +79,8 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         _gl = gl;
         _audit = audit;
         _processFlow = processFlow;
+        _reservations = reservations;
+        _credit = credit;
     }
 
     /// <summary>PHP <c>epc_einvoice_save_document</c>: advance the order's process-flow case once a tax invoice is saved (best-effort).</summary>
@@ -100,6 +106,10 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (_reservations is not null)
+        {
+            await ErpInventoryReservationWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
 
         // GL/COA/voucher DDL implicitly commits on MySQL, so every schema ensure runs before the
         // single conversion transaction opens.
@@ -141,6 +151,21 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         }
 
         var paymentTerms = await SettingAsync(connection, "payment_terms", "Within 7 days", cancellationToken).ConfigureAwait(false);
+        if (_credit is not null)
+        {
+            var termsDays = ErpCreditBlock.TermsDaysBetween(
+                issueDate,
+                dueDate,
+                ErpCreditBlock.TermsDaysFromText(paymentTerms, 30));
+            await _credit.EnsureAllowsInvoiceAsync(
+                connection,
+                order.CustomerUserId,
+                totalIncl,
+                termsDays,
+                0,
+                cancellationToken).ConfigureAwait(false);
+        }
+
         var paymentMeans = await SettingAsync(connection, "payment_means_code", "30", cancellationToken).ConfigureAwait(false);
         var bankAccount = await SettingAsync(connection, "seller_bank_account", string.Empty, cancellationToken).ConfigureAwait(false);
         var taxBreakdown = BuildTaxBreakdown(lines, subtotal, totalVat);
@@ -300,6 +325,17 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
                 },
                 cancellationToken).ConfigureAwait(false);
 
+            if (_reservations is not null)
+            {
+                await _reservations.ConsumeBySourceAsync(
+                    connection,
+                    transaction,
+                    ErpInventoryReservationWriteService.SourceSalesOrder,
+                    salesOrderId,
+                    adminId,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch (DbException ex)
@@ -315,6 +351,24 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
 
         await ErpSaleDemand.RecordForSavedInvoiceAsync(connection, invoiceId, adminId, cancellationToken).ConfigureAwait(false);
         await SyncOrderCaseAsync(order.ShopOrderId, adminId, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await ErpD365LinkWriteService.RecordOfficialAsync(
+                connection,
+                "sm_all_orders",
+                salesOrderId,
+                order.SoNo,
+                "sm_invoice",
+                invoiceId,
+                invoiceNumber,
+                adminId,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is DbException or InvalidOperationException)
+        {
+            _ = ex;
+        }
+
         return new ErpSoToInvoiceResult(salesOrderId, invoiceId, invoiceNumber, subtotal, totalVat, totalIncl, ledgerId, glJournalId);
     }
 
@@ -408,6 +462,7 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         }
 
         var buyerCountry = Value(buyer, "buyer_country_code").ToUpperInvariant();
+        errors.AddRange(ErpAmlProgramme.InvoiceRestrictions(buyerCountry, sellerCountry));
         var buyerTrn = Digits(Value(buyer, "buyer_trn"));
         if (buyerTrn.Length > 0 && !TaxRegistrationValid(buyerCountry, buyerTrn))
         {

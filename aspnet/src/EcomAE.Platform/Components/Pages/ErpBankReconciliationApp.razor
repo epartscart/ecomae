@@ -19,6 +19,11 @@
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
+    @if (!string.IsNullOrWhiteSpace(_flash))
+    {
+        <div class="alert @(_flashOk ? "alert-success" : "alert-warning")" style="margin:0 0 12px">@_flash</div>
+    }
+
     <p class="text-muted" style="margin:8px 0 12px;">
         <a href="/erp/bank-reconciliation-app">Bank recon</a>
         · <a href="/erp/bank-reconciliation-app?tab=bank_instruments">Bank instruments</a>
@@ -87,7 +92,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Account</dt><dd>@AccountLabel(_opened.AccountId, _opened.AccountName)</dd>
                 <dt>Line date</dt><dd>@FormatTime(_opened.LineDate)</dd>
@@ -176,6 +181,34 @@
 
 </PhpErpDesktopChrome>
 
+<ErpPhpCreateWell Title="Import statement CSV">
+<form method="post" action="/erp/bank-reconciliation/import" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                @if (ImportAccounts.Count > 0)
+                {
+                    <label>Account
+                        <select class="form-control input-sm" name="account_id">
+                            <option value="0">(select)</option>
+                            @foreach (var account in ImportAccounts)
+                            {
+                                <option value="@account.AccountId.ToString(CultureInfo.InvariantCulture)">@AccountLabel(account.AccountId, account.AccountName)</option>
+                            }
+                        </select>
+                    </label>
+                }
+                else
+                {
+                    <ErpMasterPicker Kind="account" FieldName="account_id" InputId="bank-import-account" Label="Cash account" Required="true" Min="1" />
+                }
+                <label>CSV
+                    <textarea class="form-control input-sm" name="csv_text" rows="4" required placeholder="date,description,reference,amount&#10;2026-10-01,Receipt,INV-1,150.00" style="width:22rem;"></textarea>
+                </label>
+                <button type="submit" class="btn btn-primary btn-sm">Import</button>
+            </form>
+            <p class="text-muted" style="margin:0">Columns: date, description, reference, amount. The first row is skipped when it looks like a header.</p>
+</ErpPhpCreateWell>
+
 <ErpPhpCreateWell Title="Match statement line">
 <form method="post" action="/erp/bank-reconciliation/match" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
@@ -240,7 +273,9 @@
     private const string _listHref = "/erp/bank-reconciliation-app";
     private string _phpTab = "/ERP/?epc_erp_shell=1&area=banking&tab=bank_recon";
     private string _title = "Bank reconciliation";
-    private string _subtitle = "Open a row for statement date and created time. Match and instrument writes stay here.";
+    private string _subtitle = "Open a row for statement date and created time. Import, match, and instrument writes stay here.";
+    private string _flash = "";
+    private bool _flashOk;
     private string _view = "bank_recon";
     private bool _isAdmin;
     private ErpBankReconciliationSummary _summary = new(0, 0, 0, 0, 0, "n/a", "");
@@ -261,6 +296,12 @@
                 ? _opened.Reference
                 : ("Line #" + _opened.Id.ToString(CultureInfo.InvariantCulture))));
 
+    private IReadOnlyList<ErpBankStatementLineDigest> ImportAccounts =>
+        _lines.Where(line => line.AccountId > 0)
+            .GroupBy(line => line.AccountId)
+            .Select(group => group.First())
+            .ToList();
+
     private string OpenedReturnHref => _openedId > 0
         ? _listHref + "?recon_line_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
         : _listHref;
@@ -269,6 +310,11 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        var ok = ctx.Request.Query["ok"].ToString();
+        var err = ctx.Request.Query["err"].ToString();
+        if (!string.IsNullOrWhiteSpace(ok)) { _flash = ok; _flashOk = true; }
+        else if (!string.IsNullOrWhiteSpace(err)) { _flash = err; _flashOk = false; }
 
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "recon_line_id");
         var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
@@ -280,7 +326,7 @@
         _title = _view == "bank_instruments" ? "Bank instruments" : "Bank reconciliation";
         _subtitle = _view == "bank_instruments"
             ? "Letters of credit, guarantees and SBLC with outstanding exposure."
-            : "Open a row for statement date and created time. Match and instrument writes stay here.";
+            : "Open a row for statement date and created time. Import, match, and instrument writes stay here.";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

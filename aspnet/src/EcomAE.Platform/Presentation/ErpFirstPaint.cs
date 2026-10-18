@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Diagnostics;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Presentation;
 
@@ -24,6 +25,22 @@ public static class ErpFirstPaint
     private static readonly AsyncLocal<HttpContext?> Bound = new();
 
     public static HttpContext? Current => Bound.Value;
+
+    /// <summary>
+    /// Login posts must not share the catalog connection pool or the 1s first-paint cap.
+    /// A saturated shop pool was returning login_backend_error while the page itself still rendered.
+    /// </summary>
+    public static bool IsLoginPath(PathString path)
+    {
+        var value = path.Value ?? string.Empty;
+        if (value.EndsWith("/login", StringComparison.OrdinalIgnoreCase)
+            || value.EndsWith("/login/", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return ClientErpPath.TryParse(value, out var parsed) && parsed.IsLoginRoot;
+    }
 
     public static bool IsErpPath(PathString path)
     {

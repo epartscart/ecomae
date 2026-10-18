@@ -17,7 +17,8 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Customer groups" Subtitle="Open a row for the 280-character description excerpt. Create and assign stay on this page." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Customer groups" Subtitle="Open a row for the 280-character description excerpt. Create and assign stay on this page. A group code is a price level on Pricing." PhpTabHref="@_phpTab" />
+    <p class="text-muted"><a href="/erp/pricing-app">Pricing</a> sets wholesale, retail, customer, country, and group margins.</p>
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
@@ -56,7 +57,7 @@
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="/erp/customer-groups-app" />
                 <label>Group id <input class="form-control input-sm" name="group_id" type="number" min="1" required /></label>
-                <label>Customer id <input class="form-control input-sm" name="customer_id" type="number" min="1" required /></label>
+                <ErpMasterPicker Kind="customer" FieldName="customer_id" InputId="customer-group-assign" Label="Customer" Required="true" Min="1" />
                 <button type="submit" class="btn btn-primary btn-sm">Assign customer</button>
             </form>
         </ErpPhpCreateWell>
@@ -69,7 +70,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Id</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Code</dt><dd>@(string.IsNullOrWhiteSpace(_opened.GroupCode) ? "—" : _opened.GroupCode)</dd>
                 <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.GroupName) ? "—" : _opened.GroupName)</dd>
@@ -83,7 +84,7 @@
                 <dt>Status</dt><dd>@(_opened.IsActive ? "active" : "inactive")</dd>
                 <dt>Created</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Create and assign stay on this page. Schema-ensure stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Create and assign stay on this page. Schema-ensure is not available on this page.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">description excerpt</p>
@@ -162,7 +163,7 @@
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Source: @_source.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
-        Customer group create and assign are live when confirmed. Schema-ensure stays Classic.
+        Customer group create and assign are live when confirmed. Schema-ensure is not available on this page.
     </div>
 </PhpErpDesktopChrome>
 

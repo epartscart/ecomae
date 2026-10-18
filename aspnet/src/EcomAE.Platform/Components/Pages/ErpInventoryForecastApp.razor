@@ -19,8 +19,8 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Inventory forecast" Subtitle="Open a row for site key, lead time, safety stock, and EOQ. Recompute writes here." PhpTabHref="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" />
-    <PhpErpD365ActionPane PhpTabHref="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" RefreshHref="@Nav.Uri" />
+    <PhpErpModulePageHeader Title="Inventory forecast" Subtitle="Open a row for site key, lead time, safety stock, and EOQ. Recompute writes here." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     @if (!string.IsNullOrWhiteSpace(_flash))
     {
@@ -47,7 +47,7 @@
                     </select>
                 </label>
             }
-            <label style="margin-right:8px">SKU <input name="sku" required style="width:9rem" /></label>
+            <ErpMasterPicker Kind="item" FieldName="sku" InputId="forecast-recompute-sku" Label="Item" ValueMode="code" Required="true" />
             <label style="margin-right:8px">Stock <input type="number" name="currentStock" value="0" min="0" style="width:5rem" /></label>
             <label style="margin-right:8px">Name <input name="productName" style="width:10rem" /></label>
             <label style="margin-right:8px">Lead days <input type="number" name="leadTimeDays" value="7" min="1" style="width:4rem" /></label>
@@ -71,7 +71,7 @@
                     </select>
                 </label>
             }
-            <label style="margin-right:8px">SKU <input name="sku" required style="width:9rem" /></label>
+            <ErpMasterPicker Kind="item" FieldName="sku" InputId="forecast-demand-sku" Label="Item" ValueMode="code" Required="true" />
             <label style="margin-right:8px">Period <input type="date" name="period" required style="width:9rem" /></label>
             <label style="margin-right:8px">Sold <input type="number" name="qtySold" min="0" value="0" style="width:5rem" /></label>
             <label style="margin-right:8px">Returned <input type="number" name="qtyReturned" min="0" value="0" style="width:5rem" /></label>
@@ -107,7 +107,7 @@
             Fields="@ForecastWorkspaceFields"
             Lines="@ForecastWorkspaceLines"
             Tabs="@ForecastWorkspaceTabs" />
-            <p class="text-muted" style="margin:.85rem 0 0">Recompute writes stay here. Guarded demand-history recording is live; schema ownership stays PHP.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Recompute writes stay here. Guarded demand-history recording is live.</p>
             @if (_openedSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-status siblings</p>
@@ -197,7 +197,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Recompute and demand-history recording are live on the guarded twin; schema ownership stays PHP.
+        Source: @_source. Recompute and demand-history recording are live on this workspace.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

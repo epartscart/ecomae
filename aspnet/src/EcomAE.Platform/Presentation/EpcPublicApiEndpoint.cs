@@ -308,6 +308,21 @@ public static class EpcPublicApiEndpoint
             {
                 return PowerBiResult(context, "gl", auth.SiteKey, await EpcPowerBiRead.GlAsync(connection, from, to, cancellationToken).ConfigureAwait(false));
             }
+
+            if (route.Equals("powerbi/sales-profitability", StringComparison.OrdinalIgnoreCase))
+            {
+                return PowerBiResult(
+                    context,
+                    ErpSalesProfitability.DatasetId,
+                    auth.SiteKey,
+                    await EpcPowerBiRead.SalesProfitabilityAsync(
+                        connection,
+                        from,
+                        to,
+                        context.Request.Query["customer"].ToString(),
+                        context.Request.Query["item"].ToString(),
+                        cancellationToken).ConfigureAwait(false));
+            }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -600,6 +615,7 @@ public static class EpcPublicApiEndpoint
                 Dataset("stock", "Inventory stock", "On-hand qty, average cost, and stock value by SKU/warehouse.", ["json", "csv"], "scheduled"),
                 Dataset("gl", "GL trial balance", "Chart-of-accounts trial balance lines.", ["json", "csv"], "scheduled", new Dictionary<string, string> { ["to"] = "YYYY-MM-DD optional as-of date" }),
                 Dataset("metrics", "BI metric snapshots", "Latest materialized KPI snapshots from the BI metrics engine (when computed).", ["json", "csv"], "scheduled"),
+                Dataset("sales-profitability", "Sales profitability performance", "Posted sales lines with revenue, average inventory cost, gross margin and margin percent.", ["json", "csv"], "scheduled", new Dictionary<string, string> { ["from"] = "YYYY-MM-DD", ["to"] = "YYYY-MM-DD", ["customer"] = "name contains", ["item"] = "SKU or description" }),
             },
             ["auth"] = new Dictionary<string, object?>
             {

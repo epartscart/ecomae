@@ -25,6 +25,10 @@ public interface IErpInventoryMovementWriteService
 
     Task<ErpSimpleWriteResult> CreateItemAsync(ErpInventoryItemWriteRequest request, CancellationToken cancellationToken = default);
 
+    Task<ErpSimpleWriteResult> SavePartProfileAsync(long itemId, ErpItemPartProfile profile, CancellationToken cancellationToken = default);
+
+    Task<ErpItemPartProfile?> LoadPartProfileAsync(long itemId, CancellationToken cancellationToken = default);
+
     Task<ErpSimpleWriteResult> RunClosingAsync(string? periodEnd, long warehouseId, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> ImportCsvAsync(ErpInventoryCsvImportRequest request, CancellationToken cancellationToken = default);
@@ -1277,6 +1281,175 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
             now,
             itemId,
             serial);
+    }
+
+    public async Task<ErpSimpleWriteResult> SavePartProfileAsync(
+        long itemId,
+        ErpItemPartProfile profile,
+        CancellationToken cancellationToken = default)
+    {
+        if (itemId <= 0 || !ErpItemPartProfile.IsKnownKind(profile.Kind))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Item and part kind required");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
+        var markup = profile.MarkupPercent;
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "UPDATE `epc_erp_inv_items` SET `product_type` = ?, `manufacturer_part` = ?, `purchase_price` = ?, `standard_cost` = ?, `sales_price` = ?,"
+                + " `cogs_account` = ?, `income_account` = ?, `asset_account` = ?, `preferred_vendor_name` = ?, `reorder_level` = ?, `reorder_max` = ?,"
+                + " `markup_percent` = ?, `purchase_description` = ?, `sales_description` = ?, `opening_on_hand` = ?, `part_inactive` = ?, `active` = ?"
+                + " WHERE `id` = ?"),
+            cancellationToken,
+            profile.Kind,
+            profile.ManufacturerPart,
+            profile.Cost,
+            profile.Cost,
+            profile.SalesPrice,
+            profile.CogsAccount,
+            profile.IncomeAccount,
+            profile.AssetAccount,
+            profile.PreferredVendor,
+            profile.ReorderMin,
+            profile.ReorderMax,
+            markup,
+            profile.PurchaseDescription,
+            profile.SalesDescription,
+            profile.OnHand,
+            profile.Inactive ? 1 : 0,
+            profile.Inactive ? 0 : 1,
+            itemId).ConfigureAwait(false);
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("DELETE FROM `epc_erp_inv_item_bom` WHERE `assembly_item_id` = ?"),
+            cancellationToken,
+            itemId).ConfigureAwait(false);
+        if (profile.IsAssembly)
+        {
+            var lineNo = 1;
+            foreach (var line in profile.Bom)
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional(
+                        "INSERT INTO `epc_erp_inv_item_bom` (`assembly_item_id`,`line_no`,`component_sku`,`description`,`qty`,`unit_cost`,`unit`) VALUES (?,?,?,?,?,?,?)"),
+                    cancellationToken,
+                    itemId,
+                    lineNo++,
+                    line.Sku,
+                    line.Description,
+                    line.Qty,
+                    line.Cost,
+                    line.Unit).ConfigureAwait(false);
+            }
+        }
+
+        return ErpSimpleWriteResult.Ok(profile.KindLabel + " saved", itemId);
+    }
+
+    public async Task<ErpItemPartProfile?> LoadPartProfileAsync(long itemId, CancellationToken cancellationToken = default)
+    {
+        if (itemId <= 0 || !_connections.IsConfigured)
+        {
+            return null;
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText =
+                "SELECT `product_type`, `manufacturer_part`, `standard_cost`, `sales_price`, `cogs_account`, `income_account`, `asset_account`,"
+                + " `preferred_vendor_name`, `reorder_level`, `reorder_max`, `opening_on_hand`, `part_inactive`, `purchase_description`, `sales_description`"
+                + " FROM `epc_erp_inv_items` WHERE `id` = ? LIMIT 1";
+            var id = command.CreateParameter();
+            id.Value = itemId;
+            command.Parameters.Add(id);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            var kind = reader.IsDBNull(0) ? "" : reader.GetString(0);
+            if (!ErpItemPartProfile.IsKnownKind(kind))
+            {
+                return null;
+            }
+
+            var manufacturer = ReadStr(reader, 1);
+            var cost = ReadDec(reader, 2);
+            var salesPrice = ReadDec(reader, 3);
+            var cogs = ReadStr(reader, 4);
+            var income = ReadStr(reader, 5);
+            var asset = ReadStr(reader, 6);
+            var vendor = ReadStr(reader, 7);
+            var reorderMin = ReadDec(reader, 8);
+            var reorderMax = ReadDec(reader, 9);
+            var onHand = ReadDec(reader, 10);
+            var inactive = ReadInt(reader, 11) == 1;
+            var purchaseDescription = ReadStr(reader, 12);
+            var salesDescription = ReadStr(reader, 13);
+            var bom = new List<ErpItemBomLine>();
+            await reader.DisposeAsync().ConfigureAwait(false);
+            if (string.Equals(kind, ErpItemPartProfile.InventoryAssembly, StringComparison.Ordinal))
+            {
+                await using var bomCommand = connection.CreateCommand();
+                bomCommand.CommandText =
+                    "SELECT `component_sku`, `description`, `qty`, `unit_cost`, `unit` FROM `epc_erp_inv_item_bom` WHERE `assembly_item_id` = ? ORDER BY `line_no`, `id`";
+                var bomId = bomCommand.CreateParameter();
+                bomId.Value = itemId;
+                bomCommand.Parameters.Add(bomId);
+                await using var bomReader = await bomCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await bomReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    bom.Add(new ErpItemBomLine(
+                        bomReader.IsDBNull(0) ? "" : bomReader.GetString(0),
+                        bomReader.IsDBNull(1) ? "" : bomReader.GetString(1),
+                        bomReader.IsDBNull(2) ? 0 : bomReader.GetDecimal(2),
+                        bomReader.IsDBNull(3) ? 0 : bomReader.GetDecimal(3),
+                        bomReader.IsDBNull(4) ? "pcs" : bomReader.GetString(4)));
+                }
+            }
+
+            return new ErpItemPartProfile(
+                kind,
+                manufacturer,
+                cost,
+                salesPrice,
+                cogs,
+                income,
+                asset,
+                vendor,
+                reorderMin,
+                reorderMax,
+                onHand,
+                inactive,
+                purchaseDescription,
+                salesDescription,
+                bom);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return null;
+        }
+
+        static string ReadStr(DbDataReader reader, int i) => reader.IsDBNull(i) ? "" : Convert.ToString(reader.GetValue(i), CultureInfo.InvariantCulture) ?? "";
+        static decimal ReadDec(DbDataReader reader, int i) => reader.IsDBNull(i) ? 0 : Convert.ToDecimal(reader.GetValue(i), CultureInfo.InvariantCulture);
+        static int ReadInt(DbDataReader reader, int i) => reader.IsDBNull(i) ? 0 : Convert.ToInt32(reader.GetValue(i), CultureInfo.InvariantCulture);
     }
 
     private static async Task<bool> HasColumnAsync(

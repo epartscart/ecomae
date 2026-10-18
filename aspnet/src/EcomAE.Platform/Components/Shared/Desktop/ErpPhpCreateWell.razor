@@ -1,8 +1,13 @@
 @namespace EcomAE.Platform.Components.Shared
 
-<div class="well well-sm epc-erp-section" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
-    <h5 style="margin:0 0 8px;font-size:14px;"><i class="fa fa-plus-circle" aria-hidden="true"></i> @Title</h5>
-    @ChildContent
+<div class="epc-erp-create-card well well-sm epc-erp-section">
+    <div class="epc-erp-create-card__hd">
+        <i class="fa fa-plus-circle" aria-hidden="true"></i>
+        <span>@Title</span>
+    </div>
+    <div class="epc-erp-create-card__bd">
+        @ChildContent
+    </div>
 </div>
 
 @code {

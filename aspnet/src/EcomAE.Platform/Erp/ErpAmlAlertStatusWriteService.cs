@@ -3,7 +3,7 @@ using System.Data.Common;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_aml_alert_set_status</c> twin. Schema-ensure stays PHP.
+/// Live PHP <c>epc_aml_alert_set_status</c> twin. Schema-ensure matches PHP <c>epc_aml_ensure_schema</c>.
 /// </summary>
 public interface IErpAmlAlertStatusWriteService
 {
@@ -55,6 +55,7 @@ public sealed class ErpAmlAlertStatusWriteService : IErpAmlAlertStatusWriteServi
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpAmlShared.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_aml_transactions", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_aml_transactions", "review_status", cancellationToken).ConfigureAwait(false))
         {

@@ -50,7 +50,6 @@
                 <div class="hpanel">
                     <div class="panel-heading hbuilt">
                         Quote #@qid — @(c.Label.Length > 0 ? c.Label : "Customer #" + c.UserId.ToString(CultureInfo.InvariantCulture))
-                        <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "?quote_id=" + qid)">Classic twin</a>
                     </div>
                     <div class="panel-body">
                         <p><a href="@_listHref">Back to list</a></p>
@@ -376,7 +375,6 @@
             <div class="hpanel">
                 <div class="panel-heading hbuilt">
                     Quote requests
-                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
                 </div>
                 <div class="panel-body">
                     <p class="text-muted">Quotes are for registered (login / register) customers only. Customer name, email, and phone are shown below.</p>

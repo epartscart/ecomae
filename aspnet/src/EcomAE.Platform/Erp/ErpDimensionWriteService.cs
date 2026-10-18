@@ -55,6 +55,7 @@ public sealed class ErpDimensionWriteService : IErpDimensionWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureDimLinksAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_erp_dim_links", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Dimension tables are not provisioned");

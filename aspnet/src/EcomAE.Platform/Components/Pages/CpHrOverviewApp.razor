@@ -19,11 +19,11 @@
                 HR — employee records &amp; salaries
                 <a class="btn btn-xs btn-default pull-right" href="/erp/payroll-app">Payroll</a>
                 <a class="btn btn-xs btn-default pull-right" href="/erp/staff-app" style="margin-right:.4rem">Staff directory</a>
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/erp/hr-overview-app")</p>
                 <p>Add an employee, record attendance, generate HR payroll, save days worked, submit a leave request or expense claim, and set leave or expense status here.</p>
+                <ErpManualProcessStrip Keys="hr,leave,biometric" />
             </div>
         </div>
     </div>
@@ -146,7 +146,7 @@
     @if (_view == "statutory")
     {
         <h4>Labour law &amp; compliance <small class="text-muted">— built-in country pack</small></h4>
-        <p class="text-muted">Reload the statutory pack (same as Classic <code>law_fetch</code>) and open the official labour authority to verify figures. Employee gratuity / leave below still uses the UAE Federal Decree-Law 33/2021 engine.</p>
+        <p class="text-muted">Reload the statutory pack and open the official labour authority to verify figures. Employee gratuity / leave below still uses the UAE Federal Decree-Law 33/2021 engine.</p>
         <form method="get" action="@_listHref" class="form-inline" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="hv" value="statutory" />
             <input type="hidden" name="law_fetch" value="1" />

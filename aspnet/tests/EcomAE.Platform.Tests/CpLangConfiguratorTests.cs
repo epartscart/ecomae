@@ -16,7 +16,7 @@ public sealed class CpLangConfiguratorTests
         Assert.Contains("name=\"lang_default\"", razor, StringComparison.Ordinal);
         Assert.Contains("action=\"/cp/lang/save-translation\"", razor, StringComparison.Ordinal);
         Assert.Contains("ICpLangConfiguratorService", razor, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
     }
 
     [Fact]

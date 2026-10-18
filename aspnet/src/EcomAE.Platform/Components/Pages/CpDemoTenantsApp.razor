@@ -42,7 +42,7 @@
                     <div class="row" style="margin-bottom:16px">
                         <div class="col-sm-4"><div class="well well-sm text-center"><div class="text-muted small">Active demos</div><strong>@_view.Active.ToString(CultureInfo.InvariantCulture) / @_view.MaxActive.ToString(CultureInfo.InvariantCulture)</strong></div></div>
                         <div class="col-sm-4"><div class="well well-sm text-center"><div class="text-muted small">Listed</div><strong>@_view.Demos.Count.ToString(CultureInfo.InvariantCulture)</strong></div></div>
-                        <div class="col-sm-4"><div class="well well-sm text-center"><div class="text-muted small">Expire cron</div><code style="font-size:11px">/epc-demo-expire-cron.php</code></div></div>
+                        <div class="col-sm-4"><div class="well well-sm text-center"><div class="text-muted small">Expire cron</div><code style="font-size:11px">/cp/demo-tenants/expire</code></div></div>
                     </div>
 
                     @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -58,7 +58,6 @@
                         <a class="btn btn-default btn-sm" href="@HubHref"><i class="fa fa-sitemap"></i> Tenant hub</a>
                         <a class="btn btn-default btn-sm" href="@TccHref"><i class="fa fa-sliders"></i> Tenant control center</a>
                         <a class="btn btn-default btn-sm" href="https://www.ecomae.com/platform/demo" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Marketing demo wizard</a>
-                        <a class="btn btn-default btn-sm ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" target="_blank" rel="noopener"><i class="fa fa-code"></i> Classic twin</a>
                     </p>
 
                     <div class="alert alert-info" style="margin-bottom:16px">

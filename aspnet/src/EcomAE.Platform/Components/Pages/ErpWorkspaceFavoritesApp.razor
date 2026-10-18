@@ -11,13 +11,58 @@
 
 <PageTitle>Workspace favorites · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
+<style>
+    .fav-guide{margin:0 0 14px;padding:12px 14px;border:1px solid #dbe4ea;background:#fff}
+    .fav-guide h3{margin:0 0 4px;font-size:15px;color:#0f172a}
+    .fav-guide__lead{margin:0 0 10px;color:#475569}
+    .fav-guide__steps{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
+    .fav-guide__steps li{flex:1 1 180px;border:1px solid #dbe4ea;border-top:3px solid #b45309;background:#fffbeb;padding:8px 10px}
+    .fav-guide__n{display:inline-block;width:18px;height:18px;border-radius:50%;background:#b45309;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;margin-right:4px}
+    .fav-guide__steps strong{color:#0f172a}
+    .fav-guide__steps p{margin:4px 0 0;font-size:12px;color:#475569}
+    .fav-bar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+    .fav-tile{display:flex;align-items:center;gap:8px;min-width:140px;padding:10px 12px;border:1px solid #dbe4ea;background:#fff;color:#0f172a;text-decoration:none;font-weight:700}
+    .fav-tile i{color:#b45309}
+    .fav-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin:0 0 14px}
+    .fav-card{background:#fff;border:1px solid #dbe4ea;padding:12px}
+    .fav-card h3{margin:0 0 4px;font-size:14px}
+    .fav-card>p{margin:0 0 8px;color:#475569;font-size:12px}
+    .fav-card form[data-epc-inline="1"]{display:flex !important;flex-wrap:wrap;gap:8px;align-items:flex-end;width:auto !important;max-width:none !important;margin:0 0 8px !important;padding:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important}
+    .fav-card label{display:flex;flex-direction:column;gap:2px;margin:0;font-size:11px;font-weight:700;color:#475569}
+</style>
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Workspace favorites" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/workspace-favorites-app" IsAdmin="_isAdmin" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Workspace favorites" Subtitle="Open a row for target URL, icon class, and icon color. Favourite and shortcut writes stay here." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Your favourites" Subtitle="The star in the top bar. These are the pages you open every day. They belong to you, not to the company menu." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+
+    <section class="fav-guide" aria-label="How favourites work">
+        <h3>What this page is for</h3>
+        <p class="fav-guide__lead">A favourite is a personal shortcut. The star on a page adds it to the Favourites list in the top bar. This page is where you see that list, add a page by name, put the important ones first, and remove the ones you no longer use. Favourite and shortcut writes stay here.</p>
+        <ol class="fav-guide__steps">
+            <li><span class="fav-guide__n">1</span><strong>Star a page</strong><p>Use the star on a menu, or add the page by name below.</p></li>
+            <li><span class="fav-guide__n">2</span><strong>Find it next time</strong><p>Open Favourites in the top bar. The same pages are the tiles on this screen.</p></li>
+            <li><span class="fav-guide__n">3</span><strong>Keep the list short</strong><p>Remove a page here, or from the star, when you stop using it.</p></li>
+        </ol>
+    </section>
+
+    <div class="fav-bar" aria-label="Your favourite pages">
+        @if (_favorites.Count == 0)
+        {
+            <p class="text-muted">No favourites yet. Star a page, or add one below.</p>
+        }
+        else
+        {
+            @foreach (var row in _favorites)
+            {
+                var href = string.IsNullOrWhiteSpace(row.TargetUrl) || !row.TargetUrl.StartsWith('/') ? ErpRecordOpen.Href(_listHref, "favorite_id", row.Id) : row.TargetUrl;
+                var icon = string.IsNullOrWhiteSpace(row.IconClass) ? "fa-star" : row.IconClass;
+                <a class="fav-tile" href="@href"><i class="fa @icon"></i><span>@(string.IsNullOrWhiteSpace(row.Label) ? "Favourite" : row.Label)</span></a>
+            }
+        }
+    </div>
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -29,72 +74,105 @@
     }
     @if (_isAdmin)
     {
-        <form method="post" action="/erp/ajax/erp-fav-add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
-            <label>Area key <input type="text" name="areaKey" maxlength="60" /></label>
-            <label>Tab key <input type="text" name="tabKey" required maxlength="60" /></label>
-            <button type="submit" class="btn btn-sm btn-primary">Add favourite</button>
-        </form>
-        <form method="post" action="/erp/ajax/erp-fav-remove" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
-            <label>Tab key <input type="text" name="tabKey" required maxlength="60" /></label>
-            <button type="submit" class="btn btn-sm btn-default">Remove favourite</button>
-        </form>
-        <form method="post" action="/erp/ajax/shortcut-add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
-            <label>Label <input type="text" name="label" required maxlength="100" /></label>
-            <label>URL <input type="text" name="targetUrl" required maxlength="500" /></label>
-            <label>Key <input type="text" name="shortcutKey" maxlength="64" /></label>
-            <label>Surface
-                <select name="surface">
-                    <option value="both">both</option>
-                    <option value="erp">erp</option>
-                    <option value="cp">cp</option>
-                </select>
-            </label>
-            <label>Tab <input type="text" name="targetTab" maxlength="50" /></label>
-            <button type="submit" class="btn btn-sm btn-primary">Add shortcut</button>
-        </form>
-        <form method="post" action="/erp/ajax/shortcut-reorder" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
-            <label>Ids <input type="text" name="ids" placeholder="3,2,1" /></label>
-            <button type="submit" class="btn btn-sm btn-default">Reorder shortcuts</button>
-        </form>
-        <form method="post" action="/erp/ajax/shortcut-delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
-            <label>Shortcut id <input type="number" name="id" min="1" required style="width:6rem" /></label>
-            <button type="submit" class="btn btn-sm btn-default">Delete shortcut</button>
-        </form>
-        <form method="post" action="/erp/ajax/shortcut-delete-key" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
-            <label>Shortcut key <input type="text" name="shortcutKey" required /></label>
-            <label>Surface
-                <select name="surface">
-                    <option value="">any</option>
-                    <option value="erp">erp</option>
-                    <option value="cp">cp</option>
-                </select>
-            </label>
-            <button type="submit" class="btn btn-sm btn-default">Delete by key</button>
-        </form>
-        <form method="post" action="/erp/ajax/shortcut-reset" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
-            <label>Surface
-                <select name="surface">
-                    <option value="">all</option>
-                    <option value="erp">erp</option>
-                    <option value="cp">cp</option>
-                </select>
-            </label>
-            <button type="submit" class="btn btn-sm btn-default">Reset shortcuts</button>
-        </form>
+        <div class="fav-cards">
+            <section class="fav-card">
+                <h3>Add a page</h3>
+                <p>Give it the name you want on the Favourites star. Pick the page it opens.</p>
+                <form method="post" action="/erp/ajax/shortcut-add" data-epc-inline="1">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                    <input type="hidden" name="surface" value="erp" />
+                    <label>Name <input type="text" name="label" required maxlength="100" class="form-control input-sm" placeholder="Invoices" /></label>
+                    <label>Page
+                        <select name="targetUrl" required class="form-control input-sm">
+                            @foreach (var pin in Pages)
+                            {
+                                <option value="@pin.Href">@pin.Label</option>
+                            }
+                        </select>
+                    </label>
+                    <label>Short key <input type="text" name="shortcutKey" maxlength="64" class="form-control input-sm" placeholder="invoices" /></label>
+                    <label>Menu key <input type="text" name="targetTab" maxlength="50" class="form-control input-sm" /></label>
+                    <button type="submit" class="btn btn-sm btn-primary">Add shortcut</button>
+                </form>
+            </section>
+            <section class="fav-card">
+                <h3>Put them in order</h3>
+                <p>Type the row numbers in the order you want, such as 3,1,2. The first number is the first star.</p>
+                <form method="post" action="/erp/ajax/shortcut-reorder" data-epc-inline="1">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                    <label>Order <input type="text" name="ids" placeholder="3,2,1" class="form-control input-sm" /></label>
+                    <button type="submit" class="btn btn-sm btn-default">Reorder shortcuts</button>
+                </form>
+                <form method="post" action="/erp/ajax/shortcut-delete" data-epc-inline="1">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                    <label>Row number <input type="number" name="id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
+                    <button type="submit" class="btn btn-sm btn-default">Delete shortcut</button>
+                </form>
+            </section>
+            <section class="fav-card">
+                <h3>Pin a menu</h3>
+                <p>This is the older menu pin. The star in the top bar uses the page list. Use a menu key only when you already know it.</p>
+                <form method="post" action="/erp/ajax/erp-fav-add" data-epc-inline="1">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                    <label>Area <input type="text" name="areaKey" maxlength="60" class="form-control input-sm" placeholder="sales" /></label>
+                    <label>Menu
+                        <select name="tabKey" required class="form-control input-sm">
+                            @foreach (var pin in Pages)
+                            {
+                                <option value="@pin.Key">@pin.Label</option>
+                            }
+                        </select>
+                    </label>
+                    <button type="submit" class="btn btn-sm btn-primary">Add favourite</button>
+                </form>
+                <form method="post" action="/erp/ajax/erp-fav-remove" data-epc-inline="1">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                    <label>Menu
+                        <select name="tabKey" required class="form-control input-sm">
+                            @foreach (var pin in Pages)
+                            {
+                                <option value="@pin.Key">@pin.Label</option>
+                            }
+                        </select>
+                    </label>
+                    <button type="submit" class="btn btn-sm btn-default">Remove favourite</button>
+                </form>
+            </section>
+            <section class="fav-card">
+                <h3>Clear a key or start again</h3>
+                <p>Delete one named key, or clear the shortcuts for this workspace.</p>
+                <form method="post" action="/erp/ajax/shortcut-delete-key" data-epc-inline="1">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                    <label>Key <input type="text" name="shortcutKey" required class="form-control input-sm" /></label>
+                    <label>Where
+                        <select name="surface" class="form-control input-sm">
+                            <option value="">any</option>
+                            <option value="erp">ERP</option>
+                            <option value="cp">Control panel</option>
+                        </select>
+                    </label>
+                    <button type="submit" class="btn btn-sm btn-default">Delete by key</button>
+                </form>
+                <form method="post" action="/erp/ajax/shortcut-reset" data-epc-inline="1">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                    <label>Where
+                        <select name="surface" class="form-control input-sm">
+                            <option value="">all</option>
+                            <option value="erp">ERP</option>
+                            <option value="cp">Control panel</option>
+                        </select>
+                    </label>
+                    <button type="submit" class="btn btn-sm btn-default">Reset shortcuts</button>
+                </form>
+            </section>
+        </div>
     }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Workspace favorites stats">
@@ -111,7 +189,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Label</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Label) ? "—" : _opened.Label)</dd>
                 <dt>Surface</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Surface) ? "—" : _opened.Surface)</dd>
@@ -205,6 +283,22 @@
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=overview&tab=dashboard";
     private const string _listHref = "/erp/workspace-favorites-app";
+    private static readonly (string Key, string Label, string Href)[] Pages =
+    [
+        ("dashboard", "Home", "/erp"),
+        ("invoices", "Invoices", "/erp/invoices-app"),
+        ("sales_orders", "Sales orders", "/erp/sales-orders-app"),
+        ("purchase_orders", "Purchase orders", "/erp/purchase-orders-app"),
+        ("receivables", "Receivables", "/erp/receivables-app"),
+        ("payables", "Payables", "/erp/payables-app"),
+        ("gl", "Journals", "/erp/gl-journals-app"),
+        ("inventory", "Inventory", "/erp/inventory-stock-app"),
+        ("customers", "Customers", "/erp/customers-app"),
+        ("suppliers", "Suppliers", "/erp/suppliers-app"),
+        ("approvals", "Approvals", "/erp/approvals-app"),
+        ("workflow", "Workflow board", "/erp/workflow-app"),
+    ];
+    private int _companyId;
     private bool _isAdmin;
     private ErpWorkspaceFavoritesSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<ErpWorkspaceFavoriteDigest> _favorites = [];
@@ -222,9 +316,21 @@
             ? _opened.Label
             : ("Favorite #" + _opened.Id.ToString(CultureInfo.InvariantCulture)));
 
-    private string OpenedReturnHref => _openedId > 0
-        ? _listHref + "?favorite_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
-        : _listHref;
+    private string OpenedReturnHref
+    {
+        get
+        {
+            var href = _openedId > 0
+                ? _listHref + "?favorite_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+                : _listHref;
+            if (_companyId <= 0)
+            {
+                return href;
+            }
+
+            return href + (href.Contains('?', StringComparison.Ordinal) ? "&" : "?") + "company=" + _companyId.ToString(CultureInfo.InvariantCulture);
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -234,6 +340,7 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "favorite_id");
+        _companyId = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)

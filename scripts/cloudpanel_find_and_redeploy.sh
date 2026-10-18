@@ -65,6 +65,16 @@ cd "$REPO"
 pwd
 git remote set-url origin "$ECOMAE_GIT_URL" || true
 git fetch origin "$ECOMAE_BRANCH"
+INCOMING="$(git rev-parse "origin/$ECOMAE_BRANCH")"
+LOCK_FILE="${ECOMAE_PRODUCTION_LOCK_FILE:-/etc/ecomae-aspnet/production.lock.json}"
+if [[ -f "$LOCK_FILE" ]]; then
+  printf 'PRODUCTION_LOCK present — emergency publish forced OFF; older SHA refused.\n'
+  export ECOMAE_EMERGENCY_PUBLISH=0
+  if [[ -f scripts/cloudpanel_production_lock.sh ]]; then
+    bash scripts/cloudpanel_production_lock.sh check "$INCOMING" "$REPO" \
+      || { printf 'ERROR: production lock refused this SHA (older or divergent).\n' >&2; exit 1; }
+  fi
+fi
 git checkout -f "$ECOMAE_BRANCH"
 git reset --hard "origin/$ECOMAE_BRANCH"
 
@@ -92,8 +102,8 @@ if grep -Eq 'User=<db_user>|Password=<db_password>|<db_user>|<db_password>' "${E
   exit 2
 fi
 
-# Default emergency publish ON — foundation/unit gates have left live :5100 on stale
-# binaries after merged PRs (#877/#878). Set ECOMAE_EMERGENCY_PUBLISH=0 to force gates.
+# Default emergency publish ON unless a production lock is present.
+# After a gated PASS the lock forces ECOMAE_EMERGENCY_PUBLISH=0 and refuses older SHAs.
 sudo ECOMAE_BRANCH="$ECOMAE_BRANCH" \
 ECOMAE_RUN_SYSTEMD="${ECOMAE_RUN_SYSTEMD:-1}" \
 ECOMAE_EMERGENCY_PUBLISH="${ECOMAE_EMERGENCY_PUBLISH:-1}" \

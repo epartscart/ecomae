@@ -1,3 +1,5 @@
+using System.Data.Common;
+
 namespace EcomAE.Platform.Erp;
 
 
@@ -5,7 +7,8 @@ namespace EcomAE.Platform.Erp;
 //   content/shop/finance/epc_erp_procurement.php
 /// <summary>
 /// Live PHP <c>epc_proc_req_submit</c> / <c>epc_proc_req_decision</c> / <c>epc_proc_req_convert</c> twins.
-/// Schema ensure stays PHP. Header save is <c>IErpProcurementReqSaveWriteService</c>.
+/// Native <c>ErpProcurementSchema</c> on confirmed writes. Header save is
+/// <c>IErpProcurementReqSaveWriteService</c>.
 /// </summary>
 public interface IErpProcurementReqWriteService
 {
@@ -43,6 +46,7 @@ public sealed class ErpProcurementReqWriteService : IErpProcurementReqWriteServi
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpProcurementSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var status = await ErpDb.StringAsync(
             connection,
             null,
@@ -105,6 +109,7 @@ public sealed class ErpProcurementReqWriteService : IErpProcurementReqWriteServi
         var decisionNote = Clip(note, 255);
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpProcurementSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var status = await ErpDb.StringAsync(
             connection,
             null,
@@ -146,6 +151,7 @@ public sealed class ErpProcurementReqWriteService : IErpProcurementReqWriteServi
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpProcurementSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var status = await ErpDb.StringAsync(
             connection,
             null,
@@ -175,6 +181,24 @@ public sealed class ErpProcurementReqWriteService : IErpProcurementReqWriteServi
             ErpDb.Positional("UPDATE `epc_proc_req` SET `status` = 'converted', `po_ref` = ?, `time_updated` = ? WHERE `id` = ?"),
             cancellationToken,
             poRef, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), id);
+        try
+        {
+            await ErpD365LinkWriteService.RecordOfficialAsync(
+                connection,
+                "purchase_requisitions",
+                id,
+                reqNumber,
+                "purchase_orders",
+                0,
+                poRef,
+                0,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is DbException or InvalidOperationException)
+        {
+            _ = ex;
+        }
+
         return ErpSimpleWriteResult.Ok("Converted to " + poRef, id);
     }
 

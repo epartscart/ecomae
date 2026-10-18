@@ -20,10 +20,10 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Budgets
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Open a budget for a note excerpt and monthly lines. Save a platform budget, add a line, advance a plan, and record a cheque here. FX import stays on the Classic twin.</p>
+                <p>Open a budget for a note excerpt and monthly lines. Save a platform budget, add a line, advance a plan, and record a cheque here. FX import is not available on this page.</p>
+                <ErpManualProcessStrip Keys="budget" />
             </div>
         </div>
     </div>
@@ -42,7 +42,7 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">Organization and financial-dimension masters</div>
             <div class="panel-body">
-                <p class="text-muted">PHP-owned legal entities, business units, dimensions, and dimension values are read back here so hierarchy setup is visible before posting or budgeting.</p>
+                <p class="text-muted">Legal entities, business units, dimensions, and dimension values are read back here so hierarchy setup is visible before posting or budgeting.</p>
                 <div class="table-responsive">
                     <table class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
                         <thead><tr><th>Type</th><th>Id</th><th>Code</th><th>Name</th><th>Legal entity</th><th>Parent</th><th>Dimension</th><th>Status</th></tr></thead>
@@ -305,7 +305,7 @@
                 <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label>Budget id <input class="form-control input-sm" name="budget_id" placeholder="Id" style="width:80px;" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-                <label>Account <input class="form-control input-sm" name="account_code" placeholder="Code" style="width:120px;" /></label>
+                <ErpMasterPicker Kind="coa" FieldName="account_code" InputId="budget-line-coa" Label="Chart account" ValueMode="code" NameFieldName="account_name" />
                 <label>Name <input class="form-control input-sm" name="account_name" placeholder="Name" style="width:180px;" /></label>
                 <label>Month <input class="form-control input-sm" name="month_no" placeholder="1-12" style="width:70px;" /></label>
                 <label>Amount <input class="form-control input-sm" name="amount" placeholder="0.00" style="width:100px;" /></label>
@@ -321,22 +321,7 @@
                 <label>Code <input class="form-control input-sm" name="code" placeholder="Code" style="width:120px;" value="@(_openedBudget is not null ? _openedBudget.Code : "")" /></label>
                 <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" value="@(_openedBudget is not null ? _openedBudget.Name : "")" /></label>
                 <label>Fiscal year <input class="form-control input-sm" name="fiscal_year" placeholder="FY" style="width:90px;" value="@(_openedBudget is not null ? _openedBudget.FiscalYear : "")" /></label>
-                @if (_businessUnits.Count == 0)
-                {
-                    <label>BU id <input class="form-control input-sm" name="business_unit_id" placeholder="0" style="width:80px;" value="@(_openedBudget is not null ? _openedBudget.BusinessUnitId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-                }
-                else
-                {
-                    <label>Business unit
-                        <select class="form-control input-sm" name="business_unit_id" style="min-width:12rem;">
-                            <option value="0">— none —</option>
-                            @foreach (var unit in _businessUnits)
-                            {
-                                <option value="@unit.Id" selected="@IsBusinessUnitSelected(unit.Id)">@unit.Code · @unit.Name</option>
-                            }
-                        </select>
-                    </label>
-                }
+                <ErpMasterPicker Kind="business_unit" FieldName="business_unit_id" Label="Business unit" Value="@(_openedBudget?.BusinessUnitId ?? 0)" InputId="budget-bu" />
                 <label>Master
                     <select class="form-control input-sm" name="is_master" style="width:80px;">
                         <option value="0">no</option>
@@ -386,22 +371,7 @@
                         </select>
                     </label>
                 }
-                @if (_businessUnits.Count == 0)
-                {
-                    <label>Parent BU id <input class="form-control input-sm" name="parent_id" placeholder="Optional" style="width:90px;" /></label>
-                }
-                else
-                {
-                    <label>Parent BU
-                        <select class="form-control input-sm" name="parent_id" style="min-width:12rem;">
-                            <option value="0">— none —</option>
-                            @foreach (var unit in _businessUnits)
-                            {
-                                <option value="@unit.Id">@unit.Code · @unit.Name</option>
-                            }
-                        </select>
-                    </label>
-                }
+                <ErpMasterPicker Kind="business_unit" FieldName="parent_id" Label="Parent business unit" InputId="budget-parent-bu" />
                 @if (_dimensions.Count == 0)
                 {
                     <label>Dimension id <input class="form-control input-sm" name="dimension_id" placeholder="Value parent" style="width:90px;" /></label>
@@ -472,7 +442,6 @@
     private IReadOnlyList<CpBudgetDigest> _budgets = [];
     private IReadOnlyList<(string Type, ErpOrganizationMasterRow Value)> _organizationRows = [];
     private IReadOnlyList<ErpOrganizationMasterRow> _legalEntities = [];
-    private IReadOnlyList<ErpOrganizationMasterRow> _businessUnits = [];
     private IReadOnlyList<ErpOrganizationMasterRow> _dimensions = [];
     private string _source = "n/a";
     private string _message = "";
@@ -489,9 +458,6 @@
                 ? ("Budget #" + _openedBudget.Id.ToString(CultureInfo.InvariantCulture))
                 : _openedBudget.Code)
             : _openedBudget.Name);
-
-    private bool IsBusinessUnitSelected(long id)
-        => _openedBudget is not null && _openedBudget.BusinessUnitId == id;
 
     protected override async Task OnInitializedAsync()
     {
@@ -519,12 +485,13 @@
 
         var masters = await OrganizationMasters.LoadAsync(100, ctx.RequestAborted);
         _legalEntities = masters.LegalEntities.Where(row => row.Active).ToList();
-        _businessUnits = masters.BusinessUnits.Where(row => row.Active).ToList();
         _dimensions = masters.Dimensions.Where(row => row.Active).ToList();
         _organizationRows = masters.LegalEntities.Select(r => ("Legal entity", r))
             .Concat(masters.BusinessUnits.Select(r => ("Business unit", r)))
+            .Concat(masters.ClassUnits.Select(r => ("Class unit", r)))
             .Concat(masters.Dimensions.Select(r => ("Dimension", r)))
             .Concat(masters.DimensionValues.Select(r => ("Dimension value", r)))
+            .Concat(masters.CostCentres.Select(r => ("Cost centre", r)))
             .ToList();
 
         if (_openedId > 0)

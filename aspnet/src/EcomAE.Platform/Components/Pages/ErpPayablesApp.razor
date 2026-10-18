@@ -30,7 +30,7 @@
     {
         <form method="post" action="@EcomAeRoutes.ErpSupplierSettlement" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="returnUrl" value="/erp/payables-app" />
-            <label>Supplier ID <input type="number" name="supplier_id" min="1" required style="width:6rem" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : null)" /></label>
+            <ErpMasterPicker Kind="supplier" FieldName="supplier_id" Label="Supplier" Required="true" Min="1" Value="@_openedId" />
             <label>Amount <input type="text" name="amount" required placeholder="0.00" /></label>
             <label>Direction
                 <select name="direction">
@@ -59,7 +59,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="/erp/payables-app">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Supplier id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.Name) ? "—" : _openedDetail.Name)</dd>
                 <dt>Storage</dt><dd>@(_openedDetail.StorageId > 0 ? _openedDetail.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
@@ -180,7 +180,7 @@
                         </tr>
                     </tbody>
                 </table>
-                <p class="text-muted" style="margin:.7rem 0 0">Source: PHP <code>epc_erp_supplier_accounting</code>; inactive rows are excluded.</p>
+                <p class="text-muted" style="margin:.7rem 0 0">Source: <code>epc_erp_supplier_accounting</code>; inactive rows are excluded.</p>
             }
             else
             {

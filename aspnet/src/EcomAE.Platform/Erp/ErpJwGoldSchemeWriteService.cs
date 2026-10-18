@@ -8,7 +8,7 @@ namespace EcomAE.Platform.Erp;
 //   content/shop/finance/epc_erp_gold_scheme.php
 /// <summary>
 /// Live PHP <c>epc_gold_scheme_create</c> / <c>epc_gold_scheme_enroll</c> /
-/// <c>epc_gold_scheme_pay_installment</c> twin. Schema-ensure stays PHP.
+/// <c>epc_gold_scheme_pay_installment</c> twin. Missing tables are provisioned here.
 /// </summary>
 public interface IErpJwGoldSchemeWriteService
 {
@@ -23,6 +23,10 @@ public interface IErpJwGoldSchemeWriteService
     Task<ErpSimpleWriteResult> PayAsync(
         ErpJwGoldSchemePayRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ErpGoldSchemeBoardResult> LoadBoardAsync(
+        int companyId,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpJwGoldSchemeCreateRequest(
@@ -35,7 +39,8 @@ public sealed record ErpJwGoldSchemeCreateRequest(
     decimal BonusValue = 0,
     decimal MinInstallment = 500,
     decimal MaxInstallment = 50000,
-    string? TermsText = null);
+    string? TermsText = null,
+    string? CreatedBy = null);
 
 public sealed record ErpJwGoldSchemeEnrollRequest(
     int CompanyId = 0,
@@ -44,6 +49,22 @@ public sealed record ErpJwGoldSchemeEnrollRequest(
     string? CustomerName = null,
     decimal InstallmentAmount = 0,
     string? StartDate = null);
+
+public sealed record ErpGoldSchemeRow(
+    long Id,
+    string SchemeCode,
+    string SchemeName,
+    string SchemeType,
+    int MaturityMonths,
+    string BonusType,
+    decimal MinInstallment,
+    string CreatedAt,
+    string CreatedBy);
+
+public sealed record ErpGoldSchemeBoardResult(
+    IReadOnlyList<ErpGoldSchemeRow> Schemes,
+    string Source,
+    string Message);
 
 public sealed record ErpJwGoldSchemePayRequest(
     long EnrollmentId = 0,
@@ -110,7 +131,7 @@ public sealed class ErpJwGoldSchemeWriteService : IErpJwGoldSchemeWriteService
             connection,
             null,
             ErpDb.Positional(
-                "INSERT INTO `epc_gold_schemes` (`company_id`,`scheme_code`,`scheme_name`,`scheme_type`,`maturity_months`,`bonus_type`,`bonus_value`,`min_installment`,`max_installment`,`terms_text`,`time_created`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+                "INSERT INTO `epc_gold_schemes` (`company_id`,`scheme_code`,`scheme_name`,`scheme_type`,`maturity_months`,`bonus_type`,`bonus_value`,`min_installment`,`max_installment`,`terms_text`,`created_by`,`time_created`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
             cancellationToken,
             request.CompanyId < 0 ? 0 : request.CompanyId,
             code,
@@ -122,6 +143,7 @@ public sealed class ErpJwGoldSchemeWriteService : IErpJwGoldSchemeWriteService
             minInst,
             maxInst,
             request.TermsText ?? string.Empty,
+            Clip((request.CreatedBy ?? string.Empty).Trim(), 80),
             UnixNow()).ConfigureAwait(false);
 
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
@@ -230,6 +252,48 @@ public sealed class ErpJwGoldSchemeWriteService : IErpJwGoldSchemeWriteService
         return ErpSimpleWriteResult.Ok("Enrollment " + enrollNo + " created", id);
     }
 
+    public async Task<ErpGoldSchemeBoardResult> LoadBoardAsync(
+        int companyId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new([], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (!await TableExistsAsync(connection, "epc_gold_schemes", cancellationToken).ConfigureAwait(false)
+            || !await ColumnExistsAsync(connection, "epc_gold_schemes", "scheme_code", cancellationToken).ConfigureAwait(false))
+        {
+            return new([], "database", "Gold scheme tables are not provisioned");
+        }
+
+        var rows = new List<ErpGoldSchemeRow>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional(
+            "SELECT `id`,`scheme_code`,`scheme_name`,`scheme_type`,`maturity_months`,`bonus_type`,`min_installment`,`time_created`,`created_by` FROM `epc_gold_schemes` "
+            + "WHERE ? = 0 OR `company_id` = ? ORDER BY `id` DESC");
+        var co = companyId < 0 ? 0 : companyId;
+        ErpDb.AddParameters(command, co, co);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(new ErpGoldSchemeRow(
+                reader[0] is DBNull ? 0 : Convert.ToInt64(reader[0], CultureInfo.InvariantCulture),
+                Convert.ToString(reader[1], CultureInfo.InvariantCulture) ?? "",
+                Convert.ToString(reader[2], CultureInfo.InvariantCulture) ?? "",
+                Convert.ToString(reader[3], CultureInfo.InvariantCulture) ?? "",
+                reader[4] is DBNull ? 0 : Convert.ToInt32(reader[4], CultureInfo.InvariantCulture),
+                Convert.ToString(reader[5], CultureInfo.InvariantCulture) ?? "",
+                reader[6] is DBNull ? 0 : Convert.ToDecimal(reader[6], CultureInfo.InvariantCulture),
+                ErpJwMasterAudit.DisplayDate(reader[7]),
+                ErpJwMasterAudit.DisplayUser(Convert.ToString(reader[8], CultureInfo.InvariantCulture))));
+        }
+
+        return new(rows, "database", string.Empty);
+    }
+
     public async Task<ErpSimpleWriteResult> PayAsync(
         ErpJwGoldSchemePayRequest request,
         CancellationToken cancellationToken = default)
@@ -279,6 +343,25 @@ public sealed class ErpJwGoldSchemeWriteService : IErpJwGoldSchemeWriteService
             request.EnrollmentId).ConfigureAwait(false);
         var amount = request.Amount > 0 ? RoundNonNeg(request.Amount, 4) : RoundNonNeg(installment, 4);
         var goldRate = RoundNonNeg(request.GoldRate, 4);
+        if (goldRate <= 0)
+        {
+            var companyId = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `company_id` FROM `epc_gold_scheme_enrollments` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                request.EnrollmentId).ConfigureAwait(false);
+            goldRate = RoundNonNeg(
+                await ErpGoldRateBoard.ResolveSellAsync(
+                    connection,
+                    companyId > int.MaxValue ? 0 : (int)companyId,
+                    "24K",
+                    "AED",
+                    request.PaymentDate,
+                    cancellationToken).ConfigureAwait(false),
+                4);
+        }
+
         var grams = goldRate > 0
             ? decimal.Round(amount / goldRate, 6, MidpointRounding.AwayFromZero)
             : 0m;

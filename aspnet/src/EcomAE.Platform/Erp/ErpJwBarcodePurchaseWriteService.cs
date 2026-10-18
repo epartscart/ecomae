@@ -112,6 +112,19 @@ public sealed class ErpJwBarcodePurchaseWriteService : IErpJwBarcodePurchaseWrit
 
         var net = RoundNonNeg(request.NetWeight, 3);
         var goldRate = RoundNonNeg(request.GoldRateAtPurchase, 4);
+        if (goldRate <= 0)
+        {
+            goldRate = RoundNonNeg(
+                await ErpGoldRateBoard.ResolveSellAsync(
+                    connection,
+                    companyId,
+                    request.Karat,
+                    "AED",
+                    null,
+                    cancellationToken).ConfigureAwait(false),
+                4);
+        }
+
         var metalValue = decimal.Round(net * goldRate, 2, MidpointRounding.AwayFromZero);
         var making = RoundNonNeg(request.MakingCharges, 2);
         var stoneValue = RoundNonNeg(request.StoneValue, 2);
@@ -120,6 +133,26 @@ public sealed class ErpJwBarcodePurchaseWriteService : IErpJwBarcodePurchaseWrit
         var marginPct = RoundNonNeg(request.MarginPct, 2);
         var marginAmount = decimal.Round(totalCost * (marginPct / 100m), 2, MidpointRounding.AwayFromZero);
         var selling = decimal.Round(totalCost + marginAmount, 2, MidpointRounding.AwayFromZero);
+        var supplierId = request.SupplierId < 0 ? 0 : request.SupplierId;
+        if (supplierId > 0 || ErpSupplierKycLaw.RequiresCompleteFile(totalCost))
+        {
+            try
+            {
+                await ErpSupplierWriteService.RequireKycForCoveredPurchaseAsync(
+                    connection,
+                    supplierId,
+                    totalCost,
+                    0,
+                    "epc_barcode_purchases",
+                    cancellationToken,
+                    "total_cost").ConfigureAwait(false);
+            }
+            catch (ErpWriteException ex)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", ex.Message);
+            }
+        }
+
         var metal = Clip((request.MetalType ?? string.Empty).Trim(), 30);
         if (metal.Length == 0)
         {

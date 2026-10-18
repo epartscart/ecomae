@@ -31,6 +31,8 @@ public static class SuperCpIndustrySampleFixtureCatalog
             ["automotive_full_vehicles"] = "vehicles",
             ["jewellery"] = "jewellery",
             ["construction_contracting"] = "fit-out-contracting",
+            ["fit_out"] = "fit-out-contracting",
+            ["real_estate"] = "real-estate-development",
             ["furniture_interiors"] = "furniture-interiors",
             ["building_materials"] = "building-materials",
             ["manufacturing_industrial"] = "manufacturing",

@@ -2,46 +2,302 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IErpTenantConfigSaveWriteService Settings
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>Tenant config · ERP · eParts Cart</PageTitle>
+<PageTitle>@_pageTitle · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<PhpErpDesktopChrome IsAdmin="_isAdmin">
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_pageTitle" BreadcrumbArea="Setup" BreadcrumbTab="@_pageTitle">
+    <style>
+        .epc-setup-guide{margin:0 0 12px;padding:10px 12px;border:1px solid #dbe4ea;background:#f8fafc;color:#334155;font-size:13px;line-height:1.45}
+        .epc-setup-guide ol{margin:6px 0 0;padding-left:1.2rem}
+        .epc-setup-guide li{margin:2px 0}
+        .epc-erp-content-body form.epc-setup-form{display:grid !important;grid-template-columns:repeat(4,minmax(0,1fr)) !important;gap:10px 14px !important;max-width:100% !important;align-items:end}
+        .epc-erp-content-body form.epc-setup-form .epc-setup-span{grid-column:1 / -1}
+        .epc-erp-content-body form.epc-setup-form .epc-setup-wide{grid-column:span 2}
+        .epc-erp-content-body form.epc-setup-form .epc-setup-hd{margin:8px 0 0;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#0e7490}
+        .epc-setup-split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+        @@media (max-width: 900px){
+            .epc-erp-content-body form.epc-setup-form{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+            .epc-erp-content-body form.epc-setup-form .epc-setup-wide{grid-column:1 / -1}
+            .epc-setup-split{grid-template-columns:1fr}
+        }
+    </style>
 
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                Tenant config
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
-            </div>
-            <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/erp/tenant-config-app")</p>
-                <p>Save tenant ERP settings, RBAC, platform jobs, and org calendar here. Open a row for the stored value and history.</p>
-            </div>
-        </div>
-    </div>
+    <PhpErpModulePageHeader Title="@_pageTitle" Subtitle="@_pageSubtitle" />
+    <PhpErpD365ActionPane RefreshHref="@_listHref" />
     <PhpParityModuleBody AppPath="/erp/tenant-config-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedDetail is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Tenant config KPIs">
-        <div class="kpi"><div class="lbl">Configs</div><div class="val">@_summary.ConfigCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Groups</div><div class="val">@_summary.GroupCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Editable</div><div class="val">@_summary.EditableCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">History</div><div class="val">@_summary.HistoryCount.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (_openedDetail is not null)
+    @if (IsSetup)
     {
-        <div class="col-lg-12">
+        <div class="epc-setup-guide">
+            <strong>How to use this</strong>
+            <ol>
+                <li>Fill the legal name, tax number, and address that print on invoices.</li>
+                <li>Set the currency, VAT percent, and the day the financial year starts.</li>
+                <li>Set the prefixes for orders, invoices, and journals.</li>
+                <li>Save. New documents use this card. Posted documents stay as they were.</li>
+            </ol>
+            <p style="margin:8px 0 0">@_filledNote</p>
+        </div>
+
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">ERP settings</div>
+            <div class="panel-body">
+                <form method="post" action="/erp/tenant-config/save" class="epc-setup-form">
+                    <input type="hidden" name="returnUrl" value="@_listHref" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <p class="epc-setup-span epc-setup-hd">Company</p>
+                    <label>Name <input class="form-control input-sm" name="company_name" value="@V("company_name")" maxlength="160" /></label>
+                    <label>Name, Arabic <input class="form-control input-sm" name="company_name_ar" value="@V("company_name_ar")" maxlength="160" /></label>
+                    <label>TRN <input class="form-control input-sm" name="company_trn" value="@V("company_trn")" maxlength="32" /></label>
+                    <label>License <input class="form-control input-sm" name="company_license_no" value="@V("company_license_no")" maxlength="40" /></label>
+                    <label>Country <input class="form-control input-sm" name="company_country" value="@V("company_country")" maxlength="8" placeholder="AE" /></label>
+                    <label>City <input class="form-control input-sm" name="company_city" value="@V("company_city")" maxlength="80" /></label>
+                    <label>Phone <input class="form-control input-sm" name="company_phone" value="@V("company_phone")" maxlength="40" /></label>
+                    <label>Email <input class="form-control input-sm" name="company_email" value="@V("company_email")" maxlength="120" /></label>
+                    <label class="epc-setup-span">Address <input class="form-control input-sm" name="company_address" value="@V("company_address")" maxlength="240" /></label>
+
+                    <p class="epc-setup-span epc-setup-hd">Books</p>
+                    <label>Currency <input class="form-control input-sm" name="default_currency" value="@V("default_currency")" maxlength="8" placeholder="AED" /></label>
+                    <label>VAT % <input class="form-control input-sm" name="vat_rate" value="@V("vat_rate")" maxlength="8" placeholder="5" /></label>
+                    <label>Year starts <input class="form-control input-sm" name="fiscal_year_start" value="@V("fiscal_year_start")" maxlength="10" placeholder="01-01" /></label>
+                    <label>Date format <input class="form-control input-sm" name="date_format" value="@V("date_format")" maxlength="20" placeholder="dd/MM/yyyy" /></label>
+                    <label>Decimals <input class="form-control input-sm" name="number_format_decimals" value="@V("number_format_decimals")" maxlength="2" placeholder="2" /></label>
+                    <label>Weight <input class="form-control input-sm" name="weight_unit" value="@V("weight_unit")" maxlength="8" placeholder="kg" /></label>
+                    <label>Industry <input class="form-control input-sm" name="industry_profile" value="@V("industry_profile")" maxlength="40" /></label>
+                    <label>Pack <input class="form-control input-sm" name="industry_pack" value="@V("industry_pack")" maxlength="40" /></label>
+
+                    <p class="epc-setup-span epc-setup-hd">Numbering</p>
+                    <label>PO <input class="form-control input-sm" name="po_prefix" value="@V("po_prefix")" maxlength="12" /></label>
+                    <label>SO <input class="form-control input-sm" name="so_prefix" value="@V("so_prefix")" maxlength="12" /></label>
+                    <label>Invoice <input class="form-control input-sm" name="inv_prefix" value="@V("inv_prefix")" maxlength="12" /></label>
+                    <label>Journal <input class="form-control input-sm" name="jv_prefix" value="@V("jv_prefix")" maxlength="12" /></label>
+                    <label>Payment <input class="form-control input-sm" name="pv_prefix" value="@V("pv_prefix")" maxlength="12" /></label>
+                    <label>Receipt <input class="form-control input-sm" name="rv_prefix" value="@V("rv_prefix")" maxlength="12" /></label>
+                    <label>Delivery <input class="form-control input-sm" name="dn_prefix" value="@V("dn_prefix")" maxlength="12" /></label>
+                    <label>Auto numbers
+                        <select class="form-control input-sm" name="auto_number_vouchers">
+                            <option value="1" selected="@AutoOn">Yes</option>
+                            <option value="0" selected="@(!AutoOn)">No</option>
+                        </select>
+                    </label>
+
+                    <p class="epc-setup-span epc-setup-hd">Bank and defaults</p>
+                    <label>Bank <input class="form-control input-sm" name="bank_name" value="@V("bank_name")" maxlength="80" /></label>
+                    <label>Account <input class="form-control input-sm" name="bank_account" value="@V("bank_account")" maxlength="40" /></label>
+                    <label>IBAN <input class="form-control input-sm" name="bank_iban" value="@V("bank_iban")" maxlength="40" /></label>
+                    <label>SWIFT <input class="form-control input-sm" name="bank_swift" value="@V("bank_swift")" maxlength="16" /></label>
+                    <label>Warehouse <input class="form-control input-sm" name="default_warehouse" value="@V("default_warehouse")" maxlength="40" /></label>
+                    <label class="epc-setup-wide">Payment terms <input class="form-control input-sm" name="default_payment_terms" value="@V("default_payment_terms")" maxlength="40" /></label>
+                    <div class="epc-setup-span">
+                        <button type="submit" class="btn btn-primary btn-sm">Save settings</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+    else if (IsSecurity)
+    {
+        <div class="epc-setup-guide">
+            <strong>How to use this</strong>
+            A role is what a person may do. Attach duties to the role, privileges to each duty, then assign the role to a user.
+        </div>
+        <div class="epc-setup-split">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Assign role</div>
+                <div class="panel-body">
+                    <form method="post" action="/erp/security/users/assign-role">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <label>User id <input class="form-control input-sm" type="number" name="user_id" min="0" required /></label>
+                        <label>Role id <input class="form-control input-sm" type="number" name="role_id" min="0" required /></label>
+                        <label>Assign
+                            <select class="form-control input-sm" name="assign">
+                                <option value="1" selected>assign</option>
+                                <option value="0">unassign</option>
+                            </select>
+                        </label>
+                        <label>Company id <input class="form-control input-sm" type="number" name="company_id" min="0" value="@_company.ToString(CultureInfo.InvariantCulture)" /></label>
+                        <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Save role</div>
+                <div class="panel-body">
+                    <form method="post" action="/erp/security/roles/save">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <label>Code <input class="form-control input-sm" name="code" required maxlength="60" /></label>
+                        <label>Name <input class="form-control input-sm" name="name" maxlength="160" /></label>
+                        <label>Company id <input class="form-control input-sm" type="number" name="company_id" min="0" value="@_company.ToString(CultureInfo.InvariantCulture)" /></label>
+                        <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Attach duty</div>
+                <div class="panel-body">
+                    <form method="post" action="/erp/security/roles/attach-duty">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <label>Role id <input class="form-control input-sm" type="number" name="role_id" min="0" required /></label>
+                        <label>Duty id <input class="form-control input-sm" type="number" name="duty_id" min="0" required /></label>
+                        <label>Attach
+                            <select class="form-control input-sm" name="attach">
+                                <option value="1" selected>attach</option>
+                                <option value="0">detach</option>
+                            </select>
+                        </label>
+                        <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Save duty</div>
+                <div class="panel-body">
+                    <form method="post" action="/erp/security/duties/save">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <label>Code <input class="form-control input-sm" name="code" required maxlength="60" /></label>
+                        <label>Name <input class="form-control input-sm" name="name" maxlength="160" /></label>
+                        <label>Company id <input class="form-control input-sm" type="number" name="company_id" min="0" value="@_company.ToString(CultureInfo.InvariantCulture)" /></label>
+                        <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Attach privilege</div>
+                <div class="panel-body">
+                    <form method="post" action="/erp/security/duties/attach-priv">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <label>Duty id <input class="form-control input-sm" type="number" name="duty_id" min="0" required /></label>
+                        <label>Privilege id <input class="form-control input-sm" type="number" name="privilege_id" min="0" required /></label>
+                        <label>Attach
+                            <select class="form-control input-sm" name="attach">
+                                <option value="1" selected>attach</option>
+                                <option value="0">detach</option>
+                            </select>
+                        </label>
+                        <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Save privilege</div>
+                <div class="panel-body">
+                    <form method="post" action="/erp/security/privileges/save">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <label>Code <input class="form-control input-sm" name="code" required maxlength="60" /></label>
+                        <label>Name <input class="form-control input-sm" name="name" maxlength="160" /></label>
+                        <label>Access
+                            <select class="form-control input-sm" name="access_level">
+                                <option value="read" selected>read</option>
+                                <option value="update">update</option>
+                                <option value="create">create</option>
+                                <option value="delete">delete</option>
+                                <option value="full">full</option>
+                            </select>
+                        </label>
+                        <label>Company id <input class="form-control input-sm" type="number" name="company_id" min="0" value="@_company.ToString(CultureInfo.InvariantCulture)" /></label>
+                        <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+    else if (IsPlatform)
+    {
+        <div class="epc-setup-guide">
+            <strong>How to use this</strong>
+            A feature turns a capability on for this company. A batch job runs on a timer. Run records the latest status.
+        </div>
+        <div class="epc-setup-split">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Save feature</div>
+                <div class="panel-body">
+                    <form method="post" action="/erp/platform/features/save">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <label>Code <input class="form-control input-sm" type="text" name="code" required maxlength="60" /></label>
+                        <label>Name <input class="form-control input-sm" type="text" name="name" maxlength="160" /></label>
+                        <label>Enabled
+                            <select class="form-control input-sm" name="enabled">
+                                <option value="1">enabled</option>
+                                <option value="0" selected>disabled</option>
+                            </select>
+                        </label>
+                        <label>Company id <input class="form-control input-sm" type="number" name="company_id" min="0" value="@_company.ToString(CultureInfo.InvariantCulture)" /></label>
+                        <button type="submit" class="btn btn-sm btn-primary">Save feature</button>
+                    </form>
+                </div>
+            </div>
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Save batch job</div>
+                <div class="panel-body">
+                    <form method="post" action="/erp/platform/jobs/save">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <label>Code <input class="form-control input-sm" type="text" name="code" required maxlength="60" /></label>
+                        <label>Name <input class="form-control input-sm" type="text" name="name" maxlength="160" /></label>
+                        <label>Recurrence min <input class="form-control input-sm" type="number" name="recurrence_min" min="0" value="0" /></label>
+                        <label>Active
+                            <select class="form-control input-sm" name="active">
+                                <option value="1" selected>active</option>
+                                <option value="0">inactive</option>
+                            </select>
+                        </label>
+                        <label>Company id <input class="form-control input-sm" type="number" name="company_id" min="0" value="@_company.ToString(CultureInfo.InvariantCulture)" /></label>
+                        <button type="submit" class="btn btn-sm btn-primary">Save batch job</button>
+                    </form>
+                </div>
+            </div>
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Run batch job</div>
+                <div class="panel-body">
+                    <form method="post" action="/erp/platform/jobs/run">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <label>Job id <input class="form-control input-sm" type="number" name="job_id" min="0" required /></label>
+                        <label>Status
+                            <select class="form-control input-sm" name="status">
+                                <option value="ended" selected>ended</option>
+                                <option value="waiting">waiting</option>
+                                <option value="executing">executing</option>
+                                <option value="error">error</option>
+                                <option value="canceled">canceled</option>
+                            </select>
+                        </label>
+                        <button type="submit" class="btn btn-sm btn-warning">Run</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedDetail is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Tenant config KPIs">
+            <div class="kpi"><div class="lbl">Configs</div><div class="val">@_summary.ConfigCount.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Groups</div><div class="val">@_summary.GroupCount.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Editable</div><div class="val">@_summary.EditableCount.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">History</div><div class="val">@_summary.HistoryCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        </div>
+
+        @if (_openedDetail is not null)
+        {
             <div class="hpanel">
                 <div class="panel-heading hbuilt">
                     @(!string.IsNullOrWhiteSpace(_openedDetail.Label) ? _openedDetail.Label : _openedDetail.ConfigKey)
-                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedDetail.ValueType) ? _openedDetail.ValueType : "—")</span>
                 </div>
                 <div class="panel-body">
                     <p>@(!string.IsNullOrWhiteSpace(_openedDetail.SiteKey) ? _openedDetail.SiteKey : "—")
@@ -54,22 +310,12 @@
                     <p class="text-muted">@(!string.IsNullOrWhiteSpace(_openedDetail.ConfigValue) ? _openedDetail.ConfigValue : "No value yet.")</p>
                 </div>
             </div>
-        </div>
-
-        <div class="col-lg-12">
             <div class="hpanel">
                 <div class="panel-heading hbuilt">History</div>
                 <div class="panel-body">
                     <div class="table-responsive">
                         <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>When</th>
-                                    <th>By</th>
-                                    <th>Old</th>
-                                    <th>New</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>When</th><th>By</th><th>Old</th><th>New</th></tr></thead>
                             <tbody>
                                 @if (_openedHistory.Count == 0)
                                 {
@@ -92,240 +338,99 @@
                     </div>
                 </div>
             </div>
-        </div>
-    }
+        }
 
-    <p class="help-block">@_summary.ConfigCount.ToString(CultureInfo.InvariantCulture) Configs · @_summary.GroupCount.ToString(CultureInfo.InvariantCulture) Groups · @_summary.EditableCount.ToString(CultureInfo.InvariantCulture) Editable · @_summary.HistoryCount.ToString(CultureInfo.InvariantCulture) History.</p>
-
-    <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
                     <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Site</th>
-                    <th>Group</th>
-                    <th>Key</th>
-                    <th>Type</th>
-                    <th>Label</th>
-                    <th>Editable</th>
-                    <th>Updated</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="9">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
-                {
-                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.SiteKey) ? row.SiteKey : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.ConfigGroup) ? row.ConfigGroup : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.ConfigKey) ? row.ConfigKey : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.ValueType) ? row.ValueType : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Label) ? row.Label : "—")</td>
-                            <td>@row.Editable.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.UpdatedAt) ? row.UpdatedAt : "—")</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "config_id", row.Id)">Open</a></td>
-                    </tr>
-                }
-            }
-        </tbody>
+                        <thead>
+                            <tr>
+                                <th>Id</th><th>Site</th><th>Group</th><th>Key</th><th>Type</th><th>Label</th><th>Editable</th><th>Updated</th><th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_rows.Count == 0)
+                            {
+                                <tr><td colspan="9">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var row in _rows)
+                                {
+                                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
+                                        <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.SiteKey) ? row.SiteKey : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.ConfigGroup) ? row.ConfigGroup : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.ConfigKey) ? row.ConfigKey : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.ValueType) ? row.ValueType : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.Label) ? row.Label : "—")</td>
+                                        <td>@row.Editable.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.UpdatedAt) ? row.UpdatedAt : "—")</td>
+                                        <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "config_id", row.Id)">Open</a></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
                     </table>
                 </div>
             </div>
         </div>
-    </div>
 
+        <div class="epc-setup-guide">Working days and holidays close the posting calendar.</div>
+        <div class="epc-setup-split">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Save calendar</div>
+                <div class="panel-body">
+                    <form method="post" action="/erp/org/calendars/save">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <label>Code <input class="form-control input-sm" type="text" name="code" required maxlength="40" /></label>
+                        <label>Name <input class="form-control input-sm" type="text" name="name" maxlength="160" /></label>
+                        <label>Working days <input class="form-control input-sm" type="text" name="working_days" maxlength="20" value="1,2,3,4,5" /></label>
+                        <label>Company id <input class="form-control input-sm" type="number" name="company_id" min="0" value="@_company.ToString(CultureInfo.InvariantCulture)" /></label>
+                        <button type="submit" class="btn btn-sm btn-primary">Save calendar</button>
+                    </form>
+                </div>
+            </div>
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Add holiday</div>
+                <div class="panel-body">
+                    <form method="post" action="/erp/org/holidays/add">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <label>Calendar id <input class="form-control input-sm" type="number" name="calendar_id" min="1" required /></label>
+                        <label>Date <input class="form-control input-sm" type="text" name="holiday_date" required maxlength="10" placeholder="2026-12-02" /></label>
+                        <label>Name <input class="form-control input-sm" type="text" name="name" maxlength="160" /></label>
+                        <button type="submit" class="btn btn-sm btn-primary">Add holiday</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
 </PhpErpDesktopChrome>
 
-<ErpPhpCreateWell Title="ERP settings">
-<form method="post" action="/erp/tenant-config/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
-                <input type="hidden" name="returnUrl" value="/erp/tenant-config-app" />
-                <input type="hidden" name="confirmWrites" value="true" />
-                <label>Company <input class="form-control input-sm" name="company_name" style="width:160px;" /></label>
-                <label>TRN <input class="form-control input-sm" name="company_trn" style="width:120px;" /></label>
-                <label>Currency <input class="form-control input-sm" name="default_currency" style="width:80px;" /></label>
-                <label>VAT % <input class="form-control input-sm" name="vat_rate" style="width:70px;" /></label>
-                <label>FY start <input class="form-control input-sm" name="fiscal_year_start" style="width:80px;" /></label>
-                <label>PO prefix <input class="form-control input-sm" name="po_prefix" style="width:70px;" /></label>
-                <label>SO prefix <input class="form-control input-sm" name="so_prefix" style="width:70px;" /></label>
-                <label>INV prefix <input class="form-control input-sm" name="inv_prefix" style="width:70px;" /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Save settings</button>
-            </form>
-</ErpPhpCreateWell>
-
-<form method="post" action="/erp/security/users/assign-role" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/tenant-config-app?tab=security_roles" />
-            <strong style="width:100%;font-size:.85rem">Assign role</strong>
-            <label>User id <input type="number" name="user_id" min="0" required style="width:6rem" /></label>
-            <label>Role id <input type="number" name="role_id" min="0" required style="width:6rem" /></label>
-            <label>Assign
-                <select name="assign">
-                    <option value="1" selected>assign</option>
-                    <option value="0">unassign</option>
-                </select>
-            </label>
-            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
-            <button type="submit" class="btn btn-sm btn-primary">Save</button>
-        </form>
-
-<form method="post" action="/erp/security/roles/attach-duty" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/tenant-config-app?tab=security_roles" />
-            <strong style="width:100%;font-size:.85rem">Attach duty</strong>
-            <label>Role id <input type="number" name="role_id" min="0" required style="width:6rem" /></label>
-            <label>Duty id <input type="number" name="duty_id" min="0" required style="width:6rem" /></label>
-            <label>Attach
-                <select name="attach">
-                    <option value="1" selected>attach</option>
-                    <option value="0">detach</option>
-                </select>
-            </label>
-            <button type="submit" class="btn btn-sm btn-primary">Save</button>
-        </form>
-
-<form method="post" action="/erp/security/duties/attach-priv" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/tenant-config-app?tab=security_roles" />
-            <strong style="width:100%;font-size:.85rem">Attach privilege</strong>
-            <label>Duty id <input type="number" name="duty_id" min="0" required style="width:6rem" /></label>
-            <label>Privilege id <input type="number" name="privilege_id" min="0" required style="width:6rem" /></label>
-            <label>Attach
-                <select name="attach">
-                    <option value="1" selected>attach</option>
-                    <option value="0">detach</option>
-                </select>
-            </label>
-            <button type="submit" class="btn btn-sm btn-primary">Save</button>
-        </form>
-
-<form method="post" action="/erp/security/roles/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/tenant-config-app?tab=security_roles" />
-            <strong style="width:100%;font-size:.85rem">Save role</strong>
-            <label>Code <input name="code" required maxlength="60" style="width:10rem" /></label>
-            <label>Name <input name="name" maxlength="160" style="width:12rem" /></label>
-            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
-            <button type="submit" class="btn btn-sm btn-primary">Save</button>
-        </form>
-
-<form method="post" action="/erp/security/duties/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/tenant-config-app?tab=security_roles" />
-            <strong style="width:100%;font-size:.85rem">Save duty</strong>
-            <label>Code <input name="code" required maxlength="60" style="width:10rem" /></label>
-            <label>Name <input name="name" maxlength="160" style="width:12rem" /></label>
-            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
-            <button type="submit" class="btn btn-sm btn-primary">Save</button>
-        </form>
-
-<form method="post" action="/erp/security/privileges/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/tenant-config-app?tab=security_roles" />
-            <strong style="width:100%;font-size:.85rem">Save privilege</strong>
-            <label>Code <input name="code" required maxlength="60" style="width:10rem" /></label>
-            <label>Name <input name="name" maxlength="160" style="width:12rem" /></label>
-            <label>Access
-                <select name="access_level">
-                    <option value="read" selected>read</option>
-                    <option value="update">update</option>
-                    <option value="create">create</option>
-                    <option value="delete">delete</option>
-                    <option value="full">full</option>
-                </select>
-            </label>
-            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
-            <button type="submit" class="btn btn-sm btn-primary">Save</button>
-        </form>
-
-<form method="post" action="/erp/platform/jobs/run" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/tenant-config-app" />
-            <strong style="width:100%;font-size:.85rem">Run batch job</strong>
-            <label>Job id <input type="number" name="job_id" min="0" required style="width:6rem" /></label>
-            <label>Status
-                <select name="status">
-                    <option value="ended" selected>ended</option>
-                    <option value="waiting">waiting</option>
-                    <option value="executing">executing</option>
-                    <option value="error">error</option>
-                    <option value="canceled">canceled</option>
-                </select>
-            </label>
-            <button type="submit" class="btn btn-sm btn-warning">Run</button>
-        </form>
-
-<form method="post" action="/erp/platform/features/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnUrl" />
-            <label>Code <input type="text" name="code" required maxlength="60" style="width:8rem" /></label>
-            <label>Name <input type="text" name="name" maxlength="160" style="width:12rem" /></label>
-            <label>Enabled
-                <select name="enabled">
-                    <option value="1">enabled</option>
-                    <option value="0" selected>disabled</option>
-                </select>
-            </label>
-            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
-            <button type="submit" class="btn btn-sm btn-primary">Save feature</button>
-        </form>
-
-<form method="post" action="/erp/platform/jobs/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnUrl" />
-            <label>Code <input type="text" name="code" required maxlength="60" style="width:8rem" /></label>
-            <label>Name <input type="text" name="name" maxlength="160" style="width:12rem" /></label>
-            <label>Recurrence min <input type="number" name="recurrence_min" min="0" value="0" style="width:6rem" /></label>
-            <label>Active
-                <select name="active">
-                    <option value="1" selected>active</option>
-                    <option value="0">inactive</option>
-                </select>
-            </label>
-            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
-            <button type="submit" class="btn btn-sm btn-primary">Save batch job</button>
-        </form>
-
-<form method="post" action="/erp/org/calendars/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnUrl" />
-            <label>Code <input type="text" name="code" required maxlength="40" style="width:8rem" /></label>
-            <label>Name <input type="text" name="name" maxlength="160" style="width:12rem" /></label>
-            <label>Working days <input type="text" name="working_days" maxlength="20" value="1,2,3,4,5" style="width:8rem" /></label>
-            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
-            <button type="submit" class="btn btn-sm btn-primary">Save calendar</button>
-        </form>
-
-<form method="post" action="/erp/org/holidays/add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnUrl" />
-            <label>Calendar id <input type="number" name="calendar_id" min="1" required style="width:6rem" /></label>
-            <label>Date <input type="text" name="holiday_date" required maxlength="10" placeholder="2026-12-02" style="width:8rem" /></label>
-            <label>Name <input type="text" name="name" maxlength="160" style="width:12rem" /></label>
-            <button type="submit" class="btn btn-sm btn-primary">Add holiday</button>
-        </form>
-
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=setup&tab=tenant_config";
     private bool _isAdmin;
     private CpTenantConfigSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpTenantConfigEntryDigest> _rows = [];
-    private string _source = "n/a";
     private string _message = "";
     private long _openedId;
     private CpTenantConfigEntryDetail? _openedDetail;
     private IReadOnlyList<CpTenantConfigHistoryDigest> _openedHistory = [];
     private string _listHref = "/erp/tenant-config-app";
+    private string _tab = "tenant_config";
+    private string _pageTitle = "Tenant config";
+    private string _pageSubtitle = "Stored settings for this company.";
+    private int _company;
+    private IReadOnlyDictionary<string, string> _values = new Dictionary<string, string>(StringComparer.Ordinal);
+    private string _filledNote = "Nothing saved yet. Fill the card and save.";
+
+    private bool IsSetup => _tab is "erp_setup" or "setup";
+    private bool IsSecurity => _tab == "security_roles";
+    private bool IsPlatform => _tab == "platform";
+    private bool AutoOn => V("auto_number_vouchers") is "1" or "yes" or "true";
 
     private string OpenedCaption => _openedDetail is null
         ? ""
@@ -336,44 +441,89 @@
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null) return;
-        var path = ctx.Request.Path.Value;
-        _listHref = string.Equals(path, "/erp/tenant-config-app", StringComparison.OrdinalIgnoreCase)
-            ? "/erp/tenant-config-app"
-            : "/erp/tenant-config-app";
+        if (ctx is null)
+        {
+            return;
+        }
+
+        if (ctx.Request.Query.TryGetValue("tab", out var tabVals) && !string.IsNullOrWhiteSpace(tabVals))
+        {
+            _tab = tabVals.ToString().Trim().ToLowerInvariant();
+        }
+
+        _company = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "config_id");
+        (_pageTitle, _pageSubtitle) = _tab switch
+        {
+            "erp_setup" or "setup" => ("Accounting setup", "Company card, tax, currency, and document numbers."),
+            "security_roles" => ("Security roles", "Roles, duties, and privileges for this company."),
+            "platform" => ("Platform", "Features and batch jobs for this company."),
+            _ => ("Tenant config", "Stored settings, working days, and holidays."),
+        };
+        _listHref = ListHref();
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
+        }
+
+        if (IsSetup)
+        {
+            _values = await Settings.ReadAsync(ctx.RequestAborted);
+            var filled = _values.Count(pair => !string.IsNullOrWhiteSpace(pair.Value));
+            _filledNote = filled switch
+            {
+                0 => "Nothing saved yet. Fill the card and save.",
+                1 => "1 setting on file. Blank fields are still empty.",
+                _ => filled.ToString(CultureInfo.InvariantCulture) + " settings on file. Blank fields are still empty.",
+            };
+            return;
         }
 
         var result = await Dashboards.BuildCpTenantConfigDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _rows = result.Entries;
-        _source = result.Source;
         _message = result.Message;
-
-        if (_openedId > 0)
+        if (_openedId <= 0)
         {
-            var detail = await Dashboards.BuildCpTenantConfigDetailAsync(_openedId, ctx.RequestAborted);
-            _openedDetail = detail.Entry;
-            _openedHistory = detail.History;
-            if (_openedDetail is not null)
+            return;
+        }
+
+        var detail = await Dashboards.BuildCpTenantConfigDetailAsync(_openedId, ctx.RequestAborted);
+        _openedDetail = detail.Entry;
+        _openedHistory = detail.History;
+        if (_openedDetail is not null)
+        {
+            var openedList = _rows.FirstOrDefault(row => row.Id == _openedId);
+            if (openedList is not null)
             {
-                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
-                if (openedList is not null)
-                {
-                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
-                }
-            }
-            else if (!string.IsNullOrWhiteSpace(detail.Message))
-            {
-                _message = detail.Message;
+                _rows = new[] { openedList }.Concat(_rows.Where(row => row.Id != _openedId)).ToList();
             }
         }
+        else if (!string.IsNullOrWhiteSpace(detail.Message))
+        {
+            _message = detail.Message;
+        }
     }
-    private string _returnUrl => "/erp/tenant-config-app";
+
+    private string V(string key)
+        => _values.TryGetValue(key, out var value) ? value : string.Empty;
+
+    private string ListHref()
+    {
+        var qs = new List<string>();
+        if (!string.IsNullOrWhiteSpace(_tab) && _tab != "tenant_config")
+        {
+            qs.Add("tab=" + Uri.EscapeDataString(_tab));
+        }
+
+        if (_company > 0)
+        {
+            qs.Add("company=" + _company.ToString(CultureInfo.InvariantCulture));
+        }
+
+        return qs.Count == 0 ? "/erp/tenant-config-app" : "/erp/tenant-config-app?" + string.Join("&", qs);
+    }
 }

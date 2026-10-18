@@ -39,7 +39,7 @@ public sealed class FullArchitectureLinkRemapTests
     [Theory]
     [InlineData("https://agriculture.ecomae.com/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders", "/erp/sales-orders-app")]
     [InlineData("https://www.ecomae.com/ERP/?epc_erp_shell=1&area=tax&tab=einvoice", "/erp/einvoice-documents-app")]
-    [InlineData("https://www.ecomae.com/ERP/?epc_erp_shell=1&area=gl", "/erp/gl-journals-app")]
+    [InlineData("https://www.ecomae.com/ERP/?epc_erp_shell=1&area=gl", "/erp/general-ledger-workspace-app")]
     [InlineData("https://www.ecomae.com/ERP/?epc_erp_shell=1&area=payroll", "/erp/payroll-app")]
     public void EcomaeAbsoluteErp_KeepsDeepTabOrArea(string php, string expected)
     {
@@ -49,7 +49,7 @@ public sealed class FullArchitectureLinkRemapTests
     // --- ERP tab / area hubs ---
     [Theory]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders", "/erp/sales-orders-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=gl", "/erp/gl-journals-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=gl", "/erp/general-ledger-workspace-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=payroll", "/erp/payroll-app")]
     [InlineData("/ERP/?epc_erp_shell=1&tab=agenda", "/erp/agenda-app")]
     [InlineData("/ERP/?epc_erp_shell=1&tab=contacts", "/erp/contacts-app")]

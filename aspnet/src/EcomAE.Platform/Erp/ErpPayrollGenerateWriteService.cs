@@ -6,7 +6,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_erp_payroll_generate_run</c> twin. INSERT/rebuild a draft
-/// payroll run and lines from active staff HR records. Schema ensure stays PHP.
+/// payroll run and lines from active staff HR records.
 /// </summary>
 public interface IErpPayrollGenerateWriteService
 {
@@ -47,6 +47,7 @@ public sealed class ErpPayrollGenerateWriteService : IErpPayrollGenerateWriteSer
         const int standardDays = 30;
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsurePayrollAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_erp_payroll_runs", "period_label", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_erp_payroll_runs", "standard_days", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_erp_payroll_lines", "monthly_basic", cancellationToken).ConfigureAwait(false)

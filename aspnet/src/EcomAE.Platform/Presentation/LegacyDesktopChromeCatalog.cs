@@ -33,17 +33,17 @@ public static class LegacyDesktopChromeCatalog
         {
             ["home"] = ["overview"],
             ["record_to_report"] = ["finance", "budgeting", "consolidations", "cost_acct", "audit_wb", "fixed_assets"],
-            ["procure_to_pay"] = ["purchasing", "ap", "landed_cost_area", "expense"],
+            ["procure_to_pay"] = ["purchasing", "ap", "landed_cost_area", "expense", "rebate_mgmt"],
             ["order_to_cash"] = ["sales", "ar", "credit_coll", "retail", "service_mgmt"],
             ["cash_treasury"] = ["banking"],
             ["inventory_fulfilment"] =
             [
                 "inventory_mgmt", "pim", "cost_mgmt", "production", "warehouse", "mhei", "logistics",
-                "master_planning_area", "asset_mgmt"
+                "master_planning_area", "asset_mgmt", "transportation"
             ],
-            ["hr_payroll"] = ["people", "payroll_area", "leave_abs", "projects"],
+            ["hr_payroll"] = ["people", "payroll_area", "leave_abs", "projects", "time_att"],
             ["compliance_tax"] = ["tax", "risk"],
-            ["setup_admin"] = ["setup", "enterprise", "common"],
+            ["setup_admin"] = ["setup", "enterprise", "common", "questionnaire"],
         };
 
     /// <summary>Short labels from <c>epc_erp_nav_categories_config</c>.</summary>
@@ -810,9 +810,25 @@ public static class LegacyDesktopChromeCatalog
     /// ERP topnav: categories → area columns → tabs (mirrors <c>epc_erp_render_top_nav</c>).
     /// No artificial tab caps — every catalogued tab appears under its area column.
     /// </summary>
-    public static IReadOnlyList<MegaGroup> ErpTopnav()
+    private static readonly Lazy<IReadOnlyList<MegaGroup>> ErpTopnavCache = new(BuildErpTopnav);
+
+    public static IReadOnlyList<MegaGroup> ErpTopnav() => ErpTopnavCache.Value;
+
+    private static IReadOnlyList<MegaGroup> BuildErpTopnav()
     {
         var areasById = PhpModuleCatalog.ErpAreas.ToDictionary(a => a.Id, StringComparer.OrdinalIgnoreCase);
+        var tabsByGroup = new Dictionary<string, List<PhpModuleCatalog.ModuleLink>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var tab in PhpModuleCatalog.ErpTabs.Concat(PhpModuleCatalog.AspNetErpTabs))
+        {
+            var group = tab.Group ?? string.Empty;
+            if (!tabsByGroup.TryGetValue(group, out var bucket))
+            {
+                bucket = [];
+                tabsByGroup[group] = bucket;
+            }
+
+            bucket.Add(tab);
+        }
 
         return PhpModuleCatalog.ErpCategories.Select(cat =>
         {
@@ -825,12 +841,7 @@ public static class LegacyDesktopChromeCatalog
 
             foreach (var areaId in areaIds)
             {
-                var tabs = PhpModuleCatalog.ErpTabs
-                    .Concat(PhpModuleCatalog.AspNetErpTabs)
-                    .Where(t => string.Equals(t.Group, areaId, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-
-                if (tabs.Count == 0)
+                if (!tabsByGroup.TryGetValue(areaId, out var tabs) || tabs.Count == 0)
                 {
                     continue;
                 }

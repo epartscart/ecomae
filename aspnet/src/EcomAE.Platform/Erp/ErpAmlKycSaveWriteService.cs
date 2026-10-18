@@ -4,7 +4,7 @@ using System.Globalization;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_aml_kyc_save</c> twin. Schema-ensure stays PHP.
+/// Live PHP <c>epc_aml_kyc_save</c> twin. Schema-ensure matches PHP <c>epc_aml_ensure_schema</c>.
 /// </summary>
 public interface IErpAmlKycSaveWriteService
 {
@@ -66,6 +66,7 @@ public sealed class ErpAmlKycSaveWriteService : IErpAmlKycSaveWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpAmlShared.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_aml_kyc", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_aml_kyc", "customer_name", cancellationToken).ConfigureAwait(false))
         {

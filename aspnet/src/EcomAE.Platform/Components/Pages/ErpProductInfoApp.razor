@@ -6,11 +6,14 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 @inject IErpWriteConnectionFactory TenantDb
+@inject IErpJwMetalStockListReadService MetalStock
+@inject IErpInventoryMovementWriteService Inventory
 
 <PageTitle>Product information · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -19,47 +22,151 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Product information" Subtitle="Open an item for track-expiry and same-type siblings. Field Open loads the 280-character options excerpt. Variant Open loads the 280-character combo excerpt. Create item writes here. Dimension-link save stays Classic." PhpTabHref="@_phpTab" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <PhpErpModulePageHeader Title="Product information" Subtitle="@(_jewellery ? "Jewellery item master: every jewellery master, metal-stock product, inventory, and stock report on one page." : "Open an item for track-expiry and same-type siblings. Field Open loads the 280-character options excerpt. Variant Open loads the 280-character combo excerpt. Create item writes here. Dimension-link save is not available on this page.")" PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@RibbonNewHref" RefreshHref="@Nav.Uri" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Product information KPIs">
         <div class="kpi"><div class="lbl">Items</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Active</div><div class="val">@_active.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Fields</div><div class="val">@_fieldCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        @if (_jewellery)
+        {
+            <div class="kpi"><div class="lbl">Jewellery masters</div><div class="val">@_jwMasterTotal.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Metal stock</div><div class="val">@_metalRows.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Stock lines</div><div class="val">@_stockBalance.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        }
     </div>
 
-    <ErpPhpViewTabs QueryName="pm_view" Active="@_view" BaseHref="/erp/product-info-app" Tabs="@_views" />
+    <ErpPhpViewTabs QueryName="pm_view" Active="@_view" BaseHref="@ListHref" Tabs="@_views" />
 
-    @if (_isAdmin && _view is "all" or "devkit" or "released")
+    @if (_jewellery && _view is "devkit" or "jw_masters" or "all")
     {
-        <ErpPhpCreateWell Title="New item">
-            <form method="post" action="/erp/ajax/inv-create-item" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;">
+        <h2 style="font-size:16px;">Jewellery masters</h2>
+        <p class="text-muted">Every jewellery product master. Open a card to maintain it; metal stock is the inventory item, stock report is on-hand weight and value.</p>
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery master catalog">
+            @foreach (var card in JewelleryMasterCards)
+            {
+                <a class="kpi" href="@card.Href">
+                    <div class="lbl">@card.Label</div>
+                    <div class="val">@card.Count.ToString(CultureInfo.InvariantCulture)</div>
+                </a>
+            }
+        </div>
+    }
+
+    @if (_isAdmin && _view == "entry")
+    {
+        <ErpPhpCreateWell Title="New inventory part or assembly">
+            <form method="post" action="/erp/ajax/inv-create-item" class="epc-item-part" data-epc-item-part="1">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/erp/product-info-app?pm_view=@_view" />
-                <label>SKU <input class="form-control input-sm" name="sku" placeholder="SKU" required /></label>
-                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" required /></label>
+                <input type="hidden" name="returnUrl" id="epc-part-return" value="/erp/product-info-app?pm_view=entry" />
+                <div class="epc-erp-doc-header">
+                    <p class="epc-erp-doc-header__title">Item</p>
+                    <label>Type
+                        <select class="form-control input-sm" name="part_kind" id="epc-part-kind">
+                            <option value="inventory_part">Inventory part</option>
+                            <option value="inventory_assembly">Inventory assembly</option>
+                        </select>
+                    </label>
+                    <label>SKU <input class="form-control input-sm" name="sku" required /></label>
+                    <label>Item name <input class="form-control input-sm" name="name" required /></label>
+                    <label>Manufacturer part <input class="form-control input-sm" name="manufacturer_part" /></label>
+                    <label>Unit <input class="form-control input-sm" name="unit" value="pcs" /></label>
+                    <label class="epc-item-part__check"><input type="checkbox" name="inactive" value="1" /> Item is inactive</label>
+                </div>
+                <div class="epc-item-part__books">
+                    <fieldset>
+                        <legend>Purchase information</legend>
+                        <label>Description on purchase transactions
+                            <textarea class="form-control input-sm" name="purchase_description" rows="2"></textarea>
+                        </label>
+                        <label>Cost <input class="form-control input-sm" name="cost" id="epc-part-cost" value="0.00" /></label>
+                        <ErpMasterPicker Kind="coa" FieldName="cogs_account" InputId="epc-part-cogs" Label="COGS account" ValueMode="code" />
+                        <ErpMasterPicker Kind="supplier" FieldName="preferred_vendor" InputId="epc-part-vendor" Label="Preferred vendor" ValueMode="name" />
+                    </fieldset>
+                    <fieldset>
+                        <legend>Sales information</legend>
+                        <label>Description on sales transactions
+                            <textarea class="form-control input-sm" name="sales_description" rows="2"></textarea>
+                        </label>
+                        <label>Sales price <input class="form-control input-sm" name="sales_price" id="epc-part-price" value="0.00" /></label>
+                        <p class="text-muted" id="epc-part-margin">Markup 0% · Margin 0%</p>
+                        <ErpMasterPicker Kind="coa" FieldName="income_account" InputId="epc-part-income" Label="Income account" ValueMode="code" />
+                    </fieldset>
+                    <fieldset>
+                        <legend>Stock</legend>
+                        <ErpMasterPicker Kind="coa" FieldName="asset_account" InputId="epc-part-asset" Label="Asset account" ValueMode="code" />
+                        <label>Reorder min <input class="form-control input-sm" name="reorder_min" value="0" /></label>
+                        <label>Max <input class="form-control input-sm" name="reorder_max" value="0" /></label>
+                        <label>On hand <input class="form-control input-sm" name="on_hand" value="0" /></label>
+                    </fieldset>
+                </div>
+                <fieldset class="epc-item-part__bom" id="epc-part-bom">
+                    <legend>Bill of materials — assembly only</legend>
+                    <table class="table table-condensed table-bordered">
+                        <thead><tr><th>Item</th><th>Description</th><th>Qty</th><th>Cost</th><th>U/M</th></tr></thead>
+                        <tbody>
+                            @for (var i = 0; i < 4; i++)
+                            {
+                                <tr>
+                                    <td><ErpMasterPicker Kind="item" FieldName="bom_sku" InputId="@("epc-part-bom-" + i.ToString(CultureInfo.InvariantCulture))" Label="Item" ValueMode="code" /></td>
+                                    <td><input class="form-control input-sm" name="bom_desc" /></td>
+                                    <td><input class="form-control input-sm" name="bom_qty" /></td>
+                                    <td><input class="form-control input-sm" name="bom_cost" /></td>
+                                    <td><input class="form-control input-sm" name="bom_unit" value="pcs" /></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </fieldset>
                 @if (_pimFormHtml.Length > 0)
                 {
-                    <div style="flex-basis:100%;max-width:640px;">
-                        <h5 style="margin:6px 0;"><i class="fa fa-tags"></i> PIM custom attributes</h5>
+                    <div class="epc-erp-doc-header">
+                        <p class="epc-erp-doc-header__title">Custom attributes</p>
                         @((MarkupString)_pimFormHtml)
                     </div>
                 }
-                <button type="submit" class="btn btn-primary btn-sm">Create item</button>
-                <button type="submit" class="btn btn-default btn-sm" formaction="@EcomAeRoutes.ErpProductInfoCreateItemForm" formnovalidate>Check SKU (dry run)</button>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-default" formaction="@EcomAeRoutes.ErpProductInfoCreateItemForm" formnovalidate>Validate</button>
+                    <button type="submit" class="btn btn-primary" id="epc-part-post">Post</button>
+                </div>
             </form>
+            <script>
+                (function () {
+                    var kind = document.getElementById('epc-part-kind');
+                    var bom = document.getElementById('epc-part-bom');
+                    var cost = document.getElementById('epc-part-cost');
+                    var price = document.getElementById('epc-part-price');
+                    var margin = document.getElementById('epc-part-margin');
+                    function sync() {
+                        if (kind && bom) bom.style.display = kind.value === 'inventory_assembly' ? '' : 'none';
+                        var c = parseFloat(cost && cost.value) || 0;
+                        var p = parseFloat(price && price.value) || 0;
+                        var mk = c > 0 ? ((p - c) / c * 100) : 0;
+                        var mg = p > 0 ? ((p - c) / p * 100) : 0;
+                        if (margin) margin.textContent = 'Markup ' + mk.toFixed(2) + '% · Margin ' + mg.toFixed(2) + '%';
+                    }
+                    if (kind) kind.addEventListener('change', sync);
+                    if (cost) cost.addEventListener('input', sync);
+                    if (price) price.addEventListener('input', sync);
+                    var post = document.getElementById('epc-part-post');
+                    var ret = document.getElementById('epc-part-return');
+                    if (post && ret) post.addEventListener('click', function () { ret.value = '/erp/product-info-app?pm_view=all'; });
+                    sync();
+                })();
+            </script>
         </ErpPhpCreateWell>
     }
 
-    @if (_openedItem is not null)
+    @if (_view != "entry" && _openedItem is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedItemCaption</strong>
                 <a class="btn btn-xs btn-default" href="@OpenedItemReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Item id</dt><dd>@_openedItem.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>SKU</dt><dd>@(string.IsNullOrWhiteSpace(_openedItem.Sku) ? "—" : _openedItem.Sku)</dd>
                 <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_openedItem.Name) ? "—" : _openedItem.Name)</dd>
@@ -71,7 +178,47 @@
                 <dt>Status</dt><dd>@(_openedItem.Active ? "active" : "inactive")</dd>
                 <dt>Created</dt><dd>@FormatTime(_openedItem.TimeCreated)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Create item writes here. Dimension-link save stays Classic.</p>
+            @if (_openedPart is not null)
+            {
+                <div class="epc-item-part-card" data-epc-item-kind="@_openedPart.Kind">
+                    <h3 style="margin:.8rem 0 .4rem">@_openedPart.KindLabel</h3>
+                    <dl class="epc-erp-facts">
+                        <dt>Manufacturer part</dt><dd>@Show(_openedPart.ManufacturerPart)</dd>
+                        <dt>Cost</dt><dd>@_openedPart.Cost.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                        <dt>Sales price</dt><dd>@_openedPart.SalesPrice.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                        <dt>Markup</dt><dd>@_openedPart.MarkupPercent.ToString("N2", CultureInfo.InvariantCulture)%</dd>
+                        <dt>Margin</dt><dd>@_openedPart.MarginPercent.ToString("N2", CultureInfo.InvariantCulture)%</dd>
+                        <dt>COGS account</dt><dd>@Show(_openedPart.CogsAccount)</dd>
+                        <dt>Income account</dt><dd>@Show(_openedPart.IncomeAccount)</dd>
+                        <dt>Asset account</dt><dd>@Show(_openedPart.AssetAccount)</dd>
+                        <dt>Preferred vendor</dt><dd>@Show(_openedPart.PreferredVendor)</dd>
+                        <dt>Reorder</dt><dd>@_openedPart.ReorderMin.ToString("N2", CultureInfo.InvariantCulture) – @_openedPart.ReorderMax.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                        <dt>On hand</dt><dd>@_openedPart.OnHand.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                        <dt>Inactive</dt><dd>@(_openedPart.Inactive ? "yes" : "no")</dd>
+                    </dl>
+                    @if (_openedPart.IsAssembly)
+                    {
+                        <p style="margin:.6rem 0 .3rem"><strong>Bill of materials</strong> · total cost @_openedPart.BomCost.ToString("N2", CultureInfo.InvariantCulture)</p>
+                        <table class="table table-bordered table-condensed">
+                            <thead><tr><th>Item</th><th>Description</th><th>Qty</th><th>Cost</th><th>U/M</th><th>Total</th></tr></thead>
+                            <tbody>
+                                @foreach (var line in _openedPart.Bom)
+                                {
+                                    <tr>
+                                        <td>@Show(line.Sku)</td>
+                                        <td>@Show(line.Description)</td>
+                                        <td>@line.Qty.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                        <td>@line.Cost.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                        <td>@line.Unit</td>
+                                        <td>@((line.Qty * line.Cost).ToString("N2", CultureInfo.InvariantCulture))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            }
+            <p class="text-muted" style="margin:.85rem 0 0">Inventory part and assembly cards save on this page. Dimension-link save is not available on this page.</p>
             @if (_openedItemPim.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">PIM attributes</p>
@@ -102,14 +249,14 @@
         </div>
     }
 
-    @if (_openedField is not null)
+    @if (_view != "entry" && _openedField is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedFieldCaption</strong>
                 <a class="btn btn-xs btn-default" href="@OpenedFieldReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Field id</dt><dd>@_openedField.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Key</dt><dd>@(string.IsNullOrWhiteSpace(_openedField.FieldKey) ? "—" : _openedField.FieldKey)</dd>
                 <dt>Label</dt><dd>@(string.IsNullOrWhiteSpace(_openedField.Label) ? "—" : _openedField.Label)</dd>
@@ -117,7 +264,7 @@
                 <dt>Role</dt><dd>@(string.IsNullOrWhiteSpace(_openedField.FieldRole) ? "—" : _openedField.FieldRole)</dd>
                 <dt>Status</dt><dd>@(_openedField.Active ? "active" : "inactive")</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Create item writes here. Dimension-link save stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Create item writes here. Dimension-link save is not available on this page.</p>
             @if (!string.IsNullOrWhiteSpace(_openedField.OptionsExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">options excerpt</p>
@@ -156,14 +303,14 @@
         </div>
     }
 
-    @if (_openedVariant is not null)
+    @if (_view != "entry" && _openedVariant is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedVariantCaption</strong>
                 <a class="btn btn-xs btn-default" href="@OpenedVariantReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Variant id</dt><dd>@_openedVariant.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Variant SKU</dt><dd>@(string.IsNullOrWhiteSpace(_openedVariant.VariantSku) ? "—" : _openedVariant.VariantSku)</dd>
                 <dt>Base</dt><dd>@(string.IsNullOrWhiteSpace(_openedVariant.BaseSku) ? "—" : _openedVariant.BaseSku)</dd>
@@ -172,7 +319,7 @@
                 <dt>Status</dt><dd>@(_openedVariant.Active ? "active" : "inactive")</dd>
                 <dt>Created</dt><dd>@FormatTime(_openedVariant.TimeCreated)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Create item writes here. Dimension-link save stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Create item writes here. Dimension-link save is not available on this page.</p>
             @if (!string.IsNullOrWhiteSpace(_openedVariant.ComboExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">combo excerpt</p>
@@ -211,54 +358,60 @@
         </div>
     }
 
-    @if (_view == "pim_attrs")
+    @if (_view is "pim_entry" or "pim_attrs")
     {
-        <div class="epc-erp-section">
-            <h4><i class="fa fa-tags"></i> PIM custom attributes <span class="badge">@_pimFields.Count.ToString(CultureInfo.InvariantCulture)</span></h4>
-            <p class="text-muted">Create unlimited custom product attributes with any field type. Each attribute can be shown on <strong>Inventory</strong>, <strong>Sales</strong>, and/or <strong>Purchase</strong> module forms. Options are managed per field for dropdown and checkbox types.</p>
-            @if (_isAdmin)
-            {
-                <div style="background:#f4f8fc;border:1px solid #dbe6f1;border-radius:8px;padding:14px;margin-bottom:16px;">
-                    <h5 style="margin-top:0;"><i class="fa fa-plus-circle"></i> Create new attribute</h5>
-                    <form method="post" action="@EcomAeRoutes.ErpProductInfoPimAction">
-                        <input type="hidden" name="confirmWrites" value="true" />
-                        <input type="hidden" name="pinfo_action" value="pim_create_field" />
-                        <input type="hidden" name="returnUrl" value="@PimHref" />
-                        <div class="row">
-                            <div class="form-group col-sm-4" style="padding:6px;"><label>Field name <span style="color:red">*</span></label><input type="text" name="pim_name" class="form-control input-sm" placeholder="e.g. Inventory Type" maxlength="200" required /></div>
-                            <div class="form-group col-sm-3" style="padding:6px;"><label>Type</label>
-                                <select name="pim_type" class="form-control input-sm" onchange="document.getElementById('pim_opts_row').style.display=(this.value==='single_option'||this.value==='multi_option')?'block':'none';">
-                                    @foreach (var (type, label) in ErpPimCustomFields.TypeLabels)
-                                    {
-                                        <option value="@type">@label</option>
-                                    }
-                                </select>
-                            </div>
-                            <div class="form-group col-sm-5" style="padding:6px;"><label>Description</label><input type="text" name="pim_desc" class="form-control input-sm" placeholder="Optional help text" maxlength="500" /></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-4" style="padding:6px;"><label>Show on modules</label><div>
-                                <label style="display:inline-block;margin-right:10px;font-weight:normal;"><input type="checkbox" name="pim_show_inventory" value="1" checked /> Inventory</label>
-                                <label style="display:inline-block;margin-right:10px;font-weight:normal;"><input type="checkbox" name="pim_show_sales" value="1" checked /> Sales</label>
-                                <label style="display:inline-block;font-weight:normal;"><input type="checkbox" name="pim_show_purchase" value="1" checked /> Purchase</label>
-                            </div></div>
-                            <div class="col-sm-2" style="padding:6px;"><label>&nbsp;</label><div><label style="font-weight:normal;"><input type="checkbox" name="pim_required" value="1" /> Required</label></div></div>
-                        </div>
-                        <div id="pim_opts_row" style="display:none;padding:6px;">
-                            <label>Options (comma-separated for dropdown/checkbox fields)</label>
-                            <textarea name="pim_options" class="form-control input-sm" rows="2" placeholder="e.g. Inventory, Non-Inventory, Service"></textarea>
-                        </div>
-                        <div style="padding:6px;"><button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Create attribute</button></div>
-                    </form>
-                </div>
-            }
-            <div class="table-responsive">
-                <table class="table table-bordered table-condensed table-striped" style="background:#fff;">
-                    <thead><tr><th>Name</th><th>Code</th><th>Type</th><th>Inventory</th><th>Sales</th><th>Purchase</th><th>Required</th><th>Options</th><th>Actions</th></tr></thead>
+        @if (_view == "pim_attrs")
+        {
+            <h2 style="font-size:16px;">PIM attributes</h2>
+            <p class="text-muted">Post a new attribute in the form. Dropdown and checkbox options are maintained on each row.</p>
+        }
+        @if (!_isAdmin)
+        {
+            <p class="text-muted">Sign in to post a new attribute. Posted attributes stay on this list.</p>
+        }
+        else
+        {
+            <ErpPhpCreateWell Title="New attribute">
+                <form id="erp-module-new" method="post" action="@EcomAeRoutes.ErpProductInfoPimAction" class="epc-pim-attr">
+                    <input type="hidden" name="pinfo_action" value="pim_create_field" />
+                    <input type="hidden" name="returnUrl" value="@PimListHref" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <fieldset>
+                        <legend>Attribute</legend>
+                        <label>Field name <input class="form-control input-sm" name="pim_name" maxlength="200" required placeholder="Inventory type" data-erp-new-field /></label>
+                        <label>Type
+                            <select class="form-control input-sm" name="pim_type">
+                                @foreach (var (type, label) in ErpPimCustomFields.TypeLabels)
+                                {
+                                    <option value="@type">@label</option>
+                                }
+                            </select>
+                        </label>
+                        <label>Description <input class="form-control input-sm" name="pim_desc" maxlength="500" placeholder="Help text" /></label>
+                        <label class="epc-sheet-entry__wide">Options
+                            <textarea class="form-control input-sm" name="pim_options" rows="3" placeholder="Comma-separated. Used when the type is a dropdown or checkbox."></textarea>
+                        </label>
+                        <label><input type="checkbox" name="pim_show_inventory" value="1" checked /> Show on inventory</label>
+                        <label><input type="checkbox" name="pim_show_sales" value="1" checked /> Show on sales</label>
+                        <label><input type="checkbox" name="pim_show_purchase" value="1" checked /> Show on purchase</label>
+                        <label><input type="checkbox" name="pim_required" value="1" /> Required</label>
+                        <p class="form-actions">
+                            <button type="submit" class="btn btn-default" name="intent" value="validate" formnovalidate>Validate</button>
+                            <button type="submit" class="btn btn-primary" name="intent" value="post" id="epc-pim-post">Post</button>
+                        </p>
+                    </fieldset>
+                </form>
+            </ErpPhpCreateWell>
+        }
+        @if (_view == "pim_attrs")
+        {
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Name</th><th>Code</th><th>Type</th><th>Inventory</th><th>Sales</th><th>Purchase</th><th>Required</th><th>Options</th><th></th></tr></thead>
                     <tbody>
                         @if (_pimFields.Count == 0)
                         {
-                            <tr><td colspan="9" class="text-muted">No PIM attributes yet. Use the form above to create one.</td></tr>
+                            <tr><td colspan="9" class="text-muted">No PIM attributes yet. Post the first one in the form above.</td></tr>
                         }
                         @foreach (var pf in _pimFields)
                         {
@@ -278,7 +431,7 @@
                                             <input type="hidden" name="confirmWrites" value="true" />
                                             <input type="hidden" name="pinfo_action" value="pim_delete_option" />
                                             <input type="hidden" name="opt_id" value="@o.Id.ToString(CultureInfo.InvariantCulture)" />
-                                            <input type="hidden" name="returnUrl" value="@PimHref" />
+                                            <input type="hidden" name="returnUrl" value="@PimListHref" />
                                             <span class="label label-info">@o.Label <button type="submit" title="Remove" style="background:none;border:0;color:#fff;opacity:.7;padding:0 0 0 2px;">&times;</button></span>
                                         </form>
                                     }
@@ -290,7 +443,7 @@
                                                 <input type="hidden" name="confirmWrites" value="true" />
                                                 <input type="hidden" name="pinfo_action" value="pim_add_option" />
                                                 <input type="hidden" name="pim_field_id" value="@pf.Id.ToString(CultureInfo.InvariantCulture)" />
-                                                <input type="hidden" name="returnUrl" value="@PimHref" />
+                                                <input type="hidden" name="returnUrl" value="@PimListHref" />
                                                 <input type="text" name="opt_label" class="form-control input-sm" placeholder="Add option" maxlength="200" style="width:100px;" required />
                                                 <button type="submit" class="btn btn-default btn-xs"><i class="fa fa-plus"></i></button>
                                             </form>
@@ -308,8 +461,8 @@
                                             <input type="hidden" name="confirmWrites" value="true" />
                                             <input type="hidden" name="pinfo_action" value="pim_delete_field" />
                                             <input type="hidden" name="pim_field_id" value="@pf.Id.ToString(CultureInfo.InvariantCulture)" />
-                                            <input type="hidden" name="returnUrl" value="@PimHref" />
-                                            <button type="submit" class="btn btn-danger btn-xs" title="Deactivate" onclick="return confirm('Deactivate this attribute?');"><i class="fa fa-trash"></i></button>
+                                            <input type="hidden" name="returnUrl" value="@PimListHref" />
+                                            <button type="submit" class="btn btn-default btn-xs">Deactivate</button>
                                         </form>
                                     }
                                 </td>
@@ -318,7 +471,7 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        }
     }
     else if (_view == "fields")
     {
@@ -339,6 +492,89 @@
                                 <td>@row.FieldRole</td>
                                 <td><span class="label label-default">@(row.Active ? "active" : "inactive")</span></td>
                                 <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "pm_field_id", row.Id)">Open</a></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (_jewellery && _view == "jw_stock")
+    {
+        <h2 style="font-size:16px;">Metal stock products</h2>
+        <p class="text-muted">Jewellery products linked to inventory and the stock report. Each item_code is the SKU used on purchase, retail, and stock count.</p>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Description</th>
+                        <th>Metal</th>
+                        <th>Karat</th>
+                        <th>Type</th>
+                        <th class="text-right">Stock pcs</th>
+                        <th class="text-right">Stock g</th>
+                        <th class="text-right">Value</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_metalRows.Count == 0)
+                    {
+                        <tr><td colspan="9" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_metalMessage) ? "No metal stock products yet." : _metalMessage) : "Sign in with ERP capability for live rows.")</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _metalRows)
+                        {
+                            <tr>
+                                <td><strong>@(string.IsNullOrWhiteSpace(row.ItemCode) ? "—" : row.ItemCode)</strong></td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Description) ? "—" : row.Description)</td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Metal) ? "—" : row.Metal)</td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Karat) ? "—" : row.Karat)</td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Type) ? "—" : row.Type)</td>
+                                <td class="text-right">@row.StockPcs.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@row.StockGms.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@row.StockValue.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>
+                                    <a class="btn btn-xs btn-default" href="@MetalStockHref(row.ItemCode)">Master</a>
+                                    <a class="btn btn-xs btn-default" href="@InventoryHref(row.ItemCode)">Inventory</a>
+                                    <a class="btn btn-xs btn-primary" href="@StockReportHref">Stock report</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (_jewellery && _view == "jw_stock_report")
+    {
+        <h2 style="font-size:16px;">Stock report</h2>
+        <p class="text-muted">On-hand jewellery stock by metal and karat. Open inventory or the live stock-balance workspace for a product.</p>
+        <p>
+            <a class="btn btn-sm btn-default" href="@InventoryHref(null)">Inventory</a>
+            <a class="btn btn-sm btn-primary" href="@StockReportHref">Open stock balance</a>
+            <a class="btn btn-sm btn-default" href="@MetalStockHref(null)">Metal stock master</a>
+        </p>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Metal</th><th>Karat</th><th class="text-right">Pcs</th><th class="text-right">Gross wt</th><th class="text-right">Value</th></tr></thead>
+                <tbody>
+                    @if (_stockBalance.Rows.Count == 0)
+                    {
+                        <tr><td colspan="5" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_stockBalance.Message) ? "No stock report rows yet." : _stockBalance.Message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _stockBalance.Rows)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(row.Metal) ? "—" : row.Metal)</td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Karat) ? "—" : row.Karat)</td>
+                                <td class="text-right">@row.StockPcs.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@row.StockGms.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@row.StockValue.ToString("N2", CultureInfo.InvariantCulture)</td>
                             </tr>
                         }
                     }
@@ -372,16 +608,37 @@
             </table>
         </div>
     }
+    else if (_view == "entry")
+    {
+        @if (!_isAdmin)
+        {
+            <p class="text-muted">Sign in to post a new item. Posted items stay on All products.</p>
+        }
+    }
     else
     {
         <h2 style="font-size:16px;">@(_view == "devkit" ? "Product dev kit" : _view == "released" ? "Release product" : "All products")</h2>
         <div class="epc-erp-table-wrap">
             <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-                <thead><tr><th>SKU</th><th>Name</th><th>Type</th><th>Unit</th><th class="text-right">Sales price</th><th>Status</th><th></th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Unit</th>
+                        <th class="text-right">Sales price</th>
+                        <th>Status</th>
+                        @if (_jewellery)
+                        {
+                            <th></th>
+                        }
+                        <th></th>
+                    </tr>
+                </thead>
                 <tbody>
-                    @if (_shownItems.Count == 0)
+                    @if (_shownItems.Count == 0 && (!_jewellery || _metalRows.Count == 0))
                     {
-                        <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No product items yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                        <tr><td colspan="@(_jewellery ? 8 : 7)">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No product items yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                     }
                     else
                     {
@@ -394,8 +651,34 @@
                                 <td>@row.Unit</td>
                                 <td class="text-right">@row.SalesPrice.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td><span class="label label-default">@(row.Active ? "active" : "inactive")</span></td>
-                                <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "pm_item_id", row.Id)">Open</a></td>
+                                @if (_jewellery)
+                                {
+                                    <td>
+                                        <a class="btn btn-xs btn-default" href="@InventoryHref(row.Sku)">Inventory</a>
+                                        <a class="btn btn-xs btn-default" href="@StockReportHref">Stock report</a>
+                                    </td>
+                                }
+                                <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(AppHref, "pm_item_id", row.Id)">Open</a></td>
                             </tr>
+                        }
+                        @if (_jewellery)
+                        {
+                            @foreach (var row in _metalRows)
+                            {
+                                <tr>
+                                    <td>@(string.IsNullOrWhiteSpace(row.ItemCode) ? "—" : row.ItemCode)</td>
+                                    <td><strong>@(string.IsNullOrWhiteSpace(row.Description) ? row.ItemCode : row.Description)</strong></td>
+                                    <td>metal stock</td>
+                                    <td>g</td>
+                                    <td class="text-right">@row.SalePriceGms.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td><span class="label label-default">stock</span></td>
+                                    <td>
+                                        <a class="btn btn-xs btn-default" href="@InventoryHref(row.ItemCode)">Inventory</a>
+                                        <a class="btn btn-xs btn-default" href="@StockReportHref">Stock report</a>
+                                    </td>
+                                    <td><a class="btn btn-xs btn-primary" href="@MetalStockHref(row.ItemCode)">Open</a></td>
+                                </tr>
+                            }
                         }
                     }
                 </tbody>
@@ -404,7 +687,7 @@
     }
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Create item writes <code>epc_erp_inv_items</code> when confirmWrites is set. Dimension-link save stays Classic.
+        Source: @_source. Create item writes <code>epc_erp_inv_items</code> when confirmWrites is set. Dimension-link save is not available on this page.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
@@ -412,10 +695,16 @@
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=pim&tab=product_info";
     private const string _listHref = "/erp/product-info-app";
-    private static readonly IReadOnlyList<(string Key, string Label)> _views =
-        [("devkit", "Product dev kit"), ("all", "All products"), ("released", "Release product"), ("dimensions", "Dimensions & variants"), ("fields", "Field setup"), ("pim_attrs", "PIM attributes")];
-    private const string PimHref = "/erp/product-info-app?pm_view=pim_attrs";
+    private static readonly IReadOnlyList<(string Key, string Label)> CoreViews =
+        [("entry", "New item"), ("all", "All products"), ("devkit", "Product dev kit"), ("released", "Release product"), ("dimensions", "Dimensions & variants"), ("fields", "Field setup"), ("pim_entry", "New attribute"), ("pim_attrs", "PIM attributes")];
+    private static readonly IReadOnlyList<(string Key, string Label)> JewelleryViews =
+        [("jw_masters", "Jewellery masters"), ("jw_stock", "Metal stock"), ("jw_stock_report", "Stock report")];
+    private IReadOnlyList<(string Key, string Label)> _views => _jewellery
+        ? [CoreViews[0], CoreViews[1], CoreViews[2], CoreViews[3], JewelleryViews[0], JewelleryViews[1], JewelleryViews[2], CoreViews[4], CoreViews[5], CoreViews[6], CoreViews[7]]
+        : CoreViews;
     private bool _isAdmin;
+    private bool _jewellery;
+    private int _company;
     private string _view = "all";
     private IReadOnlyList<ErpProductInfoItemDigest> _items = [];
     private IReadOnlyList<ErpProductInfoItemDigest> _shownItems = [];
@@ -430,6 +719,7 @@
     private long _openedFieldId;
     private long _openedVariantId;
     private ErpProductInfoItemDetail? _openedItem;
+    private ErpItemPartProfile? _openedPart;
     private ErpProductInfoFieldDetail? _openedField;
     private ErpProductInfoVariantDetail? _openedVariant;
     private IReadOnlyList<ErpProductInfoItemDigest> _openedItemSiblings = [];
@@ -439,6 +729,16 @@
     private IReadOnlyDictionary<long, IReadOnlyList<ErpPimCustomFields.Option>> _pimOptions = new Dictionary<long, IReadOnlyList<ErpPimCustomFields.Option>>();
     private IReadOnlyList<ErpPimCustomFields.DisplayRow> _openedItemPim = [];
     private string _pimFormHtml = "";
+    private CpJewelleryMastersDigestResult _jwMasters = new(
+        new(0, 0, 0, 0, "n/a", ""),
+        [], [], [], [], [], [], [], [], [],
+        0, "n/a", "");
+    private IReadOnlyList<ErpJwMetalStockListRow> _metalRows = [];
+    private string _metalMessage = "";
+    private CpJewelleryStockBalanceDigestResult _stockBalance = new([], 0, 0, 0, 0, "n/a", "");
+    private int _jwMasterTotal;
+
+    private sealed record JwMasterCard(string Label, int Count, string Href);
 
     private long _openedId => _openedItemId > 0 ? _openedItemId : (_openedFieldId > 0 ? _openedFieldId : _openedVariantId);
 
@@ -455,6 +755,8 @@
     private string OpenedVariantReturnHref => _openedVariantId > 0
         ? _listHref + "?pm_variant_id=" + _openedVariantId.ToString(CultureInfo.InvariantCulture)
         : _listHref;
+
+    private static string Show(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
 
     private string OpenedItemCaption => _openedItem is null
         ? ""
@@ -484,14 +786,19 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
-        var v = ctx.Request.Query["pm_view"].ToString();
-        _view = v is "devkit" or "released" or "dimensions" or "fields" or "pim_attrs" or "all" ? v : "all";
+        _company = ErpJewelleryModuleChrome.CompanyFromQuery(ctx.Request.Query["company"].ToString());
+        if (_company <= 0)
+        {
+            _company = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
+        }
+        var rawView = ctx.Request.Query["pm_view"].ToString();
+        _view = NormalizeView(rawView);
         _ok = ctx.Request.Query["ok"].ToString();
         _err = ctx.Request.Query["err"].ToString();
         _openedItemId = ErpRecordOpen.ReadId(ctx.Request, "pm_item_id");
         _openedFieldId = ErpRecordOpen.ReadId(ctx.Request, "pm_field_id");
         _openedVariantId = ErpRecordOpen.ReadId(ctx.Request, "pm_variant_id");
-        if (string.IsNullOrWhiteSpace(v))
+        if (string.IsNullOrWhiteSpace(rawView))
         {
             if (_openedFieldId > 0) _view = "fields";
             else if (_openedVariantId > 0) _view = "dimensions";
@@ -501,7 +808,23 @@
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin) { _message = "Sign in for live data."; return; }
 
+        var companies = (await Dashboards.BuildErpCompaniesDigestAsync(50, ctx.RequestAborted)).Companies;
+        var company = companies.FirstOrDefault(c => _company > 0 && c.Id == _company)
+            ?? companies.FirstOrDefault();
+        if (_company <= 0 && company is not null)
+        {
+            _company = (int)company.Id;
+        }
+        _jewellery = ErpIndustryNav.ShowJewelleryModules(
+            TenantContext.IndustryFrom(ctx),
+            company,
+            TenantContext.IndustryFrom(ctx));
+
         await LoadPimAsync(ctx.RequestAborted);
+        if (_jewellery)
+        {
+            await LoadJewelleryCatalogAsync(ctx.RequestAborted);
+        }
         var result = await Dashboards.BuildErpProductInfoDigestAsync(200, ctx.RequestAborted);
         _items = result.Items;
         _fields = result.FieldDefs;
@@ -522,6 +845,7 @@
         {
             var detail = await Dashboards.BuildErpProductInfoItemDetailAsync(_openedItemId, ctx.RequestAborted);
             _openedItem = detail.Item;
+            _openedPart = await Inventory.LoadPartProfileAsync(_openedItemId, ctx.RequestAborted);
             _openedItemSiblings = detail.Siblings;
             if (_openedItem is not null)
             {
@@ -575,6 +899,89 @@
                 _message = detail.Message;
             }
         }
+    }
+
+    private async Task LoadJewelleryCatalogAsync(CancellationToken ct)
+    {
+        _jwMasters = await Dashboards.BuildCpJewelleryMastersDigestAsync(200, _company, ct);
+        var metal = await MetalStock.ReadAsync(_company, 0, null, 200, ct);
+        _metalRows = metal.Rows;
+        _metalMessage = metal.Message;
+        _stockBalance = await Dashboards.BuildCpJewelleryStockBalanceDigestAsync(200, _company, ct);
+        _jwMasterTotal = _jwMasters.Karats.Count
+            + _jwMasters.RateTypes.Count
+            + _jwMasters.Currencies.Count
+            + _jwMasters.Diamonds.Count
+            + _jwMasters.Designs.Count
+            + _jwMasters.Pearls.Count
+            + _jwMasters.ColorStones.Count
+            + _jwMasters.BarcodeRows.Count
+            + _jwMasters.Tags.Count
+            + _metalRows.Count;
+    }
+
+    private IReadOnlyList<JwMasterCard> JewelleryMasterCards =>
+    [
+        new("Karat master", _jwMasters.Karats.Count, JwMasterHref("jw_karat")),
+        new("Gold rate", 0, JwMasterHref("gold_rate")),
+        new("Gold scheme", 0, JwMasterHref("gold_scheme")),
+        new("Jewellery tags", _jwMasters.Tags.Count, JwMasterHref("jewellery_tag")),
+        new("Barcode", _jwMasters.BarcodeRows.Count, JwMasterHref("jw_barcode")),
+        new("Diamond", _jwMasters.Diamonds.Count, JwMasterHref("jw_diamond")),
+        new("Pearl", _jwMasters.Pearls.Count, JwMasterHref("jw_pearl")),
+        new("Color stone", _jwMasters.ColorStones.Count, JwMasterHref("jw_color_stone")),
+        new("Design", _jwMasters.Designs.Count, JwMasterHref("jw_design")),
+        new("Currency", _jwMasters.Currencies.Count, JwMasterHref("jw_currency")),
+        new("Rate type", _jwMasters.RateTypes.Count, JwMasterHref("jw_rate_type")),
+        new("Seed data", 0, JwMasterHref("jw_seed_data")),
+        new("Metal stock", _metalRows.Count, MetalStockHref(null)),
+        new("Stock report", _stockBalance.Count, StockReportHref),
+        new("Inventory", _count, InventoryHref(null)),
+    ];
+
+    private string ListHref => Href(ErpJewelleryModuleChrome.AppHref(_listHref, _company));
+    private string AppHref => Href(ErpJewelleryModuleChrome.AppHref(_listHref, _company, ("pm_view", _view)));
+    private string? RibbonNewHref => _view == "pim_attrs" ? null : _phpTab;
+    private string PimListHref => Href(ErpJewelleryModuleChrome.AppHref(_listHref, _company, ("pm_view", "pim_attrs")));
+
+    private string StockReportHref => Href(ErpJewelleryModuleChrome.AppHref(
+        "/erp/jewellery-stock-verification-app", _company, ("tab", "jw_stock_balance")));
+
+    private string MetalStockHref(string? itemCode)
+        => Href(ErpJewelleryModuleChrome.AppHref(
+            "/erp/jewellery-stock-verification-app",
+            _company,
+            ("tab", "jw_metal_stock"),
+            ("item_code", itemCode ?? "")));
+
+    private string InventoryHref(string? sku)
+        => Href(string.IsNullOrWhiteSpace(sku)
+            ? ErpJewelleryModuleChrome.AppHref("/erp/inventory-stock-app", _company)
+            : ErpJewelleryModuleChrome.AppHref("/erp/inventory-stock-app", _company, ("q", sku)));
+
+    private string JwMasterHref(string tab)
+        => Href(ErpJewelleryModuleChrome.AppHref("/erp/jewellery-masters-app", _company, ("tab", tab)));
+
+    private string Href(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext, path);
+
+    private static string NormalizeView(string? raw)
+    {
+        var value = (raw ?? string.Empty).Trim().TrimEnd('-').Replace('_', '-');
+        return value switch
+        {
+            "entry" or "new" => "entry",
+            "devkit" => "devkit",
+            "released" => "released",
+            "dimensions" => "dimensions",
+            "fields" => "fields",
+            "pim-entry" or "pim-new" => "pim_entry",
+            "pim-attrs" or "pim_attrs" => "pim_attrs",
+            "jw-masters" or "jewellery" or "jw-master" => "jw_masters",
+            "jw-stock" or "metal-stock" => "jw_stock",
+            "jw-stock-report" or "stock-report" or "stock" => "jw_stock_report",
+            "all" => "all",
+            _ => "all",
+        };
     }
 
     private async Task LoadPimAsync(CancellationToken ct)

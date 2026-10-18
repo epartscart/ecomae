@@ -45,7 +45,6 @@
             <div class="hpanel">
                 <div class="panel-heading hbuilt">
                     @(isNew ? "New user" : "User #" + e.UserId.ToString(CultureInfo.InvariantCulture))
-                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(isNew ? _phpEditTab : _phpEditTab + "?user_id=" + e.UserId.ToString(CultureInfo.InvariantCulture))">Classic twin</a>
                 </div>
                 <div class="panel-body epc-users-actions">
                     <a class="panel_a" href="javascript:void(0);" onclick="save_action();"><div class="panel_a_img"><i class="fa fa-save"></i></div><div class="panel_a_caption">Save</div></a>
@@ -54,7 +53,7 @@
                     {
                         <a class="panel_a" href="/cp/orders?customer_id=@e.UserId.ToString(CultureInfo.InvariantCulture)"><div class="panel_a_img"><i class="fa fa-shopping-cart"></i></div><div class="panel_a_caption">Orders</div></a>
                         <a class="panel_a" href="/cp/credit-limits-app?user_id=@e.UserId.ToString(CultureInfo.InvariantCulture)"><div class="panel_a_img"><i class="fa fa-credit-card"></i></div><div class="panel_a_caption">Balance</div></a>
-                        <a class="panel_a" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpEditTab + "?user_id=" + e.UserId.ToString(CultureInfo.InvariantCulture))" title="Sign in as this user (opens the classic twin)"><div class="panel_a_img"><i class="fa fa-key"></i></div><div class="panel_a_caption">Login as user</div></a>
+                        <a class="panel_a" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpEditTab + "?user_id=" + e.UserId.ToString(CultureInfo.InvariantCulture))" title="Sign in as this user (opens this user)"><div class="panel_a_img"><i class="fa fa-key"></i></div><div class="panel_a_caption">Login as user</div></a>
                         <a class="panel_a" href="/cp/statistics-app?user_id=@e.UserId.ToString(CultureInfo.InvariantCulture)"><div class="panel_a_img"><i class="fa fa-bar-chart"></i></div><div class="panel_a_caption">Statistics</div></a>
                     }
                     <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
@@ -177,7 +176,6 @@
                                 </select>
                             </label>
                             <button type="submit" class="btn btn-xs btn-primary">Apply vendor status</button>
-                            <a class="btn btn-default btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/users/vendor_approvals")">Classic twin</a>
                         </form>
                     </div>
                 </div>
@@ -263,7 +261,7 @@
         var l = _list;
         @* ---- user_manager.php twin ---- *@
         <PhpCpModulePageHeader Title="Users"
-                               Subtitle="PHP user_manager twin: filter, sort and page the users table; open a row for the user.php editor (profile fields, groups, balance, comment)."
+                               Subtitle="Filter, sort and page the users table; open a row for the user editor (profile fields, groups, balance, comment)."
                                PhpTabHref="@_phpTab">
             <a class="ghost" href="/cp/groups-app">Groups</a>
             <a class="ghost" href="/cp/orders">Orders</a>
@@ -281,13 +279,12 @@
             <div class="hpanel">
                 <div class="panel-heading hbuilt">
                     Users
-                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
                 </div>
                 <div class="panel-body epc-users-actions">
                     <a class="panel_a" href="/cp/users-app?new=1"><div class="panel_a_img"><i class="fa fa-user-plus"></i></div><div class="panel_a_caption">Create user</div></a>
                     <a class="panel_a" href="javascript:void(0);" onclick="delete_users();"><div class="panel_a_img"><i class="fa fa-trash-o"></i></div><div class="panel_a_caption">Delete</div></a>
                     <a class="panel_a" href="/cp/groups-app"><div class="panel_a_img"><i class="fa fa-sitemap"></i></div><div class="panel_a_caption">Groups</div></a>
-                    <a class="panel_a" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/users/polya-registracii")"><div class="panel_a_img"><i class="fa fa-list-alt"></i></div><div class="panel_a_caption">Registration fields</div></a>
+                    <a class="panel_a" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/users/polya-registracii")"><div class="panel_a_img"><i class="fa fa-list-alt"></i></div><div class="panel_a_caption">Registration fields</div></a>
                     <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
                 </div>
             </div>
@@ -385,7 +382,7 @@
                                         <td class="epc-row-icons" style="white-space:nowrap">
                                             <a href="/cp/orders?customer_id=@id" title="Orders"><i class="fa fa-shopping-cart"></i></a>
                                             <a href="/cp/credit-limits-app?user_id=@id" title="Balance"><i class="fa fa-credit-card"></i></a>
-                                            <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpEditTab + "?user_id=" + id)" title="Login as user (PHP twin)"><i class="fa fa-key"></i></a>
+                                            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpEditTab + "?user_id=" + id)" title="Login as user"><i class="fa fa-key"></i></a>
                                             <a href="/cp/statistics-app?user_id=@id" title="Statistics"><i class="fa fa-bar-chart"></i></a>
                                         </td>
                                         <td>@((MarkupString)string.Join(";<br>", r.Groups.Select(System.Net.WebUtility.HtmlEncode)))</td>

@@ -62,9 +62,10 @@ public sealed class ErpUaeTaxSaveCtAdjustmentsWriteService : IErpUaeTaxSaveCtAdj
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpUaeTaxComplianceSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_uae_ct_adjustments", "period_key", cancellationToken).ConfigureAwait(false))
         {
-            return ErpSimpleWriteResult.Fail("invalid", "CT adjustments table is not provisioned");
+            return ErpSimpleWriteResult.Fail("invalid", "CT adjustments table could not be created");
         }
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();

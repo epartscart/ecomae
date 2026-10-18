@@ -14,6 +14,23 @@
     <div class="bos-login__grid-lines"></div>
     <div class="bos-login__sky" id="@(ParticlesId)_sky"></div>
     <div class="bos-login__particles" id="@ParticlesId"></div>
+    @if (IsSkyline)
+    {
+        <div class="bos-login__skyline" data-bos-skyline="1" aria-hidden="true">
+            <span class="bos-login__tower bos-login__tower--1"></span>
+            <span class="bos-login__tower bos-login__tower--2"></span>
+            <span class="bos-login__tower bos-login__tower--3"></span>
+            <span class="bos-login__tower bos-login__tower--4"></span>
+            <span class="bos-login__tower bos-login__tower--5"></span>
+            <span class="bos-login__tower bos-login__tower--6"></span>
+            <span class="bos-login__tower bos-login__tower--7"></span>
+            <span class="bos-login__tower bos-login__tower--8"></span>
+            <span class="bos-login__tower bos-login__tower--9"></span>
+            <span class="bos-login__tower bos-login__tower--10"></span>
+            <span class="bos-login__tower bos-login__tower--11"></span>
+            <span class="bos-login__tower bos-login__tower--12"></span>
+        </div>
+    }
     <div class="bos-login__glow bos-login__glow--1"></div>
     <div class="bos-login__glow bos-login__glow--2"></div>
     <div class="bos-login__glow bos-login__glow--3"></div>
@@ -46,7 +63,7 @@
     var palette = Array.isArray(colors) && colors.length ? colors : [
       'rgba(255,255,255,.85)', 'rgba(14,165,233,.7)', 'rgba(56,189,248,.5)'
     ];
-    var count = 480;
+    var count = (industry === 'real_estate' || theme === 'skyline') ? 80 : 480;
     for (var i = 0; i < count; i++) {
       var p = document.createElement('div');
       p.className = 'bos-login__particle';
@@ -92,6 +109,7 @@
     var orbCount = 36;
     if (industry === 'jewellery' || theme === 'sparkle') { moonCount = 14; planetCount = 16; }
     if (industry === 'auto_parts' || theme === 'autoparts') { planetCount = 12; orbCount = 44; }
+    if (industry === 'real_estate' || theme === 'skyline') { moonCount = 0; planetCount = 0; orbCount = 0; return; }
 
     for (var m = 0; m < moonCount; m++) {
       var moon = document.createElement('div');
@@ -182,6 +200,10 @@
         "rgba(255,255,255,.85)", "rgba(14,165,233,.7)", "rgba(56,189,248,.55)",
         "rgba(251,191,36,.45)", "rgba(168,85,247,.4)"
     ];
+
+    private bool IsSkyline =>
+        string.Equals(Theme, "skyline", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(Industry, "real_estate", StringComparison.OrdinalIgnoreCase);
 
     private MarkupString _particlesIdJson;
     private MarkupString _particleColorsJson;

@@ -21,9 +21,18 @@
         <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/purchase-orders-app" IsAdmin="_isAdmin" />
     }
 
-    <PhpErpModulePageHeader Title="@(_barcodePurchase ? "Barcode / Purchase Margin" : "Purchase Orders")" Subtitle="@(_barcodePurchase ? "In jewellery, the barcode is the purchase — cost, margin, and salesman at barcode level." : "Open a purchase order in the shared D365 workspace. Guarded save, approve, invoice, receive, and delete actions are available to authorized ERP users.")" PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="@(_barcodePurchase ? "Barcode / Purchase Margin" : "Purchase Orders")" Subtitle="@(_barcodePurchase ? "In jewellery, the barcode is the purchase — cost, margin, and salesman at barcode level." : "LPO → PO → PI. Approve the PO, then invoice it. Official print preview opens after the document is posted.")" PhpTabHref="@_phpTab" />
+    <ErpManualProcessStrip Keys="purchase" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/purchase-orders-app" />
+    @if (_follow.HasValues)
+    {
+        <div class="alert alert-info" role="status" style="margin:0 0 12px;padding:.7rem .9rem">Process follow: @_follow.Banner. Matching fields are filled on the form.</div>
+    }
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
+    @if (!_barcodePurchase)
+    {
+        <ErpOrderSplitPanel Side="purchase" OrderId="_openedId" />
+    }
     @if (!_barcodePurchase)
     {
         <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
@@ -38,7 +47,7 @@
                 <input type="hidden" name="returnUrl" value="/erp/purchase-orders-app?tab=barcode_purchase" />
                 <label>Barcode <input class="form-control input-sm" name="barcode" placeholder="Auto" /></label>
                 <label>Description <input class="form-control input-sm" name="item_description" required placeholder="22K bangle" /></label>
-                <label>Supplier <input class="form-control input-sm" name="supplier_name" /></label>
+                <ErpMasterPicker Kind="supplier" FieldName="supplier_name" InputId="barcode-purchase-vendor" Label="Supplier" ValueMode="name" />
                 <label>Karat <input class="form-control input-sm" name="karat" value="22K" /></label>
                 <label>Net wt <input class="form-control input-sm" name="net_weight" type="number" step="0.001" value="0" /></label>
                 <label>Gold rate <input class="form-control input-sm" name="gold_rate_at_purchase" type="number" step="0.0001" value="0" /></label>
@@ -52,7 +61,7 @@
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="/erp/purchase-orders-app?tab=barcode_purchase" />
                 <label>Purchase id <input class="form-control input-sm" name="id" type="number" min="1" required /></label>
-                <label>Customer id <input class="form-control input-sm" name="customer_id" type="number" min="0" value="0" /></label>
+                <ErpMasterPicker Kind="customer" FieldName="customer_id" InputId="barcode-sell-customer" Label="Customer" />
                 <label>Invoice id <input class="form-control input-sm" name="invoice_id" type="number" min="0" value="0" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Sell barcode purchase</button>
             </form>
@@ -76,7 +85,15 @@
             <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="/erp/purchase-orders-app">Close</a>
-                <a class="btn btn-xs btn-default" href="/erp/purchase-order-print?id=@_openedDetail.Id" target="_blank" rel="noopener">Print</a>
+                <a class="btn btn-xs btn-default" href="/erp/purchase-order-print?id=@_openedDetail.Id" target="_blank" rel="noopener">Print PO</a>
+                @if (_openedDetail.OrderId > 0)
+                {
+                    <a class="btn btn-xs btn-default" href="/erp/lpo-print?id=@_openedDetail.OrderId.ToString(CultureInfo.InvariantCulture)" target="_blank" rel="noopener">Print LPO</a>
+                }
+                @if (_openedDetail.PurchaseId > 0)
+                {
+                    <a class="btn btn-xs btn-default" href="/erp/purchase-print?id=@_openedDetail.PurchaseId.ToString(CultureInfo.InvariantCulture)" target="_blank" rel="noopener">Print PI</a>
+                }
             </p>
             <ErpDocumentWorkspace
                 DocumentKind="Purchase order"
@@ -95,9 +112,10 @@
                 BalanceDue="@_openedDetail.TotalAmount"
                 Fields="@PurchaseOrderWorkspaceFields"
                 Lines="@PurchaseOrderWorkspaceLines"
+                RelatedDocuments="@PurchaseOrderRelatedDocuments"
                 HeaderActions="@PurchaseOrderHeaderActions" />
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
-            <p class="text-muted" style="margin:.85rem 0 0">The workspace is backed by the persisted purchase-order read model. Barcode purchase schema-ensure remains Classic-owned; purchase-order lifecycle actions use the guarded ERP routes shown in the action pane and list.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">The workspace is backed by the persisted purchase-order read model. Barcode purchase schema-ensure is not available on this page; purchase-order lifecycle actions use the guarded ERP routes shown in the action pane and list.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.NotesExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>
@@ -143,10 +161,10 @@
             <div class="panel-heading"><strong>New purchase order</strong> <span class="text-muted">PO number, VAT and totals follow the tenant jurisdiction kit.</span></div>
             <div class="panel-body">
                 <div class="row">
-                    <div class="col-sm-2"><label for="po-supplier">Supplier id</label><input id="po-supplier" class="form-control" type="number" min="1" step="1" /></div>
-                    <div class="col-sm-4"><label for="po-title">Title</label><input id="po-title" class="form-control" type="text" maxlength="255" /></div>
+                    <div class="col-sm-3"><ErpMasterPicker Kind="supplier" FieldName="supplier_id" InputId="po-supplier" Label="Supplier" Required="true" /></div>
+                    <div class="col-sm-4"><label for="po-title">Title</label><input id="po-title" class="form-control" type="text" maxlength="255" value="@_follow.Name" /></div>
                     <div class="col-sm-2"><label for="po-amount">Amount (ex VAT)</label><input id="po-amount" class="form-control" type="number" min="0" step="0.01" readonly aria-describedby="po-amount-help" /><span id="po-amount-help" class="help-block small">Sum of lines</span></div>
-                    <div class="col-sm-3"><label for="po-notes">Notes</label><input id="po-notes" class="form-control" type="text" /></div>
+                    <div class="col-sm-3"><label for="po-notes">Notes</label><input id="po-notes" class="form-control" type="text" value="@_follow.Note" /></div>
                     <div class="col-sm-1"><label for="po-save">&nbsp;</label><button id="po-save" type="button" class="btn btn-primary btn-block">Save</button></div>
                 </div>
 
@@ -228,6 +246,7 @@
                             <td>@o.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>
                                 <a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/purchase-orders-app", "po_id", o.Id)">Open</a>
+                                <a class="btn btn-xs btn-default" href="/erp/purchase-order-print?id=@o.Id.ToString(CultureInfo.InvariantCulture)" target="_blank" rel="noopener">@(ErpPurchaseDocumentPrint.IsOfficialPo(o.Status) ? "Print" : "Preview")</a>
                                 @if (_isAdmin)
                                 {
                                     <span class="epc-po-actions" data-po-id="@o.Id.ToString(CultureInfo.InvariantCulture)">
@@ -305,7 +324,7 @@
     @if (_barcodePurchase)
     {
         <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-            Barcode purchase create and sell are live when confirmed. Schema-ensure stays Classic.
+            Barcode purchase create and sell are live when confirmed. Schema-ensure is not available on this page.
         </div>
     }
 
@@ -319,6 +338,7 @@
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_orders";
     private bool _isAdmin;
+    private ErpD365FollowPrefill _follow = new("", 0, "", "", "", "", "", 0, 0, "");
     private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private bool _barcodePurchase;
     private string _ok = "";
@@ -358,6 +378,33 @@
                 new("Financial dimensions", "Company / site / project", "Dimensions"),
                 new("Receipt status", _openedDetail.ReceivedAt > 0 ? "Received" : "Open", "Operational")
             ];
+    private IReadOnlyList<ErpRelatedDocumentNode> PurchaseOrderRelatedDocuments =>
+        _openedDetail is null
+            ? []
+            : ErpRelatedDocumentMapFactory.ForPurchase(
+                string.IsNullOrWhiteSpace(_openedDetail.PoNo) ? _openedDetail.Id.ToString(CultureInfo.InvariantCulture) : _openedDetail.PoNo,
+                FormatTime(_openedDetail.TimeCreated),
+                "AED " + _openedDetail.TotalAmount.ToString("N2", CultureInfo.InvariantCulture),
+                ErpRecordOpen.Href("/erp/purchase-orders-app", "po_id", _openedDetail.Id),
+                _openedDetail.ReceivedAt > 0
+                    ?
+                    [
+                        ErpRelatedDocumentMapFactory.Node(
+                            "goods_receipt",
+                            "Goods Receipt PO",
+                            "GR " + _openedDetail.Id.ToString(CultureInfo.InvariantCulture),
+                            FormatTime(_openedDetail.ReceivedAt),
+                            "AED " + _openedDetail.TotalAmount.ToString("N2", CultureInfo.InvariantCulture),
+                            ErpRecordOpen.Href("/erp/purchase-orders-app", "po_id", _openedDetail.Id),
+                            false,
+                            true)
+                    ]
+                    : null,
+                _openedDetail.PurchaseId > 0 ? _openedDetail.PurchaseId.ToString(CultureInfo.InvariantCulture) : "",
+                _openedDetail.PurchaseId > 0 ? FormatTime(_openedDetail.TimeUpdated) : "",
+                _openedDetail.PurchaseId > 0 ? "AED " + _openedDetail.TotalAmount.ToString("N2", CultureInfo.InvariantCulture) : "",
+                _openedDetail.PurchaseId > 0 ? ErpRecordOpen.Href("/erp/invoices-app", "inv_id", _openedDetail.PurchaseId) : "/erp/invoices-app");
+
     private IReadOnlyList<ErpDocumentWorkspaceLine> PurchaseOrderWorkspaceLines =>
         _orders.FirstOrDefault(item => item.Id == _openedDetail?.Id)?.Lines
             .Select(line => new ErpDocumentWorkspaceLine(
@@ -402,6 +449,7 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _follow = ErpD365FollowPrefill.Read(ctx.Request);
         _barcodePurchase = string.Equals(ctx.Request.Query["tab"].ToString(), "barcode_purchase", StringComparison.OrdinalIgnoreCase);
         _ok = ctx.Request.Query["ok"].ToString();
         _err = ctx.Request.Query["err"].ToString();

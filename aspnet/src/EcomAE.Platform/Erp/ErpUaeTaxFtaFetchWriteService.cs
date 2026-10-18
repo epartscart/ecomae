@@ -6,7 +6,8 @@ namespace EcomAE.Platform.Erp;
 /// <summary>
 /// Live PHP <c>epc_uae_fta_fetch_legislation_updates</c> / ajax <c>uae_tax_fta_fetch</c> twin.
 /// Fetches tax.gov.ae legislation.aspx, classifies VAT/CT/e-invoice/excise, UPSERTs
-/// <c>epc_uae_tax_legislation_items</c> and cache. Does not CREATE tables. PDF/KB seed stay PHP.
+/// <c>epc_uae_tax_legislation_items</c> and cache. Ensures schema on confirmed writes.
+/// When FTA HTML is empty, loads the core UAE library so the workspace is complete.
 /// </summary>
 public interface IErpUaeTaxFtaFetchWriteService
 {
@@ -75,10 +76,11 @@ public sealed class ErpUaeTaxFtaFetchWriteService : IErpUaeTaxFtaFetchWriteServi
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpUaeTaxComplianceSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_uae_tax_compliance_cache", "cache_key", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_uae_tax_legislation_items", "item_key", cancellationToken).ConfigureAwait(false))
         {
-            return ErpUaeTaxFtaFetchWriteResult.Fail("invalid", "UAE tax legislation tables are not provisioned");
+            return ErpUaeTaxFtaFetchWriteResult.Fail("invalid", "UAE tax legislation tables could not be created");
         }
 
         var url = ErpUaeTaxFtaLegislation.LegislationUrl;
@@ -116,6 +118,13 @@ public sealed class ErpUaeTaxFtaFetchWriteService : IErpUaeTaxFtaFetchWriteServi
 
         var fetch = await FetchAllPagesAsync(url, cancellationToken).ConfigureAwait(false);
         var raw = fetch.Items.ToList();
+        var usedCoreLibrary = false;
+        if (raw.Count == 0)
+        {
+            raw = ErpUaeTaxFtaLegislation.CoreLibrarySeed().ToList();
+            usedCoreLibrary = true;
+        }
+
         ErpUaeTaxFtaLegislation.MarkDiffFlags(raw, prevKeys);
         var enriched = raw.Select(ErpUaeTaxFtaLegislation.Enrich).ToList();
         var newCount = enriched.Count(i => i.IsNew);
@@ -142,11 +151,14 @@ public sealed class ErpUaeTaxFtaFetchWriteService : IErpUaeTaxFtaFetchWriteServi
         await UpsertCacheAsync(connection, ErpUaeTaxFtaLegislation.CacheKeyOverall, overallJson, url, now, cancellationToken).ConfigureAwait(false);
 
         var ok = enriched.Count > 0;
-        var message = ok
-            ? ("Fetched " + enriched.Count + " legislation item(s) from legislation.aspx"
-                + (newCount > 0 ? " — " + newCount + " new since last fetch" : "")
-                + (changedCount > 0 ? " — " + changedCount + " updated" : "") + ".")
-            : ("Could not parse legislation from " + url + ". " + string.Join("; ", fetch.Errors));
+        var message = !ok
+            ? ("Could not parse legislation from " + url + ". " + string.Join("; ", fetch.Errors))
+            : usedCoreLibrary
+                ? ("FTA site did not return a list. Loaded the core UAE VAT, Corporate Tax, e-invoicing, excise, and procedures library ("
+                    + enriched.Count + " item(s)). Tick Force to retry the live list.")
+                : ("Fetched " + enriched.Count + " legislation item(s) from legislation.aspx"
+                    + (newCount > 0 ? " — " + newCount + " new since last fetch" : "")
+                    + (changedCount > 0 ? " — " + changedCount + " updated" : "") + ".");
         var writes = synced + 3;
         return ok
             ? ErpUaeTaxFtaFetchWriteResult.Ok(message, writes, enriched.Count, synced, newCount, changedCount, fetch.PageCount, fetch.Errors)

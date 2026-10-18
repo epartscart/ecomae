@@ -44,7 +44,6 @@
             <div class="hpanel">
                 <div class="panel-heading hbuilt">
                     Menus
-                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
                 </div>
                 <div class="panel-body epc-menu-actions">
                     <a class="panel_a" href="@EditorHref(0)"><div class="panel_a_img"><i class="fa fa-plus"></i></div><div class="panel_a_caption">Create menu</div></a>
@@ -141,7 +140,6 @@
             <div class="hpanel">
                 <div class="panel-heading hbuilt">
                     @(e.Id > 0 ? "Menu editor — #" + e.Id.ToString(CultureInfo.InvariantCulture) : "New menu")
-                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(e.Id > 0 ? "/CP/menu/menu_edit?menu_id=" + e.Id.ToString(CultureInfo.InvariantCulture) : "/CP/menu/menu_edit")">Classic twin</a>
                 </div>
                 <div class="panel-body epc-menu-actions">
                     <a class="panel_a" onclick="add_new_item();" href="javascript:void(0);"><div class="panel_a_img"><i class="fa fa-plus"></i></div><div class="panel_a_caption">Add item</div></a>

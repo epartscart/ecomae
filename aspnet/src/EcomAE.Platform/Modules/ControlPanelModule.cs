@@ -28,6 +28,7 @@ public sealed class ControlPanelModule : ISurfaceModule
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         CpPriceImportEndpoints.Map(endpoints, SessionPayload);
+        CpDeploymentModelsEndpoints.Map(endpoints, SessionPayload);
         endpoints.MapGet(EcomAeRoutes.ControlPanelParity, (IControlPanelParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelDashboardSummary, async (
@@ -100,7 +101,89 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only portal tenant digest. tenant_set_active POST /cp/tenants/write when confirmWrites=true. Password reset/reveal stay Classic."
+                note = "Read-only portal tenant digest. tenant_set_active / onboard_erp_only / onboard_four_erp_only / delete_standalone_erp / reset_operator_password / set_operator_password / add_operator_login POST /cp/tenants/write when confirmWrites=true. Does not invent a send."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelTenantAdmins, async (
+            HttpContext context,
+            string? siteKey,
+            string? q,
+            int? limit,
+            ILegacySessionValidator validator,
+            ICpTenantAdminDirectoryService directory,
+            CancellationToken cancellationToken) =>
+        {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Tenant admin directory is Super CP only. Tenant admins use /erp/users-app on their own company."
+                });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for tenant admin directory.");
+            }
+
+            var result = await directory.ListAsync(siteKey, q, limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                users = result.Users,
+                tenants = result.Tenants,
+                tenantCount = result.TenantCount,
+                adminCount = result.AdminCount,
+                openSessions = result.OpenSessions,
+                locked = result.Locked,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Super-CP tenant admin logins and how they sign in. Passwords are never returned. Tenant admins control their users on /erp/users-app."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelTenantAdminsDetail, async (
+            HttpContext context,
+            string? siteKey,
+            long? userId,
+            ILegacySessionValidator validator,
+            ICpTenantAdminDirectoryService directory,
+            CancellationToken cancellationToken) =>
+        {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Tenant admin logs are Super CP only. Tenant admins use /erp/users-app on their own company."
+                });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for tenant admin logs.");
+            }
+
+            var result = await directory.OpenAsync(siteKey ?? string.Empty, userId ?? 0, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = result.User is not null,
+                surface = "cp",
+                user = result.User,
+                sessions = result.Sessions,
+                audit = result.Audit,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Login sessions and audit for one tenant admin. Passwords are never returned."
             });
         });
 
@@ -133,6 +216,13 @@ public sealed class ControlPanelModule : ISurfaceModule
             var siteKey = body.SiteKey;
             var active = body.Active;
             var confirm = body.ConfirmWrites;
+            var tradeName = body.TradeName;
+            var industryCode = body.IndustryCode;
+            var adminEmail = body.AdminEmail;
+            var confirmSiteKey = body.ConfirmSiteKey;
+            var loginEmail = body.LoginEmail;
+            var operatorPassword = body.Password;
+            var confirmPassword = body.ConfirmPassword;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -140,6 +230,13 @@ public sealed class ControlPanelModule : ISurfaceModule
                 siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
                 active = LiveWriteFormBinder.Flag(form, "active");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                tradeName = LiveWriteFormBinder.Text(form, "trade_name", "tradeName");
+                industryCode = LiveWriteFormBinder.Text(form, "industry_code", "industryCode");
+                adminEmail = LiveWriteFormBinder.Text(form, "admin_email", "adminEmail");
+                confirmSiteKey = LiveWriteFormBinder.Text(form, "confirm_site_key", "confirmSiteKey");
+                loginEmail = LiveWriteFormBinder.Text(form, "login_email", "loginEmail");
+                operatorPassword = LiveWriteFormBinder.Text(form, "password");
+                confirmPassword = LiveWriteFormBinder.Text(form, "confirm_password", "confirmPassword");
             }
 
             var key = (action ?? string.Empty).Trim();
@@ -148,9 +245,32 @@ public sealed class ControlPanelModule : ISurfaceModule
                 key = "tenant_set_active";
             }
 
-            if (confirm && key is "tenant_set_active" or "set_active")
+            var known = key is "tenant_set_active" or "set_active"
+                or "onboard_erp_only" or "onboard_four_erp_only"
+                or "delete_standalone_erp" or "reset_operator_password"
+                or "repair_erp_only_shop" or "repair_four_erp_only"
+                or "set_operator_password" or "add_operator_login";
+
+            if (confirm && known)
             {
-                var written = await writes.SetActiveAsync(new CpTenantsSetActiveRequest(siteKey, active), cancellationToken);
+                var written = key switch
+                {
+                    "onboard_four_erp_only" => await writes.OnboardFourLaunchClientsAsync(cancellationToken),
+                    "onboard_erp_only" => await writes.OnboardErpOnlyAsync(
+                        new CpTenantsOnboardErpOnlyRequest(siteKey, tradeName, industryCode, adminEmail),
+                        cancellationToken),
+                    "delete_standalone_erp" => await writes.DeleteStandaloneErpAsync(
+                        new CpTenantsDeleteStandaloneRequest(siteKey, confirmSiteKey),
+                        cancellationToken),
+                    "reset_operator_password" => await writes.ResetOperatorPasswordAsync(siteKey, cancellationToken),
+                    "repair_erp_only_shop" => await writes.RepairErpOnlyShopAsync(siteKey, cancellationToken),
+                    "repair_four_erp_only" => await writes.RepairFourLaunchClientsAsync(cancellationToken),
+                    "set_operator_password" => await writes.SetOperatorPasswordAsync(
+                        siteKey, loginEmail, operatorPassword, confirmPassword, cancellationToken),
+                    "add_operator_login" => await writes.AddOperatorLoginAsync(
+                        siteKey, loginEmail, operatorPassword, confirmPassword, cancellationToken),
+                    _ => await writes.SetActiveAsync(new CpTenantsSetActiveRequest(siteKey, active), cancellationToken),
+                };
                 return LiveWriteFormBinder.Complete(
                     context,
                     "/cp/tenants-app",
@@ -163,13 +283,13 @@ public sealed class ControlPanelModule : ISurfaceModule
             {
                 ok = true,
                 writes = 0,
-                wouldWrite = key is "tenant_set_active" or "set_active",
+                wouldWrite = known,
                 writesBlocked = confirm,
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Password reset and reveal stay Classic."
-                    : "Dry-run. Set confirmWrites=true to set tenant active.",
+                    ? "Unknown tenant write action."
+                    : "Dry-run. Set confirmWrites=true to create, delete, reset, set a chosen password, add a login, or set tenant active.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),
             });
@@ -2957,7 +3077,9 @@ public sealed class ControlPanelModule : ISurfaceModule
                             input.TextOrNull("notes"),
                             input.TextOrNull("line_description"),
                             input.Has("line_qty") ? input.Dec("line_qty") : 1m,
-                            input.Dec("line_unit_price")),
+                            input.Dec("line_unit_price"),
+                            input.Long("item_id", "itemId"),
+                            input.TextOrNull("sku", "item_code")),
                         cancellationToken);
                     return Json(written.Succeeded, written.Succeeded ? "Quote saved" : written.Message,
                         new { id = written.Id, writes = written.Writes, validation_code = written.Code }, "quotes", written.Id, "quote_id");
@@ -11840,6 +11962,8 @@ public sealed class ControlPanelModule : ISurfaceModule
             var lineDescription = body.LineDescription;
             var lineQty = body.LineQty;
             var lineUnitPrice = body.LineUnitPrice;
+            var itemId = body.ItemId;
+            var sku = body.Sku;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -11855,6 +11979,8 @@ public sealed class ControlPanelModule : ISurfaceModule
                 lineDescription = LiveWriteFormBinder.Text(form, "line_description", "lineDescription");
                 lineQty = LiveWriteFormBinder.Dec(form, "line_qty", "lineQty");
                 lineUnitPrice = LiveWriteFormBinder.Dec(form, "line_unit_price", "lineUnitPrice");
+                itemId = LiveWriteFormBinder.Long(form, "item_id", "itemId");
+                sku = LiveWriteFormBinder.Text(form, "sku", "item_code");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -11864,7 +11990,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 var written = await writes.SaveAsync(
                     new CpCrmQuoteSaveRequest(
                         id, opportunityId, leadId, customerUserId, quoteNumber, status, notes,
-                        lineDescription, lineQty, lineUnitPrice),
+                        lineDescription, lineQty, lineUnitPrice, itemId, sku),
                     cancellationToken);
                 var dest = written.Succeeded && written.Id > 0
                     ? "/erp/sales-quotations-app?quote_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
@@ -17400,7 +17526,14 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Action = null,
         bool ConfirmWrites = false,
         string? SiteKey = null,
-        bool Active = false);
+        bool Active = false,
+        string? TradeName = null,
+        string? IndustryCode = null,
+        string? AdminEmail = null,
+        string? ConfirmSiteKey = null,
+        string? LoginEmail = null,
+        string? Password = null,
+        string? ConfirmPassword = null);
     private sealed record CpTenantFeaturesWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
@@ -17693,7 +17826,9 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Notes = null,
         string? LineDescription = null,
         decimal LineQty = 1,
-        decimal LineUnitPrice = 0);
+        decimal LineUnitPrice = 0,
+        long ItemId = 0,
+        string? Sku = null);
     private sealed record CpCrmTicketsWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

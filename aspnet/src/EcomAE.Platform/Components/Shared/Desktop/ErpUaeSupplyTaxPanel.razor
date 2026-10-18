@@ -1,0 +1,220 @@
+@namespace EcomAE.Platform.Components.Shared
+@using System.Globalization
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject IHttpContextAccessor Http
+
+<style>
+    .epc-vatct { margin: 0 0 1rem; padding: .9rem 1rem; border: 1px solid #c5d4de; border-radius: .4rem; background: #f8fafc; color: #1d2740; }
+    .epc-vatct h2 { margin: 0 0 .4rem; font-size: 1.05rem; color: #1d2740; }
+    .epc-vatct p, .epc-vatct li, .epc-vatct label, .epc-vatct td, .epc-vatct th, .epc-vatct option { color: #1d2740; }
+    .epc-vatct button { background: #1f4e79 !important; color: #fff !important; border: 0; border-radius: .25rem; padding: .35rem .75rem; }
+    .epc-vatct select, .epc-vatct input { color: #1d2740; background: #fff; }
+    .epc-vatct table { width: 100%; border-collapse: collapse; margin-top: .4rem; }
+    .epc-vatct th, .epc-vatct td { text-align: left; padding: .35rem .45rem; border-bottom: 1px solid #d5e0ea; }
+    .epc-vatct form { display: flex; flex-wrap: wrap; gap: .45rem; align-items: end; margin: .55rem 0; }
+    .epc-vatct .epc-vatct-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; margin: .6rem 0; }
+    .epc-vatct .epc-vatct-steps article, .epc-vatct .epc-vatct-result { background: #fff; border: 1px solid #d5e0ea; border-top: 4px solid #1f4e79; border-radius: .35rem; padding: .5rem .6rem; }
+    .epc-vatct .num { text-align: right; }
+    @@media (max-width: 900px) {
+        .epc-vatct .epc-vatct-steps { grid-template-columns: 1fr 1fr; }
+    }
+</style>
+
+<section class="epc-vatct" id="uae-supply-tax" aria-label="VAT and corporate tax treatment">
+    <h2>VAT, advances, and free zone Corporate Tax</h2>
+    <p>A customer advance and a vendor advance take VAT only to the extent of the payment. The final invoice uses the VAT already posted, so it is not counted twice. A free zone is still inside the UAE for VAT unless the Cabinet has named it a designated zone. Goods that stay there and are not consumed use a commercial invoice and a credit note. Services keep a tax invoice and a tax credit note.</p>
+    <div class="epc-vatct-steps">
+        <article><strong>1 Advance</strong><span> Customer receipt: debit bank @ExampleCustomer.Gross.ToString("0.00", CultureInfo.InvariantCulture), credit 2050 @ExampleCustomer.Net.ToString("0.00", CultureInfo.InvariantCulture), credit 2100 @ExampleCustomer.Vat.ToString("0.00", CultureInfo.InvariantCulture).</span></article>
+        <article><strong>2 Vendor</strong><span> With the supplier tax invoice: debit 2060 @ExampleVendor.Net.ToString("0.00", CultureInfo.InvariantCulture), debit 1150 @ExampleVendor.Vat.ToString("0.00", CultureInfo.InvariantCulture), credit bank @ExampleVendor.Gross.ToString("0.00", CultureInfo.InvariantCulture).</span></article>
+        <article><strong>3 Designated zone</strong><span> The same AED 105.00 of goods that are not consumed posts @ExampleZone.Gross.ToString("0.00", CultureInfo.InvariantCulture) to 2050 and no output VAT. Document: commercial invoice.</span></article>
+        <article><strong>4 Corporate Tax</strong><span> Mainland: 0 percent to AED 375,000, then 9 percent. A Qualifying Free Zone Person: 0 percent on qualifying income and 9 percent on the rest from the first dirham.</span></article>
+    </div>
+
+    <form method="get" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/uae-tax-compliance-app")">
+        <label>Supply
+            <select name="supply">
+                <option value="taxable" selected="@Is("taxable")">Taxable supply</option>
+                <option value="zero_rated" selected="@Is("zero_rated")">Zero-rated export</option>
+                <option value="designated_goods" selected="@Is("designated_goods")">Designated zone goods, not consumed</option>
+                <option value="designated_consumed" selected="@Is("designated_consumed")">Designated zone goods, consumed</option>
+                <option value="designated_incorporated" selected="@Is("designated_incorporated")">Used to make other goods in the zone</option>
+                <option value="designated_unconfirmed" selected="@Is("designated_unconfirmed")">Consumption not confirmed</option>
+                <option value="designated_service" selected="@Is("designated_service")">Designated zone service</option>
+                <option value="designated_real_estate" selected="@Is("designated_real_estate")">Designated zone real estate</option>
+                <option value="designated_exit" selected="@Is("designated_exit")">Goods leaving the designated zone</option>
+                <option value="free_zone" selected="@Is("free_zone")">Free zone, not a designated zone</option>
+            </select>
+        </label>
+        <label>Advance amount <input type="number" name="amount" min="0" step="0.01" value="@_amount" style="width:7rem" /></label>
+        <label>Side
+            <select name="side">
+                <option value="customer" selected="@(_side == "customer")">Customer</option>
+                <option value="vendor" selected="@(_side == "vendor")">Vendor</option>
+            </select>
+        </label>
+        <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;">
+            <input type="checkbox" name="invoice_held" value="1" checked="@_held" /> Supplier tax invoice held
+        </label>
+        <button type="submit">Show treatment</button>
+    </form>
+
+    <article class="epc-vatct-result">
+        <p><strong>@Paper(_posting.DocumentCategory)</strong> · later adjustment <strong>@Paper(_posting.CreditCategory)</strong> · VAT @_posting.Vat.ToString("0.00", CultureInfo.InvariantCulture) on @_posting.Gross.ToString("0.00", CultureInfo.InvariantCulture)</p>
+        <p>@_posting.Reason</p>
+        <table>
+            <thead><tr><th>Account</th><th class="num">Debit</th><th class="num">Credit</th></tr></thead>
+            <tbody>
+                <tr><td>@_posting.DebitAccount</td><td class="num">@(_posting.Side == ErpUaeSupplyTax.Customer ? _posting.Gross.ToString("0.00", CultureInfo.InvariantCulture) : _posting.Net.ToString("0.00", CultureInfo.InvariantCulture))</td><td class="num"></td></tr>
+                @if (_posting.Vat > 0m && _posting.Side == ErpUaeSupplyTax.Vendor)
+                {
+                    <tr><td>@_posting.VatAccount</td><td class="num">@_posting.Vat.ToString("0.00", CultureInfo.InvariantCulture)</td><td class="num"></td></tr>
+                }
+                <tr><td>@_posting.CreditNetAccount</td><td class="num"></td><td class="num">@(_posting.Side == ErpUaeSupplyTax.Customer ? _posting.Net.ToString("0.00", CultureInfo.InvariantCulture) : _posting.Gross.ToString("0.00", CultureInfo.InvariantCulture))</td></tr>
+                @if (_posting.Vat > 0m && _posting.Side == ErpUaeSupplyTax.Customer)
+                {
+                    <tr><td>@_posting.VatAccount</td><td class="num"></td><td class="num">@_posting.Vat.ToString("0.00", CultureInfo.InvariantCulture)</td></tr>
+                }
+            </tbody>
+        </table>
+        <p>Example of the later invoice only: if its VAT is @_settlement.InvoiceVat.ToString("0.00", CultureInfo.InvariantCulture), this advance already covers @_settlement.Credit.ToString("0.00", CultureInfo.InvariantCulture) and @_settlement.Remaining.ToString("0.00", CultureInfo.InvariantCulture) is still to post.</p>
+    </article>
+
+    <form method="get" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/uae-tax-compliance-app")">
+        <input type="hidden" name="supply" value="@_supply" />
+        <input type="hidden" name="amount" value="@_amount" />
+        <input type="hidden" name="side" value="@_side" />
+        <input type="hidden" name="invoice_held" value="@(_held ? "1" : "0")" />
+        <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;"><input type="checkbox" name="free_zone" value="1" checked="@_freeZone" /> Free zone person</label>
+        <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;"><input type="checkbox" name="substance" value="1" checked="@_substance" /> Adequate substance</label>
+        <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;"><input type="checkbox" name="arms" value="1" checked="@_arms" /> Arm's length</label>
+        <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;"><input type="checkbox" name="tp" value="1" checked="@_tp" /> Transfer pricing file</label>
+        <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;"><input type="checkbox" name="audited" value="1" checked="@_audited" /> Audited statements</label>
+        <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;"><input type="checkbox" name="elected" value="1" checked="@_elected" /> Elected standard rates</label>
+        <label>Qualifying revenue <input type="number" name="qrev" min="0" step="0.01" value="@_qrev" style="width:8rem" /></label>
+        <label>Other revenue <input type="number" name="nrev" min="0" step="0.01" value="@_nrev" style="width:8rem" /></label>
+        <label>Qualifying income <input type="number" name="qinc" min="0" step="0.01" value="@_qinc" style="width:8rem" /></label>
+        <label>Other taxable income <input type="number" name="ninc" min="0" step="0.01" value="@_ninc" style="width:8rem" /></label>
+        <button type="submit">Show Corporate Tax</button>
+    </form>
+    <article class="epc-vatct-result">
+        <p><strong>@_ct.Label</strong> · tax AED @_ct.Tax.ToString("0.00", CultureInfo.InvariantCulture)</p>
+        @foreach (var reason in _ct.Reasons)
+        {
+            <p>@reason</p>
+        }
+    </article>
+</section>
+
+@code {
+    private string _supply = "taxable";
+    private string _amount = "105.00";
+    private string _side = "customer";
+    private bool _held = true;
+    private bool _freeZone;
+    private bool _substance;
+    private bool _arms;
+    private bool _tp;
+    private bool _audited;
+    private bool _elected;
+    private string _qrev = "0.00";
+    private string _nrev = "0.00";
+    private string _qinc = "400000.00";
+    private string _ninc = "0.00";
+    private ErpUaeSupplyTax.AdvancePosting _posting = ExampleCustomer;
+    private ErpUaeSupplyTax.Settlement _settlement = ErpUaeSupplyTax.Settle(50m, 5m);
+    private ErpUaeSupplyTax.CtResult _ct = MainlandSample;
+
+    private static ErpUaeSupplyTax.AdvancePosting ExampleCustomer { get; } = ErpUaeSupplyTax.Advance(ErpUaeSupplyTax.Customer, 105m, ErpUaeSupplyTax.FromTreatment("taxable"), true);
+
+    private static ErpUaeSupplyTax.AdvancePosting ExampleVendor { get; } = ErpUaeSupplyTax.Advance(ErpUaeSupplyTax.Vendor, 105m, ErpUaeSupplyTax.FromTreatment("taxable"), true);
+
+    private static ErpUaeSupplyTax.AdvancePosting ExampleZone { get; } = ErpUaeSupplyTax.Advance(ErpUaeSupplyTax.Customer, 105m, ErpUaeSupplyTax.FromTreatment("designated_goods"), true);
+
+    private static ErpUaeSupplyTax.CtResult MainlandSample { get; } = ErpUaeSupplyTax.CorporateTax(new ErpUaeSupplyTax.CtPosition(false, false, false, false, false, false, false, 0m, 0m, 400000m, 0m));
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var supply = ctx.Request.Query["supply"].ToString();
+        if (!string.IsNullOrWhiteSpace(supply))
+        {
+            _supply = supply.Trim().ToLowerInvariant();
+        }
+
+        var amountText = ctx.Request.Query["amount"].ToString();
+        if (!string.IsNullOrWhiteSpace(amountText))
+        {
+            _amount = amountText.Trim();
+        }
+
+        var side = ctx.Request.Query["side"].ToString();
+        if (!string.IsNullOrWhiteSpace(side))
+        {
+            _side = side.Trim().ToLowerInvariant();
+        }
+
+        _held = ctx.Request.Query["invoice_held"].ToString() != "0";
+        if (!ctx.Request.Query.ContainsKey("invoice_held") && ctx.Request.Query.ContainsKey("supply"))
+        {
+            _held = false;
+        }
+
+        _freeZone = ctx.Request.Query["free_zone"].ToString() == "1";
+        _substance = ctx.Request.Query["substance"].ToString() == "1";
+        _arms = ctx.Request.Query["arms"].ToString() == "1";
+        _tp = ctx.Request.Query["tp"].ToString() == "1";
+        _audited = ctx.Request.Query["audited"].ToString() == "1";
+        _elected = ctx.Request.Query["elected"].ToString() == "1";
+        _qrev = Value(ctx, "qrev", _qrev);
+        _nrev = Value(ctx, "nrev", _nrev);
+        _qinc = Value(ctx, "qinc", _qinc);
+        _ninc = Value(ctx, "ninc", _ninc);
+
+        var amount = decimal.TryParse(_amount, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed) ? parsed : 105m;
+        var document = ErpUaeSupplyTax.FromTreatment(_supply);
+        _posting = ErpUaeSupplyTax.Advance(_side, amount, document, _held);
+        _settlement = ErpUaeSupplyTax.Settle(RoundHalf(amount), _posting.Vat);
+        _ct = ErpUaeSupplyTax.CorporateTax(new ErpUaeSupplyTax.CtPosition(
+            _freeZone,
+            _elected,
+            _substance,
+            _arms,
+            _tp,
+            _audited,
+            false,
+            Money(_qrev),
+            Money(_nrev),
+            Money(_qinc),
+            Money(_ninc)));
+    }
+
+    private bool Is(string value) => string.Equals(_supply, value, StringComparison.OrdinalIgnoreCase);
+
+    private static string Paper(string category) => category switch
+    {
+        ErpUaeSupplyTax.TaxInvoice => "Tax invoice",
+        ErpUaeSupplyTax.TaxCreditNote => "Tax credit note",
+        ErpUaeSupplyTax.CommercialInvoice => "Commercial invoice",
+        ErpUaeSupplyTax.CreditNote => "Credit note",
+        _ => category,
+    };
+
+    private static string Value(HttpContext ctx, string key, string fallback)
+    {
+        var text = ctx.Request.Query[key].ToString();
+        return string.IsNullOrWhiteSpace(text) ? fallback : text.Trim();
+    }
+
+    private static decimal Money(string text)
+        => decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var value) ? value : 0m;
+
+    private static decimal RoundHalf(decimal amount)
+        => ErpUaeSupplyTax.Round(amount / 2m);
+}

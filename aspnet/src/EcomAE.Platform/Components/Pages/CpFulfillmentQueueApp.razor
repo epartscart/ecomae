@@ -33,7 +33,6 @@
             <a class="btn btn-primary btn-sm" href="/cp/orders"><i class="fa fa-shopping-basket"></i> Orders · OMS</a>
             <a class="btn btn-default btn-sm" href="/cp/returns-rma-app"><i class="fa fa-undo"></i> Returns</a>
             <a class="btn btn-default btn-sm" href="/cp/sao-app"><i class="fa fa-cogs"></i> SAO</a>
-            <a class="btn btn-default btn-sm" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
         </div>
     </div>
 
@@ -51,7 +50,7 @@
         <div class="epc-scp-kpi__card">
             <div class="epc-scp-kpi__label">Delivery complete</div>
             <div class="epc-scp-kpi__val">@_pipeline.DeliveryDone</div>
-            <div class="epc-scp-kpi__hint">Orders in a PHP finish status</div>
+            <div class="epc-scp-kpi__hint">Orders in a finish status</div>
         </div>
         <div class="epc-scp-kpi__card">
             <div class="epc-scp-kpi__label">Returns open</div>
@@ -134,7 +133,6 @@
         <div class="alert alert-info" role="status" data-epc-cs-alias="1" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#eff6ff;color:#1e3a8a">
             Custom shipping save / submit fields are on <a href="/cp/carriers-app">Carriers</a>.
             This queue URL stays so old ERP tab links are not damaged.
-            <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpCustomShipping)">Classic shipping</a>
         </div>
     }
 
@@ -187,7 +185,7 @@
 
     @if (!_isAdmin)
     {
-        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live fulfilment digests. Guest browse shows the PHP-parity shell.</div>
+        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live fulfilment digests. Guest browse shows the empty workspace shell.</div>
     }
 
     <div class="epc-scp-orders-workspace @(_selectedId > 0 ? "is-oms-active" : null)">

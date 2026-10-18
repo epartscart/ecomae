@@ -13,7 +13,21 @@ namespace EcomAE.Platform.Erp;
 public interface IErpBosWfRequestReadService
 {
     Task<ErpBosWfRequestReadResult> ReadAsync(CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ErpBosWfRuleRow>> ReadRulesAsync(CancellationToken cancellationToken = default);
 }
+
+public sealed record ErpBosWfRuleRow(
+    long Id,
+    string Name,
+    string EntityType,
+    string Operator,
+    decimal Threshold,
+    int Priority,
+    bool Active,
+    string Gate,
+    int Level,
+    string Role);
 
 public sealed record ErpBosWfLogRow(
     long Id,
@@ -128,6 +142,79 @@ public sealed class ErpBosWfRequestReadService : IErpBosWfRequestReadService
             return ErpBosWfRequestReadResult.Empty("database-error", exception.Message);
         }
     }
+
+    public async Task<IReadOnlyList<ErpBosWfRuleRow>> ReadRulesAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return [];
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            if (!await TableExistsAsync(connection, "epc_bos_approval_rules", cancellationToken).ConfigureAwait(false))
+            {
+                return [];
+            }
+
+            var rows = new List<ErpBosWfRuleRow>();
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `id`,IFNULL(`name`,''),IFNULL(`entity_type`,''),IFNULL(`operator`,''),IFNULL(`threshold_amount`,0),IFNULL(`steps_json`,''),IFNULL(`priority`,100),IFNULL(`active`,0) FROM `epc_bos_approval_rules` ORDER BY `entity_type`, `priority`, `threshold_amount`";
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var steps = Text(reader, 5);
+                rows.Add(new(
+                    Convert.ToInt64(reader.GetValue(0), System.Globalization.CultureInfo.InvariantCulture),
+                    Text(reader, 1),
+                    Text(reader, 2),
+                    Text(reader, 3),
+                    reader.IsDBNull(4) ? 0m : Convert.ToDecimal(reader.GetValue(4), System.Globalization.CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader.GetValue(6), System.Globalization.CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader.GetValue(7), System.Globalization.CultureInfo.InvariantCulture) == 1,
+                    GateOf(steps),
+                    LevelOf(steps),
+                    RoleOf(steps)));
+            }
+
+            return rows;
+        }
+        catch (DbException)
+        {
+            return [];
+        }
+    }
+
+    public static string GateOf(string? stepsJson)
+    {
+        var gate = FirstString(stepsJson, "gate").ToLowerInvariant();
+        if (gate is "save" or "post")
+        {
+            return gate;
+        }
+
+        var label = FirstString(stepsJson, "label");
+        if (label.StartsWith("save", StringComparison.OrdinalIgnoreCase))
+        {
+            return "save";
+        }
+
+        return "post";
+    }
+
+    public static int LevelOf(string? stepsJson)
+    {
+        if (!TryFirst(stepsJson, out var step) || !step.TryGetProperty("level", out var level))
+        {
+            return 0;
+        }
+
+        return level.TryGetInt32(out var value) ? Math.Clamp(value, 0, 4) : 0;
+    }
+
+    public static string RoleOf(string? stepsJson)
+        => FirstString(stepsJson, "role");
 
     private static async Task<IReadOnlyList<ErpBosWfRequestRow>> ReadRequestsAsync(
         DbConnection connection,
@@ -245,13 +332,51 @@ public sealed class ErpBosWfRequestReadService : IErpBosWfRequestReadService
         return labels;
     }
 
-    private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
-        => await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"),
-            cancellationToken,
-            table).ConfigureAwait(false) > 0;
+    private static string FirstString(string? stepsJson, string property)
+    {
+        if (!TryFirst(stepsJson, out var step) || !step.TryGetProperty(property, out var value) || value.ValueKind != System.Text.Json.JsonValueKind.String)
+        {
+            return string.Empty;
+        }
+
+        return (value.GetString() ?? string.Empty).Trim();
+    }
+
+    private static bool TryFirst(string? stepsJson, out System.Text.Json.JsonElement step)
+    {
+        step = default;
+        if (string.IsNullOrWhiteSpace(stepsJson))
+        {
+            return false;
+        }
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(stepsJson);
+            if (doc.RootElement.ValueKind != System.Text.Json.JsonValueKind.Array)
+            {
+                return false;
+            }
+
+            foreach (var item in doc.RootElement.EnumerateArray())
+            {
+                if (item.ValueKind == System.Text.Json.JsonValueKind.Object)
+                {
+                    step = item.Clone();
+                    return true;
+                }
+            }
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return false;
+        }
+
+        return false;
+    }
+
+    private static Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
+        => ErpDb.TableKnownAsync(connection, table, cancellationToken);
 
     private static string Text(DbDataReader reader, int ordinal)
         => reader.IsDBNull(ordinal) ? string.Empty : reader.GetValue(ordinal).ToString() ?? string.Empty;

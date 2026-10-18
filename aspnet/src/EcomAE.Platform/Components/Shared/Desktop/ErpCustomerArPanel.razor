@@ -1,0 +1,353 @@
+@namespace EcomAE.Platform.Components.Shared
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IErpWriteConnectionFactory TenantDb
+
+<section class="epc-ar" aria-label="Customer receivables">
+    <ErpManualProcessStrip Keys="ar" />
+    <nav class="epc-ar-nav" aria-label="Receivables inquiries">
+        @foreach (var link in Links)
+        {
+            <a class="@(_view == link.View ? "active" : "")" href="@Href(link.View)">@link.Label</a>
+        }
+    </nav>
+    <form method="get" action="@_action" class="form-inline" style="margin:0 0 12px;">
+        @if (_tab.Length > 0)
+        {
+            <input type="hidden" name="tab" value="@_tab" />
+        }
+        <input type="hidden" name="view" value="@_view" />
+        <label>Customer <input class="form-control input-sm" name="customer" value="@_customer" placeholder="Name, account, or invoice" /></label>
+        <label style="margin-left:8px;">From <input class="form-control input-sm" type="date" name="from" value="@_from" /></label>
+        <label style="margin-left:8px;">To <input class="form-control input-sm" type="date" name="to" value="@_to" /></label>
+        <button type="submit" class="btn btn-default btn-sm" style="margin-left:8px;">Filter</button>
+    </form>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Customer balance">
+        <div class="kpi"><div class="lbl">Open invoices</div><div class="val">@Money(_report.Open)</div></div>
+        <div class="kpi"><div class="lbl">Unapplied receipts</div><div class="val">@Money(_report.Unapplied)</div></div>
+        <div class="kpi"><div class="lbl">Customer balance</div><div class="val">@Money(_report.Net)</div></div>
+        <div class="kpi"><div class="lbl">Statement balance</div><div class="val">@Money(_report.StatementBalance)</div></div>
+    </div>
+
+    @if (!_isAdmin)
+    {
+        <p class="text-muted">Sign in with ERP capability for live figures.</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(_message))
+    {
+        <p class="text-muted">@_message</p>
+    }
+    else if (_view is ErpCustomerAr.ViewBalance or ErpCustomerAr.ViewRecon)
+    {
+        @if (_report.Balances.Count == 0)
+        {
+            <p class="text-muted">No customer invoices or receipts in this filter.</p>
+        }
+        else
+        {
+            <div class="epc-erp-table-wrap">
+                <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th class="text-right">Open invoices</th>
+                            <th class="text-right">Open amount</th>
+                            <th class="text-right">Unapplied receipts</th>
+                            <th class="text-right">Balance</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in _report.Balances)
+                        {
+                            <tr>
+                                <td>@row.Customer</td>
+                                <td class="text-right">@row.OpenCount.ToString(CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@Money(row.Open)</td>
+                                <td class="text-right">@Money(row.Unapplied)</td>
+                                <td class="text-right">@Money(row.Net)</td>
+                                <td><a href="@Href(ErpCustomerAr.ViewStatement, row.CustomerId)">Statement</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (_view == ErpCustomerAr.ViewRecon)
+            {
+                <p class="text-muted">Customer balance is the subledger. Compare it with the receivables control account on the trial balance. Statement balance counts every invoice and receipt in the filter; a difference means a receipt was applied without a matching paid amount, or the other way around.</p>
+            }
+        }
+    }
+    else if (_view == ErpCustomerAr.ViewOpen)
+    {
+        @if (_report.OpenInvoices.Count == 0)
+        {
+            <p class="text-muted">No open customer invoices in this filter. Post a free text invoice or a sales invoice first.</p>
+        }
+        else if (_settleCustomer <= 0)
+        {
+            <p class="text-muted">Open one customer to mark invoices and post the receipt.</p>
+            <div class="epc-erp-table-wrap">
+                <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Date</th><th>Customer</th><th>Invoice</th><th class="text-right">Total</th><th class="text-right">Paid</th><th class="text-right">Open</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var invoice in _report.OpenInvoices.Take(100))
+                        {
+                            <tr>
+                                <td>@invoice.Date</td>
+                                <td>@Name(invoice.CustomerId)</td>
+                                <td>@invoice.Number</td>
+                                <td class="text-right">@Money(invoice.Total)</td>
+                                <td class="text-right">@Money(invoice.Paid)</td>
+                                <td class="text-right">@Money(invoice.Outstanding)</td>
+                                <td>@if (invoice.CustomerId > 0) { <a href="@Href(ErpCustomerAr.ViewOpen, invoice.CustomerId)">Settle</a> }</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <form method="post" action="@EcomAeRoutes.ErpCashEntriesReceiptVoucher" id="ar-settle">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                <input type="hidden" name="user_id" value="@_settleCustomer.ToString(CultureInfo.InvariantCulture)" />
+                <input type="hidden" name="post_gl" value="true" />
+                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 12px;">
+                    <ErpMasterPicker Kind="account" FieldName="account_id" Label="Offset bank or cash account" Required="true" Min="1" />
+                    <label>Receipt amount <input id="ar-receipt-amount" class="form-control input-sm" type="number" name="amount" min="0.01" step="0.01" required /></label>
+                    <label>Note <input class="form-control input-sm" name="note" maxlength="255" placeholder="Customer payment" /></label>
+                    <button type="submit" class="btn btn-primary btn-sm">Post receipt and settle</button>
+                </div>
+                <div class="epc-erp-table-wrap">
+                    <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                        <thead><tr><th>Mark</th><th>Date</th><th>Invoice</th><th class="text-right">Total</th><th class="text-right">Open</th><th class="text-right">Settle</th></tr></thead>
+                        <tbody>
+                            @foreach (var invoice in _report.OpenInvoices.Where(row => row.CustomerId == _settleCustomer))
+                            {
+                                <tr class="ar-open">
+                                    <td><input class="ar-mark" type="checkbox" name="alloc_invoice_id" value="@invoice.Id.ToString(CultureInfo.InvariantCulture)" data-open="@Num(invoice.Outstanding)" /></td>
+                                    <td>@invoice.Date</td>
+                                    <td>@invoice.Number</td>
+                                    <td class="text-right">@Money(invoice.Total)</td>
+                                    <td class="text-right">@Money(invoice.Outstanding)</td>
+                                    <td class="text-right"><input class="ar-amt form-control input-sm" type="number" name="alloc_amount" min="0.01" step="0.01" disabled style="width:7rem;margin-left:auto;" /></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+            <script>
+                (function () {
+                    var form = document.getElementById('ar-settle');
+                    if (!form) return;
+                    function sum() {
+                        var total = 0;
+                        form.querySelectorAll('tr.ar-open').forEach(function (row) {
+                            var box = row.querySelector('.ar-mark');
+                            var amt = row.querySelector('.ar-amt');
+                            if (!box || !amt) return;
+                            amt.disabled = !box.checked;
+                            if (box.checked) {
+                                if (!amt.value) amt.value = box.getAttribute('data-open') || '';
+                                total += parseFloat(amt.value) || 0;
+                            } else {
+                                amt.value = '';
+                            }
+                        });
+                        var field = document.getElementById('ar-receipt-amount');
+                        if (field) field.value = total > 0 ? total.toFixed(2) : '';
+                    }
+                    form.addEventListener('change', sum);
+                    form.addEventListener('input', sum);
+                })();
+            </script>
+        }
+    }
+    else if (_view == ErpCustomerAr.ViewSettled)
+    {
+        @if (_report.SettledInvoices.Count == 0)
+        {
+            <p class="text-muted">No settled invoices in this filter.</p>
+        }
+        else
+        {
+            <div class="epc-erp-table-wrap">
+                <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Date</th><th>Customer</th><th>Invoice</th><th class="text-right">Total</th><th class="text-right">Paid</th></tr></thead>
+                    <tbody>
+                        @foreach (var invoice in _report.SettledInvoices.Take(100))
+                        {
+                            <tr>
+                                <td>@invoice.Date</td>
+                                <td>@Name(invoice.CustomerId)</td>
+                                <td>@invoice.Number</td>
+                                <td class="text-right">@Money(invoice.Total)</td>
+                                <td class="text-right">@Money(invoice.Paid)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+    else
+    {
+        @if (_report.Statement.Count == 0)
+        {
+            <p class="text-muted">No invoices or receipts in this filter.</p>
+        }
+        else
+        {
+            <div class="epc-erp-table-wrap">
+                <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Date</th><th>Customer</th><th>Kind</th><th>Number</th><th class="text-right">Debit</th><th class="text-right">Credit</th><th class="text-right">Balance</th></tr></thead>
+                    <tbody>
+                        @foreach (var line in _report.Statement.Take(200))
+                        {
+                            <tr>
+                                <td>@line.Date</td>
+                                <td>@line.Customer</td>
+                                <td>@line.Kind</td>
+                                <td>@line.Number</td>
+                                <td class="text-right">@Money(line.Debit)</td>
+                                <td class="text-right">@Money(line.Credit)</td>
+                                <td class="text-right">@Money(line.Balance)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+    @if (_report.Note.Length > 0 && _isAdmin && string.IsNullOrWhiteSpace(_message))
+    {
+        <p class="text-muted">@_report.Note</p>
+    }
+</section>
+
+<style>
+    .epc-ar-nav { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 12px; }
+    .epc-ar-nav a { border:1px solid #dbe4ea; background:#fff; padding:4px 8px; border-radius:6px; }
+    .epc-ar-nav a.active { background:#1d4ed8; color:#fff; border-color:#1d4ed8; }
+</style>
+
+@code {
+    private static readonly (string View, string Label)[] Links =
+    [
+        (ErpCustomerAr.ViewBalance, "Balance list"),
+        (ErpCustomerAr.ViewStatement, "Account statement"),
+        (ErpCustomerAr.ViewTransactions, "Transactions"),
+        (ErpCustomerAr.ViewOpen, "Open invoices"),
+        (ErpCustomerAr.ViewSettled, "Settled invoices"),
+        (ErpCustomerAr.ViewRecon, "Ledger reconciliation"),
+    ];
+
+    private bool _isAdmin;
+    private string _tab = "";
+    private string _view = ErpCustomerAr.ViewBalance;
+    private string _action = "/erp/receivables-app";
+    private string _customer = "";
+    private string _from = "";
+    private string _to = "";
+    private string _message = "";
+    private string _returnUrl = "/erp/receivables-app?view=open";
+    private long _settleCustomer;
+    private ErpCustomerAr.Report _report = ErpCustomerAr.Build([], [], new Dictionary<long, string>(), null, null, null);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        _from = DateOr(ctx.Request.Query["from"].ToString(), today.AddYears(-1));
+        _to = DateOr(ctx.Request.Query["to"].ToString(), today);
+        _customer = ctx.Request.Query["customer"].ToString().Trim();
+        _tab = ctx.Request.Query["tab"].ToString().Trim();
+        _view = ErpCustomerAr.ViewFor(_tab) ?? ErpCustomerAr.ViewFor(ctx.Request.Query["view"].ToString()) ?? ErpCustomerAr.ViewBalance;
+        _action = ctx.Request.Path.Value ?? _action;
+        _returnUrl = _action + ctx.Request.QueryString.Value;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin || !TenantDb.IsConfigured)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var db = await TenantDb.OpenAsync(ctx.RequestAborted);
+            _report = await ErpCustomerAr.LoadAsync(
+                db,
+                _customer,
+                DateOnly.Parse(_from, CultureInfo.InvariantCulture),
+                DateOnly.Parse(_to, CultureInfo.InvariantCulture),
+                ctx.RequestAborted);
+            if (long.TryParse(_customer, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id > 0)
+            {
+                _settleCustomer = id;
+            }
+            else if (_report.OpenInvoices.Select(row => row.CustomerId).Distinct().Count() == 1)
+            {
+                _settleCustomer = _report.OpenInvoices[0].CustomerId;
+            }
+        }
+        catch (System.Data.Common.DbException)
+        {
+            _message = "Customer invoices are not set up yet.";
+        }
+    }
+
+    private string Href(string view, long? customerId = null)
+    {
+        var query = new List<string> { "view=" + view };
+        if (_tab.Length > 0)
+        {
+            query.Add("tab=" + Uri.EscapeDataString(_tab));
+        }
+
+        var customer = customerId is > 0 ? customerId.Value.ToString(CultureInfo.InvariantCulture) : _customer;
+        if (customer.Length > 0)
+        {
+            query.Add("customer=" + Uri.EscapeDataString(customer));
+        }
+
+        if (_from.Length > 0)
+        {
+            query.Add("from=" + Uri.EscapeDataString(_from));
+        }
+
+        if (_to.Length > 0)
+        {
+            query.Add("to=" + Uri.EscapeDataString(_to));
+        }
+
+        return _action + "?" + string.Join("&", query);
+    }
+
+    private string Name(long customerId)
+        => _report.Balances.FirstOrDefault(row => row.CustomerId == customerId)?.Customer
+           ?? _report.Statement.FirstOrDefault(line => line.CustomerId == customerId)?.Customer
+           ?? ("Customer " + customerId.ToString(CultureInfo.InvariantCulture));
+
+    private static string DateOr(string raw, DateOnly fallback)
+        => DateOnly.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)
+            ? parsed.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+            : fallback.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    private static string Money(decimal value) => value.ToString("#,0.00", CultureInfo.InvariantCulture);
+
+    private static string Num(decimal value) => value.ToString("0.00", CultureInfo.InvariantCulture);
+}

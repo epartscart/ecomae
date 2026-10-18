@@ -54,17 +54,20 @@ public sealed class ErpSalesOrderWriteService : IErpSalesOrderWriteService
     private readonly IErpVoucherNumberService _vouchers;
     private readonly IErpTaxAmountCalculator _tax;
     private readonly IErpAuditLogWriter _audit;
+    private readonly IErpInventoryReservationWriteService? _reservations;
 
     public ErpSalesOrderWriteService(
         IErpWriteConnectionFactory connections,
         IErpVoucherNumberService vouchers,
         IErpTaxAmountCalculator tax,
-        IErpAuditLogWriter audit)
+        IErpAuditLogWriter audit,
+        IErpInventoryReservationWriteService? reservations = null)
     {
         _connections = connections;
         _vouchers = vouchers;
         _tax = tax;
         _audit = audit;
+        _reservations = reservations;
     }
 
     public async Task<ErpSalesOrderSaveResult> SaveAsync(ErpSalesOrderInput input, int adminId, CancellationToken cancellationToken = default)
@@ -82,6 +85,10 @@ public sealed class ErpSalesOrderWriteService : IErpSalesOrderWriteService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (_reservations is not null)
+        {
+            await ErpInventoryReservationWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
 
         var customerExists = await ErpDb.LongAsync(
             connection,
@@ -203,6 +210,23 @@ public sealed class ErpSalesOrderWriteService : IErpSalesOrderWriteService
                     cancellationToken).ConfigureAwait(false);
             }
 
+            if (_reservations is not null)
+            {
+                var needs = lines
+                    .Where(line => !string.IsNullOrWhiteSpace(line.ItemCode))
+                    .Select(line => new ErpReservationLineNeed(line.ItemCode, line.Qty))
+                    .ToList();
+                await _reservations.ReconcileDocumentAsync(
+                    connection,
+                    transaction,
+                    ErpInventoryReservationWriteService.SourceSalesOrder,
+                    salesOrderId,
+                    needs,
+                    adminId,
+                    string.Equals(status, "confirmed", StringComparison.Ordinal),
+                    cancellationToken).ConfigureAwait(false);
+            }
+
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch
@@ -235,6 +259,10 @@ public sealed class ErpSalesOrderWriteService : IErpSalesOrderWriteService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (_reservations is not null)
+        {
+            await ErpInventoryReservationWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
 
         var current = await ErpDb.StringAsync(
             connection,
@@ -267,6 +295,30 @@ public sealed class ErpSalesOrderWriteService : IErpSalesOrderWriteService
         if (affected == 0)
         {
             throw new ErpWriteException("Sales order was changed by another request — reload and retry");
+        }
+
+        if (_reservations is not null)
+        {
+            if (string.Equals(status, "confirmed", StringComparison.Ordinal))
+            {
+                await _reservations.ConfirmBySourceAsync(
+                    connection,
+                    null,
+                    ErpInventoryReservationWriteService.SourceSalesOrder,
+                    salesOrderId,
+                    adminId,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            else if (string.Equals(status, "cancelled", StringComparison.Ordinal))
+            {
+                await _reservations.ReleaseBySourceAsync(
+                    connection,
+                    null,
+                    ErpInventoryReservationWriteService.SourceSalesOrder,
+                    salesOrderId,
+                    adminId,
+                    cancellationToken).ConfigureAwait(false);
+            }
         }
 
         await _audit.LogAsync(
@@ -316,6 +368,10 @@ public sealed class ErpSalesOrderWriteService : IErpSalesOrderWriteService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (_reservations is not null)
+        {
+            await ErpInventoryReservationWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
 
         var status = await ErpDb.StringAsync(
             connection,
@@ -336,6 +392,17 @@ public sealed class ErpSalesOrderWriteService : IErpSalesOrderWriteService
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            if (_reservations is not null)
+            {
+                await _reservations.ReleaseBySourceAsync(
+                    connection,
+                    transaction,
+                    ErpInventoryReservationWriteService.SourceSalesOrder,
+                    salesOrderId,
+                    adminId,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
             await ErpDb.ExecuteAsync(
                 connection,
                 transaction,

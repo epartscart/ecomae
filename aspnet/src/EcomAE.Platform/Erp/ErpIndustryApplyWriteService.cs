@@ -104,10 +104,17 @@ public sealed class ErpIndustryApplyWriteService : IErpIndustryApplyWriteService
         new("services_professional", "Professional / advisory services", "standard", 0, "hour", ["hour", "day", "project", "retainer", "unit"], "services",
             [T("service_code", "Service code"), S("billing_basis", "Billing basis", "Hourly", "Fixed", "Retainer", "Milestone"), T("sla", "SLA / turnaround")],
             "Time / project billing for consulting, tax advisory, agencies."),
+        new("real_estate", "Real estate investment, development and construction", "standard", 0, "unit", ["unit", "sqm", "sqft", "plot", "project"], "services",
+            [T("title_deed", "Title deed / plot no."), S("tenure", "Tenure", "Freehold", "Leasehold", "Usufruct", "Other"), T("emirate", "Emirate"),
+             S("asset_use", "Use", "Residential", "Commercial", "Industrial", "Land", "Mixed-use", "Hospitality"), T("community", "Community / district")],
+            "Property, unit and project attributes. The investment workspace is /erp/real-estate-app — VAT stays on the configured tax engine."),
     ];
 
-    public static ErpIndustryBlueprint? Blueprint(string key) =>
-        Catalog.FirstOrDefault(b => string.Equals(b.Key, key, StringComparison.Ordinal));
+    public static ErpIndustryBlueprint? Blueprint(string key)
+    {
+        var needle = (key ?? string.Empty).Trim();
+        return Catalog.FirstOrDefault(b => string.Equals(b.Key, needle, StringComparison.OrdinalIgnoreCase));
+    }
 
     private readonly IErpWriteConnectionFactory _connections;
 

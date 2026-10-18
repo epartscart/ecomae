@@ -39,7 +39,10 @@ public sealed record ErpJwTagCreateRequest(
     int PurchaseId = 0,
     string? PurchaseDate = null,
     string? Location = null,
-    string? Description = null);
+    string? Description = null,
+    string? CreatedBy = null,
+    decimal OtherWeight = 0,
+    decimal PurityPpt = 0);
 
 public sealed record ErpJwTagSellRequest(
     long TagId = 0,
@@ -76,6 +79,12 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
         if (tagNo.Length == 0 && description.Length == 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "Tag number or description is required.");
+        }
+
+        var weightProblem = ErpJewelCalc.TagNetProblem(request.GrossWeight, request.StoneWeight, request.OtherWeight, request.NetWeight);
+        if (weightProblem is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", weightProblem);
         }
 
         if (!_connections.IsConfigured)
@@ -133,7 +142,7 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "INSERT INTO `epc_jw_tags` (`company_id`,`tag_no`,`barcode`,`item_type`,`karat`,`gross_weight`,`net_weight`,`stone_weight`,`stone_count`,`making_charges`,`making_type`,`cost_price`,`sell_price`,`margin_pct`,`design_no`,`category`,`subcategory`,`supplier_id`,`purchase_id`,`purchase_date`,`location`,`status`,`description`,`time_created`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'in_stock', ?, ?)"),
+                    "INSERT INTO `epc_jw_tags` (`company_id`,`tag_no`,`barcode`,`item_type`,`karat`,`gross_weight`,`net_weight`,`stone_weight`,`stone_count`,`making_charges`,`making_type`,`cost_price`,`sell_price`,`margin_pct`,`design_no`,`category`,`subcategory`,`supplier_id`,`purchase_id`,`purchase_date`,`location`,`status`,`description`,`created_by`,`time_created`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'in_stock', ?, ?, ?)"),
                 cancellationToken,
                 companyId,
                 tagNo,
@@ -141,7 +150,7 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
                 itemType,
                 karat,
                 RoundNonNeg(request.GrossWeight, 3),
-                RoundNonNeg(request.NetWeight, 3),
+                RoundNonNeg(ErpJewelCalc.TagNet(request.GrossWeight, request.StoneWeight, request.OtherWeight, request.NetWeight), 3),
                 RoundNonNeg(request.StoneWeight, 3),
                 request.StoneCount < 0 ? 0 : request.StoneCount,
                 RoundNonNeg(request.MakingCharges, 2),
@@ -157,6 +166,7 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
                 purchaseDate,
                 location,
                 Clip(description, 500),
+                Clip((request.CreatedBy ?? string.Empty).Trim(), 80),
                 now).ConfigureAwait(false);
 
             var id = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
@@ -165,6 +175,20 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
                 return ErpSimpleWriteResult.Fail("invalid", "Failed");
             }
+
+            var net = ErpJewelCalc.TagNet(request.GrossWeight, request.StoneWeight, request.OtherWeight, request.NetWeight);
+            var purity = request.PurityPpt > 1m ? request.PurityPpt : request.PurityPpt * 1000m;
+            var pure = purity > 0 ? ErpJewelCalc.PureMetal(net, purity) : 0m;
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(
+                    "UPDATE `epc_jw_tags` SET `other_weight`=?, `purity_ppt`=?, `pure_weight`=? WHERE `id`=?"),
+                cancellationToken,
+                RoundNonNeg(request.OtherWeight, 3),
+                RoundNonNeg(purity, 3),
+                pure,
+                id).ConfigureAwait(false);
 
             if (hasHistory)
             {

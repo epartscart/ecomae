@@ -20,11 +20,10 @@
             <div class="panel-heading hbuilt">
                 Tax Toolkits
                 <a class="btn btn-xs btn-default pull-right" href="/erp/pos-overview-app" style="margin-right:.4rem">POS overview</a>
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/tax-toolkits-app")</p>
-                <p>Open a kit to see rules, country codes, installs, and refresh history. Install a kit or assign the platform tenant kit here. Refresh, worldwide seed, and migrate-all stay on the Classic twin.</p>
+                <p>Open a kit to see rules, country codes, installs, and refresh history. Install a kit or assign the platform tenant kit here. Refresh, worldwide seed, and migrate-all are not available on this page.</p>
             </div>
         </div>
     </div>
@@ -56,7 +55,7 @@
             <label>Kit <input class="form-control input-sm" type="text" name="kit_code" maxlength="80" style="width:14rem;" placeholder="AE-UAE-VAT" /></label>
             <button type="submit" class="btn btn-primary btn-sm">Save platform tenant kit</button>
         </form>
-        <p class="text-muted" style="margin:0 0 1rem;">Writes <code>epc_tax_toolkit_installs</code> and <code>epc_tax_toolkit_tenant_profile</code>. Kit must already exist in the catalog. Refresh and worldwide seed stay on the Classic twin.</p>
+        <p class="text-muted" style="margin:0 0 1rem;">Writes <code>epc_tax_toolkit_installs</code> and <code>epc_tax_toolkit_tenant_profile</code>. Kit must already exist in the catalog. Refresh and worldwide seed are not available on this page.</p>
     }
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedToolkit is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />

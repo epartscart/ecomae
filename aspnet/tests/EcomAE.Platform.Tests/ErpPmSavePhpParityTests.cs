@@ -14,7 +14,7 @@ public sealed class ErpPmSavePhpParityTests
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"pm_table\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"legal_entity_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"parent_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"parent_id\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"dimension_id\"", text, StringComparison.Ordinal);
         Assert.Contains("Organization and financial-dimension masters", text, StringComparison.Ordinal);
         Assert.Contains("Legal entity", text, StringComparison.Ordinal);
@@ -63,7 +63,7 @@ public sealed class ErpPmSavePhpParityTests
     {
         Assert.Equal(11, ErpPmSaveWriteService.Registry.Count);
         Assert.Equal(
-            new[] { "code", "name", "legal_entity_id", "parent_id", "manager", "note" },
+            new[] { "code", "name", "legal_entity_id", "parent_id", "manager", "trn", "note" },
             ErpPmSaveWriteService.Registry["epc_erp_pm_business_units"]);
         Assert.Equal(
             new[] { "dimension_id", "code", "name", "note" },
@@ -112,6 +112,7 @@ public sealed class ErpPmSavePhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
         Assert.Contains("EcomAeRoutes.ErpPmSave", text, StringComparison.Ordinal);
         Assert.Contains("HandlePmSaveAsync", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/organization-app", text, StringComparison.Ordinal);
         var service = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpPmSaveWriteService.cs"));
         Assert.Contains("Saved", service, StringComparison.Ordinal);
         Assert.Contains("Unknown master table", service, StringComparison.Ordinal);

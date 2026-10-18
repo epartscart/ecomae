@@ -34,6 +34,8 @@ public sealed class CpErpTenantShopDbParityTests
         Assert.Contains("Explicit databaseName without userName", text, StringComparison.Ordinal);
         Assert.Contains("string.IsNullOrWhiteSpace(databaseName)", text, StringComparison.Ordinal);
         Assert.Contains("epc_portal_tenants.db_user must NOT", text, StringComparison.Ordinal);
+        Assert.Contains("HasUsableDedicatedCredentials", text, StringComparison.Ordinal);
+        Assert.Contains("Empty dedicated password", text, StringComparison.Ordinal);
         // Old bug: always `userName ?? tenant?.DbUser` even for OpenAsync("docpart").
         Assert.DoesNotContain(
             "var user = !string.IsNullOrWhiteSpace(userName) ? userName : tenant?.DbUser;",

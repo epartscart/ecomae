@@ -35,7 +35,7 @@
         <form method="post" action="/erp/customers/master-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
-            <label>Customer ID <input type="number" name="customer_id" min="1" required style="width:6rem" /></label>
+            <ErpMasterPicker Kind="customer" FieldName="customer_id" Label="Customer" Required="true" Min="1" CodeFieldName="customer_account" NameFieldName="customer_name" />
             <label>Account <input type="text" name="customer_account" maxlength="32" placeholder="C-0001" /></label>
             <label>Name <input type="text" name="customer_name" maxlength="255" /></label>
             <label>Group <input type="text" name="customer_group" maxlength="64" placeholder="Retail" /></label>
@@ -54,7 +54,7 @@
             <label>Country <input type="text" name="country_code" maxlength="8" placeholder="AE" /></label>
             @if (_dimensionCatalog.Count == 0)
             {
-                <label>Business unit <input type="number" name="dim[business_unit]" min="0" style="width:6rem" /></label>
+                <ErpMasterPicker Kind="business_unit" FieldName="dim[business_unit]" Label="Business unit" InputId="contact-dim-bu" />
                 <label>Legal entity <input type="number" name="dim[legal_entity]" min="0" style="width:6rem" /></label>
             }
             else
@@ -151,7 +151,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Name) ? "—" : _opened.Name)</dd>
                 <dt>Type</dt><dd>@(string.IsNullOrWhiteSpace(_opened.PartyType) ? "—" : _opened.PartyType)</dd>

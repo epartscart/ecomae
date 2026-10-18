@@ -17,7 +17,6 @@
             <div class="panel-heading hbuilt">
                 Projects overview
                 <a class="btn btn-xs btn-default pull-right" href="/erp/production-overview-app" style="margin-right:.4rem">Production overview</a>
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/erp/projects-overview-app")</p>
@@ -52,7 +51,7 @@
             <label>Id <input type="number" name="id" min="0" style="width:5rem" placeholder="new" value="@OpenedIdOrBlank" /></label>
             <label>Code <input type="text" name="code" required placeholder="PRJ-001" value="@OpenedCodeValue" /></label>
             <label>Name <input type="text" name="name" value="@OpenedNameValue" /></label>
-            <label>Customer id <input type="number" name="customer_id" min="0" style="width:6rem" value="@OpenedCustomerValue" /></label>
+            <ErpMasterPicker Kind="customer" FieldName="customer_id" InputId="project-customer" Label="Customer" Value="@(_openedProject is null ? 0 : _openedProject.CustomerId)" />
             <label>Billing
                 <select name="billing_type">
                     <option value="tm">tm</option>

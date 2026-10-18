@@ -31,10 +31,10 @@
     }
     @if (_isAdmin && _view == "cash_bank")
     {
-        <form method="post" action="@EcomAeRoutes.ErpCashAccountsCreate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+        <form id="erp-module-new" method="post" action="@EcomAeRoutes.ErpCashAccountsCreate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app" />
-            <label>Account name <input type="text" name="name" required style="min-width:12rem" /></label>
+            <label>Account name <input type="text" name="name" required style="min-width:12rem" data-erp-new-field /></label>
             <label>Type
                 <select name="accountType">
                     <option value="cash">Cash</option>
@@ -100,7 +100,7 @@
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app?tab=petty_cash" />
                 <label>Name <input type="text" name="name" required maxlength="128" /></label>
-                <label>Account ID <input type="number" name="account_id" min="0" style="width:6rem" /></label>
+                <ErpMasterPicker Kind="account" FieldName="account_id" InputId="petty-float-account" Label="Cash account" />
                 <label>Float <input type="number" name="float_amount" step="0.01" value="0" style="width:6rem" /></label>
                 <label>Custodian <input type="number" name="custodian_user_id" min="0" style="width:6rem" /></label>
                 <button type="submit">Create float</button>
@@ -109,7 +109,7 @@
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app?tab=jw_petty_cash" />
                 <label>Paid to <input type="text" name="paid_to" required maxlength="120" /></label>
-                <label>Account <input type="text" name="account_code" maxlength="20" placeholder="PETTY-CASH" /></label>
+                <ErpMasterPicker Kind="coa" FieldName="account_code" InputId="petty-cash-coa" Label="Chart account" ValueMode="code" />
                 <label>Amount <input type="number" name="total" step="0.01" value="0" style="width:6rem" /></label>
                 <label>Narration <input type="text" name="narration" maxlength="200" /></label>
                 <button type="submit">Save petty cash</button>
@@ -326,7 +326,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="/erp/cash-accounts-app">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Account id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.Name) ? "—" : _openedDetail.Name)</dd>
                 <dt>Type</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.AccountType) ? "—" : _openedDetail.AccountType)</dd>

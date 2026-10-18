@@ -43,6 +43,15 @@ public sealed record ErpJwVoucherReceiptSaveRequest(
     decimal AmountFc = 0,
     decimal AmountLc = 0);
 
+public sealed record ErpJwVoucherAddinSaveRequest(
+    string? AddinCode = null,
+    string? Description = null,
+    string? DebitAccount = null,
+    string? CreditAccount = null,
+    decimal Percent = 0,
+    decimal Amount = 0,
+    string? Narration = null);
+
 public sealed record ErpJwVoucherSaveRequest(
     int CompanyId = 0,
     string? Action = null,
@@ -69,6 +78,15 @@ public sealed record ErpJwVoucherSaveRequest(
     decimal GoldSchemeRedeem = 0,
     IReadOnlyList<ErpJwVoucherLineSaveRequest>? Lines = null,
     IReadOnlyList<ErpJwVoucherReceiptSaveRequest>? Receipts = null,
+    IReadOnlyList<ErpJwVoucherAddinSaveRequest>? Addins = null,
+    string? ItemCurrency = null,
+    decimal ItemCurrencyRate = 0,
+    decimal MetalRate = 0,
+    bool IsFixed = false,
+    string? PlaceOfSupply = null,
+    string? ShipmentCompany = null,
+    string? PortCompany = null,
+    decimal OtherAmount = 0,
     int ActorUserId = 0);
 
 public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
@@ -95,6 +113,20 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Voucher type required");
         }
 
+        var metalPurchase = ErpJwVocTypes.Matches(vocType, ErpJwVocTypes.MetalPurchaseAliases);
+        var preciousPurchase = metalPurchase || ErpJwVocTypes.Matches(vocType, ErpJwVocTypes.DiamondPurchaseAliases);
+        if (metalPurchase && string.IsNullOrWhiteSpace(request.PartyCode))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Party is required. Pick an approved supplier.");
+        }
+
+        var incomingLines = request.Lines ?? [];
+        if (metalPurchase
+            && !incomingLines.Any(line => !string.IsNullOrWhiteSpace(line.StockCode)))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Stock code is required. Pick a metal stock item.");
+        }
+
         if (!_connections.IsConfigured)
         {
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
@@ -107,8 +139,11 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Jewellery voucher tables are not provisioned");
         }
 
-        var lines = request.Lines ?? [];
+        var lines = incomingLines;
         var receipts = request.Receipts ?? [];
+        var addins = (request.Addins ?? [])
+            .Where(row => !string.IsNullOrWhiteSpace(row.AddinCode) || row.Amount != 0)
+            .ToArray();
         if (lines.Count > 0 && !await TableExistsAsync(connection, "epc_jewel_voucher_lines", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Jewellery voucher line tables are not provisioned");
@@ -127,11 +162,23 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Jewellery voucher receipt tables are not provisioned");
         }
 
+        if (metalPurchase)
+        {
+            var blocked = await RequireApprovedSupplierByCodeAsync(
+                connection,
+                partyCodeForGate: (request.PartyCode ?? string.Empty).Trim(),
+                cancellationToken).ConfigureAwait(false);
+            if (blocked is not null)
+            {
+                return blocked;
+            }
+        }
+
         var companyId = request.CompanyId < 0 ? 0 : request.CompanyId;
         var branch = (request.Branch ?? string.Empty).Trim();
         if (branch.Length == 0)
         {
-            branch = "HO";
+            branch = "HQ";
         }
 
         branch = Clip(branch, 10);
@@ -166,7 +213,32 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
         var net = RoundNonNeg(request.NetAmount, 2);
         var vat = RoundNonNeg(request.VatAmount, 2);
         var roundOff = RoundNonNeg(request.RoundOff, 2);
+        var otherAmount = request.OtherAmount > 0
+            ? RoundNonNeg(request.OtherAmount, 2)
+            : RoundNonNeg(addins.Sum(row => row.Amount), 2);
         var gross = RoundNonNeg(request.GrossTotal, 2);
+        var itemCurr = Clip((request.ItemCurrency ?? string.Empty).Trim().ToUpperInvariant(), 5);
+        if (itemCurr.Length == 0)
+        {
+            itemCurr = currency;
+        }
+
+        var metalRate = RoundNonNeg(request.MetalRate, 5);
+        if (metalRate <= 0)
+        {
+            metalRate = RoundNonNeg(
+                await ErpGoldRateBoard.ResolveSellAsync(
+                    connection,
+                    companyId,
+                    "24K",
+                    currency,
+                    vocDate,
+                    cancellationToken).ConfigureAwait(false),
+                5);
+        }
+        var placeOfSupply = Clip((request.PlaceOfSupply ?? string.Empty).Trim(), 80);
+        var shipment = Clip((request.ShipmentCompany ?? string.Empty).Trim(), 80);
+        var port = Clip((request.PortCompany ?? string.Empty).Trim(), 80);
         var refundDue = RoundNonNeg(request.RefundDue, 2);
         var adjustSaleReturn = RoundNonNeg(request.AdjustSaleReturn, 2);
         var oldGoldExchange = RoundNonNeg(request.OldGoldExchange, 2);
@@ -184,19 +256,46 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
 
         if (gross == 0)
         {
-            gross = RoundNonNeg(net + vat + roundOff, 2);
+            gross = RoundNonNeg(net + vat + roundOff + otherAmount, 2);
         }
 
         var totalWithVat = RoundNonNeg(net + vat, 2);
+        if (preciousPurchase)
+        {
+            var amountAed = currency == "AED" ? totalWithVat : RoundNonNeg(totalWithVat * currRate, 2);
+            try
+            {
+                await ErpSupplierWriteService.RequireKycForJewelPurchaseAsync(
+                    connection,
+                    partyCode,
+                    amountAed,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (ErpWriteException ex)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", ex.Message);
+            }
+        }
+
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
+            vocNo = await ErpJwVocNumbering.NextNoAsync(
+                connection,
+                transaction,
+                "epc_jewel_voucher",
+                companyId,
+                vocType,
+                branch,
+                vocNo,
+                cancellationToken).ConfigureAwait(false);
+
             await ErpDb.ExecuteAsync(
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "INSERT INTO `epc_jewel_voucher` (`company_id`,`branch`,`voc_type`,`voc_date`,`voc_no`,`party_code`,`party_name`,`party_curr`,`party_curr_rate`,`customer_name`,`salesman`,`supp_inv_no`,`cr_days`,`narration`,`remarks`,`net_amount`,`vat_amount`,`rnd_off_amount`,`rnd_net_amount`,`gross_total`,`total_with_vat`,`sub_total`,`receipt_total`,`refund_due`,`adjust_sale_return`,`old_gold_exchange`,`gold_scheme_redeem`,`status`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+                    "INSERT INTO `epc_jewel_voucher` (`company_id`,`branch`,`voc_type`,`voc_date`,`voc_no`,`party_code`,`party_name`,`party_curr`,`party_curr_rate`,`customer_name`,`salesman`,`supp_inv_no`,`cr_days`,`narration`,`remarks`,`net_amount`,`vat_amount`,`rnd_off_amount`,`rnd_net_amount`,`gross_total`,`total_with_vat`,`sub_total`,`receipt_total`,`refund_due`,`adjust_sale_return`,`old_gold_exchange`,`gold_scheme_redeem`,`item_curr`,`metal_rate`,`is_fixed`,`other_amount`,`place_of_supply`,`shipment_company`,`port_company`,`status`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
                 cancellationToken,
                 companyId,
                 branch,
@@ -230,6 +329,13 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                 adjustSaleReturn,
                 oldGoldExchange,
                 goldSchemeRedeem,
+                itemCurr,
+                metalRate,
+                request.IsFixed ? 1 : 0,
+                otherAmount,
+                placeOfSupply,
+                shipment,
+                port,
                 "draft").ConfigureAwait(false);
 
             var id = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
@@ -257,18 +363,23 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
 
                 var grossWeight = RoundNonNeg(line.GrossWeight, 4);
                 var purity = RoundNonNeg(line.Purity, 6);
+                var lineMetalRate = line.MetalRate > 0 ? line.MetalRate : metalRate;
                 var pureWeight = line.PureWeight > 0
                     ? RoundNonNeg(line.PureWeight, 4)
-                    : RoundNonNeg(grossWeight * purity, 4);
-                var makingAmount = line.MakingAmount > 0
-                    ? RoundNonNeg(line.MakingAmount, 2)
-                    : RoundNonNeg(line.MakingRate * grossWeight, 2);
-                var metalAmount = line.MetalAmount > 0
-                    ? RoundNonNeg(line.MetalAmount, 2)
-                    : RoundNonNeg(pureWeight * line.MetalRate, 2);
+                    : ErpJwPurity.PureWeight(grossWeight, purity);
+                var makingAmount = ErpJwPurity.MakingAmount(grossWeight, line.MakingRate, line.MakingAmount);
+                var metalAmount = ErpJwPurity.MetalAmount(grossWeight, purity, lineMetalRate, line.MetalAmount);
                 var totalAmount = line.TotalAmount > 0
                     ? RoundNonNeg(line.TotalAmount, 2)
-                    : RoundNonNeg(metalAmount + makingAmount + line.StoneAmount - line.DiscountAmount, 2);
+                    : ErpJwPurity.LineTotal(
+                        grossWeight,
+                        purity,
+                        lineMetalRate,
+                        line.MakingRate,
+                        line.StoneAmount,
+                        line.DiscountAmount,
+                        metalAmount,
+                        makingAmount);
                 var lineTotalWithVat = line.TotalWithVat > 0
                     ? RoundNonNeg(line.TotalWithVat, 2)
                     : totalAmount;
@@ -294,7 +405,7 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                     pureWeight,
                     RoundNonNeg(line.MakingRate, 4),
                     makingAmount,
-                    RoundNonNeg(line.MetalRate, 5),
+                    RoundNonNeg(lineMetalRate, 5),
                     metalAmount,
                     RoundNonNeg(line.StoneAmount, 2),
                     RoundNonNeg(line.WastagePercent, 4),
@@ -307,8 +418,8 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
 
             if (taggedLines.Length > 0)
             {
-                var isReturn = vocType.Equals("SRN", StringComparison.OrdinalIgnoreCase);
-                var isSale = vocType is "RSI" or "MSI";
+                var isReturn = ErpJwVocTypes.IsReturn(vocType);
+                var isSale = ErpJwVocTypes.IsSale(vocType);
                 if (!isReturn && !isSale)
                 {
                     await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
@@ -417,6 +528,30 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                     amountLc).ConfigureAwait(false);
             }
 
+            if (addins.Length > 0
+                && await TableExistsAsync(connection, "epc_jewel_voucher_addins", cancellationToken).ConfigureAwait(false))
+            {
+                var addinNo = 1;
+                foreach (var addin in addins)
+                {
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        transaction,
+                        ErpDb.Positional(
+                            "INSERT INTO `epc_jewel_voucher_addins` (`voucher_id`,`line_no`,`addin_code`,`description`,`debit_ac`,`credit_ac`,`pct`,`amount`,`narration`) VALUES (?,?,?,?,?,?,?,?,?)"),
+                        cancellationToken,
+                        id,
+                        addinNo++,
+                        Clip((addin.AddinCode ?? string.Empty).Trim(), 20),
+                        Clip((addin.Description ?? string.Empty).Trim(), 120),
+                        Clip((addin.DebitAccount ?? string.Empty).Trim(), 20),
+                        Clip((addin.CreditAccount ?? string.Empty).Trim(), 20),
+                        RoundNonNeg(addin.Percent, 4),
+                        RoundNonNeg(addin.Amount, 2),
+                        Clip((addin.Narration ?? string.Empty).Trim(), 200)).ConfigureAwait(false);
+                }
+            }
+
             await _audit.LogAsync(
                 connection,
                 transaction,
@@ -431,13 +566,14 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                     ["voucher_type"] = vocType,
                     ["line_count"] = lines.Count.ToString(CultureInfo.InvariantCulture),
                     ["receipt_count"] = receipts.Count.ToString(CultureInfo.InvariantCulture),
+                    ["voc_no"] = vocNo.ToString(CultureInfo.InvariantCulture),
                     ["net_amount"] = net.ToString(CultureInfo.InvariantCulture),
                     ["total_with_vat"] = totalWithVat.ToString(CultureInfo.InvariantCulture)
                 },
                 cancellationToken).ConfigureAwait(false);
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return ErpSimpleWriteResult.Ok(vocType + " voucher saved", id);
+            return ErpSimpleWriteResult.Ok(vocType + " voucher " + vocNo.ToString(CultureInfo.InvariantCulture) + " saved", id);
         }
         catch
         {
@@ -459,48 +595,84 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
             || !string.IsNullOrWhiteSpace(line.Description)
             || !string.IsNullOrWhiteSpace(line.TagNo);
 
-    private static decimal CalculateLineTotal(ErpJwVoucherLineSaveRequest line)
+    public static async Task<ErpSimpleWriteResult?> RequireApprovedSupplierByCodeAsync(
+        DbConnection connection,
+        string partyCodeForGate,
+        CancellationToken cancellationToken)
     {
-        var grossWeight = RoundNonNeg(line.GrossWeight, 4);
-        var purity = RoundNonNeg(line.Purity, 6);
-        var pureWeight = line.PureWeight > 0
-            ? RoundNonNeg(line.PureWeight, 4)
-            : RoundNonNeg(grossWeight * purity, 4);
-        var makingAmount = line.MakingAmount > 0
-            ? RoundNonNeg(line.MakingAmount, 2)
-            : RoundNonNeg(line.MakingRate * grossWeight, 2);
-        var metalAmount = line.MetalAmount > 0
-            ? RoundNonNeg(line.MetalAmount, 2)
-            : RoundNonNeg(pureWeight * line.MetalRate, 2);
-        return line.NetAmount > 0
+        var code = (partyCodeForGate ?? string.Empty).Trim();
+        if (code.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Party is required. Pick an approved supplier.");
+        }
+
+        if (!await TableExistsAsync(connection, "epc_erp_suppliers", cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        var hasCode = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'epc_erp_suppliers' AND COLUMN_NAME = 'supplier_code'"),
+            cancellationToken).ConfigureAwait(false) > 0;
+        var hasVendor = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'epc_erp_suppliers' AND COLUMN_NAME = 'vendor_account'"),
+            cancellationToken).ConfigureAwait(false) > 0;
+        var where = hasCode && hasVendor
+            ? "`supplier_code`=? OR `vendor_account`=? OR `name`=?"
+            : hasCode
+                ? "`supplier_code`=? OR `name`=?"
+                : hasVendor
+                    ? "`vendor_account`=? OR `name`=?"
+                    : "`name`=?";
+        var args = hasCode && hasVendor
+            ? new object[] { code, code, code }
+            : hasCode || hasVendor
+                ? new object[] { code, code }
+                : new object[] { code };
+        var id = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `epc_erp_suppliers` WHERE " + where + " LIMIT 1"),
+            cancellationToken,
+            args).ConfigureAwait(false);
+        if (id <= 0)
+        {
+            return null;
+        }
+
+        try
+        {
+            await ErpSupplierWriteService.RequireApprovedForPurchaseAsync(connection, id, cancellationToken)
+                .ConfigureAwait(false);
+            return null;
+        }
+        catch (ErpWriteException ex)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", ex.Message);
+        }
+    }
+
+    private static decimal CalculateLineTotal(ErpJwVoucherLineSaveRequest line)
+        => line.NetAmount > 0
             ? RoundNonNeg(line.NetAmount, 2)
             : line.TotalAmount > 0
                 ? RoundNonNeg(line.TotalAmount, 2)
-                : RoundNonNeg(metalAmount + makingAmount + line.StoneAmount - line.DiscountAmount, 2);
-    }
+                : ErpJwPurity.LineTotal(
+                    line.GrossWeight,
+                    line.Purity,
+                    line.MetalRate,
+                    line.MakingRate,
+                    line.StoneAmount,
+                    line.DiscountAmount,
+                    line.MetalAmount,
+                    line.MakingAmount);
 
     public static string NormalizeVocType(string? vocType, string? action)
-    {
-        var raw = (vocType ?? string.Empty).Trim().ToUpperInvariant();
-        if (raw.Length > 0)
-        {
-            return Clip(raw, 10);
-        }
-
-        var act = (action ?? string.Empty).Trim().ToLowerInvariant();
-        return act switch
-        {
-            "jw_metal_purchase_save" or "jw_metal_purchase" => "MMP",
-            "jw_diamond_purchase_save" or "jw_diamond_purchase" => "DMP",
-            "jw_retail_sale_save" or "jw_retail_sales_save" or "jw_retail_sales" or "jewellery" or "retail_commerce" => "RSI",
-            "jw_metal_sale_save" or "jw_metal_sales" => "MSI",
-            "jw_sales_return_save" or "jw_sales_return" => "SRN",
-            "jw_pos_advance_save" => "PAD",
-            "jw_journal_voucher_save" => "JVG",
-            "jw_repair_sale_save" or "jw_repair_sale" => "RSL",
-            _ => string.Empty
-        };
-    }
+        => Clip(ErpJwVocTypes.Canonical(vocType, action), 10);
 
     private static string NormalizeDate(string? value)
     {

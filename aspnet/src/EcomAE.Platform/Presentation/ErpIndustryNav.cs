@@ -32,7 +32,16 @@ public static class ErpIndustryNav
 
     private static readonly HashSet<string> JewelleryTabIds = new(StringComparer.OrdinalIgnoreCase)
     {
-        "gold_rate", "jewellery_tag", "gold_scheme", "aml_compliance",
+        "gold_rate", "jewellery_tag", "gold_scheme",
+    };
+
+    /// <summary>
+    /// The generated catalog still marks these as jewellery because the old pack lived there.
+    /// They are shared duties, so company 1 and every other company keep the top-menu link.
+    /// </summary>
+    private static readonly HashSet<string> SharedTabIds = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "aml_compliance",
     };
 
     public static bool IsJewelleryCompany(ErpCompanyDigest? company)
@@ -66,8 +75,8 @@ public static class ErpIndustryNav
     }
 
     /// <summary>Fit-out modules are allowed by the host industry or by the active company (pack, code or name), like the route gate.</summary>
-    public static bool ShowFitOutModules(string? hostIndustryCode, ErpCompanyDigest? company)
-        => IsFitOutIndustry(hostIndustryCode) || IsFitOutCompany(company);
+    public static bool ShowFitOutModules(string? hostIndustryCode, ErpCompanyDigest? company, string? tenantIndustry = null)
+        => IsFitOutIndustry(hostIndustryCode) || IsFitOutIndustry(tenantIndustry) || IsFitOutCompany(company);
 
     public static bool IsFitOutTab(PhpModuleCatalog.ModuleLink tab)
         => string.Equals(TabKey(tab), "project_accounting", StringComparison.OrdinalIgnoreCase);
@@ -89,6 +98,45 @@ public static class ErpIndustryNav
             || name.Contains("fit-out", StringComparison.Ordinal)
             || name.Contains("fitout", StringComparison.Ordinal)
             || name.Contains("construction", StringComparison.Ordinal);
+    }
+
+    public static bool IsRealEstateIndustry(string? industryCode)
+    {
+        var code = (industryCode ?? string.Empty).Trim().ToLowerInvariant();
+        return code.Contains("real_estate", StringComparison.Ordinal)
+            || code.Contains("real-estate", StringComparison.Ordinal)
+            || code.Contains("realestate", StringComparison.Ordinal);
+    }
+
+    public static bool ShowRealEstateModules(string? hostIndustryCode, ErpCompanyDigest? company, string? tenantIndustry = null)
+        => IsRealEstateIndustry(hostIndustryCode) || IsRealEstateIndustry(tenantIndustry) || IsRealEstateCompany(company);
+
+    public static bool IsRealEstateTab(PhpModuleCatalog.ModuleLink tab)
+    {
+        var key = TabKey(tab);
+        var href = tab.Href ?? string.Empty;
+        return key.StartsWith("real_estate", StringComparison.OrdinalIgnoreCase)
+            || href.Contains("/erp/real-estate-app", StringComparison.OrdinalIgnoreCase)
+            || href.Contains("/erp/landlord-app", StringComparison.OrdinalIgnoreCase)
+            || href.Contains("tab=real_estate", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static bool IsRealEstateCompany(ErpCompanyDigest? company)
+    {
+        if (company is null)
+        {
+            return false;
+        }
+
+        var pack = (company.IndustryPack ?? string.Empty).Trim().ToLowerInvariant();
+        var code = (company.Code ?? string.Empty).Trim().ToLowerInvariant();
+        var name = (company.Name ?? string.Empty).Trim().ToLowerInvariant();
+        return pack.Contains("real_estate", StringComparison.Ordinal)
+            || pack.Contains("real-estate", StringComparison.Ordinal)
+            || pack.Contains("realestate", StringComparison.Ordinal)
+            || code is "real" or "re"
+            || name.Contains("real estate", StringComparison.Ordinal)
+            || name.Contains("real-estate", StringComparison.Ordinal);
     }
 
     public static bool IsJewelleryFromHostOrPack(string? industryCode, string? industryPack, ErpCompanyDigest? company)
@@ -113,11 +161,17 @@ public static class ErpIndustryNav
     /// modules — even when legal entity 1 is coded MAIN with an empty pack.
     /// Super CP / auto-parts hosts still require a jewellery company or pack.
     /// </summary>
-    public static bool ShowJewelleryModules(string? hostIndustryCode, ErpCompanyDigest? company)
-        => IsJewelleryFromHostOrPack(hostIndustryCode, company?.IndustryPack, company);
+    public static bool ShowJewelleryModules(string? hostIndustryCode, ErpCompanyDigest? company, string? tenantIndustry = null)
+        => IsJewelleryFromHostOrPack(hostIndustryCode, tenantIndustry, company)
+           || IsJewelleryFromHostOrPack(tenantIndustry, tenantIndustry, company);
 
     public static bool IsJewelleryTab(PhpModuleCatalog.ModuleLink tab)
     {
+        if (SharedTabIds.Contains(TabKey(tab)))
+        {
+            return false;
+        }
+
         if (tab.IsJewellery)
         {
             return true;
@@ -155,12 +209,34 @@ public static class ErpIndustryNav
     /// tabs are omitted unless the tenant/company is jewellery.
     /// </summary>
     public static IReadOnlyList<PhpModuleCatalog.ModuleLink> DirectoryTabs(bool jewelleryCompany)
-        => DirectoryTabs(jewelleryCompany, fitOutCompany: true);
+        => DirectoryTabs(jewelleryCompany, fitOutCompany: true, realEstateCompany: true);
 
     public static IReadOnlyList<PhpModuleCatalog.ModuleLink> DirectoryTabs(bool jewelleryCompany, bool fitOutCompany)
-        => PhpModuleCatalog.ErpTabs
-            .Where(t => (jewelleryCompany || !IsJewelleryTab(t)) && (fitOutCompany || !IsFitOutTab(t)))
-            .ToList();
+        => DirectoryTabs(jewelleryCompany, fitOutCompany, realEstateCompany: true);
+
+    public static IReadOnlyList<PhpModuleCatalog.ModuleLink> DirectoryTabs(bool jewelleryCompany, bool fitOutCompany, bool realEstateCompany)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var rows = new List<PhpModuleCatalog.ModuleLink>(PhpModuleCatalog.ErpTabs.Count + PhpModuleCatalog.AspNetErpTabs.Count);
+        foreach (var tab in PhpModuleCatalog.ErpTabs.Concat(PhpModuleCatalog.AspNetErpTabs))
+        {
+            if (string.IsNullOrWhiteSpace(tab.Id) || !seen.Add(tab.Id))
+            {
+                continue;
+            }
+
+            if ((!jewelleryCompany && IsJewelleryTab(tab))
+                || (!fitOutCompany && IsFitOutTab(tab))
+                || (!realEstateCompany && IsRealEstateTab(tab)))
+            {
+                continue;
+            }
+
+            rows.Add(tab);
+        }
+
+        return rows;
+    }
 
     /// <summary>
     /// Filter ERP topnav like PHP: strip jewellery-only tabs unless the active company is jewellery.
@@ -222,8 +298,37 @@ public static class ErpIndustryNav
             });
         }
 
+        if (audience.IsSuperErp)
+        {
+            var mailTabs = SuperErpMailTabs()
+                .Where(t => seenDestinations.Add(TopMenuLinks.DestinationKey(TopMenuLinks.ErpHref(t.Href))))
+                .ToList();
+            if (mailTabs.Count > 0)
+            {
+                var at = Math.Min(1, filtered.Count);
+                filtered.Insert(at, new LegacyDesktopChromeCatalog.MegaGroup(
+                    "mail",
+                    "Mail",
+                    mailTabs,
+                    "fa-inbox",
+                    "Mail",
+                    mailTabs[0].Href,
+                    [new LegacyDesktopChromeCatalog.MegaAreaColumn("mail", "Mailbox & SMTP", "fa-inbox", mailTabs)],
+                    "Platform mailboxes, SMTP and alerts"));
+            }
+        }
+
         return filtered;
     }
+
+    public static IReadOnlyList<PhpModuleCatalog.ModuleLink> SuperErpMailTabs() =>
+    [
+        new("mail/platform_mail", "Platform mailboxes", "/erp/super-mail-app", "fa-inbox", "mail"),
+        new("mail/tenant_email", "Tenant email / SMTP", "/erp/tenant-email-app", "fa-envelope", "mail"),
+        new("mail/communication", "Communication", "/erp/platform-communication-app", "fa-comments", "mail"),
+        new("mail/notifications", "Notifications", "/erp/notifications-app", "fa-bell", "mail"),
+        new("mail/sms", "SMS & WhatsApp", "/erp/sms-whatsapp-app", "fa-mobile", "mail"),
+    ];
 
     public static IReadOnlyList<string> DuplicateTabIds(
         IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> groups)
@@ -281,6 +386,11 @@ public static class ErpIndustryNav
             return new(false, "industry", "Project accounting requires the fit-out / construction industry pack.");
         }
 
+        if (IsRealEstateTab(tab) && !ShowRealEstateModules(audience.IndustryCode, audience.Company))
+        {
+            return new(false, "industry", "Real estate requires the real-estate investment industry pack.");
+        }
+
         if (audience.DisabledTabIds is { Count: > 0 }
             && (audience.DisabledTabIds.Contains(tab.Id)
                 || audience.DisabledTabIds.Contains(TabKey(tab))))
@@ -335,12 +445,13 @@ public static class ErpIndustryNav
     /// </summary>
     public static IReadOnlyList<ErpCompanyDigest> FallbackCompanies(string brandLabel)
     {
-        var mainName = string.IsNullOrWhiteSpace(brandLabel) ? "Main Company" : brandLabel + " — Main";
+        var mainName = LegalOrganizationLabel.Resolve("Main Company", null, brandLabel);
         return
         [
             new ErpCompanyDigest(1, "MAIN", mainName, "AED", "AE", "", true),
             new ErpCompanyDigest(2, "JW", "Jewellery Division", "AED", "AE", "jewellery_diamond", true),
             new ErpCompanyDigest(3, "FITOUT", "Fit-out Company", "AED", "AE", "fitout_contracting", true),
+            new ErpCompanyDigest(4, "REAL", "Real Estate Company", "AED", "AE", "real-estate-development", true),
         ];
     }
 
@@ -388,6 +499,11 @@ public static class ErpIndustryNav
         if (jewellery)
         {
             return string.IsNullOrWhiteSpace(pack) ? "Jewellery & luxury" : pack.Replace('_', ' ');
+        }
+
+        if (IsRealEstateIndustry(pack))
+        {
+            return string.IsNullOrWhiteSpace(pack) ? "Real estate" : pack.Replace('_', ' ').Replace('-', ' ');
         }
 
         return string.IsNullOrWhiteSpace(pack) ? "Core / multi-industry" : pack.Replace('_', ' ');

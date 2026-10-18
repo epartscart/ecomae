@@ -33,6 +33,17 @@ public sealed class ErpFirstPaintBudgetTests
     }
 
     [Fact]
+    public void Login_posts_keep_their_own_connection_budget()
+    {
+        Assert.True(ErpFirstPaint.IsLoginPath("/erp/login"));
+        Assert.True(ErpFirstPaint.IsLoginPath("/cp/login"));
+        Assert.True(ErpFirstPaint.IsLoginPath("/bos/login"));
+        Assert.True(ErpFirstPaint.IsLoginPath("/cp/client-erp/real/"));
+        Assert.False(ErpFirstPaint.IsLoginPath("/erp/trial-balance-app"));
+        Assert.False(ErpFirstPaint.IsLoginPath("/cp/client-erp/real/erp/trial-balance-app"));
+    }
+
+    [Fact]
     public void IsPaintPath_CoversCpBosAndStorefront()
     {
         Assert.True(ErpFirstPaint.IsPaintPath("/"));

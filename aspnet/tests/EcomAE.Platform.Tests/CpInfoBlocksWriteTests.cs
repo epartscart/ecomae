@@ -45,7 +45,7 @@ public sealed class CpInfoBlocksWriteTests
         Assert.Contains("name=\"placement\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-scp-panel__hero", razor, StringComparison.Ordinal);
         Assert.Contains("ICpInfoBlocksWriteService", razor, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", razor, StringComparison.Ordinal);
         Assert.Contains("_isAdmin && _isSuper", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);

@@ -347,7 +347,7 @@ public sealed class CpTemplatesWriteService : ICpTemplatesWriteService
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             if (!await TableExistsAsync(connection, "templates", cancellationToken).ConfigureAwait(false))
             {
-                return ErpSimpleWriteResult.Fail("invalid", "templates table is not provisioned. Schema ensure stays on the Classic twin.");
+                return ErpSimpleWriteResult.Fail("invalid", "templates table is not provisioned. Schema ensure is not available on this page.");
             }
 
             var exists = await ErpDb.LongAsync(

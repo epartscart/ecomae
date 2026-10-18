@@ -5,11 +5,14 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Erp
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 @inject IErpDimensionLinkReadService DimensionLinks
+@inject IErpApSetupReadService ApSetup
+@inject IErpSupplierOnboardReadService Onboard
 
 <PageTitle>Suppliers · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -22,10 +25,11 @@
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/suppliers-app" />
 
     <p class="text-muted" style="margin:8px 0 12px;">
-        <a href="/erp/suppliers-app">Suppliers</a>
-        · <a href="/erp/suppliers-app?tab=ap_setup">AP setup</a>
-        · <a href="/erp/suppliers-app?tab=supplier_portal">Supplier portal</a>
+        <a href="@AppHref()">Suppliers</a>
+        · <a href="@AppHref("ap_setup")">AP setup</a>
+        · <a href="@AppHref("supplier_portal")">Supplier portal</a>
     </p>
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
     @if (_view == "supplier_portal")
     {
@@ -213,8 +217,303 @@
             </div>
         }
     }
+    else if (_view == "ap_setup" && _pmView is "methods" or "terms" or "groups" or "journals")
+    {
+        <ErpPhpViewTabs QueryName="pm_view" Active="@_pmView" BaseHref="@AppHref("ap_setup")" Tabs="@_apTabs" />
+        @if (_pmView == "journals")
+        {
+            <div class="epc-erp-section">
+                <h4 style="margin-top:0"><i class="fa fa-book"></i> Vendor journals</h4>
+                <p class="text-muted">Post and review vendor bills and payments from the live ledgers.</p>
+                <div class="btn-group" style="flex-wrap:wrap;">
+                    <a class="btn btn-default btn-sm" href="@Prefixed("/erp/purchases-app")"><i class="fa fa-file-text-o"></i> Vendor bill journal</a>
+                    <a class="btn btn-default btn-sm" href="@Prefixed("/erp/payables-app")"><i class="fa fa-money"></i> Vendor payment journal</a>
+                    <a class="btn btn-default btn-sm" href="@Prefixed("/erp/aging-app?aging_view=ap")"><i class="fa fa-hourglass-half"></i> Payables aging</a>
+                </div>
+            </div>
+        }
+        else if (_isAdmin)
+        {
+            @if (_pmView == "methods")
+            {
+                <ErpPhpCreateWell Title="New method of payment">
+                    <form method="post" action="@PmSaveAction" class="form-inline" style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@AppHref("ap_setup", "methods")" />
+                        <input type="hidden" name="pm_table" value="epc_erp_pm_pay_methods" />
+                        <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="BANK" /></label>
+                        <label>Name <input class="form-control input-sm" name="name" required maxlength="190" /></label>
+                        <label>Type
+                            <select class="form-control input-sm" name="method_type">
+                                <option value="cash">Cash</option>
+                                <option value="bank">Bank transfer</option>
+                                <option value="cheque">Cheque</option>
+                                <option value="card">Card</option>
+                                <option value="online">Online</option>
+                            </select>
+                        </label>
+                        <ErpMasterPicker Kind="coa" FieldName="account_code" InputId="pay-method-coa" Label="GL account" ValueMode="code" />
+                        <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                        <button type="submit" class="btn btn-primary btn-sm">Save method</button>
+                    </form>
+                </ErpPhpCreateWell>
+            }
+            else if (_pmView == "terms")
+            {
+                <ErpPhpCreateWell Title="New terms of payment">
+                    <form method="post" action="@PmSaveAction" class="form-inline" style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@AppHref("ap_setup", "terms")" />
+                        <input type="hidden" name="pm_table" value="epc_erp_pm_pay_terms" />
+                        <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="NET30" /></label>
+                        <label>Name <input class="form-control input-sm" name="name" required maxlength="190" placeholder="Net 30 days" /></label>
+                        <label>Net days <input class="form-control input-sm" type="number" name="net_days" min="0" value="30" /></label>
+                        <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                        <button type="submit" class="btn btn-primary btn-sm">Save terms</button>
+                    </form>
+                </ErpPhpCreateWell>
+            }
+            else
+            {
+                <ErpPhpCreateWell Title="New vendor group">
+                    <form method="post" action="@PmSaveAction" class="form-inline" style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@AppHref("ap_setup", "groups")" />
+                        <input type="hidden" name="pm_table" value="epc_erp_pm_vendor_groups" />
+                        <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="LOCAL" /></label>
+                        <label>Name <input class="form-control input-sm" name="name" required maxlength="190" /></label>
+                        <label>Default terms
+                            <select class="form-control input-sm" name="terms_id">
+                                <option value="0">— none —</option>
+                                @foreach (var term in _ap.Terms.Where(r => r.Active))
+                                {
+                                    <option value="@term.Id">@term.Code · @term.Name</option>
+                                }
+                            </select>
+                        </label>
+                        <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                        <button type="submit" class="btn btn-primary btn-sm">Save vendor group</button>
+                    </form>
+                </ErpPhpCreateWell>
+            }
+
+            <div class="epc-erp-table-wrap">
+                <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>@(_pmView == "methods" ? "Type / GL" : _pmView == "terms" ? "Net days" : "Default terms")</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (_apRows.Count == 0)
+                        {
+                            <tr><td colspan="4" class="text-muted">No records yet — create the first one above.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var row in _apRows)
+                            {
+                                <tr>
+                                    <td><strong>@(string.IsNullOrWhiteSpace(row.Code) ? "—" : row.Code)</strong></td>
+                                    <td>@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(row.Extra) || row.Extra == "0" ? "—" : row.Extra)</td>
+                                    <td>@(row.Active ? "Active" : "Inactive")</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">Sign in with ERP capability to set up payment methods, terms, and vendor groups.</div>
+        }
+    }
     else
     {
+    @if (_view == "ap_setup")
+    {
+        <ErpPhpViewTabs QueryName="pm_view" Active="vendors" BaseHref="@AppHref("ap_setup")" Tabs="@_apTabs" />
+    }
+    @if (_view != "ap_setup")
+    {
+        <style>
+            .epc-sk-grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:.45rem; margin:0 0 .8rem; }
+            .epc-sk-grid article { border:1px solid #d5dde6; border-radius:4px; padding:.5rem .6rem; background:#f7fafc; min-width:0; }
+            .epc-sk-grid strong { display:block; margin-bottom:.2rem; }
+            .epc-sk-marks { display:flex; flex-wrap:wrap; gap:.35rem; margin:0; padding:0; list-style:none; }
+            .epc-sk-marks li { border:1px solid #d5dde6; border-radius:4px; padding:.3rem .5rem; background:#fff; }
+            .epc-sk-miss { color:#9f1239; font-weight:700; }
+            .epc-sk-ok { color:#166534; font-weight:700; }
+            @@media (max-width: 900px) {
+                .epc-sk-grid { grid-template-columns:1fr; }
+            }
+        </style>
+        <h3 class="epc-erp-page-title" style="margin:.2rem 0 .45rem">Supplier AML and KYC</h3>
+        <p>@ErpSupplierKycLaw.Decree and @ErpSupplierKycLaw.Resolution require the supplier file before a covered buy. A single buy, or linked buys with the same supplier, that equals or exceeds AED 55,000 needs the complete file. A buy above AED 100,000 is inside that line. The purchase order, the purchase invoice, a precious-metal or precious-stone voucher, and a barcode purchase all stop until the file is complete.</p>
+        <div class="epc-sk-grid">
+            <article>
+                <strong>AED @ErpSupplierKycLaw.CoveredAmountAed.ToString("N0", CultureInfo.InvariantCulture)</strong>
+                Cabinet Resolution No. 134 of 2025. Dealers in precious metals and stones follow the same line for cash or a wire.
+            </article>
+            <article>
+                <strong>Above AED @ErpSupplierKycLaw.NamedBuyAed.ToString("N0", CultureInfo.InvariantCulture)</strong>
+                This buy is already above the legal line. It does not wait for a higher figure.
+            </article>
+            <article>
+                <strong>@ErpSupplierKycLaw.RetentionYears years</strong>
+                Keep the file for @ErpSupplierKycLaw.RetentionYears years after the relationship ends or the transaction is complete.
+            </article>
+        </div>
+        <p>The company file is the legal name, the registered address, the trade license, the memorandum of association, the articles of association, the names of senior management, the beneficial owner at @ErpSupplierKycLaw.BeneficialOwnerShare.ToString("0", CultureInfo.InvariantCulture)% with name, nationality, and identity, the identity of the person who acts, and proof that person is authorized. When the supplier is registered, the tax registration number is required.</p>
+        <ul class="epc-sk-marks">
+            @foreach (var mark in ErpSupplierKycLaw.FileMarks)
+            {
+                <li>@mark</li>
+            }
+        </ul>
+        <p class="text-muted" style="margin:.6rem 0 .8rem">Open a supplier to see which marks are present. Customer KYC and alert status stay on <a href="/erp/aml-compliance-app">AML compliance</a>.</p>
+    }
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="Add vendor">
+            <p class="text-muted" style="margin:0 0 .6rem">Save a draft, attach trade license and partner documents, then approve. Only approved suppliers appear on purchase.</p>
+            <form id="erp-module-new" method="post" action="@CreateAction">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@VendorReturnHref" />
+                <input type="hidden" name="scheme_id" value="0230" />
+                <table class="table table-condensed table-bordered table-epc epc-erp-table" style="margin:0 0 .75rem">
+                    <tbody>
+                        <tr>
+                            <th style="width:9rem">Name *</th>
+                            <td><input class="form-control input-sm" name="name" required maxlength="190" placeholder="Legal / trade name" data-erp-new-field /></td>
+                            <th style="width:10rem">Supplier code</th>
+                            <td><input class="form-control input-sm" name="supplier_code" maxlength="32" placeholder="Auto V-0001" /></td>
+                            <th style="width:8rem">Currency</th>
+                            <td>
+                                <select class="form-control input-sm" name="currency_code">
+                                    @foreach (var cur in ErpSupplierOnboard.Currencies) { <option value="@cur" selected="@(cur=="AED")">@cur</option> }
+                                </select>
+                            </td>
+                            <th style="width:10rem">AP / Chart of account</th>
+                            <td>
+                                <ErpMasterPicker Kind="coa" FieldName="ap_coa_id" InputId="supplier-ap-coa" Label="Payable account" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Group type</th>
+                            <td>
+                                <select class="form-control input-sm" name="supplier_group_type">
+                                    <option value="">— pick —</option>
+                                    @foreach (var g in ErpSupplierOnboard.GroupTypes) { <option value="@g">@g</option> }
+                                    @foreach (var group in _ap.Groups.Where(r => r.Active)) { <option value="@group.Code">@group.Code · @group.Name</option> }
+                                </select>
+                            </td>
+                            <th>Category</th>
+                            <td>
+                                <select class="form-control input-sm" name="supplier_category">
+                                    <option value="">— pick —</option>
+                                    @foreach (var cat in ErpSupplierOnboard.Categories) { <option value="@cat">@cat</option> }
+                                </select>
+                            </td>
+                            <th>Legal entity</th>
+                            <td>
+                                <ErpMasterPicker Kind="legal-entity" FieldName="legal_entity_id" InputId="supplier-legal" Label="Legal entity" />
+                            </td>
+                            <th>Business unit</th>
+                            <td>
+                                <ErpMasterPicker Kind="business_unit" FieldName="business_unit_id" Label="" InputId="supplier-bu" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>UAE VAT</th>
+                            <td>
+                                <label class="radio-inline"><input type="radio" name="vat_registered" value="1" checked="checked" /> Registered</label>
+                                <label class="radio-inline"><input type="radio" name="vat_registered" value="0" /> Not registered</label>
+                            </td>
+                            <th>TRN (15 digits)</th>
+                            <td><input class="form-control input-sm" name="trn" maxlength="15" inputmode="numeric" placeholder="100123456789003" /></td>
+                            <th>Legal name</th>
+                            <td><input class="form-control input-sm" name="legal_name" maxlength="190" placeholder="e-invoice legal name" /></td>
+                            <th>Country</th>
+                            <td><input class="form-control input-sm" name="country_code" value="AE" maxlength="8" /></td>
+                        </tr>
+                        <tr>
+                            <th>Building</th>
+                            <td><input class="form-control input-sm" name="building" maxlength="120" /></td>
+                            <th>Street / address</th>
+                            <td><input class="form-control input-sm" name="street" maxlength="190" /><input type="hidden" name="address" id="erp-supplier-address-mirror" /></td>
+                            <th>City</th>
+                            <td><input class="form-control input-sm" name="city" maxlength="80" /></td>
+                            <th>Emirate</th>
+                            <td>
+                                <select class="form-control input-sm" name="emirate">
+                                    <option value="">— pick —</option>
+                                    @foreach (var em in ErpSupplierOnboard.Emirates) { <option value="@em">@em</option> }
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Contact person</th>
+                            <td><input class="form-control input-sm" name="contact_person" maxlength="120" /></td>
+                            <th>Contact phone</th>
+                            <td><input class="form-control input-sm" name="contact_phone" maxlength="64" placeholder="+971…" /></td>
+                            <th>E-mail</th>
+                            <td><input class="form-control input-sm" type="email" name="contact_email" maxlength="120" /></td>
+                            <th>Postal code</th>
+                            <td><input class="form-control input-sm" name="postal_code" maxlength="20" /></td>
+                        </tr>
+                        <tr>
+                            <th>Payment terms</th>
+                            <td><input class="form-control input-sm" name="payment_terms" maxlength="64" list="erp-pay-terms" />
+                                <datalist id="erp-pay-terms">@foreach (var term in _ap.Terms.Where(r => r.Active)) { <option value="@term.Code">@term.Name</option> }</datalist></td>
+                            <th>Payment method</th>
+                            <td><input class="form-control input-sm" name="payment_method" maxlength="64" list="erp-pay-methods" />
+                                <datalist id="erp-pay-methods">@foreach (var method in _ap.Methods.Where(r => r.Active)) { <option value="@method.Code">@method.Name</option> }</datalist></td>
+                            <th>Trade license no.</th>
+                            <td><input class="form-control input-sm" name="registration_number" maxlength="64" /></td>
+                            <th>IBAN</th>
+                            <td><input class="form-control input-sm" name="iban" maxlength="64" /></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="margin:.2rem 0 .4rem"><strong>Ownership</strong> — name, share %, ID. Shares must total 100% before approve.</p>
+                <table class="table table-condensed table-bordered table-epc epc-erp-table" style="margin:0 0 .75rem">
+                    <thead><tr><th>Owner / partner</th><th>Share %</th><th>Nationality</th><th>ID / passport</th><th>Role</th></tr></thead>
+                    <tbody>
+                        @for (var i = 0; i < 3; i++)
+                        {
+                            <tr>
+                                <td><input class="form-control input-sm" name="owner_name" maxlength="190" placeholder="@(i==0 ? "Primary owner" : "Partner")" /></td>
+                                <td style="width:7rem"><input class="form-control input-sm" name="owner_share" type="number" step="0.001" min="0" max="100" placeholder="0" /></td>
+                                <td><input class="form-control input-sm" name="owner_nationality" maxlength="80" /></td>
+                                <td><input class="form-control input-sm" name="owner_id_number" maxlength="64" /></td>
+                                <td>
+                                    <select class="form-control input-sm" name="owner_role">
+                                        <option value="owner">Owner</option>
+                                        <option value="partner">Partner</option>
+                                        <option value="ubo">UBO</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <button type="submit" class="btn btn-sm btn-primary">Save vendor</button>
+                <span class="text-muted">Draft only — approve after documents.</span>
+            </form>
+        </ErpPhpCreateWell>
+        <form method="post" action="@SyncAction" class="form-inline" style="margin:0 0 12px">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@VendorReturnHref" />
+            <button type="submit" class="btn btn-default btn-sm">Create vendors from warehouses</button>
+            <span class="text-muted">Adds one supplier per warehouse that does not already have an active vendor.</span>
+        </form>
+    }
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Supplier KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_suppliers.Count</div></div>
         <div class="kpi"><div class="lbl">With non-zero balance</div><div class="val">@_openBalance</div></div>
@@ -228,15 +527,115 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="/erp/suppliers-app">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>Supplier id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.Name) ? "—" : _openedDetail.Name)</dd>
-                <dt>Storage</dt><dd>@(_openedDetail.StorageId > 0 ? _openedDetail.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Currency</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.CurrencyCode) ? "—" : _openedDetail.CurrencyCode)</dd>
-                <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
-            </dl>
+            <table class="table table-condensed table-bordered table-epc epc-erp-table" style="margin:0 0 .75rem">
+                <tbody>
+                    <tr>
+                        <th>Code</th><td>@(string.IsNullOrWhiteSpace(_onboard.Header?.Code) ? "—" : _onboard.Header!.Code)</td>
+                        <th>Name</th><td>@(string.IsNullOrWhiteSpace(_openedDetail.Name) ? "—" : _openedDetail.Name)</td>
+                        <th>AP / COA</th><td>@(string.IsNullOrWhiteSpace(_onboard.Header?.ApCoaLabel) ? "—" : _onboard.Header!.ApCoaLabel)</td>
+                        <th>Status</th><td><span class="label @(string.Equals(_onboard.Header?.ApprovalStatus, "approved", StringComparison.OrdinalIgnoreCase) ? "label-success" : "label-warning")">@(_onboard.Header?.ApprovalStatus ?? "draft")</span></td>
+                    </tr>
+                    <tr>
+                        <th>Group</th><td>@(string.IsNullOrWhiteSpace(_onboard.Header?.GroupType) ? "—" : _onboard.Header!.GroupType)</td>
+                        <th>Category</th><td>@(string.IsNullOrWhiteSpace(_onboard.Header?.Category) ? "—" : _onboard.Header!.Category)</td>
+                        <th>TRN</th><td>@(string.IsNullOrWhiteSpace(_onboard.Header?.Trn) ? "—" : _onboard.Header!.Trn)</td>
+                        <th>Currency</th><td>@(string.IsNullOrWhiteSpace(_openedDetail.CurrencyCode) ? "—" : _openedDetail.CurrencyCode)</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="margin:0 0 .4rem"><strong>Onboard checklist</strong> — approve turns on only when every box is green. A covered buy also needs the KYC file below.</p>
+            @if (_onboard.KycFindings.Count > 0)
+            {
+                <p style="margin:0 0 .4rem"><strong>KYC file for a covered buy</strong> — AED @ErpSupplierKycLaw.CoveredAmountAed.ToString("N0", CultureInfo.InvariantCulture) and above, including a buy above AED @ErpSupplierKycLaw.NamedBuyAed.ToString("N0", CultureInfo.InvariantCulture).</p>
+                <p style="margin:0 0 .75rem">
+                    @foreach (var mark in _onboard.KycFindings)
+                    {
+                        <span class="label @(mark.Met ? "label-success" : "label-danger")" style="margin:0 .25rem .25rem 0">@(mark.Met ? "Present" : "Missing") · @mark.Label</span>
+                    }
+                </p>
+            }
+            <p style="margin:0 0 .75rem">
+                @foreach (var check in _onboard.Checks)
+                {
+                    <span class="label @(check.Ok ? "label-success" : "label-danger")" style="margin:0 .25rem .25rem 0">@(check.Ok ? "OK" : "Need") · @check.Label</span>
+                }
+            </p>
+            @if (_onboard.Owners.Count > 0)
+            {
+                <table class="table table-condensed table-bordered table-epc epc-erp-table" style="margin:0 0 .75rem">
+                    <thead><tr><th>Owner</th><th>Share %</th><th>Nationality</th><th>ID</th><th>Role</th></tr></thead>
+                    <tbody>
+                        @foreach (var owner in _onboard.Owners)
+                        {
+                            <tr>
+                                <td>@owner.FullName</td>
+                                <td>@owner.SharePct.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                                <td>@(string.IsNullOrWhiteSpace(owner.Nationality) ? "—" : owner.Nationality)</td>
+                                <td>@(string.IsNullOrWhiteSpace(owner.IdNumber) ? "—" : owner.IdNumber)</td>
+                                <td>@owner.Role</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            <table class="table table-condensed table-bordered table-epc epc-erp-table" style="margin:0 0 .75rem">
+                <thead><tr><th>Document</th><th>File</th><th>Uploaded</th></tr></thead>
+                <tbody>
+                    @if (_onboard.Documents.Count == 0)
+                    {
+                        <tr><td colspan="3" class="text-muted">No trade license or partner documents yet.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var doc in _onboard.Documents)
+                        {
+                            <tr>
+                                <td>@doc.Category</td>
+                                <td>@doc.FileName</td>
+                                <td>@FormatTime(doc.TimeCreated)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+            @if (_isAdmin)
+            {
+                <form method="post" action="@DocumentAction" enctype="multipart/form-data" class="form-inline" style="margin:0 0 .5rem;display:flex;flex-wrap:wrap;gap:8px;align-items:end">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OpenedOnboardHref" />
+                    <input type="hidden" name="entity_type" value="supplier" />
+                    <input type="hidden" name="entity_id" value="@_openedId.ToString(CultureInfo.InvariantCulture)" />
+                    <label>Attach <select class="form-control input-sm" name="doc_category">
+                        <option value="trade_license">Trade license</option>
+                        <option value="trn_certificate">TRN certificate</option>
+                        <option value="partner_id">Partner / owner ID</option>
+                        <option value="memorandum">Memorandum of association</option>
+                        <option value="articles">Articles of association</option>
+                        <option value="senior_management">Senior management</option>
+                        <option value="beneficial_owner_id">Beneficial owner identity</option>
+                        <option value="signatory_id">Authorized signatory identity</option>
+                        <option value="signatory_authority">Authority to act</option>
+                    </select></label>
+                    <input class="form-control input-sm" type="file" name="document_file" required />
+                    <button type="submit" class="btn btn-default btn-sm">Upload document</button>
+                </form>
+                <form method="post" action="@ApproveAction" style="margin:0 0 .75rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="supplier_id" value="@_openedId.ToString(CultureInfo.InvariantCulture)" />
+                    <input type="hidden" name="returnUrl" value="@OpenedOnboardHref" />
+                    <button type="submit" class="btn btn-success btn-sm" disabled="@(!_onboard.CanApprove)">Approve supplier</button>
+                    @if (!_onboard.CanApprove)
+                    {
+                        <span class="text-muted">Complete the red checklist items first.</span>
+                    }
+                    else if (!string.Equals(_onboard.Header?.ApprovalStatus, "approved", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <span class="text-muted">Ready — approve to release for purchase.</span>
+                    }
+                </form>
+            }
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
-            <p class="text-muted" style="margin:.85rem 0 0">Email, phone, and bank details stay omitted. Writes stay Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Use Add vendor above to create or set up a supplier. Opened rows show the payable identity used on bills.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.TrnExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">TRN excerpt</p>
@@ -278,8 +677,10 @@
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
-                    <th>Supplier</th>
-                    <th>Storage ID</th>
+                    <th>Code / Supplier</th>
+                    <th>Group</th>
+                    <th>Category</th>
+                    <th>Status</th>
                     <th>Balance</th>
                     <th></th>
                 </tr>
@@ -287,7 +688,7 @@
             <tbody>
                 @if (_suppliers.Count == 0)
                 {
-                    <tr><td colspan="4">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                        <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -295,7 +696,9 @@
                     {
                         <tr id="erp-row-@s.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(s.Id, _openedId)">
                             <td><strong>@(string.IsNullOrWhiteSpace(s.Name) ? $"#{s.Id}" : s.Name)</strong></td>
-                            <td>@(s.StorageId > 0 ? s.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td><span class="label @(StatusClass(s.Id))">@StatusLabel(s.Id)</span></td>
                             <td><span class="label label-default">@s.Balance.ToString("N2", CultureInfo.InvariantCulture)</span></td>
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/suppliers-app", "supplier_id", s.Id)">Open</a></td>
                         </tr>
@@ -313,7 +716,21 @@
     private string _title = "Suppliers";
     private string _subtitle = "Supplier master and balances.";
     private string _view = "suppliers";
+    private string _pmView = "vendors";
+    private string _flashOk = "";
+    private string _flashErr = "";
     private bool _isAdmin;
+    private readonly IReadOnlyList<(string Key, string Label)> _apTabs =
+    [
+        ("vendors", "Vendors"),
+        ("methods", "Method of payment"),
+        ("terms", "Terms of payment"),
+        ("groups", "Vendor group"),
+        ("journals", "Journals"),
+    ];
+    private ErpApSetupSnapshot _ap = new([], [], [], "n/a", "");
+    private IReadOnlyList<ErpApSetupRow> _apRows = [];
+    private ErpSupplierOnboardSnapshot _onboard = new(null, [], [], [], false, [], new Dictionary<long, string>(), "n/a", "");
     private IReadOnlyList<ErpSupplierDigest> _suppliers = [];
     private ErpSupplierPortalSummary _portal = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<ErpSupplierPortalCardDigest> _cards = [];
@@ -366,9 +783,12 @@
         _subtitle = _view switch
         {
             "supplier_portal" => "Delivery, responsiveness, spend and payables scorecards.",
-            "ap_setup" => "Supplier master used for payable posting.",
-            _ => "Open a supplier for the TRN excerpt and currency. Email, phone, and bank details stay omitted. Writes stay Classic."
+            "ap_setup" => "Add vendors and configure payment methods, terms, and vendor groups used on payable posting.",
+            _ => "Add a vendor, keep the KYC file, then open a row. A buy at AED 55,000 needs that file, including a buy above AED 100,000."
         };
+        _flashOk = (ctx.Request.Query["ok"].ToString() ?? string.Empty).Trim();
+        _flashErr = (ctx.Request.Query["err"].ToString() ?? string.Empty).Trim();
+        _pmView = NormalizePmView(ctx.Request.Query["pm_view"].ToString());
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -376,6 +796,15 @@
         {
             return; // guest browse — Sign in for live data
         }
+
+        _ap = await ApSetup.LoadAsync(200, ctx.RequestAborted);
+        _onboard = await Onboard.LoadAsync(_openedId, 200, ctx.RequestAborted);
+        _apRows = _pmView switch
+        {
+            "terms" => _ap.Terms,
+            "groups" => _ap.Groups,
+            _ => _ap.Methods,
+        };
 
         if (_view == "supplier_portal")
         {
@@ -389,6 +818,11 @@
             {
                 _portalDetail = await Dashboards.BuildErpSupplierPortalDetailAsync(_portalSupplierId, ctx.RequestAborted);
             }
+            return;
+        }
+
+        if (_view == "ap_setup" && _pmView is "methods" or "terms" or "groups" or "journals")
+        {
             return;
         }
 
@@ -434,6 +868,51 @@
         return ((decimal)(receivedAt - approvedAt) / 86400m).ToString("0.0", CultureInfo.InvariantCulture);
     }
 
+    private string CreateAction => Prefixed("/erp/suppliers/create");
+    private string SyncAction => Prefixed("/erp/suppliers/sync");
+    private string ApproveAction => Prefixed("/erp/suppliers/approve");
+    private string DocumentAction => Prefixed("/erp/ajax/document-upload");
+    private string PmSaveAction => Prefixed("/erp/pm/save");
+    private string VendorReturnHref => _view == "ap_setup" ? AppHref("ap_setup", "vendors") : AppHref();
+    private string OpenedOnboardHref => Prefixed("/erp/suppliers-app?tab=ap_setup&supplier_id=" + _openedId.ToString(CultureInfo.InvariantCulture));
+
+    private string StatusLabel(long id)
+        => _onboard.StatusById.TryGetValue(id, out var status) && status.Length > 0 ? status : "approved";
+
+    private string StatusClass(long id)
+        => string.Equals(StatusLabel(id), "approved", StringComparison.OrdinalIgnoreCase) ? "label-success" : "label-warning";
+
+    private string Prefixed(string href)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, href);
+
+    private string AppHref(string? tab = null, string? pmView = null)
+    {
+        var path = "/erp/suppliers-app";
+        if (!string.IsNullOrWhiteSpace(tab))
+        {
+            path += "?tab=" + Uri.EscapeDataString(tab);
+            if (!string.IsNullOrWhiteSpace(pmView))
+            {
+                path += "&pm_view=" + Uri.EscapeDataString(pmView);
+            }
+        }
+
+        return Prefixed(path);
+    }
+
     private static string SupplierPortalHref(long supplierId)
         => "/erp/suppliers-app?tab=supplier_portal&supplier_id=" + supplierId.ToString(CultureInfo.InvariantCulture);
+
+    private static string NormalizePmView(string? raw)
+    {
+        var view = (raw ?? string.Empty).Trim().ToLowerInvariant();
+        return view switch
+        {
+            "methods" or "method" => "methods",
+            "terms" or "term" => "terms",
+            "groups" or "group" or "vendor_groups" => "groups",
+            "journals" or "journal" => "journals",
+            _ => "vendors",
+        };
+    }
 }

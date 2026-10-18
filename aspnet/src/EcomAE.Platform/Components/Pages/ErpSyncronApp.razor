@@ -9,18 +9,19 @@
 @inject NavigationManager Nav
 @inject IErpWriteConnectionFactory TenantDb
 
-<PageTitle>Inventory policy · ERP · eParts Cart</PageTitle>
+<PageTitle>Recommended orders · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Inventory policy" BreadcrumbArea="Inventory management" BreadcrumbTab="Inventory policy (Syncron)">
-    <PhpErpModulePageHeader Title="Inventory policy (Syncron)" Subtitle="Safety stock, reorder points and order suggestions per item and warehouse, from global, item-type and item policies and the stock movements of the demand window. Run the 30-day forecast and track monthly service levels." />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Recommended orders" BreadcrumbArea="Inventory management" BreadcrumbTab="Inventory policy (Syncron)">
+    <PhpErpModulePageHeader Title="Recommended orders" Subtitle="Review the suggested order quantity for each item and warehouse, change it, then confirm, reject or draft a purchase order. Demand type is Fast, Slow, Erratic, Lumpy or New from the daily movement history. Policies, the 30-day forecast and monthly service levels stay on the other tabs." />
     <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
+    <ErpManualProcessStrip Keys="syncron" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Inventory policy KPIs">
-        <div class="kpi"><div class="lbl">Policies</div><div class="val">@_policies.Count.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Stockout</div><div class="val">@Count("stockout")</div></div>
-        <div class="kpi"><div class="lbl">Reorder</div><div class="val">@Count("reorder")</div></div>
-        <div class="kpi"><div class="lbl">Overstock</div><div class="val">@Count("overstock")</div></div>
+        <div class="kpi"><div class="lbl">Pending</div><div class="val">@CountStatus("pending")</div></div>
+        <div class="kpi"><div class="lbl">Confirmed</div><div class="val">@CountStatus("confirmed")</div></div>
+        <div class="kpi"><div class="lbl">Drafted</div><div class="val">@CountStatus("drafted")</div></div>
+        <div class="kpi"><div class="lbl">Rejected</div><div class="val">@CountStatus("rejected")</div></div>
     </div>
 
     <ErpPhpViewTabs QueryName="sv" Active="@_view" BaseHref="@EcomAeRoutes.ErpSyncronApp" Tabs="@Views" />
@@ -158,7 +159,7 @@
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="syncron_action" value="record_service_level" />
                 <input type="hidden" name="returnUrl" value="@ServiceHref" />
-                <label>Item id <input class="form-control input-sm" type="number" min="1" name="item_id" required style="width:6rem" /></label>
+                <ErpMasterPicker Kind="item" FieldName="item_id" InputId="syncron-service-item" Label="Item" Required="true" Min="1" />
                 <label>Warehouse @WarehouseSelect("warehouse_id", -1)</label>
                 <label>Month <input class="form-control input-sm" type="month" name="period_month" value="@_thisMonth" required /></label>
                 <label>Demand <input class="form-control input-sm" type="number" step="any" min="0" name="demand_qty" required style="width:6rem" /></label>
@@ -197,64 +198,171 @@
         <form method="get" action="@EcomAeRoutes.ErpSyncronApp" class="form-inline" style="margin:0 0 10px;">
             <input type="hidden" name="sv" value="recommendations" />
             <label>Warehouse @WarehouseSelect("wh", _warehouseId)</label>
-            <label style="margin-left:8px;"><input type="checkbox" name="all" value="1" checked="@_showAll" /> Show OK rows</label>
+            <label style="margin-left:8px;">Item <input class="form-control input-sm" name="q" value="@_itemQuery" placeholder="SKU or name" /></label>
+            <label style="margin-left:8px;">Supplier @SupplierSelect()</label>
+            <label style="margin-left:8px;">Status
+                <select class="form-control input-sm" name="st">
+                    @foreach (var (key, label) in StatusFilters)
+                    {
+                        <option value="@key" selected="@(key == _status)">@label</option>
+                    }
+                </select>
+            </label>
             <button type="submit" class="btn btn-default btn-sm" style="margin-left:8px;">Filter</button>
         </form>
-        <div class="epc-erp-table-wrap">
-            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-                <thead><tr><th>SKU</th><th>Item</th><th>Warehouse</th><th class="text-right">On hand</th><th class="text-right">Daily demand</th><th class="text-right">Safety</th><th class="text-right">ROP</th><th class="text-right">Suggested order</th><th class="text-right">Lead</th><th class="text-right">Service %</th><th>Policy</th><th>Action</th></tr></thead>
-                <tbody>
-                    @if (Shown.Count == 0)
-                    {
-                        <tr><td colspan="12">@(string.IsNullOrWhiteSpace(_message) ? (_recommendations.Count == 0 ? "No stocked or moving items yet." : "Every item is within policy.") : _message)</td></tr>
-                    }
-                    @foreach (var r in Shown)
-                    {
+        <ErpPhpCreateWell Title="Add a manual order">
+            <form method="post" action="@EcomAeRoutes.ErpSyncronAction" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="syncron_action" value="manual_order" />
+                <input type="hidden" name="returnUrl" value="@OrdersHref" />
+                <ErpMasterPicker Kind="item" FieldName="item_id" InputId="syncron-order-item" Label="Item" CodeFieldName="sku" />
+                <input type="hidden" name="sku" value="" />
+                <label>Warehouse @WarehouseSelect("warehouse_id", -1)</label>
+                <label>Supplier @SupplierSelect("supplier_id", "No supplier")</label>
+                <label>Order quantity <input class="form-control input-sm" type="number" step="any" min="0.0001" name="order_qty" required style="width:7rem" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Add manual order</button>
+            </form>
+        </ErpPhpCreateWell>
+        <form method="post" action="@EcomAeRoutes.ErpSyncronAction">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@OrdersHref" />
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;">
+                <button type="submit" class="btn btn-default btn-sm" name="syncron_action" value="update_lines">Update</button>
+                <button type="submit" class="btn btn-default btn-sm" name="syncron_action" value="unconfirm_lines">Unconfirm</button>
+                <button type="submit" class="btn btn-primary btn-sm" name="syncron_action" value="confirm_lines">Confirm</button>
+                <button type="submit" class="btn btn-default btn-sm" name="syncron_action" value="unconfirm_all">Unconfirm all</button>
+                <button type="submit" class="btn btn-primary btn-sm" name="syncron_action" value="confirm_all">Confirm all</button>
+                <button type="submit" class="btn btn-default btn-sm" name="syncron_action" value="draft_orders">Draft</button>
+                <button type="submit" class="btn btn-danger btn-sm" name="syncron_action" value="reject_lines">Reject</button>
+                <button type="button" class="btn btn-default btn-sm" onclick="epcSyncronExport()">Export</button>
+            </div>
+            <div class="epc-erp-table-wrap">
+                <table id="syncron-order-lines" class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
                         <tr>
-                            <td>@r.Sku</td>
-                            <td>@r.ItemName</td>
-                            <td>@r.WarehouseName</td>
-                            <td class="text-right">@Qty(r.OnHand)</td>
-                            <td class="text-right">@Qty(r.DailyDemand)</td>
-                            <td class="text-right">@Qty(r.SafetyStock)</td>
-                            <td class="text-right">@Qty(r.ReorderPoint)</td>
-                            <td class="text-right">@(r.SuggestedOrderQty > 0 ? Qty(r.SuggestedOrderQty) : "—")</td>
-                            <td class="text-right">@r.LeadTimeDays.ToString(CultureInfo.InvariantCulture)</td>
-                            <td class="text-right">@Num(r.ServiceLevelTarget)</td>
-                            <td>@(r.PolicyName == "" ? "defaults" : r.PolicyName)</td>
-                            <td><span class="label @ActionClass(r.Action)">@r.Action</span></td>
+                            <th></th>
+                            <th>Item</th>
+                            <th>Description</th>
+                            <th class="text-right">Order quantity</th>
+                            <th class="text-right">Value</th>
+                            <th>Warehouse</th>
+                            <th>Item group</th>
+                            <th>Supplier</th>
+                            <th>Demand type</th>
+                            <th>Status</th>
+                            <th>Signal</th>
+                            <th>Due date</th>
+                            <th class="text-right">Lead</th>
+                            <th class="text-right">Stock balance</th>
+                            <th class="text-right">Buffer stock</th>
+                            <th class="text-right">Order level</th>
+                            <th class="text-right">Current forecast</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        @if (Shown.Count == 0)
+                        {
+                            <tr><td colspan="17">@(string.IsNullOrWhiteSpace(_message) ? (_recommendations.Count == 0 ? "No stocked or moving items yet." : "No order lines match this filter.") : _message)</td></tr>
+                        }
+                        @foreach (var r in Shown)
+                        {
+                            var key = r.ItemId.ToString(CultureInfo.InvariantCulture) + ":" + r.WarehouseId.ToString(CultureInfo.InvariantCulture);
+                            <tr>
+                                <td><input type="checkbox" name="line_key" value="@key" aria-label="@("Select " + r.Sku)" /></td>
+                                <td>
+                                    @r.Sku
+                                    <input type="hidden" name="line_item" value="@r.ItemId.ToString(CultureInfo.InvariantCulture)" />
+                                    <input type="hidden" name="line_wh" value="@r.WarehouseId.ToString(CultureInfo.InvariantCulture)" />
+                                </td>
+                                <td>@r.ItemName</td>
+                                <td class="text-right"><input class="form-control input-sm" type="number" step="any" min="0" name="line_qty" value="@QtyInput(r.OrderQty)" style="width:7rem;text-align:right;" /></td>
+                                <td class="text-right">@Money(r.OrderQty * r.UnitCost)</td>
+                                <td>@r.WarehouseName</td>
+                                <td>@(r.ItemGroup.Length > 0 ? r.ItemGroup : r.ItemType)</td>
+                                <td>@(r.SupplierName.Length > 0 ? r.SupplierName : (r.SupplierId > 0 ? "#" + r.SupplierId.ToString(CultureInfo.InvariantCulture) : ""))</td>
+                                <td>@r.DemandType</td>
+                                <td><span class="label @StatusClass(r.Status)">@r.Status</span>@(r.PoId > 0 ? " PO " + r.PoId.ToString(CultureInfo.InvariantCulture) : "")</td>
+                                <td><span class="label @ActionClass(r.Action)">@r.Action</span></td>
+                                <td>@r.DueDate</td>
+                                <td class="text-right">@r.LeadTimeDays.ToString(CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@Qty(r.OnHand)</td>
+                                <td class="text-right">@Qty(r.SafetyStock)</td>
+                                <td class="text-right">@Qty(r.ReorderPoint)</td>
+                                <td class="text-right">@Qty(r.DailyDemand * ErpSyncronPolicy.ForecastDays)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </form>
+        <p class="text-muted" style="margin:.6rem 0 0;font-size:12px;">Update saves the quantities on this list. Confirm and Reject act on the ticked lines. Confirm all covers every pending line with a quantity, including lines hidden by the filter. Draft builds one draft purchase order per supplier from the confirmed lines that have a supplier. Lines with no supplier stay confirmed.</p>
+        <script>
+            function epcSyncronExport() {
+                var table = document.getElementById('syncron-order-lines');
+                if (!table) return;
+                var lines = ['Item,Description,Order quantity,Value,Warehouse,Item group,Supplier,Demand type,Status,Signal,Due date,Lead,Stock balance,Buffer stock,Order level,Current forecast'];
+                table.querySelectorAll('tbody tr').forEach(function (tr) {
+                    var cells = [];
+                    tr.querySelectorAll('td').forEach(function (td, index) {
+                        if (index === 0) return;
+                        var input = td.querySelector('input[name="line_qty"]');
+                        var text = input ? input.value : td.innerText;
+                        text = text.replace(/\s+/g, ' ').trim().replace(/"/g, '""');
+                        cells.push('"' + text + '"');
+                    });
+                    if (cells.length > 1) lines.push(cells.join(','));
+                });
+                var blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'recommended-orders.csv';
+                link.click();
+            }
+        </script>
     }
 </PhpErpDesktopChrome>
 
 @code {
     private static readonly IReadOnlyList<(string Key, string Label)> Views =
-        [("recommendations", "Recommendations"), ("policies", "Policies"), ("forecast", "Demand forecast"), ("service", "Service levels")];
+        [("recommendations", "Recommended orders"), ("policies", "Policies"), ("forecast", "Demand forecast"), ("service", "Service levels")];
+    private static readonly IReadOnlyList<(string Key, string Label)> StatusFilters =
+        [("pending", "Pending"), ("confirmed", "Confirmed"), ("rejected", "Rejected"), ("drafted", "Drafted"), ("ok", "Within policy"), ("all", "All")];
     private const string PoliciesHref = "/erp/syncron-app?sv=policies";
     private const string ForecastHref = "/erp/syncron-app?sv=forecast";
     private const string ServiceHref = "/erp/syncron-app?sv=service";
 
     private bool _isAdmin;
-    private bool _showAll;
     private string _view = "recommendations";
     private string _ok = "";
     private string _err = "";
     private string _message = "";
     private string _thisMonth = "";
+    private string _status = "pending";
+    private string _itemQuery = "";
     private long _warehouseId;
+    private long _supplierId;
     private ErpSyncronPolicy.Policy? _editing;
     private IReadOnlyList<ErpSyncronPolicy.Policy> _policies = [];
     private IReadOnlyList<ErpSyncronPolicy.Recommendation> _recommendations = [];
     private IReadOnlyList<ErpSyncronPolicy.ForecastRow> _forecast = [];
     private IReadOnlyList<ErpSyncronPolicy.ServiceLevelRow> _service = [];
     private IReadOnlyList<(long Id, string Name)> _warehouses = [];
+    private IReadOnlyList<(long Id, string Name)> _suppliers = [];
+
+    private string OrdersHref
+    {
+        get
+        {
+            var href = EcomAeRoutes.ErpSyncronApp + "?sv=recommendations&st=" + Uri.EscapeDataString(_status);
+            if (_warehouseId > 0) href += "&wh=" + _warehouseId.ToString(CultureInfo.InvariantCulture);
+            if (_supplierId > 0) href += "&sup=" + _supplierId.ToString(CultureInfo.InvariantCulture);
+            if (_itemQuery.Length > 0) href += "&q=" + Uri.EscapeDataString(_itemQuery);
+            return href;
+        }
+    }
 
     private IReadOnlyList<ErpSyncronPolicy.Recommendation> Shown
-        => _showAll ? _recommendations : _recommendations.Where(r => r.Action != "ok").ToList();
+        => _recommendations.Where(MatchesFilter).ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -264,8 +372,11 @@
         _view = Views.Any(x => x.Key == v) ? v : "recommendations";
         _ok = ctx.Request.Query["ok"].ToString();
         _err = ctx.Request.Query["err"].ToString();
-        _showAll = ctx.Request.Query["all"].ToString() == "1";
+        var status = ctx.Request.Query["st"].ToString();
+        _status = StatusFilters.Any(x => x.Key == status) ? status : "pending";
+        _itemQuery = ctx.Request.Query["q"].ToString().Trim();
         long.TryParse(ctx.Request.Query["wh"].ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out _warehouseId);
+        long.TryParse(ctx.Request.Query["sup"].ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out _supplierId);
         long.TryParse(ctx.Request.Query["policy_id"].ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out var policyId);
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         _thisMonth = today.ToString("yyyy-MM", CultureInfo.InvariantCulture);
@@ -289,6 +400,7 @@
         try
         {
             _warehouses = await ErpSyncronPolicy.WarehousesAsync(db, ct);
+            _suppliers = await ErpSyncronPolicy.SuppliersAsync(db, ct);
             _recommendations = await ErpSyncronPolicy.RecommendAsync(db, _policies, _warehouseId, today, ct);
         }
         catch (System.Data.Common.DbException)
@@ -324,7 +436,40 @@
         </select>
     };
 
-    private string Count(string action) => _recommendations.Count(r => r.Action == action).ToString(CultureInfo.InvariantCulture);
+    private RenderFragment SupplierSelect(string name = "sup", string blank = "All suppliers") => __builder =>
+    {
+        <select class="form-control input-sm" name="@name">
+            <option value="0">@blank</option>
+            @foreach (var (id, label) in _suppliers)
+            {
+                <option value="@id.ToString(CultureInfo.InvariantCulture)" selected="@(name == "sup" && id == _supplierId)">@label</option>
+            }
+        </select>
+    };
+
+    private bool MatchesFilter(ErpSyncronPolicy.Recommendation row)
+    {
+        if (_status != "all" && !string.Equals(row.Status, _status, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (_supplierId > 0 && row.SupplierId != _supplierId)
+        {
+            return false;
+        }
+
+        if (_itemQuery.Length == 0)
+        {
+            return true;
+        }
+
+        return row.Sku.Contains(_itemQuery, StringComparison.OrdinalIgnoreCase)
+            || row.ItemName.Contains(_itemQuery, StringComparison.OrdinalIgnoreCase)
+            || row.ItemGroup.Contains(_itemQuery, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string CountStatus(string status) => _recommendations.Count(r => r.Status == status).ToString(CultureInfo.InvariantCulture);
 
     private static string ScopeLabel(string scope) => scope switch
     {
@@ -336,6 +481,15 @@
     private static string MethodLabel(string method)
         => ErpSyncronPolicy.DemandMethods.FirstOrDefault(m => m.Method == method).Label ?? method;
 
+    private static string StatusClass(string status) => status switch
+    {
+        "confirmed" => "label-primary",
+        "rejected" => "label-danger",
+        "drafted" => "label-info",
+        "pending" => "label-warning",
+        _ => "label-success",
+    };
+
     private static string ActionClass(string action) => action switch
     {
         "stockout" => "label-danger",
@@ -345,6 +499,10 @@
     };
 
     private static string Qty(decimal value) => value.ToString("#,0.####", CultureInfo.InvariantCulture);
+
+    private static string QtyInput(decimal value) => value.ToString("0.####", CultureInfo.InvariantCulture);
+
+    private static string Money(decimal value) => value.ToString("#,0.00", CultureInfo.InvariantCulture);
 
     private static string Num(decimal value) => value.ToString("0.###", CultureInfo.InvariantCulture);
 }

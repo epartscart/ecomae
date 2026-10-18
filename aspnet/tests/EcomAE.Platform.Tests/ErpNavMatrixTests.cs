@@ -190,6 +190,8 @@ public sealed class ErpNavMatrixTests
     [InlineData("/erp/jewellery/stock-availability", "jewellery")]
     [InlineData("/erp/jewellery-masters-app", "jewellery")]
     [InlineData("/erp/project-accounting-app", "fitout")]
+    [InlineData("/erp/real-estate-app", "real_estate")]
+    [InlineData("/erp/real-estate/save", "real_estate")]
     [InlineData("/erp/contracts-app", null)]
     [InlineData("/erp/retail-commerce-app", null)]
     [InlineData("/erp/fitout/project-pnl", "fitout")]
@@ -290,6 +292,7 @@ public sealed class ErpNavMatrixTests
 
         Assert.False(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", company));
         Assert.False(IndustrySpecificRoutePolicy.Allows("fitout", "auto_parts", company));
+        Assert.False(IndustrySpecificRoutePolicy.Allows("real_estate", "auto_parts", company));
     }
 
     [Fact]
@@ -298,7 +301,9 @@ public sealed class ErpNavMatrixTests
         var all = ErpIndustryNav.DirectoryTabs(jewelleryCompany: true);
         var core = ErpIndustryNav.DirectoryTabs(jewelleryCompany: false);
 
-        Assert.Equal(PhpModuleCatalog.ErpTabs.Count, all.Count);
+        Assert.True(all.Count > PhpModuleCatalog.ErpTabs.Count);
+        Assert.Contains(all, t => t.Id.Contains("tax_exempt_codes", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(all, t => t.Label.Contains("Tax exempt numbers", StringComparison.OrdinalIgnoreCase));
         Assert.True(core.Count < all.Count);
         Assert.DoesNotContain(core, ErpIndustryNav.IsJewelleryTab);
         Assert.Contains(all, ErpIndustryNav.IsJewelleryTab);
@@ -313,7 +318,9 @@ public sealed class ErpNavMatrixTests
 
         Assert.Contains(fitOut, ErpIndustryNav.IsFitOutTab);
         Assert.DoesNotContain(core, ErpIndustryNav.IsFitOutTab);
-        Assert.Equal(fitOut.Count - 1, core.Count);
+        var hiddenFitOut = fitOut.Count(ErpIndustryNav.IsFitOutTab);
+        Assert.True(hiddenFitOut >= 1);
+        Assert.Equal(fitOut.Count - hiddenFitOut, core.Count);
         Assert.Contains(core, t => t.Id == "finance/coa");
     }
 }

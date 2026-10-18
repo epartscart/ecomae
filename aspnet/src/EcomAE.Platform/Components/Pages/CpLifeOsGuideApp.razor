@@ -69,7 +69,7 @@
 
     <section class="lo-guide-section" aria-label="System architecture diagram">
         <h2>System architecture</h2>
-        <p class="lo-guide-lede">One stack: product hosts → platform runtime (:5100) → digests + consoles. Classic modules stay under <code>/php-reference/*</code>.</p>
+        <p class="lo-guide-lede">One stack: product hosts → platform runtime (:5100) → digests + consoles. Modules stay on the product workspace.</p>
         <div class="lo-guide-svg-wrap" role="img" aria-label="LifeOS stack diagram from hosts through cognitive cycle to digests">
             <svg viewBox="0 0 1100 520" class="lo-guide-svg" xmlns="http://www.w3.org/2000/svg">
                 <defs>
@@ -99,7 +99,7 @@
                 <g>
                     <rect x="300" y="100" width="200" height="70" rx="8" fill="#0b1b3a" stroke="#38bdf8" stroke-width="2"/>
                     <text x="400" y="128" text-anchor="middle" fill="#7dd3fc" font-size="11" font-family="Sora,sans-serif">EDGE</text>
-                    <text x="400" y="150" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">nginx · classic-entry</text>
+                    <text x="400" y="150" text-anchor="middle" fill="#fff" font-size="12" font-family="Sora,sans-serif">nginx · tenant-entry</text>
                     <text x="400" y="166" text-anchor="middle" fill="#cbd5e1" font-size="11" font-family="Sora,sans-serif">Kestrel :5100 primary</text>
                 </g>
 
@@ -294,7 +294,7 @@
     <section class="lo-guide-section lo-guide-note" aria-label="Locks">
         <h2>Operator locks</h2>
         <ul>
-            <li>Platform runtime is product-primary; Classic modules under <code>/php-reference/*</code>.</li>
+            <li>Platform runtime is product-primary; Modules stay on the product workspace.</li>
             <li><code>cutoverAllowed=false</code>, <code>readyForPhpRemoval=false</code>, <code>RequirePhpFallback=true</code>.</li>
             <li>Product <code>/bos</code> and <code>/ip</code> are Super-CP only — tenants must 404 those paths.</li>
             <li>Live republish needs <code>FORCE_LIVE</code> after merge; merge alone does not republish :5100.</li>

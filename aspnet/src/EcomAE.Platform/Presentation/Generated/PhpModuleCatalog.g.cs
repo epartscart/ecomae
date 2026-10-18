@@ -11,8 +11,8 @@ public static partial class PhpModuleCatalog
         string? Description = null, bool IsJewellery = false, bool IsRaw = false,
         string? PhpGroup = null);
 
-    public const int ErpAreaCount = 35;
-    public const int ErpTabCount = 154;
+    public const int ErpAreaCount = 39;
+    public const int ErpTabCount = 158;
     public const int ErpCategoryCount = 9;
     public const int BosSectionCount = 11;
     public const int BosModuleCount = 99;
@@ -63,11 +63,15 @@ public static partial class PhpModuleCatalog
         new("pim", "Product information management", "/ERP/?epc_erp_shell=1&area=pim", "fa-cube", "erp", "Products, dimensions and variant structures"),
         new("production", "Production control", "/ERP/?epc_erp_shell=1&area=production", "fa-cogs", "erp", "Production orders, routes, operations and quality"),
         new("projects", "Project management and accounting", "/ERP/?epc_erp_shell=1&area=projects", "fa-tasks", "erp", "Projects, budgets, WIP and revenue recognition"),
+        new("questionnaire", "Questionnaire", "/ERP/?epc_erp_shell=1&area=questionnaire", "fa-question-circle", "erp", "Design, distribute and analyze questionnaires"),
+        new("rebate_mgmt", "Rebate management", "/ERP/?epc_erp_shell=1&area=rebate_mgmt", "fa-percent", "erp", "Customer, royalty and vendor rebate deals"),
         new("retail", "Retail and commerce", "/ERP/?epc_erp_shell=1&area=retail", "fa-shopping-cart", "erp", "Channels, assortments, retail pricing, POS and statements"),
         new("sales", "Sales and marketing", "/ERP/?epc_erp_shell=1&area=sales", "fa-line-chart", "erp", "CRM, prospects, quotations, sales orders, delivery and invoicing"),
         new("service_mgmt", "Service management", "/ERP/?epc_erp_shell=1&area=service_mgmt", "fa-life-ring", "erp", "Service agreements, contracts and service delivery"),
         new("setup", "System administration", "/ERP/?epc_erp_shell=1&area=setup", "fa-sliders", "erp", "Company setup, security, batch/platform services, data and integration"),
         new("tax", "Tax", "/ERP/?epc_erp_shell=1&area=tax", "fa-percent", "erp", "VAT/tax returns, e-invoicing, compliance and statutory reporting"),
+        new("time_att", "Time and attendance", "/ERP/?epc_erp_shell=1&area=time_att", "fa-clock-o", "erp", "Registrations, approval, flex time and transfer to payroll"),
+        new("transportation", "Transportation management", "/ERP/?epc_erp_shell=1&area=transportation", "fa-truck", "erp", "Loads, shipments, rating, routing and freight bills"),
         new("warehouse", "Warehouse management", "/ERP/?epc_erp_shell=1&area=warehouse", "fa-cubes", "erp", "Locations, license plates, waves, work and mobile RF"),
     ];
 
@@ -173,6 +177,8 @@ public static partial class PhpModuleCatalog
         new("production/quality", "Quality management", "/ERP/?epc_erp_shell=1&area=production&tab=quality", "fa-check-circle", "production", null, false, false, "Quality"),
         new("projects/projects", "Projects", "/ERP/?epc_erp_shell=1&area=projects&tab=projects", "fa-tasks", "projects", null, false, false, "Common"),
         new("projects/project_accounting", "Project accounting", "/ERP/?epc_erp_shell=1&area=projects&tab=project_accounting", "fa-pie-chart", "projects", null, false, false, "Periodic"),
+        new("questionnaire/questionnaire", "Questionnaires", "/ERP/?epc_erp_shell=1&area=questionnaire&tab=questionnaire", "fa-question-circle", "questionnaire", null, false, false, "Common"),
+        new("rebate_mgmt/rebate_deals", "Rebate deals", "/ERP/?epc_erp_shell=1&area=rebate_mgmt&tab=rebate_deals", "fa-percent", "rebate_mgmt", null, false, false, "Common"),
         new("retail/retail_commerce", "Retail & commerce", "/ERP/?epc_erp_shell=1&area=retail&tab=retail_commerce", "fa-shopping-cart", "retail", null, false, true, "Common"),
         new("sales/crm", "CRM", "/ERP/?epc_erp_shell=1&area=sales&tab=crm", "fa-handshake-o", "sales", null, false, true, "Common"),
         new("sales/marketing", "Marketing", "/ERP/?epc_erp_shell=1&area=sales&tab=marketing", "fa-bullhorn", "sales", null, false, false, "Common"),
@@ -226,6 +232,8 @@ public static partial class PhpModuleCatalog
         new("tax/document_control", "Document control", "/ERP/?epc_erp_shell=1&area=tax&tab=document_control", "fa-print", "tax", null, false, false, "Setup"),
         new("tax/jw_tourist_vat", "Tourist VAT refund (jewellery)", "/ERP/?epc_erp_shell=1&area=tax&tab=jw_tourist_vat", "fa-plane", "tax", null, true, false, "Jewellery"),
         new("tax/aml_compliance", "AML Compliance", "/ERP/?epc_erp_shell=1&area=tax&tab=aml_compliance", "fa-shield", "tax", null, true, false, "Jewellery"),
+        new("time_att/time_attendance", "Time and attendance", "/ERP/?epc_erp_shell=1&area=time_att&tab=time_attendance", "fa-clock-o", "time_att", null, false, false, "Common"),
+        new("transportation/transportation", "Transportation", "/ERP/?epc_erp_shell=1&area=transportation&tab=transportation", "fa-truck", "transportation", null, false, false, "Common"),
         new("warehouse/wms", "Warehouse management", "/ERP/?epc_erp_shell=1&area=warehouse&tab=wms", "fa-cubes", "warehouse", null, false, false, "Common"),
     ];
 

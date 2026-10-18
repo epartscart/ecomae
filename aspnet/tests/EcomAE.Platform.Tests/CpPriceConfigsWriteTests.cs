@@ -49,7 +49,7 @@ public sealed class CpPriceConfigsWriteTests
         Assert.Contains("name=\"markup_percent\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-scp-form-card", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", razor, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate", razor, StringComparison.Ordinal);
         Assert.Contains("_allowed", razor, StringComparison.Ordinal);
         Assert.Contains("Not found", razor, StringComparison.Ordinal);

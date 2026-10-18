@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Net;
 using EcomAE.Platform.Configuration;
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Services;
@@ -22,19 +23,22 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
     private readonly EcomAeOptions _options;
     private readonly IHttpContextAccessor _http;
     private readonly ILogger<DbLegacyAdminLoginService> _log;
+    private readonly IErpOnlyShopBootstrap? _shopBootstrap;
 
     public DbLegacyAdminLoginService(
         ITenantDbConnectionFactory connections,
         ILegacySessionStore sessions,
         IOptions<EcomAeOptions> options,
         IHttpContextAccessor http,
-        ILogger<DbLegacyAdminLoginService> log)
+        ILogger<DbLegacyAdminLoginService> log,
+        IErpOnlyShopBootstrap? shopBootstrap = null)
     {
         _connections = connections;
         _sessions = sessions;
         _options = options.Value;
         _http = http;
         _log = log;
+        _shopBootstrap = shopBootstrap;
     }
 
     public bool IsConfigured
@@ -66,11 +70,21 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
         var tenant = _http.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
         var host = _http.HttpContext?.Request.Host.Host ?? string.Empty;
         var superCpHost = PlatformHostPolicy.IsSuperCpHost(host);
+        var clientErpPath = ClientErpPath.IsClientErpPath(_http.HttpContext?.Request.Path.Value);
+        var clientErpBound = tenant is { Mode: TenantMode.ErpOnlyTenant } && clientErpPath;
+
+        if (clientErpPath && !clientErpBound)
+        {
+            return LegacyLoginOutcome.Failed(
+                "No Client ERP tenant is registered for this company URL.",
+                "client_erp_not_found");
+        }
 
         // Named tenants (storefront/CP/ERP) must use the shop DB — never silently fall through to
         // portal registry users (that yields false invalid_credentials). Super-CP hosts keep
-        // registry fallback for platform operator accounts.
-        var needsTenantShopDb = !superCpHost
+        // registry fallback for platform operator accounts — except /cp/client-erp/{key}
+        // which must authenticate against that company's dedicated DB.
+        var needsTenantShopDb = (!superCpHost || clientErpBound)
             && request.Surface is (LegacyLoginSurface.ControlPanel
                 or LegacyLoginSurface.Erp
                 or LegacyLoginSurface.Storefront);
@@ -90,6 +104,15 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
         var clientIp = LegacyLoginSecurity.ClientIp(_http.HttpContext);
         try
         {
+            if (clientErpBound
+                && _shopBootstrap is not null
+                && !string.IsNullOrWhiteSpace(tenant?.SiteKey))
+            {
+                await _shopBootstrap
+                    .EnsureForSiteKeyAsync(tenant.SiteKey, passwordOverride: null, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
             await using var connection = await _connections
                 .OpenForTenantAsync(tenant, cancellationToken)
                 .ConfigureAwait(false);
@@ -228,13 +251,17 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                 await LegacyLoginSecurity.RecordAsync(connection, clientIp, request.Contact ?? string.Empty, true, cancellationToken).ConfigureAwait(false);
             }
 
+            var landing = request.Surface == LegacyLoginSurface.Erp
+                ? await Erp.ErpLandingPageService.TryReadAsync(connection, cancellationToken).ConfigureAwait(false)
+                : "";
             return LegacyLoginOutcome.Succeeded(new LegacyLoginSuccess(
                 user.UserId,
                 user.Email,
                 sessionToken,
                 csrf,
                 adminSession,
-                RedirectFor(request.Surface)));
+                RedirectFor(request.Surface),
+                landing));
         }
         catch (Exception ex)
         {

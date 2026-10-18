@@ -51,7 +51,9 @@ public sealed record CpCrmQuoteSaveRequest(
     string? Notes,
     string? LineDescription,
     decimal LineQty,
-    decimal LineUnitPrice);
+    decimal LineUnitPrice,
+    long ItemId = 0,
+    string? Sku = null);
 
 public sealed class CpCrmQuoteWriteService : ICpCrmQuoteWriteService
 {
@@ -63,14 +65,16 @@ public sealed class CpCrmQuoteWriteService : ICpCrmQuoteWriteService
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IErpTaxAmountCalculator _tax;
     private readonly ICpCurrencyLiveRatesService _currency;
+    private readonly IErpInventoryReservationWriteService? _reservations;
     private readonly string _filesRoot;
 
     public CpCrmQuoteWriteService(
         IErpWriteConnectionFactory connections,
         IErpTaxAmountCalculator tax,
         ICpCurrencyLiveRatesService currency,
-        Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
-        : this(connections, tax, currency, Path.Combine(Presentation.PhpLegacyAssetBridge.FindRepoRoot(env), "content", "files"))
+        Microsoft.AspNetCore.Hosting.IWebHostEnvironment env,
+        IErpInventoryReservationWriteService? reservations = null)
+        : this(connections, tax, currency, Path.Combine(Presentation.PhpLegacyAssetBridge.FindRepoRoot(env), "content", "files"), reservations)
     {
     }
 
@@ -78,12 +82,14 @@ public sealed class CpCrmQuoteWriteService : ICpCrmQuoteWriteService
         IErpWriteConnectionFactory connections,
         IErpTaxAmountCalculator tax,
         ICpCurrencyLiveRatesService currency,
-        string filesRoot)
+        string filesRoot,
+        IErpInventoryReservationWriteService? reservations = null)
     {
         _connections = connections;
         _tax = tax;
         _currency = currency;
         _filesRoot = filesRoot;
+        _reservations = reservations;
     }
 
     /// <summary>PHP: <c>'quote_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $quote_number) . '.html'</c>.</summary>
@@ -169,6 +175,11 @@ public sealed class CpCrmQuoteWriteService : ICpCrmQuoteWriteService
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            if (_reservations is not null)
+            {
+                await ErpInventoryReservationWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            }
+
             if (oppId > 0)
             {
                 await using var select = connection.CreateCommand();
@@ -263,6 +274,28 @@ public sealed class CpCrmQuoteWriteService : ICpCrmQuoteWriteService
 
             if (lineDesc.Length > 0)
             {
+                if (_reservations is not null && (request.ItemId > 0 || !string.IsNullOrWhiteSpace(request.Sku)))
+                {
+                    var reserved = await _reservations.ReserveAsync(
+                        connection,
+                        null,
+                        new ErpReserveInput
+                        {
+                            ItemId = request.ItemId,
+                            Sku = request.Sku ?? string.Empty,
+                            Qty = qty,
+                            SourceType = ErpInventoryReservationWriteService.SourceQuote,
+                            SourceId = quoteId,
+                            SourceLineKey = "quote-line",
+                            AdminId = 0,
+                        },
+                        cancellationToken).ConfigureAwait(false);
+                    if (!reserved.Succeeded)
+                    {
+                        return ErpSimpleWriteResult.Fail(reserved.Code, reserved.Message);
+                    }
+                }
+
                 var sort = await ErpDb.LongAsync(
                     connection,
                     null,
@@ -454,6 +487,11 @@ public sealed class CpCrmQuoteWriteService : ICpCrmQuoteWriteService
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            if (_reservations is not null)
+            {
+                await ErpInventoryReservationWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            }
+
             var detail = await LoadQuoteAsync(connection, quoteId, cancellationToken).ConfigureAwait(false);
             if (detail is null)
             {
@@ -530,6 +568,17 @@ public sealed class CpCrmQuoteWriteService : ICpCrmQuoteWriteService
             await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
                 "UPDATE `epc_crm_quotes` SET `status` = 'accepted', `shop_order_id` = ?, `time_updated` = ? WHERE `id` = ?"),
                 cancellationToken, orderId, now, quoteId).ConfigureAwait(false);
+            if (_reservations is not null)
+            {
+                await _reservations.ConfirmBySourceAsync(
+                    connection,
+                    tx,
+                    ErpInventoryReservationWriteService.SourceQuote,
+                    quoteId,
+                    0,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
             await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
             return new CpCrmQuoteAcceptResult(true, "Quote accepted, order #" + orderId.ToString(CultureInfo.InvariantCulture) + " created", quoteId, orderId);
         }

@@ -35,6 +35,8 @@ function epc_portal_industry_live_defs(): array
 		'nonprofit_government' => array('template_key' => 'nonprofit', 'mode' => 'hub_root'),
 		'rental' => array('template_key' => 'rental', 'mode' => 'hub_root'),
 		'construction_contracting' => array('template_key' => 'construction', 'mode' => 'hub_root'),
+		'fit_out' => array('template_key' => 'construction', 'mode' => 'sub', 'sub_label' => 'Interior fit-out'),
+		'real_estate' => array('template_key' => 'construction', 'mode' => 'sub', 'sub_label' => 'Real estate development'),
 		'agricultural_products' => array('template_key' => 'agriculture', 'mode' => 'hub_root'),
 
 		// Map onto existing dedicated sub-industry pages

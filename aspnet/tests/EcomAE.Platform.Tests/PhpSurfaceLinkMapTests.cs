@@ -25,7 +25,7 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/CP/shop/prices/price?price_id=4", "/cp/shop/prices/price?price_id=4")]
     [InlineData("/CP/shop/payments/payments", "/cp/payment-gateways-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders", "/erp/sales-orders-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/gl-journals-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/general-ledger-workspace-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=einvoice", "/erp/einvoice-documents-app")]
     [InlineData("/BOS/?m=command_center", "/bos/app")]
     [InlineData("/BOS/?m=fleet_cp", "/bos/tenants-app")]
@@ -78,6 +78,7 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/CP/shop/orders/orders", "/cp/orders")]
     [InlineData("/CP/shop/orders/order?order_id=9", "/cp/orders?order_id=9")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders", "/erp/sales-orders-app")]
+    [InlineData("/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1", "/erp/uae-tax-compliance-app")]
     [InlineData("/shop/part_search?q=abc", "/en/shop/part_search?q=abc")]
     [InlineData("/cp/shop/orders/orders", "/cp/orders")]
     [InlineData("/cp/shop/orders/orders?order_id=42", "/cp/orders?order_id=42")]
@@ -100,6 +101,9 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/cp/price-lists-app")]
     [InlineData("/cp/shop/prices/price?price_id=4")]
     [InlineData("/php-reference/cp")]
+    [InlineData("/cp/client-erp/indj/erp/uae-tax-compliance-app")]
+    [InlineData("/cp/client-erp/indj/erp/vat-app")]
+    [InlineData("/cp/client-erp/indj/erp/purchase-requests-app")]
     public void TryMapIncomingPhpProductPath_SkipsExactShellsAndAspNet(string incoming)
     {
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(incoming, out _));

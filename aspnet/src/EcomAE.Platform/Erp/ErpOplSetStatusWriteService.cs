@@ -69,6 +69,7 @@ public sealed class ErpOplSetStatusWriteService : IErpOplSetStatusWriteService
         var supplier = request.Supplier ?? "";
         var messageStatus = request.StatusSpecified ? (request.Status ?? "") : "";
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureOrderPlanningAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_erp_order_recommendations", "status", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Recommendation table is not provisioned");

@@ -390,6 +390,19 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User dashboard shortcuts'",
             ct);
 
+    /// <summary>Per-operator ChatGPT, Cursor, and Devin keys. The token column stores protected ciphertext.</summary>
+    public static Task EnsureOperatorAiToolsAsync(DbConnection c, CancellationToken ct) =>
+        ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_operator_ai_tools` (" +
+            "`user_id` int(11) NOT NULL," +
+            "`provider` varchar(16) NOT NULL," +
+            "`token_protected` text NOT NULL," +
+            "`extras` varchar(800) NOT NULL DEFAULT ''," +
+            "`updated_at` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`user_id`, `provider`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Operator tool keys'",
+            ct);
+
     /// <summary>epc_as_jobs + epc_as_job_lines + epc_as_rma + epc_as_rma_lines + epc_as_warranty (epc_erp_aftersales.php ensure_schema)</summary>
     public static async Task EnsureAftersalesAsync(DbConnection c, CancellationToken ct)
     {
@@ -791,6 +804,14 @@ internal static class ErpLazySchema
     /// </summary>
     public static async Task EnsureCompanyContextAsync(DbConnection c, CancellationToken ct)
     {
+        var readyKey = ErpSchemaMemo.Key(c, "company-context");
+        if (ErpSchemaMemo.IsReady(readyKey))
+        {
+            return;
+        }
+
+        try
+        {
         await ErpDb.TryExecuteAsync(c,
             "CREATE TABLE IF NOT EXISTS `epc_erp_pm_legal_entities` (" +
             "`id` int(11) NOT NULL AUTO_INCREMENT," +
@@ -941,6 +962,78 @@ internal static class ErpLazySchema
                 await ErpDb.TryExecuteAsync(c, "SELECT RELEASE_LOCK('epc_erp_pm_legal_entities_main')", ct).ConfigureAwait(false);
             }
         }
+        }
+        finally
+        {
+            await EnsureTenantOrganizationAsync(c, ct).ConfigureAwait(false);
+            if (readyKey.Length > 0)
+            {
+                try
+                {
+                    var active = await ErpDb.LongAsync(
+                        c,
+                        null,
+                        "SELECT COUNT(*) FROM `epc_erp_pm_legal_entities` WHERE `active` = 1",
+                        ct).ConfigureAwait(false);
+                    if (active > 0)
+                    {
+                        ErpSchemaMemo.Remember(readyKey);
+                    }
+                }
+                catch (DbException)
+                {
+                    // Leave the database unmarked so the next page retries the ensure.
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// PHP-parity org backbone for every tenant shop: legal entity (MAIN), HQ business unit,
+    /// class unit, financial dimensions, and cost centres. Idempotent — empty tables only.
+    /// </summary>
+    public static async Task EnsureTenantOrganizationAsync(DbConnection c, CancellationToken ct)
+    {
+        await EnsurePmMastersAsync(c, ct).ConfigureAwait(false);
+        await EnsureCostCentersAsync(c, ct).ConfigureAwait(false);
+        await SeedDefaultHqOrganizationAsync(c, ct).ConfigureAwait(false);
+    }
+
+    private static async Task SeedDefaultHqOrganizationAsync(DbConnection c, CancellationToken ct)
+    {
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        long legalEntityId = 0;
+        try
+        {
+            legalEntityId = await ErpDb.LongAsync(
+                c,
+                null,
+                "SELECT MIN(`id`) FROM `epc_erp_pm_legal_entities` WHERE `active`=1",
+                ct).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            legalEntityId = 0;
+        }
+
+        if (legalEntityId > 0)
+        {
+            await SeedIfEmptyAsync(c, ct, "epc_erp_pm_business_units",
+                "(`code`,`name`,`legal_entity_id`,`parent_id`,`manager`,`note`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,0,'','Default HQ',1,@p3,@p3)",
+                new object?[][]
+                {
+                    new object?[] { "HQ", "Head office", legalEntityId, now },
+                }).ConfigureAwait(false);
+        }
+
+        await SeedIfEmptyAsync(c, ct, "epc_cc_centers",
+            "(`code`,`name`,`branch_id`,`active`,`time_created`) VALUES (@p0,@p1,0,1,@p2)",
+            new object?[][]
+            {
+                new object?[] { "CC-ADMIN", "Administration", now },
+                new object?[] { "CC-SALES", "Sales & marketing", now },
+                new object?[] { "CC-OPS", "Operations", now },
+            }).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -1068,6 +1161,11 @@ internal static class ErpLazySchema
             await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
         }
 
+        await ErpDb.TryExecuteAsync(
+            c,
+            "ALTER TABLE `epc_erp_pm_business_units` ADD `trn` varchar(40) NOT NULL DEFAULT ''",
+            ct).ConfigureAwait(false);
+
         // epc_erp_pm_seed_defaults: editable defaults so masters screens aren't empty.
         // Each table seeds only when completely empty (PHP seedIf semantics).
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -1103,6 +1201,12 @@ internal static class ErpLazySchema
                 new object?[] { "RETAIL", "Retail customers", 0, now },
                 new object?[] { "WHOLESALE", "Wholesale / B2B", 0, now },
                 new object?[] { "VIP", "Key accounts", 0, now },
+            }).ConfigureAwait(false);
+        await SeedIfEmptyAsync(c, ct, "epc_erp_pm_class_units",
+            "(`code`,`name`,`class_type`,`note`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,'',1,@p3,@p3)",
+            new object?[][]
+            {
+                new object?[] { "DIV-MAIN", "Main division", "division", now },
             }).ConfigureAwait(false);
         await SeedIfEmptyAsync(c, ct, "epc_erp_pm_dimensions",
             "(`code`,`name`,`dim_type`,`note`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,'',1,@p3,@p3)",
@@ -1229,34 +1333,56 @@ internal static class ErpLazySchema
         await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "sales_price", "decimal(14,4) NOT NULL DEFAULT 0.0000", ct).ConfigureAwait(false);
         await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "purchase_price", "decimal(14,4) NOT NULL DEFAULT 0.0000", ct).ConfigureAwait(false);
         await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "notes", "varchar(1000) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "manufacturer_part", "varchar(128) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "cogs_account", "varchar(120) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "income_account", "varchar(120) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "asset_account", "varchar(120) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "preferred_vendor_name", "varchar(255) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "reorder_max", "decimal(14,3) NOT NULL DEFAULT 0.000", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "markup_percent", "decimal(8,2) NOT NULL DEFAULT 0.00", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "purchase_description", "varchar(500) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "sales_description", "varchar(500) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "opening_on_hand", "decimal(14,3) NOT NULL DEFAULT 0.000", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "part_inactive", "tinyint(1) NOT NULL DEFAULT 0", ct).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(c, "CREATE TABLE IF NOT EXISTS `epc_erp_inv_item_bom` (`id` int(11) NOT NULL AUTO_INCREMENT, `assembly_item_id` int(11) NOT NULL, `line_no` int(11) NOT NULL DEFAULT 0, `component_sku` varchar(64) NOT NULL DEFAULT '', `description` varchar(255) NOT NULL DEFAULT '', `qty` decimal(14,3) NOT NULL DEFAULT 0.000, `unit_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `unit` varchar(16) NOT NULL DEFAULT 'pcs', PRIMARY KEY (`id`), KEY `x_assembly` (`assembly_item_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8", ct).ConfigureAwait(false);
         await AddColumnIfMissingAsync(c, "epc_erp_inv_movements", "serial_no", "varchar(128) DEFAULT NULL", ct).ConfigureAwait(false);
         await AddColumnIfMissingAsync(c, "epc_erp_inv_field_defs", "field_role", "enum('inventory','non_inventory') NOT NULL DEFAULT 'inventory'", ct).ConfigureAwait(false);
         await AddColumnIfMissingAsync(c, "epc_erp_inv_field_defs", "source_pack", "varchar(64) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
 
-        var movementEnum = await ErpDb.StringAsync(
-            c, null,
-            "SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'epc_erp_inv_movements' AND COLUMN_NAME = 'movement_type'",
-            ct).ConfigureAwait(false) ?? string.Empty;
-        if (movementEnum.Length > 0 && !movementEnum.Contains("'mfg_issue'", StringComparison.Ordinal))
+        var enumKey = ErpSchemaMemo.Key(c, "enum:epc_erp_inv_movements.movement_type.mfg_issue");
+        if (!ErpSchemaMemo.IsReady(enumKey))
         {
-            await ErpDb.TryExecuteAsync(
-                c,
-                "ALTER TABLE `epc_erp_inv_movements` MODIFY COLUMN `movement_type` enum('opening','purchase_in','sale_out','transfer_in','transfer_out','adjustment','return_in','return_out','mfg_issue','mfg_receipt') NOT NULL",
-                ct).ConfigureAwait(false);
+            var movementEnum = await ErpDb.StringAsync(
+                c, null,
+                "SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'epc_erp_inv_movements' AND COLUMN_NAME = 'movement_type'",
+                ct).ConfigureAwait(false) ?? string.Empty;
+            if (movementEnum.Length > 0 && !movementEnum.Contains("'mfg_issue'", StringComparison.Ordinal))
+            {
+                await ErpDb.TryExecuteAsync(
+                    c,
+                    "ALTER TABLE `epc_erp_inv_movements` MODIFY COLUMN `movement_type` enum('opening','purchase_in','sale_out','transfer_in','transfer_out','adjustment','return_in','return_out','mfg_issue','mfg_receipt') NOT NULL",
+                    ct).ConfigureAwait(false);
+            }
+
+            ErpSchemaMemo.Remember(enumKey);
         }
     }
 
     /// <summary>Adds a column only when information_schema says it is missing, so steady-state ensures issue no failing DDL.</summary>
     public static async Task AddColumnIfMissingAsync(DbConnection c, string table, string column, string definition, CancellationToken ct)
     {
-        var exists = await ErpDb.LongAsync(
-            c, null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?"),
-            ct, table, column).ConfigureAwait(false);
-        if (exists == 0)
+        var key = ErpSchemaMemo.Key(c, "col:" + table + "." + column);
+        if (ErpSchemaMemo.IsReady(key))
+        {
+            return;
+        }
+
+        if (!await ErpDb.ColumnKnownAsync(c, table, column, ct).ConfigureAwait(false))
         {
             await ErpDb.TryExecuteAsync(c, "ALTER TABLE `" + table + "` ADD COLUMN `" + column + "` " + definition, ct).ConfigureAwait(false);
         }
+
+        ErpSchemaMemo.Remember(key);
     }
 
     /// <summary>
@@ -1278,6 +1404,469 @@ internal static class ErpLazySchema
             await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
         }
     }
+
+    /// <summary>PHP <c>epc_fin_adv_ensure_schema</c> (content/shop/finance/epc_erp_fin_advanced.php).</summary>
+    public static async Task EnsureFinAdvancedAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_fin_periods` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `fy` int(11) NOT NULL DEFAULT 0, `period_no` int(11) NOT NULL DEFAULT 0, `start_date` int(11) NOT NULL DEFAULT 0, `end_date` int(11) NOT NULL DEFAULT 0, `status` varchar(12) NOT NULL DEFAULT 'open', `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`), UNIQUE KEY `x_period` (`company_id`,`fy`,`period_no`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Fiscal period calendar + status'",
+            "CREATE TABLE IF NOT EXISTS `epc_fin_alloc_rule` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(160) NOT NULL DEFAULT '', `source_account` varchar(40) NOT NULL DEFAULT '', `basis` text, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Ledger allocation rules'",
+            "CREATE TABLE IF NOT EXISTS `epc_fin_alloc_run` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `rule_id` int(11) NOT NULL DEFAULT 0, `amount` decimal(18,2) NOT NULL DEFAULT 0.00, `run_date` int(11) NOT NULL DEFAULT 0, `lines_json` text, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Allocation run results'",
+            "CREATE TABLE IF NOT EXISTS `epc_fin_accrual` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `code` varchar(40) NOT NULL DEFAULT '', `description` varchar(200) NOT NULL DEFAULT '', `total_amount` decimal(18,2) NOT NULL DEFAULT 0.00, `periods` int(11) NOT NULL DEFAULT 1, `start_fy` int(11) NOT NULL DEFAULT 0, `start_period` int(11) NOT NULL DEFAULT 1, `status` varchar(12) NOT NULL DEFAULT 'open', `schedule_json` text, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Accrual schemes'",
+            "CREATE TABLE IF NOT EXISTS `epc_fin_fx_run` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `as_of` int(11) NOT NULL DEFAULT 0, `total_delta` decimal(18,2) NOT NULL DEFAULT 0.00, `lines_json` text, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='FX revaluation runs'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>PHP <c>epc_erp_dim_ensure_schema</c> (content/shop/finance/epc_erp_dimensions.php).</summary>
+    public static async Task EnsureDimLinksAsync(DbConnection c, CancellationToken ct)
+    {
+        await EnsurePmMastersAsync(c, ct).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_dim_links` (`id` int(11) NOT NULL AUTO_INCREMENT, `entity_type` varchar(40) NOT NULL DEFAULT '', `entity_id` int(11) NOT NULL DEFAULT 0, `dim_key` varchar(40) NOT NULL DEFAULT '', `ref_id` int(11) NOT NULL DEFAULT 0, `value_code` varchar(60) NOT NULL DEFAULT '', `value_label` varchar(190) NOT NULL DEFAULT '', `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `ent` (`entity_type`,`entity_id`), KEY `dimkey` (`entity_type`,`dim_key`,`ref_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ERP financial dimension assignments (polymorphic)'",
+            ct).ConfigureAwait(false);
+    }
+
+    /// <summary>PHP <c>epc_vwh_ensure_schema</c> (content/shop/finance/epc_erp_virtual_warehouse.php).</summary>
+    public static async Task EnsureVirtualWarehouseAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_warehouses` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `code` varchar(20) NOT NULL DEFAULT '', `name` varchar(200) NOT NULL DEFAULT '', `type` enum('physical','virtual','exhibition','consignment','transit') NOT NULL DEFAULT 'physical', `address` varchar(500) NOT NULL DEFAULT '', `manager_id` int(11) NOT NULL DEFAULT 0, `manager_name` varchar(120) NOT NULL DEFAULT '', `is_active` tinyint(1) NOT NULL DEFAULT 1, `is_sellable` tinyint(1) NOT NULL DEFAULT 1, `event_name` varchar(200) NOT NULL DEFAULT '', `event_start` date DEFAULT NULL, `event_end` date DEFAULT NULL, `return_warehouse_id` int(11) NOT NULL DEFAULT 0, `notes` text, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`), KEY `x_type` (`type`), KEY `x_code` (`code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Warehouse / location master'",
+            "CREATE TABLE IF NOT EXISTS `epc_warehouse_stock` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `warehouse_id` int(11) NOT NULL DEFAULT 0, `product_id` int(11) NOT NULL DEFAULT 0, `sku` varchar(100) NOT NULL DEFAULT '', `barcode` varchar(100) NOT NULL DEFAULT '', `qty_on_hand` decimal(14,3) NOT NULL DEFAULT 0.000, `qty_reserved` decimal(14,3) NOT NULL DEFAULT 0.000, `qty_available` decimal(14,3) NOT NULL DEFAULT 0.000, `avg_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `last_count_date` date DEFAULT NULL, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_wh_prod` (`warehouse_id`, `product_id`), KEY `x_company` (`company_id`), KEY `x_sku` (`sku`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Stock per warehouse'",
+            "CREATE TABLE IF NOT EXISTS `epc_warehouse_transfers` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `transfer_no` varchar(32) NOT NULL DEFAULT '', `from_warehouse_id` int(11) NOT NULL DEFAULT 0, `to_warehouse_id` int(11) NOT NULL DEFAULT 0, `reason` varchar(200) NOT NULL DEFAULT '', `status` enum('draft','in_transit','received','cancelled') NOT NULL DEFAULT 'draft', `total_items` int(11) NOT NULL DEFAULT 0, `total_qty` decimal(14,3) NOT NULL DEFAULT 0.000, `shipped_at` datetime DEFAULT NULL, `received_at` datetime DEFAULT NULL, `created_by` int(11) NOT NULL DEFAULT 0, `received_by` int(11) NOT NULL DEFAULT 0, `notes` text, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`), KEY `x_from` (`from_warehouse_id`), KEY `x_to` (`to_warehouse_id`), KEY `x_status` (`status`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Inter-warehouse transfers'",
+            "CREATE TABLE IF NOT EXISTS `epc_warehouse_transfer_lines` (`id` int(11) NOT NULL AUTO_INCREMENT, `transfer_id` int(11) NOT NULL DEFAULT 0, `product_id` int(11) NOT NULL DEFAULT 0, `sku` varchar(100) NOT NULL DEFAULT '', `barcode` varchar(100) NOT NULL DEFAULT '', `qty` decimal(14,3) NOT NULL DEFAULT 0.000, `received_qty` decimal(14,3) NOT NULL DEFAULT 0.000, `notes` varchar(300) NOT NULL DEFAULT '', PRIMARY KEY (`id`), KEY `x_transfer` (`transfer_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Transfer line items'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>PHP <c>epc_opl_ensure_schema</c> (content/shop/finance/epc_erp_order_planning.php).</summary>
+    public static async Task EnsureOrderPlanningAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_erp_planning_params` (`item_id` int(11) NOT NULL, `warehouse_id` int(11) NOT NULL, `lead_time_days` int(11) NOT NULL DEFAULT 30, `target_service_level` decimal(5,2) NOT NULL DEFAULT 90.00, `review_period_days` int(11) NOT NULL DEFAULT 30, `min_order_qty` decimal(14,3) NOT NULL DEFAULT 0.000, `order_multiple` decimal(14,3) NOT NULL DEFAULT 0.000, `manual_buffer` decimal(14,3) NOT NULL DEFAULT 0.000, `supplier` varchar(160) NOT NULL DEFAULT '', `stocked` tinyint(1) NOT NULL DEFAULT 1, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`item_id`,`warehouse_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Per item/warehouse planning parameters'",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_order_recommendations` (`id` int(11) NOT NULL AUTO_INCREMENT, `item_id` int(11) NOT NULL, `warehouse_id` int(11) NOT NULL, `roq` decimal(14,3) NOT NULL DEFAULT 0.000, `order_value` decimal(16,2) NOT NULL DEFAULT 0.00, `status` varchar(12) NOT NULL DEFAULT 'pending', `supplier` varchar(160) NOT NULL DEFAULT '', `time_updated` int(11) NOT NULL DEFAULT 0, `ordered_po_id` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_item_wh` (`item_id`,`warehouse_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Replenishment recommendation status'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>PHP <c>epc_erp_phase8_ensure_schema</c> bank-recon subset (content/shop/finance/epc_erp_phase8.php).</summary>
+    public static async Task EnsureBankReconAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpCashWriteService.EnsureSchemaAsync(c, ct).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_bank_statement_lines` (`id` int(11) NOT NULL AUTO_INCREMENT, `account_id` int(11) NOT NULL, `line_date` int(11) NOT NULL, `description` varchar(255) DEFAULT NULL, `reference` varchar(128) DEFAULT NULL, `amount` decimal(14,2) NOT NULL DEFAULT 0.00, `direction` tinyint(1) NOT NULL, `matched_entry_id` int(11) NOT NULL DEFAULT 0, `import_batch` varchar(64) DEFAULT NULL, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_account` (`account_id`,`matched_entry_id`), KEY `x_date` (`line_date`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Bank statement lines for reconciliation'",
+            ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_cash_bank_entries", "reconciled", "tinyint(1) NOT NULL DEFAULT 0", ct).ConfigureAwait(false);
+    }
+
+    /// <summary>PHP <c>epc_erp_opening_ensure_schema</c> (content/shop/finance/epc_erp_opening.php).</summary>
+    public static async Task EnsureOpeningAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_erp_opening_batches` (`id` int(11) NOT NULL AUTO_INCREMENT, `module` enum('coa','cash_bank','inventory','fixed_assets','combined') NOT NULL DEFAULT 'combined', `as_of_date` date NOT NULL, `reference` varchar(128) DEFAULT NULL, `status` enum('draft','posted','void') NOT NULL DEFAULT 'draft', `note` text, `admin_id` int(11) NOT NULL DEFAULT 0, `time_created` int(11) NOT NULL DEFAULT 0, `time_posted` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_date` (`as_of_date`,`module`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_opening_lines` (`id` int(11) NOT NULL AUTO_INCREMENT, `batch_id` int(11) NOT NULL, `line_type` varchar(32) NOT NULL, `entity_id` int(11) NOT NULL DEFAULT 0, `entity_ref` varchar(64) DEFAULT NULL, `debit` decimal(14,2) NOT NULL DEFAULT 0.00, `credit` decimal(14,2) NOT NULL DEFAULT 0.00, `qty` decimal(14,3) NOT NULL DEFAULT 0.000, `unit_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `meta_json` text, PRIMARY KEY (`id`), KEY `x_batch` (`batch_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>PHP <c>epc_data_mig_ensure_schema</c> (content/shop/finance/epc_erp_data_migration.php).</summary>
+    public static async Task EnsureDataMigrationsAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_data_migrations` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`migration_type` varchar(50) NOT NULL DEFAULT 'open_balance'," +
+            "`entity_type` varchar(50) NOT NULL DEFAULT ''," +
+            "`file_name` varchar(300) NOT NULL DEFAULT ''," +
+            "`file_path` varchar(500) NOT NULL DEFAULT ''," +
+            "`total_rows` int(11) NOT NULL DEFAULT 0," +
+            "`valid_rows` int(11) NOT NULL DEFAULT 0," +
+            "`error_rows` int(11) NOT NULL DEFAULT 0," +
+            "`imported_rows` int(11) NOT NULL DEFAULT 0," +
+            "`status` enum('uploaded','validated','dry_run','importing','completed','failed','rolled_back') NOT NULL DEFAULT 'uploaded'," +
+            "`column_mapping` text," +
+            "`validation_errors` text," +
+            "`options` text," +
+            "`imported_by` int(11) NOT NULL DEFAULT 0," +
+            "`imported_by_name` varchar(120) NOT NULL DEFAULT ''," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_completed` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`), KEY `x_company` (`company_id`), KEY `x_status` (`status`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Data migration jobs'",
+            "CREATE TABLE IF NOT EXISTS `epc_data_migration_rows` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`migration_id` int(11) NOT NULL DEFAULT 0," +
+            "`row_number` int(11) NOT NULL DEFAULT 0," +
+            "`raw_data` text," +
+            "`mapped_data` text," +
+            "`status` enum('pending','valid','error','imported','skipped') NOT NULL DEFAULT 'pending'," +
+            "`error_message` varchar(500) NOT NULL DEFAULT ''," +
+            "`created_entity_id` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`), KEY `x_migration` (`migration_id`), KEY `x_status` (`status`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Individual migration rows'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>PHP <c>epc_inv_report_ensure_schema</c> (content/shop/finance/epc_erp_inventory_report.php).</summary>
+    public static async Task EnsureInventoryReportAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_inventory_categories` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`parent_id` int(11) NOT NULL DEFAULT 0," +
+            "`code` varchar(30) NOT NULL DEFAULT ''," +
+            "`name` varchar(200) NOT NULL DEFAULT ''," +
+            "`level` int(11) NOT NULL DEFAULT 1," +
+            "`sort_order` int(11) NOT NULL DEFAULT 0," +
+            "`is_active` tinyint(1) NOT NULL DEFAULT 1," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`), KEY `x_company` (`company_id`), KEY `x_parent` (`parent_id`), KEY `x_code` (`code`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Inventory category hierarchy'",
+            "CREATE TABLE IF NOT EXISTS `epc_inventory_snapshots` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`snapshot_date` date NOT NULL," +
+            "`category_id` int(11) NOT NULL DEFAULT 0," +
+            "`total_skus` int(11) NOT NULL DEFAULT 0," +
+            "`total_qty` decimal(14,3) NOT NULL DEFAULT 0.000," +
+            "`total_value` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`avg_age_days` decimal(8,1) NOT NULL DEFAULT 0.0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`), KEY `x_company_date` (`company_id`, `snapshot_date`), KEY `x_category` (`category_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Daily inventory value snapshots per category'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>PHP <c>epc_erp_payroll_ensure_schema</c> + <c>epc_erp_staff_ensure_schema</c>.</summary>
+    public static async Task EnsurePayrollAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_erp_departments` (`code` varchar(32) NOT NULL, `name` varchar(128) NOT NULL, `group_value` varchar(64) NOT NULL, `tabs_json` text, `workflows_json` text, `sort_order` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY (`code`), UNIQUE KEY `group_value` (`group_value`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_staff_profiles` (`id` int(11) NOT NULL AUTO_INCREMENT, `user_id` int(11) NOT NULL, `department_code` varchar(32) NOT NULL, `display_name` varchar(128) NOT NULL, `job_title` varchar(128) DEFAULT NULL, `email` varchar(128) DEFAULT NULL, `phone` varchar(64) DEFAULT NULL, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `user_id` (`user_id`), KEY `department_code` (`department_code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_hr_records` (`id` int(11) NOT NULL AUTO_INCREMENT, `staff_profile_id` int(11) NOT NULL, `hire_date` int(11) NOT NULL DEFAULT 0, `leave_balance_days` decimal(5,1) NOT NULL DEFAULT 0.0, `manager_user_id` int(11) NOT NULL DEFAULT 0, `notes` text, `time_updated` int(11) NOT NULL DEFAULT 0, `basic_salary` decimal(14,2) NOT NULL DEFAULT 0.00, `allowances` decimal(14,2) NOT NULL DEFAULT 0.00, `bank_account` varchar(64) DEFAULT NULL, `bank_name` varchar(128) DEFAULT NULL, `days_worked` decimal(5,1) NOT NULL DEFAULT 30.0, PRIMARY KEY (`id`), UNIQUE KEY `staff_profile_id` (`staff_profile_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_payroll_runs` (`id` int(11) NOT NULL AUTO_INCREMENT, `period_label` varchar(32) NOT NULL, `period_start` int(11) NOT NULL DEFAULT 0, `period_end` int(11) NOT NULL DEFAULT 0, `status` enum('draft','approved','paid') NOT NULL DEFAULT 'draft', `total_gross` decimal(14,2) NOT NULL DEFAULT 0.00, `total_deductions` decimal(14,2) NOT NULL DEFAULT 0.00, `total_net` decimal(14,2) NOT NULL DEFAULT 0.00, `cash_account_id` int(11) NOT NULL DEFAULT 0, `cash_entry_id` int(11) NOT NULL DEFAULT 0, `paid_at` int(11) NOT NULL DEFAULT 0, `note` text, `created_by` int(11) NOT NULL DEFAULT 0, `time_created` int(11) NOT NULL DEFAULT 0, `standard_days` int(11) NOT NULL DEFAULT 30, PRIMARY KEY (`id`), UNIQUE KEY `period_label` (`period_label`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_payroll_lines` (`id` int(11) NOT NULL AUTO_INCREMENT, `run_id` int(11) NOT NULL, `staff_profile_id` int(11) NOT NULL, `user_id` int(11) NOT NULL DEFAULT 0, `department_code` varchar(32) NOT NULL DEFAULT '', `display_name` varchar(128) NOT NULL DEFAULT '', `job_title` varchar(128) DEFAULT NULL, `basic_salary` decimal(14,2) NOT NULL DEFAULT 0.00, `allowances` decimal(14,2) NOT NULL DEFAULT 0.00, `deductions` decimal(14,2) NOT NULL DEFAULT 0.00, `net_pay` decimal(14,2) NOT NULL DEFAULT 0.00, `bank_account` varchar(64) DEFAULT NULL, `bank_name` varchar(128) DEFAULT NULL, `status` enum('draft','paid') NOT NULL DEFAULT 'draft', `paid_at` int(11) NOT NULL DEFAULT 0, `time_created` int(11) NOT NULL DEFAULT 0, `monthly_basic` decimal(14,2) NOT NULL DEFAULT 0.00, `monthly_allowances` decimal(14,2) NOT NULL DEFAULT 0.00, `standard_days` int(11) NOT NULL DEFAULT 30, `days_worked` decimal(5,1) NOT NULL DEFAULT 30.0, `extra_days` decimal(5,1) NOT NULL DEFAULT 0.0, `daily_rate` decimal(14,4) NOT NULL DEFAULT 0.0000, `gross_pay` decimal(14,2) NOT NULL DEFAULT 0.00, PRIMARY KEY (`id`), KEY `run_id` (`run_id`), KEY `staff_profile_id` (`staff_profile_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+
+        await AddColumnIfMissingAsync(c, "epc_erp_hr_records", "basic_salary", "decimal(14,2) NOT NULL DEFAULT 0.00", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_hr_records", "allowances", "decimal(14,2) NOT NULL DEFAULT 0.00", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_hr_records", "bank_account", "varchar(64) DEFAULT NULL", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_hr_records", "bank_name", "varchar(128) DEFAULT NULL", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_hr_records", "days_worked", "decimal(5,1) NOT NULL DEFAULT 30.0", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_runs", "standard_days", "int(11) NOT NULL DEFAULT 30", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_lines", "monthly_basic", "decimal(14,2) NOT NULL DEFAULT 0.00", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_lines", "monthly_allowances", "decimal(14,2) NOT NULL DEFAULT 0.00", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_lines", "standard_days", "int(11) NOT NULL DEFAULT 30", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_lines", "days_worked", "decimal(5,1) NOT NULL DEFAULT 30.0", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_lines", "extra_days", "decimal(5,1) NOT NULL DEFAULT 0.0", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_lines", "daily_rate", "decimal(14,4) NOT NULL DEFAULT 0.0000", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_lines", "gross_pay", "decimal(14,2) NOT NULL DEFAULT 0.00", ct).ConfigureAwait(false);
+    }
+
+    /// <summary>PHP <c>epc_erp_print_designer_ensure_schema</c> (content/shop/finance/epc_erp_print_designer.php).</summary>
+    public static async Task EnsurePrintDesignerAsync(DbConnection c, CancellationToken ct)
+        => await ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_print_templates` (`id` int(11) NOT NULL AUTO_INCREMENT, `doc_type` varchar(40) NOT NULL, `name` varchar(120) NOT NULL DEFAULT 'Default', `is_default` tinyint(1) NOT NULL DEFAULT 0, `page_size` varchar(10) NOT NULL DEFAULT 'A4', `orientation` enum('portrait','landscape') NOT NULL DEFAULT 'portrait', `margin_top` int(11) NOT NULL DEFAULT 15, `margin_bottom` int(11) NOT NULL DEFAULT 15, `margin_left` int(11) NOT NULL DEFAULT 10, `margin_right` int(11) NOT NULL DEFAULT 10, `font_family` varchar(60) NOT NULL DEFAULT 'Arial, sans-serif', `font_size` int(11) NOT NULL DEFAULT 11, `primary_color` varchar(10) NOT NULL DEFAULT '#1565c0', `secondary_color` varchar(10) NOT NULL DEFAULT '#4a6a7a', `logo_position` enum('left','center','right','none') NOT NULL DEFAULT 'left', `logo_max_height` int(11) NOT NULL DEFAULT 60, `header_html` text, `footer_html` text, `body_columns` text, `show_terms` tinyint(1) NOT NULL DEFAULT 1, `terms_html` text, `show_bank_details` tinyint(1) NOT NULL DEFAULT 1, `bank_details_html` text, `show_signature_line` tinyint(1) NOT NULL DEFAULT 1, `signature_labels` varchar(255) NOT NULL DEFAULT 'Prepared by,Approved by,Received by', `show_qr_code` tinyint(1) NOT NULL DEFAULT 0, `show_barcode` tinyint(1) NOT NULL DEFAULT 0, `custom_css` text, `active` tinyint(1) NOT NULL DEFAULT 1, `admin_id` int(11) NOT NULL DEFAULT 0, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_doctype` (`doc_type`,`is_default`), KEY `x_active` (`active`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Tenant-configurable document print templates'",
+            ct).ConfigureAwait(false);
+
+    /// <summary>PHP <c>epc_bplan_ensure_schema</c> (content/shop/finance/epc_erp_budget_planning.php).</summary>
+    public static async Task EnsureBudgetPlanningAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_bplan_plan` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `name` varchar(160) NOT NULL DEFAULT '', `fiscal_year` varchar(16) NOT NULL DEFAULT '', `stage` varchar(20) NOT NULL DEFAULT 'draft', `owner` varchar(160) NOT NULL DEFAULT '', `notes` text, `published_total` decimal(18,2) NOT NULL DEFAULT 0.00, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`), KEY `x_stage` (`stage`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Budget plans'",
+            "CREATE TABLE IF NOT EXISTS `epc_bplan_line` (`id` int(11) NOT NULL AUTO_INCREMENT, `plan_id` int(11) NOT NULL DEFAULT 0, `account` varchar(60) NOT NULL DEFAULT '', `dimension` varchar(120) NOT NULL DEFAULT '', `scenario` varchar(40) NOT NULL DEFAULT 'base', `period` varchar(20) NOT NULL DEFAULT '', `amount` decimal(18,2) NOT NULL DEFAULT 0.00, PRIMARY KEY (`id`), KEY `x_plan` (`plan_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Budget plan worksheet lines'",
+            "CREATE TABLE IF NOT EXISTS `epc_bplan_position` (`id` int(11) NOT NULL AUTO_INCREMENT, `plan_id` int(11) NOT NULL DEFAULT 0, `company_id` int(11) NOT NULL DEFAULT 0, `title` varchar(160) NOT NULL DEFAULT '', `department` varchar(120) NOT NULL DEFAULT '', `headcount` int(11) NOT NULL DEFAULT 1, `annual_cost` decimal(18,2) NOT NULL DEFAULT 0.00, `start_period` varchar(20) NOT NULL DEFAULT '', PRIMARY KEY (`id`), KEY `x_plan` (`plan_id`), KEY `x_company` (`company_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Budget forecast positions'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>PHP <c>epc_erp_ensure_schema</c> supplier master (content/shop/finance/epc_erp_schema.php).</summary>
+    public static async Task EnsureSuppliersAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_suppliers` ("
+            + "`id` int(11) NOT NULL AUTO_INCREMENT,"
+            + "`storage_id` int(11) DEFAULT NULL,"
+            + "`name` varchar(255) NOT NULL,"
+            + "`contact_email` varchar(255) DEFAULT NULL,"
+            + "`contact_phone` varchar(64) DEFAULT NULL,"
+            + "`trn` varchar(64) DEFAULT NULL,"
+            + "`currency_code` varchar(8) NOT NULL DEFAULT 'AED',"
+            + "`active` tinyint(1) NOT NULL DEFAULT 1,"
+            + "`time_created` int(11) NOT NULL DEFAULT 0,"
+            + "`country_code` varchar(8) NOT NULL DEFAULT 'AE',"
+            + "`vat_registered` tinyint(1) NOT NULL DEFAULT 1,"
+            + "`vendor_account` varchar(32) DEFAULT NULL,"
+            + "`vendor_group` varchar(64) DEFAULT NULL,"
+            + "`legal_entity_id` int(11) NOT NULL DEFAULT 0,"
+            + "`business_unit_id` int(11) NOT NULL DEFAULT 0,"
+            + "`registration_number` varchar(64) DEFAULT NULL,"
+            + "`payment_terms` varchar(32) DEFAULT NULL,"
+            + "`payment_method` varchar(32) DEFAULT NULL,"
+            + "`delivery_terms` varchar(32) DEFAULT NULL,"
+            + "`delivery_mode` varchar(32) DEFAULT NULL,"
+            + "`credit_limit` decimal(14,2) NOT NULL DEFAULT 0.00,"
+            + "`on_hold` varchar(16) NOT NULL DEFAULT 'no',"
+            + "`tax_exempt` tinyint(1) NOT NULL DEFAULT 0,"
+            + "`bank_name` varchar(255) DEFAULT NULL,"
+            + "`bank_account_number` varchar(64) DEFAULT NULL,"
+            + "`iban` varchar(64) DEFAULT NULL,"
+            + "`swift_bic` varchar(32) DEFAULT NULL,"
+            + "`contact_person` varchar(255) DEFAULT NULL,"
+            + "`website` varchar(255) DEFAULT NULL,"
+            + "`address` varchar(512) DEFAULT NULL,"
+            + "`city` varchar(128) DEFAULT NULL,"
+            + "`state_region` varchar(128) DEFAULT NULL,"
+            + "`postal_code` varchar(32) DEFAULT NULL,"
+            + "`notes` varchar(1000) DEFAULT NULL,"
+            + "PRIMARY KEY (`id`), KEY `x_storage` (`storage_id`), KEY `x_active` (`active`)"
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='ERP supplier master'",
+            ct).ConfigureAwait(false);
+        // Compact utf8 row size rejects the last PHP address columns; DYNAMIC stores overflow off-page.
+        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_suppliers` ROW_FORMAT=DYNAMIC", ct).ConfigureAwait(false);
+        (string Column, string Definition)[] columns =
+        [
+            ("country_code", "varchar(8) NOT NULL DEFAULT 'AE'"),
+            ("vat_registered", "tinyint(1) NOT NULL DEFAULT 1"),
+            ("vendor_account", "varchar(32) DEFAULT NULL"),
+            ("vendor_group", "varchar(64) DEFAULT NULL"),
+            ("legal_entity_id", "int(11) NOT NULL DEFAULT 0"),
+            ("business_unit_id", "int(11) NOT NULL DEFAULT 0"),
+            ("registration_number", "varchar(64) DEFAULT NULL"),
+            ("payment_terms", "varchar(32) DEFAULT NULL"),
+            ("payment_method", "varchar(32) DEFAULT NULL"),
+            ("delivery_terms", "varchar(32) DEFAULT NULL"),
+            ("delivery_mode", "varchar(32) DEFAULT NULL"),
+            ("credit_limit", "decimal(14,2) NOT NULL DEFAULT 0.00"),
+            ("on_hold", "varchar(16) NOT NULL DEFAULT 'no'"),
+            ("tax_exempt", "tinyint(1) NOT NULL DEFAULT 0"),
+            ("bank_name", "varchar(255) DEFAULT NULL"),
+            ("bank_account_number", "varchar(64) DEFAULT NULL"),
+            ("iban", "varchar(64) DEFAULT NULL"),
+            ("swift_bic", "varchar(32) DEFAULT NULL"),
+            ("contact_person", "varchar(255) DEFAULT NULL"),
+            ("website", "varchar(255) DEFAULT NULL"),
+            ("address", "varchar(512) DEFAULT NULL"),
+            ("city", "varchar(128) DEFAULT NULL"),
+            ("state_region", "varchar(128) DEFAULT NULL"),
+            ("postal_code", "varchar(32) DEFAULT NULL"),
+            ("notes", "varchar(1000) DEFAULT NULL"),
+            ("supplier_code", "varchar(32) DEFAULT NULL"),
+            ("ap_coa_id", "int(11) NOT NULL DEFAULT 0"),
+            ("supplier_group_type", "varchar(32) DEFAULT NULL"),
+            ("supplier_category", "varchar(32) DEFAULT NULL"),
+            ("legal_name", "varchar(255) DEFAULT NULL"),
+            ("building", "varchar(128) DEFAULT NULL"),
+            ("street", "varchar(255) DEFAULT NULL"),
+            ("emirate", "varchar(64) DEFAULT NULL"),
+            ("scheme_id", "varchar(16) NOT NULL DEFAULT '0230'"),
+            ("approval_status", "varchar(16) NOT NULL DEFAULT 'approved'"),
+            ("approved_by", "int(11) NOT NULL DEFAULT 0"),
+            ("approved_at", "int(11) NOT NULL DEFAULT 0"),
+        ];
+        foreach (var (column, definition) in columns)
+        {
+            await AddColumnIfMissingAsync(c, "epc_erp_suppliers", column, definition, ct).ConfigureAwait(false);
+        }
+
+        await ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_supplier_owners` ("
+            + "`id` int(11) NOT NULL AUTO_INCREMENT,"
+            + "`supplier_id` int(11) NOT NULL,"
+            + "`full_name` varchar(190) NOT NULL,"
+            + "`nationality` varchar(80) DEFAULT NULL,"
+            + "`id_number` varchar(64) DEFAULT NULL,"
+            + "`role` varchar(32) NOT NULL DEFAULT 'owner',"
+            + "`share_pct` decimal(7,3) NOT NULL DEFAULT 0.000,"
+            + "`notes` varchar(255) DEFAULT NULL,"
+            + "`time_created` int(11) NOT NULL DEFAULT 0,"
+            + "PRIMARY KEY (`id`), KEY `x_supplier` (`supplier_id`)"
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='ERP supplier ownership'",
+            ct).ConfigureAwait(false);
+    }
+
+    /// <summary>PHP <c>epc_erp_audit_ensure_schema</c> (content/shop/finance/epc_erp_audit.php).</summary>
+    public static async Task EnsureAuditLogAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_audit_log` (`id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL DEFAULT 0, `admin_id` int(11) NOT NULL DEFAULT 0, `action` varchar(64) NOT NULL, `entity_type` varchar(32) NOT NULL DEFAULT '', `entity_id` int(11) NOT NULL DEFAULT 0, `summary` varchar(512) DEFAULT NULL, `detail_json` text, `old_json` text, `new_json` text, `ip_address` varchar(45) DEFAULT NULL, `user_agent` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`), KEY `x_time` (`time`), KEY `x_action` (`action`), KEY `x_entity` (`entity_type`, `entity_id`), KEY `x_admin` (`admin_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ERP audit trail'",
+            ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_audit_log", "old_json", "text NULL", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_audit_log", "new_json", "text NULL", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_audit_log", "ip_address", "varchar(45) DEFAULT NULL", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_audit_log", "user_agent", "varchar(255) DEFAULT NULL", ct).ConfigureAwait(false);
+    }
+
+    /// <summary>Workspace rows for Dynamics-style leave, planning, equipment, organization, payroll, and procurement pages.</summary>
+    public static async Task EnsureD365WorkspaceAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_d365_workspace` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 1," +
+            "`area` varchar(40) NOT NULL DEFAULT ''," +
+            "`tab` varchar(64) NOT NULL DEFAULT ''," +
+            "`code` varchar(40) NOT NULL DEFAULT ''," +
+            "`name` varchar(190) NOT NULL DEFAULT ''," +
+            "`worker` varchar(120) NOT NULL DEFAULT ''," +
+            "`party` varchar(160) NOT NULL DEFAULT ''," +
+            "`kind` varchar(40) NOT NULL DEFAULT ''," +
+            "`status` varchar(24) NOT NULL DEFAULT 'open'," +
+            "`period` varchar(24) NOT NULL DEFAULT ''," +
+            "`date_from` varchar(16) NOT NULL DEFAULT ''," +
+            "`date_to` varchar(16) NOT NULL DEFAULT ''," +
+            "`qty` decimal(16,4) NOT NULL DEFAULT 0.0000," +
+            "`amount` decimal(16,2) NOT NULL DEFAULT 0.00," +
+            "`extra` text," +
+            "`note` varchar(255) NOT NULL DEFAULT ''," +
+            "`fields_json` text," +
+            "`created_by` int(11) NOT NULL DEFAULT 0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_area_tab` (`area`,`tab`)," +
+            "KEY `x_status` (`status`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Dynamics-style workspace rows'",
+            ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_d365_workspace", "fields_json", "text", ct).ConfigureAwait(false);
+    }
+
+    /// <summary>Company-level official process parameters for workspace areas.</summary>
+    public static Task EnsureD365ParametersAsync(DbConnection c, CancellationToken ct) =>
+        ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_d365_parameters` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 1," +
+            "`area` varchar(40) NOT NULL DEFAULT ''," +
+            "`param_key` varchar(64) NOT NULL DEFAULT ''," +
+            "`caption` varchar(120) NOT NULL DEFAULT ''," +
+            "`param_value` varchar(120) NOT NULL DEFAULT ''," +
+            "`value_kind` varchar(16) NOT NULL DEFAULT 'text'," +
+            "`param_group` varchar(40) NOT NULL DEFAULT ''," +
+            "`created_by` int(11) NOT NULL DEFAULT 0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "UNIQUE KEY `uk_area_key` (`company_id`,`area`,`param_key`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Official process parameter values'",
+            ct);
+
+    /// <summary>Document interlinks that follow official process edges.</summary>
+    public static Task EnsureD365LinkAsync(DbConnection c, CancellationToken ct) =>
+        ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_d365_link` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 1," +
+            "`process_code` varchar(40) NOT NULL DEFAULT ''," +
+            "`from_tab` varchar(64) NOT NULL DEFAULT ''," +
+            "`from_id` int(11) NOT NULL DEFAULT 0," +
+            "`from_code` varchar(40) NOT NULL DEFAULT ''," +
+            "`to_tab` varchar(64) NOT NULL DEFAULT ''," +
+            "`to_id` int(11) NOT NULL DEFAULT 0," +
+            "`to_code` varchar(40) NOT NULL DEFAULT ''," +
+            "`relation` varchar(24) NOT NULL DEFAULT ''," +
+            "`field_map` varchar(255) NOT NULL DEFAULT ''," +
+            "`note` varchar(255) NOT NULL DEFAULT ''," +
+            "`created_by` int(11) NOT NULL DEFAULT 0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_from` (`from_tab`,`from_id`)," +
+            "KEY `x_to` (`to_tab`,`to_id`)," +
+            "KEY `x_process` (`process_code`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Official document interlinks'",
+            ct);
+
+    /// <summary>Administrator study notes per module topic.</summary>
+    public static Task EnsureD365StudyAsync(DbConnection c, CancellationToken ct) =>
+        ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_d365_study` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 1," +
+            "`area` varchar(40) NOT NULL DEFAULT ''," +
+            "`topic` varchar(24) NOT NULL DEFAULT ''," +
+            "`note` varchar(2000) NOT NULL DEFAULT ''," +
+            "`created_by` int(11) NOT NULL DEFAULT 0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "UNIQUE KEY `uk_area_topic` (`company_id`,`area`,`topic`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Administrator process study notes'",
+            ct);
+
+    public static Task EnsureTrialBalanceSnapshotsAsync(DbConnection c, CancellationToken ct) =>
+        ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_tb_snapshots` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`tracking_id` varchar(64) NOT NULL DEFAULT ''," +
+            "`date_from` varchar(16) NOT NULL DEFAULT ''," +
+            "`date_to` varchar(16) NOT NULL DEFAULT ''," +
+            "`posting_layer` varchar(24) NOT NULL DEFAULT 'current'," +
+            "`opening_display` varchar(24) NOT NULL DEFAULT 'column'," +
+            "`include_closing` tinyint(1) NOT NULL DEFAULT 1," +
+            "`include_closing_adj` tinyint(1) NOT NULL DEFAULT 1," +
+            "`dimension_set` varchar(40) NOT NULL DEFAULT 'main_account'," +
+            "`separate_dims` tinyint(1) NOT NULL DEFAULT 0," +
+            "`row_count` int(11) NOT NULL DEFAULT 0," +
+            "`opening_total` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`debit_total` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`credit_total` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`closing_total` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`payload_json` longtext," +
+            "`created_by` int(11) NOT NULL DEFAULT 0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_tracking` (`tracking_id`)," +
+            "KEY `x_dates` (`date_from`,`date_to`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Dynamics-style trial balance snapshots'",
+            ct);
 
     /// <summary>PHP <c>epc_entity_ensure_schema</c> (content/shop/finance/epc_multi_entity.php).</summary>
     public static async Task EnsureMultiEntityAsync(DbConnection c, CancellationToken ct)

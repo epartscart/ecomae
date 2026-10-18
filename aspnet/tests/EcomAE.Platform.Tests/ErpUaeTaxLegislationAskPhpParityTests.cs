@@ -85,7 +85,7 @@ public sealed class ErpUaeTaxLegislationAskPhpParityTests
         Assert.Contains("name=\"question\"", text, StringComparison.Ordinal);
         Assert.Contains("Ask legislation", text, StringComparison.Ordinal);
         Assert.Contains("Regen summaries", text, StringComparison.Ordinal);
-        Assert.Contains("PDF excerpts stay on the Classic twin", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PDF excerpts stay on the Classic twin", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
@@ -134,7 +134,7 @@ public sealed class ErpUaeTaxLegislationAskPhpParityTests
         Assert.Contains("legislation_qa_history", askCore, StringComparison.Ordinal);
         Assert.Contains("HistoryCacheKey", ask, StringComparison.Ordinal);
         Assert.Contains("ON DUPLICATE KEY UPDATE", lib, StringComparison.Ordinal);
-        Assert.Contains("PDF excerpts stay on the Classic twin", regen, StringComparison.Ordinal);
+        Assert.Contains("PDF excerpts are not available on this page", regen, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", ask, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", regen, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", lib, StringComparison.Ordinal);

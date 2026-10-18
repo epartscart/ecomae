@@ -26,7 +26,17 @@ public interface ICpTenantEmailWriteService
     Task<ErpSimpleWriteResult> SendAsync(CpTenantEmailMessage message, CancellationToken cancellationToken = default);
 }
 
-public sealed record CpTenantEmailMessage(string To, string Subject, string HtmlBody, string? AttachmentPath = null, string? AttachmentName = null);
+public sealed record CpTenantEmailAttachment(string Path, string? Name);
+
+public sealed record CpTenantEmailMessage(
+    string To,
+    string Subject,
+    string HtmlBody,
+    string? AttachmentPath = null,
+    string? AttachmentName = null,
+    string? Cc = null,
+    string? ReplyTo = null,
+    IReadOnlyList<CpTenantEmailAttachment>? Attachments = null);
 
 /// <summary>Live PHP <c>ajax_integrations.php</c> <c>save_tenant_smtp</c> / <c>test_tenant_smtp</c>.</summary>
 public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
@@ -57,6 +67,80 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
 
     public static bool IsEmail(string? value)
         => !string.IsNullOrWhiteSpace(value) && MailAddress.TryCreate(value.Trim(), out _);
+
+    /// <summary>
+    /// Puts every valid address on To, Cc, and Reply-To.
+    /// Returns the same invalid-recipient sentence the single-address path used when To is empty.
+    /// </summary>
+    public static string? BindRecipients(MailMessage mail, string? to, string? cc, string? replyTo)
+    {
+        var recipients = ErpTenancyExpiryMail.Addresses(to);
+        if (recipients.Count == 0)
+        {
+            return "Valid recipient email required";
+        }
+
+        foreach (var address in recipients)
+        {
+            mail.To.Add(address);
+        }
+
+        foreach (var address in ErpTenancyExpiryMail.Addresses(cc))
+        {
+            mail.CC.Add(address);
+        }
+
+        foreach (var address in ErpTenancyExpiryMail.Addresses(replyTo))
+        {
+            mail.ReplyToList.Add(address);
+        }
+
+        return null;
+    }
+
+    /// <summary>Adds every listed file. Returns the missing-file sentence when any path is absent, and adds none in that case.</summary>
+    public static string? BindAttachments(MailMessage mail, CpTenantEmailMessage message)
+    {
+        var files = new List<(string Path, string? Name)>();
+        if (!string.IsNullOrWhiteSpace(message.AttachmentPath))
+        {
+            files.Add((message.AttachmentPath, message.AttachmentName));
+        }
+
+        if (message.Attachments is not null)
+        {
+            foreach (var item in message.Attachments)
+            {
+                if (!string.IsNullOrWhiteSpace(item.Path))
+                {
+                    files.Add((item.Path, item.Name));
+                }
+            }
+        }
+
+        if (files.Count == 0)
+        {
+            return null;
+        }
+
+        if (files.Any(file => !File.Exists(file.Path)))
+        {
+            return "Attachment file not found.";
+        }
+
+        foreach (var file in files)
+        {
+            var attachment = new Attachment(file.Path);
+            if (!string.IsNullOrWhiteSpace(file.Name))
+            {
+                attachment.Name = file.Name;
+            }
+
+            mail.Attachments.Add(attachment);
+        }
+
+        return null;
+    }
 
     public static JsonObject MergeSmtp(JsonNode? root, CpTenantEmailSaveRequest request)
     {
@@ -103,7 +187,7 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
                 cancellationToken).ConfigureAwait(false);
             if (id <= 0)
             {
-                return ErpSimpleWriteResult.Fail("missing", "Site settings row is missing. Schema ensure stays on the Classic twin.");
+                return ErpSimpleWriteResult.Fail("missing", "Site settings row is missing. Schema ensure is not available on this page.");
             }
 
             var raw = await ErpDb.StringAsync(
@@ -161,11 +245,13 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
 
     private async Task<ErpSimpleWriteResult> SendAsync(CpTenantEmailMessage message, CancellationToken cancellationToken, string okPrefix)
     {
-        var to = (message.To ?? string.Empty).Trim();
-        if (!IsEmail(to))
+        var recipients = ErpTenancyExpiryMail.Addresses(message.To);
+        if (recipients.Count == 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "Valid recipient email required");
         }
+
+        var to = ErpTenancyExpiryMail.Join(recipients);
 
         if (!_connections.IsConfigured)
         {
@@ -200,7 +286,7 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
             {
                 return ErpSimpleWriteResult.Fail(
                     "disabled",
-                    "Use tenant SMTP is off. Enable and save it here, or send from the Classic twin (platform default).");
+                    "Use tenant SMTP is off. Enable and save it here, or send with the platform default.");
             }
 
             var host = smtp.TryGetProperty("smtp_host", out var hostEl) ? hostEl.GetString() ?? string.Empty : string.Empty;
@@ -217,7 +303,7 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
 
             if (!IsEmail(fromEmail))
             {
-                fromEmail = to;
+                fromEmail = recipients[0];
             }
 
             using var mail = new MailMessage
@@ -227,21 +313,15 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
                 Body = message.HtmlBody,
                 IsBodyHtml = true,
             };
-            mail.To.Add(to);
-            if (!string.IsNullOrWhiteSpace(message.AttachmentPath))
+            var bound = BindRecipients(mail, message.To, message.Cc, message.ReplyTo);
+            if (bound is not null)
             {
-                if (!File.Exists(message.AttachmentPath))
-                {
-                    return ErpSimpleWriteResult.Fail("attachment_missing", "Attachment file not found.");
-                }
-
-                var attachment = new Attachment(message.AttachmentPath);
-                if (!string.IsNullOrWhiteSpace(message.AttachmentName))
-                {
-                    attachment.Name = message.AttachmentName;
-                }
-
-                mail.Attachments.Add(attachment);
+                return ErpSimpleWriteResult.Fail("invalid", bound);
+            }
+            var attached = BindAttachments(mail, message);
+            if (attached is not null)
+            {
+                return ErpSimpleWriteResult.Fail("attachment_missing", attached);
             }
 
             using var client = new SmtpClient(host, port)

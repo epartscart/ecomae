@@ -96,6 +96,45 @@ public sealed class ErpSyncronPolicyTests
         var fixedRec = ErpSyncronPolicy.Recommend(Row(12, demand), manual);
         Assert.Equal(("reorder", 0m, 5m, 12m, 24m), (fixedRec.Action, fixedRec.DailyDemand, fixedRec.SafetyStock, fixedRec.ReorderPoint, fixedRec.SuggestedOrderQty));
         Assert.Equal("ok", ErpSyncronPolicy.Recommend(Row(13, demand), manual).Action);
+        Assert.Equal(("Fast", "pending"), (none.DemandType, none.Status));
+        Assert.Equal(none.SuggestedOrderQty, none.OrderQty);
+        var today = new DateOnly(2026, 10, 8);
+        Assert.Equal("2026-10-15", ErpSyncronPolicy.Recommend(Row(0, demand), null, today).DueDate);
+    }
+
+    [Fact]
+    public void Classifies_demand_as_fast_slow_erratic_lumpy_or_new()
+    {
+        Assert.Equal("New", ErpSyncronPolicy.DemandType(null));
+        Assert.Equal("New", ErpSyncronPolicy.DemandType([]));
+        Assert.Equal("New", ErpSyncronPolicy.DemandType([0m, 4m, 0m]));
+        Assert.Equal("Fast", ErpSyncronPolicy.DemandType(Enumerable.Repeat(2m, 30).ToList()));
+
+        var slow = new decimal[20];
+        slow[0] = 4m;
+        slow[10] = 4m;
+        Assert.Equal("Slow", ErpSyncronPolicy.DemandType(slow));
+
+        Assert.Equal("Erratic", ErpSyncronPolicy.DemandType([1m, 10m, 1m, 10m]));
+
+        var lumpy = new decimal[20];
+        lumpy[0] = 1m;
+        lumpy[10] = 10m;
+        Assert.Equal("Lumpy", ErpSyncronPolicy.DemandType(lumpy));
+    }
+
+    [Fact]
+    public void Saved_order_line_overrides_quantity_status_and_supplier()
+    {
+        var demand = Enumerable.Repeat(2m, 10).ToList();
+        var recommendation = ErpSyncronPolicy.Recommend(new ErpSyncronPolicy.ItemWarehouse(1, "A", "Item A", "standard", 1, "Main", 0m, demand), null);
+        var saved = ErpSyncronPolicy.ApplyOrderLine(
+            recommendation,
+            new ErpSyncronPolicy.OrderLine(1, 1, 9, "WH-ASAB", 4m, 1.5m, "confirmed", "2026-10-20", 0));
+        Assert.Equal(("confirmed", 4m, 9L, "WH-ASAB", 1.5m, "2026-10-20"), (saved.Status, saved.OrderQty, saved.SupplierId, saved.SupplierName, saved.UnitCost, saved.DueDate));
+        Assert.Equal(2, ErpSyncronPolicy.ParseLineGrid("1:2:3\n4:5:6").Count);
+        Assert.Throws<ErpWriteException>(() => ErpSyncronPolicy.ParseLineGrid("1:2:-1"));
+        Assert.Equal([(1L, 2L)], ErpSyncronPolicy.ParseLineKeys("1:2, 1:2"));
     }
 
     [Theory]
@@ -242,6 +281,9 @@ public sealed class ErpSyncronPolicyTests
         var tab = Assert.Single(LegacyDesktopChromeCatalog.ErpTopnav().SelectMany(g => g.Links), t => t.Id == "inventory_mgmt/syncron");
         Assert.Equal("inventory_mgmt", tab.Group);
         Assert.DoesNotContain(PhpModuleCatalog.ErpTabs, t => t.Id == "inventory_mgmt/syncron");
+        Assert.Contains("Recommended orders", page, StringComparison.Ordinal);
+        Assert.Contains("Demand type", page, StringComparison.Ordinal);
+        Assert.Contains("epcSyncronExport", page, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -293,12 +335,78 @@ public sealed class ErpSyncronPolicyTests
             Assert.Equal("2026-10-08", Convert.ToString(await new MySqlCommand("SELECT DATE_FORMAT(`period_start`, '%Y-%m-%d') FROM `epc_erp_inv_demand_forecast`", db).ExecuteScalarAsync(), CultureInfo.InvariantCulture));
             Assert.Equal(5L, await ScalarAsync(db, "SELECT COUNT(*) FROM `epc_erp_audit_log` WHERE `entity_type` = 'inv_policy' AND `admin_id` = 2"));
             Assert.Equal(1L, await ScalarAsync(db, "SELECT COUNT(*) FROM `epc_erp_audit_log` WHERE `action` = 'syncron_run_forecast'"));
+
+            Assert.Equal("No order quantities to update.", (await service.ApplyAsync(2, new ErpSyncronActionRequest("update_lines"), ct)).Message);
+            Assert.Equal("Select at least one order line.", (await service.ApplyAsync(2, new ErpSyncronActionRequest("confirm_lines"), ct)).Message);
+            Assert.True((await service.ApplyAsync(2, new ErpSyncronActionRequest("update_lines", LineGrid: "1:1:12"), ct)).Succeeded);
+            Assert.True((await service.ApplyAsync(2, new ErpSyncronActionRequest("confirm_lines", LineKeys: "1:1", LineGrid: "1:1:12"), ct)).Succeeded);
+            Assert.Equal(("confirmed", 12m), await LineAsync(db));
+            Assert.True((await service.ApplyAsync(2, new ErpSyncronActionRequest("unconfirm_lines", LineKeys: "1:1"), ct)).Succeeded);
+            Assert.Equal("pending", (await LineAsync(db)).Status);
+            Assert.True((await service.ApplyAsync(2, new ErpSyncronActionRequest("reject_lines", LineKeys: "1:1"), ct)).Succeeded);
+            Assert.Equal("rejected", (await LineAsync(db)).Status);
+            Assert.Equal("Item not found.", (await service.ApplyAsync(2, new ErpSyncronActionRequest("manual_order", Sku: "MISSING", WarehouseId: 1, OrderQty: 2m), ct)).Message);
+            Assert.Equal("Manual order added for OIL.", (await service.ApplyAsync(2, new ErpSyncronActionRequest("manual_order", Sku: "OIL", WarehouseId: 1, SupplierId: 5, OrderQty: 6m), ct)).Message);
+            Assert.Equal(("pending", 6m), await LineAsync(db));
+            var confirmedAll = await service.ApplyAsync(2, new ErpSyncronActionRequest("confirm_all"), ct);
+            Assert.Contains("Confirmed 1", confirmedAll.Message, StringComparison.Ordinal);
+            Assert.Equal("Purchase orders are not available from this screen yet.", (await service.ApplyAsync(2, new ErpSyncronActionRequest("draft_orders"), ct)).Message);
+
+            var purchaseOrders = new RecordingPurchaseOrders();
+            var drafting = new ErpSyncronWriteService(new Connections(cs), new ErpAuditLogWriter(), clock, purchaseOrders);
+            var drafted = await drafting.ApplyAsync(2, new ErpSyncronActionRequest("draft_orders"), ct);
+            Assert.True(drafted.Succeeded);
+            Assert.Contains("PO-77", drafted.Message, StringComparison.Ordinal);
+            Assert.Equal(5, purchaseOrders.Last?.SupplierId);
+            Assert.Equal("OIL", Assert.Single(purchaseOrders.Last!.Lines).ItemCode);
+            Assert.Equal(("drafted", 77L), await LinePoAsync(db));
+            Assert.True((await drafting.ApplyAsync(2, new ErpSyncronActionRequest("unconfirm_all"), ct)).Succeeded);
+            Assert.Equal("drafted", (await LineAsync(db)).Status);
         }
         finally
         {
             MySqlConnection.ClearAllPools();
             await ExecAsync(admin, "DROP DATABASE IF EXISTS `" + name + "`");
         }
+    }
+
+    private sealed class RecordingPurchaseOrders : IErpPurchaseOrderWriteService
+    {
+        public ErpPurchaseOrderInput? Last { get; private set; }
+
+        public Task<ErpPurchaseOrderSaveResult> SaveAsync(ErpPurchaseOrderInput input, int adminId, CancellationToken cancellationToken = default)
+        {
+            Last = input;
+            return Task.FromResult(new ErpPurchaseOrderSaveResult(77, "PO-77", input.AmountExVat, 0m, input.AmountExVat, "draft", true, input.Lines.Count));
+        }
+
+        public Task<ErpPurchaseOrderPermissionContext?> GetPermissionContextAsync(long purchaseOrderId, CancellationToken cancellationToken = default)
+            => Task.FromResult<ErpPurchaseOrderPermissionContext?>(null);
+
+        public Task SetStatusAsync(long purchaseOrderId, string status, int adminId, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+
+        public Task DeleteAsync(long purchaseOrderId, int adminId, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+
+        public Task<ErpPoReceiveResult> ReceiveLinesAsync(long purchaseOrderId, IReadOnlyDictionary<long, decimal> receivedByLineId, int adminId, CancellationToken cancellationToken = default)
+            => Task.FromResult(new ErpPoReceiveResult(purchaseOrderId, "draft", 0m, 0m));
+    }
+
+    private static async Task<(string Status, decimal Qty)> LineAsync(MySqlConnection db)
+    {
+        await using var command = new MySqlCommand("SELECT `status`, `order_qty` FROM `epc_erp_inv_order_lines` WHERE `item_id` = 1 AND `warehouse_id` = 1", db);
+        await using var reader = await command.ExecuteReaderAsync();
+        Assert.True(await reader.ReadAsync());
+        return (reader.GetString(0), reader.GetDecimal(1));
+    }
+
+    private static async Task<(string Status, long PoId)> LinePoAsync(MySqlConnection db)
+    {
+        await using var command = new MySqlCommand("SELECT `status`, `po_id` FROM `epc_erp_inv_order_lines` WHERE `item_id` = 1 AND `warehouse_id` = 1", db);
+        await using var reader = await command.ExecuteReaderAsync();
+        Assert.True(await reader.ReadAsync());
+        return (reader.GetString(0), Convert.ToInt64(reader.GetValue(1), CultureInfo.InvariantCulture));
     }
 
     private sealed class FixedClock(DateTimeOffset now) : TimeProvider

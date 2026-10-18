@@ -1,0 +1,379 @@
+@using System.Globalization
+@using System.Linq
+@* Company home — one module area at a time. Switching the list is local; the cycle does not query the database. *@
+
+<section class="epc-flow" data-erp-flow data-company="@CompanyId.ToString(CultureInfo.InvariantCulture)" aria-label="Process flow">
+    <div class="epc-flow__bar">
+        <div class="epc-flow__lead">
+            <h2>Process flow</h2>
+            <p>Select a process area to follow its cycle. <a href="@GuideHref">How to use every area</a></p>
+        </div>
+        <label class="epc-flow__pick" for="erp-flow-area">
+            <span>Process area</span>
+            <select id="erp-flow-area" data-erp-flow-select>
+                @foreach (var group in ErpProcessFlowCatalog.Groups)
+                {
+                    <optgroup label="@group.Label">
+                        @foreach (var area in group.Areas)
+                        {
+                            if (area.Id == ErpProcessFlowCatalog.DefaultAreaId)
+                            {
+                                <option value="@area.Id" selected>@area.Label</option>
+                            }
+                            else
+                            {
+                                <option value="@area.Id">@area.Label</option>
+                            }
+                        }
+                    </optgroup>
+                }
+            </select>
+        </label>
+    </div>
+
+    <div data-flow-mount>
+        @{
+            var opening = Opening;
+            var openingSteps = opening.Visible(ShowJewellery);
+        }
+        <div class="epc-flow__panel" data-flow-panel="@opening.Id">
+            <div class="epc-flow__intro">
+                <span class="epc-flow__mark" aria-hidden="true"><i class="fa @opening.Icon"></i></span>
+                <div>
+                    <p class="epc-flow__kicker">@opening.CategoryLabel</p>
+                    <h3>@opening.Label</h3>
+                    <p>@opening.Summary</p>
+                    <p class="epc-flow__use">@ErpAreaUseGuide.UseFor(opening.Id)</p>
+                </div>
+            </div>
+            <ol class="epc-flow__track">
+                @for (var i = 0; i < openingSteps.Count; i++)
+                {
+                    var step = openingSteps[i];
+                    var last = i == openingSteps.Count - 1;
+                    <li class="epc-flow__step @Tone(i)">
+                        <a href="@Href(step.Href)">
+                            <span class="epc-flow__badge">@((i + 1).ToString(CultureInfo.InvariantCulture))</span>
+                            <span class="epc-flow__icon" aria-hidden="true"><i class="fa @step.Icon"></i></span>
+                            <span class="epc-flow__name">@step.Label</span>
+                        </a>
+                    </li>
+                    @if (!last)
+                    {
+                        <li class="epc-flow__join" aria-hidden="true">@((MarkupString)JoinSvg)</li>
+                    }
+                }
+            </ol>
+        </div>
+    </div>
+    <script type="application/json" data-erp-flow-json>@((MarkupString)FlowJson)</script>
+</section>
+
+<style>
+    .epc-flow {
+        contain: layout style;
+        margin: 0 0 16px;
+        padding: 14px 16px 18px;
+        border: 1px solid #d5e3f2;
+        border-radius: 16px;
+        background:
+            radial-gradient(900px 160px at 12% 0%, rgba(37, 99, 235, .10), transparent 55%),
+            linear-gradient(180deg, #f8fbff 0%, #f2f6fb 100%);
+    }
+    .epc-flow__bar { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .epc-flow__lead h2 { margin: 0; font-size: 18px; line-height: 1.2; color: #0f2744; font-weight: 700; letter-spacing: -.01em; }
+    .epc-flow__lead p, .epc-flow__intro p { margin: 3px 0 0; color: #5b6b82; font-size: 13px; line-height: 1.35; }
+    .epc-flow__lead a { color: #1d4ed8; font-weight: 700; }
+    .epc-flow__use { margin: 4px 0 0; color: #1e3a5f; font-size: 13px; font-weight: 600; line-height: 1.35; }
+    .epc-flow__pick { display: flex; flex-direction: column; gap: 4px; min-width: min(100%, 280px); font-size: 12px; font-weight: 700; color: #3d4f66; }
+    .epc-flow__pick select {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 100%;
+        border: 1px solid #c5d4e8;
+        border-radius: 999px;
+        background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231e3a5f' d='M1 1l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 14px center;
+        color: #0f2744;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 8px 36px 8px 14px;
+        cursor: pointer;
+    }
+    .epc-flow__pick select:focus { outline: 2px solid #2563eb; outline-offset: 2px; }
+    .epc-flow__intro { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; }
+    .epc-flow__intro h3 { margin: 0; font-size: 15px; color: #0f2744; }
+    .epc-flow__kicker { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #3b82f6; }
+    .epc-flow__mark { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #e8f0fe; color: #1d4ed8; flex: 0 0 auto; }
+    .epc-flow__track { list-style: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 0; margin: 8px 0 0; padding: 8px 0 0; }
+    .epc-flow__step { display: flex; align-items: center; }
+    .epc-flow__step a { position: relative; display: flex; flex-direction: column; align-items: center; width: 112px; text-decoration: none; color: #1e3a5f; }
+    .epc-flow__step a:hover .epc-flow__icon, .epc-flow__step a:focus-visible .epc-flow__icon { transform: translateY(-2px); }
+    .epc-flow__step a:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; border-radius: 12px; }
+    .epc-flow__badge { position: absolute; top: -2px; left: 18px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; background: #fff; border: 1px solid #d5e3f2; color: #3d4f66; font-size: 10px; font-weight: 800; line-height: 16px; text-align: center; z-index: 1; }
+    .epc-flow__icon { width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 8px 16px rgba(15, 39, 68, .14); transition: transform .16s ease; }
+    .epc-flow__icon i { font-size: 22px; }
+    .epc-flow__name { margin-top: 8px; font-size: 12px; font-weight: 700; line-height: 1.25; text-align: center; }
+    .tone-0 .epc-flow__icon { background: linear-gradient(160deg, #3b82f6, #1d4ed8); }
+    .tone-1 .epc-flow__icon { background: linear-gradient(160deg, #14b8a6, #0f766e); }
+    .tone-2 .epc-flow__icon { background: linear-gradient(160deg, #f59e0b, #b45309); }
+    .tone-3 .epc-flow__icon { background: linear-gradient(160deg, #8b5cf6, #6d28d9); }
+    .tone-4 .epc-flow__icon { background: linear-gradient(160deg, #fb7185, #be123c); }
+    .epc-flow__join { display: flex; align-items: center; justify-content: center; width: 44px; margin-top: 20px; }
+    .epc-flow__svg { display: block; width: 52px; height: 16px; }
+    .epc-flow__line { fill: none; stroke: #3b82f6; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 5 7; animation: epc-flow-dash 1.05s linear infinite; }
+    .epc-flow__head { fill: none; stroke: #1d4ed8; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    @@keyframes epc-flow-dash { to { stroke-dashoffset: -24; } }
+    @@media (max-width: 720px) {
+        .epc-flow__track { flex-direction: column; align-items: stretch; }
+        .epc-flow__step { width: 100%; }
+        .epc-flow__step a { flex-direction: row; width: auto; gap: 10px; }
+        .epc-flow__name { margin-top: 0; text-align: left; }
+        .epc-flow__badge { left: 0; top: -4px; }
+        .epc-flow__join { transform: rotate(90deg); margin: 2px auto; width: auto; }
+    }
+    @@media (prefers-reduced-motion: reduce) {
+        .epc-flow__line { animation: none; stroke-dasharray: none; }
+        .epc-flow__step a:hover .epc-flow__icon { transform: none; }
+    }
+</style>
+
+<script>
+    (function () {
+        var ns = "http://www.w3.org/2000/svg";
+        function iconOk(value) { return /^fa-[a-z0-9-]+$/.test(value || ""); }
+        function findArea(data, id) {
+            for (var g = 0; g < data.groups.length; g++) {
+                var areas = data.groups[g].areas;
+                for (var a = 0; a < areas.length; a++) {
+                    if (areas[a].id === id) return areas[a];
+                }
+            }
+            return null;
+        }
+        function withCompany(root, path) {
+            if (!path || path.indexOf("/erp") !== 0) return "/erp";
+            var company = root.getAttribute("data-company") || "0";
+            if (!/^[0-9]+$/.test(company) || company === "0") return path;
+            return path + (path.indexOf("?") >= 0 ? "&" : "?") + "company=" + company;
+        }
+        function arrow() {
+            var svg = document.createElementNS(ns, "svg");
+            svg.setAttribute("class", "epc-flow__svg");
+            svg.setAttribute("viewBox", "0 0 56 16");
+            svg.setAttribute("aria-hidden", "true");
+            svg.setAttribute("focusable", "false");
+            var line = document.createElementNS(ns, "line");
+            line.setAttribute("class", "epc-flow__line");
+            line.setAttribute("x1", "2");
+            line.setAttribute("y1", "8");
+            line.setAttribute("x2", "44");
+            line.setAttribute("y2", "8");
+            var head = document.createElementNS(ns, "path");
+            head.setAttribute("class", "epc-flow__head");
+            head.setAttribute("d", "M40 3.5 L50 8 L40 12.5");
+            svg.appendChild(line);
+            svg.appendChild(head);
+            return svg;
+        }
+        function render(root, area) {
+            var mount = root.querySelector("[data-flow-mount]");
+            if (!mount || !area) return;
+            var panel = document.createElement("div");
+            panel.className = "epc-flow__panel";
+            panel.setAttribute("data-flow-panel", area.id);
+            var intro = document.createElement("div");
+            intro.className = "epc-flow__intro";
+            var mark = document.createElement("span");
+            mark.className = "epc-flow__mark";
+            mark.setAttribute("aria-hidden", "true");
+            var markIcon = document.createElement("i");
+            markIcon.className = "fa " + (iconOk(area.icon) ? area.icon : "fa-circle-o");
+            mark.appendChild(markIcon);
+            var copy = document.createElement("div");
+            var kicker = document.createElement("p");
+            kicker.className = "epc-flow__kicker";
+            kicker.textContent = area.category || "";
+            var title = document.createElement("h3");
+            title.textContent = area.label || "";
+            var summary = document.createElement("p");
+            summary.textContent = area.summary || "";
+            copy.appendChild(kicker);
+            copy.appendChild(title);
+            copy.appendChild(summary);
+            if (area.use) {
+                var use = document.createElement("p");
+                use.className = "epc-flow__use";
+                use.textContent = area.use;
+                copy.appendChild(use);
+            }
+            intro.appendChild(mark);
+            intro.appendChild(copy);
+            var list = document.createElement("ol");
+            list.className = "epc-flow__track";
+            var steps = area.steps || [];
+            for (var i = 0; i < steps.length; i++) {
+                var step = steps[i];
+                var item = document.createElement("li");
+                item.className = "epc-flow__step tone-" + (i % 5);
+                var link = document.createElement("a");
+                link.href = withCompany(root, step.href);
+                var badge = document.createElement("span");
+                badge.className = "epc-flow__badge";
+                badge.textContent = String(i + 1);
+                var bubble = document.createElement("span");
+                bubble.className = "epc-flow__icon";
+                bubble.setAttribute("aria-hidden", "true");
+                var glyph = document.createElement("i");
+                glyph.className = "fa " + (iconOk(step.icon) ? step.icon : "fa-circle-o");
+                bubble.appendChild(glyph);
+                var name = document.createElement("span");
+                name.className = "epc-flow__name";
+                name.textContent = step.label || "";
+                link.appendChild(badge);
+                link.appendChild(bubble);
+                link.appendChild(name);
+                item.appendChild(link);
+                list.appendChild(item);
+                if (i < steps.length - 1) {
+                    var join = document.createElement("li");
+                    join.className = "epc-flow__join";
+                    join.setAttribute("aria-hidden", "true");
+                    join.appendChild(arrow());
+                    list.appendChild(join);
+                }
+            }
+            panel.appendChild(intro);
+            panel.appendChild(list);
+            mount.replaceChildren(panel);
+            trimArrows(root);
+        }
+        function trimArrows(root) {
+            var list = root.querySelector(".epc-flow__track");
+            if (!list) return;
+            var stacked = window.matchMedia("(max-width: 720px)").matches;
+            var nodes = list.children;
+            for (var i = 0; i < nodes.length; i++) {
+                var node = nodes[i];
+                if (!node.classList || !node.classList.contains("epc-flow__join")) continue;
+                if (stacked) {
+                    node.style.visibility = "";
+                    continue;
+                }
+                var prev = node.previousElementSibling;
+                var next = node.nextElementSibling;
+                var nextWrapped = prev && next && (next.offsetTop - prev.offsetTop) > 40;
+                node.style.visibility = nextWrapped ? "hidden" : "";
+            }
+        }
+        var trimQueued = false;
+        function scheduleTrim(root) {
+            if (trimQueued) return;
+            trimQueued = true;
+            requestAnimationFrame(function () {
+                trimQueued = false;
+                trimArrows(root);
+            });
+        }
+        function bind(root) {
+            if (!root || root.getAttribute("data-erp-flow-bound") === "1") return;
+            var raw = root.querySelector("[data-erp-flow-json]");
+            var sel = root.querySelector("[data-erp-flow-select]");
+            if (!raw || !sel) return;
+            var data;
+            try { data = JSON.parse(raw.textContent || ""); } catch (e) { return; }
+            if (!data || !data.groups) return;
+            root.setAttribute("data-erp-flow-bound", "1");
+            trimArrows(root);
+            if (!window.__erpFlowResize) {
+                window.__erpFlowResize = 1;
+                window.addEventListener("resize", function () {
+                    var live = document.querySelectorAll("[data-erp-flow]");
+                    for (var n = 0; n < live.length; n++) scheduleTrim(live[n]);
+                });
+            }
+            var key = "erp-flow-area";
+            function show(id) {
+                var area = findArea(data, id);
+                if (!area) return;
+                var current = root.querySelector("[data-flow-panel]");
+                if (current && current.getAttribute("data-flow-panel") === id) return;
+                render(root, area);
+            }
+            sel.addEventListener("change", function () {
+                show(sel.value);
+                try { sessionStorage.setItem(key, sel.value); } catch (e) {}
+            });
+            var saved = "";
+            try { saved = sessionStorage.getItem(key) || ""; } catch (e) {}
+            if (!saved) return;
+            for (var j = 0; j < sel.options.length; j++) {
+                if (sel.options[j].value === saved) {
+                    sel.value = saved;
+                    show(saved);
+                    break;
+                }
+            }
+        }
+        function boot() {
+            var nodes = document.querySelectorAll("[data-erp-flow]");
+            for (var i = 0; i < nodes.length; i++) bind(nodes[i]);
+        }
+        boot();
+        if (!window.__erpFlowBoot) {
+            window.__erpFlowBoot = 1;
+            document.addEventListener("enhancedload", boot);
+        }
+    })();
+</script>
+
+@code {
+    private const string JoinSvg = """<svg class="epc-flow__svg" viewBox="0 0 56 16" aria-hidden="true" focusable="false"><line class="epc-flow__line" x1="2" y1="8" x2="44" y2="8"></line><path class="epc-flow__head" d="M40 3.5 L50 8 L40 12.5"></path></svg>""";
+
+    [Parameter] public long CompanyId { get; set; }
+
+    [Parameter] public bool ShowJewellery { get; set; }
+
+    private ErpProcessFlowCatalog.AreaFlow Opening
+        => ErpProcessFlowCatalog.Areas.First(a => a.Id == ErpProcessFlowCatalog.DefaultAreaId);
+
+    private string FlowJson
+        => System.Text.Json.JsonSerializer.Serialize(new
+        {
+            groups = ErpProcessFlowCatalog.Groups.Select(group => new
+            {
+                label = group.Label,
+                areas = group.Areas.Select(area => new
+                {
+                    id = area.Id,
+                    label = area.Label,
+                    icon = area.Icon,
+                    category = area.CategoryLabel,
+                    summary = area.Summary,
+                    use = ErpAreaUseGuide.UseFor(area.Id),
+                    steps = area.Visible(ShowJewellery).Select(step => new
+                    {
+                        label = step.Label,
+                        icon = step.Icon,
+                        href = step.Href,
+                    }),
+                }),
+            }),
+        }).Replace("<", "\\u003c", StringComparison.Ordinal);
+
+    private static string Tone(int index)
+        => "tone-" + (index % 5).ToString(CultureInfo.InvariantCulture);
+
+    private string GuideHref => Href("/erp/guide-app");
+
+    private string Href(string path)
+    {
+        if (CompanyId <= 0)
+        {
+            return path;
+        }
+
+        var join = path.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        return path + join + "company=" + CompanyId.ToString(CultureInfo.InvariantCulture);
+    }
+}

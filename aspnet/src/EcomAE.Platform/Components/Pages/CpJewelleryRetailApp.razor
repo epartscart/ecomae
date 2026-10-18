@@ -2,6 +2,7 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
@@ -17,6 +18,7 @@
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
     <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
+    <ErpManualProcessStrip Keys="jewellery" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery retail stats">
         <div class="kpi"><div class="lbl">Vouchers</div><div class="val">@_summary.VoucherCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -26,6 +28,12 @@
     </div>
 
     <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.RetailTabs" />
+
+    <div class="epc-erp-empty" style="display:block;margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#f8fafc;color:#334155;">
+        <strong>Metal books.</strong> Net weight is gross minus stones and other material. Pure gold is that net times purity per thousand. An exchange keeps the full sale and the old-gold purchase apart. A POS line keeps metal, making, stones, and VAT, and the cash taken cannot exceed that sale. A melt records the variance and leaves the original tag weight in place.
+        <a href="@WorkbookHref("template")">Download template</a>
+        <a href="@WorkbookHref("package")">Download package</a>
+    </div>
 
     @if (_isAdmin)
     {
@@ -77,7 +85,7 @@
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong> <a class="btn btn-xs btn-default" href="@_listHref">Close</a></p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Voc no</dt><dd>@_opened.VocNo.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Date</dt><dd>@(string.IsNullOrWhiteSpace(_opened.VocDate) ? "—" : _opened.VocDate)</dd>
@@ -85,7 +93,7 @@
                 <dt>Party</dt><dd>@(string.IsNullOrWhiteSpace(_opened.PartyName) ? "—" : _opened.PartyName)</dd>
                 <dt>Party code</dt><dd>@(string.IsNullOrWhiteSpace(_opened.PartyCode) ? "—" : _opened.PartyCode)</dd>
                 <dt>Salesman</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Salesman) ? "—" : _opened.Salesman)</dd>
-                <dt>Branch</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Branch) ? "—" : _opened.Branch)</dd>
+                <dt>Business unit</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Branch) ? "—" : _opened.Branch)</dd>
                 <dt>Net</dt><dd>@_opened.NetAmount.ToString("N2", CultureInfo.InvariantCulture)</dd>
                 <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
             </dl>
@@ -191,10 +199,91 @@
         </div>
     }
 
-    @if (_isAdmin && (_tab == "jw_retail_sales" || _tab == "jewellery" || _tab == "retail_commerce" || _tab == "jw_metal_sales" || _tab == "jw_sales_return"))
+    @if (_isAdmin && _tab == "jw_pos_advance")
+    {
+        <ErpPhpCreateWell Title="New POS advance">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                <input type="hidden" name="action" value="jw_pos_advance_save" />
+                <input type="hidden" name="voc_type" value="ADV" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <ErpVoucherHeaderFields NumberPreview="Auto" />
+                <ErpMasterPicker Kind="customer" FieldName="customer_name" InputId="jw-pos-advance-customer" Label="Customer" ValueMode="name" Required="true" CodeFieldName="party_code" />
+                <input type="hidden" name="party_code" value="" />
+                <label>Amount <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" /></label>
+                <label>Narration <input class="form-control input-sm" name="narration" maxlength="200" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save POS advance</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_petty_cash")
+    {
+        <ErpPhpCreateWell Title="New petty cash">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryPettyCashSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <ErpVoucherHeaderFields DateFieldName="voc_date" NumberPreview="Auto" />
+                <label>Paid to <input class="form-control input-sm" name="paid_to" required maxlength="120" /></label>
+                <ErpMasterPicker Kind="coa" FieldName="account_code" InputId="jw-petty-coa" Label="Chart account" ValueMode="code" />
+                <label>Amount <input class="form-control input-sm" name="total" type="number" step="0.01" value="0" /></label>
+                <label>Narration <input class="form-control input-sm" name="narration" maxlength="200" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save petty cash</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_journal_voucher")
+    {
+        <ErpPhpCreateWell Title="New journal voucher">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                <input type="hidden" name="action" value="jw_journal_voucher_save" />
+                <input type="hidden" name="voc_type" value="JVL" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <ErpVoucherHeaderFields NumberPreview="Auto" />
+                <label>Description <input class="form-control input-sm" name="party_name" required /></label>
+                <label>Amount <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" /></label>
+                <label>Narration <input class="form-control input-sm" name="narration" maxlength="200" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save journal voucher</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_tourist_vat")
+    {
+        <ErpPhpCreateWell Title="New tourist VAT refund">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryTouristVatSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <ErpVoucherHeaderFields DateFieldName="voc_date" DateLabel="Refund date" NumberLabel="Refund no" NumberPreview="Auto" />
+                <label>Tourist name <input class="form-control input-sm" name="tourist_name" required maxlength="120" /></label>
+                <label>Passport <input class="form-control input-sm" name="passport_no" maxlength="20" /></label>
+                <label>Nationality <input class="form-control input-sm" name="nationality" maxlength="50" /></label>
+                <label>Invoice no <input class="form-control input-sm" name="invoice_no" maxlength="30" /></label>
+                <label>VAT <input class="form-control input-sm" name="total_vat" type="number" step="0.01" value="0" /></label>
+                <label>Refund <input class="form-control input-sm" name="refund_amount" type="number" step="0.01" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save tourist VAT</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && (_tab == "jw_retail_sales" || _tab == "jewellery" || _tab == "retail_commerce" || _tab == "jw_metal_sales" || _tab == "jw_sales_return"))
     {
         <ErpPhpCreateWell Title="@(_tab == "jw_retail_sales" || _tab == "jewellery" || _tab == "retail_commerce" ? "New Invoice" : "New " + _spec.Label)">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="action" value="@RetailVoucherAction(_tab)" />
@@ -203,10 +292,9 @@
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
-                <label>Branch <input class="form-control input-sm" name="branch" value="HO" maxlength="10" /></label>
-                <label>Voucher date <input class="form-control input-sm" name="voc_date" type="date" /></label>
-                <label>Customer <input class="form-control input-sm" name="customer_name" required /></label>
-                <label>Customer code <input class="form-control input-sm" name="party_code" /></label>
+                <ErpVoucherHeaderFields DateLabel="Invoice date" NumberLabel="Invoice no" NumberPreview="Auto" />
+                <ErpMasterPicker Kind="customer" FieldName="customer_name" InputId="jw-retail-invoice-customer" Label="Customer" ValueMode="name" Required="true" CodeFieldName="party_code" />
+                <input type="hidden" name="party_code" value="" />
                 @if (_tab == "jw_sales_return")
                 {
                     <label>Source invoice id <input class="form-control input-sm" name="ref_invoice_no" type="number" min="1" required /></label>
@@ -262,7 +350,7 @@
                 <label>VAT <input class="form-control input-sm" name="vat_amount" type="number" step="0.01" value="0" /></label>
                 <label>Gross total <input class="form-control input-sm" name="gross_total" type="number" step="0.01" value="0" /></label>
                 <label>Sale return adjustment <input class="form-control input-sm" name="adjust_sale_return" type="number" step="0.01" value="0" /></label>
-                <label>Old-gold exchange <input class="form-control input-sm" name="old_gold_exchange" type="number" step="0.01" value="0" /></label>
+                <label>Old-gold purchase <input class="form-control input-sm" name="old_gold_exchange" type="number" step="0.01" value="0" title="Kept apart from the sale. Cash due is the sale minus this purchase." /></label>
                 <label>Scheme redemption <input class="form-control input-sm" name="gold_scheme_redeem" type="number" step="0.01" value="0" /></label>
                 <label>Refund due <input class="form-control input-sm" name="refund_due" type="number" step="0.01" value="0" /></label>
                 <strong style="width:100%;font-size:.85rem;margin-top:.35rem">Tender / receipt</strong>
@@ -279,7 +367,7 @@
     else if (_isAdmin && _tab == "retail_barcode")
     {
         <ErpPhpCreateWell Title="Generate barcode">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryBarcodeGenerateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryBarcodeGenerateForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
@@ -303,7 +391,7 @@
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="action" value="@(_tab + "_save")" />
                 <label>Code <input class="form-control input-sm" name="code" required /></label>
-                <label>Customer <input class="form-control input-sm" name="customer_name" /></label>
+                <ErpMasterPicker Kind="customer" FieldName="customer_name" InputId="jw-retail-module-customer" Label="Customer" ValueMode="name" />
                 <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </form>
         </ErpPhpCreateWell>
@@ -335,7 +423,7 @@
             <input type="hidden" name="returnUrl" value="@ReturnHref" />
             <strong style="width:100%;font-size:.85rem">Set assortment</strong>
             <label>Channel id <input type="number" name="channel_id" min="0" required style="width:6rem" /></label>
-            <label>Item id <input type="number" name="item_id" min="0" required style="width:6rem" /></label>
+            <ErpMasterPicker Kind="item" FieldName="item_id" InputId="retail-assortment-item" Label="Item" Required="true" Min="1" />
             <label>Active
                 <select name="active">
                     <option value="1" selected>active</option>
@@ -472,6 +560,17 @@
     private string _message = "";
     private string _ok = "";
     private string _err = "";
+    private string WorkbookHref(string kind)
+    {
+        var href = "/erp/jewellery/workbook?kind=" + kind;
+        if (_company > 0)
+        {
+            href += "&company=" + _company.ToString(CultureInfo.InvariantCulture);
+        }
+
+        return href;
+    }
+
     private string _listHref = "/erp/jewellery-retail-app";
     private long _openedId;
     private CpJewelleryVoucherDetail? _opened;
@@ -488,6 +587,8 @@
             ? ("Voc " + _opened.VocNo.ToString(CultureInfo.InvariantCulture))
             : (_openedId > 0 ? ("Voucher #" + _openedId.ToString(CultureInfo.InvariantCulture)) : "");
 
+    private string WriteAction(string path) => ErpJewelleryModuleChrome.AppHref(path, _company);
+
     private string ReturnHref =>
         _openedId > 0
             ? _listHref + "?voc_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
@@ -495,9 +596,11 @@
 
     private static string RetailVocType(string tab) => tab switch
     {
-        "jw_metal_sales" => "MSI",
-        "jw_sales_return" => "SRN",
-        _ => "RSI"
+        "jw_metal_sales" => "MSL",
+        "jw_sales_return" => "SRT",
+        "jw_pos_advance" => "ADV",
+        "jw_journal_voucher" => "JVL",
+        _ => "RIN"
     };
 
     private static string RetailVoucherAction(string tab) => tab switch
@@ -551,9 +654,12 @@
             }
         }
         _analysis = _tab == "jw_sales_analysis" ? result.SalesAnalysis : [];
-        _showVouchers = _tab is "jw_retail_sales" or "jewellery" or "retail_commerce" or "jw_metal_sales" or "jw_sales_return";
+        var wantedTypes = ErpJwVocTypes.AliasesForTab(_tab);
+        _showVouchers = wantedTypes.Count > 0;
         _display = _showVouchers
-            ? result.Vouchers.Select((v, i) => new SaleRow(
+            ? result.Vouchers
+                .Where(v => ErpJwVocTypes.Matches(v.VocType, wantedTypes))
+                .Select((v, i) => new SaleRow(
             v.Id,
             (i + 1).ToString(CultureInfo.InvariantCulture),
             v.VocNo.ToString(CultureInfo.InvariantCulture),

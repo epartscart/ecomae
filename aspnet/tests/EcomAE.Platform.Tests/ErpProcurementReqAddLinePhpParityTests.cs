@@ -5,7 +5,7 @@ namespace EcomAE.Platform.Tests;
 
 /// <summary>
 /// Guards the live PHP <c>epc_proc_req_add_line</c> twin: SSR form, DI, catalog.
-/// Schema ensure stays PHP.
+/// Native <c>ErpProcurementSchema</c> on confirmed writes.
 /// </summary>
 public sealed class ErpProcurementReqAddLinePhpParityTests
 {
@@ -13,9 +13,9 @@ public sealed class ErpProcurementReqAddLinePhpParityTests
     public void PurchaseRequestsApp_PostsNativeAddLineForm()
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpPurchaseRequestsApp.razor"));
-        Assert.Contains("action=\"/erp/procurement/requisitions/add-line\"", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/procurement/requisitions/add-line", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"item_code\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"item_code\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"unit_price\"", text, StringComparison.Ordinal);
         Assert.Contains("Add line", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Add line stays on the Classic twin", text, StringComparison.Ordinal);

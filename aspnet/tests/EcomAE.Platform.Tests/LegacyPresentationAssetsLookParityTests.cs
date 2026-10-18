@@ -60,5 +60,11 @@ public sealed class LegacyPresentationAssetsLookParityTests
         Assert.Contains(
             LegacyPresentationAssets.ErpStylesheets,
             href => href.Contains("epc-enterprise-design-system.css", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(
+            LegacyPresentationAssets.ControlPanelStylesheets,
+            href => href.Contains("epc-enterprise-design-system.css?v=20261016fit", StringComparison.Ordinal));
+        Assert.Contains(
+            LegacyPresentationAssets.ErpStylesheets,
+            href => href.Contains("epc-enterprise-design-system.css?v=20261016fit", StringComparison.Ordinal));
     }
 }

@@ -5,12 +5,14 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Erp
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject IErpDimensionCatalogReadService DimensionCatalog
 @inject IErpDimensionLinkReadService DimensionLinks
 @inject IErpWriteConnectionFactory TenantDb
+@inject IErpInventoryReservationWriteService Reservations
 
 <PageTitle>Inventory Stock · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -19,7 +21,7 @@
 
 
     
-    <PhpErpModulePageHeader Title="Inventory Stock" Subtitle="Create warehouse/item, sync from shop storages, set reorder, record movement, transfer, run a closing snapshot, import csv_text, or save dimension links. File CSV upload stays Classic." />
+    <PhpErpModulePageHeader Title="Inventory Stock" Subtitle="Create warehouse/item, sync from shop storages, set reorder, record movement, transfer, run a closing snapshot, import csv_text, or save dimension links. File CSV upload is not available on this page." />
     <PhpErpD365ActionPane RefreshHref="/erp/inventory-stock-app" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -35,15 +37,15 @@
         <form method="post" action="/erp/ajax/inv-set-reorder-level" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
-            <label>Item id <input type="number" name="itemId" min="1" required style="width:6rem" /></label>
+            <ErpMasterPicker Kind="item" FieldName="itemId" InputId="inv-reorder-item" Label="Item" Required="true" Min="1" />
             <label>Reorder level <input type="text" name="reorderLevel" required /></label>
             <button type="submit" class="btn btn-sm btn-primary">Save reorder level</button>
         </form>
         <form method="post" action="/erp/ajax/inv-record-movement" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
-            <label>Warehouse id <input type="number" name="warehouseId" min="1" required style="width:6rem" /></label>
-            <label>Item id <input type="number" name="itemId" min="1" required style="width:6rem" /></label>
+            <ErpMasterPicker Kind="warehouse" FieldName="warehouseId" InputId="inv-move-wh" Label="Warehouse" Required="true" Min="1" />
+            <ErpMasterPicker Kind="item" FieldName="itemId" InputId="inv-move-item" Label="Item" Required="true" Min="1" />
             <label>Qty <input type="text" name="qty" required /></label>
             <label>Unit cost <input type="text" name="unitCost" /></label>
             <label>Type
@@ -62,9 +64,9 @@
         <form method="post" action="/erp/ajax/inv-transfer" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
-            <label>From warehouse <input type="number" name="fromWarehouseId" min="1" required style="width:6rem" /></label>
-            <label>To warehouse <input type="number" name="toWarehouseId" min="1" required style="width:6rem" /></label>
-            <label>Item id <input type="number" name="itemId" min="1" required style="width:6rem" /></label>
+            <ErpMasterPicker Kind="warehouse" FieldName="fromWarehouseId" InputId="inv-xfer-from" Label="From warehouse" Required="true" Min="1" />
+            <ErpMasterPicker Kind="warehouse" FieldName="toWarehouseId" InputId="inv-xfer-to" Label="To warehouse" Required="true" Min="1" />
+            <ErpMasterPicker Kind="item" FieldName="itemId" InputId="inv-xfer-item" Label="Item" Required="true" Min="1" />
             <label>Qty <input type="text" name="qty" required /></label>
             <label>Reference <input type="text" name="reference" /></label>
             <button type="submit" class="btn btn-sm btn-default">Transfer stock</button>
@@ -77,10 +79,10 @@
             <label>Name <input type="text" name="name" required maxlength="255" /></label>
             <button type="submit" class="btn btn-sm btn-primary">Create warehouse</button>
         </form>
-        <form method="post" action="/erp/ajax/inv-create-item" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+        <form id="erp-module-new" method="post" action="/erp/ajax/inv-create-item" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
-            <label>SKU <input type="text" name="sku" required maxlength="64" /></label>
+            <label>SKU <input type="text" name="sku" required maxlength="64" data-erp-new-field /></label>
             <label>Name <input type="text" name="name" required maxlength="255" /></label>
             <label>Type
                 <select name="itemType">
@@ -108,13 +110,13 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
             <label>Period end <input type="text" name="periodEnd" placeholder="YYYY-MM-DD" /></label>
-            <label>Warehouse id <input type="number" name="warehouseId" min="0" style="width:6rem" /></label>
+            <ErpMasterPicker Kind="warehouse" FieldName="warehouseId" InputId="inv-close-wh" Label="Warehouse" />
             <button type="submit" class="btn btn-sm btn-default">Run closing</button>
         </form>
         <form method="post" action="/erp/ajax/inv-import-csv" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
-            <label>Warehouse id <input type="number" name="warehouseId" min="0" style="width:6rem" /></label>
+            <ErpMasterPicker Kind="warehouse" FieldName="warehouseId" InputId="inv-import-wh" Label="Warehouse" />
             <label>Default type <input type="text" name="defaultMovementType" value="purchase_in" /></label>
             <label>CSV text <textarea name="csvText" rows="3" cols="48" placeholder="sku,qty,unit_cost,movement_type,warehouse_code"></textarea></label>
             <button type="submit" class="btn btn-sm btn-primary">Import CSV text</button>
@@ -126,7 +128,7 @@
             <label>Entity id <input type="number" name="entityId" value="@(_dimensionEntityId > 0 ? _dimensionEntityId.ToString(CultureInfo.InvariantCulture) : string.Empty)" min="1" required style="width:6rem" /></label>
             @if (_dimensionCatalog.Count == 0)
             {
-                <label>Business unit <input type="number" name="dim[business_unit]" min="0" style="width:6rem" /></label>
+                <ErpMasterPicker Kind="business_unit" FieldName="dim[business_unit]" Label="Business unit" InputId="inv-dim-bu" />
                 <label>Legal entity <input type="number" name="dim[legal_entity]" min="0" style="width:6rem" /></label>
                 <label>Class <input type="number" name="dim[class_unit]" min="0" style="width:6rem" /></label>
             }
@@ -157,6 +159,8 @@
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Inventory stock KPIs">
         <div class="kpi"><div class="lbl">Stock rows</div><div class="val">@_summary.RowCount.ToString("N0", CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Qty on hand</div><div class="val">@_summary.QtyOnHand.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Reserved</div><div class="val">@_reservedQty.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Available</div><div class="val">@_availableQty.ToString("N2", CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Stock value</div><div class="val">@_summary.StockValue.ToString("N2", CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Warehouses</div><div class="val">@_summary.WarehouseCount.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Items</div><div class="val">@_summary.ItemCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -172,6 +176,8 @@
                     <th>Type</th>
                     <th>Unit</th>
                     <th>Qty</th>
+                    <th>Reserved</th>
+                    <th>Available</th>
                     <th>Avg cost</th>
                     <th>Batch</th>
                     <th>Variant</th>
@@ -181,7 +187,7 @@
             <tbody>
                 @if (_stock.Count == 0)
                 {
-                    <tr><td colspan="10">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="12">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -194,6 +200,8 @@
                             <td>@row.ItemType</td>
                             <td>@row.Unit</td>
                             <td>@row.QtyOnHand.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@ReservedFor(row.ItemId).ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@AvailableFor(row.ItemId, row.QtyOnHand).ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@row.AvgUnitCost.ToString("N4", CultureInfo.InvariantCulture)</td>
                             <td>@row.BatchNo</td>
                             <td>@row.VariantLabel</td>
@@ -204,8 +212,48 @@
                         <td>Total</td>
                         <td colspan="4"></td>
                         <td>@_stock.Sum(r => r.QtyOnHand).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td>@_reservedQty.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td>@_availableQty.ToString("N2", CultureInfo.InvariantCulture)</td>
                         <td colspan="4" class="text-muted">@_stock.Sum(r => r.QtyOnHand * r.AvgUnitCost).ToString("N2", CultureInfo.InvariantCulture) value · @_stock.Count rows</td>
                     </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <section class="epc-erp-form-panel" style="margin:1rem 0">
+        <strong>Central stock.</strong>
+        Available is on hand minus open reservations for that item. Confirming an order keeps the quantity until it is picked, dispatched, cancelled, or released. A quote hold still drops after 30 minutes. Excel does not reserve stock.
+        <a href="@AsapHref("template")">Download ASAP template</a>
+        <a href="@AsapHref("package")">Download package</a>
+    </section>
+
+    <h2 style="margin:1.2rem 0 .5rem;font-size:1rem;">Open sales holds</h2>
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead>
+                <tr>
+                    <th>SKU</th><th>Qty</th><th>Source</th><th>Status</th><th>User</th><th>Expires</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_holds.Count == 0)
+                {
+                    <tr><td colspan="6">No open holds. First click on a quote or sales order reserves the qty.</td></tr>
+                }
+                else
+                {
+                    @foreach (var hold in _holds)
+                    {
+                        <tr>
+                            <td>@hold.Sku</td>
+                            <td>@hold.Qty.ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td>@hold.SourceType #@hold.SourceId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@hold.Status</td>
+                            <td>@hold.ReservedBy.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(hold.ExpiresAt > 0 ? DateTimeOffset.FromUnixTimeSeconds(hold.ExpiresAt).ToLocalTime().ToString("HH:mm", CultureInfo.InvariantCulture) : "until invoice")</td>
+                        </tr>
+                    }
                 }
             </tbody>
         </table>
@@ -257,7 +305,7 @@
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Source: @_summary.Source. Showing @_stock.Count.ToString(CultureInfo.InvariantCulture) of @_summary.RowCount.ToString(CultureInfo.InvariantCulture) rows;
         @_lowStock.Count.ToString(CultureInfo.InvariantCulture) low-stock alerts.
-        Movements, transfers, closing, and csv_text import stay on ERP ajax. File CSV upload stays Classic.
+        Movements, transfers, closing, and csv_text import stay on ERP ajax. File CSV upload is not available on this page.
         @if (!string.IsNullOrWhiteSpace(_summary.Message)) { <span> @_summary.Message</span> }
     </div>
     <script src="/erp/erp-inventory-stock.js" defer></script>
@@ -271,6 +319,9 @@
     private ErpInventoryStockSummaryResult _summary = new(0, 0m, 0m, 0, 0, "migration", string.Empty);
     private IReadOnlyList<ErpInventoryStockDigest> _stock = [];
     private IReadOnlyList<ErpInventoryLowStockDigest> _lowStock = [];
+    private IReadOnlyList<ErpReservationHold> _holds = [];
+    private decimal _reservedQty;
+    private decimal _availableQty;
     private IReadOnlyList<ErpDimensionCatalog> _dimensionCatalog = [];
     private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private string _dimensionEntityType = "inventory_item";
@@ -306,6 +357,9 @@
         _stock = result.Stock;
         _lowStock = result.LowStock;
         _message = result.Message;
+        _holds = await Reservations.ListActiveHoldsAsync(80, ctx.RequestAborted);
+        _reservedQty = _holds.Sum(h => h.Qty);
+        _availableQty = Math.Max(0m, _summary.QtyOnHand - _reservedQty);
         _dimensionCatalog = await DimensionCatalog.LoadAsync(100, ctx.RequestAborted);
         _pimFormHtml = await ErpPimCustomFields.TryRenderNewItemFieldsAsync(TenantDb, "inventory", ctx.RequestAborted);
         if (_dimensionEntityId > 0)
@@ -321,4 +375,13 @@
         => _openedDimensionLinks.Any(link =>
             string.Equals(link.Key, key, StringComparison.OrdinalIgnoreCase) &&
             link.ValueId == valueId);
+
+    private decimal ReservedFor(long itemId)
+        => _holds.Where(h => h.ItemId == itemId).Sum(h => h.Qty);
+
+    private decimal AvailableFor(long itemId, decimal onHand)
+        => Math.Max(0m, onHand - ReservedFor(itemId));
+
+    private string AsapHref(string kind)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/asap/workbook?kind=" + kind);
 }

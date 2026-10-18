@@ -20,8 +20,9 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Delivery Notes" Subtitle="Create PHP-compatible shipment notes with optional carrier, tracking, and shipped status." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Delivery Notes" Subtitle="Create shipment notes with optional carrier, tracking, and shipped status." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <p class="text-muted" style="margin:0 0 10px;"><a href="/erp/invoices-app#shipping-documents">Several invoices in one shipment</a> become one shipping invoice and one packing slip.</p>
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Delivery Notes KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_notes.Count</div></div>
@@ -50,6 +51,7 @@
                 Currency="—"
                 Fields="@DeliveryWorkspaceFields"
                 Tabs="@DeliveryWorkspaceTabs"
+                RelatedDocuments="@DeliveryRelatedDocuments"
                 HeaderActions="@DeliveryHeaderActions" />
             <p class="text-muted" style="margin:.85rem 0 0">This delivery-note read model exposes shipment header and tracking data; no line body is invented. The guarded document route remains available when a PDF has been generated.</p>
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
@@ -62,7 +64,7 @@
                 {
                     <span>Delivery-note document is not generated yet.</span>
                 }
-                The document is rendered by the guarded delivery-note route; note creation uses the PHP-compatible live write path.
+                The document is rendered by the guarded delivery-note route; note creation uses the guarded live write path.
             </p>
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
             {
@@ -190,6 +192,28 @@
             new("Delivered", FormatTime(_opened.DeliveredAt), "Delivery"),
             new("Document", string.IsNullOrWhiteSpace(_opened.PdfPath) ? "Not generated" : "Available", "Financial")
         ];
+
+    private IReadOnlyList<ErpRelatedDocumentNode> DeliveryRelatedDocuments =>
+        _opened is null
+            ? []
+            : ErpRelatedDocumentMapFactory.ForSales(
+                FormatId(_opened.OrderId),
+                FormatTime(_opened.ShippedAt),
+                "",
+                _opened.OrderId > 0 ? ErpRecordOpen.Href("/erp/sales-orders-app", "so_id", _opened.OrderId) : "/erp/sales-orders-app",
+                [
+                    ErpRelatedDocumentMapFactory.Node(
+                        "delivery_note",
+                        "Delivery",
+                        string.IsNullOrWhiteSpace(_opened.NoteNo) ? _opened.Id.ToString(CultureInfo.InvariantCulture) : _opened.NoteNo,
+                        FormatTime(_opened.ShippedAt),
+                        string.IsNullOrWhiteSpace(_opened.TrackingNo) ? "" : _opened.TrackingNo,
+                        ErpRecordOpen.Href("/erp/delivery-notes-app", "delivery_note_id", _opened.Id),
+                        true,
+                        true)
+                ],
+                currentIsSalesOrder: false,
+                currentIsDelivery: true);
 
     private RenderFragment? DeliveryHeaderActions => _isAdmin
         ? @<div>

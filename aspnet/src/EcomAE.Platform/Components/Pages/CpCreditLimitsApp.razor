@@ -18,7 +18,6 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Credit limits
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/credit-limits-app")</p>
@@ -82,7 +81,7 @@
                     <a class="btn btn-xs btn-default pull-right" href="@_listHref">Close</a>
                 </div>
                 <div class="panel-body">
-                    <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                    <dl class="epc-erp-facts">
                         <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                         <dt>Site</dt><dd>@(string.IsNullOrWhiteSpace(_opened.SiteKey) ? "—" : _opened.SiteKey)</dd>
                         <dt>Customer</dt><dd>@_opened.CustomerId.ToString(CultureInfo.InvariantCulture)</dd>

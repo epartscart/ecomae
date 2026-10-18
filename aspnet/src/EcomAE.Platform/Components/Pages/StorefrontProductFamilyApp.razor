@@ -2,8 +2,9 @@
 @page "/en/product-family"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
 
-<PageTitle>Product Family · eParts Cart</PageTitle>
+<PageTitle>Product Family · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
@@ -19,9 +20,11 @@
 
 @code {
     private string _html = "";
+    private string _brand = "Storefront";
 
     protected override void OnInitialized()
     {
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
         _html = PhpHomeWidgetHtml.ProductFamily();
         if (string.IsNullOrWhiteSpace(_html))
         {

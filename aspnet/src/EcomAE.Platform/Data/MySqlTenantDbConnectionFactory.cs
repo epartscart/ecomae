@@ -48,6 +48,7 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
         var builder = new MySqlConnectionStringBuilder(connectionString);
         ApplyPoolOptions(builder);
         ApplyFirstPaintTimeouts(builder);
+        KeepLoginConnection(builder);
 
         var tenant = CurrentTenant();
         var db = !string.IsNullOrWhiteSpace(databaseName)
@@ -73,7 +74,8 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
             builder.Password = password ?? string.Empty;
         }
         else if (string.IsNullOrWhiteSpace(databaseName)
-            && !string.IsNullOrWhiteSpace(tenant?.DbUser))
+            && tenant is not null
+            && tenant.HasUsableDedicatedCredentials)
         {
             builder.UserID = tenant.DbUser;
             builder.Password = (password ?? tenant.DbPassword) ?? string.Empty;
@@ -89,7 +91,13 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
             return OpenAsync(null, cancellationToken);
         }
 
-        return OpenAsync(tenant.DatabaseName, tenant.DbUser, tenant.DbPassword, cancellationToken);
+        if (tenant.HasUsableDedicatedCredentials)
+        {
+            return OpenAsync(tenant.DatabaseName, tenant.DbUser, tenant.DbPassword, cancellationToken);
+        }
+
+        // Empty dedicated password (ERP-only onboard) — registry CS + DatabaseName only.
+        return OpenAsync(tenant.DatabaseName, userName: null, password: null, cancellationToken);
     }
 
     public async Task<DbConnection> OpenRegistryAsync(CancellationToken cancellationToken = default)
@@ -100,6 +108,7 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
         var builder = new MySqlConnectionStringBuilder(connectionString);
         ApplyPoolOptions(builder);
         ApplyFirstPaintTimeouts(builder);
+        KeepLoginConnection(builder);
         // Explicitly do not apply TenantContext — portal registry must stay isolated.
         return await OpenWithRetryAsync(builder.ConnectionString, cancellationToken).ConfigureAwait(false);
     }
@@ -138,7 +147,9 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
         CancellationToken cancellationToken)
     {
         var pool = _poolOptions.Value;
-        var attempts = Math.Clamp(pool.OpenRetryAttempts, 1, 5);
+        var attempts = ErpFirstPaint.IsLoginPath(_httpContextAccessor.HttpContext?.Request.Path ?? default)
+            ? 1
+            : Math.Clamp(pool.OpenRetryAttempts, 1, 5);
         var delay = Math.Clamp(pool.OpenRetryDelayMilliseconds, 25, 2_000);
 
         for (var attempt = 1; ; attempt++)
@@ -181,6 +192,27 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
         }
 
         builder.DefaultCommandTimeout = remain;
+    }
+
+    /// <summary>
+    /// Login opens a direct connection with an 8s wait. The catalog pool of 32
+    /// and the 1s first-paint cap stay on every other page.
+    /// </summary>
+    private void KeepLoginConnection(MySqlConnectionStringBuilder builder)
+    {
+        if (!ErpFirstPaint.IsLoginPath(_httpContextAccessor.HttpContext?.Request.Path ?? default))
+        {
+            return;
+        }
+
+        // A separate pool still deadlocks when every slot is checked out.
+        // Login opens a direct connection. The catalog keeps its pool of 32.
+        builder.Pooling = false;
+        builder.ConnectionTimeout = 8;
+        if (builder.DefaultCommandTimeout < 8)
+        {
+            builder.DefaultCommandTimeout = 8;
+        }
     }
 
     private string? ResolveBaseConnectionString()

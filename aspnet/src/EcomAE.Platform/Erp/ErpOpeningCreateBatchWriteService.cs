@@ -9,8 +9,8 @@ namespace EcomAE.Platform.Erp;
 //   content/shop/finance/epc_erp_opening.php
 /// <summary>
 /// Live PHP <c>epc_erp_opening_create_batch</c> / ajax <c>opening_create_batch</c> twin.
-/// INSERT draft row on <c>epc_erp_opening_batches</c>. Line add, post, and schema stay PHP.
-/// Does not CREATE tables.
+/// INSERT draft row on <c>epc_erp_opening_batches</c>. Line add and post stay
+/// on their dedicated writers. Does not CREATE tables.
 /// </summary>
 public interface IErpOpeningCreateBatchWriteService
 {
@@ -54,6 +54,7 @@ public sealed class ErpOpeningCreateBatchWriteService : IErpOpeningCreateBatchWr
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureOpeningAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_erp_opening_batches", "as_of_date", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Opening batches table is not provisioned");

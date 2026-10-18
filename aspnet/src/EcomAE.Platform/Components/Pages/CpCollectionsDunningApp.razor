@@ -20,10 +20,9 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Collections dunning
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Queue status, payment, profile, add-invoice, and step process write here. Schema-ensure stays on the Classic twin. Case status is a separate ERP form below. Open a row to see notes and the action log.</p>
+                <p>Queue status, payment, profile, add-invoice, and step process write here. Schema-ensure is not available on this page. Case status is a separate ERP form below. Open a row to see notes and the action log.</p>
             </div>
         </div>
     </div>
@@ -52,7 +51,7 @@
         <form method="post" action="/erp/collections/cases/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_listHref" />
-            <label>Customer id <input type="number" name="customer_id" min="0" style="width:6rem" /></label>
+            <ErpMasterPicker Kind="customer" FieldName="customer_id" InputId="collections-case-customer" Label="Customer" />
             <label>Status
                 <select name="status">
                     <option value="new">new</option>
@@ -163,7 +162,7 @@
         <form method="post" action="/erp/collections/hold/set" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_returnHref" />
-            <label>Customer id <input type="number" name="customer_id" min="1" required style="width:6rem" /></label>
+            <ErpMasterPicker Kind="customer" FieldName="customer_id" InputId="collections-hold-customer" Label="Customer" Required="true" Min="1" />
             <label>Action
                 <select name="place">
                     <option value="1">place</option>

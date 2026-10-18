@@ -125,7 +125,9 @@ public static class StorefrontUsersRegisterEndpoints
         }
 
         var cookies = context.Request.Cookies.ToDictionary(c => c.Key, c => c.Value, StringComparer.Ordinal);
-        var config = context.RequestServices.GetService<ICpPlatformMailer>()?.ReadConfig() ?? PhpConfig(context);
+        var config = OverlayAspNetPrimaryRegisterConfig(
+            context.RequestServices.GetService<ICpPlatformMailer>()?.ReadConfig() ?? PhpConfig(context),
+            context.RequestServices.GetService<IOptions<PhpReferenceOptions>>()?.Value);
         var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
         StorefrontPhpAjax.UsersRegisterOutcome outcome;
         try
@@ -164,6 +166,27 @@ public static class StorefrontUsersRegisterEndpoints
 
         var token = provider.CreateProtector(Purpose).ToTimeLimitedDataProtector().Protect(outcome.Html, ResultLifetime);
         return Results.Redirect(langHref + ResultPath + "?r=" + Uri.EscapeDataString(token));
+    }
+
+    /// <summary>
+    /// ASP.NET-primary storefronts keep the account when the confirm-contact notify
+    /// fails (live SMTP/templates 4698) instead of rolling the registration back.
+    /// Tests that call <see cref="StorefrontPhpAjax.UsersRegisterAsync"/> directly keep PHP goldens.
+    /// </summary>
+    public static IReadOnlyDictionary<string, string> OverlayAspNetPrimaryRegisterConfig(
+        IReadOnlyDictionary<string, string> config,
+        PhpReferenceOptions? php)
+    {
+        if (php is not { PreferAspNetStorefrontApps: true } and not { TemporarilyDeactivatePhpServing: true })
+        {
+            return config;
+        }
+
+        var copy = new Dictionary<string, string>(config, StringComparer.Ordinal)
+        {
+            ["registration_continue_if_confirm_email_fails"] = "1",
+        };
+        return copy;
     }
 
     private static string WebRoot(HttpContext context)

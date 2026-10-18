@@ -46,7 +46,7 @@ public sealed class ErpJwJournalHistoryReadService : IErpJwJournalHistoryReadSer
                    `party_name`,`salesman`,`net_amount`,`vat_amount`,
                    `total_with_vat`,`status`,`authorized`
             FROM `epc_jewel_voucher`
-            WHERE `company_id`=? AND `voc_type` IN ('JVG','JVA')
+            WHERE `company_id`=? AND `voc_type` IN ('JVL','JVG','JVA')
             ORDER BY `voc_date` DESC
             LIMIT {boundedLimit}
             """);

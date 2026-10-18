@@ -31,19 +31,13 @@
 
     function place(r, it, p) {
         var rr = r.getBoundingClientRect();
-        var btn = it.querySelector('.epc-boc__topnav-btn');
-        var br = btn ? btn.getBoundingClientRect() : rr;
         var top = Math.round(rr.bottom);
-        p.style.top = top + 'px';
+        p.style.top = '';
+        p.style.left = '';
+        p.style.right = '';
+        p.style.width = '';
         p.style.maxHeight = Math.max(180, Math.floor(window.innerHeight - top - 12)) + 'px';
         p.hidden = false;
-        var w = p.offsetWidth || 640;
-        var left = Math.round(br.left);
-        var maxLeft = Math.max(8, window.innerWidth - w - 8);
-        if (left > maxLeft) { left = maxLeft; }
-        if (left < 8) { left = 8; }
-        p.style.left = left + 'px';
-        p.style.right = 'auto';
     }
 
     document.addEventListener('click', function (e) {

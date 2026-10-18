@@ -3,16 +3,31 @@
 @using System.Globalization
 @using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Middleware
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Erp
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
-@inject IErpOrganizationMasterReadService OrganizationMasters
+@inject ICpCsrfGuard Csrf
 
 <PageTitle>Purchase requests · ERP · eParts Cart</PageTitle>
+<HeadContent>
+    <style>
+        .epc-pr-create{margin:0 0 14px;padding:16px 18px;border:1px solid #bfdbfe;border-radius:14px;background:#f8fbff;box-shadow:0 10px 24px rgba(15,23,42,.06);}
+        .epc-pr-create h2{margin:0 0 6px;color:#1e3a8a;font-size:18px;font-weight:800;}
+        .epc-pr-create p{margin:0 0 12px;max-width:52rem;color:#475569;font-size:13px;line-height:1.5;}
+        .epc-pr-create form{display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0;}
+        .epc-pr-empty{margin:0 0 14px;padding:28px 18px;border:1px dashed #93c5fd;border-radius:14px;background:#f8fbff;text-align:center;}
+        .epc-pr-empty h3{margin:0 0 6px;color:#1e3a8a;font-size:16px;font-weight:800;}
+        .epc-pr-empty p{margin:0 0 12px;color:#475569;font-size:13px;}
+        .epc-pr-chip{display:inline-flex;align-items:center;padding:4px 9px;border:1px solid #cbd5e1;border-radius:999px;background:#fff;color:#1d4ed8;font-size:11px;font-weight:700;}
+    </style>
+</HeadContent>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin">
 
@@ -23,13 +38,16 @@
             Subtitle="Capture internal demand, route policy approval, and convert approved requests to purchase orders with persisted header and lines."
             PhpTabHref="@_phpTab" />
         <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+        @if (_companyId > 0)
+        {
+            <p style="margin:0 0 12px"><span class="epc-pr-chip">Company @_companyId.ToString(CultureInfo.InvariantCulture)</span></p>
+        }
     }
 
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Purchase requests
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/erp/purchase-requests-app")</p>
@@ -60,50 +78,44 @@
 
     @if (_isAdmin)
     {
-        <form id="erp-module-new" method="post" action="/erp/procurement/requisitions/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+        <section class="epc-pr-create" aria-labelledby="epc-pr-create-title">
+            <h2 id="epc-pr-create-title">New purchase requisition</h2>
+            <p>Save a header for this company, add lines, then submit for policy approval and convert an approved request to a purchase order.</p>
+        <form id="erp-module-new" method="post" action="@Href("/erp/procurement/requisitions/save")" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_listHref" />
+            <input type="hidden" name="returnUrl" value="@_returnListHref" />
+            <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+            <input type="hidden" name="company_id" value="@EffectiveCompanyId.ToString(CultureInfo.InvariantCulture)" />
+            <ErpVoucherHeaderFields DateLabel="Request date" DateFieldName="voc_date" NumberLabel="Requisition no" NumberPreview="Auto" />
             <label>Requester <input type="text" name="requester" maxlength="160" required /></label>
-            @if (_businessUnits.Count == 0)
-            {
-                <label>Business unit <input type="number" name="business_unit_id" min="0" style="width:6rem" /></label>
-            }
-            else
-            {
-                <label>Business unit
-                    <select name="business_unit_id" style="min-width:10rem">
-                        <option value="0">— none —</option>
-                        @foreach (var unit in _businessUnits)
-                        {
-                            <option value="@unit.Id">@unit.Code · @unit.Name</option>
-                        }
-                    </select>
-                </label>
-            }
             <label>Justification <input type="text" name="justification" maxlength="4000" style="width:16rem" /></label>
-            <button type="submit">Save requisition</button>
+            <button type="submit" class="btn btn-primary btn-sm">Save requisition</button>
         </form>
-        <form method="post" action="/erp/procurement/requisitions/add-line" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+        </section>
+        <form method="post" action="@Href("/erp/procurement/requisitions/add-line")" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <input type="hidden" name="csrf_guard_key" value="@_csrf" />
             <label>Req id <input type="number" name="id" min="1" required style="width:6rem" value="@OpenedIdValue" /></label>
             <label>Category <input type="number" name="category_id" min="0" style="width:6rem" /></label>
-            <label>Item <input type="text" name="item_code" maxlength="80" style="width:8rem" /></label>
+            <ErpMasterPicker Kind="item" FieldName="item_code" InputId="pr-line-item" Label="Item" ValueMode="code" />
             <label>Description <input type="text" name="description" maxlength="255" style="width:12rem" /></label>
             <label>Qty <input type="number" step="0.0001" name="qty" style="width:6rem" /></label>
             <label>Unit price <input type="number" step="0.01" name="unit_price" style="width:6rem" /></label>
-            <label>Vendor <input type="text" name="preferred_vendor" maxlength="160" style="width:10rem" /></label>
+            <ErpMasterPicker Kind="supplier" FieldName="preferred_vendor" InputId="pr-line-vendor" Label="Vendor" ValueMode="name" />
             <button type="submit">Add line</button>
         </form>
-        <form method="post" action="/erp/procurement/requisitions/submit" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+        <form method="post" action="@Href("/erp/procurement/requisitions/submit")" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <input type="hidden" name="csrf_guard_key" value="@_csrf" />
             <label>Req id <input type="number" name="id" min="1" required style="width:6rem" value="@OpenedIdValue" /></label>
             <button type="submit">Submit requisition</button>
         </form>
-        <form method="post" action="/erp/procurement/requisitions/decision" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+        <form method="post" action="@Href("/erp/procurement/requisitions/decision")" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <input type="hidden" name="csrf_guard_key" value="@_csrf" />
             <label>Req id <input type="number" name="id" min="1" required style="width:6rem" value="@OpenedIdValue" /></label>
             <label>Decision
                 <select name="approve">
@@ -114,9 +126,10 @@
             <label>Note <input type="text" name="note" maxlength="255" style="width:14rem" /></label>
             <button type="submit">Record decision</button>
         </form>
-        <form method="post" action="/erp/ajax/proc-req-convert" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+        <form method="post" action="@Href("/erp/ajax/proc-req-convert")" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <input type="hidden" name="csrf_guard_key" value="@_csrf" />
             <label>Req id <input type="number" name="id" min="1" required style="width:6rem" value="@OpenedIdValue" /></label>
             <button type="submit">Convert to PO</button>
         </form>
@@ -143,7 +156,7 @@
                 Fields="@RequisitionWorkspaceFields"
                 Lines="@RequisitionWorkspaceLines"
                 Tabs="@RequisitionWorkspaceTabs" />
-            <p class="text-muted" style="margin:.85rem 0 0">The action pane above follows the PHP requisition lifecycle: draft → submit → policy approval → convert to PO. PHP remains the schema owner and fallback.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">The action pane above follows the requisition lifecycle: draft → submit → policy approval → convert to PO.</p>
         </div>
     }
 
@@ -228,6 +241,15 @@
         </div>
     }
 
+    @if (_isAdmin && _requests.Count == 0)
+    {
+        <section class="epc-pr-empty" aria-labelledby="epc-pr-empty-title">
+            <h3 id="epc-pr-empty-title">No purchase requisitions yet</h3>
+            <p>Use the form above to save the first requisition for this company. Add lines, submit, then convert an approved request to a purchase order.</p>
+            <a class="btn btn-primary btn-sm" href="#erp-module-new">Create requisition</a>
+        </section>
+    }
+
     <p class="help-block">@_summary.ReqCount.ToString(CultureInfo.InvariantCulture) Requests · @_summary.DraftCount.ToString(CultureInfo.InvariantCulture) Draft · @_summary.PendingApproval.ToString(CultureInfo.InvariantCulture) Pending approval · @_summary.LineCount.ToString(CultureInfo.InvariantCulture) Lines · @_summary.CategoryCount.ToString(CultureInfo.InvariantCulture) Categories.</p>
 
     <div class="col-lg-12">
@@ -251,7 +273,7 @@
             <tbody>
                 @if (_requests.Count == 0)
                 {
-                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
+                    <tr><td colspan="8">@(_isAdmin ? "No records yet." : "Sign in with a staff session for live rows.")</td></tr>
                 }
                 else
                 {
@@ -283,7 +305,6 @@
     private bool _isAdmin;
     private CpPurchaseRequestsSummary _summary = new(0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpPurchaseRequestDigest> _requests = [];
-    private IReadOnlyList<ErpOrganizationMasterRow> _businessUnits = [];
     private string _source = "n/a";
     private string _message = "";
     private string _flashOk = "";
@@ -292,8 +313,11 @@
     private CpPurchaseRequestDetail? _openedDetail;
     private IReadOnlyList<CpPurchaseRequestLineDigest> _openedLines = [];
     private string _listHref = "/erp/purchase-requests-app";
+    private string _returnListHref = "/erp/purchase-requests-app";
     private string _returnHref = "/erp/purchase-requests-app";
     private bool _isErpRoute;
+    private long _companyId;
+    private string _csrf = "";
     private IReadOnlyList<string> RequisitionWorkspaceTabs => ["General", "Lines", "Approval", "Procurement"];
     private IReadOnlyList<ErpDocumentWorkspaceField> RequisitionWorkspaceFields => _openedDetail is null
         ? []
@@ -329,6 +353,8 @@
             + " · " + (string.IsNullOrWhiteSpace(_openedDetail.Status) ? "open" : _openedDetail.Status);
 
     private string OpenedIdValue => _openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "";
+    private long EffectiveCompanyId => _companyId > 0 ? _companyId : 1;
+    private string Href(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext, path);
 
     protected override async Task OnInitializedAsync()
     {
@@ -337,17 +363,43 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var path = ctx.Request.Path.Value;
-        _isErpRoute = string.Equals(path, "/erp/purchase-requests-app", StringComparison.OrdinalIgnoreCase);
-        _listHref = string.Equals(path, "/erp/purchase-requests-app", StringComparison.OrdinalIgnoreCase)
-            ? "/erp/purchase-requests-app"
-            : "/erp/purchase-requests-app";
+        _isErpRoute = string.Equals(path, "/erp/purchase-requests-app", StringComparison.OrdinalIgnoreCase)
+            || (path ?? string.Empty).Contains("purchase-requests-app", StringComparison.OrdinalIgnoreCase);
+        _listHref = "/erp/purchase-requests-app";
+        if (ctx.Items.TryGetValue(ClientErpPathRewriteMiddleware.OriginalPathItem, out var original)
+            && original is string originalPath
+            && originalPath.Contains("purchase-requests-app", StringComparison.OrdinalIgnoreCase))
+        {
+            _listHref = originalPath.Split('?', 2)[0];
+        }
+        else
+        {
+            _listHref = Href("/erp/purchase-requests-app");
+        }
+
+        long.TryParse(
+            ctx.Request.Query["company"].FirstOrDefault()
+            ?? ctx.Request.Query["company_id"].FirstOrDefault()
+            ?? ctx.Request.Query["companyId"].FirstOrDefault(),
+            NumberStyles.Integer,
+            CultureInfo.InvariantCulture,
+            out _companyId);
+        if (_companyId < 0)
+        {
+            _companyId = 0;
+        }
+
+        _returnListHref = _companyId > 0
+            ? _listHref + "?company=" + _companyId.ToString(CultureInfo.InvariantCulture)
+            : _listHref;
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "req_id", "rq");
         _returnHref = _openedId > 0
-            ? ErpRecordOpen.Href(_listHref, "req_id", _openedId).Split('#')[0]
-            : _listHref;
+            ? ErpRecordOpen.Href(_returnListHref, "req_id", _openedId).Split('#')[0]
+            : _returnListHref;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _csrf = _isAdmin ? await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted) : "";
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data
@@ -358,13 +410,19 @@
         _requests = result.Requests;
         _source = result.Source;
         _message = result.Message;
-
-        var masters = await OrganizationMasters.LoadAsync(200, ctx.RequestAborted);
-        _businessUnits = masters.BusinessUnits
-            .Where(unit => unit.Active)
-            .OrderBy(unit => unit.Code, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(unit => unit.Id)
-            .ToList();
+        if (_companyId > 0)
+        {
+            _requests = _requests.Where(row => row.CompanyId == _companyId).ToList();
+            _summary = _summary with
+            {
+                ReqCount = _requests.Count,
+                DraftCount = _requests.Count(row => string.Equals(row.Status, "draft", StringComparison.OrdinalIgnoreCase)),
+                PendingApproval = _requests.Count(row => row.RequiresApproval
+                    && !string.Equals(row.Status, "approved", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(row.Status, "rejected", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(row.Status, "converted", StringComparison.OrdinalIgnoreCase))
+            };
+        }
 
         if (_openedId > 0)
         {

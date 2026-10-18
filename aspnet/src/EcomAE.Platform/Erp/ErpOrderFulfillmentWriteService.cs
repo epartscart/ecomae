@@ -105,7 +105,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         if (orderId <= 0) return ErpFulfillmentResult.Fail("Order ID required");
 
         await using var c = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await EnsureSchemaAsync(c, cancellationToken).ConfigureAwait(false);
+        await EnsureReadyAsync(c, cancellationToken).ConfigureAwait(false);
         if (!await ProvisionedAsync(c, cancellationToken).ConfigureAwait(false))
         {
             return ErpFulfillmentResult.Fail("Order fulfillment schema is not provisioned");
@@ -162,6 +162,14 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
 
         await SyncOrderCaseAsync(orderId, pfActor, cancellationToken).ConfigureAwait(false);
         return ErpFulfillmentResult.Success(new ErpFulfillmentBootstrapPayload(orderId, soId.id, poIds, true), writes);
+    }
+
+    /// <summary>PHP <c>epc_erp_order_fulfillment_ensure_schema()</c>: vouchers + extended SO/PO tables, then fulfillment columns.</summary>
+    private static async Task EnsureReadyAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpSalesOrderWriteService.EnsureSchemaAsync(c, ct).ConfigureAwait(false);
+        await ErpPurchaseOrderWriteService.EnsureSchemaAsync(c, ct).ConfigureAwait(false);
+        await EnsureSchemaAsync(c, ct).ConfigureAwait(false);
     }
 
     /// <summary>PHP <c>epc_erp_order_fulfillment_ensure_schema()</c> fulfillment columns (additive; errors ignored like PHP).</summary>
@@ -229,6 +237,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
     {
         if (!_connections.IsConfigured) return ErpFulfillmentResult.Fail("TenantRegistry DB is not configured.");
         await using var c = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureReadyAsync(c, cancellationToken).ConfigureAwait(false);
         if (!await ProvisionedAsync(c, cancellationToken).ConfigureAwait(false))
         {
             return ErpFulfillmentResult.Fail("Order fulfillment schema is not provisioned");
@@ -247,6 +256,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
     {
         if (!_connections.IsConfigured) return ErpFulfillmentResult.Fail("TenantRegistry DB is not configured.");
         await using var c = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureReadyAsync(c, cancellationToken).ConfigureAwait(false);
         if (!await ProvisionedAsync(c, cancellationToken).ConfigureAwait(false))
         {
             return ErpFulfillmentResult.Fail("Order fulfillment schema is not provisioned");
@@ -275,6 +285,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         if (poId <= 0) return ErpFulfillmentResult.Fail("Purchase order not found");
 
         await using var c = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureReadyAsync(c, cancellationToken).ConfigureAwait(false);
         if (!await ProvisionedAsync(c, cancellationToken).ConfigureAwait(false))
         {
             return ErpFulfillmentResult.Fail("Order fulfillment schema is not provisioned");
@@ -389,6 +400,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         if (orderId <= 0) return ErpFulfillmentResult.Fail("Order ID required");
 
         await using var c = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureReadyAsync(c, cancellationToken).ConfigureAwait(false);
         if (!await ProvisionedAsync(c, cancellationToken).ConfigureAwait(false))
         {
             return ErpFulfillmentResult.Fail("Order fulfillment schema is not provisioned");
@@ -481,6 +493,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         if (orderId <= 0) return ErpFulfillmentResult.Fail("Order ID required");
 
         await using var c = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureReadyAsync(c, cancellationToken).ConfigureAwait(false);
         if (!await ProvisionedAsync(c, cancellationToken).ConfigureAwait(false))
         {
             return ErpFulfillmentResult.Fail("Order fulfillment schema is not provisioned");
@@ -533,6 +546,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         }
 
         await using var c = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureReadyAsync(c, cancellationToken).ConfigureAwait(false);
         if (!await ProvisionedAsync(c, cancellationToken).ConfigureAwait(false))
         {
             return ErpFulfillmentResult.Fail("Order fulfillment schema is not provisioned");
@@ -753,6 +767,13 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         if (amountEx <= 0 || supplierId <= 0) return (0, 0);
 
         var tax = await _tax.CalcPurchaseAsync(c, null, (decimal)amountEx, (int)supplierId, false, ct).ConfigureAwait(false);
+        await ErpSupplierWriteService.RequireKycForCoveredPurchaseAsync(
+            c,
+            supplierId,
+            tax.TotalAmount,
+            0,
+            "epc_erp_purchase_orders",
+            ct).ConfigureAwait(false);
         var now = Now();
         var poNo = await _vouchers.NextAsync(c, null, "PO", ct).ConfigureAwait(false);
         var writes = 0;

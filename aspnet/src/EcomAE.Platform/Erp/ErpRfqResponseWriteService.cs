@@ -54,10 +54,11 @@ public sealed class ErpRfqResponseWriteService : IErpRfqResponseWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpRfqSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_scm_rfq_lines", cancellationToken).ConfigureAwait(false)
             || !await TableExistsAsync(connection, "epc_scm_rfq_responses", cancellationToken).ConfigureAwait(false))
         {
-            return ErpSimpleWriteResult.Fail("schema", "PHP SCM response tables are not provisioned.");
+            return ErpSimpleWriteResult.Fail("schema", "RFQ response tables are not provisioned.");
         }
 
         var lineExists = await ErpDb.LongAsync(

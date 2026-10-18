@@ -990,7 +990,7 @@ public sealed class CpDeskPhpAjaxTests
             Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_portal_site_settings"));
             Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'epc_portal_site_settings' AND column_name = 'integrations_json'"));
             var smtpMissing = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, Form(("action", "save_tenant_smtp"), ("smtp_host", "mail.example.test")), staff);
-            Assert.Equal("Site settings row is missing. Schema ensure stays on the Classic twin.", smtpMissing.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("Site settings row is missing. Schema ensure is not available on this page.", smtpMissing.Json.RootElement.GetProperty("message").GetString());
 
             await ExecuteAsync(connectionString, "INSERT INTO epc_portal_site_settings (host, updated_at) VALUES ('127.0.0.1', 1)");
             var savedMobile = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, mobile, staff);

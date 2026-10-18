@@ -9,58 +9,129 @@
 @inject IHttpContextAccessor Http
 <PageTitle>@(_isErpHost ? "Automation Centre · ERP" : "Workflows · Control Panel") · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="@(_isErpHost ? "erp" : "cp")" />
-<HeadContent>
+@* Body style: live SSR drops HeadOutlet on /erp/*, so HeadContent never paints this page. *@
 <style>
-.epc-auto-hero{background:linear-gradient(135deg,#0b3d4a 0%,#0e7490 48%,#22d3ee 100%);color:#fff;border-radius:14px;padding:22px 24px;margin-bottom:16px;position:relative;overflow:hidden}
-.epc-auto-hero::after{content:"";position:absolute;right:-40px;top:-40px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.08)}
-.epc-auto-hero h3{margin:0 0 6px;font-size:20px;font-weight:800;color:#fff}
-.epc-auto-hero p{margin:0;max-width:720px;opacity:.95}
-.epc-auto-kpis{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 18px}
-.epc-auto-kpis .kpi{flex:1 1 120px;background:#fff;border:1px solid #dbeafe;border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(14,116,144,.08)}
-.epc-auto-kpis .kpi .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;font-weight:700}
-.epc-auto-kpis .kpi .val{font-size:22px;font-weight:800;color:#0f172a;margin-top:2px}
-.epc-auto-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
-.epc-auto-tabs a{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:1px solid #e2e8f0;background:#fff;color:#334155;font-weight:600;font-size:12px;text-decoration:none}
-.epc-auto-tabs a.active{background:linear-gradient(135deg,#0e7490,#22d3ee);color:#fff;border-color:transparent}
-.epc-auto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:18px}
-.epc-auto-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-height:180px}
+.epc-auto-hero{background:#0f4c6e;color:#fff;padding:12px 14px;margin:0 0 12px}
+.epc-auto-hero h3{margin:0 0 4px;font-size:16px;font-weight:800;color:#fff}
+.epc-auto-hero p{margin:0;max-width:46rem;font-size:13px;line-height:1.4}
+.epc-auto-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.epc-auto-kpis .kpi{background:#fff;border:1px solid #dbe4ea;padding:8px 10px;min-width:0}
+.epc-auto-kpis .kpi .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-weight:700}
+.epc-auto-kpis .kpi .val{font-size:18px;font-weight:800;color:#0f172a;margin-top:2px;font-variant-numeric:tabular-nums}
+.epc-auto-tabs{display:flex;flex-wrap:wrap;gap:0;margin:0 0 12px;border-bottom:1px solid #dbe4ea}
+.epc-auto-tabs a{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:0;border-bottom:3px solid transparent;background:transparent;color:#334155;font-weight:700;font-size:12px;text-decoration:none}
+.epc-auto-tabs a.active{color:#0e7490;border-bottom-color:#0e7490;background:#fff}
+.epc-auto-chains{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:auto auto auto;gap:12px;align-items:stretch;margin:0 0 12px}
+.epc-auto-chains>.epc-auto-chain{display:grid;grid-template-rows:subgrid;grid-row:span 3;gap:0}
+.epc-auto-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:auto auto auto auto;gap:12px;margin:0;align-items:stretch}
+.epc-auto-card{background:#fff;border:1px solid #dbe4ea;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.epc-auto-grid>.epc-auto-card{display:grid;grid-template-rows:subgrid;grid-row:span 4;gap:8px;height:auto}
 .epc-auto-card__head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-.epc-auto-card__title{margin:0;font-size:14px;font-weight:800;color:#0f172a}
-.epc-auto-card__title i{color:#0e7490;margin-right:6px}
-.epc-auto-card__desc{margin:0;font-size:12px;color:#64748b;line-height:1.45;flex:1}
-.epc-auto-card__actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
-.epc-auto-pipeline{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:4px 0}
-.epc-auto-pipeline__step{display:flex;align-items:center;gap:6px;background:linear-gradient(180deg,#f8fafc,#f1f5f9);border:1px solid #e2e8f0;border-left:3px solid var(--epc-step,#0ea5e9);border-radius:8px;padding:6px 8px;min-width:72px}
-.epc-auto-pipeline__num{width:18px;height:18px;border-radius:50%;background:var(--epc-step,#0ea5e9);color:#fff;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
-.epc-auto-pipeline__label{font-size:10px;font-weight:700;color:#334155;line-height:1.2}
-.epc-auto-pipeline__arrow{color:#94a3b8;font-size:10px;padding:0 2px}
-.epc-auto-canvas{background:#0b1220;border-radius:14px;padding:18px;margin-bottom:16px;overflow-x:auto}
-.epc-auto-flow{display:flex;align-items:stretch;gap:0;min-width:max-content;padding:8px 4px}
-.epc-auto-node{width:160px;background:#111827;border:1px solid #334155;border-radius:12px;padding:12px;color:#e2e8f0;box-shadow:0 8px 24px rgba(0,0,0,.35)}
-.epc-auto-node--trigger{border-color:#22d3ee;background:linear-gradient(180deg,#083344,#0f172a)}
-.epc-auto-node--action{border-color:#34d399}
-.epc-auto-node__kind{font-size:9px;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:4px}
-.epc-auto-node__title{font-size:13px;font-weight:700;margin:0 0 4px}
-.epc-auto-node__meta{font-size:11px;opacity:.75}
-.epc-auto-connector{width:36px;display:flex;align-items:center;justify-content:center;color:#22d3ee;position:relative}
-.epc-auto-connector::before{content:"";position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,#22d3ee,#34d399);top:50%}
-.epc-auto-connector i{position:relative;z-index:1;background:#0b1220;padding:2px}
-.epc-auto-map{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:12px 0}
-.epc-auto-map__item{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px}
-.epc-auto-map__item h5{margin:0 0 6px;font-size:12px;font-weight:800}
-.epc-wf-table-wrap{background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;overflow:auto}
-.epc-wf-table{width:100%;border-collapse:collapse;font-size:.86rem}
-.epc-wf-table th,.epc-wf-table td{padding:.55rem .7rem;border-bottom:1px solid #f1f5f9;text-align:left;white-space:nowrap}
-.epc-wf-table th{background:#f8fafc;color:#475569;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em}
+.epc-auto-card__head .label{flex:0 0 auto}
+.epc-auto-card__title{margin:0;font-size:13px;font-weight:800;color:#0f172a;line-height:1.3}
+.epc-auto-card__title i{color:#0e7490;width:1.1rem;text-align:center;margin-right:4px}
+.epc-auto-card__desc{margin:0;font-size:12px;color:#475569;line-height:1.4}
+.epc-auto-card__actions{display:flex;gap:6px;margin-top:auto}
+.epc-auto-pipeline{display:flex;flex-direction:column;gap:0;margin:0}
+.epc-auto-pipeline__step{display:grid;grid-template-columns:1.35rem minmax(0,1fr);align-items:center;gap:8px;width:100%;min-width:0;padding:4px 0;border:0;border-bottom:1px solid #eef2f6;border-radius:0;background:transparent;color:#0f172a;text-decoration:none}
+.epc-auto-pipeline__num{width:1.2rem;height:1.2rem;border-radius:50%;background:#0e7490;color:#fff;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+.epc-auto-pipeline__label{font-size:12px;font-weight:650;color:#1e293b;line-height:1.3}
+.epc-auto-pipeline__arrow{display:none}
+.epc-auto-canvas{background:#fff;border:1px solid #dbe4ea;padding:10px 12px;margin:0}
+.epc-auto-flow-row{display:grid;grid-template-columns:9.5rem minmax(0,1fr);gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef2f6}
+.epc-auto-flow-row:last-child{border-bottom:0}
+.epc-auto-flow-name{font-size:12px;font-weight:800;color:#0f172a}
+.epc-auto-flow{display:flex;align-items:stretch;gap:0;min-width:0;overflow-x:auto;padding:2px 0}
+.epc-auto-node{flex:0 0 9.5rem;width:9.5rem;background:#fff;border:1px solid #dbe4ea;border-left:3px solid #0e7490;padding:8px 10px;color:#0f172a;box-shadow:none}
+.epc-auto-node--trigger{border-left-color:#0e7490;background:#f8fafc}
+.epc-auto-node--action{border-left-color:#0f766e}
+.epc-auto-node__kind{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-bottom:2px}
+.epc-auto-node__title{font-size:12px;font-weight:750;margin:0;color:#0f172a;line-height:1.3}
+.epc-auto-node__meta{display:none}
+.epc-auto-connector{width:1.4rem;display:flex;align-items:center;justify-content:center;color:#94a3b8;position:relative}
+.epc-auto-connector::before{content:"";position:absolute;left:0;right:0;height:1px;background:#cbd5e1;top:50%}
+.epc-auto-connector i{position:relative;z-index:1;background:#fff;padding:0 1px;font-size:10px}
+.epc-auto-map{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:auto auto auto auto;gap:10px;margin:0;align-items:stretch}
+.epc-auto-map__item{background:#fff;border:1px solid #dbe4ea;padding:10px 12px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.epc-auto-map>.epc-auto-map__item{display:grid;grid-template-rows:subgrid;grid-row:span 4;gap:6px}
+.epc-auto-map__item h5{margin:0;font-size:13px;font-weight:800;color:#0f172a}
+.epc-auto-map__item p{margin:0}
+.ef-window{margin:0 0 12px;background:#fff;border:1px solid #dbe4ea;min-width:0}
+.ef-title{display:flex;align-items:center;gap:8px;margin:0;padding:8px 12px;background:#f8fafc;border-bottom:1px solid #dbe4ea;font-size:13px;font-weight:800;color:#0f172a}
+.ef-title .btn{margin-left:auto}
+.ef-body{padding:10px 12px}
+.ef-body>.text-muted{margin:0 0 8px;font-size:12px;color:#475569}
+.epc-wf-table-wrap{background:#fff;border:1px solid #dbe4ea;overflow:auto;max-width:100%;min-width:0}
+.epc-wf-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.epc-wf-table th,.epc-wf-table td{padding:7px 8px;border-bottom:1px solid #eef2f6;text-align:left;vertical-align:middle;white-space:nowrap}
+.epc-wf-table td:nth-child(3),.epc-wf-table th:nth-child(3){white-space:normal;min-width:10rem}
+.epc-wf-table th{background:#f8fafc;color:#475569;font-size:11px;text-transform:uppercase;letter-spacing:.03em}
+.epc-auto-guide{margin:0 0 12px;padding:10px 12px;border:1px solid #dbe4ea;background:#fff}
+.epc-auto-guide h3{margin:0 0 4px;font-size:14px;color:#0f172a}
+.epc-auto-guide__lead{margin:0 0 8px;color:#475569;font-size:12px}
+.epc-auto-guide__steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;list-style:none;margin:0;padding:0}
+.epc-auto-guide__steps li{border:1px solid #dbe4ea;border-top:3px solid #0e7490;background:#f8fafc;padding:8px 10px;min-width:0}
+.epc-auto-guide__n{display:inline-block;width:18px;height:18px;border-radius:50%;background:#0e7490;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;margin-right:4px}
+.epc-auto-guide__steps strong{color:#0f172a}
+.epc-auto-guide__steps p{margin:4px 0 0;font-size:12px;color:#475569}
+.epc-auto-chain{background:#fff;border:1px solid #dbe4ea;padding:10px 12px;margin:0;display:flex;flex-direction:column;min-width:0}
+.epc-auto-chain h4{margin:0 0 2px;font-size:13px;color:#0f172a}
+.epc-auto-chain>p{margin:0 0 8px;color:#475569;font-size:12px;line-height:1.35}
+.epc-auto-off{margin-top:12px}
+.epc-auto-off form[data-epc-inline="1"]{display:flex !important;flex-wrap:wrap;gap:8px;align-items:flex-end;width:auto !important;margin:0 !important;padding:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important}
+.epc-auto-off form[data-epc-inline="1"] > label{width:22rem !important;max-width:100%;flex:0 0 auto}
+.epc-auto-off label{display:flex;flex-direction:column;gap:2px;margin:0;font-size:11px;font-weight:700;color:#475569}
+@@media (max-width: 1100px){
+  .epc-auto-chains,.epc-auto-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .epc-auto-map,.epc-auto-guide__steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .epc-auto-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@@media (max-width: 720px){
+  .epc-auto-chains,.epc-auto-grid,.epc-auto-map,.epc-auto-guide__steps,.epc-auto-kpis{grid-template-columns:1fr}
+  .epc-auto-flow-row{grid-template-columns:1fr}
+}
 </style>
-</HeadContent>
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin">
 
     <div class="epc-auto-hero">
         <h3><i class="fa fa-magic"></i> Accounting &amp; Business Process Automation</h3>
-        <p>See every automation available for this ERP tenant, watch the graphical pipeline, and open the matching module. Custom trigger → condition → action builder execute is not on this screen.</p>
+        <p>This is the automation centre. It runs a chain when a document is saved or posted. The department workflow board is the human task list, and it stays on its own page.</p>
     </div>
+    <section class="epc-auto-guide" aria-label="How automation runs">
+        <h3>How a chain runs</h3>
+        <p class="epc-auto-guide__lead">An event starts the chain. The centre checks the rule. The actions run in order. The last step opens the module that owns the document.</p>
+        <ol class="epc-auto-guide__steps">
+            <li><span class="epc-auto-guide__n">1</span><strong>Event</strong><p>An order, a receipt, a due date, or the end of a period.</p></li>
+            <li><span class="epc-auto-guide__n">2</span><strong>Check</strong><p>Credit, amount, match, or the calendar.</p></li>
+            <li><span class="epc-auto-guide__n">3</span><strong>Act</strong><p>Post, notify, hold, or route to the next person.</p></li>
+            <li><span class="epc-auto-guide__n">4</span><strong>Open</strong><p>The module behind the last step shows the document.</p></li>
+        </ol>
+    </section>
+    <section class="epc-auto-chains" aria-label="Full system chains">
+        @foreach (var chain in ErpAutomationCatalogue.SystemChains)
+        {
+            <div class="epc-auto-chain">
+                <h4>@chain.Name</h4>
+                <p>@chain.Purpose</p>
+                <div class="epc-auto-pipeline" role="list">
+                    @{ var steps = ChainItems(chain); }
+                    @for (var i = 0; i < steps.Count; i++)
+                    {
+                        var item = steps[i];
+                        if (i > 0)
+                        {
+                            <div class="epc-auto-pipeline__arrow" aria-hidden="true"><i class="fa fa-chevron-right"></i></div>
+                        }
+                        <a class="epc-auto-pipeline__step" role="listitem" href="@WithCompany(ErpAutomationCatalogue.OpenHref(item))" style="--epc-step:#0e7490;text-decoration:none">
+                            <span class="epc-auto-pipeline__num">@((i + 1).ToString(CultureInfo.InvariantCulture))</span>
+                            <span class="epc-auto-pipeline__label">@item.Name</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    </section>
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -142,21 +213,30 @@
         <div class="ef-window">
             <div class="ef-title"><i class="fa fa-cogs"></i> Workflow — graphical builder</div>
             <div class="ef-body">
-                <p class="text-muted">Preview of the trigger → action chain. Saving a custom workflow from this canvas is not on this screen.</p>
+                <p class="text-muted">Each installed chain is a trigger followed by its actions. Open a node to work in that module.</p>
                 <div class="epc-auto-canvas">
-                    <div class="epc-auto-flow">
-                        <div class="epc-auto-node epc-auto-node--trigger">
-                            <div class="epc-auto-node__kind">Trigger</div>
-                            <div class="epc-auto-node__title">event</div>
-                            <div class="epc-auto-node__meta">Starts the chain</div>
+                    @foreach (var chain in ErpAutomationCatalogue.SystemChains)
+                    {
+                        <div class="epc-auto-flow-row">
+                            <div class="epc-auto-flow-name">@chain.Name</div>
+                            <div class="epc-auto-flow" aria-label="@chain.Name">
+                                @{ var steps = ChainItems(chain); }
+                                @for (var i = 0; i < steps.Count; i++)
+                                {
+                                    var item = steps[i];
+                                    if (i > 0)
+                                    {
+                                        <div class="epc-auto-connector"><i class="fa fa-arrow-right"></i></div>
+                                    }
+                                    <a class="epc-auto-node @(i == 0 ? "epc-auto-node--trigger" : "epc-auto-node--action")" href="@WithCompany(ErpAutomationCatalogue.OpenHref(item))" style="text-decoration:none;color:inherit">
+                                        <div class="epc-auto-node__kind">@(i == 0 ? "Trigger" : "Action")</div>
+                                        <div class="epc-auto-node__title">@item.Name</div>
+                                        <div class="epc-auto-node__meta">@chain.Name</div>
+                                    </a>
+                                }
+                            </div>
                         </div>
-                        <div class="epc-auto-connector"><i class="fa fa-arrow-right"></i></div>
-                        <div class="epc-auto-node epc-auto-node--action">
-                            <div class="epc-auto-node__kind">Action</div>
-                            <div class="epc-auto-node__title">Notify team</div>
-                            <div class="epc-auto-node__meta">send_notification</div>
-                        </div>
-                    </div>
+                    }
                 </div>
             </div>
         </div>
@@ -167,7 +247,7 @@
         <div class="ef-window" style="margin-bottom:16px">
             <div class="ef-title">@OpenedCaption <a class="btn btn-xs btn-default" href="@_listHref">Close</a></div>
             <div class="ef-body">
-                <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dl class="epc-erp-facts">
                     <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                     <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Name) ? "—" : _opened.Name)</dd>
                     <dt>Site</dt><dd>@(string.IsNullOrWhiteSpace(_opened.SiteKey) ? "—" : _opened.SiteKey)</dd>
@@ -177,10 +257,10 @@
                     <dt>Runs</dt><dd>@_opened.RunCount.ToString(CultureInfo.InvariantCulture)</dd>
                     <dt>Last status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.LastRunStatus) ? "—" : _opened.LastRunStatus)</dd>
                 </dl>
-                <p class="text-muted" style="margin:.85rem 0 0">trigger_config omitted. Tick / execute stay Classic. This page does not invent a send.</p>
+                <p class="text-muted" style="margin:.85rem 0 0">trigger_config omitted. Tick / execute are not available on this page. This page does not invent a send.</p>
                 @if (_isAdmin)
                 {
-                    <form method="post" action="/cp/workflows/write" class="well" style="margin:.85rem 0 0">
+                    <form method="post" action="/cp/workflows/write" data-epc-inline="1" style="margin:.85rem 0 0">
                         <input type="hidden" name="confirmWrites" value="true" />
                         <input type="hidden" name="returnUrl" value="@ReturnHref" />
                         <input type="hidden" name="action" value="toggle" />
@@ -196,7 +276,7 @@
                             <button type="submit" class="btn btn-default">Enable workflow</button>
                         }
                     </form>
-                    <p class="help-block" style="margin:.75rem 0 0">Schema-ensure stays Classic.</p>
+                    <p class="help-block" style="margin:.75rem 0 0">Schema-ensure is not available on this page.</p>
                 }
                 @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
                 {
@@ -294,39 +374,43 @@
         </div>
     }
 
-</PhpErpDesktopChrome>
-
-<form method="post" action="/erp/automation/deactivate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+    <section class="epc-auto-chain epc-auto-off">
+        <h4>Turn an automation off</h4>
+        <p>The chain stays in the catalogue. Turning it off stops it from running for this company.</p>
+        <form method="post" action="/erp/automation/deactivate" data-epc-inline="1">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@ReturnHref" />
             <label>Automation
                 <select name="id">
-                    <option value="order_to_erp">order_to_erp</option>
-                    <option value="period_close">period_close</option>
-                    <option value="year_end_close">year_end_close</option>
-                    <option value="bank_recon">bank_recon</option>
-                    <option value="collections_dunning">collections_dunning</option>
-                    <option value="report_scheduler">report_scheduler</option>
-                    <option value="vat_reminder">vat_reminder</option>
-                    <option value="gl_auto_post">gl_auto_post</option>
-                    <option value="payment_reminder">payment_reminder</option>
-                    <option value="depreciation_run">depreciation_run</option>
-                    <option value="po_approval">po_approval</option>
-                    <option value="invoice_autosend">invoice_autosend</option>
-                    <option value="low_stock_alert">low_stock_alert</option>
-                    <option value="employee_onboarding">employee_onboarding</option>
-                    <option value="daily_sales_summary">daily_sales_summary</option>
-                    <option value="aml_alert">aml_alert</option>
-                    <option value="process_flow_routing">process_flow_routing</option>
-                    <option value="three_way_match">three_way_match</option>
-                    <option value="subscription_billing">subscription_billing</option>
-                    <option value="rma_warranty">rma_warranty</option>
-                    <option value="credit_check">credit_check</option>
-                    <option value="goods_receipt_notify">goods_receipt_notify</option>
+                    <option value="order_to_erp">Order → ERP posting</option>
+                    <option value="period_close">Period close checklist</option>
+                    <option value="year_end_close">Year-end P&amp;L close</option>
+                    <option value="bank_recon">Bank reconciliation assist</option>
+                    <option value="collections_dunning">Collections &amp; dunning</option>
+                    <option value="report_scheduler">Report scheduler</option>
+                    <option value="vat_reminder">VAT filing reminder</option>
+                    <option value="gl_auto_post">Document → GL auto-post</option>
+                    <option value="payment_reminder">AP payment due reminder</option>
+                    <option value="depreciation_run">Fixed-asset depreciation</option>
+                    <option value="po_approval">PO approval chain</option>
+                    <option value="invoice_autosend">Invoice auto-send</option>
+                    <option value="low_stock_alert">Low stock alert</option>
+                    <option value="employee_onboarding">Employee onboarding</option>
+                    <option value="daily_sales_summary">Daily sales summary</option>
+                    <option value="aml_alert">AML compliance alert</option>
+                    <option value="process_flow_routing">Process flow routing</option>
+                    <option value="three_way_match">3-way match (PO/GRN/Bill)</option>
+                    <option value="subscription_billing">Subscription recurring billing</option>
+                    <option value="rma_warranty">Warranty / RMA workflow</option>
+                    <option value="credit_check">Credit limit gate</option>
+                    <option value="goods_receipt_notify">Goods receipt notify</option>
                 </select>
             </label>
-            <button type="submit">Disable automation</button>
+            <button type="submit" class="btn btn-sm btn-default">Disable automation</button>
         </form>
+    </section>
+
+</PhpErpDesktopChrome>
 
 @code {
     private bool _isAdmin;
@@ -340,6 +424,7 @@
     private int _activeDefault;
     private int _availableDefault;
     private string _listHref = "/erp/workflows-app";
+    private int _companyId;
     private long _openedId;
     private CpWorkflowDetail? _opened;
     private IReadOnlyList<CpWorkflowDigest> _openedSiblings = [];
@@ -363,6 +448,7 @@
         _basePath = _isErpHost ? "/erp/workflows-app" : "/erp/workflows-app";
         _listHref = _basePath;
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "workflow_id");
+        _companyId = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
         _view = (ctx.Request.Query["auto_view"].ToString() ?? "hub").Trim().ToLowerInvariant();
         if (_view is not ("hub" or "accounting" or "processes" or "builder" or "runs"))
         {
@@ -388,8 +474,33 @@
         }
     }
 
-    private string AutoHref(string view) => _basePath + "?auto_view=" + Uri.EscapeDataString(view);
+    private string AutoHref(string view) => WithCompany(_basePath + "?auto_view=" + Uri.EscapeDataString(view));
+
+    private string WithCompany(string href)
+    {
+        if (_companyId <= 0 || href.Contains("company=", StringComparison.OrdinalIgnoreCase))
+        {
+            return href;
+        }
+
+        return href + (href.Contains('?', StringComparison.Ordinal) ? "&" : "?") + "company=" + _companyId.ToString(CultureInfo.InvariantCulture);
+    }
     private string TabClass(string view) => string.Equals(_view, view, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+
+    private static IReadOnlyList<ErpAutomationCatalogue.Item> ChainItems(ErpAutomationCatalogue.Chain chain)
+    {
+        var steps = new List<ErpAutomationCatalogue.Item>();
+        foreach (var id in chain.ItemIds)
+        {
+            var item = ErpAutomationCatalogue.Find(id);
+            if (item is not null)
+            {
+                steps.Add(item);
+            }
+        }
+
+        return steps;
+    }
 
     private RenderFragment Card(ErpAutomationCatalogue.Item autoItem, string tone) => __builder =>
     {
@@ -417,7 +528,7 @@
                 }
             </div>
             <div class="epc-auto-card__actions">
-                <a class="btn btn-default btn-xs" href="@ErpAutomationCatalogue.OpenHref(autoItem)"><i class="fa fa-external-link"></i> Open</a>
+                <a class="btn btn-default btn-xs" href="@WithCompany(ErpAutomationCatalogue.OpenHref(autoItem))"><i class="fa fa-external-link"></i> Open</a>
             </div>
         </div>
     };

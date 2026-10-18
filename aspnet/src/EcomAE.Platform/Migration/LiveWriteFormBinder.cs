@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Migration;
 
@@ -255,7 +256,7 @@ public static class LiveWriteFormBinder
     {
         if (WantsHtml(context))
         {
-            var dest = ReturnUrl(context, fallbackReturnUrl);
+            var dest = ClientErpPath.PrefixIfBound(context, ReturnUrl(context, fallbackReturnUrl));
             var sep = dest.Contains('?', StringComparison.Ordinal) ? '&' : '?';
             var key = ok ? "ok" : "err";
             return Results.Redirect(dest + sep + key + "=" + Uri.EscapeDataString(message ?? string.Empty));
@@ -268,7 +269,7 @@ public static class LiveWriteFormBinder
     {
         if (WantsHtml(context))
         {
-            return Results.Redirect(loginPath);
+            return Results.Redirect(ClientErpPath.PrefixIfBound(context, loginPath));
         }
 
         return Results.Json(

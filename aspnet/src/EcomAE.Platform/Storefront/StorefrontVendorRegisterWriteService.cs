@@ -10,7 +10,7 @@ namespace EcomAE.Platform.Storefront;
 /// <summary>
 /// Live PHP <c>content/shop/vendor/vendor_register.php</c> account INSERT.
 /// Auto-approve reuses <see cref="ICpVendorApprovalWriteService"/> (group bind + warehouse).
-/// Activation e-mail / SMS stay uninvented. Schema-ensure for missing tables stays Classic.
+/// Activation e-mail / SMS stay uninvented. Schema-ensure for missing tables is not available on this page.
 /// </summary>
 public interface IStorefrontVendorRegisterWriteService
 {
@@ -272,7 +272,7 @@ public sealed class StorefrontVendorRegisterWriteService : IStorefrontVendorRegi
                 || !await TableExistsAsync(connection, "groups", cancellationToken).ConfigureAwait(false)
                 || !await TableExistsAsync(connection, "epc_vendor_accounts", cancellationToken).ConfigureAwait(false))
             {
-                return Fail("schema", "Vendor tables are not provisioned. Schema ensure stays on the Classic twin.");
+                return Fail("schema", "Vendor tables are not provisioned. Schema ensure is not available on this page.");
             }
 
             var emailTaken = await ErpDb.LongAsync(

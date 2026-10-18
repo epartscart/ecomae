@@ -356,7 +356,7 @@
                     <section class="epc-od__panel @(_detailTab == "manage" ? "is-active" : null)" data-epc-od-panel="manage" style="@(_detailTab == "manage" ? null : "display:none")">
                         <div class="epc-od__edit">
                             <div class="epc-od__edit-title">Update order</div>
-                            <p class="text-muted small">Item status, line price/qty/brand, staff message, courier fee, unpaid delete, comment, viewed, and supplier fulfillment write live here. Payment / notify stay Classic.</p>
+                            <p class="text-muted small">Item status, line price/qty/brand, staff message, courier fee, unpaid delete, comment, viewed, and supplier fulfillment write live here. Payment / notify are not available on this page.</p>
                             <form method="post" action="/cp/orders/set-courier" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:.5rem 0">
                                 <input type="hidden" name="confirmWrites" value="true" />
                                 <input type="hidden" name="returnUrl" value="@OrdersHref(o.Id, detailTab: "manage")" />
@@ -383,7 +383,7 @@
                                 <a class="btn btn-default btn-sm" href="@OrdersHref(_selectedId, detailTab: "payment")"><i class="fa fa-credit-card"></i> Payment</a>
                                 <a class="btn btn-default btn-sm" href="@OrdersHref(_selectedId, detailTab: "docs")"><i class="fa fa-file-text-o"></i> Invoice / docs</a>
                                 <a class="btn btn-default btn-sm" href="@OrdersHref(_selectedId, detailTab: "customer")"><i class="fa fa-user"></i> Customer</a>
-                                <a class="btn btn-default btn-sm" href="@ClassicCardHref(o.Id)"><i class="fa fa-external-link"></i> Classic full card</a>
+                                <a class="btn btn-default btn-sm" href="@OrdersHref(o.Id)"><i class="fa fa-external-link"></i> Full card</a>
                             </div>
                         </div>
                         <div class="epc-scp-orders-detail__erp-fulfillment">
@@ -504,7 +504,7 @@
                     <section class="epc-od__panel @(_detailTab == "fulfillment" ? "is-active" : null)" data-epc-od-panel="fulfillment" style="@(_detailTab == "fulfillment" ? null : "display:none")">
                         <div class="epc-of-panel">
                             <div class="epc-od__edit-title">Fulfillment</div>
-                            <p class="text-muted small">Supplier fulfillment stage writes live here. Warehouse pick/pack queue stays on its own board. Bootstrap-from-items stays Classic.</p>
+                            <p class="text-muted small">Supplier fulfillment stage writes live here. Warehouse pick/pack queue stays on its own board. Bootstrap-from-items is not available on this page.</p>
                             <form method="post" action="/cp/orders/fulfillment-set-stage" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:.5rem 0">
                                 <input type="hidden" name="confirmWrites" value="true" />
                                 <input type="hidden" name="returnUrl" value="@OrdersHref(o.Id, detailTab: "fulfillment")" />
@@ -561,14 +561,14 @@
                             <label><input type="checkbox" name="directRefund" value="true" /> Cash / direct</label>
                             <button type="submit" class="btn btn-xs btn-primary">Record refund</button>
                         </form>
-                        <p class="text-muted small">Refund writes <code>5_refund_from_order_to_balance</code>. Check cash/direct to also post <code>6_refund_from_balance</code>. Manager email stays Classic.</p>
+                        <p class="text-muted small">Refund writes <code>5_refund_from_order_to_balance</code>. Check cash/direct to also post <code>6_refund_from_balance</code>. Manager email is not available on this page.</p>
                     </section>
 
                     <section class="epc-od__panel @(_detailTab == "docs" ? "is-active" : null)" data-epc-od-panel="docs" style="@(_detailTab == "docs" ? null : "display:none")">
                         <div class="epc-od__edit-title">Invoice / docs</div>
                         <div class="epc-od__doc-grid">
                             <a class="epc-od__doc-btn" href="/cp/print-docs-app"><i class="fa fa-file-text-o"></i> Print docs</a>
-                            <a class="epc-od__doc-btn" href="@ClassicCardHref(o.Id)"><i class="fa fa-external-link"></i> Classic card docs</a>
+                            <a class="epc-od__doc-btn" href="@OrdersHref(o.Id, detailTab: "docs")"><i class="fa fa-file-text-o"></i> Card docs</a>
                         </div>
                     </section>
 
@@ -894,9 +894,6 @@
     }
 
     private static string Unix(long v) => v > 0 ? v.ToString(CultureInfo.InvariantCulture) : "";
-
-    private string ClassicCardHref(long orderId)
-        => OrdersHref(orderId);
 
     private static string PaidBadgeHtml(int paid) => paid switch
     {

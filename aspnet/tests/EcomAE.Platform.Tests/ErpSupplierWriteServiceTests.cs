@@ -36,6 +36,7 @@ public sealed class ErpSupplierWriteServiceTests
         var src = Src("Erp/ErpSupplierWriteService.cs");
         Assert.DoesNotContain("CREATE TABLE", src, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("ALTER TABLE", src, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("EnsureSuppliersAsync", src, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_erp_suppliers`", src, StringComparison.Ordinal);
     }
 

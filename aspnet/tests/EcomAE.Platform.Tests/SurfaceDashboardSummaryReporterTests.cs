@@ -375,9 +375,9 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal(0, subscriptions.Count);
         Assert.Equal("payable_to_fta", vatReturn.Summary.NetStatus);
         Assert.Equal("migration", reportCenter.Source);
-        Assert.Equal(33, reportCenter.Summary.ReportCount);
+        Assert.Equal(35, reportCenter.Summary.ReportCount);
         Assert.Equal(19, reportCenter.Summary.AreaCount);
-        Assert.Equal(33, reportCenter.Reports.Count);
+        Assert.Equal(35, reportCenter.Reports.Count);
         Assert.Equal("migration", aging.Source);
         Assert.Equal("migration", receivables.Source);
         Assert.Equal(0, receivables.Count);
@@ -783,6 +783,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("notes", LegacySurfaceDashboardSql.SelectCpAutoPriceRulesSiteSiblings, StringComparison.Ordinal);
         Assert.Contains("@site_key", LegacySurfaceDashboardSql.SelectCpAutoPriceRulesSiteSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_uae_tax_legislation_items", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
+        Assert.Contains("STR_TO_DATE(`issue_date`, '%b %d, %Y')", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
+        Assert.Contains("STR_TO_DATE(`issue_date`, '%d %b %Y')", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
         Assert.DoesNotContain("erp_summary", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
         Assert.DoesNotContain("pdf_url", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
         Assert.Contains("LEFT(IFNULL(`erp_summary`,''), 280)", LegacySurfaceDashboardSql.SelectCpUaeTaxItemsDetail, StringComparison.Ordinal);
@@ -1737,7 +1739,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
     [Fact]
     public void ErpReportCenterTableEntriesHaveAllowlistedTables()
     {
-        Assert.Equal(33, ErpReportCenterRegistry.All.Count);
+        Assert.Equal(35, ErpReportCenterRegistry.All.Count);
+        Assert.Equal("gl_profit_loss", ErpReportCenterRegistry.KeyForNavTab("pl"));
+        Assert.Equal("gl_balance_sheet", ErpReportCenterRegistry.KeyForNavTab("balance_sheet"));
+        Assert.Equal("gl_trial_balance", ErpReportCenterRegistry.KeyForNavTab("enterprise_reports"));
         foreach (var entry in ErpReportCenterRegistry.All.Where(e => e.Kind == ErpReportCenterRegistry.SourceKind.Table))
         {
             Assert.False(string.IsNullOrWhiteSpace(entry.Table), entry.Key + " missing Table");

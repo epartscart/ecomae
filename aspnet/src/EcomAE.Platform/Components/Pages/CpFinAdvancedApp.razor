@@ -16,11 +16,20 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Financial depth
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/erp/fin-advanced-app")</p>
-                <p>Open a period for company allocation rules, cost-centre allocations, FY accruals, and FX runs. Accrual save and FX revalue stay on the Classic twin.</p>
+                <p>Open a period for company allocation rules, cost-centre allocations, FY accruals, and FX runs. Accrual save and FX revalue stay on this page.</p>
+                <p class="help-block">
+                    <strong>Statements.</strong>
+                    <a href="@BooksHref("pl")">Profit and loss</a>
+                    · <a href="@BooksHref("balance_sheet")">Balance sheet</a>
+                    · <a href="@BooksHref("pl", "company")">Company</a>
+                    · <a href="@BooksHref("pl", "business_unit")">Business unit</a>
+                    · <a href="@BooksHref("balance_sheet", "consolidation")">Consolidation</a>
+                    · <a href="@BooksHref("reports", null, "/erp/trial-balance-app")">Trial balance</a>
+                    · <a href="@BooksHref("reports", null, "/erp/tax-external-reporting-app")">External reporting</a>
+                </p>
             </div>
         </div>
     </div>
@@ -77,7 +86,7 @@
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label>Code <input class="form-control input-sm" name="code" required maxlength="30" style="width:110px;" /></label>
                 <label>Name <input class="form-control input-sm" name="name" maxlength="160" style="width:180px;" /></label>
-                <label>Branch id <input class="form-control input-sm" type="number" name="branch_id" min="0" value="0" style="width:90px;" /></label>
+                <ErpMasterPicker Kind="business_unit" FieldName="branch_id" Label="Business unit" InputId="fin-cc-bu" />
                 <button type="submit" class="btn btn-primary btn-sm">Save cost centre</button>
             </form>
         </ErpPhpCreateWell>
@@ -92,6 +101,21 @@
                 <button type="submit" class="btn btn-primary btn-sm">Post allocation</button>
             </form>
             <small class="text-muted">One line per cost-centre id and driver weight. Rounding residuals go to the largest weight so the run reconciles exactly.</small>
+        </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Post FX revaluation">
+            <form method="post" action="/erp/ajax/fx-post-revaluation" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="@_listHref" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>As of <input class="form-control input-sm" type="date" name="as_of" /></label>
+                <label>Auto-reverse
+                    <select class="form-control input-sm" name="auto_reverse">
+                        <option value="1" selected>Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-primary btn-sm">Post revaluation</button>
+            </form>
+            <p class="text-muted" style="margin:0">Posts the IAS-21 open-AR revaluation through the shared GL. Leave as-of blank to use today.</p>
         </ErpPhpCreateWell>
     }
 
@@ -294,6 +318,7 @@
     private IReadOnlyList<CpFinAccrualDigest> _openedAccruals = [];
     private IReadOnlyList<CpFinFxRunDigest> _openedFxRuns = [];
     private string _listHref = "/erp/fin-advanced-app";
+    private int _companyId;
 
     private string OpenedCaption => _openedPeriod is null
         ? ""
@@ -306,6 +331,7 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _companyId = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
         var path = ctx.Request.Path.Value;
         _listHref = string.Equals(path, "/erp/fin-advanced-app", StringComparison.OrdinalIgnoreCase)
             ? "/erp/fin-advanced-app"
@@ -345,6 +371,24 @@
                 _message = detail.Message;
             }
         }
+    }
+
+    private string BooksHref(string tab, string? level = null, string? path = null)
+    {
+        var href = string.IsNullOrWhiteSpace(path)
+            ? "/erp/report-center-app?tab=" + Uri.EscapeDataString(tab)
+            : path;
+        if (!string.IsNullOrWhiteSpace(level))
+        {
+            href += (href.Contains('?', StringComparison.Ordinal) ? "&" : "?") + "level=" + Uri.EscapeDataString(level);
+        }
+
+        if (_companyId > 0 && !href.Contains("company=", StringComparison.OrdinalIgnoreCase))
+        {
+            href += (href.Contains('?', StringComparison.Ordinal) ? "&" : "?") + "company=" + _companyId.ToString(CultureInfo.InvariantCulture);
+        }
+
+        return href;
     }
 
     private static string FormatUnix(long unix)

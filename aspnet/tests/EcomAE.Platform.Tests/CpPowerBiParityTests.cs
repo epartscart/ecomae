@@ -12,7 +12,7 @@ public sealed class CpPowerBiParityTests
         Assert.Equal("1.0.0", PowerBiCatalog.Version);
         Assert.Equal("https://www.ecomae.com/epc-api/v1/powerbi", PowerBiCatalog.ApiRoot);
         Assert.Equal(
-            new[] { "catalog", "kpis", "orders", "sales", "stock", "gl", "metrics" },
+            new[] { "catalog", "kpis", "orders", "sales", "stock", "gl", "metrics", "sales-profitability" },
             PowerBiCatalog.Datasets.Select(dataset => dataset.Id).ToArray());
         Assert.All(
             PowerBiCatalog.Datasets,
@@ -70,6 +70,27 @@ public sealed class CpPowerBiParityTests
         Assert.Equal("alpha", CpPowerBiService.ResolveSiteKey("", "unknown.example.com", tenants));
         Assert.Equal("beta", CpPowerBiService.ResolveSiteKey("beta", "alpha.example.com", tenants));
         Assert.Equal("epartscart", CpPowerBiService.ResolveSiteKey("", "x.example.com", []));
+        Assert.Equal("real", CpPowerBiService.ResolveSiteKey("", "www.ecomae.com", tenants, "real"));
+    }
+
+    [Fact]
+    public void CompanyCacheDoesNotReuseAnotherTenantsReport()
+    {
+        IReadOnlyList<CpPowerBiTenantOption> tenants =
+        [
+            new("alpha", "alpha.example.com", "Alpha"),
+            new("real", "real.example.com", "Real Estate"),
+        ];
+
+        var platform = CpPowerBiService.CacheKey("www.ecomae.com", "", "", "ecomae");
+        var company = CpPowerBiService.CacheKey("www.ecomae.com", "", "real", "real");
+        Assert.NotEqual(platform, company);
+
+        var visible = CpPowerBiService.VisibleTenants(tenants, "real");
+        Assert.Single(visible);
+        Assert.Equal("real", visible[0].SiteKey);
+        Assert.Equal("real", CpPowerBiService.ResolveSiteKey("", "www.ecomae.com", tenants, "real"));
+        Assert.Equal("alpha", CpPowerBiService.ResolveSiteKey("", "www.ecomae.com", tenants));
     }
 
     [Fact]

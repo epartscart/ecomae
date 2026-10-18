@@ -151,8 +151,8 @@ public sealed class CpApiClientsParityTests
             Assert.Contains(column, razor, StringComparison.Ordinal);
         }
 
-        Assert.Contains("/api/v1/catalog.php", razor, StringComparison.Ordinal);
-        Assert.Contains("/api/v1/price/lookup.php", razor, StringComparison.Ordinal);
+        Assert.Contains("/api/v1/catalog", razor, StringComparison.Ordinal);
+        Assert.Contains("/api/v1/price/lookup", razor, StringComparison.Ordinal);
         Assert.Contains("allowed_actions", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("client_key_hash", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("ISurfaceDashboardSummaryReporter", razor, StringComparison.Ordinal);

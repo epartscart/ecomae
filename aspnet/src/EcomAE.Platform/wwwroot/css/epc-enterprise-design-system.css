@@ -67,6 +67,22 @@
     box-shadow: 0 5px 18px rgba(15, 35, 60, .05);
 }
 
+.epc-cp-shell .epc-erp-kpi.epc-erp-stat-row a.kpi,
+.epc-erp-cp-shell .epc-erp-kpi.epc-erp-stat-row a.kpi,
+a.ns-metric3d,
+a.ns-kpi-card {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+.epc-cp-shell .epc-erp-kpi.epc-erp-stat-row a.kpi:hover .val,
+.epc-erp-cp-shell .epc-erp-kpi.epc-erp-stat-row a.kpi:hover .val,
+a.ns-metric3d:hover .mv,
+a.ns-kpi-card:hover .kv {
+    text-decoration: underline;
+}
+
 .epc-cp-shell .epc-erp-kpi.epc-erp-stat-row .lbl,
 .epc-erp-cp-shell .epc-erp-kpi.epc-erp-stat-row .lbl {
     color: var(--epc-ui-muted);
@@ -358,4 +374,1744 @@
     .epc-exec-kpis {
         grid-template-columns: 1fr;
     }
+}
+
+/* ── Enterprise form / card / action layout (ERP + CP) ─────────────────
+   Restyles the common ASP.NET pattern: <form style="display:flex"> with
+   <label>Text <input></label> plus raw buttons. Table row-action forms
+   stay compact. Inline flex is overridden so every module aligns. */
+
+.epc-erp-content-body,
+.epc-cp-content-inner {
+    --epc-form-gap: .55rem .7rem;
+    --epc-field-min: 10.5rem;
+    --epc-control-h: 2.15rem;
+    --epc-card-pad: .75rem .85rem;
+}
+
+/* Opened-record facts: label+value chips wrap in a row instead of a tall 2-col stack. */
+.epc-erp-facts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: .4rem .45rem;
+    margin: 0 0 .65rem;
+}
+
+.epc-erp-facts dt {
+    flex: 0 0 auto;
+    min-width: 5.1rem;
+    margin: 0;
+    padding: .38rem .2rem .38rem .55rem;
+    border: 1px solid #d9e2ec;
+    border-right: 0;
+    border-radius: 6px 0 0 6px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    line-height: 1.35;
+}
+
+.epc-erp-facts dd {
+    flex: 0 1 8.75rem;
+    margin: 0 .2rem 0 0;
+    padding: .38rem .65rem .38rem .3rem;
+    border: 1px solid #d9e2ec;
+    border-left: 0;
+    border-radius: 0 6px 6px 0;
+    background: #fff;
+    color: #15253d;
+    font-size: 12.5px;
+    font-weight: 750;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.epc-erp-fact-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .75rem 1rem;
+    align-items: start;
+    margin: 0 0 .75rem;
+}
+
+.epc-erp-fact-row:has(.epc-erp-action-pane) {
+    grid-template-columns: minmax(0, 1fr) minmax(16.5rem, 22rem);
+}
+
+.epc-erp-fact-row .epc-erp-facts {
+    margin-bottom: 0;
+}
+
+.epc-erp-content-body .well,
+.epc-erp-content-body .hpanel,
+.epc-erp-content-body .panel,
+.epc-erp-content-body .epc-erp-form-panel,
+.epc-erp-content-body .epc-fno-entry-shell,
+.epc-cp-content-inner .well,
+.epc-cp-content-inner .hpanel,
+.epc-cp-content-inner .panel {
+    border: 1px solid var(--epc-ui-line) !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    box-shadow: 0 8px 24px rgba(15, 35, 60, .05) !important;
+    overflow: hidden;
+}
+
+.epc-erp-content-body .hpanel,
+.epc-erp-content-body .panel,
+.epc-cp-content-inner .hpanel,
+.epc-cp-content-inner .panel {
+    margin: 0 0 1rem !important;
+}
+
+.epc-erp-content-body .panel-heading,
+.epc-erp-content-body .hpanel .panel-heading,
+.epc-erp-content-body .epc-erp-form-panel__head,
+.epc-cp-content-inner .panel-heading,
+.epc-cp-content-inner .hpanel .panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .65rem;
+    padding: .7rem 1rem !important;
+    margin: 0 !important;
+    border-bottom: 1px solid var(--epc-ui-line) !important;
+    background: linear-gradient(180deg, #f8fafc, #f1f5f9) !important;
+    color: var(--epc-ui-ink) !important;
+    font-size: 13px !important;
+    font-weight: 750 !important;
+}
+
+.epc-erp-content-body .panel-body,
+.epc-erp-content-body .hpanel .panel-body,
+.epc-cp-content-inner .panel-body,
+.epc-cp-content-inner .hpanel .panel-body {
+    padding: var(--epc-card-pad) !important;
+}
+
+.epc-erp-create-card,
+.epc-erp-content-body .well.epc-erp-section,
+.epc-cp-content-inner .well.epc-erp-section {
+    margin: 0 0 1rem;
+    padding: 0 !important;
+    border: 1px solid var(--epc-ui-line);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 35, 60, .05);
+    overflow: hidden;
+}
+
+.epc-erp-create-card__hd,
+.epc-erp-create-card > h5 {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    margin: 0 !important;
+    padding: .7rem 1rem !important;
+    border-bottom: 1px solid var(--epc-ui-line);
+    background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+    color: var(--epc-ui-ink);
+    font-size: 13px !important;
+    font-weight: 750 !important;
+}
+
+.epc-erp-create-card__bd {
+    padding: var(--epc-card-pad);
+}
+
+.epc-erp-doc-header {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 14rem));
+    justify-content: start;
+    gap: var(--epc-form-gap);
+    margin: 0 0 .15rem;
+    padding: .7rem .8rem;
+    border: 1px solid #d7e3f0;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #f8fbff, #fff);
+}
+
+.epc-erp-doc-header .epc-erp-doc-header {
+    display: contents;
+    grid-column: unset;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+}
+
+.epc-erp-doc-header .epc-erp-doc-header .epc-erp-doc-header__title {
+    display: none;
+}
+
+.epc-erp-doc-header__title {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.epc-erp-doc-header label,
+.epc-erp-doc-header .epc-erp-field {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .35rem;
+    margin: 0;
+    min-width: 0;
+    color: #334155 !important;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.epc-erp-header-org-link {
+    align-self: flex-start;
+    margin: 0 !important;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.epc-erp-master-picker {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .3rem;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.epc-erp-master-picker .form-control {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.epc-erp-master-picker__label {
+    margin: 0;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.epc-erp-master-picker__q {
+    order: 2;
+}
+
+.epc-erp-master-picker [data-erp-picker-select] {
+    order: 3;
+}
+
+.epc-erp-master-picker__hint {
+    order: 4;
+    margin: 0 !important;
+    overflow-wrap: anywhere;
+}
+
+.epc-erp-lookup {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+    width: 100%;
+}
+
+.epc-erp-lookup .epc-erp-master-picker__q {
+    order: 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-right: 1.75rem;
+}
+
+.epc-erp-lookup__corner {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    z-index: 2;
+    width: 1.65rem;
+    border: 0;
+    border-left: 1px solid #d7e0ea;
+    background: #f8fafc;
+    cursor: pointer;
+}
+
+.epc-erp-lookup__corner::before {
+    content: "";
+    display: block;
+    margin: 0 auto;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid #334155;
+}
+
+.epc-erp-lookup__link {
+    position: absolute;
+    left: .5rem;
+    right: 1.85rem;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 650;
+    text-decoration: underline;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.epc-erp-lookup__link.is-empty,
+.epc-erp-lookup.is-editing .epc-erp-lookup__link,
+.epc-erp-lookup.is-open .epc-erp-lookup__link {
+    display: none;
+}
+
+.epc-erp-lookup.is-linked:not(.is-editing):not(.is-open) .epc-erp-master-picker__q {
+    color: transparent;
+    caret-color: #0f172a;
+}
+
+.epc-erp-lookup.is-ready .epc-erp-lookup__posted {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+.epc-erp-lookup:not(.is-ready) .epc-erp-lookup__corner,
+.epc-erp-lookup:not(.is-ready) .epc-erp-lookup__menu,
+.epc-erp-lookup:not(.is-ready) .epc-erp-lookup__link {
+    display: none;
+}
+
+.epc-erp-lookup:not(.is-ready):has(.epc-erp-lookup__posted) .epc-erp-master-picker__q {
+    display: none;
+}
+
+.epc-erp-lookup__menu {
+    max-height: 16rem;
+    overflow: auto;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    box-shadow: 0 12px 28px rgba(15, 35, 60, .16);
+}
+
+.epc-erp-lookup__opt {
+    display: block;
+    width: 100%;
+    padding: .4rem .65rem;
+    border: 0;
+    background: #fff;
+    color: #0f172a;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.epc-erp-lookup__opt:hover,
+.epc-erp-lookup__opt.is-active {
+    background: #e8f1ff;
+    color: #1d4ed8;
+}
+
+.epc-erp-lookup__opt[hidden] {
+    display: none;
+}
+
+.epc-erp-lookup__empty {
+    margin: 0;
+    padding: .55rem .65rem;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.epc-erp-lookup__empty[hidden] {
+    display: none;
+}
+
+.epc-erp-lookup__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+}
+
+.epc-fno-form .epc-erp-master-picker,
+.epc-fno-form .field .epc-erp-master-picker {
+    width: 100%;
+}
+
+.epc-erp-content-body form:not([data-epc-inline="1"]),
+.epc-cp-content-inner form:not([data-epc-inline="1"]) {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 14rem));
+    justify-content: start;
+    gap: var(--epc-form-gap);
+    align-items: end;
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 0 1rem !important;
+    padding: var(--epc-card-pad);
+    border: 1px solid var(--epc-ui-line);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 35, 60, .05);
+}
+
+.epc-erp-content-body .well form,
+.epc-erp-content-body .hpanel form,
+.epc-erp-content-body .panel form,
+.epc-erp-content-body .epc-erp-create-card form,
+.epc-erp-content-body .epc-erp-section form,
+.epc-erp-content-body .epc-erp-form-panel form,
+.epc-erp-content-body .epc-fno-entry-body form,
+.epc-cp-content-inner .well form,
+.epc-cp-content-inner .hpanel form,
+.epc-cp-content-inner .panel form,
+.epc-cp-content-inner .epc-erp-create-card form,
+.epc-cp-content-inner .epc-scp-table-card form {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+/* Must beat form:not([data-epc-inline="1"]) or every row action becomes a card. */
+.epc-erp-content-body table form:not([data-epc-inline="1"]),
+.epc-erp-content-body td form:not([data-epc-inline="1"]),
+.epc-erp-content-body th form:not([data-epc-inline="1"]),
+.epc-erp-content-body .btn-group form:not([data-epc-inline="1"]),
+.epc-cp-content-inner table form:not([data-epc-inline="1"]),
+.epc-cp-content-inner td form:not([data-epc-inline="1"]),
+.epc-cp-content-inner th form:not([data-epc-inline="1"]),
+.epc-cp-content-inner .btn-group form:not([data-epc-inline="1"]) {
+    display: inline-flex !important;
+    grid-template-columns: none !important;
+    gap: .35rem;
+    align-items: center;
+    width: auto;
+    max-width: none;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+.epc-erp-content-body form > label,
+.epc-erp-content-body .epc-fno-form .field,
+.epc-erp-content-body .form-group,
+.epc-cp-content-inner form > label,
+.epc-cp-content-inner .form-group {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .35rem;
+    margin: 0 !important;
+    min-width: 0;
+    color: #334155 !important;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.epc-erp-content-body form > label:has(> input[type="checkbox"]),
+.epc-erp-content-body form > label:has(> input[type="radio"]),
+.epc-cp-content-inner form > label:has(> input[type="checkbox"]),
+.epc-cp-content-inner form > label:has(> input[type="radio"]) {
+    flex-direction: row;
+    align-items: center;
+    gap: .45rem;
+    font-weight: 600;
+    min-height: var(--epc-control-h);
+}
+
+/* Inline tool forms opt out of the field grid. Size each control to the data
+   so a name, an id, and a list sit on one line instead of a full-width row. */
+.epc-erp-content-body form[data-epc-inline="1"] > label,
+.epc-cp-content-inner form[data-epc-inline="1"] > label {
+    flex: 0 0 auto;
+    width: 13rem;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.epc-erp-content-body form label > input,
+.epc-erp-content-body form label > select,
+.epc-erp-content-body form label > textarea,
+.epc-cp-content-inner form label > input,
+.epc-cp-content-inner form label > select,
+.epc-cp-content-inner form label > textarea {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> input[type="number"]),
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> input[type="date"]),
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> input[type="time"]),
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> input[type="datetime-local"]),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> input[type="number"]),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> input[type="date"]),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> input[type="time"]),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> input[type="datetime-local"]) {
+    width: 7.25rem;
+}
+
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> select),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> select) {
+    width: 12.5rem;
+}
+
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> textarea),
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> input[name="description"]),
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> input[name="comment"]),
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> input[name="title"]),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> textarea),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> input[name="description"]),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> input[name="comment"]),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> input[name="title"]) {
+    width: 18rem;
+}
+
+.epc-erp-content-body table form[data-epc-inline="1"] > label,
+.epc-erp-content-body td form[data-epc-inline="1"] > label,
+.epc-erp-content-body th form[data-epc-inline="1"] > label,
+.epc-erp-content-body form.epc-ui-toolbar > label,
+.epc-cp-content-inner table form[data-epc-inline="1"] > label,
+.epc-cp-content-inner td form[data-epc-inline="1"] > label,
+.epc-cp-content-inner th form[data-epc-inline="1"] > label,
+.epc-cp-content-inner form.epc-ui-toolbar > label {
+    width: auto;
+    flex: 0 1 auto;
+}
+
+/* Labels nested in a field row (not only direct form children) stay data-sized. */
+.epc-erp-content-body form label:has(> input[type="text"]),
+.epc-erp-content-body form label:has(> input[type="email"]),
+.epc-erp-content-body form label:has(> input[type="password"]),
+.epc-erp-content-body form label:has(> input[type="search"]),
+.epc-erp-content-body form label:has(> input[type="tel"]),
+.epc-erp-content-body form label:has(> input[type="url"]),
+.epc-erp-content-body form label:has(> input:not([type])),
+.epc-cp-content-inner form label:has(> input[type="text"]),
+.epc-cp-content-inner form label:has(> input[type="email"]),
+.epc-cp-content-inner form label:has(> input[type="password"]),
+.epc-cp-content-inner form label:has(> input[type="search"]),
+.epc-cp-content-inner form label:has(> input[type="tel"]),
+.epc-cp-content-inner form label:has(> input[type="url"]),
+.epc-cp-content-inner form label:has(> input:not([type])) {
+    flex: 0 0 auto;
+    width: 13rem;
+    max-width: 100%;
+}
+
+.epc-erp-content-body form label:has(> input[type="number"]),
+.epc-erp-content-body form label:has(> input[type="date"]),
+.epc-erp-content-body form label:has(> input[type="time"]),
+.epc-erp-content-body form label:has(> input[type="datetime-local"]),
+.epc-cp-content-inner form label:has(> input[type="number"]),
+.epc-cp-content-inner form label:has(> input[type="date"]),
+.epc-cp-content-inner form label:has(> input[type="time"]),
+.epc-cp-content-inner form label:has(> input[type="datetime-local"]) {
+    width: 7.25rem;
+}
+
+.epc-erp-content-body form label:has(> select),
+.epc-cp-content-inner form label:has(> select) {
+    width: 12.5rem;
+}
+
+.epc-erp-content-body form label:has(> textarea),
+.epc-erp-content-body form label:has(> input[name="description"]),
+.epc-erp-content-body form label:has(> input[name="comment"]),
+.epc-erp-content-body form label:has(> input[name="title"]),
+.epc-cp-content-inner form label:has(> textarea),
+.epc-cp-content-inner form label:has(> input[name="description"]),
+.epc-cp-content-inner form label:has(> input[name="comment"]),
+.epc-cp-content-inner form label:has(> input[name="title"]) {
+    width: 18rem;
+}
+
+.epc-erp-content-body table label,
+.epc-erp-content-body form.epc-ui-toolbar label,
+.epc-cp-content-inner table label,
+.epc-cp-content-inner form.epc-ui-toolbar label {
+    width: auto;
+    flex: 0 1 auto;
+}
+
+.epc-erp-content-body form .form-group:has(> input, > select, > div > input, > div > select):not(:has(textarea)):not(:has(.checkbox)),
+.epc-cp-content-inner form .form-group:has(> input, > select, > div > input, > div > select):not(:has(textarea)):not(:has(.checkbox)) {
+    flex: 0 0 auto;
+    width: 14rem;
+    max-width: 100%;
+}
+
+.epc-erp-content-body form .form-group:has(input[type="number"]),
+.epc-erp-content-body form .form-group:has(input[type="date"]),
+.epc-cp-content-inner form .form-group:has(input[type="number"]),
+.epc-cp-content-inner form .form-group:has(input[type="date"]) {
+    width: 8.5rem;
+}
+
+.epc-erp-content-body form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="file"]):not([type="image"]),
+.epc-erp-content-body form select,
+.epc-erp-content-body form textarea,
+.epc-erp-content-body .form-control,
+.epc-cp-content-inner form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="file"]):not([type="image"]),
+.epc-cp-content-inner form select,
+.epc-cp-content-inner form textarea,
+.epc-cp-content-inner .form-control {
+    width: 100%;
+    min-height: var(--epc-control-h);
+    padding: .4rem .6rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fff;
+    color: #0f172a;
+    font-size: 13px;
+    line-height: 1.3;
+    box-shadow: none;
+}
+
+.epc-erp-content-body form textarea,
+.epc-cp-content-inner form textarea {
+    min-height: 3.25rem;
+    max-width: 28rem;
+    resize: vertical;
+}
+
+/* A written width is the size of that value (an id, a code). Do not stretch it. */
+.epc-erp-content-body form input[style],
+.epc-erp-content-body form select[style],
+.epc-erp-content-body form textarea[style],
+.epc-cp-content-inner form input[style],
+.epc-cp-content-inner form select[style],
+.epc-cp-content-inner form textarea[style] {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.epc-erp-content-body table form input[style],
+.epc-erp-content-body td form input[style],
+.epc-erp-content-body th form input[style],
+.epc-erp-content-body .btn-group form input[style],
+.epc-erp-content-body form.epc-ui-toolbar input[style],
+.epc-erp-content-body > form.form-inline input[style],
+.epc-erp-content-body > form[method="get"] input[style],
+.epc-erp-content-body .epc-document-workspace form input[style],
+.epc-erp-content-body .epc-finance-voucher form input[style],
+.epc-cp-content-inner table form input[style],
+.epc-cp-content-inner td form input[style],
+.epc-cp-content-inner th form input[style],
+.epc-cp-content-inner .btn-group form input[style],
+.epc-cp-content-inner form.epc-ui-toolbar input[style],
+.epc-cp-content-inner > form.form-inline input[style],
+.epc-cp-content-inner > form[method="get"] input[style] {
+    width: auto !important;
+    max-width: 14rem !important;
+}
+
+.epc-erp-content-body form input:focus,
+.epc-erp-content-body form select:focus,
+.epc-erp-content-body form textarea:focus,
+.epc-cp-content-inner form input:focus,
+.epc-cp-content-inner form select:focus,
+.epc-cp-content-inner form textarea:focus {
+    border-color: #2563eb;
+    outline: 0;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .16);
+}
+
+.epc-erp-content-body form input[readonly],
+.epc-cp-content-inner form input[readonly] {
+    background: #f8fafc;
+    color: #334155;
+}
+
+.epc-erp-content-body form > button,
+.epc-erp-content-body form > .btn,
+.epc-cp-content-inner form > button,
+.epc-cp-content-inner form > .btn {
+    grid-column: auto;
+    justify-self: start;
+    width: auto;
+}
+
+.epc-erp-content-body form > .form-actions,
+.epc-erp-content-body .form-actions,
+.epc-cp-content-inner form > .form-actions,
+.epc-cp-content-inner .form-actions {
+    grid-column: 1 / -1;
+    justify-self: start;
+}
+
+.epc-erp-content-body .form-actions,
+.epc-cp-content-inner .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    width: 100%;
+    margin-top: .25rem;
+    padding-top: .85rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.epc-erp-content-body .btn,
+.epc-cp-content-inner .btn,
+.epc-erp-content-body button[type="submit"],
+.epc-cp-content-inner button[type="submit"] {
+    min-height: 2.15rem;
+    padding: .4rem .9rem;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.epc-erp-content-body .btn-primary,
+.epc-cp-content-inner .btn-primary,
+.epc-erp-content-body button[type="submit"]:not(.btn-default):not(.btn-warning):not(.btn-danger),
+.epc-cp-content-inner button[type="submit"]:not(.btn-default):not(.btn-warning):not(.btn-danger) {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .12);
+}
+
+.epc-erp-content-body .btn-primary:hover,
+.epc-cp-content-inner .btn-primary:hover,
+.epc-erp-content-body button[type="submit"]:not(.btn-default):not(.btn-warning):not(.btn-danger):hover,
+.epc-cp-content-inner button[type="submit"]:not(.btn-default):not(.btn-warning):not(.btn-danger):hover {
+    background: #1e40af;
+    border-color: #1e40af;
+    color: #fff;
+}
+
+.epc-erp-content-body .btn-default,
+.epc-cp-content-inner .btn-default,
+.epc-erp-content-body button[type="reset"],
+.epc-cp-content-inner button[type="reset"] {
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+}
+
+.epc-erp-content-body .btn-xs,
+.epc-cp-content-inner .btn-xs {
+    min-height: 1.7rem;
+    padding: .2rem .55rem;
+    font-size: 11.5px;
+}
+
+.epc-erp-content-body table .btn,
+.epc-cp-content-inner table .btn {
+    min-height: 1.7rem;
+}
+
+.epc-org-tabs,
+.epc-erp-content-body .epc-fno-entry-tabs,
+.epc-cp-content-inner .nav-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    margin: 0 0 1rem;
+    border: 1px solid var(--epc-ui-line);
+    border-radius: 10px;
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+.epc-org-tabs a,
+.epc-erp-content-body .epc-fno-entry-tabs a {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .7rem 1rem;
+    color: #334155;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-decoration: none;
+    border-right: 1px solid #e2e8f0;
+}
+
+.epc-org-tabs a:hover,
+.epc-org-tabs a.active,
+.epc-erp-content-body .epc-fno-entry-tabs a:hover,
+.epc-erp-content-body .epc-fno-entry-tabs a.active {
+    background: #fff;
+    color: #1d4ed8;
+    box-shadow: inset 0 -3px 0 #2563eb;
+}
+
+.epc-erp-content-body .epc-fno-form {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 14rem));
+    justify-content: start;
+    max-width: 64rem;
+}
+
+.epc-erp-content-body .epc-fno-form .field.wide,
+.epc-erp-content-body .epc-fno-form .form-actions {
+    grid-column: 1 / -1;
+}
+
+.epc-erp-content-body form > .epc-erp-table-wrap,
+.epc-erp-content-body form > .table-responsive,
+.epc-erp-content-body form > .help-block,
+.epc-erp-content-body form > p,
+.epc-erp-content-body form > .alert,
+.epc-erp-content-body form > fieldset,
+.epc-erp-content-body form > div,
+.epc-cp-content-inner form > .epc-erp-table-wrap,
+.epc-cp-content-inner form > .table-responsive,
+.epc-cp-content-inner form > .help-block,
+.epc-cp-content-inner form > p,
+.epc-cp-content-inner form > .alert,
+.epc-cp-content-inner form > fieldset,
+.epc-cp-content-inner form > div {
+    grid-column: 1 / -1;
+    min-width: 0;
+}
+
+.epc-erp-content-body form > .form-group,
+.epc-cp-content-inner form > .form-group,
+.epc-erp-content-body form > .epc-erp-master-picker,
+.epc-cp-content-inner form > .epc-erp-master-picker,
+.epc-erp-content-body form fieldset > .epc-erp-master-picker,
+.epc-cp-content-inner form fieldset > .epc-erp-master-picker {
+    grid-column: auto;
+    min-width: 0;
+}
+
+.epc-erp-content-body form > .form-group:has(button[type="submit"]),
+.epc-erp-content-body form > .form-group:has(.checkbox),
+.epc-erp-content-body form > .form-group:has(.checkbox-inline),
+.epc-cp-content-inner form > .form-group:has(button[type="submit"]),
+.epc-cp-content-inner form > .form-group:has(.checkbox),
+.epc-cp-content-inner form > .form-group:has(.checkbox-inline) {
+    grid-column: 1 / -1;
+}
+
+/* Bootstrap rows and horizontal pairs inside an ERP form use the same field grid
+   as a direct label. Column widths and floats were painting over the next field. */
+.epc-erp-content-body form .row,
+.epc-cp-content-inner form .row {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 14rem));
+    justify-content: start;
+    gap: var(--epc-form-gap);
+    margin: 0 !important;
+    width: 100%;
+}
+
+.epc-erp-content-body form .row::before,
+.epc-erp-content-body form .row::after,
+.epc-cp-content-inner form .row::before,
+.epc-cp-content-inner form .row::after {
+    content: none !important;
+    display: none !important;
+}
+
+.epc-erp-content-body form .row > [class*="col-"],
+.epc-cp-content-inner form .row > [class*="col-"],
+.epc-erp-content-body form .form-group > [class*="col-"],
+.epc-cp-content-inner form .form-group > [class*="col-"],
+.epc-erp-content-body form .form-group > .control-label,
+.epc-cp-content-inner form .form-group > .control-label {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .35rem;
+    width: auto !important;
+    max-width: none !important;
+    float: none !important;
+    clear: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-width: 0;
+    position: static;
+    text-align: left !important;
+}
+
+/* Purchase and sales entry headers sit in a panel, not a form, so the form grid never reached them. */
+.epc-erp-content-body #erp-module-new.panel .panel-body > .row,
+.epc-cp-content-inner #erp-module-new.panel .panel-body > .row {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 14rem));
+    justify-content: start;
+    gap: var(--epc-form-gap);
+    margin: 0 0 .75rem !important;
+    width: 100%;
+}
+
+.epc-erp-content-body #erp-module-new.panel .panel-body > .row::before,
+.epc-erp-content-body #erp-module-new.panel .panel-body > .row::after,
+.epc-cp-content-inner #erp-module-new.panel .panel-body > .row::before,
+.epc-cp-content-inner #erp-module-new.panel .panel-body > .row::after {
+    content: none !important;
+    display: none !important;
+}
+
+.epc-erp-content-body #erp-module-new.panel .panel-body > .row > .epc-erp-doc-header,
+.epc-cp-content-inner #erp-module-new.panel .panel-body > .row > .epc-erp-doc-header {
+    grid-column: 1 / -1;
+}
+
+.epc-erp-content-body #erp-module-new.panel .panel-body > .row > [class*="col-"],
+.epc-cp-content-inner #erp-module-new.panel .panel-body > .row > [class*="col-"] {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .35rem;
+    width: auto !important;
+    max-width: none !important;
+    float: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-width: 0;
+}
+
+.epc-erp-content-body form .row > [class*="col-"]:has(textarea),
+.epc-cp-content-inner form .row > [class*="col-"]:has(textarea),
+.epc-erp-content-body form > .form-group:has(textarea),
+.epc-cp-content-inner form > .form-group:has(textarea) {
+    grid-column: span 2;
+    max-width: 28rem;
+}
+
+/* A grouped block (purchase, sales, stock) keeps its own fields in a row.
+   It must not share a narrow cell with the next group, or the labels overlap. */
+.epc-erp-content-body form fieldset,
+.epc-cp-content-inner form fieldset {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 14rem));
+    justify-content: start;
+    gap: var(--epc-form-gap);
+    align-items: end;
+    min-width: 0;
+    margin: 0;
+}
+
+.epc-erp-content-body form fieldset > legend,
+.epc-erp-content-body form fieldset > table,
+.epc-erp-content-body form fieldset > p,
+.epc-cp-content-inner form fieldset > legend,
+.epc-cp-content-inner form fieldset > table,
+.epc-cp-content-inner form fieldset > p,
+.epc-erp-content-body form fieldset > label.epc-sheet-entry__wide,
+.epc-cp-content-inner form fieldset > label.epc-sheet-entry__wide {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+/* A fieldset cannot be a grid in Chromium: the fields spill out of the card.
+   Sheet entry uses a plain grid so type, entity, and the CSV stay inside the page. */
+.epc-erp-content-body form.epc-sheet-entry,
+.epc-cp-content-inner form.epc-sheet-entry {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+.epc-sheet-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--epc-form-gap);
+    align-items: end;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.epc-sheet-grid > label,
+.epc-sheet-grid > .epc-erp-master-picker {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.epc-sheet-grid > .epc-sheet-entry__wide,
+.epc-sheet-grid > .form-actions,
+.epc-sheet-grid > .epc-erp-master-picker:has(textarea) {
+    grid-column: 1 / -1;
+}
+
+.epc-sheet-grid > .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+    justify-content: flex-start;
+    margin: .15rem 0 0;
+}
+
+.epc-sheet-entry textarea {
+    min-height: 9rem;
+    width: 100%;
+    max-width: 100%;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+@media (max-width: 800px) {
+    .epc-sheet-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.epc-erp-content-body form div > label,
+.epc-erp-content-body form fieldset > label,
+.epc-cp-content-inner form div > label,
+.epc-cp-content-inner form fieldset > label {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .35rem;
+    margin: 0 !important;
+    min-width: 0;
+    color: #334155 !important;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.epc-erp-content-body form div > label:has(> input[type="checkbox"]),
+.epc-erp-content-body form fieldset > label:has(> input[type="checkbox"]),
+.epc-cp-content-inner form div > label:has(> input[type="checkbox"]),
+.epc-cp-content-inner form fieldset > label:has(> input[type="checkbox"]) {
+    flex-direction: row;
+    align-items: center;
+    min-height: var(--epc-control-h);
+}
+
+.epc-item-part__books {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    gap: .75rem;
+    min-width: 0;
+}
+
+.epc-erp-content-body .epc-erp-form-panel form,
+.epc-erp-content-body .epc-fno-entry-body form {
+    padding: 0 !important;
+}
+
+.epc-fno-entry-body {
+    padding: var(--epc-card-pad);
+}
+
+.epc-erp-content-body form.epc-ui-toolbar,
+.epc-cp-content-inner form.epc-ui-toolbar,
+.epc-document-workspace form,
+.epc-finance-voucher form,
+.epc-document-workspace__actions form,
+.epc-finance-voucher__actions form {
+    display: flex !important;
+    grid-template-columns: none !important;
+    align-items: flex-end;
+    justify-content: space-between;
+    max-width: none;
+    width: 100%;
+}
+
+.epc-erp-content-body > form.form-inline,
+.epc-cp-content-inner > form.form-inline,
+.epc-erp-content-body > form[method="get"],
+.epc-cp-content-inner > form[method="get"] {
+    display: flex !important;
+    grid-template-columns: none !important;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: .55rem .75rem;
+    max-width: none;
+    padding: .65rem .85rem;
+}
+
+.epc-erp-content-body > form.form-inline > label,
+.epc-cp-content-inner > form.form-inline > label,
+.epc-erp-content-body > form[method="get"] > label,
+.epc-cp-content-inner > form[method="get"] > label {
+    flex-direction: row;
+    align-items: center;
+    gap: .4rem;
+}
+
+.epc-cp-content-inner .epc-scp-table-card {
+    margin: 0 0 1rem;
+    border: 1px solid var(--epc-ui-line) !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    box-shadow: 0 8px 24px rgba(15, 35, 60, .05);
+}
+
+.epc-cp-content-inner .epc-scp-table-card > h3 {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    margin: 0 0 .85rem !important;
+    padding: 0 0 .65rem;
+    border-bottom: 1px solid var(--epc-ui-line);
+    color: var(--epc-ui-ink);
+    font-size: 13px !important;
+    font-weight: 750 !important;
+}
+
+.epc-dash-customize {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .55rem .75rem;
+    margin: 0 0 1rem;
+    padding: .7rem .85rem;
+    border: 1px solid var(--epc-ui-line);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 35, 60, .05);
+}
+
+.epc-dash-customize__label {
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.epc-dash-customize__roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+}
+
+.epc-dash-customize__role {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    min-height: 2rem;
+    padding: .3rem .65rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #1e293b;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.epc-dash-customize__role:hover,
+.epc-dash-customize__role.is-active,
+.epc-erp-cp-shell .epc-dash-customize__role:hover,
+.epc-erp-cp-shell .epc-dash-customize__role.is-active,
+.epc-erp-cp-shell .epc-dash-customize__role.is-active:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #fff !important;
+}
+
+.epc-erp-content-body .ns-dash {
+    max-width: 100%;
+}
+
+.epc-erp-content-body .ns-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: stretch;
+    margin: 0 0 1rem;
+}
+
+.epc-erp-content-body .ns-hero-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .65rem;
+}
+
+.epc-erp-content-body .ns-metric3d,
+.epc-erp-content-body .ns-port {
+    border: 1px solid var(--epc-ui-line);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 35, 60, .05);
+}
+
+.epc-erp-content-body .ns-tiles,
+.ns-dash .ns-tiles,
+.epc-erp-content-body .ns-qa-grid,
+.epc-erp-content-body .ns-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+    gap: .75rem;
+}
+
+/* Command tiles — never flatten to white (PHP premium CSS is paused). */
+a.ns-tile,
+.ns-dash a.ns-tile,
+.epc-erp-content-body a.ns-tile {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: .35rem;
+    min-height: 6.75rem;
+    padding: 1rem .95rem;
+    text-decoration: none !important;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, .14);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, .14);
+    background: linear-gradient(145deg, #1d4f91, #163a6b) !important;
+}
+
+a.ns-tile,
+a.ns-tile:link,
+a.ns-tile:visited,
+a.ns-tile:hover,
+a.ns-tile:focus,
+a.ns-tile .tl,
+a.ns-tile .ic,
+a.ns-tile small {
+    color: #fff !important;
+}
+
+a.ns-tile .ic {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    font-size: 28px;
+    opacity: .32;
+}
+
+a.ns-tile { position: relative; }
+
+a.ns-tile.gold { background: linear-gradient(145deg, #1d4f91, #163a6b) !important; }
+a.ns-tile.green { background: linear-gradient(145deg, #0f766e, #0b5c56) !important; }
+a.ns-tile.rust { background: linear-gradient(145deg, #334155, #1e293b) !important; }
+a.ns-tile.slate { background: linear-gradient(145deg, #b45309, #92400e) !important; }
+a.ns-tile.blue { background: linear-gradient(145deg, #2563eb, #1d4ed8) !important; }
+a.ns-tile.teal { background: linear-gradient(145deg, #0e7490, #155e75) !important; }
+a.ns-tile.purple { background: linear-gradient(145deg, #5b21b6, #4c1d95) !important; }
+a.ns-tile.orange { background: linear-gradient(145deg, #c2410c, #9a3412) !important; }
+
+.epc-infographic__node,
+.epc-infographic__node:link,
+.epc-infographic__node:visited {
+    color: #0f172a !important;
+    background: linear-gradient(145deg, #eef6ff, #ffffff) !important;
+    border: 1px solid #c5d7ea !important;
+    border-left: 4px solid #0078d4 !important;
+}
+
+.epc-infographic__node-label { color: #0078d4 !important; }
+.epc-infographic__node-value { color: #0f172a !important; }
+.epc-infographic__node-note { color: #475569 !important; }
+.epc-infographic__node:nth-child(1) { border-left-color: #0f766e !important; background: linear-gradient(145deg, #ecfdf5, #fff) !important; }
+.epc-infographic__node:nth-child(1) .epc-infographic__node-label { color: #0f766e !important; }
+.epc-infographic__node:nth-child(2) { border-left-color: #1d4ed8 !important; background: linear-gradient(145deg, #eef4ff, #fff) !important; }
+.epc-infographic__node:nth-child(3) { border-left-color: #b45309 !important; background: linear-gradient(145deg, #fff7ed, #fff) !important; }
+.epc-infographic__node:nth-child(3) .epc-infographic__node-label { color: #b45309 !important; }
+.epc-infographic__node:nth-child(4) { border-left-color: #0e7490 !important; background: linear-gradient(145deg, #ecfeff, #fff) !important; }
+.epc-infographic__node:nth-child(4) .epc-infographic__node-label { color: #0e7490 !important; }
+
+.epc-erp-content-body .ns-qa {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .4rem;
+    min-height: 5.5rem;
+    padding: .85rem .9rem;
+    text-decoration: none;
+    background: #fff;
+    border: 1px solid var(--epc-ui-line);
+    border-radius: 10px;
+    color: #0f172a !important;
+}
+
+/* Dynamics 365 F&O Workspaces page — compact icon + label tiles */
+.epc-moddir {
+    margin-top: 1.35rem;
+}
+
+.epc-moddir-head h2 {
+    margin: 0 0 .45rem;
+    color: #605e5c;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.epc-moddir-head p {
+    margin: 0 0 .4rem;
+    color: #64748b;
+    font-size: .82rem;
+    line-height: 1.4;
+}
+
+.epc-moddir-search {
+    width: 100%;
+    max-width: 28rem;
+    margin: 0 0 .85rem;
+    padding: .5rem .7rem;
+    border: 1px solid #d0d4da;
+    border-radius: 2px;
+    background: #fff;
+    font: inherit;
+}
+
+.epc-moddir-group {
+    margin: 0 0 1.1rem;
+}
+
+.epc-moddir-group h3 {
+    margin: 0 0 .55rem;
+    color: #323130;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.epc-moddir-group h3 span {
+    color: #a19f9d;
+    font-weight: 500;
+}
+
+.epc-moddir-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 10px 12px;
+}
+
+a.epc-moddir-item,
+a.epc-d365-ws,
+.epc-moddir-item.epc-d365-ws {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 8px 10px;
+    overflow: hidden;
+    border: 1px solid #c5d7ea;
+    border-left: 3px solid #2563eb;
+    border-radius: 4px;
+    background: #eef4ff !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+    color: #323130 !important;
+    text-decoration: none !important;
+}
+
+a.epc-d365-ws:hover {
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .12);
+    filter: brightness(0.98);
+}
+
+a.epc-d365-ws i {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    border-radius: 6px;
+    background: #2563eb !important;
+    color: #fff !important;
+    font-size: 13px;
+    text-align: center;
+}
+
+a.epc-d365-ws:nth-child(7n+1) { background: #eef4ff !important; border-left-color: #2563eb; }
+a.epc-d365-ws:nth-child(7n+1) i { background: #2563eb !important; }
+a.epc-d365-ws:nth-child(7n+2) { background: #ecfeff !important; border-left-color: #0e7490; }
+a.epc-d365-ws:nth-child(7n+2) i { background: #0e7490 !important; }
+a.epc-d365-ws:nth-child(7n+3) { background: #ecfdf5 !important; border-left-color: #0f766e; }
+a.epc-d365-ws:nth-child(7n+3) i { background: #0f766e !important; }
+a.epc-d365-ws:nth-child(7n+4) { background: #fff7ed !important; border-left-color: #b45309; }
+a.epc-d365-ws:nth-child(7n+4) i { background: #b45309 !important; }
+a.epc-d365-ws:nth-child(7n+5) { background: #f5f3ff !important; border-left-color: #5b21b6; }
+a.epc-d365-ws:nth-child(7n+5) i { background: #5b21b6 !important; }
+a.epc-d365-ws:nth-child(7n+6) { background: #eef6ff !important; border-left-color: #1d4f91; }
+a.epc-d365-ws:nth-child(7n+6) i { background: #1d4f91 !important; }
+a.epc-d365-ws:nth-child(7n) { background: #fff1f2 !important; border-left-color: #c2410c; }
+a.epc-d365-ws:nth-child(7n) i { background: #c2410c !important; }
+
+a.epc-d365-ws .epc-moddir-link,
+a.epc-d365-ws .epc-moddir-link:link,
+a.epc-d365-ws .epc-moddir-link:visited,
+a.epc-d365-ws .epc-moddir-link:hover {
+    color: #323130 !important;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.25;
+    text-decoration: none !important;
+}
+
+@media (max-width: 1100px) {
+    .epc-moddir-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .epc-erp-fact-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 720px) {
+    .epc-erp-content-body form:not([data-epc-inline="1"]),
+    .epc-cp-content-inner form:not([data-epc-inline="1"]),
+    .epc-erp-doc-header,
+    .epc-erp-content-body .epc-fno-form,
+    .epc-erp-content-body .ns-hero,
+    .epc-erp-content-body .ns-hero-metrics {
+        grid-template-columns: 1fr !important;
+    }
+
+    .epc-erp-content-body form label,
+    .epc-cp-content-inner form label,
+    .epc-erp-content-body form .form-group,
+    .epc-cp-content-inner form .form-group {
+        max-width: 100%;
+    }
+
+    .epc-erp-facts dd {
+        flex-basis: 7rem;
+    }
+
+    .epc-moddir-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Fit-out Project Accounting workspace — grouped cards, not a wrap of dropdowns. */
+.epc-prja-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.epc-prja-mast {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .75rem 1.25rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--epc-ui-line);
+    border-radius: 10px;
+    background: linear-gradient(135deg, #0f3d4c 0%, #1769aa 62%, #0ea5c7 100%);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(15, 35, 60, .08);
+}
+
+.epc-prja-mast h2 {
+    margin: 0 0 .2rem;
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.epc-prja-mast p {
+    margin: 0;
+    color: rgba(255, 255, 255, .86);
+    font-size: 12.5px;
+    max-width: 46rem;
+}
+
+.epc-prja-scope {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .35rem .7rem;
+    border: 1px solid rgba(255, 255, 255, .28);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, .18);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.epc-prja-reports {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16.5rem, 1fr));
+    gap: .85rem;
+}
+
+.epc-prja-report {
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+    min-height: 8.5rem;
+    padding: .9rem 1rem;
+    border: 1px solid var(--epc-ui-line);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 35, 60, .05);
+}
+
+.epc-prja-report h3 {
+    margin: 0;
+    color: var(--epc-ui-ink);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.epc-prja-report p {
+    margin: 0;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.epc-erp-content-body .epc-prja-report form,
+.epc-prja-report form {
+    display: flex !important;
+    flex-direction: column;
+    grid-template-columns: none !important;
+    gap: .45rem;
+    width: 100%;
+    max-width: none;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+.epc-erp-content-body .epc-prja-report form > label {
+    flex-direction: column;
+}
+
+.epc-prja-report .btn {
+    align-self: flex-start;
+}
+
+.epc-prja-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+    gap: 1rem;
+    align-items: start;
+}
+
+/* Super CP: page must scroll; red mega-menu stays a full-width aligned sheet. */
+html:has(.epc-boc),
+body:has(.epc-boc) {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    height: auto !important;
+    max-height: none !important;
+}
+
+.epc-boc.epc-boc--topnav,
+.epc-boc {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 100vh !important;
+}
+
+.epc-boc__topnav {
+    position: sticky;
+    top: 0;
+    z-index: 80;
+}
+
+.epc-boc__topnav-inner,
+.epc-boc__topnav-list {
+    flex-wrap: nowrap !important;
+}
+
+.epc-boc__topnav-list {
+    overflow-x: auto;
+}
+
+.epc-boc__topnav-panel {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 100% !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    border-radius: 0 0 12px 12px;
+}
+
+.epc-boc__topnav-cols {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
+    gap: 8px 18px;
+}
+
+/* ERP top search sits on the navy bar — never inherit #fff onto the white input. */
+.epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__input,
+.epc-erp-global-search__input {
+    color: #0f172a !important;
+    background: #fff !important;
+    caret-color: #0f172a;
+    -webkit-text-fill-color: #0f172a;
+}
+
+.epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__input::placeholder,
+.epc-erp-global-search__input::placeholder {
+    color: #64748b !important;
+    opacity: 1;
+    -webkit-text-fill-color: #64748b;
+}
+
+.epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__label,
+.epc-erp-global-search__label {
+    color: #64748b !important;
+}
+
+.epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__results,
+.epc-erp-global-search__results {
+    color: #0f172a !important;
+    background: #fff !important;
+}
+
+.epc-erp-cp-shell .epc-erp-topbar a.epc-erp-global-search__hit,
+.epc-erp-cp-shell .epc-erp-topbar a.epc-erp-global-search__hit span,
+.epc-erp-cp-shell .epc-erp-topbar a.epc-erp-global-search__hit i,
+.epc-erp-global-search__hit,
+a.epc-erp-global-search__hit {
+    color: #0f172a !important;
+}
+
+.epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__hit small,
+.epc-erp-global-search__hit small {
+    color: #64748b !important;
+}
+
+/* Dashboard home: header already has legal name / industry. Hide the repeating chrome strip. */
+.epc-erp-cp-shell:has(.ns-dash) .epc-module-visual-frame,
+.epc-erp-cp-shell:has(.ns-dash) .epc-op-context,
+.epc-erp-cp-shell:has(.ns-dash) .epc-dash-repeat,
+.epc-erp-cp-shell[data-epc-dash-home="1"] .epc-module-visual-frame,
+.epc-erp-cp-shell[data-epc-dash-home="1"] .epc-op-context,
+.epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-company-scope--panel,
+.ns-dash .epc-dash-repeat {
+    display: none !important;
+}
+
+.epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-toolbar {
+    margin-bottom: .15rem;
+}
+
+.epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-host-sub {
+    margin: 0;
+}
+
+.epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-title {
+    margin-bottom: .2rem;
+}
+
+.epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-body {
+    padding-top: .15rem;
+}
+
+.epc-jw-bm-form {
+    --epc-field-min: 9.25rem;
+    max-width: 82rem !important;
+}
+
+.epc-jw-bm-form .epc-erp-doc-header,
+.epc-jw-bm-flags,
+.epc-jw-line-grid,
+.epc-jw-panel-nav,
+.epc-jw-panel,
+.epc-jw-totals {
+    grid-column: 1 / -1;
+}
+
+.epc-jw-bm-flags {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+    gap: .35rem 1rem;
+    margin: .15rem 0 .4rem;
+}
+
+.epc-jw-bm-flags label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: .45rem;
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.epc-jw-line-grid {
+    overflow-x: auto;
+}
+
+.epc-jw-line-grid table input,
+.epc-jw-line-grid table select,
+.epc-jw-line-grid .epc-erp-master-picker {
+    min-width: 7.5rem;
+}
+
+.epc-jw-panel[hidden] {
+    display: none !important;
+}
+
+.epc-jw-panel-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    margin: .2rem 0 .45rem;
+}
+
+.epc-jw-panel-nav a {
+    padding: .28rem .7rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #f8fafc;
+    color: #1e293b;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.epc-jw-panel-nav a.is-active,
+.epc-jw-panel-nav a.is-active:hover,
+.epc-erp-cp-shell .epc-jw-panel-nav a.is-active,
+.epc-erp-cp-shell .epc-jw-panel-nav a.is-active:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #fff !important;
+}
+
+.epc-jw-totals {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: .4rem .8rem;
+    padding: .65rem .75rem;
+    border: 1px solid #d7e3f0;
+    border-radius: 8px;
+    background: #f8fbff;
 }

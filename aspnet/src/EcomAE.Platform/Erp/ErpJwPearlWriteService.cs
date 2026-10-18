@@ -38,7 +38,8 @@ public sealed record ErpJwPearlSaveRequest(
     string? Price1Code = null,
     decimal Price1Pct = 0,
     decimal Price1Fc = 0,
-    decimal Price1Lc = 0);
+    decimal Price1Lc = 0,
+    string? CreatedBy = null);
 
 public sealed class ErpJwPearlWriteService : IErpJwPearlWriteService
 {
@@ -100,7 +101,7 @@ public sealed class ErpJwPearlWriteService : IErpJwPearlWriteService
             connection,
             null,
             ErpDb.Positional(
-                "INSERT INTO `epc_jewel_pearl_master` (`company_id`,`code`,`nature`,`description`,`design`,`type`,`cost_centre`,`category`,`color`,`vendor`,`vendor_ref`,`luster`,`shape`,`size`,`brand`,`country`,`grade`,`sub_category`,`currency`,`currency_rate`,`cost_amount`,`price1_code`,`price1_pct`,`price1_fc`,`price1_lc`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `nature` = VALUES(`nature`), `description` = VALUES(`description`), `design` = VALUES(`design`), `type` = VALUES(`type`), `cost_centre` = VALUES(`cost_centre`), `category` = VALUES(`category`), `color` = VALUES(`color`), `vendor` = VALUES(`vendor`), `vendor_ref` = VALUES(`vendor_ref`), `luster` = VALUES(`luster`), `shape` = VALUES(`shape`), `size` = VALUES(`size`), `brand` = VALUES(`brand`), `country` = VALUES(`country`), `grade` = VALUES(`grade`), `sub_category` = VALUES(`sub_category`), `currency` = VALUES(`currency`), `currency_rate` = VALUES(`currency_rate`), `cost_amount` = VALUES(`cost_amount`), `price1_code` = VALUES(`price1_code`), `price1_pct` = VALUES(`price1_pct`), `price1_fc` = VALUES(`price1_fc`), `price1_lc` = VALUES(`price1_lc`)"),
+                "INSERT INTO `epc_jewel_pearl_master` (`company_id`,`code`,`nature`,`description`,`design`,`type`,`cost_centre`,`category`,`color`,`vendor`,`vendor_ref`,`luster`,`shape`,`size`,`brand`,`country`,`grade`,`sub_category`,`currency`,`currency_rate`,`cost_amount`,`price1_code`,`price1_pct`,`price1_fc`,`price1_lc`,`created_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `nature` = VALUES(`nature`), `description` = VALUES(`description`), `design` = VALUES(`design`), `type` = VALUES(`type`), `cost_centre` = VALUES(`cost_centre`), `category` = VALUES(`category`), `color` = VALUES(`color`), `vendor` = VALUES(`vendor`), `vendor_ref` = VALUES(`vendor_ref`), `luster` = VALUES(`luster`), `shape` = VALUES(`shape`), `size` = VALUES(`size`), `brand` = VALUES(`brand`), `country` = VALUES(`country`), `grade` = VALUES(`grade`), `sub_category` = VALUES(`sub_category`), `currency` = VALUES(`currency`), `currency_rate` = VALUES(`currency_rate`), `cost_amount` = VALUES(`cost_amount`), `price1_code` = VALUES(`price1_code`), `price1_pct` = VALUES(`price1_pct`), `price1_fc` = VALUES(`price1_fc`), `price1_lc` = VALUES(`price1_lc`)"),
             cancellationToken,
             companyId,
             code,
@@ -126,7 +127,8 @@ public sealed class ErpJwPearlWriteService : IErpJwPearlWriteService
             price1Code,
             RoundNonNeg(request.Price1Pct, 2),
             RoundNonNeg(request.Price1Fc, 2),
-            RoundNonNeg(request.Price1Lc, 2)).ConfigureAwait(false);
+            RoundNonNeg(request.Price1Lc, 2),
+            Clip((request.CreatedBy ?? string.Empty).Trim(), 80)).ConfigureAwait(false);
 
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
         if (id <= 0)

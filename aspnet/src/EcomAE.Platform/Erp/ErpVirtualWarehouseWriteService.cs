@@ -89,6 +89,7 @@ public sealed class ErpVirtualWarehouseWriteService : IErpVirtualWarehouseWriteS
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureVirtualWarehouseAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_warehouses", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_warehouses", "code", cancellationToken).ConfigureAwait(false))
         {
@@ -209,6 +210,7 @@ public sealed class ErpVirtualWarehouseWriteService : IErpVirtualWarehouseWriteS
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureVirtualWarehouseAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_warehouses", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_warehouses", "code", cancellationToken).ConfigureAwait(false)
             || !await TableExistsAsync(connection, "epc_warehouse_transfers", cancellationToken).ConfigureAwait(false)
@@ -219,18 +221,9 @@ public sealed class ErpVirtualWarehouseWriteService : IErpVirtualWarehouseWriteS
             return ErpSimpleWriteResult.Fail("invalid", "Virtual warehouse tables are not provisioned");
         }
 
-        var fromId = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT `id` FROM `epc_warehouses` WHERE `id` = ? LIMIT 1"),
-            cancellationToken,
-            request.FromWarehouseId).ConfigureAwait(false);
-        var toId = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT `id` FROM `epc_warehouses` WHERE `id` = ? LIMIT 1"),
-            cancellationToken,
-            request.ToWarehouseId).ConfigureAwait(false);
+        await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
+        var fromId = await ResolveWarehouseIdAsync(connection, request.FromWarehouseId, cancellationToken).ConfigureAwait(false);
+        var toId = await ResolveWarehouseIdAsync(connection, request.ToWarehouseId, cancellationToken).ConfigureAwait(false);
         if (fromId <= 0 || toId <= 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "Warehouse is missing.");
@@ -335,6 +328,40 @@ public sealed class ErpVirtualWarehouseWriteService : IErpVirtualWarehouseWriteS
         }
 
         return lines.Where(l => l.Qty > 0).ToList();
+    }
+
+    private static async Task<long> ResolveWarehouseIdAsync(DbConnection connection, long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            return 0;
+        }
+
+        if (await TableExistsAsync(connection, "epc_warehouses", cancellationToken).ConfigureAwait(false))
+        {
+            var master = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `id` FROM `epc_warehouses` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                id).ConfigureAwait(false);
+            if (master > 0)
+            {
+                return master;
+            }
+        }
+
+        if (await TableExistsAsync(connection, "epc_erp_inv_warehouses", cancellationToken).ConfigureAwait(false))
+        {
+            return await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                id).ConfigureAwait(false);
+        }
+
+        return 0;
     }
 
     private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)

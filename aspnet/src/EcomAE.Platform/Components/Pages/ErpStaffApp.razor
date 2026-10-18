@@ -16,9 +16,16 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Staff &amp; departments" Subtitle="Open a row for user id, created time, and same-department siblings. email/phone stay off the Open pane. Writes stay Classic." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Staff &amp; departments" Subtitle="New staff saves a profile. Open a posted profile for user id and same-department siblings. Email and phone stay off the open pane." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
-
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
+    <ErpPhpViewTabs QueryName="pm_view" Active="@_view" BaseHref="@TabBase" Tabs="@_entryTabs" />
+    @if (_view == "entry")
+    {
+        <ErpSheetEntryForm Sheet="staff_profile" IsAdmin="_isAdmin" ListHref="@TabBase" CompanyId="_company" />
+    }
+    else
+    {
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Staff KPIs">
         <div class="kpi"><div class="lbl">Active staff</div><div class="val">@_active.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Shown</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -55,7 +62,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Staff id</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>User id</dt><dd>@(_opened.UserId > 0 ? _opened.UserId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.DisplayName) ? "—" : _opened.DisplayName)</dd>
@@ -64,7 +71,7 @@
                 <dt>Status</dt><dd>@(_opened.Active ? "active" : "inactive")</dd>
                 <dt>Created</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">email/phone stay off this pane. Writes stay Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">email/phone stay off this pane.</p>
             @if (_openedSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-department siblings</p>
@@ -143,9 +150,10 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Payroll stays on <a href="/erp/payroll-app">payroll</a>. HR salaries stay on <a href="/erp/hr-overview-app">HR</a>.
+        Source: @_source. Prepare department logins on <a href="/erp/users-app">Users &amp; credentials</a>. Payroll stays on <a href="/erp/payroll-app">payroll</a>. HR salaries stay on <a href="/erp/hr-overview-app">HR</a>.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
+    }
 </PhpErpDesktopChrome>
 
 @code {
@@ -162,6 +170,13 @@
     private long _openedId;
     private ErpStaffProfileDetail? _opened;
     private IReadOnlyList<ErpStaffProfileDigest> _openedSiblings = [];
+    private string _view = "posted";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private int _company = 1;
+    private static readonly IReadOnlyList<(string Key, string Label)> _entryTabs =
+        [("entry", "New staff"), ("posted", "Posted staff")];
+    private string TabBase => _listHref + "?company=" + _company.ToString(CultureInfo.InvariantCulture);
 
     private string OpenedReturnHref => _openedId > 0
         ? _listHref + "?staff_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
@@ -178,6 +193,10 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _company = ReadCompany(ctx);
+        _view = ReadView(ctx);
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "staff_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
@@ -216,6 +235,17 @@
             }
         }
     }
+
+    private static int ReadCompany(HttpContext ctx)
+    {
+        var raw = ctx.Request.Query["company"].ToString();
+        return int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var company) && company > 0
+            ? company
+            : 1;
+    }
+
+    private static string ReadView(HttpContext ctx)
+        => ctx.Request.Query["pm_view"].ToString() is "entry" or "new" ? "entry" : "posted";
 
     private static string FormatTime(long unix)
     {

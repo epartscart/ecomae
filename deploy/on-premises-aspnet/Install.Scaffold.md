@@ -14,7 +14,7 @@ The step-by-step operator procedure is in `docs/tenant-installation-guide.md`.
 | Backup | `backup.php` | dry-run + `Backup.Scaffold.md` |
 | Health | `health-check.php` | dry-run + `HealthCheck.Scaffold.md` |
 | License activate | `activate-license.php` | dry-run + `ActivateLicense.Scaffold.md` |
-| Compose / systemd | PHP pack | future — not cut over |
+| Compose / systemd | PHP leftover pack | Live `install.sh` + `setup.cmd` + `docker-compose.yml` in this directory |
 
 The cloud control plane must create the tenant first, classify it as `on-premises`,
 and generate the manifest before the local setup package is run. The local package

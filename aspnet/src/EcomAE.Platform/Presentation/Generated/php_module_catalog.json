@@ -8,8 +8,8 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "counts": {
-    "erpAreas": 35,
-    "erpTabs": 154,
+    "erpAreas": 39,
+    "erpTabs": 158,
     "erpCategories": 9,
     "bosModules": 99,
     "bosSections": 11,
@@ -1179,6 +1179,42 @@
       ]
     },
     {
+      "id": "questionnaire",
+      "label": "Questionnaire",
+      "icon": "fa-question-circle",
+      "description": "Design, distribute and analyze questionnaires",
+      "href": "/ERP/?epc_erp_shell=1&area=questionnaire",
+      "tabs": [
+        {
+          "id": "questionnaire",
+          "label": "Questionnaires",
+          "icon": "fa-question-circle",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
+          "href": "/ERP/?epc_erp_shell=1&area=questionnaire&tab=questionnaire"
+        }
+      ]
+    },
+    {
+      "id": "rebate_mgmt",
+      "label": "Rebate management",
+      "icon": "fa-percent",
+      "description": "Customer, royalty and vendor rebate deals",
+      "href": "/ERP/?epc_erp_shell=1&area=rebate_mgmt",
+      "tabs": [
+        {
+          "id": "rebate_deals",
+          "label": "Rebate deals",
+          "icon": "fa-percent",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
+          "href": "/ERP/?epc_erp_shell=1&area=rebate_mgmt&tab=rebate_deals"
+        }
+      ]
+    },
+    {
       "id": "retail",
       "label": "Retail and commerce",
       "icon": "fa-shopping-cart",
@@ -1701,6 +1737,42 @@
       ]
     },
     {
+      "id": "time_att",
+      "label": "Time and attendance",
+      "icon": "fa-clock-o",
+      "description": "Registrations, approval, flex time and transfer to payroll",
+      "href": "/ERP/?epc_erp_shell=1&area=time_att",
+      "tabs": [
+        {
+          "id": "time_attendance",
+          "label": "Time and attendance",
+          "icon": "fa-clock-o",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
+          "href": "/ERP/?epc_erp_shell=1&area=time_att&tab=time_attendance"
+        }
+      ]
+    },
+    {
+      "id": "transportation",
+      "label": "Transportation management",
+      "icon": "fa-truck",
+      "description": "Loads, shipments, rating, routing and freight bills",
+      "href": "/ERP/?epc_erp_shell=1&area=transportation",
+      "tabs": [
+        {
+          "id": "transportation",
+          "label": "Transportation",
+          "icon": "fa-truck",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
+          "href": "/ERP/?epc_erp_shell=1&area=transportation&tab=transportation"
+        }
+      ]
+    },
+    {
       "id": "warehouse",
       "label": "Warehouse management",
       "icon": "fa-cubes",
@@ -1754,7 +1826,8 @@
         "purchasing",
         "ap",
         "landed_cost_area",
-        "expense"
+        "expense",
+        "rebate_mgmt"
       ],
       "href": "/ERP/?epc_erp_shell=1&area=purchasing"
     },
@@ -1796,7 +1869,8 @@
         "mhei",
         "logistics",
         "master_planning_area",
-        "asset_mgmt"
+        "asset_mgmt",
+        "transportation"
       ],
       "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt"
     },
@@ -1809,7 +1883,8 @@
         "people",
         "payroll_area",
         "leave_abs",
-        "projects"
+        "projects",
+        "time_att"
       ],
       "href": "/ERP/?epc_erp_shell=1&area=people"
     },
@@ -1832,7 +1907,8 @@
       "areas": [
         "setup",
         "enterprise",
-        "common"
+        "common",
+        "questionnaire"
       ],
       "href": "/ERP/?epc_erp_shell=1&area=setup"
     }

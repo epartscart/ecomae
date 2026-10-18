@@ -9,13 +9,13 @@ namespace EcomAE.Platform.Storefront;
 public static partial class StorefrontPhpAjax
 {
     public const string PortalDeployOnlyOnPlatform = "Deploy is only available on the ecomae platform control panel.";
-    public const string PortalDeployStaysClassic = "Site deploy stays Classic.";
-    public const string PortalSeedStaysClassic = "Storefront seed stays on the classic helper.";
-    public const string PortalMenuStaysClassic = "Menu item list stays on the classic helper.";
-    public const string PortalPasswordStaysClassic = "Password reset stays Classic.";
-    public const string PortalRevealStaysClassic = "Password reveal stays Classic.";
-    public const string PortalDemoStaysClassic = "Demo access stays Classic.";
-    public const string PortalPushStaysClassic = "Client host push stays Classic.";
+    public const string PortalDeployStaysClassic = "Site deploy is not available on this page.";
+    public const string PortalSeedStaysClassic = "Storefront seed is not available on this page.";
+    public const string PortalMenuStaysClassic = "Menu item list is not available on this page.";
+    public const string PortalPasswordStaysClassic = "Password reset is not available on this page.";
+    public const string PortalRevealStaysClassic = "Password reveal is not available on this page.";
+    public const string PortalDemoStaysClassic = "Demo access is not available on this page.";
+    public const string PortalPushStaysClassic = "Client host push is not available on this page.";
 
     public sealed record PortalActiveBody(
         [property: JsonPropertyName("status")] bool Status,

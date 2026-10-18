@@ -16,8 +16,9 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Fixed assets" Subtitle="Open a row for location, serial, and the 280-character note excerpt. Depreciation run stays on the Classic twin." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Fixed assets" Subtitle="Register an asset or run monthly depreciation here. Open a row for location, serial, and the 280-character note excerpt." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Fixed assets stats">
         <div class="kpi"><div class="lbl">Assets</div><div class="val">@_summary.AssetCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -34,7 +35,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Code</dt><dd>@(string.IsNullOrWhiteSpace(_opened.AssetCode) ? "—" : _opened.AssetCode)</dd>
                 <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Name) ? "—" : _opened.Name)</dd>
@@ -51,7 +52,7 @@
                 <dt>Book</dt><dd>@_opened.BookValue.ToString("0.00", CultureInfo.InvariantCulture)</dd>
                 <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Depreciation run stays on the Classic twin.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Register and depreciation writes stay on this page.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NoteExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">note excerpt</p>
@@ -95,6 +96,45 @@
                 <p class="text-muted">No same-status siblings yet.</p>
             }
         </div>
+    }
+
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="Register asset">
+            <form method="post" action="/erp/ajax/fa-create-asset" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0;">
+                <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Code <input class="form-control input-sm" name="asset_code" required maxlength="32" style="width:8rem;" /></label>
+                <label>Name <input class="form-control input-sm" name="name" required maxlength="160" style="width:14rem;" /></label>
+                <label>Category <input class="form-control input-sm" type="number" name="category_id" min="0" value="0" style="width:6rem;" /></label>
+                <label>Acquired <input class="form-control input-sm" type="date" name="acquisition_date" /></label>
+                <label>Cost <input class="form-control input-sm" type="number" name="cost" min="0.01" step="0.01" required style="width:7rem;" /></label>
+                <label>Salvage <input class="form-control input-sm" type="number" name="salvage_value" min="0" step="0.01" value="0" style="width:7rem;" /></label>
+                <label>Life (mo) <input class="form-control input-sm" type="number" name="useful_life_months" min="1" value="60" style="width:6rem;" /></label>
+                <label>Method
+                    <select class="form-control input-sm" name="depreciation_method">
+                        <option value="straight_line">Straight line</option>
+                        <option value="declining_balance">Declining balance</option>
+                        <option value="double_declining">Double declining</option>
+                        <option value="units_of_production">Units of production</option>
+                    </select>
+                </label>
+                <label>Location <input class="form-control input-sm" name="location" maxlength="128" style="width:10rem;" /></label>
+                <label>Serial <input class="form-control input-sm" name="serial_no" maxlength="64" style="width:8rem;" /></label>
+                <label>Note <input class="form-control input-sm" name="note" maxlength="255" style="width:14rem;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Register</button>
+            </form>
+        </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Run depreciation">
+            <form method="post" action="/erp/ajax/fa-run-depreciation" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0;">
+                <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Period <input class="form-control input-sm" name="period_month" value="@DateTime.UtcNow.ToString("yyyy-MM", CultureInfo.InvariantCulture)" maxlength="7" required style="width:7rem;" /></label>
+                <label>Note <input class="form-control input-sm" name="note" maxlength="255" style="width:16rem;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Post depreciation</button>
+            </form>
+            <p class="text-muted" style="margin:.6rem 0 0">Period is YYYY-MM. Posted as Dr 5100 / Cr 1550 on the shared ledger.</p>
+        </ErpPhpCreateWell>
     }
 
     <div class="epc-erp-table-wrap">
@@ -157,6 +197,8 @@
     private IReadOnlyList<ErpFixedAssetDigest> _assets = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
     private long _openedId;
     private ErpFixedAssetDetail? _opened;
     private IReadOnlyList<ErpFixedAssetDigest> _openedSiblings = [];
@@ -178,6 +220,8 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "asset_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

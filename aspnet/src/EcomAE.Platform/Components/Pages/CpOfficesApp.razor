@@ -41,7 +41,6 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Office geography: @_geo.OfficeCaption
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "/office/geo_nodes?office_id=" + _geo.OfficeId.ToString(CultureInfo.InvariantCulture))">Classic twin</a>
             </div>
             <div class="panel-body epc-of-actions">
                 <a class="panel_a" href="javascript:void(0);" onclick="document.getElementById('geo_form').requestSubmit();"><div class="panel_a_img"><i class="fa fa-save"></i></div><div class="panel_a_caption">Save</div></a>
@@ -106,7 +105,6 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Warehouses of office: @_storages.OfficeCaption
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "/office/storages_link?office_id=" + _storages.OfficeId.ToString(CultureInfo.InvariantCulture))">Classic twin</a>
             </div>
             <div class="panel-body epc-of-actions">
                 <a class="panel_a" href="javascript:void(0);" onclick="document.getElementById('sl_form').requestSubmit();"><div class="panel_a_img"><i class="fa fa-save"></i></div><div class="panel_a_caption">Save</div></a>
@@ -220,7 +218,6 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 @(_editor.Id > 0 ? "Edit office" : "New office")
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_editor.Id > 0 ? _phpTab + "/office?office_id=" + idText : _phpTab + "/office")">Classic twin</a>
             </div>
             <div class="panel-body epc-of-actions">
                 <a class="panel_a" href="javascript:void(0);" onclick="document.getElementById('office_form').requestSubmit();"><div class="panel_a_img"><i class="fa fa-save"></i></div><div class="panel_a_caption">Save</div></a>
@@ -306,7 +303,6 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Offices (pickup points)
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body epc-of-actions">
                 <a class="panel_a" href="@(_listHref)?office_id=new"><div class="panel_a_img"><i class="fa fa-plus"></i></div><div class="panel_a_caption">Add</div></a>

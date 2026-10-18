@@ -23,6 +23,7 @@ internal static class ErpJewelSchema
         `sp_gravity` DECIMAL(7,4) NOT NULL DEFAULT 0,
         `pos_rate_min_max` DECIMAL(12,2) NOT NULL DEFAULT 0,
         `division` CHAR(2) NOT NULL DEFAULT 'G',
+        `created_by` VARCHAR(80) NOT NULL DEFAULT '',
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY `uk_co_karat` (`company_id`, `karat_code`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -42,6 +43,7 @@ internal static class ErpJewelSchema
         `pos_margin_max` DECIMAL(6,2) NOT NULL DEFAULT 50,
         `status` VARCHAR(10) NOT NULL DEFAULT 'MULTIPLY',
         `is_default` TINYINT(1) NOT NULL DEFAULT 0,
+        `created_by` VARCHAR(80) NOT NULL DEFAULT '',
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY `uk_co_rt` (`company_id`, `metal`, `rate_type`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -58,6 +60,7 @@ internal static class ErpJewelSchema
         `min_conv_rate` DECIMAL(12,6) NOT NULL DEFAULT 1,
         `max_conv_rate` DECIMAL(12,6) NOT NULL DEFAULT 1,
         `status` VARCHAR(10) NOT NULL DEFAULT 'MULTIPLY',
+        `created_by` VARCHAR(80) NOT NULL DEFAULT '',
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY `uk_co_curr` (`company_id`, `curr_code`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -499,6 +502,21 @@ internal static class ErpJewelSchema
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """,
         """
+        CREATE TABLE IF NOT EXISTS `epc_jewel_voucher_addins` (
+        `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        `voucher_id` INT UNSIGNED NOT NULL,
+        `line_no` SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+        `addin_code` VARCHAR(20) NOT NULL DEFAULT '',
+        `description` VARCHAR(120) NOT NULL DEFAULT '',
+        `debit_ac` VARCHAR(20) NOT NULL DEFAULT '',
+        `credit_ac` VARCHAR(20) NOT NULL DEFAULT '',
+        `pct` DECIMAL(8,4) NOT NULL DEFAULT 0,
+        `amount` DECIMAL(14,2) NOT NULL DEFAULT 0,
+        `narration` VARCHAR(200) NOT NULL DEFAULT '',
+        KEY `fk_voc_a` (`voucher_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
         CREATE TABLE IF NOT EXISTS `epc_jewel_repair` (
         `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         `company_id` INT UNSIGNED NOT NULL DEFAULT 0,
@@ -750,6 +768,7 @@ internal static class ErpJewelSchema
         `purity` DECIMAL(7,6) NOT NULL DEFAULT 0,
         `tag_price` DECIMAL(14,2) NOT NULL DEFAULT 0,
         `printed` TINYINT(1) NOT NULL DEFAULT 0,
+        `created_by` VARCHAR(80) NOT NULL DEFAULT '',
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY `uk_bc` (`company_id`, `barcode`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -832,6 +851,7 @@ internal static class ErpJewelSchema
         `rfid_tag` varchar(100) NOT NULL DEFAULT '',
         `description` varchar(500) NOT NULL DEFAULT '',
         `image_path` varchar(500) NOT NULL DEFAULT '',
+        `created_by` varchar(80) NOT NULL DEFAULT '',
         `time_created` int(11) NOT NULL DEFAULT 0,
         `time_updated` int(11) NOT NULL DEFAULT 0,
         PRIMARY KEY (`id`),
@@ -903,6 +923,107 @@ internal static class ErpJewelSchema
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Fix/unfix purchase structure tracking'
         """,
         """
+        CREATE TABLE IF NOT EXISTS `epc_gold_rates` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `company_id` int(11) NOT NULL DEFAULT 0,
+        `rate_date` date NOT NULL,
+        `karat` varchar(10) NOT NULL DEFAULT '24K',
+        `currency` varchar(3) NOT NULL DEFAULT 'AED',
+        `buy_rate` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `sell_rate` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `unit` varchar(10) NOT NULL DEFAULT 'gram',
+        `source` varchar(50) NOT NULL DEFAULT 'manual',
+        `time_created` int(11) NOT NULL DEFAULT 0,
+        `created_by` varchar(80) NOT NULL DEFAULT '',
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `ux_date_karat_cur` (`company_id`, `rate_date`, `karat`, `currency`),
+        KEY `x_date` (`rate_date`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_gold_rate_config` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `company_id` int(11) NOT NULL DEFAULT 0,
+        `api_provider` varchar(50) NOT NULL DEFAULT 'manual',
+        `api_key` varchar(200) NOT NULL DEFAULT '',
+        `api_endpoint` varchar(500) NOT NULL DEFAULT '',
+        `base_currency` varchar(3) NOT NULL DEFAULT 'AED',
+        `karats` varchar(100) NOT NULL DEFAULT '24K,22K,21K,18K',
+        `auto_fetch` tinyint(1) NOT NULL DEFAULT 1,
+        `fetch_time` varchar(5) NOT NULL DEFAULT '09:00',
+        `margin_buy_pct` decimal(5,2) NOT NULL DEFAULT 0.00,
+        `margin_sell_pct` decimal(5,2) NOT NULL DEFAULT 1.50,
+        `time_updated` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`),
+        KEY `x_company` (`company_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_gold_schemes` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `company_id` int(11) NOT NULL DEFAULT 0,
+        `scheme_code` varchar(32) NOT NULL DEFAULT '',
+        `scheme_name` varchar(200) NOT NULL DEFAULT '',
+        `scheme_type` enum('value','gram') NOT NULL DEFAULT 'value',
+        `maturity_months` int(11) NOT NULL DEFAULT 11,
+        `bonus_type` enum('free_month','free_making','discount_pct','bonus_gram','none') NOT NULL DEFAULT 'free_month',
+        `bonus_value` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `min_installment` decimal(14,2) NOT NULL DEFAULT 500.00,
+        `max_installment` decimal(14,2) NOT NULL DEFAULT 50000.00,
+        `is_active` tinyint(1) NOT NULL DEFAULT 1,
+        `terms_text` text,
+        `created_by` varchar(80) NOT NULL DEFAULT '',
+        `time_created` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`),
+        KEY `x_company` (`company_id`),
+        KEY `x_active` (`is_active`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_gold_scheme_enrollments` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `company_id` int(11) NOT NULL DEFAULT 0,
+        `scheme_id` int(11) NOT NULL DEFAULT 0,
+        `customer_id` int(11) NOT NULL DEFAULT 0,
+        `customer_name` varchar(200) NOT NULL DEFAULT '',
+        `enrollment_no` varchar(32) NOT NULL DEFAULT '',
+        `installment_amount` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `start_date` date DEFAULT NULL,
+        `maturity_date` date DEFAULT NULL,
+        `total_paid` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `installments_paid` int(11) NOT NULL DEFAULT 0,
+        `status` enum('active','matured','redeemed','cancelled','defaulted') NOT NULL DEFAULT 'active',
+        `bonus_earned` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `redemption_invoice_id` int(11) NOT NULL DEFAULT 0,
+        `notes` text,
+        `time_created` int(11) NOT NULL DEFAULT 0,
+        `time_updated` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`),
+        KEY `x_company` (`company_id`),
+        KEY `x_scheme` (`scheme_id`),
+        KEY `x_customer` (`customer_id`),
+        KEY `x_status` (`status`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_gold_scheme_payments` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `enrollment_id` int(11) NOT NULL DEFAULT 0,
+        `installment_no` int(11) NOT NULL DEFAULT 0,
+        `amount` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `payment_mode` varchar(50) NOT NULL DEFAULT 'cash',
+        `gold_rate_at_payment` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `grams_equivalent` decimal(14,6) NOT NULL DEFAULT 0.000000,
+        `receipt_no` varchar(64) NOT NULL DEFAULT '',
+        `payment_date` date DEFAULT NULL,
+        `notes` varchar(300) NOT NULL DEFAULT '',
+        `time_created` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`),
+        KEY `x_enrollment` (`enrollment_id`),
+        KEY `x_date` (`payment_date`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
         CREATE TABLE IF NOT EXISTS `epc_fix_unfix_settlements` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `purchase_fix_id` int(11) NOT NULL DEFAULT 0,
@@ -924,5 +1045,36 @@ internal static class ErpJewelSchema
         {
             await ErpDb.TryExecuteAsync(connection, sql, cancellationToken).ConfigureAwait(false);
         }
+
+        foreach (var sql in AlterStatements)
+        {
+            await ErpDb.TryExecuteAsync(connection, sql, cancellationToken).ConfigureAwait(false);
+        }
     }
+
+    private static readonly string[] AlterStatements =
+    [
+        "ALTER TABLE `epc_jewel_voucher` ADD COLUMN `place_of_supply` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_voucher` ADD COLUMN `shipment_company` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_voucher` ADD COLUMN `port_company` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_voucher` ADD COLUMN `item_curr_rate` DECIMAL(12,6) NOT NULL DEFAULT 1",
+        "ALTER TABLE `epc_jewel_karat_master` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_karat_master` ADD COLUMN `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP",
+        "ALTER TABLE `epc_jewel_rate_type` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_rate_type` ADD COLUMN `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP",
+        "ALTER TABLE `epc_jewel_currency` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_currency` ADD COLUMN `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP",
+        "ALTER TABLE `epc_jewel_barcode` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_barcode` ADD COLUMN `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP",
+        "ALTER TABLE `epc_jewel_diamond_master` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_pearl_master` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_color_stone_master` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_design` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jw_tags` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jw_tags` ADD COLUMN `other_weight` DECIMAL(10,3) NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_jw_tags` ADD COLUMN `purity_ppt` DECIMAL(8,3) NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_jw_tags` ADD COLUMN `pure_weight` DECIMAL(10,4) NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_gold_schemes` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_gold_rates` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+    ];
 }

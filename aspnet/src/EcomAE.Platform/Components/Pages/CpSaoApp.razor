@@ -24,7 +24,6 @@
                 Order automation (SAO)
                 <a class="btn btn-xs btn-default pull-right" href="/cp/fulfillment-queue-app">Fulfillment</a>
                 <a class="btn btn-xs btn-default pull-right" href="/cp/orders" style="margin-right:.4rem">Orders</a>
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
                 <p>SAO order-item state machine: map each supplier state to the order-item status customers see, and watch the robot queue that executes supplier actions.</p>
@@ -154,7 +153,7 @@
                                 @action.Name
                             </span>
                         }
-                        <div class="text-muted" style="margin-top:6px;font-size:12px">Supplier action scripts still execute through the classic <code>sao/ajax_exec_action.php</code> handler chain.</div>
+                        <div class="text-muted" style="margin-top:6px;font-size:12px">Supplier action scripts still execute through the supplier-action handler chain.</div>
                     </div>
                 </div>
             </div>

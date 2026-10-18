@@ -2,23 +2,142 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IErpFinancialStatementReadService Statements
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
-<PageTitle>Report center · ERP · eParts Cart</PageTitle>
+<PageTitle>@_pageTitle · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Report center" BreadcrumbArea="Overview" BreadcrumbTab="Reports">
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_pageTitle" BreadcrumbArea="Record to Report" BreadcrumbTab="@_pageTitle">
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/report-center-app" IsAdmin="_isAdmin" />
 
 
     
-    <PhpErpModulePageHeader Title="Report center" Subtitle="Run financial and operational reports." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="@_pageTitle" Subtitle="@_pageSubtitle" PhpTabHref="@_phpTab" />
+    <style>
+        .epc-stmt-actions a{display:inline-block;background:#1f4e79;color:#fff !important;text-decoration:none;border-radius:.25rem;padding:.35rem .7rem;margin:0 .35rem .35rem 0}
+        form.epc-ui-toolbar button{background:#1f4e79 !important;color:#fff !important;border:0;}
+    </style>
 
-
+    @if (_statement is not null)
+    {
+        <p class="help-block">
+            Posted journals through to the statement.
+            <a href="@StatementHref("pl", _level, _businessUnit, _currency)">Profit and loss</a>
+            · <a href="@StatementHref("balance_sheet", _level, _businessUnit, _currency)">Balance sheet</a>
+            · <a href="@StatementHref("pl", "company", _businessUnit, _currency)">Company</a>
+            · <a href="@StatementHref("pl", "business_unit", _businessUnit, _currency)">Business unit</a>
+            · <a href="@StatementHref("balance_sheet", "consolidation", _businessUnit, _currency)">Consolidation</a>
+            · <a href="@WithCompany("/erp/trial-balance-app")">Trial balance</a>
+            · <a href="@WithCompany("/erp/tax-external-reporting-app")">External reporting</a>
+            · <a href="@WithCompany("/erp/report-center-app?tab=reports")">All reports</a>
+        </p>
+        <p class="help-block">Each legal entity posts in the currency of its country. Consolidation is the head office reporting currency, and each exchange rate is applied before the accounts are added.</p>
+        <form method="get" action="/erp/report-center-app" data-epc-inline="1" class="epc-ui-toolbar" style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:end;margin:0 0 1rem;">
+            <input type="hidden" name="tab" value="@_navTab" />
+            @if (_company > 0)
+            {
+                <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+            }
+            <label>Level
+                <select class="form-control input-sm" name="level">
+                    <option value="company" selected="@(_level == "company")">Company</option>
+                    <option value="business_unit" selected="@(_level == "business_unit")">Business unit</option>
+                    <option value="consolidation" selected="@(_level == "consolidation")">Consolidation</option>
+                </select>
+            </label>
+            <label>Business unit
+                <select class="form-control input-sm" name="bu">
+                    <option value="0">All units</option>
+                    @foreach (var unit in _statement.BusinessUnits)
+                    {
+                        <option value="@unit.Id.ToString(CultureInfo.InvariantCulture)" selected="@(unit.Id == _businessUnit)">@unit.Code @unit.Name</option>
+                    }
+                </select>
+            </label>
+            <label>From
+                <input class="form-control input-sm" type="date" name="from" value="@_from.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" />
+            </label>
+            <label>To
+                <input class="form-control input-sm" type="date" name="to" value="@_to.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" />
+            </label>
+            <label>Reporting currency
+                <input class="form-control input-sm" name="currency" value="@_currency" maxlength="8" placeholder="@_statement.AccountingCurrency" style="width:6rem;" />
+            </label>
+            <button type="submit" class="btn btn-primary btn-sm">Run statement</button>
+        </form>
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Income and profit">
+            <div class="kpi"><div class="lbl">Income</div><div class="val">@Money(_income)</div></div>
+            <div class="kpi"><div class="lbl">Expenses</div><div class="val">@Money(_expenses)</div></div>
+            <div class="kpi"><div class="lbl">Gross profit</div><div class="val">@Money(_gross)</div></div>
+            <div class="kpi"><div class="lbl">Net profit</div><div class="val">@Money(_net)</div></div>
+            @if (_statement.Query.Kind == ErpFinancialStatementKind.BalanceSheet)
+            {
+                <div class="kpi"><div class="lbl">Assets</div><div class="val">@Money(_statement.AssetAccounting)</div></div>
+                <div class="kpi"><div class="lbl">Out of balance</div><div class="val">@Money(_statement.BalanceCheckAccounting)</div></div>
+            }
+        </div>
+        <p class="text-muted">Income, expenses, and gross profit use @_from.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) to @_to.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture). The year-end close stays on retained earnings.</p>
+        <p class="text-muted">@_statement.Message</p>
+        <style>
+            .epc-ifrs{color:#1d2740}
+            .epc-ifrs h2{margin:0 0 .35rem;font-size:1.05rem;color:#1d2740}
+            .epc-ifrs p,.epc-ifrs td,.epc-ifrs th{color:#1d2740}
+            .epc-stmt-section td{background:#e8eef5;font-weight:700;color:#1d2740}
+            .epc-stmt-subtotal td{font-weight:700;border-top:2px solid #1f4e79;color:#1d2740}
+            .epc-stmt-total td{font-weight:800;border-top:2px solid #1d2740;border-bottom:3px double #1d2740;color:#1d2740}
+            .epc-stmt-note td{color:#334155;font-size:.92rem}
+            .epc-stmt-actions a{display:inline-block;background:#1f4e79;color:#fff !important;text-decoration:none;border-radius:.25rem;padding:.35rem .7rem;margin:0 .35rem .35rem 0}
+            @@media print {
+                .epc-stmt-actions,.epc-ui-toolbar,.help-block,.epc-erp-kpi,.epc-erp-topnav,.epc-erp-d365{display:none !important}
+                .epc-ifrs,.epc-ifrs td,.epc-ifrs th{color:#111 !important;background:#fff !important}
+            }
+        </style>
+        <section class="epc-ifrs" aria-label="IFRS 18 statement">
+            <h2>@(_statement.Query.Kind == ErpFinancialStatementKind.BalanceSheet ? "Statement of financial position" : "Statement of profit or loss")</h2>
+            <p>Presented under IFRS 18. Income and expenses are classified as operating, investing, or financing, then income taxes and discontinued operations. The face carries operating profit or loss, profit or loss before financing and income taxes, and profit or loss. The statement of financial position shows current and non-current groups, Total assets, and Total liabilities and equity. No management-defined performance measure is added.</p>
+            <p class="epc-stmt-actions">
+                <a href="@FileHref("print")" target="_blank" rel="noopener">Print</a>
+                <a href="@FileHref("pdf")">PDF</a>
+                <a href="@FileHref("xlsx")">Excel</a>
+            </p>
+            <div class="epc-erp-table-wrap">
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Line</th>
+                            <th class="text-right">@_statement.AccountingCurrency</th>
+                            <th class="text-right">@_statement.ReportingCurrency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in _face)
+                        {
+                            <tr class="@RowClass(row.Kind)">
+                                <td>@row.Code</td>
+                                <td>@row.Label</td>
+                                <td class="text-right">@(row.Accounting is null ? "" : Money(row.Accounting.Value))</td>
+                                <td class="text-right">@(row.Reporting is null ? "" : Money(row.Reporting.Value))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+    else
+    {
+    <p class="epc-stmt-actions">
+        <a href="@CatalogFileHref("print")" target="_blank" rel="noopener">Print</a>
+        <a href="@CatalogFileHref("pdf")">PDF</a>
+        <a href="@CatalogFileHref("xlsx")">Excel</a>
+    </p>
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Report center stats">
         <div class="kpi"><div class="lbl">Reports</div><div class="val">@_summary.ReportCount.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Areas</div><div class="val">@_summary.AreaCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -99,6 +218,7 @@
         </div>
         <p style="margin:0 0 1rem;font-size:.85rem;"><a href="@AppHref(null)">Clear selection</a> · <a href="@DigestHref(_summary.SelectedKey)">Data feed</a></p>
     }
+    }
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Source: @_summary.Source. Worker <code>erp-reports</code> dry-run stays writes=0 (sales|inventory|vat|ar-aging).
@@ -113,7 +233,22 @@
     private IReadOnlyList<ErpReportCenterReportDigest> _reports = [];
     private IReadOnlyList<string> _columns = [];
     private IReadOnlyList<IReadOnlyDictionary<string, string>> _rows = [];
-    private readonly string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=rc_finance";
+    private string _navTab = "reports";
+    private string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=rc_finance";
+    private string _pageTitle = "Report center";
+    private string _pageSubtitle = "Run financial and operational reports.";
+    private ErpFinancialStatement? _statement;
+    private IReadOnlyList<ErpIfrs18Row> _face = [];
+    private string _level = "company";
+    private long _businessUnit;
+    private string _currency = "";
+    private int _company;
+    private DateOnly _from;
+    private DateOnly _to;
+    private decimal _income;
+    private decimal _expenses;
+    private decimal _gross;
+    private decimal _net;
 
     protected override async Task OnInitializedAsync()
     {
@@ -123,8 +258,97 @@
             return;
         }
 
+        if (ctx.Request.Query.TryGetValue("tab", out var tabVals) && !string.IsNullOrWhiteSpace(tabVals))
+        {
+            _navTab = tabVals.ToString().Trim();
+        }
+
+        (_pageTitle, _pageSubtitle) = _navTab.ToLowerInvariant() switch
+        {
+            "pl" => ("Statement of profit or loss", "IFRS 18 categories and the three mandatory subtotals, from the posted ledger."),
+            "balance_sheet" => ("Statement of financial position", "Current and non-current assets, liabilities, and equity, from the posted ledger."),
+            "enterprise_reports" or "jw_trial_balance" => ("Trial balance", "Use the dedicated trial-balance list for date range, date interval, posting layer, Amount, and voucher drill."),
+            _ => ("Report center", "Run financial and operational reports."),
+        };
+        _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=" + Uri.EscapeDataString(_navTab);
+        _company = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
+        if (ctx.Request.Query.TryGetValue("level", out var levelVals) && !string.IsNullOrWhiteSpace(levelVals))
+        {
+            _level = levelVals.ToString().Trim().ToLowerInvariant();
+        }
+
+        if (long.TryParse(ctx.Request.Query["bu"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var bu) && bu > 0)
+        {
+            _businessUnit = bu;
+        }
+
+        _currency = ctx.Request.Query["currency"].ToString().Trim();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        _from = ErpTrialBalanceParameters.ParseDate(ctx.Request.Query["from"]) ?? new DateOnly(today.Year, 1, 1);
+        _to = ErpTrialBalanceParameters.ParseDate(ctx.Request.Query["to"]) ?? today;
+        if (_to < _from)
+        {
+            (_from, _to) = (_to, _from);
+        }
+
         var session = await Sessions.ValidateAsync(ctx);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (IsStatementTab(_navTab))
+        {
+            if (!_isAdmin)
+            {
+                return;
+            }
+
+            var fromText = _from.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            var toText = _to.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            _statement = await Statements.ReadAsync(
+                ErpFinancialStatementQuery.FromQuery(
+                    _navTab,
+                    _level,
+                    _company.ToString(CultureInfo.InvariantCulture),
+                    _businessUnit.ToString(CultureInfo.InvariantCulture),
+                    _currency,
+                    fromText,
+                    toText),
+                ctx.RequestAborted);
+            var profitStatement = _statement.Query.Kind == ErpFinancialStatementKind.ProfitAndLoss
+                ? _statement
+                : await Statements.ReadAsync(
+                    ErpFinancialStatementQuery.FromQuery(
+                        "pl",
+                        _level,
+                        _company.ToString(CultureInfo.InvariantCulture),
+                        _businessUnit.ToString(CultureInfo.InvariantCulture),
+                        _currency,
+                        fromText,
+                        toText),
+                    ctx.RequestAborted);
+            var totals = ErpIfrs18Face.PeriodProfit(profitStatement.Lines.Select(line => (line.Name, line.AccountType, line.Accounting)));
+            _income = totals.Income;
+            _expenses = totals.Expense;
+            _gross = totals.GrossProfit;
+            _net = totals.NetProfit;
+            _face = _statement.Query.Kind == ErpFinancialStatementKind.BalanceSheet
+                ? ErpIfrs18Face.FinancialPosition(_statement)
+                : ErpIfrs18Face.ProfitOrLoss(_statement);
+            _level = _statement.Query.Level switch
+            {
+                ErpFinancialStatementLevel.BusinessUnit => "business_unit",
+                ErpFinancialStatementLevel.Consolidation => "consolidation",
+                _ => "company",
+            };
+            _businessUnit = _statement.Query.BusinessUnitId;
+            _summary = new ErpReportCenterSummary(
+                0,
+                0,
+                _navTab,
+                _statement.Lines.Count,
+                _statement.Source,
+                _statement.Message);
+            return;
+        }
+
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data
@@ -136,7 +360,9 @@
             key = keyVals.ToString();
         }
 
-        int? companyId = null;
+        key ??= ErpReportCenterRegistry.KeyForNavTab(_navTab);
+
+        int? companyId = _company > 0 ? _company : null;
         if (ctx.Request.Query.TryGetValue("companyId", out var coVals)
             && int.TryParse(coVals.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var co)
             && co > 0)
@@ -152,10 +378,112 @@
         _message = result.Message;
     }
 
-    private static string AppHref(string? key)
-        => string.IsNullOrWhiteSpace(key)
-            ? "/erp/report-center-app"
-            : "/erp/report-center-app?key=" + Uri.EscapeDataString(key);
+    private string AppHref(string? key)
+    {
+        var qs = new List<string>();
+        if (!string.IsNullOrWhiteSpace(_navTab))
+        {
+            qs.Add("tab=" + Uri.EscapeDataString(_navTab));
+        }
+
+        if (!string.IsNullOrWhiteSpace(key))
+        {
+            qs.Add("key=" + Uri.EscapeDataString(key));
+        }
+
+        if (_company > 0)
+        {
+            qs.Add("company=" + _company.ToString(CultureInfo.InvariantCulture));
+        }
+
+        return qs.Count == 0 ? "/erp/report-center-app" : "/erp/report-center-app?" + string.Join("&", qs);
+    }
+
+    private string StatementHref(string tab, string level, long businessUnit, string currency)
+    {
+        var qs = new List<string>
+        {
+            "tab=" + Uri.EscapeDataString(tab),
+            "level=" + Uri.EscapeDataString(string.IsNullOrWhiteSpace(level) ? "company" : level),
+        };
+        if (businessUnit > 0)
+        {
+            qs.Add("bu=" + businessUnit.ToString(CultureInfo.InvariantCulture));
+        }
+
+        if (!string.IsNullOrWhiteSpace(currency))
+        {
+            qs.Add("currency=" + Uri.EscapeDataString(currency.Trim()));
+        }
+
+        if (_company > 0)
+        {
+            qs.Add("company=" + _company.ToString(CultureInfo.InvariantCulture));
+        }
+
+        if (_from != default)
+        {
+            qs.Add("from=" + _from.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+            qs.Add("to=" + _to.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+        }
+
+        return "/erp/report-center-app?" + string.Join("&", qs);
+    }
+
+    private string WithCompany(string path)
+    {
+        var hash = string.Empty;
+        var hashAt = path.IndexOf('#');
+        if (hashAt >= 0)
+        {
+            hash = path[hashAt..];
+            path = path[..hashAt];
+        }
+
+        var join = path.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        var extras = new List<string>();
+        if (_company > 0 && !path.Contains("company=", StringComparison.OrdinalIgnoreCase))
+        {
+            extras.Add("company=" + _company.ToString(CultureInfo.InvariantCulture));
+        }
+
+        if (_from != default && !path.Contains("from=", StringComparison.OrdinalIgnoreCase))
+        {
+            extras.Add("from=" + _from.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+            extras.Add("to=" + _to.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+        }
+
+        return extras.Count == 0 ? path + hash : path + join + string.Join("&", extras) + hash;
+    }
+
+    private static bool IsStatementTab(string tab)
+        => tab.Equals("pl", StringComparison.OrdinalIgnoreCase)
+            || tab.Equals("balance_sheet", StringComparison.OrdinalIgnoreCase);
+
+    private string FileHref(string format)
+    {
+        var href = StatementHref(_navTab, _level, _businessUnit, _currency);
+        var query = href.Contains('?', StringComparison.Ordinal) ? href[(href.IndexOf('?') + 1)..] : "";
+        return "/erp/financial-reports/file?" + query + "&format=" + Uri.EscapeDataString(format);
+    }
+
+    private string CatalogFileHref(string format)
+    {
+        var href = AppHref(string.IsNullOrWhiteSpace(_summary.SelectedKey) ? null : _summary.SelectedKey);
+        var query = href.Contains('?', StringComparison.Ordinal) ? href[(href.IndexOf('?') + 1)..] : "tab=reports";
+        return "/erp/financial-reports/file?" + query + "&format=" + Uri.EscapeDataString(format);
+    }
+
+    private static string RowClass(string kind) => kind switch
+    {
+        "section" => "epc-stmt-section",
+        "subtotal" or "total" => kind == "total" ? "epc-stmt-total" : "epc-stmt-subtotal",
+        "note" => "epc-stmt-note",
+        _ => "",
+    };
+
+    private static string Money(decimal value)
+        => value.ToString("N2", CultureInfo.InvariantCulture);
 
     private static string DigestHref(string? key)
         => string.IsNullOrWhiteSpace(key)

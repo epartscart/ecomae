@@ -73,7 +73,7 @@ public sealed class CpNotificationSettingsWriteService : ICpNotificationSettings
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             if (!await TableExistsAsync(connection, "notifications_settings", cancellationToken).ConfigureAwait(false))
             {
-                return ErpSimpleWriteResult.Fail("invalid", "notifications_settings table is not provisioned. Schema ensure stays on the Classic twin.");
+                return ErpSimpleWriteResult.Fail("invalid", "notifications_settings table is not provisioned. Schema ensure is not available on this page.");
             }
 
             var exists = await ErpDb.LongAsync(
@@ -287,9 +287,7 @@ public sealed class CpNotificationSettingsWriteService : ICpNotificationSettings
         cmd.CommandText = ErpDb.Positional(
             "SELECT IFNULL(`foreseen_email`,0), IFNULL(`foreseen_sms`,0), IFNULL(`email_subject`,''), IFNULL(`email_body`,''), IFNULL(`sms_body`,''), " +
             "IFNULL(`default_email_subject`,''), IFNULL(`default_email_body`,''), IFNULL(`default_sms_body`,'') FROM `notifications_settings` WHERE `id` = ? LIMIT 1");
-        var p = cmd.CreateParameter();
-        p.Value = id;
-        cmd.Parameters.Add(p);
+        ErpDb.AddParameters(cmd, id);
         await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {

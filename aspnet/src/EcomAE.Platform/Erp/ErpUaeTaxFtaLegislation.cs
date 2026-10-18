@@ -58,6 +58,36 @@ public static class ErpUaeTaxFtaLegislation
                 "Document non-standard VAT treatments in voucher legislation_ref notes."),
         };
 
+    public static IReadOnlyList<ErpUaeTaxFtaItem> CoreLibrarySeed()
+    {
+        (string Title, string Category, string IssueDate)[] seeds =
+        [
+            ("Federal Decree-Law No. 8 of 2017 on Value Added Tax", "Laws", "01 Jan 2018"),
+            ("Cabinet Decision / Executive Regulation of VAT", "Decisions", "23 Nov 2017"),
+            ("Tax Procedures Law and Cabinet Decision No. 74 of 2023", "Laws", "01 Jan 2023"),
+            ("Federal Decree-Law No. 47 of 2022 on Corporate Tax", "Laws", "01 Dec 2022"),
+            ("Corporate Tax executive regulations", "Decisions", "01 Jun 2023"),
+            ("Federal Decree-Law on Excise Tax", "Laws", "01 Oct 2017"),
+            ("Excise executive decisions — rates and designated zones", "Decisions", "01 Oct 2017"),
+            ("E-invoicing and Peppol PINT-AE mandate", "Decisions", "01 Jan 2026"),
+            ("FTA decisions on clarifications and administrative penalties", "Decisions", "01 Jan 2024"),
+        ];
+        return seeds.Select(seed =>
+        {
+            var pattern = MatchPattern(seed.Title, seed.Category);
+            var (slug, itemKey) = SlugAndKey(seed.Title, seed.IssueDate, "", "core:" + pattern);
+            return Enrich(new ErpUaeTaxFtaItem(
+                Slug: slug,
+                ItemKey: itemKey,
+                Title: seed.Title,
+                IssueDate: seed.IssueDate,
+                PublishDate: "",
+                Category: seed.Category,
+                TaxCategory: TaxCategory(seed.Title, seed.Category),
+                PdfUrl: ""));
+        }).ToList();
+    }
+
     public static string TaxCategory(string title, string category)
     {
         var hay = (title + " " + category).ToLowerInvariant();
@@ -291,6 +321,7 @@ public static class ErpUaeTaxFtaLegislation
                 "Reconcile tourist refund claims to original tax invoice numbers before reducing output VAT in the return.",
                 "Update invoice template notes with Tourist Refund Scheme eligibility text per FTA Decision No. 2 of 2018 (as amended).",
                 "Retain refund operator acknowledgements with the tax invoice PDF for the statutory record period.",
+                "From 12 July 2026 the tourist receives 87% of the VAT minus AED 3.60 per tag (Decision No. 11 of 2026). Show the Planet barcode on the tax invoice. Planet invoices the retailer for the VAT every 15 days.",
             ];
         }
 

@@ -17,6 +17,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Update="Migration/Data/erp-guide-modules.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\deploy\on-premises\**\*" Link="setup-packs\on-premises\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\..\deploy\on-premises-aspnet\**\*" Link="setup-packs\on-premises-aspnet\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\..\deploy\hybrid\**\*" Link="setup-packs\hybrid\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Storefront/Captcha/*" />
@@ -26,4 +29,9 @@
     <None Remove="Storefront/Templates/Cart*.html" />
     <EmbeddedResource Include="Storefront/Templates/Cart*.html" LogicalName="EcomAE.Platform.Storefront.Templates.%(Filename)%(Extension)" />
   </ItemGroup>
+  <Target Name="PublishCustomerSetupExe" AfterTargets="Publish">
+    <Exec Command="bash &quot;$(MSBuildThisFileDirectory)..\..\..\deploy\on-premises-aspnet\build-setup-binaries.sh&quot; &quot;$(IntermediateOutputPath)customer-setup&quot;" ContinueOnError="true" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\..\..\deploy\on-premises-aspnet\setup.exe" DestinationFolder="$(PublishDir)setup-packs\on-premises-aspnet\" Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\deploy\on-premises-aspnet\setup.exe')" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\..\..\deploy\hybrid\setup.exe" DestinationFolder="$(PublishDir)setup-packs\hybrid\" Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\deploy\hybrid\setup.exe')" />
+  </Target>
 </Project>

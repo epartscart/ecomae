@@ -1,0 +1,474 @@
+using System.Globalization;
+
+namespace EcomAE.Platform.Erp;
+
+/// <summary>
+/// Dynamics LedgerTrialBalanceListPage parameters and signed-balance math.
+/// Official fields: from/to date, date interval, posting layer, opening display,
+/// closing transaction types, dimension set, Amount, posting-layer column, voucher drill.
+/// </summary>
+public enum ErpTrialBalanceOpeningDisplay
+{
+    Column,
+    IncludeInPeriod,
+    Exclude,
+}
+
+public enum ErpTrialBalancePostingLayer
+{
+    Current,
+    Operations,
+    Tax,
+}
+
+public enum ErpTrialBalanceDimensionSet
+{
+    MainAccount,
+    MainAccountCompany,
+    MainAccountBusinessUnit,
+}
+
+public sealed record ErpTrialBalanceParameters(
+    DateOnly FromDate,
+    DateOnly ToDate,
+    ErpTrialBalancePostingLayer PostingLayer,
+    ErpTrialBalanceOpeningDisplay OpeningDisplay,
+    bool IncludeClosingTransactions,
+    bool IncludeClosingAdjustments,
+    ErpTrialBalanceDimensionSet DimensionSet,
+    bool SeparateDimensionColumns,
+    string? AccountCode = null,
+    int Limit = 500,
+    string Interval = "",
+    string? Filter = null,
+    long BusinessUnitId = 0,
+    int CompanyId = 0)
+{
+    public const string AppPath = "/erp/trial-balance-app";
+    public const string SnapshotPath = "/erp/trial-balance/snapshot";
+    public const string ExportPath = "/erp/trial-balance/export";
+    public const string DigestPath = "/erp/trial-balance";
+
+    public static ErpTrialBalanceParameters FromQuery(
+        string? from,
+        string? to,
+        string? layer,
+        string? opening,
+        string? includeClosing,
+        string? includeClosingAdj,
+        string? dimensionSet,
+        string? separateDims,
+        string? account,
+        string? limit,
+        string? interval = null,
+        string? filter = null,
+        string? businessUnit = null,
+        string? company = null)
+    {
+        var intervalKey = IntervalKey(interval);
+        DateOnly fromDate;
+        DateOnly toDate;
+        if (intervalKey.Length > 0)
+        {
+            var ranged = ForInterval(intervalKey);
+            fromDate = ranged.FromDate;
+            toDate = ranged.ToDate;
+        }
+        else
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            fromDate = ParseDate(from) ?? new DateOnly(today.Year, 1, 1);
+            toDate = ParseDate(to) ?? today;
+            if (toDate < fromDate)
+            {
+                (fromDate, toDate) = (toDate, fromDate);
+            }
+        }
+
+        var parsedLimit = 2000;
+        if (int.TryParse(limit, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) && n > 0)
+        {
+            parsedLimit = Math.Min(n, 2000);
+        }
+
+        return new(
+            fromDate,
+            toDate,
+            ParseLayer(layer),
+            ParseOpening(opening),
+            ParseFlag(includeClosing, true),
+            ParseFlag(includeClosingAdj, true),
+            ParseDimensionSet(dimensionSet),
+            ParseFlag(separateDims, false),
+            string.IsNullOrWhiteSpace(account) ? null : account.Trim(),
+            parsedLimit,
+            intervalKey,
+            string.IsNullOrWhiteSpace(filter) ? null : filter.Trim(),
+            ParseId(businessUnit),
+            ParseCompany(company));
+    }
+
+    public long FromUnix => new DateTimeOffset(FromDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero).ToUnixTimeSeconds();
+
+    public long ToUnix => new DateTimeOffset(ToDate.ToDateTime(new TimeOnly(23, 59, 59)), TimeSpan.Zero).ToUnixTimeSeconds();
+
+    public string QueryString(string? accountOverride = null)
+    {
+        var account = accountOverride ?? AccountCode;
+        var parts = new List<string>
+        {
+            "from=" + FromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            "to=" + ToDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            "layer=" + LayerKey(PostingLayer),
+            "opening=" + OpeningKey(OpeningDisplay),
+            "include_closing=" + (IncludeClosingTransactions ? "1" : "0"),
+            "include_closing_adj=" + (IncludeClosingAdjustments ? "1" : "0"),
+            "dimension_set=" + DimensionKey(DimensionSet),
+            "separate_dims=" + (SeparateDimensionColumns ? "1" : "0"),
+        };
+        if (!string.IsNullOrWhiteSpace(Interval))
+        {
+            parts.Add("interval=" + Uri.EscapeDataString(Interval));
+        }
+
+        if (!string.IsNullOrWhiteSpace(Filter))
+        {
+            parts.Add("q=" + Uri.EscapeDataString(Filter));
+        }
+
+        if (!string.IsNullOrWhiteSpace(account))
+        {
+            parts.Add("account=" + Uri.EscapeDataString(account));
+        }
+
+        if (BusinessUnitId > 0)
+        {
+            parts.Add("bu=" + BusinessUnitId.ToString(CultureInfo.InvariantCulture));
+        }
+
+        if (CompanyId > 0)
+        {
+            parts.Add("company=" + CompanyId.ToString(CultureInfo.InvariantCulture));
+        }
+
+        return string.Join("&", parts);
+    }
+
+    public string AppHref(string? accountOverride = null)
+        => AppPath + "?" + QueryString(accountOverride);
+
+    public string ExportHref()
+        => ExportPath + "?" + QueryString();
+
+    public string FileHref(string format)
+        => "/erp/trial-balance/file?" + QueryString() + "&format=" + Uri.EscapeDataString(format);
+
+    public static bool IsClosingTransaction(string? sourceType, string? journalNo, string? reference, string? description)
+    {
+        if (!string.Equals(sourceType?.Trim(), "adjustment", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var blob = ((journalNo ?? "") + " " + (reference ?? "") + " " + (description ?? "")).ToLowerInvariant();
+        return blob.Contains("year-end", StringComparison.Ordinal)
+            || blob.Contains("year end", StringComparison.Ordinal)
+            || blob.Contains("ye-", StringComparison.Ordinal)
+            || blob.Contains("closing transaction", StringComparison.Ordinal)
+            || blob.Contains("year-end close", StringComparison.Ordinal);
+    }
+
+    public static bool IsClosingAdjustment(string? sourceType, string? journalNo, string? reference, string? description)
+    {
+        if (!string.Equals(sourceType?.Trim(), "adjustment", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var blob = ((journalNo ?? "") + " " + (reference ?? "") + " " + (description ?? "")).ToLowerInvariant();
+        return blob.Contains("closing adj", StringComparison.Ordinal)
+            || blob.Contains("closing adjustment", StringComparison.Ordinal);
+    }
+
+    public static bool IsTaxLayer(string? legislationRef)
+        => !string.IsNullOrWhiteSpace(legislationRef);
+
+    public bool AcceptsJournal(string? sourceType, string? journalNo, string? reference, string? description, string? legislationRef)
+    {
+        if (!IncludeClosingTransactions && IsClosingTransaction(sourceType, journalNo, reference, description))
+        {
+            return false;
+        }
+
+        if (!IncludeClosingAdjustments && IsClosingAdjustment(sourceType, journalNo, reference, description))
+        {
+            return false;
+        }
+
+        return PostingLayer switch
+        {
+            ErpTrialBalancePostingLayer.Operations => !IsTaxLayer(legislationRef),
+            ErpTrialBalancePostingLayer.Tax => IsTaxLayer(legislationRef),
+            _ => true,
+        };
+    }
+
+    public static decimal SignedOpening(string? normalSide, decimal openingBalance)
+        => string.Equals((normalSide ?? "debit").Trim(), "credit", StringComparison.OrdinalIgnoreCase)
+            ? -openingBalance
+            : openingBalance;
+
+    public static ErpTrialBalanceLine BuildLine(
+        string code,
+        string name,
+        string accountType,
+        string normalSide,
+        decimal openingBalance,
+        decimal openingDebits,
+        decimal openingCredits,
+        decimal periodDebits,
+        decimal periodCredits,
+        string company = "",
+        ErpTrialBalanceOpeningDisplay openingDisplay = ErpTrialBalanceOpeningDisplay.Column)
+    {
+        var opening = openingDisplay == ErpTrialBalanceOpeningDisplay.Exclude
+            ? 0m
+            : SignedOpening(normalSide, openingBalance) + openingDebits - openingCredits;
+        var debit = periodDebits;
+        var credit = periodCredits;
+        if (openingDisplay == ErpTrialBalanceOpeningDisplay.IncludeInPeriod)
+        {
+            if (opening >= 0)
+            {
+                debit += opening;
+            }
+            else
+            {
+                credit += Math.Abs(opening);
+            }
+
+            opening = 0m;
+        }
+
+        var closing = opening + debit - credit;
+        return new ErpTrialBalanceLine(code, name, accountType, normalSide, company, opening, debit, credit, debit - credit, closing);
+    }
+
+    public static DateOnly? ParseDate(string? raw)
+    {
+        var text = (raw ?? string.Empty).Trim();
+        return DateOnly.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
+            ? date
+            : null;
+    }
+
+    public static ErpTrialBalancePostingLayer ParseLayer(string? raw)
+        => (raw ?? string.Empty).Trim().ToLowerInvariant() switch
+        {
+            "operations" => ErpTrialBalancePostingLayer.Operations,
+            "tax" => ErpTrialBalancePostingLayer.Tax,
+            _ => ErpTrialBalancePostingLayer.Current,
+        };
+
+    public static ErpTrialBalanceOpeningDisplay ParseOpening(string? raw)
+        => (raw ?? string.Empty).Trim().ToLowerInvariant() switch
+        {
+            "include_in_period" or "period" => ErpTrialBalanceOpeningDisplay.IncludeInPeriod,
+            "exclude" => ErpTrialBalanceOpeningDisplay.Exclude,
+            _ => ErpTrialBalanceOpeningDisplay.Column,
+        };
+
+    public static ErpTrialBalanceDimensionSet ParseDimensionSet(string? raw)
+        => (raw ?? string.Empty).Trim().ToLowerInvariant() switch
+        {
+            "company" or "main_account_company" => ErpTrialBalanceDimensionSet.MainAccountCompany,
+            "business_unit" or "bu" or "main_account_business_unit" => ErpTrialBalanceDimensionSet.MainAccountBusinessUnit,
+            _ => ErpTrialBalanceDimensionSet.MainAccount,
+        };
+
+    public static long ParseId(string? raw)
+        => long.TryParse((raw ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id > 0
+            ? id
+            : 0;
+
+    public static int ParseCompany(string? raw)
+        => int.TryParse((raw ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id > 0
+            ? id
+            : 0;
+
+    public static bool ParseFlag(string? raw, bool fallback)
+    {
+        var text = (raw ?? string.Empty).Trim().ToLowerInvariant();
+        if (text is "1" or "true" or "yes" or "on")
+        {
+            return true;
+        }
+
+        if (text is "0" or "false" or "no" or "off")
+        {
+            return false;
+        }
+
+        return fallback;
+    }
+
+    public static string LayerKey(ErpTrialBalancePostingLayer layer)
+        => layer switch
+        {
+            ErpTrialBalancePostingLayer.Operations => "operations",
+            ErpTrialBalancePostingLayer.Tax => "tax",
+            _ => "current",
+        };
+
+    public static string OpeningKey(ErpTrialBalanceOpeningDisplay opening)
+        => opening switch
+        {
+            ErpTrialBalanceOpeningDisplay.IncludeInPeriod => "include_in_period",
+            ErpTrialBalanceOpeningDisplay.Exclude => "exclude",
+            _ => "column",
+        };
+
+    public static string DimensionKey(ErpTrialBalanceDimensionSet set)
+        => set switch
+        {
+            ErpTrialBalanceDimensionSet.MainAccountCompany => "company",
+            ErpTrialBalanceDimensionSet.MainAccountBusinessUnit => "business_unit",
+            _ => "main_account",
+        };
+
+    public static string LayerLabel(ErpTrialBalancePostingLayer layer)
+        => layer switch
+        {
+            ErpTrialBalancePostingLayer.Operations => "Operations",
+            ErpTrialBalancePostingLayer.Tax => "Tax",
+            _ => "Current",
+        };
+
+    public static string OpeningLabel(ErpTrialBalanceOpeningDisplay opening)
+        => opening switch
+        {
+            ErpTrialBalanceOpeningDisplay.IncludeInPeriod => "Include in period activity",
+            ErpTrialBalanceOpeningDisplay.Exclude => "Do not show opening",
+            _ => "Opening balance column",
+        };
+
+    public static string DimensionLabel(ErpTrialBalanceDimensionSet set)
+        => set switch
+        {
+            ErpTrialBalanceDimensionSet.MainAccountCompany => "Main account + company",
+            ErpTrialBalanceDimensionSet.MainAccountBusinessUnit => "Main account + business unit",
+            _ => "Main account",
+        };
+
+    public static bool UsesUnitLedger(ErpTrialBalanceDimensionSet set, long businessUnitId)
+        => set == ErpTrialBalanceDimensionSet.MainAccountBusinessUnit || businessUnitId > 0;
+
+    public static string IntervalKey(string? interval)
+        => (interval ?? string.Empty).Trim().ToLowerInvariant() switch
+        {
+            "this_month" => "this_month",
+            "this_quarter" => "this_quarter",
+            "this_year" => "this_year",
+            "last_year" => "last_year",
+            _ => "",
+        };
+
+    public static string IntervalLabel(string? interval)
+        => IntervalKey(interval) switch
+        {
+            "this_month" => "This month",
+            "this_quarter" => "This quarter",
+            "this_year" => "This year",
+            "last_year" => "Last year",
+            _ => "",
+        };
+
+    public bool MatchesFilter(string code, string name)
+    {
+        if (string.IsNullOrWhiteSpace(Filter))
+        {
+            return true;
+        }
+
+        return code.Contains(Filter, StringComparison.OrdinalIgnoreCase)
+            || name.Contains(Filter, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static ErpTrialBalanceParameters ForInterval(string? interval, DateOnly? today = null)
+    {
+        var day = today ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        var key = IntervalKey(interval);
+        var (from, to) = key switch
+        {
+            "this_month" => (new DateOnly(day.Year, day.Month, 1), day),
+            "this_quarter" => (new DateOnly(day.Year, (((day.Month - 1) / 3) * 3) + 1, 1), day),
+            "last_year" => (new DateOnly(day.Year - 1, 1, 1), new DateOnly(day.Year - 1, 12, 31)),
+            _ => (new DateOnly(day.Year, 1, 1), day),
+        };
+        return new(
+            from,
+            to,
+            ErpTrialBalancePostingLayer.Current,
+            ErpTrialBalanceOpeningDisplay.Column,
+            true,
+            true,
+            ErpTrialBalanceDimensionSet.MainAccount,
+            false,
+            null,
+            500,
+            key.Length > 0 ? key : "this_year");
+    }
+}
+
+public sealed record ErpTrialBalanceLine(
+    string Code,
+    string Name,
+    string AccountType,
+    string NormalSide,
+    string Company,
+    decimal Opening,
+    decimal Debit,
+    decimal Credit,
+    decimal Amount,
+    decimal Closing);
+
+public sealed record ErpTrialBalanceVoucher(
+    long JournalId,
+    string JournalNo,
+    long JournalDate,
+    string SourceType,
+    string Reference,
+    string Description,
+    string LegislationRef,
+    decimal Debit,
+    decimal Credit);
+
+public sealed record ErpTrialBalanceSnapshotRow(
+    long Id,
+    string TrackingId,
+    string FromDate,
+    string ToDate,
+    string PostingLayer,
+    string DimensionSet,
+    int RowCount,
+    decimal OpeningTotal,
+    decimal DebitTotal,
+    decimal CreditTotal,
+    decimal ClosingTotal,
+    long TimeCreated);
+
+public sealed record ErpTrialBalanceResult(
+    ErpTrialBalanceParameters Parameters,
+    IReadOnlyList<ErpTrialBalanceLine> Lines,
+    IReadOnlyList<ErpTrialBalanceVoucher> Vouchers,
+    IReadOnlyList<ErpTrialBalanceSnapshotRow> Snapshots,
+    decimal OpeningTotal,
+    decimal DebitTotal,
+    decimal CreditTotal,
+    decimal ClosingTotal,
+    string Source,
+    string Message,
+    decimal Income = 0,
+    decimal Expenses = 0,
+    decimal GrossProfit = 0,
+    decimal NetProfit = 0);

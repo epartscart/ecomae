@@ -275,8 +275,8 @@
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="/erp/pos-overview-app" />
                     <input type="hidden" name="action" value="jw_pos_advance_save" />
-                    <input type="hidden" name="voc_type" value="PAD" />
-                    <label>Customer <input type="text" name="customer_name" required /></label>
+                    <input type="hidden" name="voc_type" value="ADV" />
+                    <ErpMasterPicker Kind="customer" FieldName="customer_name" InputId="pos-advance-customer" Label="Customer" ValueMode="name" Required="true" />
                     <label>Amount <input type="text" name="net_amount" value="0" inputmode="decimal" /></label>
                     <button type="submit">Save POS advance</button>
                 </form>
@@ -311,8 +311,8 @@
                     <label>Name <input type="text" name="name" required /></label>
                     <label>Qty <input type="text" name="qty" value="1" inputmode="decimal" /></label>
                     <label>Unit price ex <input type="text" name="unitPriceEx" value="0" inputmode="decimal" /></label>
-                    <label>SKU <input type="text" name="sku" /></label>
-                    <label>Warehouse id <input type="text" name="warehouseId" value="@_ctx.WarehouseId.ToString(CultureInfo.InvariantCulture)" inputmode="numeric" /></label>
+                    <ErpMasterPicker Kind="item" FieldName="sku" InputId="pos-sale-sku" Label="Item" ValueMode="code" />
+                    <ErpMasterPicker Kind="warehouse" FieldName="warehouseId" InputId="pos-sale-wh" Label="Warehouse" Value="@_ctx.WarehouseId" />
                     <label>Payment
                         <select name="paymentMethod">
                             <option value="cash">cash</option>
@@ -320,7 +320,7 @@
                             <option value="split">split</option>
                         </select>
                     </label>
-                    <label>Customer <input type="text" name="customerLabel" value="Walk-in guest" /></label>
+                    <ErpMasterPicker Kind="customer" FieldName="customerLabel" InputId="pos-sale-customer" Label="Customer" ValueMode="name" AllowNew="true" SelectedCode="Walk-in guest" />
                     <button type="submit">Complete sale</button>
                 </form>
             </div>

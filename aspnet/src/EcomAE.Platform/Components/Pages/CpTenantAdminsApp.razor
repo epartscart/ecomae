@@ -1,0 +1,289 @@
+@page "/cp/tenant-admins-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ICpTenantAdminDirectoryService Directory
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Tenant admin users · Control Panel · ECOM AE</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+@if (_allowed)
+{
+    <PhpCpDesktopChrome IsAdmin="_isAdmin">
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    <span class="label label-primary">Super CP</span> Tenant admin users
+                    <a class="btn btn-xs btn-default pull-right" style="margin-left:6px" href="/cp/tenants-app">Tenant control</a>
+                    <a class="btn btn-xs btn-default pull-right" href="/cp/client-erp">Client ERP</a>
+                </div>
+                <div class="panel-body">
+                    <p>
+                        Every company admin and operator login, how they sign in, open sessions, and their audit log.
+                        ERP-only companies sign in at <code>@("/cp/client-erp/{key}/")</code>. Passwords are never shown.
+                        Tenant admins control their own department users on that company
+                        <strong>Users &amp; credentials</strong> page — this Super CP list does not write tenant accounts.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        @if (!_isAdmin)
+        {
+            <div class="col-lg-12">
+                <div class="alert alert-warning" role="status">
+                    Sign in to Super CP to review tenant admin users.
+                    <a href="/cp/login?returnUrl=/cp/tenant-admins-app">Login</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="col-lg-12">
+                <div class="epc-scp-kpi" aria-label="Tenant admin summary">
+                    <div class="epc-scp-kpi__card"><div class="epc-scp-kpi__label">Tenants</div><div class="epc-scp-kpi__val">@_directory.TenantCount.ToString(CultureInfo.InvariantCulture)</div></div>
+                    <div class="epc-scp-kpi__card"><div class="epc-scp-kpi__label">Admin users</div><div class="epc-scp-kpi__val">@_directory.AdminCount.ToString(CultureInfo.InvariantCulture)</div></div>
+                    <div class="epc-scp-kpi__card"><div class="epc-scp-kpi__label">Open sessions (8h)</div><div class="epc-scp-kpi__val">@_directory.OpenSessions.ToString(CultureInfo.InvariantCulture)</div></div>
+                    <div class="epc-scp-kpi__card"><div class="epc-scp-kpi__label">Locked</div><div class="epc-scp-kpi__val">@_directory.Locked.ToString(CultureInfo.InvariantCulture)</div></div>
+                </div>
+            </div>
+
+            <div class="col-lg-12">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt"><i class="fa fa-filter"></i> Filter</div>
+                    <div class="panel-body">
+                        <form method="get" action="/cp/tenant-admins-app" class="form-inline">
+                            <label>Tenant</label>
+                            <select name="site_key" class="form-control input-sm">
+                                <option value="">All tenants</option>
+                                @foreach (var tenant in _directory.Tenants)
+                                {
+                                    <option value="@tenant.SiteKey" selected="@(string.Equals(_siteKey, tenant.SiteKey, StringComparison.OrdinalIgnoreCase))">
+                                        @tenant.TradeName (@tenant.SiteKey)
+                                    </option>
+                                }
+                            </select>
+                            <input class="form-control input-sm" type="search" name="q" value="@_query" placeholder="Email, name, tenant…" />
+                            <button type="submit" class="btn btn-default btn-sm">Show</button>
+                            <a class="btn btn-link btn-sm" href="/cp/tenant-admins-app">Reset</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-12">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt"><i class="fa fa-user-secret"></i> Admin users across tenants</div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-condensed table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Tenant</th>
+                                        <th>Admin</th>
+                                        <th>How they login</th>
+                                        <th>Last visit</th>
+                                        <th>Sessions</th>
+                                        <th>Status</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (_directory.Users.Count == 0)
+                                    {
+                                        <tr><td colspan="7" class="text-muted">@(string.IsNullOrWhiteSpace(_directory.Message) ? "No matching tenant admin users." : _directory.Message)</td></tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var row in _directory.Users)
+                                        {
+                                            var open = string.Equals(_openedKey, row.SiteKey, StringComparison.OrdinalIgnoreCase) && _openedId == row.UserId;
+                                            <tr class="@(open ? "info" : "")">
+                                                <td>
+                                                    <strong>@row.TradeName</strong>
+                                                    <div><code>@row.SiteKey</code> · @row.TenantTypeLabel</div>
+                                                </td>
+                                                <td>
+                                                    <strong>@(string.IsNullOrWhiteSpace(row.DisplayName) ? row.Email : row.DisplayName)</strong>
+                                                    <div><code>@(string.IsNullOrWhiteSpace(row.Email) ? ("#" + row.UserId.ToString(CultureInfo.InvariantCulture)) : row.Email)</code></div>
+                                                    <div class="text-muted">@(row.Administrator ? "Administrator" : (row.ErpTeam ? "ERP team" : "operator"))</div>
+                                                </td>
+                                                <td>@row.HowTheyLogin</td>
+                                                <td>@FormatTime(row.LastVisit)</td>
+                                                <td>@row.OpenSessions.ToString(CultureInfo.InvariantCulture)</td>
+                                                <td>@row.Status</td>
+                                                <td>
+                                                    <a class="btn btn-xs btn-primary" href="@UserHref(row.SiteKey, row.UserId)">Logs</a>
+                                                    <a class="btn btn-xs btn-default" href="@row.UsersAppHref">Control users</a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (_detail.User is not null)
+            {
+                var opened = _detail.User;
+                <div class="col-lg-12" id="cp-tenant-admin-open">
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt">
+                            <i class="fa fa-id-badge"></i> @opened.DisplayName · @opened.TradeName
+                            <a class="btn btn-xs btn-default pull-right" href="@ListHref">Close</a>
+                        </div>
+                        <div class="panel-body">
+                            <dl class="epc-erp-facts">
+                                <dt>Tenant</dt><dd><code>@opened.SiteKey</code> · @opened.TenantTypeLabel</dd>
+                                <dt>Email</dt><dd><code>@(string.IsNullOrWhiteSpace(opened.Email) ? "—" : opened.Email)</code></dd>
+                                <dt>How they login</dt><dd>@opened.HowTheyLogin</dd>
+                                <dt>Status</dt><dd>@opened.Status</dd>
+                                <dt>Access</dt><dd>@(opened.Administrator ? "Administrator" : (opened.ErpTeam ? "ERP team" : "Registry operator"))</dd>
+                                <dt>Company control</dt>
+                                <dd>
+                                    <a href="@opened.UsersAppHref">Users &amp; credentials on this tenant</a>
+                                    — the company admin prepares department users, locks accounts, and reads their logs there.
+                                </dd>
+                            </dl>
+
+                            @if (!string.IsNullOrWhiteSpace(_detail.Message))
+                            {
+                                <div class="alert alert-info" role="status">@_detail.Message</div>
+                            }
+
+                            <h4>Login sessions</h4>
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-bordered">
+                                    <thead><tr><th>When</th><th>Last activity</th><th>Type</th><th>Contact</th></tr></thead>
+                                    <tbody>
+                                        @if (_detail.Sessions.Count == 0)
+                                        {
+                                            <tr><td colspan="4" class="text-muted">No sessions recorded for this admin yet.</td></tr>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var session in _detail.Sessions)
+                                            {
+                                                <tr>
+                                                    <td>@FormatTime(session.Time)</td>
+                                                    <td>@FormatTime(session.LastActivity)</td>
+                                                    <td>@(session.Type == 1 ? "ERP / staff" : "session")</td>
+                                                    <td>@(string.IsNullOrWhiteSpace(session.ContactType) ? "—" : session.ContactType)</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h4>Audit log</h4>
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-bordered">
+                                    <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Summary</th><th>IP</th></tr></thead>
+                                    <tbody>
+                                        @if (_detail.Audit.Count == 0)
+                                        {
+                                            <tr><td colspan="5" class="text-muted">No audit rows for this admin yet.</td></tr>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var entry in _detail.Audit)
+                                            {
+                                                <tr>
+                                                    <td>@FormatTime(entry.Time)</td>
+                                                    <td>#@entry.AdminId.ToString(CultureInfo.InvariantCulture)</td>
+                                                    <td>@entry.Action</td>
+                                                    <td>@(string.IsNullOrWhiteSpace(entry.Summary) ? "—" : entry.Summary)</td>
+                                                    <td>@(string.IsNullOrWhiteSpace(entry.IpAddress) ? "—" : entry.IpAddress)</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </PhpCpDesktopChrome>
+}
+
+@code {
+    private bool _allowed;
+    private bool _isAdmin;
+    private string _siteKey = string.Empty;
+    private string _query = string.Empty;
+    private string _openedKey = string.Empty;
+    private long _openedId;
+    private CpTenantAdminDirectory _directory = new([], [], 0, 0, 0, 0, "n/a", "");
+    private CpTenantAdminUserDetail _detail = new(null, [], [], "n/a", "");
+
+    private string ListHref
+    {
+        get
+        {
+            var parts = new List<string>();
+            if (_siteKey.Length > 0) parts.Add("site_key=" + Uri.EscapeDataString(_siteKey));
+            if (_query.Length > 0) parts.Add("q=" + Uri.EscapeDataString(_query));
+            return parts.Count == 0 ? "/cp/tenant-admins-app" : "/cp/tenant-admins-app?" + string.Join("&", parts);
+        }
+    }
+
+    private string UserHref(string siteKey, long userId)
+    {
+        var parts = new List<string>
+        {
+            "site_key=" + Uri.EscapeDataString(siteKey),
+            "user_id=" + userId.ToString(CultureInfo.InvariantCulture),
+        };
+        if (_query.Length > 0) parts.Add("q=" + Uri.EscapeDataString(_query));
+        return "/cp/tenant-admins-app?" + string.Join("&", parts);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        _allowed = SuperCpHostGate.IsAllowed(ctx);
+        if (!_allowed || ctx is null)
+        {
+            return;
+        }
+
+        _siteKey = CpTenantAdminDirectoryService.NormalizeSiteKey(ctx.Request.Query["site_key"].ToString());
+        _query = (ctx.Request.Query["q"].ToString() ?? string.Empty).Trim();
+        _openedKey = CpTenantAdminDirectoryService.NormalizeSiteKey(ctx.Request.Query["open_site"].ToString());
+        if (_openedKey.Length == 0)
+        {
+            _openedKey = _siteKey;
+        }
+
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "user_id");
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session) && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _directory = await Directory.ListAsync(_siteKey, _query, 400, ctx.RequestAborted);
+        if (_openedKey.Length > 0 && _openedId >= 0 && ctx.Request.Query.ContainsKey("user_id"))
+        {
+            _detail = await Directory.OpenAsync(_openedKey, _openedId, ctx.RequestAborted);
+        }
+    }
+
+    private static string FormatTime(long unix)
+        => unix <= 0
+            ? "—"
+            : DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd HH:mm 'UTC'", CultureInfo.InvariantCulture);
+}

@@ -61,6 +61,17 @@ public sealed class ErpJwStockVerifyWriteService : IErpJwStockVerifyWriteService
         }
 
         var verifiedBy = FirstNonEmpty(request.VerifiedBy, request.Supervisor);
+        var companyId = request.CompanyId < 0 ? 0 : request.CompanyId;
+        var branch = Clip(DefaultBranch(request.Branch), 10);
+        var vocNo = await ErpJwVocNumbering.NextNoAsync(
+            connection,
+            null,
+            "epc_jewel_stock_verification",
+            companyId,
+            "MSV",
+            branch,
+            request.VocNo,
+            cancellationToken).ConfigureAwait(false);
 
         await ErpDb.ExecuteAsync(
             connection,
@@ -68,11 +79,11 @@ public sealed class ErpJwStockVerifyWriteService : IErpJwStockVerifyWriteService
             ErpDb.Positional(
                 "INSERT INTO `epc_jewel_stock_verification` (`company_id`,`branch`,`voc_type`,`voc_date`,`voc_no`,`verified_by`,`location`,`metal_stone`,`division`,`remarks`,`status`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
             cancellationToken,
-            request.CompanyId < 0 ? 0 : request.CompanyId,
-            Clip(DefaultBranch(request.Branch), 10),
+            companyId,
+            branch,
             "MSV",
             NormalizeDate(FirstNonEmpty(request.CountDate, request.VocDate)),
-            request.VocNo < 0 ? 0 : request.VocNo,
+            vocNo,
             Clip(verifiedBy, 40),
             Clip(location, 40),
             "M",
@@ -92,7 +103,7 @@ public sealed class ErpJwStockVerifyWriteService : IErpJwStockVerifyWriteService
     private static string DefaultBranch(string? value)
     {
         var raw = (value ?? string.Empty).Trim();
-        return raw.Length == 0 ? "HO" : raw;
+        return raw.Length == 0 ? "HQ" : raw;
     }
 
     private static string FirstNonEmpty(params string?[] values)

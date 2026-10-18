@@ -20,7 +20,7 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Multi-entity consolidation" Subtitle="Open a group for created time and members. Open an inter-company row for the note. Group, member, inter-company, and eliminate write here. Consolidated trial balance stays Classic." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Multi-entity consolidation" Subtitle="Open a group for created time and members. Open an inter-company row for the note. Group, member, inter-company, and eliminate write here. Consolidated trial balance is not available on this page." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     @if (!string.IsNullOrWhiteSpace(_flash))
@@ -149,7 +149,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedGroupReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Group id</dt><dd>@_openedGroup.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Code</dt><dd>@(string.IsNullOrWhiteSpace(_openedGroup.GroupCode) ? "—" : _openedGroup.GroupCode)</dd>
                 <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_openedGroup.GroupName) ? "—" : _openedGroup.GroupName)</dd>
@@ -159,7 +159,7 @@
                 <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_openedGroup.Status) ? "—" : _openedGroup.Status)</dd>
                 <dt>Created</dt><dd>@(string.IsNullOrWhiteSpace(_openedGroup.CreatedAt) ? "—" : _openedGroup.CreatedAt)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Group, member, inter-company, and eliminate write here. Consolidated trial balance stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Group, member, inter-company, and eliminate write here. Consolidated trial balance is not available on this page.</p>
             @if (_openedMembers.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Members</p>
@@ -220,7 +220,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedIcReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Txn id</dt><dd>@_openedIc.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Group</dt><dd>@(_openedIc.GroupId > 0 ? _openedIc.GroupId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>From</dt><dd>@(string.IsNullOrWhiteSpace(_openedIc.FromSiteKey) ? "—" : _openedIc.FromSiteKey)</dd>
@@ -230,7 +230,7 @@
                 <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_openedIc.Status) ? "—" : _openedIc.Status)</dd>
                 <dt>When</dt><dd>@(string.IsNullOrWhiteSpace(_openedIc.CreatedAt) ? "—" : _openedIc.CreatedAt)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Group, member, inter-company, and eliminate write here. Consolidated trial balance stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Group, member, inter-company, and eliminate write here. Consolidated trial balance is not available on this page.</p>
             @if (!string.IsNullOrWhiteSpace(_openedIc.DescriptionExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">note excerpt</p>
@@ -342,7 +342,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Distinct from CP consolidations (<code>epc_cons_*</code>). Digest: <code>/erp/multi-entity</code>. Consolidated trial balance stays Classic.
+        Source: @_source. Distinct from CP consolidations (<code>epc_cons_*</code>). Digest: <code>/erp/multi-entity</code>. Consolidated trial balance is not available on this page.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

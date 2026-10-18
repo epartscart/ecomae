@@ -6,7 +6,6 @@
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
-@inject IErpDocumentUploadDryRun Upload
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
@@ -14,8 +13,9 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Document attachments" BreadcrumbArea="Documents" BreadcrumbTab="Attachments">
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-    <PhpErpModulePageHeader Title="Document attachments" Subtitle="Open a row for the description excerpt and uploaded time. Uploads stay dry-run." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Document attachments" Subtitle="Upload a file here. Open a row for the description excerpt and uploaded time." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Attachment KPIs">
         <div class="kpi"><div class="lbl">Attachments</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -24,14 +24,18 @@
 
     @if (_isAdmin)
     {
-        <form @onsubmit="OnSave" @onsubmit:preventDefault="true" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
-            <strong>Upload (dry-run)</strong>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:end;">
-                <label>File name <input class="form-control" @bind="_formCode" /></label>
-                <button type="submit" class="btn btn-primary">Validate upload</button>
-            </div>
-            @if (!string.IsNullOrWhiteSpace(_formResult)) { <p style="margin:8px 0 0;font-size:12px;">@_formResult</p> }
-        </form>
+        <ErpPhpCreateWell Title="Upload attachment">
+            <form method="post" action="/erp/ajax/document-upload" enctype="multipart/form-data" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0;">
+                <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>File <input class="form-control input-sm" type="file" name="document_file" required /></label>
+                <label>Entity <input class="form-control input-sm" name="entity_type" value="purchase" maxlength="48" style="width:9rem;" /></label>
+                <label>Entity id <input class="form-control input-sm" type="number" name="entity_id" min="0" value="0" style="width:7rem;" /></label>
+                <label>Category <input class="form-control input-sm" name="doc_category" value="attachment" maxlength="48" style="width:9rem;" /></label>
+                <label>Notes <input class="form-control input-sm" name="notes" maxlength="255" style="width:14rem;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Upload</button>
+            </form>
+        </ErpPhpCreateWell>
     }
 
     @if (_opened is not null)
@@ -41,7 +45,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>File</dt><dd>@(string.IsNullOrWhiteSpace(_opened.FileName) ? "—" : _opened.FileName)</dd>
                 <dt>Entity</dt><dd>@(string.IsNullOrWhiteSpace(_opened.EntityType) ? "—" : _opened.EntityType)</dd>
@@ -53,7 +57,7 @@
                 <dt>Uploaded</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
                 <dt>Description</dt><dd>@(string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt) ? "—" : _opened.DescriptionExcerpt)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Storage location omitted. Uploads stay dry-run.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Storage location omitted. Upload writes stay on this page.</p>
             @if (_openedSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-type siblings</p>
@@ -112,7 +116,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Storage location omitted. Dry-run: <code>document_upload</code> — writes=0.
+        Source: @_source. Storage location omitted. Upload writes <code>document_upload</code> when confirmed.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
@@ -125,8 +129,8 @@
     private int _count, _entityTypes;
     private string _source = "n/a";
     private string _message = "";
-    private string _formCode = "";
-    private string _formResult = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
     private long _openedId;
     private ErpDocAttachmentDetail? _opened;
     private IReadOnlyList<ErpDocAttachmentDigest> _openedSiblings = [];
@@ -145,6 +149,8 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "attach_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
@@ -179,9 +185,4 @@
         return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
     }
 
-    private void OnSave()
-    {
-        var result = Upload.Evaluate(new ErpDocumentUploadRequest(0, _formCode, false));
-        _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
-    }
 }

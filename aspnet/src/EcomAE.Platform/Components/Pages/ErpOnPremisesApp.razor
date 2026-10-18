@@ -14,8 +14,13 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="On-Premises" BreadcrumbArea="Platform" BreadcrumbTab="On-Premises">
 
     <PhpErpModulePageHeader Title="On-Premises Deployment"
-                            Subtitle="Open a license for the notes excerpt and issued times. Fingerprint, IP, and modules stay omitted. License keys stay masked. Activate and health stay Classic."
+                            Subtitle="One of three ERP models: on cloud (SaaS), on premises (this license pack), and hybrid (setup pack + outbound HTTPS sync). Open a license for notes and issued times. Keys stay masked."
                             PhpTabHref="@_phpTab" />
+    <p class="help-block" style="margin:0 0 1rem">
+        <a href="/cp/deployment-models-app">Cloud / on-prem / hybrid matrix</a>
+        · Cloud SaaS companies stay on <a href="/cp/client-erp">/cp/client-erp</a>
+        · Installer pack lives at <code>deploy/on-premises</code>.
+    </p>
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/on-premises-app" />
 
@@ -26,7 +31,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="/erp/on-premises-app">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>License id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Customer</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.CustomerName) ? "—" : _openedDetail.CustomerName)</dd>
                 <dt>Tier</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.Tier) ? "—" : _openedDetail.Tier)</dd>
@@ -38,7 +43,7 @@
                 <dt>Last seen</dt><dd>@FormatTime(_openedDetail.LastSeenAt)</dd>
                 <dt>Expires</dt><dd>@FormatTime(_openedDetail.ExpiresAt)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Fingerprint, IP, and modules stay omitted. License keys stay masked. Activate and health stay Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Fingerprint, IP, and modules stay omitted. License keys stay masked. Activate and health are not available on this page.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.NotesExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">Notes excerpt</p>

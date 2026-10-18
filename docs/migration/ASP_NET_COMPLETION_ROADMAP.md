@@ -228,7 +228,7 @@ Audited against the code on 2026-10-08. "Exists" means working code; a document 
 
 * Cloud, active: hosted commerce plus ERP, and ERP-only on the platform host (`hosted_on=platform`, `erp_only_shared=1`, `docs/ECOM-ERP-SHARED-ACCESS.md`).
 * On-premises: the PHP pack exists (`deploy/on-premises/`: `install.sh`, Docker compose, `setup-wizard.php`, signed licence activation, `backup.php`, `health-check.php`; tables `epc_onprem_licenses`, `epc_onprem_health_log`). The ASP.NET pack is scaffolds only (`deploy/on-premises-aspnet/`), and `TenantInstallationControlPlane` builds manifests without persisting them.
-* Hybrid: **not implemented**. `TenantDeploymentKind` is only `Cloud | OnPremises`, and there is no sync agent and no conflict handling.
+* Hybrid: **setup pack + outbound HTTPS sync agent live**. `TenantDeploymentKind` is `Cloud | OnPremises | Hybrid`. Super CP `/cp/deployment-models-app` hosts the on-premises and hybrid install files. The agent pulls masters and ingests site transactions against `epc_hybrid_sync_*` (cursor, envelopes, queued conflicts). Shop tables are not copied onto the platform database. Applying inbox rows into live shop masters stays with the site ERP.
 * Build:
   1. Add `Hybrid` to the deployment kind and store it per tenant.
   2. The ASP.NET on-prem installer: container images per release, an install wizard, licence activation and health reporting reusing the PHP tables.

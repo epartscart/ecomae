@@ -69,6 +69,32 @@ public static class EcomAeRoutes
     public const string ControlPanelTenants = "/cp/tenants";
     /// <summary>CP portal tenants Blazor list (JSON digest remains <see cref="ControlPanelTenants"/>).</summary>
     public const string ControlPanelTenantsApp = "/cp/tenants-app";
+    /// <summary>Super-CP directory of every tenant admin login, sessions, and audit logs.</summary>
+    public const string ControlPanelTenantAdminsApp = "/cp/tenant-admins-app";
+    /// <summary>Super-only JSON digest of tenant admin users (passwords never returned).</summary>
+    public const string ControlPanelTenantAdmins = "/cp/tenant-admins";
+    /// <summary>Super-only JSON detail: one tenant admin plus login sessions and audit.</summary>
+    public const string ControlPanelTenantAdminsDetail = "/cp/tenant-admins/detail";
+    /// <summary>Super CP Cloud / on-premises / hybrid ERP deployment models.</summary>
+    public const string ControlPanelDeploymentModelsApp = "/cp/deployment-models-app";
+    /// <summary>Super-only JSON catalog of downloadable on-premises and hybrid setup files.</summary>
+    public const string ControlPanelDeploymentModelsSetupFiles = "/cp/deployment-models/setup-files";
+    /// <summary>Super-only allowlisted download of one setup-pack file.</summary>
+    public const string ControlPanelDeploymentModelsSetupFile = "/cp/deployment-models/setup-file";
+    /// <summary>Super-only zip of one setup pack (on-premises, on-premises-aspnet, or hybrid).</summary>
+    public const string ControlPanelDeploymentModelsSetupPack = "/cp/deployment-models/setup-pack";
+    /// <summary>Super-only hybrid installation register (dry-run unless confirmWrites).</summary>
+    public const string CpHybridSyncRegister = "/cp/hybrid-sync/register";
+    /// <summary>Hybrid change-log ingest (Super or enrollment; dry-run unless confirmWrites).</summary>
+    public const string CpHybridSyncIngest = "/cp/hybrid-sync/ingest";
+    /// <summary>Hybrid master pull (Super or enrollment). Empty when nothing is queued — does not invent a send.</summary>
+    public const string CpHybridSyncPull = "/cp/hybrid-sync/pull";
+    /// <summary>Hybrid pull acknowledgement (marks delivered master envelopes applied).</summary>
+    public const string CpHybridSyncAck = "/cp/hybrid-sync/ack";
+    /// <summary>Super-only hybrid cursor / conflict status.</summary>
+    public const string CpHybridSyncStatus = "/cp/hybrid-sync/status";
+    /// <summary>PHP <c>/cp/client-erp</c> picker. Company login is <c>/cp/client-erp/{site_key}/</c>.</summary>
+    public const string ClientErp = "/cp/client-erp";
     /// <summary>Super-CP tenant_set_active. <c>confirmWrites=true</c> twins PHP ajax_portal.php. Password reset/reveal stay Classic.</summary>
     public const string CpTenantsWrite = "/cp/tenants/write";
     public const string ControlPanelUsers = "/cp/users";
@@ -730,6 +756,8 @@ public static class EcomAeRoutes
     public const string ErpDashboardSummaryApp = "/erp/dashboard-summary-app";
     /// <summary>ERP legal entities / company picker digest (PHP <c>epc_erp_companies_list</c>).</summary>
     public const string ErpCompanies = "/erp/companies";
+    /// <summary>Read-only master picker catalog (customers, suppliers, items, projects, cash accounts, real-estate).</summary>
+    public const string ErpLookups = "/erp/lookups";
     public const string ErpAccountsSummary = "/erp/accounts-summary";
     /// <summary>ERP accounts summary Blazor KPI UI (JSON digest remains <see cref="ErpAccountsSummary"/>).</summary>
     public const string ErpAccountsSummaryApp = "/erp/accounts-summary-app";
@@ -757,6 +785,8 @@ public static class EcomAeRoutes
     public const string ErpCashEntriesPaymentVoucher = "/erp/cash-entries/payment-voucher";
     /// <summary>Wave B dry-run for PHP create_supplier (writes=0).</summary>
     public const string ErpSuppliersCreate = "/erp/suppliers/create";
+    /// <summary>Approve a completed UAE supplier onboard pack. Draft stays off purchase pickers.</summary>
+    public const string ErpSuppliersApprove = "/erp/suppliers/approve";
     /// <summary>Wave B dry-run for PHP create_purchase (writes=0).</summary>
     public const string ErpPurchasesCreate = "/erp/purchases/create";
     /// <summary>Wave B dry-run for PHP purchase_delete draft (writes=0).</summary>
@@ -878,11 +908,17 @@ public static class EcomAeRoutes
     public const string ErpInvoicesCancel = "/erp/invoices/cancel";
     /// <summary>ERP so_cancel compatibility endpoint with dry-run and confirmed-write modes.</summary>
     public const string ErpSalesOrdersCancel = "/erp/sales-orders/cancel";
+    /// <summary>Post a partial confirmation, delivery, invoice, or backorder cancellation. One document can list several sales orders.</summary>
+    public const string ErpSalesOrderSplit = "/erp/sales-orders/split";
     /// <summary>Wave B dry-run draft PO delete (PHP po_delete remains authoritative).</summary>
     public const string ErpPurchaseOrdersDelete = "/erp/purchase-orders/delete";
+    /// <summary>Post a partial confirmation, delivery, invoice, or backorder cancellation. One document can list several purchase orders.</summary>
+    public const string ErpPurchaseOrderSplit = "/erp/purchase-orders/split";
     public const string ErpInvoices = "/erp/invoices";
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
     public const string ErpInvoicesApp = "/erp/invoices-app";
+    /// <summary>Merge several customer invoices into one shipping invoice and one packing slip.</summary>
+    public const string ErpInvoiceShippingPack = "/erp/invoices/shipping-pack";
     /// <summary>Printable invoice document (HTML, admin-gated).</summary>
     public const string ErpInvoicePrint = "/erp/invoice-print";
     /// <summary>JSON open-balance readback for the receipt-voucher form.</summary>
@@ -904,6 +940,8 @@ public static class EcomAeRoutes
     public const string ErpSalesOrderPrint = "/erp/sales-order-print";
     public const string ErpPurchaseOrderPrint = "/erp/purchase-order-print";
     public const string ErpPurchasePrint = "/erp/purchase-print";
+    /// <summary>Official LPO print preview (shop order or posted PO as local purchase order).</summary>
+    public const string ErpLpoPrint = "/erp/lpo-print";
     public const string ErpPurchaseOrders = "/erp/purchase-orders";
     /// <summary>Purchase orders Blazor list (JSON digest remains <see cref="ErpPurchaseOrders"/>).</summary>
     public const string ErpPurchaseOrdersApp = "/erp/purchase-orders-app";
@@ -1024,6 +1062,15 @@ public static class EcomAeRoutes
     public const string ErpVirtualWarehouses = "/erp/virtual-warehouses";
     public const string ErpStaff = "/erp/staff";
     public const string ErpStaffApp = "/erp/staff-app";
+    /// <summary>Tenant ERP users: prepare department accounts, credentials, login and audit logs.</summary>
+    public const string ErpUsersApp = "/erp/users-app";
+    public const string ErpUsersPrepare = "/erp/users/prepare";
+    public const string ErpUsersCredentials = "/erp/users/credentials";
+    public const string ErpUsersDepartment = "/erp/users/department";
+    /// <summary>Save module and action grants for one ERP user.</summary>
+    public const string ErpUserControlGrant = "/erp/user-control/grant";
+    public const string ErpUsersSessions = "/erp/users/sessions";
+    public const string ErpUsersAudit = "/erp/users/audit";
     public const string ErpContracts = "/erp/contracts";
     public const string ErpContractsApp = "/erp/contracts-app";
     public const string ErpOpening = "/erp/opening";
@@ -1053,6 +1100,41 @@ public static class EcomAeRoutes
     public const string ErpProductInfoPimAction = "/erp/product-info/pim";
     /// <summary>Syncron inventory policy page: recommendations, policies, forecast and service levels.</summary>
     public const string ErpSyncronApp = "/erp/syncron-app";
+    /// <summary>
+    /// Hybrid UI dual-sample TARGETS still list /cp/*-app presentation shadows.
+    /// Canonical Blazor pages are the /erp/* twins; nginx keeps both exact routes.
+    /// </summary>
+    public const string HybridShadowCpAmlComplianceApp = "/cp/aml-compliance-app";
+    public const string HybridShadowCpAuditTrailApp = "/cp/audit-trail-app";
+    public const string HybridShadowCpBlockchainProofsApp = "/cp/blockchain-proofs-app";
+    public const string HybridShadowCpBudgetsApp = "/cp/budgets-app";
+    public const string HybridShadowCpConsolidationsApp = "/cp/consolidations-app";
+    public const string HybridShadowCpCostModelsApp = "/cp/cost-models-app";
+    public const string HybridShadowCpCrmOpportunitiesApp = "/cp/crm-opportunities-app";
+    public const string HybridShadowCpCrmTicketsApp = "/cp/crm-tickets-app";
+    public const string HybridShadowCpDataMigrationsApp = "/cp/data-migrations-app";
+    public const string HybridShadowCpDocExpiryApp = "/cp/doc-expiry-app";
+    public const string HybridShadowCpEinvoiceDocumentsApp = "/cp/einvoice-documents-app";
+    public const string HybridShadowCpElectronicReportingApp = "/cp/electronic-reporting-app";
+    public const string HybridShadowCpFinAdvancedApp = "/cp/fin-advanced-app";
+    public const string HybridShadowCpFinanceCloseApp = "/cp/finance-close-app";
+    public const string HybridShadowCpHrOverviewApp = "/cp/hr-overview-app";
+    public const string HybridShadowCpInsuranceComplianceApp = "/cp/insurance-compliance-app";
+    public const string HybridShadowCpJewelleryFixingApp = "/cp/jewellery-fixing-app";
+    public const string HybridShadowCpJewelleryMastersApp = "/cp/jewellery-masters-app";
+    public const string HybridShadowCpJewelleryRepairsApp = "/cp/jewellery-repairs-app";
+    public const string HybridShadowCpJewelleryRetailApp = "/cp/jewellery-retail-app";
+    public const string HybridShadowCpJewelleryStockVerificationApp = "/cp/jewellery-stock-verification-app";
+    public const string HybridShadowCpLandedCostApp = "/cp/landed-cost-app";
+    public const string HybridShadowCpPosOverviewApp = "/cp/pos-overview-app";
+    public const string HybridShadowCpProductionOverviewApp = "/cp/production-overview-app";
+    public const string HybridShadowCpProjectsOverviewApp = "/cp/projects-overview-app";
+    public const string HybridShadowCpPurchaseRequestsApp = "/cp/purchase-requests-app";
+    public const string HybridShadowCpTaxExternalReportingApp = "/cp/tax-external-reporting-app";
+    public const string HybridShadowCpTenantConfigApp = "/cp/tenant-config-app";
+    public const string HybridShadowCpUaeTaxComplianceApp = "/cp/uae-tax-compliance-app";
+    public const string HybridShadowCpWarehouseWmsApp = "/cp/warehouse-wms-app";
+    public const string HybridShadowCpWorkflowsApp = "/cp/workflows-app";
     /// <summary>Syncron form POST (<c>syncron_action</c> = policy_save, policy_deactivate, run_forecast, record_service_level). Needs <c>confirmWrites=true</c>.</summary>
     public const string ErpSyncronAction = "/erp/syncron/action";
     /// <summary>HTML form POST for PHP <c>jw_repair_create</c>. <c>confirmWrites=true</c> inserts <c>epc_erp_jw_repairs</c>.</summary>
@@ -1099,6 +1181,7 @@ public static class EcomAeRoutes
     public const string ErpJewelleryBarcodeGenerateForm = "/erp/jewellery/barcode-generate";
     /// <summary>PHP epc_jw_tag_create. <c>confirmWrites=true</c> inserts <c>epc_jw_tags</c>.</summary>
     public const string ErpJewelleryTagCreateForm = "/erp/jewellery/tag-create";
+    public const string ErpJewelleryWorkbook = "/erp/jewellery/workbook";
     /// <summary>PHP epc_jw_tag_sell. <c>confirmWrites=true</c> marks <c>epc_jw_tags</c> sold.</summary>
     public const string ErpJewelleryTagSellForm = "/erp/jewellery/tag-sell";
     public const string ErpJewelleryStockAvailability = "/erp/jewellery/stock-availability";
@@ -1122,18 +1205,28 @@ public static class EcomAeRoutes
     public const string ErpTouristRefundCreateForm = "/erp/tourist-refund/create";
     /// <summary>PHP epc_tourist_refund_validate. <c>confirmWrites=true</c> marks a pending barcode validated.</summary>
     public const string ErpTouristRefundValidateForm = "/erp/tourist-refund/validate";
+    /// <summary>Records Planet's 15-day invoice for validated tourist tags and posts output VAT against Planet payable.</summary>
+    public const string ErpTouristRefundPlanetInvoiceForm = "/erp/tourist-refund/planet-invoice";
+    /// <summary>Pays a recorded Planet tourist-refund invoice from bank or cash.</summary>
+    public const string ErpTouristRefundPlanetPayForm = "/erp/tourist-refund/planet-pay";
     /// <summary>PHP epc_rfid_register_tag. <c>confirmWrites=true</c> inserts <c>epc_rfid_tags</c>.</summary>
     public const string ErpRfidRegisterForm = "/erp/rfid/register";
     /// <summary>PHP epc_rfid_start_scan_session. <c>confirmWrites=true</c> inserts <c>epc_rfid_scan_sessions</c>.</summary>
     public const string ErpRfidStartSessionForm = "/erp/rfid/start-session";
     /// <summary>PHP epc_rfid_process_scan. <c>confirmWrites=true</c> writes scan results.</summary>
     public const string ErpRfidProcessScanForm = "/erp/rfid/scan";
-    /// <summary>PHP epc_gold_rate_set (manual). <c>confirmWrites=true</c> UPSERTs <c>epc_gold_rates</c>. API fetch stays PHP.</summary>
+    /// <summary>PHP epc_gold_rate_set (manual). <c>confirmWrites=true</c> UPSERTs <c>epc_gold_rates</c>.</summary>
     public const string ErpGoldRateSetForm = "/erp/gold-rate/set";
+    /// <summary>Publish today's karat board from a 24K base. Invoices use the sell rate when metal rate is blank.</summary>
+    public const string ErpGoldRateDailyForm = "/erp/gold-rate/daily";
     /// <summary>PHP epc_aml_kyc_save. <c>confirmWrites=true</c> inserts/updates <c>epc_aml_kyc</c>.</summary>
     public const string ErpAmlKycSaveForm = "/erp/aml/kyc-save";
     /// <summary>PHP epc_aml_alert_set_status. <c>confirmWrites=true</c> updates <c>epc_aml_transactions.review_status</c>. Schema-ensure stays PHP.</summary>
     public const string ErpAmlAlertStatusForm = "/erp/aml/alert-status";
+    /// <summary>Stamps the workspace AML pack and checks the FATF public list. Country lists are not overwritten from the page.</summary>
+    public const string ErpAmlLegislationFetchForm = "/erp/aml/legislation-fetch";
+    /// <summary>GET PDF or Word of the AML pack. <c>format=pdf|docx</c> and optional <c>doc</c> code. Stamped at download time.</summary>
+    public const string ErpAmlPackDownload = "/erp/aml/pack";
     /// <summary>PHP epc_sla_create. <c>confirmWrites=true</c> inserts <c>epc_sla_agreements</c>.</summary>
     public const string ErpSlaCreateForm = "/erp/sla/create";
     /// <summary>PHP epc_tickets_create. <c>confirmWrites=true</c> inserts <c>epc_tickets</c>.</summary>
@@ -1859,6 +1952,12 @@ public static class EcomAeRoutes
     public const string ErpAjaxSoStatus = "/erp/ajax/so-status";
     /// <summary>Wave B dry-run for PHP so_to_invoice (writes=0).</summary>
     public const string ErpAjaxSoToInvoice = "/erp/ajax/so-to-invoice";
+    /// <summary>First-click ATP reserve. <c>confirmWrites=true</c> writes <c>epc_erp_inv_reservations</c>.</summary>
+    public const string ErpAjaxItemReserve = "/erp/ajax/item-reserve";
+    /// <summary>Release an open ATP hold. <c>confirmWrites=true</c> required.</summary>
+    public const string ErpAjaxItemRelease = "/erp/ajax/item-release";
+    /// <summary>Available-to-promise read for one inventory item (on hand − open holds).</summary>
+    public const string ErpAjaxItemAtp = "/erp/ajax/item-atp";
     /// <summary>Wave B dry-run for PHP transfer_voucher (writes=0).</summary>
     public const string ErpAjaxTransferVoucher = "/erp/ajax/transfer-voucher";
     /// <summary>ERP payment_batch_save compatibility endpoint with dry-run and confirmed-write modes.</summary>
@@ -1887,6 +1986,11 @@ public static class EcomAeRoutes
     public const string ErpAjaxShortcutList = "/erp/ajax/shortcut-list";
     /// <summary>PHP shortcut_add. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutAdd = "/erp/ajax/shortcut-add";
+    /// <summary>Spoken or typed ERP command. Prepares a form or opens a page. Does not post vouchers.</summary>
+    public const string ErpAjaxVoiceCommand = "/erp/ajax/voice-command";
+
+    /// <summary>Connect or ask the operator's own ChatGPT, Cursor, or Devin account.</summary>
+    public const string ErpAjaxAiTools = "/erp/ajax/ai-tools";
     /// <summary>PHP shortcut_delete. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutDelete = "/erp/ajax/shortcut-delete";
     /// <summary>PHP shortcut_delete_key. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
@@ -2780,6 +2884,18 @@ public static class EcomAeRoutes
     public const string ErpComplianceFilingSave = "/erp/compliance/filings/save";
     /// <summary>Live PHP fy_create twin (confirmWrites=true writes).</summary>
     public const string ErpFiscalYearCreate = "/erp/fiscal-years/create";
+    /// <summary>Hold, open, or close a fiscal year. Close posts the P&amp;L entry and opens the next year.</summary>
+    public const string ErpFiscalYearAction = "/erp/fiscal-years/action";
+    /// <summary>Save a customer's permanent credit limit and terms, and an optional temporary limit that replaces them between two dates.</summary>
+    public const string ErpCreditProfileSave = "/erp/credit-management/profile";
+    /// <summary>Save the invoice blocking rules for a company: hold, credit limit, expiry, days overdue, overdue amount, and payment terms.</summary>
+    public const string ErpCreditRulesSave = "/erp/credit-management/rules";
+    /// <summary>Save the credit application party, requested limit, and the date the application expires.</summary>
+    public const string ErpCreditApplicationSave = "/erp/credit-management/application";
+    /// <summary>Add or remove a partner on a credit application. Each partner keeps their own papers.</summary>
+    public const string ErpCreditPartnerSave = "/erp/credit-management/partner";
+    /// <summary>Attach or open a credit-application document. POST stores the file. GET opens one stored file.</summary>
+    public const string ErpCreditDocument = "/erp/credit-management/document";
     /// <summary>Live PHP bos_wf_decide twin (confirmWrites=true writes).</summary>
     public const string ErpApprovalsRequestDecide = "/erp/approvals/requests/decide";
     /// <summary>Live PHP epc_bos_wf_raise / bos_wf_raise_test twin (confirmWrites=true writes).</summary>
@@ -2867,6 +2983,10 @@ public static class EcomAeRoutes
         "/erp/fitout/project-pnl";
     public const string ErpFitOutEstimateCsv =
         "/erp/fitout/estimates/csv";
+    public const string ErpFitOutWorkbook = "/erp/fitout/workbook";
+
+    /// <summary>ASAP automotive master workbook. kind=package returns the ZIP.</summary>
+    public const string ErpAsapWorkbook = "/erp/asap/workbook";
     public const string ErpFitOutDeliveryDashboard =
         "/erp/fitout/delivery-dashboard";
     /// <summary>Read-only progress-claim and weighted-progress records for a fit-out project.</summary>
@@ -2960,6 +3080,17 @@ public static class EcomAeRoutes
     public const string ErpUaeTaxLegislationChecklistSet = "/erp/uae-tax/legislation/checklist/set";
     /// <summary>HTML form POST for PHP pm_save. confirmWrites=true writes via IErpPmSaveWriteService.</summary>
     public const string ErpPmSave = "/erp/pm/save";
+    public const string ErpRealEstateApp = "/erp/real-estate-app";
+    public const string ErpRealEstateSave = "/erp/real-estate/save";
+    /// <summary>Stamp the real-estate law pack and check the public legislation pages. The pack text is not overwritten.</summary>
+    public const string ErpRealEstateLawFetch = "/erp/real-estate/legislation-fetch";
+    public const string ErpRealEstateReport = "/erp/real-estate/report";
+    public const string ErpRealEstateWorkbook = "/erp/real-estate/workbook";
+    public const string ErpLandlordApp = "/erp/landlord-app";
+    public const string ErpLandlordSave = "/erp/landlord/save";
+    public const string ErpLandlordReport = "/erp/landlord/report";
+    public const string ErpLandlordDocument = "/erp/landlord/document";
+    public const string ErpLandingSave = "/erp/landing/save";
 
     /// <summary>PHP epc-erp-advanced-setup.php?industry=… → epc_erp_industry_apply(). confirmWrites=true applies the blueprint to the tenant DB.</summary>
     public const string ErpIndustryApply = "/erp/industry/apply";
@@ -3010,6 +3141,8 @@ public static class EcomAeRoutes
     public const string ErpFinPeriodsGenerate = "/erp/fin/periods/generate";
     /// <summary>HTML form POST for PHP bank_reconcile. confirmWrites=true writes via IErpBankReconcileWriteService.</summary>
     public const string ErpBankReconcile = "/erp/bank-reconciliation/match";
+    /// <summary>HTML form POST for PHP bank_import. confirmWrites=true writes via IErpBankImportWriteService.</summary>
+    public const string ErpBankImport = "/erp/bank-reconciliation/import";
     /// <summary>HTML form POST for PHP automation_deactivate. confirmWrites=true writes via IErpAutomationDeactivateWriteService.</summary>
     public const string ErpAutomationDeactivate = "/erp/automation/deactivate";
     /// <summary>HTML form POST for PHP bplan_advance. confirmWrites=true writes via IErpBplanAdvanceWriteService.</summary>
@@ -3020,5 +3153,28 @@ public static class EcomAeRoutes
     public const string ErpEditLockHeartbeat = "/erp/edit-lock/heartbeat";
     /// <summary>HTML form POST for PHP cs_delete_declaration. confirmWrites=true writes via IErpCsDeleteDeclarationWriteService.</summary>
     public const string ErpCsDeleteDeclaration = "/erp/custom-shipping/delete";
+    /// <summary>Dynamics-style workspace save for leave, planning, equipment, organization, payroll, and procurement pages.</summary>
+    public const string ErpD365WorkspaceSave = "/erp/d365-workspace/save";
+    /// <summary>New-entry post for list-only ERP pages. intent=validate checks only. intent=post with confirmWrites writes the existing table.</summary>
+    public const string ErpSheetEntry = "/erp/sheet-entry";
+    /// <summary>Official company parameter save for process lanes. confirmWrites=true writes epc_erp_d365_parameters.</summary>
+    public const string ErpD365ParameterSave = "/erp/d365-parameters/save";
+    /// <summary>Official document interlink or follow-next save. confirmWrites=true writes epc_erp_d365_link.</summary>
+    public const string ErpD365LinkSave = "/erp/d365-link/save";
+    /// <summary>Administrator study note save. confirmWrites=true writes epc_erp_d365_study.</summary>
+    public const string ErpD365StudySave = "/erp/d365-study/save";
+    public const string ErpTrialBalance = "/erp/trial-balance";
+    public const string ErpTrialBalanceApp = "/erp/trial-balance-app";
+    public const string ErpTrialBalanceSnapshot = "/erp/trial-balance/snapshot";
+    public const string ErpTrialBalanceExport = "/erp/trial-balance/export";
+    public const string ErpTrialBalanceFile = "/erp/trial-balance/file";
+    /// <summary>IFRS 18 statement print, PDF, and Excel.</summary>
+    public const string ErpFinancialReportFile = "/erp/financial-reports/file";
+    public const string ErpIntercompanyApp = "/erp/intercompany-app";
+    /// <summary>Intercompany relationship, account, elimination, tax, and currency setup. confirmWrites=true writes the setup tables.</summary>
+    public const string ErpIntercompanySave = "/erp/intercompany/save";
+    public const string ErpPricingApp = "/erp/pricing-app";
+    /// <summary>Margin structure and price levels. confirmWrites=true writes the structure and levels.</summary>
+    public const string ErpPricingSave = "/erp/pricing/save";
 
 }

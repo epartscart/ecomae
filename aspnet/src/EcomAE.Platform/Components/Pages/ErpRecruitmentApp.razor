@@ -95,7 +95,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedJobReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Id</dt><dd>@_openedJob.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Title</dt><dd>@(string.IsNullOrWhiteSpace(_openedJob.Title) ? "—" : _openedJob.Title)</dd>
                 <dt>Department</dt><dd>@(string.IsNullOrWhiteSpace(_openedJob.Department) ? "—" : _openedJob.Department)</dd>
@@ -106,7 +106,7 @@
                 <dt>Company</dt><dd>@(_openedJob.CompanyId > 0 ? _openedJob.CompanyId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>Created</dt><dd>@FormatTime(_openedJob.TimeCreated)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Job save, applicant add, and stage stay on this page. Schema-ensure stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Job save, applicant add, and stage stay on this page. Schema-ensure is not available on this page.</p>
             @if (!string.IsNullOrWhiteSpace(_openedJob.NotesExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>
@@ -159,7 +159,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedApplicantReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Id</dt><dd>@_openedApplicant.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_openedApplicant.Name) ? "—" : _openedApplicant.Name)</dd>
                 <dt>Job</dt><dd>@(_openedApplicant.JobId > 0 ? _openedApplicant.JobId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
@@ -270,7 +270,7 @@
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Source: @_source.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
-        Job save, applicant add, and stage are live when confirmed. Schema-ensure stays Classic.
+        Job save, applicant add, and stage are live when confirmed. Schema-ensure is not available on this page.
     </div>
 </PhpErpDesktopChrome>
 

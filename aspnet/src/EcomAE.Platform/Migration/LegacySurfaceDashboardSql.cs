@@ -323,6 +323,43 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Per-case step trail for the process-flow route and the step table.</summary>
+    public const string SelectErpProcessFlowCaseSteps = """
+        SELECT cs.`case_id`, cs.`step_no`, IFNULL(cs.`name`,''), IFNULL(cs.`department`,''),
+               IFNULL(cs.`assignee_id`,0), IFNULL(a.`display_name`,''), IFNULL(cs.`status`,''),
+               IFNULL(cs.`comment`,''), IFNULL(cs.`activated_at`,0), IFNULL(cs.`completed_at`,0),
+               IFNULL(b.`display_name`,'')
+        FROM `epc_pf_case_steps` cs
+        LEFT JOIN `epc_erp_staff_profiles` a ON a.`user_id` = cs.`assignee_id`
+        LEFT JOIN `epc_erp_staff_profiles` b ON b.`user_id` = cs.`acted_by`
+        ORDER BY cs.`case_id`, cs.`step_no`, cs.`id`
+        LIMIT 2000
+        """;
+
+    /// <summary>Optional location on a case step. Missing column is ignored by the reader.</summary>
+    public const string SelectErpProcessFlowStepLocations = """
+        SELECT `case_id`, `step_no`, IFNULL(`location`,'')
+        FROM `epc_pf_case_steps`
+        ORDER BY `id`
+        LIMIT 2000
+        """;
+
+    /// <summary>Process template chain used to draw the org map.</summary>
+    public const string SelectErpProcessFlowTemplateSteps = """
+        SELECT `process_id`, `step_no`, IFNULL(`name`,''), IFNULL(`assign_department`,'')
+        FROM `epc_pf_steps`
+        ORDER BY `process_id`, `step_no`, `id`
+        LIMIT 500
+        """;
+
+    /// <summary>Optional staff place fields for the workforce cards.</summary>
+    public const string SelectErpProcessFlowStaffPlaces = """
+        SELECT `user_id`, IFNULL(`location`,''), IFNULL(`business_unit`,''), IFNULL(`legal_entity`,'')
+        FROM `epc_erp_staff_profiles`
+        WHERE IFNULL(`active`,1) = 1
+        LIMIT 500
+        """;
+
     public const string CountCustomerOrders = """
         SELECT COUNT(*) FROM `shop_orders` WHERE `user_id` = @userId
         """;
@@ -3206,7 +3243,16 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`is_new`,0) AS is_new, IFNULL(`is_updated`,0) AS is_updated,
                IFNULL(`time_synced`,0) AS time_synced
         FROM `epc_uae_tax_legislation_items`
-        ORDER BY `id` DESC
+        ORDER BY COALESCE(
+            STR_TO_DATE(`issue_date`, '%b %d, %Y'),
+            STR_TO_DATE(`issue_date`, '%b %e, %Y'),
+            STR_TO_DATE(`issue_date`, '%d %b %Y'),
+            STR_TO_DATE(`issue_date`, '%d %M %Y'),
+            STR_TO_DATE(`issue_date`, '%Y-%m-%d'),
+            STR_TO_DATE(`issue_date`, '%d/%m/%Y'),
+            STR_TO_DATE(`issue_date`, '%d-%m-%Y'),
+            STR_TO_DATE(`issue_date`, '%d %b %y')
+        ) DESC, `id` DESC
         LIMIT @limit
         """;
 
@@ -3234,7 +3280,16 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`time_synced`,0) AS time_synced
         FROM `epc_uae_tax_legislation_items`
         WHERE `tax_category` = @tax_category AND `id` <> @id
-        ORDER BY `id` DESC
+        ORDER BY COALESCE(
+            STR_TO_DATE(`issue_date`, '%b %d, %Y'),
+            STR_TO_DATE(`issue_date`, '%b %e, %Y'),
+            STR_TO_DATE(`issue_date`, '%d %b %Y'),
+            STR_TO_DATE(`issue_date`, '%d %M %Y'),
+            STR_TO_DATE(`issue_date`, '%Y-%m-%d'),
+            STR_TO_DATE(`issue_date`, '%d/%m/%Y'),
+            STR_TO_DATE(`issue_date`, '%d-%m-%Y'),
+            STR_TO_DATE(`issue_date`, '%d %b %y')
+        ) DESC, `id` DESC
         LIMIT 50
         """;
 
@@ -5482,7 +5537,8 @@ public static class LegacySurfaceDashboardSql
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`karat_code`,'') AS karat_code,
                IFNULL(`std_purity`,0) AS std_purity, IFNULL(`range_from`,0) AS range_from,
                IFNULL(`range_to`,0) AS range_to, IFNULL(`sp_gravity`,0) AS sp_gravity,
-               IFNULL(`division`,'') AS division, IFNULL(`created_at`,'') AS created_at
+               IFNULL(`division`,'') AS division, IFNULL(`created_at`,'') AS created_at,
+               IFNULL(`created_by`,'') AS created_by
         FROM `epc_jewel_karat_master`
         WHERE @companyId = 0 OR `company_id` = @companyId
         ORDER BY `id` DESC
@@ -5494,7 +5550,8 @@ public static class LegacySurfaceDashboardSql
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`metal`,'') AS metal,
                IFNULL(`rate_type`,'') AS rate_type, IFNULL(`conv_factor`,0) AS conv_factor,
                IFNULL(`currency`,'') AS currency, IFNULL(`curr_rate`,0) AS curr_rate,
-               IFNULL(`status`,'') AS status, IFNULL(`is_default`,0) AS is_default
+               IFNULL(`status`,'') AS status, IFNULL(`is_default`,0) AS is_default,
+               IFNULL(`created_at`,'') AS created_at, IFNULL(`created_by`,'') AS created_by
         FROM `epc_jewel_rate_type`
         WHERE @companyId = 0 OR `company_id` = @companyId
         ORDER BY `id` DESC
@@ -5507,7 +5564,8 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`description`,'') AS description, IFNULL(`color`,'') AS color,
                IFNULL(`clarity`,'') AS clarity, IFNULL(`type`,'') AS type,
                IFNULL(`brand`,'') AS brand, IFNULL(`currency`,'') AS currency,
-               IFNULL(`currency_rate`,0) AS currency_rate
+               IFNULL(`currency_rate`,0) AS currency_rate,
+               IFNULL(`created_at`,'') AS created_at, IFNULL(`created_by`,'') AS created_by
         FROM `epc_jewel_diamond_master`
         WHERE @companyId = 0 OR `company_id` = @companyId
         ORDER BY `id` DESC
@@ -5519,7 +5577,8 @@ public static class LegacySurfaceDashboardSql
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`design_code`,'') AS design_code,
                IFNULL(`description`,'') AS description, IFNULL(`category`,'') AS category,
                IFNULL(`brand`,'') AS brand, IFNULL(`cost_amount`,0) AS cost_amount,
-               IFNULL(`price1_lc`,0) AS price1_lc
+               IFNULL(`price1_lc`,0) AS price1_lc,
+               IFNULL(`created_at`,'') AS created_at, IFNULL(`created_by`,'') AS created_by
         FROM `epc_jewel_design`
         WHERE @companyId = 0 OR `company_id` = @companyId
         ORDER BY `id` DESC
@@ -5530,7 +5589,8 @@ public static class LegacySurfaceDashboardSql
     public const string SelectCpJewelleryMastersPearls = """
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`code`,'') AS code,
                IFNULL(`description`,'') AS description, IFNULL(`size`,'') AS size,
-               IFNULL(`color`,'') AS color, IFNULL(`cost_amount`,0) AS rate
+               IFNULL(`color`,'') AS color, IFNULL(`cost_amount`,0) AS rate,
+               IFNULL(`created_at`,'') AS created_at, IFNULL(`created_by`,'') AS created_by
         FROM `epc_jewel_pearl_master`
         WHERE @companyId = 0 OR `company_id` = @companyId
         ORDER BY `id` DESC
@@ -5542,7 +5602,8 @@ public static class LegacySurfaceDashboardSql
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`code`,'') AS code,
                IFNULL(`description`,'') AS description, IFNULL(`color`,'') AS color,
                IFNULL(`shape`,'') AS shape, IFNULL(`size`,'') AS size,
-               IFNULL(`cost_amount`,0) AS rate
+               IFNULL(`cost_amount`,0) AS rate,
+               IFNULL(`created_at`,'') AS created_at, IFNULL(`created_by`,'') AS created_by
         FROM `epc_jewel_color_stone_master`
         WHERE @companyId = 0 OR `company_id` = @companyId
         ORDER BY `id` DESC
@@ -5555,7 +5616,8 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`barcode`,'') AS barcode, IFNULL(`item_type`,'') AS item_type,
                IFNULL(`karat`,'') AS karat, IFNULL(`gross_wt`,0) AS gross_wt,
                IFNULL(`net_wt`,0) AS net_wt, IFNULL(`tag_price`,0) AS tag_price,
-               IFNULL(`printed`,0) AS printed
+               IFNULL(`printed`,0) AS printed,
+               IFNULL(`created_at`,'') AS created_at, IFNULL(`created_by`,'') AS created_by
         FROM `epc_jewel_barcode`
         WHERE @companyId = 0 OR `company_id` = @companyId
         ORDER BY `id` DESC
@@ -5568,7 +5630,8 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`barcode`,'') AS barcode, IFNULL(`item_type`,'') AS item_type,
                IFNULL(`karat`,'') AS karat, IFNULL(`net_weight`,0) AS net_weight,
                IFNULL(`sell_price`,0) AS sell_price, IFNULL(`status`,'') AS status,
-               IFNULL(`location`,'') AS location
+               IFNULL(`location`,'') AS location,
+               IFNULL(`time_created`,0) AS created_at, IFNULL(`created_by`,'') AS created_by
         FROM `epc_jw_tags`
         WHERE @companyId = 0 OR `company_id` = @companyId
         ORDER BY `id` DESC
@@ -5579,7 +5642,8 @@ public static class LegacySurfaceDashboardSql
     public const string SelectCpJewelleryMastersCurrencies = """
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`curr_code`,'') AS curr_code,
                IFNULL(`description`,'') AS description, IFNULL(`symbol`,'') AS symbol,
-               IFNULL(`conv_rate`,0) AS conv_rate, IFNULL(`status`,'') AS status
+               IFNULL(`conv_rate`,0) AS conv_rate, IFNULL(`status`,'') AS status,
+               IFNULL(`created_at`,'') AS created_at, IFNULL(`created_by`,'') AS created_by
         FROM `epc_jewel_currency`
         WHERE @companyId = 0 OR `company_id` = @companyId
         ORDER BY `id` DESC
@@ -5593,6 +5657,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`range_to`,0) AS range_to, IFNULL(`sp_gravity`,0) AS sp_gravity,
                IFNULL(`pos_rate_min_max`,0) AS pos_rate_min_max,
                IFNULL(`division`,'') AS division, IFNULL(`created_at`,'') AS created_at,
+               IFNULL(`created_by`,'') AS created_by,
                CHAR_LENGTH(IFNULL(`description`,'')) AS description_len,
                LEFT(IFNULL(`description`,''), 280) AS description_excerpt
         FROM `epc_jewel_karat_master`
@@ -5605,7 +5670,8 @@ public static class LegacySurfaceDashboardSql
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`karat_code`,'') AS karat_code,
                IFNULL(`std_purity`,0) AS std_purity, IFNULL(`range_from`,0) AS range_from,
                IFNULL(`range_to`,0) AS range_to, IFNULL(`sp_gravity`,0) AS sp_gravity,
-               IFNULL(`division`,'') AS division, IFNULL(`created_at`,'') AS created_at
+               IFNULL(`division`,'') AS division, IFNULL(`created_at`,'') AS created_at,
+               IFNULL(`created_by`,'') AS created_by
         FROM `epc_jewel_karat_master`
         WHERE `division` = @division AND `id` <> @id
           AND (@companyId = 0 OR `company_id` = @companyId)
@@ -6352,7 +6418,7 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_jewel_voucher` v
         JOIN `epc_jewel_voucher_lines` vl ON vl.`voucher_id` = v.`id`
         WHERE (@companyId = 0 OR v.`company_id` = @companyId)
-          AND v.`voc_type` IN ('RIN','MSL','RSL')
+          AND v.`voc_type` IN ('RIN','RSI','MSL','MSI','RSL')
         GROUP BY v.`voc_date`
         ORDER BY v.`voc_date` DESC
         LIMIT @limit

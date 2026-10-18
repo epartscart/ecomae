@@ -1,0 +1,120 @@
+@namespace EcomAE.Platform.Components.Shared
+@using System.Collections.Concurrent
+@using System.Text.Json
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject IHttpContextAccessor Http
+
+<div class="epc-erp-global-search" data-epc-global-search="1" data-company="@(_company)">
+    <label class="epc-erp-global-search__label" for="@_inputId"><i class="fa fa-search" aria-hidden="true"></i></label>
+    <input id="@_inputId"
+           class="epc-erp-global-search__input"
+           type="search"
+           name="erp_page_search"
+           placeholder="Search pages and workspaces"
+           value=""
+           autocomplete="off"
+           autocapitalize="off"
+           autocorrect="off"
+           spellcheck="false"
+           readonly="readonly"
+           aria-label="Search pages and workspaces"
+           data-epc-global-search-input="1"
+           data-epc-anti-autofill="1"
+           data-lpignore="true"
+           data-1p-ignore="true"
+           data-bwignore="true"
+           data-form-type="other" />
+    <div class="epc-erp-global-search__results" hidden data-epc-global-search-results="1"></div>
+    <script type="application/json" data-epc-global-search-catalog="1">@((MarkupString)_catalogJson)</script>
+    <script>
+(function () {
+  if (window.__epcErpSearchAutofillGuard) return;
+  window.__epcErpSearchAutofillGuard = true;
+  function isSearch(el) {
+    return !!(el && el.getAttribute && el.getAttribute('data-epc-global-search-input') === '1');
+  }
+  function looksLikeSavedEmail(value) {
+    var v = String(value || '').trim();
+    var at = v.indexOf('@@');
+    if (!v || v.indexOf(' ') >= 0 || at < 1) return false;
+    var dot = v.indexOf('.', at + 1);
+    return dot > at + 1 && dot < v.length - 1;
+  }
+  function scrub(input) {
+    if (!isSearch(input) || input.getAttribute('data-epc-search-typed') === '1') return;
+    if (!looksLikeSavedEmail(input.value)) return;
+    input.value = '';
+    input.setAttribute('value', '');
+  }
+  function unlock(el) {
+    if (!el || !el.getAttribute || el.getAttribute('data-epc-anti-autofill') !== '1') return;
+    if (el.hasAttribute('readonly')) el.removeAttribute('readonly');
+  }
+  document.addEventListener('pointerdown', function (e) {
+    var t = e.target && e.target.closest ? e.target.closest('[data-epc-anti-autofill]') : null;
+    if (t) unlock(t);
+  }, true);
+  document.addEventListener('focusin', function (e) {
+    unlock(e.target);
+  }, true);
+  document.addEventListener('keydown', function (e) {
+    if (isSearch(e.target)) e.target.setAttribute('data-epc-search-typed', '1');
+  }, true);
+  document.addEventListener('paste', function (e) {
+    if (isSearch(e.target)) e.target.setAttribute('data-epc-search-typed', '1');
+  }, true);
+  document.addEventListener('input', function (e) {
+    if (!isSearch(e.target)) return;
+    var kind = e.inputType || '';
+    if (kind === 'insertText' || kind === 'insertCompositionText' || kind === 'insertFromPaste' || kind === 'insertFromDrop' || kind === 'deleteContentBackward' || kind === 'deleteContentForward') {
+      e.target.setAttribute('data-epc-search-typed', '1');
+      return;
+    }
+    scrub(e.target);
+  }, true);
+  document.addEventListener('animationstart', function (e) {
+    if (e.animationName === 'epc-search-autofill') scrub(e.target);
+  }, true);
+  function sweep() {
+    document.querySelectorAll('[data-epc-global-search-input]').forEach(scrub);
+  }
+  sweep();
+  var ticks = 0;
+  var timer = setInterval(function () {
+    sweep();
+    ticks += 1;
+    if (ticks >= 20) clearInterval(timer);
+  }, 200);
+})();
+    </script>
+</div>
+
+@code {
+    [Parameter] public bool Jewellery { get; set; }
+    [Parameter] public bool FitOut { get; set; }
+    [Parameter] public bool RealEstate { get; set; }
+    [Parameter] public long CompanyId { get; set; }
+
+    private static readonly ConcurrentDictionary<string, string> JsonCache = new(StringComparer.Ordinal);
+
+    private readonly string _inputId = "epc-erp-global-search-" + Guid.NewGuid().ToString("N")[..8];
+    private string _catalogJson = "[]";
+    private string _company = "";
+
+    protected override void OnParametersSet()
+    {
+        var key = ClientErpPath.BoundSiteKey(Http.HttpContext) ?? "";
+        var cacheKey = (Jewellery ? "1" : "0") + (FitOut ? "1" : "0") + (RealEstate ? "1" : "0") + "|" + key;
+        _catalogJson = JsonCache.GetOrAdd(cacheKey, _ => JsonSerializer.Serialize(
+            ErpGlobalSearchCatalog.Build(Jewellery, FitOut, RealEstate).Select(entry => new
+            {
+                label = entry.Label,
+                href = key.Length == 0 ? entry.Href : ClientErpPath.PrefixErpPath(key, entry.Href),
+                group = entry.Group,
+                icon = entry.Icon,
+                keywords = entry.Keywords,
+            })));
+        _company = CompanyId > 0 ? CompanyId.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
+    }
+}

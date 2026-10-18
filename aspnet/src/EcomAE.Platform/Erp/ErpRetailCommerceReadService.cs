@@ -64,8 +64,9 @@ public sealed class ErpRetailCommerceReadService : IErpRetailCommerceReadService
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             await ErpRtlSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
-            var tables = await ErpDb.LongAsync(connection, null,
-                "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('epc_rtl_channel','epc_rtl_assortment','epc_rtl_discount','epc_rtl_txn')",
+            var tables = await ErpTableCatalog.CountPresentAsync(
+                connection,
+                ["epc_rtl_channel", "epc_rtl_assortment", "epc_rtl_discount", "epc_rtl_txn"],
                 cancellationToken).ConfigureAwait(false);
             if (tables < 4)
             {
@@ -114,9 +115,7 @@ public sealed class ErpRetailCommerceReadService : IErpRetailCommerceReadService
             var assortment = new List<ErpRetailAssortmentRow>();
             if (channelId > 0)
             {
-                var invItemsPresent = await ErpDb.LongAsync(connection, null,
-                    "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'epc_erp_inv_items'",
-                    cancellationToken).ConfigureAwait(false) > 0;
+                var invItemsPresent = await ErpDb.TableKnownAsync(connection, "epc_erp_inv_items", cancellationToken).ConfigureAwait(false);
                 await using var command = connection.CreateCommand();
                 command.CommandText = ErpDb.Positional(invItemsPresent
                     ? "SELECT a.`item_id`, COALESCE(i.`sku`,''), COALESCE(i.`name`,''), a.`active`"
@@ -201,8 +200,9 @@ public sealed class ErpRetailCommerceReadService : IErpRetailCommerceReadService
     private static async Task<IReadOnlyList<ErpRetailItemRow>> ItemsAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         var rows = new List<ErpRetailItemRow>();
-        var present = await ErpDb.LongAsync(connection, null,
-            "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('epc_erp_inv_items','epc_erp_inv_stock')",
+        var present = await ErpTableCatalog.CountPresentAsync(
+            connection,
+            ["epc_erp_inv_items", "epc_erp_inv_stock"],
             cancellationToken).ConfigureAwait(false);
         if (present < 2)
         {
@@ -228,8 +228,9 @@ public sealed class ErpRetailCommerceReadService : IErpRetailCommerceReadService
     private static async Task<IReadOnlyList<ErpRetailBarcodeFormatRow>> FormatsAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         var rows = new List<ErpRetailBarcodeFormatRow>();
-        var present = await ErpDb.LongAsync(connection, null,
-            "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'epc_erp_pm_barcode_formats'",
+        var present = await ErpTableCatalog.CountPresentAsync(
+            connection,
+            ["epc_erp_pm_barcode_formats"],
             cancellationToken).ConfigureAwait(false);
         if (present < 1)
         {

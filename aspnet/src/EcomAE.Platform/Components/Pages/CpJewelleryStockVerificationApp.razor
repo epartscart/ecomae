@@ -2,10 +2,13 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IErpJwPurchaseHistoryReadService Vouchers
+@inject IErpJwMetalStockListReadService MetalStock
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -17,6 +20,7 @@
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
     <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
+    <ErpManualProcessStrip Keys="jewellery" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery stock verification stats">
         <div class="kpi"><div class="lbl">Verifications</div><div class="val">@_summary.VerificationCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -29,7 +33,7 @@
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong> <a class="btn btn-xs btn-default" href="@_listHref">Close</a></p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Voc no</dt><dd>@_opened.VocNo.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Date</dt><dd>@(string.IsNullOrWhiteSpace(_opened.VocDate) ? "—" : _opened.VocDate)</dd>
@@ -40,7 +44,7 @@
                 <dt>Division</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Division) ? "—" : _opened.Division)</dd>
                 <dt>Remaining pcs</dt><dd>@_opened.RemainingPcs.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
-                <dt>Branch</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Branch) ? "—" : _opened.Branch)</dd>
+                <dt>Business unit</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Branch) ? "—" : _opened.Branch)</dd>
             </dl>
             @if (!string.IsNullOrWhiteSpace(_opened.RemarksExcerpt))
             {
@@ -126,7 +130,7 @@
             </table>
         </div>
         <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-                Source: @_balance.Source. This is the legacy metal-stock balance projection grouped by metal and karat; movement, as-of-date, branch, and valuation reconciliation remain on the legacy workflow until separately accepted.
+                Source: @_balance.Source. This is the legacy metal-stock balance projection grouped by metal and karat; movement, as-of-date, business unit, and valuation reconciliation remain on the legacy workflow until separately accepted.
             @if (!string.IsNullOrWhiteSpace(_balance.Message)) { <span> @_balance.Message</span> }
         </div>
     }
@@ -134,41 +138,166 @@
     @if (_isAdmin && _tab == "jw_stock_verification")
     {
         <ErpPhpCreateWell Title="New Count">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryStockVerifySaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryStockVerifySaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
-                <label>Branch <input class="form-control input-sm" name="branch" value="HO" /></label>
+                <ErpMasterPicker Kind="business_unit" FieldName="branch" Label="Business unit" ValueMode="code" SelectedCode="HQ" InputId="jw-sv-bu" />
                 <label>Location <input class="form-control input-sm" name="code" placeholder="Showroom" required /></label>
                 <label>Supervisor <input class="form-control input-sm" name="supervisor" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save stock verification</button>
             </form>
         </ErpPhpCreateWell>
     }
+    else if (_isAdmin && _tab == "jw_manufacture")
+    {
+        <ErpPhpCreateWell Title="New manufacture">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                <input type="hidden" name="action" value="jw_manufacture_save" />
+                <input type="hidden" name="voc_type" value="MFG" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <ErpMasterPicker Kind="business_unit" FieldName="branch" Label="Business unit" ValueMode="code" SelectedCode="HQ" InputId="jw-mfg-bu" />
+                <label>Item code <input class="form-control input-sm" name="line_stock_code" required maxlength="20" /></label>
+                <label>Description <input class="form-control input-sm" name="line_description" required maxlength="120" /></label>
+                <label>Design / party <input class="form-control input-sm" name="party_name" /></label>
+                <label>Cost centre <input class="form-control input-sm" name="party_code" maxlength="20" /></label>
+                <label>Division
+                    <select class="form-control input-sm" name="line_division">
+                        <option value="G">Gold</option>
+                        <option value="D">Diamond</option>
+                        <option value="S">Silver</option>
+                        <option value="P">Pearl</option>
+                    </select>
+                </label>
+                <label>Pcs <input class="form-control input-sm" name="line_pcs" type="number" min="0" value="1" /></label>
+                <label>Gross wt <input class="form-control input-sm" name="line_gr_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Purity <input class="form-control input-sm" name="line_purity" type="number" step="0.000001" value="0.917" /></label>
+                <label>Pure wt <input class="form-control input-sm" name="line_pure_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Wastage % <input class="form-control input-sm" name="line_wastage_pct" type="number" step="0.0001" value="0" /></label>
+                <label>Metal rate <input class="form-control input-sm" name="line_metal_rate" type="number" step="0.00001" value="0" /></label>
+                <label>Making rate <input class="form-control input-sm" name="line_mkg_rate" type="number" step="0.0001" value="0" /></label>
+                <label>Stone amount <input class="form-control input-sm" name="line_stone_amount" type="number" step="0.01" value="0" /></label>
+                <label>Narration <input class="form-control input-sm" name="narration" maxlength="200" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save manufacture</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_branch_transfer")
+    {
+        <ErpPhpCreateWell Title="New business unit transfer">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                <input type="hidden" name="action" value="jw_branch_transfer_save" />
+                <input type="hidden" name="voc_type" value="BTR" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <ErpMasterPicker Kind="business_unit" FieldName="branch" Label="From business unit" ValueMode="code" SelectedCode="HQ" InputId="jw-btr-from" />
+                <ErpMasterPicker Kind="business_unit" FieldName="party_code" Label="To business unit" ValueMode="code" Required="true" InputId="jw-btr-to" />
+                <label>Stock code <input class="form-control input-sm" name="line_stock_code" required maxlength="20" /></label>
+                <label>Description <input class="form-control input-sm" name="line_description" required maxlength="120" /></label>
+                <label>Pcs <input class="form-control input-sm" name="line_pcs" type="number" min="0" value="1" /></label>
+                <label>Gross wt <input class="form-control input-sm" name="line_gr_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Purity <input class="form-control input-sm" name="line_purity" type="number" step="0.000001" value="0.917" /></label>
+                <label>Pure wt <input class="form-control input-sm" name="line_pure_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Narration <input class="form-control input-sm" name="narration" maxlength="200" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save business unit transfer</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
     else if (_isAdmin && _tab == "jw_metal_stock")
     {
-        <ErpPhpCreateWell Title="Add / Edit Metal stock">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryMetalStockSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+        <ErpPhpCreateWell Title="Metal Stock Master">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryMetalStockSaveForm)" class="epc-jw-bm-form">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
-                <label>Item code <input class="form-control input-sm" name="item_code" required placeholder="MST-001" maxlength="20" /></label>
-                <label>Description <input class="form-control input-sm" name="description" placeholder="22K chain" /></label>
-                <label>Metal
-                    <select class="form-control input-sm" name="metal">
-                        <option value="G">G Gold</option>
-                        <option value="S">S Silver</option>
-                        <option value="T">T Platinum</option>
-                    </select>
-                </label>
-                <label>Karat <input class="form-control input-sm" name="karat" placeholder="22" style="width:70px;" /></label>
-                <label>Purity <input class="form-control input-sm" name="purity" type="number" step="0.000001" value="0.917000" /></label>
-                <label>Type <input class="form-control input-sm" name="type" /></label>
-                <label>Category <input class="form-control input-sm" name="category" /></label>
-                <label>Unit <input class="form-control input-sm" name="mc_unit" value="GMS" style="width:70px;" /></label>
-                <label>Std cost <input class="form-control input-sm" name="std_cost" type="number" step="0.01" value="0" /></label>
+                @if (_openedStock is not null)
+                {
+                    <input type="hidden" name="item_id" value="@_openedStock.Id.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <div class="epc-erp-doc-header">
+                    <p class="epc-erp-doc-header__title">Identity</p>
+                    <label>Metal
+                        <select class="form-control input-sm" name="metal">
+                            <option value="G" selected="@(StockMetal == "G")">G Gold</option>
+                            <option value="S" selected="@(StockMetal == "S")">S Silver</option>
+                            <option value="T" selected="@(StockMetal == "T")">T Platinum</option>
+                        </select>
+                    </label>
+                    <ErpMasterPicker Kind="jw-metal-stock" FieldName="item_code" Label="Item Code" ValueMode="code" SelectedCode="@StockCode" Required="true" AllowNew="true" MaxLength="20" InputId="jw-item-code" Placeholder="Type new item code or pick existing" />
+                    <label>Description <input class="form-control input-sm" name="description" value="@StockDesc" maxlength="120" /></label>
+                </div>
+                <div class="epc-erp-doc-header">
+                    <p class="epc-erp-doc-header__title">Classification · pick from listings</p>
+                    <ErpMasterPicker Kind="jw-cc" FieldName="cc_making" Label="CC Making" ValueMode="code" SelectedCode="@(_openedStock?.CcMaking)" AllowNew="true" MaxLength="20" InputId="jw-cc-making" />
+                    <ErpMasterPicker Kind="jw-cc" FieldName="cc_metal" Label="CC Metal" ValueMode="code" SelectedCode="@(_openedStock?.CcMetal)" AllowNew="true" MaxLength="20" InputId="jw-cc-metal" />
+                    <ErpMasterPicker Kind="jw-karat" FieldName="karat" Label="Karat" ValueMode="code" SelectedCode="@StockKarat" ExtraFieldName="purity" AllowNew="true" MaxLength="10" InputId="jw-karat" />
+                    <label>Purity <input class="form-control input-sm" name="purity" type="number" step="0.000001" value="@StockPurity.ToString("0.000000", CultureInfo.InvariantCulture)" /></label>
+                    <ErpMasterPicker Kind="jw-type" FieldName="type" Label="Type" ValueMode="code" SelectedCode="@(_openedStock?.Type)" AllowNew="true" MaxLength="30" InputId="jw-type" />
+                    <ErpMasterPicker Kind="jw-brand" FieldName="brand" Label="Brand" ValueMode="code" SelectedCode="@(_openedStock?.Brand)" AllowNew="true" MaxLength="60" InputId="jw-brand" />
+                    <ErpMasterPicker Kind="jw-category" FieldName="category" Label="Category" ValueMode="code" SelectedCode="@(_openedStock?.Category)" AllowNew="true" MaxLength="30" InputId="jw-cat" />
+                    <ErpMasterPicker Kind="jw-sub-category" FieldName="sub_category" Label="SubCategory" ValueMode="code" AllowNew="true" MaxLength="30" InputId="jw-subcat" />
+                    <ErpMasterPicker Kind="supplier" FieldName="vendor" Label="Vendor" ValueMode="code" SelectedCode="@(_openedStock?.Vendor)" CodeFieldName="vendor_ref" NameFieldName="vendor_name" AllowNew="true" MaxLength="20" InputId="jw-vendor" />
+                    <label>Vendor Ref <input class="form-control input-sm" name="vendor_ref" value="@(_openedStock?.Vendor ?? "")" maxlength="20" /></label>
+                    <ErpMasterPicker Kind="jw-country" FieldName="country" Label="Country" ValueMode="code" SelectedCode="@(_openedStock?.Country)" AllowNew="true" MaxLength="30" InputId="jw-country" />
+                    <ErpMasterPicker Kind="jw-hs" FieldName="hs_code" Label="HS Code" ValueMode="code" SelectedCode="@(_openedStock?.HsCode)" AllowNew="true" MaxLength="20" InputId="jw-hs" />
+                    <label>MC Unit
+                        <select class="form-control input-sm" name="mc_unit">
+                            <option value="GMS" selected="@(StockUnit == "GMS")">GMS</option>
+                            <option value="OZ" selected="@(StockUnit == "OZ")">OZ</option>
+                            <option value="KG" selected="@(StockUnit == "KG")">KG</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="epc-jw-bm-flags">
+                    <label><input type="checkbox" name="include_stone_weight" value="true" /> Include Stone Weight</label>
+                    <label><input type="checkbox" name="pass_purity_diff" value="true" checked /> Pass Purity Difference</label>
+                    <label><input type="checkbox" name="in_pieces" value="true" /> In Pieces</label>
+                    <label>1 PC = <input class="form-control input-sm" name="pc_weight_gms" type="number" step="0.00001" value="0" /></label>
+                    <label>Gr. GMS <input class="form-control input-sm" name="pc_weight_oz" type="number" step="0.00001" value="0" /></label>
+                    <label><input type="checkbox" name="create_barcodes" value="true" /> Create Barcodes</label>
+                    <label>Prefix <input class="form-control input-sm" name="barcode_prefix" maxlength="10" /></label>
+                    <label><input type="checkbox" name="block_gross_wt_sales" value="true" /> Block Gross Wt in Sales</label>
+                    <label><input type="checkbox" name="ask_supplier" value="true" /> Ask Supplier</label>
+                    <label><input type="checkbox" name="ask_wastage" value="true" /> Ask Wastage</label>
+                    <label><input type="checkbox" name="allow_negative_stock" value="true" /> Allow Negative Stock</label>
+                    <label><input type="checkbox" name="exclude_gst_trn" value="true" /> Exclude GST / TRN</label>
+                    <label><input type="checkbox" name="allow_less_than_cost" value="true" /> Allow Less Than Cost</label>
+                    <label><input type="checkbox" name="gst_trn_on_making_stone" value="true" /> GST / TRN on Making + Stone</label>
+                    <label><input type="checkbox" name="loyalty_item" value="true" /> Loyalty Item</label>
+                    <label><input type="checkbox" name="pop_stock_filter" value="true" checked /> POP Stock Filter</label>
+                    <label><input type="checkbox" name="gst_trn_making_only" value="true" /> GST / TRN on Making only</label>
+                </div>
+                <div class="epc-erp-doc-header">
+                    <p class="epc-erp-doc-header__title">Prices · costs · reorder</p>
+                    <ErpMasterPicker Kind="jw-currency" FieldName="price1_code" Label="Price 1" ValueMode="code" SelectedCode="@StockPrice1" AllowNew="true" MaxLength="5" InputId="jw-price1" />
+                    <label>Price 1 label <input class="form-control input-sm" name="price1_label" value="@StockPrice1Label" maxlength="20" /></label>
+                    <ErpMasterPicker Kind="jw-currency" FieldName="price2_code" Label="Price 2" ValueMode="code" AllowNew="true" MaxLength="5" InputId="jw-price2" />
+                    <label>Price 2 label <input class="form-control input-sm" name="price2_label" maxlength="20" /></label>
+                    <ErpMasterPicker Kind="jw-currency" FieldName="price3_code" Label="Price 3" ValueMode="code" AllowNew="true" MaxLength="5" InputId="jw-price3" />
+                    <ErpMasterPicker Kind="jw-currency" FieldName="price4_code" Label="Price 4" ValueMode="code" AllowNew="true" MaxLength="5" InputId="jw-price4" />
+                    <ErpMasterPicker Kind="jw-currency" FieldName="price5_code" Label="Price 5" ValueMode="code" AllowNew="true" MaxLength="5" InputId="jw-price5" />
+                    <label>Pur Cost / GMS <input class="form-control input-sm" name="pur_cost_gms" type="number" step="0.01" value="@StockPur.ToString(CultureInfo.InvariantCulture)" /></label>
+                    <label>Sale Price / GMS <input class="form-control input-sm" name="sale_price_gms" type="number" step="0.01" value="@StockSale.ToString(CultureInfo.InvariantCulture)" /></label>
+                    <label>Std Cost <input class="form-control input-sm" name="std_cost" type="number" step="0.01" value="@StockStd.ToString(CultureInfo.InvariantCulture)" /></label>
+                    <label>Discount % <input class="form-control input-sm" name="discount_pct" type="number" step="0.01" value="0" /></label>
+                    <label>Min Qty <input class="form-control input-sm" name="min_qty" type="number" step="0.01" value="0" /></label>
+                    <label>Max Qty <input class="form-control input-sm" name="max_qty" type="number" step="0.01" value="0" /></label>
+                    <label>Reorder Lvl <input class="form-control input-sm" name="reorder_level" type="number" step="0.01" value="0" /></label>
+                    <label>Reorder Qty <input class="form-control input-sm" name="reorder_qty" type="number" step="0.01" value="0" /></label>
+                    <label>Conv Factor OZ <input class="form-control input-sm" name="conv_factor_oz" type="number" step="0.00001" value="31.10350" /></label>
+                    <label>ABC Code <input class="form-control input-sm" name="abc_code" maxlength="1" /></label>
+                </div>
                 <button type="submit" class="btn btn-primary btn-sm">Save metal stock</button>
             </form>
         </ErpPhpCreateWell>
@@ -200,14 +329,49 @@
                     {
                         <th>@col</th>
                     }
-                    @if (_tab == "jw_stock_verification")
+                    @if (_tab == "jw_stock_verification" || _tab == "jw_metal_stock")
                     {
                         <th></th>
                     }
                 </tr>
             </thead>
             <tbody>
-                @if (_tab == "jw_stock_verification" && _display.Count > 0)
+                @if (_tab == "jw_metal_stock" && _metalRows.Count > 0)
+                {
+                    var index = 0;
+                    @foreach (var row in _metalRows)
+                    {
+                        index++;
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedStockId)">
+                            <td>@index.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Metal) ? "—" : row.Metal)</td>
+                            <td><strong>@row.ItemCode</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Description) ? "—" : row.Description)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Karat) ? "—" : row.Karat)</td>
+                            <td>@row.Purity.ToString("N6", CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Type) ? "—" : row.Type)</td>
+                            <td>@row.StockPcs.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@row.StockGms.ToString("N4", CultureInfo.InvariantCulture)</td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_returnHere, "item_id", row.Id)">Open</a></td>
+                        </tr>
+                    }
+                }
+                else if (_voucherRows.Count > 0)
+                {
+                    @foreach (var row in _voucherRows)
+                    {
+                        <tr>
+                            <td>@row.VoucherType</td>
+                            <td><strong>@row.VoucherNumber.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.VoucherDate) ? "—" : row.VoucherDate)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.PartyName) ? (string.IsNullOrWhiteSpace(row.PartyCode) ? "—" : row.PartyCode) : row.PartyName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Branch) ? "—" : row.Branch)</td>
+                            <td class="text-right">@row.NetAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Status) ? "—" : row.Status)</td>
+                        </tr>
+                    }
+                }
+                else if (_tab == "jw_stock_verification" && _display.Count > 0)
                 {
                     @foreach (var row in _display)
                     {
@@ -227,14 +391,14 @@
                 }
                 else
                 {
-                    <tr><td colspan="@(_spec.Columns.Count + (_tab == "jw_stock_verification" ? 1 : 0))" class="text-muted">@(_isAdmin ? _spec.EmptyCopy : "Sign in with ERP or Control Panel capability for live rows.")</td></tr>
+                    <tr><td colspan="@(_spec.Columns.Count + (_tab == "jw_stock_verification" || _tab == "jw_metal_stock" ? 1 : 0))" class="text-muted">@(_isAdmin ? _spec.EmptyCopy : "Sign in with ERP or Control Panel capability for live rows.")</td></tr>
                 }
             </tbody>
         </table>
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Counts bind from <code>epc_jewel_stock_verification</code>. Metal-stock and stock-verification saves are live when confirmed. Sample seed stays Classic.
+        Source: @_source. Counts bind from <code>epc_jewel_stock_verification</code>. Metal-stock and stock-verification saves are live when confirmed. Sample seed is not available on this page.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
@@ -250,6 +414,10 @@
     private CpJewelleryStockVerificationSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private CpJewelleryStockBalanceDigestResult _balance = new([], 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<StockRow> _display = [];
+    private IReadOnlyList<ErpJwPurchaseHistoryRow> _voucherRows = [];
+    private IReadOnlyList<ErpJwMetalStockListRow> _metalRows = [];
+    private ErpJwMetalStockListRow? _openedStock;
+    private long _openedStockId;
     private string _source = "n/a";
     private string _message = "";
     private string _ok = "";
@@ -266,6 +434,20 @@
             ? ("Voc " + _opened.VocNo.ToString(CultureInfo.InvariantCulture))
             : (_openedId > 0 ? ("Verification #" + _openedId.ToString(CultureInfo.InvariantCulture)) : "");
 
+    private string StockMetal => string.IsNullOrWhiteSpace(_openedStock?.Metal) ? "G" : _openedStock!.Metal;
+    private string StockCode => _openedStock?.ItemCode ?? "";
+    private string StockDesc => _openedStock?.Description ?? "";
+    private string StockKarat => _openedStock?.Karat ?? "";
+    private decimal StockPurity => _openedStock?.Purity ?? 1m;
+    private string StockUnit => string.IsNullOrWhiteSpace(_openedStock?.McUnit) ? "GMS" : _openedStock!.McUnit;
+    private string StockPrice1 => string.IsNullOrWhiteSpace(_openedStock?.Price1Code) ? "GEN" : _openedStock!.Price1Code;
+    private string StockPrice1Label => string.IsNullOrWhiteSpace(_openedStock?.Price1Label) ? "General" : _openedStock!.Price1Label;
+    private decimal StockPur => _openedStock?.PurCostGms ?? 0;
+    private decimal StockSale => _openedStock?.SalePriceGms ?? 0;
+    private decimal StockStd => _openedStock?.StdCost ?? 0;
+
+    private string WriteAction(string path) => ErpJewelleryModuleChrome.AppHref(path, _company);
+
     private string ReturnHref =>
         _openedId > 0
             ? _listHref + "?verify_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
@@ -281,6 +463,7 @@
             : "/erp/jewellery-stock-verification-app";
         _listHref = _appPath;
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "verify_id");
+        _openedStockId = ErpRecordOpen.ReadId(ctx.Request, "item_id");
         _company = ErpJewelleryModuleChrome.CompanyFromQuery(ctx.Request.Query["company"].ToString());
         _tab = ErpJewelleryModuleChrome.NormalizeTab(ctx.Request.Query["tab"].ToString(), ErpJewelleryModuleChrome.StockTabs, "jw_stock_verification");
         _ok = ctx.Request.Query["ok"].ToString();
@@ -304,6 +487,29 @@
         if (_tab == "jw_stock_balance")
         {
             _balance = await Dashboards.BuildCpJewelleryStockBalanceDigestAsync(200, _company, ctx.RequestAborted);
+        }
+        if (_tab == "jw_metal_stock")
+        {
+            var stock = await MetalStock.ReadAsync(_company, _openedStockId, ctx.Request.Query["item_code"].ToString(), 200, ctx.RequestAborted);
+            _metalRows = stock.Rows;
+            _openedStock = stock.Opened;
+            if (!string.IsNullOrWhiteSpace(stock.Message))
+            {
+                _message = stock.Message;
+            }
+        }
+        if (_tab is "jw_manufacture" or "jw_branch_transfer" && _company > 0)
+        {
+            var history = await Vouchers.ReadAsync(
+                _company,
+                _tab == "jw_manufacture" ? "MANUFACTURE" : "TRANSFER",
+                100,
+                ctx.RequestAborted);
+            _voucherRows = history.Rows;
+            if (!string.IsNullOrWhiteSpace(history.Message))
+            {
+                _message = history.Message;
+            }
         }
         _display = result.Verifications.Select(r => new StockRow(
             r.Id,

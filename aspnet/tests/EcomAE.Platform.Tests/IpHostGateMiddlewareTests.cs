@@ -34,6 +34,27 @@ public sealed class IpHostGateMiddlewareTests
     }
 
     [Fact]
+    public async Task CompanyOnSuperHostDoesNotOpenIp()
+    {
+        var nextCalled = false;
+        var mw = new IpHostGateMiddleware(_ =>
+        {
+            nextCalled = true;
+            return Task.CompletedTask;
+        });
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Host = new HostString("www.ecomae.com");
+        ctx.Request.Path = "/ip/ecosystem-app";
+        ctx.Items[ClientErpPath.HttpContextItemKey] = "real";
+        ctx.Response.Body = new MemoryStream();
+
+        await mw.InvokeAsync(ctx);
+
+        Assert.False(nextCalled);
+        Assert.Equal(StatusCodes.Status404NotFound, ctx.Response.StatusCode);
+    }
+
+    [Fact]
     public async Task TenantHostGets404ForIp()
     {
         var nextCalled = false;
@@ -72,8 +93,11 @@ public sealed class IpHostGateMiddlewareTests
         Assert.True(nextCalled);
     }
 
-    [Fact]
-    public async Task LifeOsHostRedirectsBareHomeToLifeOs()
+    [Theory]
+    [InlineData("/")]
+    [InlineData("/lifeos")]
+    [InlineData("/marketing/app")]
+    public async Task LifeOsHostRedirectsVisitorsToEcomae(string path)
     {
         var nextCalled = false;
         var mw = new LifeOsHostHomeMiddleware(_ =>
@@ -83,18 +107,19 @@ public sealed class IpHostGateMiddlewareTests
         });
         var ctx = new DefaultHttpContext();
         ctx.Request.Host = new HostString("lifeos.ecomae.com");
-        ctx.Request.Path = "/";
+        ctx.Request.Path = path;
 
         await mw.InvokeAsync(ctx);
 
         Assert.False(nextCalled);
         Assert.Equal(StatusCodes.Status302Found, ctx.Response.StatusCode);
-        Assert.Equal("/lifeos", ctx.Response.Headers.Location.ToString());
-        Assert.Equal("home-redirect", ctx.Response.Headers["X-EcomAE-LifeOs-Host"].ToString());
+        Assert.Equal(LifeOsHostHomeMiddleware.RetiredHome, ctx.Response.Headers.Location.ToString());
+        Assert.Equal("retired", ctx.Response.Headers["X-EcomAE-LifeOs-Host"].ToString());
+        Assert.Equal(path, ctx.Response.Headers["X-EcomAE-LifeOs-From"].ToString());
     }
 
     [Fact]
-    public async Task LifeOsHostRedirectsMisroutedMarketingApp()
+    public async Task LifeOsHostLeavesHealthProbesAlone()
     {
         var nextCalled = false;
         var mw = new LifeOsHostHomeMiddleware(_ =>
@@ -104,29 +129,7 @@ public sealed class IpHostGateMiddlewareTests
         });
         var ctx = new DefaultHttpContext();
         ctx.Request.Host = new HostString("lifeos.ecomae.com");
-        ctx.Request.Path = "/marketing/app";
-
-        await mw.InvokeAsync(ctx);
-
-        Assert.False(nextCalled);
-        Assert.Equal(StatusCodes.Status302Found, ctx.Response.StatusCode);
-        Assert.Equal("/lifeos", ctx.Response.Headers.Location.ToString());
-        Assert.Equal("marketing-divert", ctx.Response.Headers["X-EcomAE-LifeOs-Host"].ToString());
-        Assert.Equal("/marketing/app", ctx.Response.Headers["X-EcomAE-LifeOs-From"].ToString());
-    }
-
-    [Fact]
-    public async Task LifeOsHostDoesNotRedirectProductLifeOsPath()
-    {
-        var nextCalled = false;
-        var mw = new LifeOsHostHomeMiddleware(_ =>
-        {
-            nextCalled = true;
-            return Task.CompletedTask;
-        });
-        var ctx = new DefaultHttpContext();
-        ctx.Request.Host = new HostString("lifeos.ecomae.com");
-        ctx.Request.Path = "/lifeos";
+        ctx.Request.Path = "/health";
 
         await mw.InvokeAsync(ctx);
 
@@ -134,16 +137,15 @@ public sealed class IpHostGateMiddlewareTests
         Assert.NotEqual(StatusCodes.Status302Found, ctx.Response.StatusCode);
     }
 
-
     [Theory]
-    [InlineData("/", true)]
-    [InlineData("/marketing/app", true)]
-    [InlineData("/marketing/app/", true)]
+    [InlineData("/", false)]
     [InlineData("/lifeos", false)]
-    [InlineData("/lifeos/app", false)]
-    public void LifeOsHomeRewritePaths(string path, bool rewrite)
+    [InlineData("/health", true)]
+    [InlineData("/ready", true)]
+    [InlineData("/migration/release", true)]
+    public void LifeOsOpsPathsStayOnTheHost(string path, bool ops)
     {
-        Assert.Equal(rewrite, LifeOsHostHomeMiddleware.ShouldRewriteToLifeOsHome(path));
+        Assert.Equal(ops, LifeOsHostHomeMiddleware.IsOpsPath(path));
     }
 
     [Fact]

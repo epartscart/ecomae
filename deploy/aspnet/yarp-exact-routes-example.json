@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 411,
+  "routeCount": 424,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -125,6 +125,30 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "cp-tenants-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-tenant-admins-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/tenant-admins-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-tenant-admins-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-deployment-models-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/deployment-models-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-deployment-models-app-read-ui-preview"
           }
         ]
       },
@@ -1481,6 +1505,42 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "erp-report-center-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-trial-balance-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/trial-balance-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-trial-balance-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-intercompany-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/intercompany-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-intercompany-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-pricing-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/pricing-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-pricing-app-read-ui-preview"
           }
         ]
       },
@@ -4484,6 +4544,18 @@
           }
         ]
       },
+      "erp-landlord-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/landlord-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-landlord-app-presentation-preview"
+          }
+        ]
+      },
       "erp-marketing-app": {
         "ClusterId": "ecomae-platform",
         "Match": {
@@ -4736,6 +4808,18 @@
           }
         ]
       },
+      "erp-real-estate-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/real-estate-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-real-estate-app-presentation-preview"
+          }
+        ]
+      },
       "erp-receivables-app": {
         "ClusterId": "ecomae-platform",
         "Match": {
@@ -4829,6 +4913,18 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "erp-staff-app-presentation-preview"
+          }
+        ]
+      },
+      "erp-users-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/users-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-users-app-presentation-preview"
           }
         ]
       },
@@ -4937,6 +5033,66 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "erp-workflows-app-presentation-preview"
+          }
+        ]
+      },
+      "erp-account-operations-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/account-operations-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-account-operations-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-finance-close-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/finance-close-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-finance-close-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-operations-editor-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/operations-editor-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-operations-editor-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-payment-systems-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/payment-systems-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-payment-systems-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-syncron-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/syncron-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-syncron-app-read-ui-preview"
           }
         ]
       }

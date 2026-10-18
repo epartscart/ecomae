@@ -5,10 +5,12 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpInventoryReservationWriteService Reservations
 
 <PageTitle>Sales quotations · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -17,8 +19,12 @@
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+    @if (_follow.HasValues)
+    {
+        <div class="alert alert-info" role="status" style="margin:0 0 12px;padding:.7rem .9rem">Process follow: @_follow.Banner. Matching fields are filled on the form.</div>
+    }
 
-    <PhpErpModulePageHeader Title="Sales quotations" Subtitle="Save a CRM quote here with persisted line bodies, CRM context, notes excerpt, and financial totals. Accept, quote email, Convert and expiry stay on the Classic twin. This page does not invent a send." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Sales quotations" Subtitle="Save a CRM quote here with persisted line bodies, CRM context, notes excerpt, and financial totals. Accept, quote email, Convert and expiry are not available on this page. This page does not invent a send." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Sales quotation stats">
@@ -57,7 +63,7 @@
                 HeaderActions="@QuotationHeaderActions" />
             @if (_opened.Lines.Count == 0)
             {
-                <p class="text-muted" style="margin:.85rem 0 0">No persisted line bodies were returned for this quotation. Accept and quote email stay Classic.</p>
+                <p class="text-muted" style="margin:.85rem 0 0">No persisted line bodies were returned for this quotation. Accept and quote email are not available on this page.</p>
             }
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
             {
@@ -116,7 +122,7 @@
                 <label>Quote # <input type="text" name="quote_number" maxlength="32" placeholder="Auto" /></label>
                 <label>Opp <input type="text" name="opportunity_id" inputmode="numeric" value="0" /></label>
                 <label>Lead <input type="text" name="lead_id" inputmode="numeric" value="0" /></label>
-                <label>Customer <input type="text" name="customer_user_id" inputmode="numeric" value="0" /></label>
+                <ErpMasterPicker Kind="customer" FieldName="customer_user_id" Label="Customer" />
                 <label>Status
                     <select name="status">
                         <option value="draft" selected>draft</option>
@@ -125,13 +131,28 @@
                         <option value="rejected">rejected</option>
                     </select>
                 </label>
-                <label>Notes <input type="text" name="notes" /></label>
-                <label>Line <input type="text" name="line_description" maxlength="512" /></label>
-                <label>Qty <input type="text" name="line_qty" inputmode="decimal" value="1" /></label>
-                <label>Price <input type="text" name="line_unit_price" inputmode="decimal" value="0" /></label>
+                <label>Notes <input type="text" name="notes" value="@_follow.Note" /></label>
+                <label>Item
+                    <select name="item_id" id="quote-item-picker">
+                        <option value="0">— pick to reserve —</option>
+                        @foreach (var item in _items)
+                        {
+                            var available = AtpFor(item.Id)?.Available ?? 0m;
+                            <option value="@item.Id.ToString(CultureInfo.InvariantCulture)"
+                                    data-sku="@item.Sku"
+                                    data-name="@item.Name"
+                                    data-price="@item.SalesPrice.ToString("0.00", CultureInfo.InvariantCulture)"
+                                    disabled="@(available <= 0)">@item.Sku — @item.Name · @available.ToString("0.###", CultureInfo.InvariantCulture) avail</option>
+                        }
+                    </select>
+                </label>
+                <input type="hidden" name="sku" id="quote-item-sku" />
+                <label>Line <input type="text" name="line_description" id="quote-line-description" maxlength="512" value="@_follow.Name" /></label>
+                <label>Qty <input type="text" name="line_qty" inputmode="decimal" value="@(_follow.Qty != 0 ? _follow.Qty.ToString(CultureInfo.InvariantCulture) : "1")" /></label>
+                <label>Price <input type="text" name="line_unit_price" id="quote-line-price" inputmode="decimal" value="@(_follow.Amount != 0 ? _follow.Amount.ToString("0.00", CultureInfo.InvariantCulture) : "0")" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Create quote</button>
             </form>
-            <p class="help-block" style="margin:.75rem 0 0">Accept and quote email stay Classic.</p>
+            <p class="help-block" style="margin:.75rem 0 0">Picking an item reserves it for 30 minutes. First click wins. Accept and quote email are not available on this page.</p>
         </div>
     }
 
@@ -181,6 +202,42 @@
             </tbody>
         </table>
     </div>
+    @if (_isAdmin)
+    {
+        <script>
+            (function () {
+                var picker = document.getElementById('quote-item-picker');
+                if (!picker) { return; }
+                picker.addEventListener('change', function () {
+                    var option = picker.options[picker.selectedIndex];
+                    if (!option || !option.value || option.value === '0') { return; }
+                    var sku = option.getAttribute('data-sku') || '';
+                    var name = option.getAttribute('data-name') || '';
+                    var price = option.getAttribute('data-price') || '0';
+                    var skuInput = document.getElementById('quote-item-sku');
+                    var desc = document.getElementById('quote-line-description');
+                    var priceInput = document.getElementById('quote-line-price');
+                    if (skuInput) { skuInput.value = sku; }
+                    if (desc && !desc.value) { desc.value = name; }
+                    if (priceInput && (!priceInput.value || priceInput.value === '0')) { priceInput.value = price; }
+                    fetch('/erp/ajax/item-reserve', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            confirmWrites: true,
+                            itemId: parseInt(option.value, 10) || 0,
+                            sku: sku,
+                            qty: 1,
+                            sourceType: 'quote',
+                            sourceId: 0,
+                            sourceLineKey: 'quote-pick-' + option.value
+                        })
+                    });
+                });
+            })();
+        </script>
+    }
 
 </PhpErpDesktopChrome>
 
@@ -197,6 +254,9 @@
     private long _openedId;
     private ErpSalesQuotationDetail? _opened;
     private IReadOnlyList<ErpSalesQuotationDigest> _openedSiblings = [];
+    private IReadOnlyList<ErpInventoryItemPickerDigest> _items = [];
+    private IReadOnlyList<ErpItemAtp> _atp = [];
+    private ErpD365FollowPrefill _follow = new("", 0, "", "", "", "", "", 0, 0, "");
     private static readonly string[] _statuses = ["draft", "sent", "accepted", "rejected"];
 
     private IReadOnlyList<string> QuotationWorkspaceTabs =>
@@ -250,12 +310,24 @@
                         }
                     </select>
                 </label>
+                <label>Item
+                    <select name="item_id">
+                        <option value="0">— pick to reserve —</option>
+                        @foreach (var item in _items)
+                        {
+                            var available = AtpFor(item.Id)?.Available ?? 0m;
+                            <option value="@item.Id.ToString(CultureInfo.InvariantCulture)"
+                                    data-sku="@item.Sku"
+                                    disabled="@(available <= 0)">@item.Sku — @available.ToString("0.###", CultureInfo.InvariantCulture) avail</option>
+                        }
+                    </select>
+                </label>
                 <label>Line <input type="text" name="line_description" maxlength="512" /></label>
                 <label>Qty <input type="text" name="line_qty" inputmode="decimal" value="1" /></label>
                 <label>Price <input type="text" name="line_unit_price" inputmode="decimal" value="0" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save quote</button>
             </form>
-            <span class="text-muted">Accept, quote email, conversion, and expiry remain Classic-owned.</span>
+            <span class="text-muted">Accept, quote email, conversion, and expiry are not available on this page.</span>
         </div>
         : null;
 
@@ -282,6 +354,7 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _follow = ErpD365FollowPrefill.Read(ctx.Request);
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "quote_id");
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
@@ -297,6 +370,8 @@
         _quotations = result.Quotations;
         _source = result.Source;
         _message = result.Message;
+        _items = (await Dashboards.ListErpInventoryItemsForPickerAsync(ErpFirstPaint.PickerLimit, ctx.RequestAborted)).Items;
+        _atp = await Reservations.ListAtpAsync(_items.Select(i => i.Id).ToList(), ctx.RequestAborted);
 
         if (_openedId > 0)
         {
@@ -313,4 +388,7 @@
             }
         }
     }
+
+    private ErpItemAtp? AtpFor(long itemId)
+        => _atp.FirstOrDefault(row => row.ItemId == itemId);
 }

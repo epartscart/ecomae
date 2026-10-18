@@ -11,7 +11,7 @@ namespace EcomAE.Platform.Storefront;
 public static partial class StorefrontPhpAjax
 {
     public const string CpVisualPageEditorPath = "/cp/content/control/portal/ajax_visual_page_editor.php";
-    public const string VisualEditorSaveStaysClassic = "Visual page editor save stays Classic (info blocks, brand settings and cache).";
+    public const string VisualEditorSaveStaysClassic = "Visual page editor save is not available on this page (info blocks, brand settings and cache).";
 
     private static readonly Regex VisualPageKeyUnsafe = new("[^a-z0-9_-]", RegexOptions.CultureInvariant | RegexOptions.Compiled);
     private static readonly Regex VisualSiteKeyUnsafe = new("[^a-z0-9_]", RegexOptions.CultureInvariant | RegexOptions.Compiled);

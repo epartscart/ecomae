@@ -1,0 +1,27 @@
+# Overlay: run from the on-premises install directory after copying hybrid/ next to it.
+#   docker compose -f docker-compose.yml -f hybrid/docker-compose.hybrid.yml up -d sync-agent
+#
+# The agent is outbound HTTPS only. It does not publish ports and does not invent a DSN.
+
+services:
+  sync-agent:
+    image: python:3.12-alpine
+    container_name: ecomae-hybrid-sync
+    restart: unless-stopped
+    working_dir: /opt/hybrid
+    environment:
+      - SITE_KEY=${SITE_KEY}
+      - INSTALLATION_ID=${INSTALLATION_ID}
+      - ENROLLMENT_REQUEST_ID=${ENROLLMENT_REQUEST_ID}
+      - CLOUD_BASE_URL=${CLOUD_BASE_URL:-https://www.ecomae.com}
+      - LOCAL_DSN=${LOCAL_DSN:-}
+      - CONFIRM_WRITES=${CONFIRM_WRITES:-0}
+      - CYCLE_SECONDS=${CYCLE_SECONDS:-300}
+      - STATE_DIR=/opt/hybrid/state
+    volumes:
+      - ./hybrid/sync-agent:/opt/hybrid/sync-agent:ro
+      - ./hybrid/state:/opt/hybrid/state
+      - ./hybrid/.env:/opt/hybrid/.env:ro
+    command: ["python3", "/opt/hybrid/sync-agent/sync-agent.py", "cycle", "--loop"]
+    networks:
+      - ecomae-net

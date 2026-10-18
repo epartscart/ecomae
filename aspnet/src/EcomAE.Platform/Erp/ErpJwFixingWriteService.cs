@@ -69,7 +69,7 @@ public sealed class ErpJwFixingWriteService : IErpJwFixingWriteService
         var branch = (request.Branch ?? string.Empty).Trim();
         if (branch.Length == 0)
         {
-            branch = "HO";
+            branch = "HQ";
         }
 
         branch = Clip(branch, 10);

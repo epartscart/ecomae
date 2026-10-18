@@ -49,6 +49,49 @@ internal static class ErpDb
         return value is null ? null : Convert.ToString(value, CultureInfo.InvariantCulture);
     }
 
+    /// <summary>
+    /// True when the column is already known, or information_schema says it is there.
+    /// A present column is remembered for this process so later pages skip the scan.
+    /// A missing column is not remembered — the next ensure can still add it.
+    /// </summary>
+    public static async Task<bool> ColumnKnownAsync(
+        DbConnection connection,
+        string table,
+        string column,
+        CancellationToken cancellationToken)
+    {
+        var key = ErpSchemaMemo.Key(connection, "col:" + table + "." + column);
+        if (ErpSchemaMemo.IsReady(key))
+        {
+            return true;
+        }
+
+        var count = await LongAsync(
+            connection,
+            null,
+            Positional("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?"),
+            cancellationToken,
+            table,
+            column).ConfigureAwait(false);
+        if (count > 0)
+        {
+            ErpSchemaMemo.Remember(key);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// True when <c>SHOW TABLES</c> for this database already listed the table.
+    /// The list is reused for a short time so later pages skip information_schema.
+    /// </summary>
+    public static Task<bool> TableKnownAsync(
+        DbConnection connection,
+        string table,
+        CancellationToken cancellationToken)
+        => ErpTableCatalog.ContainsAsync(connection, table, cancellationToken);
+
     public static async Task<long> LongAsync(
         DbConnection connection,
         DbTransaction? transaction,
@@ -77,14 +120,39 @@ internal static class ErpDb
     /// <summary>Runs DDL / statements whose failure must not break the caller (PHP ensure-schema semantics).</summary>
     public static async Task TryExecuteAsync(DbConnection connection, string sql, CancellationToken cancellationToken)
     {
+        var createKey = string.Empty;
+        if (IsRepeatableCreate(sql))
+        {
+            createKey = ErpSchemaMemo.Key(connection, sql);
+            if (ErpSchemaMemo.IsReady(createKey))
+            {
+                return;
+            }
+        }
+
         try
         {
             await ExecuteAsync(connection, null, sql, cancellationToken).ConfigureAwait(false);
+            if (createKey.Length > 0)
+            {
+                ErpSchemaMemo.Remember(createKey);
+            }
         }
         catch (DbException)
         {
             // PHP ensure-schema helpers ignore DDL failures on locked-down grants.
         }
+    }
+
+    private static bool IsRepeatableCreate(string sql)
+    {
+        var start = 0;
+        while (start < sql.Length && char.IsWhiteSpace(sql[start]))
+        {
+            start++;
+        }
+
+        return sql.AsSpan(start).StartsWith("CREATE TABLE IF NOT EXISTS", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>Binds positional values onto a command the caller builds itself (readers).</summary>

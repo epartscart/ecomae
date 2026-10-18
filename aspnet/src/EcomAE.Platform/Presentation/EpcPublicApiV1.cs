@@ -38,6 +38,7 @@ public static class EpcPublicApiV1
         "/epc-api/v1/powerbi/stock",
         "/epc-api/v1/powerbi/gl",
         "/epc-api/v1/powerbi/metrics",
+        "/epc-api/v1/powerbi/sales-profitability",
     ];
 
     private static readonly HashSet<string> KeyedRoutes = new(StringComparer.OrdinalIgnoreCase)
@@ -53,6 +54,7 @@ public static class EpcPublicApiV1
         "powerbi/stock",
         "powerbi/gl",
         "powerbi/metrics",
+        "powerbi/sales-profitability",
     };
 
     private static readonly Dictionary<string, string> RouteScopes = new(StringComparer.OrdinalIgnoreCase)

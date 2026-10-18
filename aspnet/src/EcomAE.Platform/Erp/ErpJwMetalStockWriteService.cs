@@ -15,6 +15,7 @@ public interface IErpJwMetalStockWriteService
 
 public sealed record ErpJwMetalStockSaveRequest(
     int CompanyId = 0,
+    long ItemId = 0,
     string? Metal = null,
     string? ItemCode = null,
     string? Description = null,
@@ -58,6 +59,13 @@ public sealed record ErpJwMetalStockSaveRequest(
     decimal SalePriceGms = 0,
     string? Price1Code = null,
     string? Price1Label = null,
+    string? Price2Code = null,
+    string? Price2Label = null,
+    string? Price3Code = null,
+    string? Price4Code = null,
+    string? Price5Code = null,
+    bool PopStockFilter = false,
+    bool GstTrnMakingOnly = false,
     string? CreatedBy = null);
 
 public sealed class ErpJwMetalStockWriteService : IErpJwMetalStockWriteService
@@ -123,12 +131,93 @@ public sealed class ErpJwMetalStockWriteService : IErpJwMetalStockWriteService
 
         price1Label = Clip(price1Label, 20);
         var convOz = request.ConvFactorOz == 0 ? 31.10347m : request.ConvFactorOz;
+        var purity = RoundNonNeg(request.Purity, 6);
+        if (purity == 0)
+        {
+            purity = await LookupKaratPurityAsync(connection, companyId, Clip((request.Karat ?? string.Empty).Trim(), 10), cancellationToken).ConfigureAwait(false);
+        }
+
+        var existingId = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `epc_jewel_metal_stock` WHERE `company_id` = ? AND `item_code` = ? LIMIT 1"),
+            cancellationToken,
+            companyId,
+            code).ConfigureAwait(false);
+        if (existingId > 0 && (request.ItemId <= 0 || request.ItemId != existingId))
+        {
+            return ErpSimpleWriteResult.Fail(
+                "duplicate",
+                "Item code " + code + " already exists. Open that row to change it, or type a new item code.");
+        }
+
+        if (existingId > 0)
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "UPDATE `epc_jewel_metal_stock` SET `metal`=?,`description`=?,`cc_making`=?,`cc_metal`=?,`karat`=?,`purity`=?,`type`=?,`brand`=?,`category`=?,`sub_category`=?,`vendor`=?,`vendor_ref`=?,`country`=?,`hs_code`=?,`mc_unit`=?,`include_stone_weight`=?,`pass_purity_diff`=?,`in_pieces`=?,`pc_weight_gms`=?,`pc_weight_oz`=?,`create_barcodes`=?,`barcode_prefix`=?,`block_gross_wt_sales`=?,`ask_supplier`=?,`ask_wastage`=?,`exclude_gst_trn`=?,`gst_trn_on_making_stone`=?,`allow_negative_stock`=?,`allow_less_than_cost`=?,`conv_factor_oz`=?,`abc_code`=?,`loyalty_item`=?,`pop_stock_filter`=?,`gst_trn_making_only`=?,`std_cost`=?,`discount_pct`=?,`min_qty`=?,`max_qty`=?,`reorder_level`=?,`reorder_qty`=?,`pur_cost_gms`=?,`sale_price_gms`=?,`price1_code`=?,`price1_label`=?,`price2_code`=?,`price2_label`=?,`price3_code`=?,`price4_code`=?,`price5_code`=? WHERE `id`=? AND `company_id`=?"),
+                cancellationToken,
+                metal,
+                Clip((request.Description ?? string.Empty).Trim(), 120),
+                Clip((request.CcMaking ?? string.Empty).Trim(), 20),
+                Clip((request.CcMetal ?? string.Empty).Trim(), 20),
+                Clip((request.Karat ?? string.Empty).Trim(), 10),
+                purity,
+                Clip((request.Type ?? string.Empty).Trim(), 30),
+                Clip((request.Brand ?? string.Empty).Trim(), 60),
+                Clip((request.Category ?? string.Empty).Trim(), 30),
+                Clip((request.SubCategory ?? string.Empty).Trim(), 30),
+                Clip((request.Vendor ?? string.Empty).Trim(), 20),
+                Clip((request.VendorRef ?? string.Empty).Trim(), 20),
+                Clip((request.Country ?? string.Empty).Trim(), 30),
+                Clip((request.HsCode ?? string.Empty).Trim(), 20),
+                mcUnit,
+                request.IncludeStoneWeight ? 1 : 0,
+                request.PassPurityDiff ? 1 : 0,
+                request.InPieces ? 1 : 0,
+                RoundNonNeg(request.PcWeightGms, 5),
+                RoundNonNeg(request.PcWeightOz, 5),
+                request.CreateBarcodes ? 1 : 0,
+                Clip((request.BarcodePrefix ?? string.Empty).Trim(), 10),
+                request.BlockGrossWtSales ? 1 : 0,
+                request.AskSupplier ? 1 : 0,
+                request.AskWastage ? 1 : 0,
+                request.ExcludeGstTrn ? 1 : 0,
+                request.GstTrnOnMakingStone ? 1 : 0,
+                request.AllowNegativeStock ? 1 : 0,
+                request.AllowLessThanCost ? 1 : 0,
+                RoundNonNeg(convOz, 5),
+                Clip((request.AbcCode ?? string.Empty).Trim().ToUpperInvariant(), 1),
+                request.LoyaltyItem ? 1 : 0,
+                request.PopStockFilter ? 1 : 0,
+                request.GstTrnMakingOnly ? 1 : 0,
+                RoundNonNeg(request.StdCost, 2),
+                RoundNonNeg(request.DiscountPct, 2),
+                RoundNonNeg(request.MinQty, 2),
+                RoundNonNeg(request.MaxQty, 2),
+                RoundNonNeg(request.ReorderLevel, 2),
+                RoundNonNeg(request.ReorderQty, 2),
+                RoundNonNeg(request.PurCostGms, 2),
+                RoundNonNeg(request.SalePriceGms, 2),
+                price1Code,
+                price1Label,
+                Clip((request.Price2Code ?? string.Empty).Trim(), 5),
+                Clip((request.Price2Label ?? string.Empty).Trim(), 20),
+                Clip((request.Price3Code ?? string.Empty).Trim(), 5),
+                Clip((request.Price4Code ?? string.Empty).Trim(), 5),
+                Clip((request.Price5Code ?? string.Empty).Trim(), 5),
+                existingId,
+                companyId).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Metal stock " + code + " updated", existingId);
+        }
 
         await ErpDb.ExecuteAsync(
             connection,
             null,
             ErpDb.Positional(
-                "INSERT INTO `epc_jewel_metal_stock` (`company_id`,`metal`,`item_code`,`description`,`cc_making`,`cc_metal`,`karat`,`purity`,`type`,`brand`,`category`,`sub_category`,`vendor`,`vendor_ref`,`country`,`hs_code`,`mc_unit`,`include_stone_weight`,`pass_purity_diff`,`in_pieces`,`pc_weight_gms`,`pc_weight_oz`,`create_barcodes`,`barcode_prefix`,`block_gross_wt_sales`,`ask_supplier`,`ask_wastage`,`exclude_gst_trn`,`gst_trn_on_making_stone`,`allow_negative_stock`,`allow_less_than_cost`,`conv_factor_oz`,`abc_code`,`loyalty_item`,`std_cost`,`discount_pct`,`min_qty`,`max_qty`,`reorder_level`,`reorder_qty`,`pur_cost_gms`,`sale_price_gms`,`price1_code`,`price1_label`,`created_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `metal` = VALUES(`metal`), `description` = VALUES(`description`), `cc_making` = VALUES(`cc_making`), `cc_metal` = VALUES(`cc_metal`), `karat` = VALUES(`karat`), `purity` = VALUES(`purity`), `type` = VALUES(`type`), `brand` = VALUES(`brand`), `category` = VALUES(`category`), `sub_category` = VALUES(`sub_category`), `vendor` = VALUES(`vendor`), `vendor_ref` = VALUES(`vendor_ref`), `country` = VALUES(`country`), `hs_code` = VALUES(`hs_code`), `mc_unit` = VALUES(`mc_unit`), `include_stone_weight` = VALUES(`include_stone_weight`), `pass_purity_diff` = VALUES(`pass_purity_diff`), `in_pieces` = VALUES(`in_pieces`), `pc_weight_gms` = VALUES(`pc_weight_gms`), `pc_weight_oz` = VALUES(`pc_weight_oz`), `create_barcodes` = VALUES(`create_barcodes`), `barcode_prefix` = VALUES(`barcode_prefix`), `block_gross_wt_sales` = VALUES(`block_gross_wt_sales`), `ask_supplier` = VALUES(`ask_supplier`), `ask_wastage` = VALUES(`ask_wastage`), `exclude_gst_trn` = VALUES(`exclude_gst_trn`), `gst_trn_on_making_stone` = VALUES(`gst_trn_on_making_stone`), `allow_negative_stock` = VALUES(`allow_negative_stock`), `allow_less_than_cost` = VALUES(`allow_less_than_cost`), `conv_factor_oz` = VALUES(`conv_factor_oz`), `abc_code` = VALUES(`abc_code`), `loyalty_item` = VALUES(`loyalty_item`), `std_cost` = VALUES(`std_cost`), `discount_pct` = VALUES(`discount_pct`), `min_qty` = VALUES(`min_qty`), `max_qty` = VALUES(`max_qty`), `reorder_level` = VALUES(`reorder_level`), `reorder_qty` = VALUES(`reorder_qty`), `pur_cost_gms` = VALUES(`pur_cost_gms`), `sale_price_gms` = VALUES(`sale_price_gms`), `price1_code` = VALUES(`price1_code`), `price1_label` = VALUES(`price1_label`), `created_by` = VALUES(`created_by`)"),
+                "INSERT INTO `epc_jewel_metal_stock` (`company_id`,`metal`,`item_code`,`description`,`cc_making`,`cc_metal`,`karat`,`purity`,`type`,`brand`,`category`,`sub_category`,`vendor`,`vendor_ref`,`country`,`hs_code`,`mc_unit`,`include_stone_weight`,`pass_purity_diff`,`in_pieces`,`pc_weight_gms`,`pc_weight_oz`,`create_barcodes`,`barcode_prefix`,`block_gross_wt_sales`,`ask_supplier`,`ask_wastage`,`exclude_gst_trn`,`gst_trn_on_making_stone`,`allow_negative_stock`,`allow_less_than_cost`,`conv_factor_oz`,`abc_code`,`loyalty_item`,`pop_stock_filter`,`gst_trn_making_only`,`std_cost`,`discount_pct`,`min_qty`,`max_qty`,`reorder_level`,`reorder_qty`,`pur_cost_gms`,`sale_price_gms`,`price1_code`,`price1_label`,`price2_code`,`price2_label`,`price3_code`,`price4_code`,`price5_code`,`created_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
             cancellationToken,
             companyId,
             metal,
@@ -137,7 +226,7 @@ public sealed class ErpJwMetalStockWriteService : IErpJwMetalStockWriteService
             Clip((request.CcMaking ?? string.Empty).Trim(), 20),
             Clip((request.CcMetal ?? string.Empty).Trim(), 20),
             Clip((request.Karat ?? string.Empty).Trim(), 10),
-            RoundNonNeg(request.Purity, 6),
+            purity,
             Clip((request.Type ?? string.Empty).Trim(), 30),
             Clip((request.Brand ?? string.Empty).Trim(), 60),
             Clip((request.Category ?? string.Empty).Trim(), 30),
@@ -164,6 +253,8 @@ public sealed class ErpJwMetalStockWriteService : IErpJwMetalStockWriteService
             RoundNonNeg(convOz, 5),
             Clip((request.AbcCode ?? string.Empty).Trim().ToUpperInvariant(), 1),
             request.LoyaltyItem ? 1 : 0,
+            request.PopStockFilter ? 1 : 0,
+            request.GstTrnMakingOnly ? 1 : 0,
             RoundNonNeg(request.StdCost, 2),
             RoundNonNeg(request.DiscountPct, 2),
             RoundNonNeg(request.MinQty, 2),
@@ -174,6 +265,11 @@ public sealed class ErpJwMetalStockWriteService : IErpJwMetalStockWriteService
             RoundNonNeg(request.SalePriceGms, 2),
             price1Code,
             price1Label,
+            Clip((request.Price2Code ?? string.Empty).Trim(), 5),
+            Clip((request.Price2Label ?? string.Empty).Trim(), 20),
+            Clip((request.Price3Code ?? string.Empty).Trim(), 5),
+            Clip((request.Price4Code ?? string.Empty).Trim(), 5),
+            Clip((request.Price5Code ?? string.Empty).Trim(), 5),
             Clip((request.CreatedBy ?? string.Empty).Trim(), 40)).ConfigureAwait(false);
 
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
@@ -194,6 +290,34 @@ public sealed class ErpJwMetalStockWriteService : IErpJwMetalStockWriteService
         }
 
         return ErpSimpleWriteResult.Ok("Metal stock " + code + " saved", id);
+    }
+
+    private static async Task<decimal> LookupKaratPurityAsync(
+        DbConnection connection,
+        int companyId,
+        string karat,
+        CancellationToken cancellationToken)
+    {
+        if (karat.Length == 0)
+        {
+            return 0;
+        }
+
+        try
+        {
+            return await ErpDb.DecimalAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "SELECT IFNULL(`std_purity`,0) FROM `epc_jewel_karat_master` WHERE (`company_id` = ? OR `company_id` = 0) AND `karat_code` = ? ORDER BY `company_id` DESC LIMIT 1"),
+                cancellationToken,
+                companyId,
+                karat).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            return 0;
+        }
     }
 
     private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)

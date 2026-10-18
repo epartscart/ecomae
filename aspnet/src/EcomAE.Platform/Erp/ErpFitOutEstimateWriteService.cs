@@ -36,7 +36,9 @@ public sealed record ErpFitOutBoqLineSaveRequest(
     decimal LabourRate = 0,
     decimal SubcontractRate = 0,
     decimal EquipmentRate = 0,
-    decimal OverheadRate = 0);
+    decimal OverheadRate = 0,
+    decimal WastagePercent = 0,
+    decimal TargetMarginPercent = 0);
 
 public sealed class ErpFitOutEstimateWriteService : IErpFitOutEstimateWriteService
 {
@@ -142,11 +144,30 @@ public sealed class ErpFitOutEstimateWriteService : IErpFitOutEstimateWriteServi
                 _ => (rate, 0m, 0m, 0m, 0m)
             };
         }
-        var componentRate = decimal.Round(materialRate + labourRate + subcontractRate + equipmentRate + overheadRate, 4, MidpointRounding.AwayFromZero);
-        var estimateMarkup = await ReadMarkupAsync(connection, request.EstimateId, cancellationToken).ConfigureAwait(false);
-        var totalCost = decimal.Round(componentRate * quantity, 4, MidpointRounding.AwayFromZero);
-        var sellingRate = decimal.Round(componentRate * (1 + estimateMarkup / 100m), 4, MidpointRounding.AwayFromZero);
-        var sellingAmount = decimal.Round(sellingRate * quantity, 4, MidpointRounding.AwayFromZero);
+        decimal componentRate;
+        decimal totalCost;
+        decimal sellingRate;
+        decimal sellingAmount;
+        if (request.TargetMarginPercent > 0)
+        {
+            (componentRate, totalCost, sellingRate, sellingAmount) = ErpFitOutCalc.PriceAtMargin(
+                quantity,
+                materialRate,
+                labourRate,
+                equipmentRate,
+                subcontractRate,
+                overheadRate,
+                request.WastagePercent,
+                request.TargetMarginPercent);
+        }
+        else
+        {
+            componentRate = decimal.Round(materialRate + labourRate + subcontractRate + equipmentRate + overheadRate, 4, MidpointRounding.AwayFromZero);
+            var estimateMarkup = await ReadMarkupAsync(connection, request.EstimateId, cancellationToken).ConfigureAwait(false);
+            totalCost = decimal.Round(componentRate * quantity, 4, MidpointRounding.AwayFromZero);
+            sellingRate = decimal.Round(componentRate * (1 + estimateMarkup / 100m), 4, MidpointRounding.AwayFromZero);
+            sellingAmount = decimal.Round(sellingRate * quantity, 4, MidpointRounding.AwayFromZero);
+        }
         var sortOrder = Math.Max(0, request.SortOrder);
 
         if (request.Id > 0)

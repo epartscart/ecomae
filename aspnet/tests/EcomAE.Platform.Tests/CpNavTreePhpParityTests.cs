@@ -149,15 +149,29 @@ public sealed class CpNavTreePhpParityTests
     }
 
     [Fact]
-    public void SuperHost_HidesTenantEmailSettings_ShowsOperatorGroup()
+    public void SuperHost_ShowsMailHeading_TenantEmail_AndOperatorGroup()
     {
         var rows = Snapshot();
-        var super = CpNavTree.Build(rows.Groups, rows.Items, CpNavPolicy.SuperOperator(), NoTranslate);
+        var super = CpNavTree.BuildChrome(rows.Groups, rows.Items, CpNavPolicy.SuperOperator(), NoTranslate);
         var urls = super.SelectMany(g => g.Items).Select(i => i.Url).ToList();
 
-        Assert.DoesNotContain(urls, u => u.Contains("epc_tenant_email_settings", StringComparison.Ordinal));
+        Assert.Equal(CpNavTree.MailGroupKey, super[0].CaptionKey);
+        Assert.Equal("Mail", super[0].Short);
+        Assert.Contains(urls, u => u.Contains("epc_tenant_email_settings", StringComparison.Ordinal));
+        Assert.Contains(urls, u => u.Contains("epc_platform_mail", StringComparison.Ordinal));
         Assert.Contains(super, g => g.CaptionKey == "epc_cp_group_operator");
         Assert.Contains(urls, u => u.Contains("epc_super_cp_", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Tenant_PromotesMailHeading_FromSnapshotEmailRows()
+    {
+        var rows = Snapshot();
+        var tenant = CpNavTree.Build(rows.Groups, rows.Items, CpNavPolicy.Tenant(), NoTranslate);
+        var mail = Assert.Single(tenant, g => g.CaptionKey == CpNavTree.MailGroupKey);
+        Assert.Equal("Mail", mail.Short);
+        Assert.Contains(mail.Items, i => i.Url.Contains("epc_tenant_email_settings", StringComparison.Ordinal));
+        Assert.DoesNotContain(mail.Items, i => i.Url.Contains("epc_platform_mail", StringComparison.Ordinal));
     }
 
     [Fact]

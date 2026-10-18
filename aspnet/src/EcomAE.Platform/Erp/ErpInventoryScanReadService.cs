@@ -39,10 +39,9 @@ public sealed class ErpInventoryScanReadService : IErpInventoryScanReadService
         var c = (code ?? string.Empty).Trim();
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-        var tables = await ErpDb.LongAsync(
+        var tables = await ErpTableCatalog.CountPresentAsync(
             connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('epc_erp_inv_items','epc_erp_inv_movements')"),
+            ["epc_erp_inv_items", "epc_erp_inv_movements"],
             cancellationToken).ConfigureAwait(false);
         if (tables < 2)
         {
@@ -55,11 +54,7 @@ public sealed class ErpInventoryScanReadService : IErpInventoryScanReadService
         }
 
         IReadOnlyDictionary<string, object?>? row = null;
-        var hasBarcode = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'epc_erp_inv_items' AND COLUMN_NAME = 'barcode'"),
-            cancellationToken).ConfigureAwait(false) > 0;
+        var hasBarcode = await ErpDb.ColumnKnownAsync(connection, "epc_erp_inv_items", "barcode", cancellationToken).ConfigureAwait(false);
         if (hasBarcode)
         {
             row = await FirstRowAsync(connection, ErpDb.Positional("SELECT * FROM `epc_erp_inv_items` WHERE `barcode` = ? AND `active` = 1 LIMIT 1"), cancellationToken, c).ConfigureAwait(false);

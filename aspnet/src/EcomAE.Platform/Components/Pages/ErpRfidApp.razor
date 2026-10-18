@@ -140,9 +140,9 @@
             <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
             <label>EPC <input name="rfid_epc" required maxlength="100" /></label>
             <label>TID <input name="rfid_tid" maxlength="100" /></label>
-            <label>SKU <input name="sku" maxlength="100" /></label>
-            <label>Item <input name="item_description" maxlength="300" /></label>
-            <label>Warehouse <input type="number" name="warehouse_id" min="0" style="width:6rem" /></label>
+            <ErpMasterPicker Kind="item" FieldName="sku" InputId="rfid-register-sku" Label="Item" ValueMode="code" NameFieldName="item_description" />
+            <input type="hidden" name="item_description" value="" />
+            <ErpMasterPicker Kind="warehouse" FieldName="warehouse_id" InputId="rfid-register-wh" Label="Warehouse" />
             <label>Zone <input name="location_zone" maxlength="50" /></label>
             <button type="submit" class="btn btn-primary btn-sm">Register tag</button>
         </form>
@@ -157,7 +157,7 @@
                     <option value="search">search</option>
                 </select>
             </label>
-            <label>Warehouse <input type="number" name="warehouse_id" min="0" style="width:6rem" /></label>
+            <ErpMasterPicker Kind="warehouse" FieldName="warehouse_id" InputId="rfid-session-wh" Label="Warehouse" />
             <label>Zone <input name="zone" maxlength="50" /></label>
             <button type="submit" class="btn btn-primary btn-sm">Start scan session</button>
         </form>
@@ -240,7 +240,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. KPI values are live digest counts (0 when the shop database is empty). Tag register writes here. Scan sessions stay on Classic ERP.
+        Source: @_source. KPI values are live digest counts (0 when the shop database is empty). Tag register writes here. Scan sessions stay on the RFID register.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

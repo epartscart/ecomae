@@ -8,7 +8,7 @@ This file is **not** `MODULE_FUNCTION_TEST_PASS.md`. Do **not** invent `MODULE_F
 
 | Area | Scaffold | Interactive ASP.NET complete | Authoritative runtime |
 |---|---|---|---|
-| CP brochure / digests / hybrid | 726/726 menus; digests + hybrid apps | **0** | PHP writes/menus |
+| CP brochure / digests / hybrid | 734/734 menus; digests + hybrid apps | **0** | PHP writes/menus |
 | ERP tabs / ajax_erp | 321 dry-run goldens | **0** | PHP |
 | BOS modules / ajax | 231 dry-run goldens | **0** | PHP |
 | Storefront digests | 7/7 wired (live shadows lag) | **0** | PHP checkout/payment |

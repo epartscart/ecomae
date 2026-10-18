@@ -1,0 +1,221 @@
+@namespace EcomAE.Platform.Components.Shared
+@using System.Globalization
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@inject IErpMasterLookupReadService Lookups
+@inject NavigationManager Nav
+@*
+  One Dynamics-style lookup box. The box opens a list of saved masters.
+  The chosen value is a link to that record. Right-click the corner to
+  open the master and land on the new-field area. Posts the same field
+  name the write endpoint already expects.
+*@
+
+<div class="epc-erp-master-picker" data-erp-kind="@ResolvedKind" data-erp-value-mode="@ValueMode" data-erp-fill-code="@CodeFieldName" data-erp-fill-name="@NameFieldName" data-erp-fill-extra="@ExtraFieldName" data-erp-jw-stock="@(ResolvedKind == "jw-metal-stock" ? "1" : "")" data-erp-allow-new="@(AllowNew ? "1" : "")" data-erp-manage="@ManageHref" data-erp-record-app="@RecordApp" data-erp-record-key="@RecordKey">
+    <label class="epc-erp-master-picker__label" for="@ResolvedInputId">@ResolvedLabel</label>
+    <div class="epc-erp-lookup@(HasSelected ? " is-linked" : "")">
+        @if (AllowNew)
+        {
+            <input class="form-control input-sm epc-erp-master-picker__q" type="text" name="@FieldName" id="@ResolvedInputId" value="@ValueText" required="@Required" placeholder="@(Placeholder ?? ("Type new or pick " + ResolvedLabel.ToLowerInvariant()))" autocomplete="off" maxlength="@MaxLength" data-erp-picker-combo data-erp-picker-q role="combobox" aria-expanded="false" aria-controls="@MenuId" aria-autocomplete="list" />
+            <datalist id="@ListId">
+                @foreach (var row in _rows)
+                {
+                    <option value="@PostedValue(row)" data-id="@row.Id.ToString(CultureInfo.InvariantCulture)" data-code="@row.Code" data-name="@row.Name" data-extra="@row.Extra" data-href="@RecordHref(row)">@FormatOption(row)</option>
+                }
+            </datalist>
+            <span class="epc-erp-lookup__sr">One box: type a new @ResolvedLabel.ToLowerInvariant() or pick an existing one. Duplicates are not saved.</span>
+        }
+        else
+        {
+            <input class="form-control input-sm epc-erp-master-picker__q" type="text" id="@ResolvedInputId" value="@LinkText" placeholder="@(Placeholder ?? ResolvedLabel)" autocomplete="off" data-erp-picker-q role="combobox" aria-expanded="false" aria-controls="@MenuId" aria-autocomplete="list" />
+            <select class="epc-erp-lookup__posted" name="@FieldName" required="@Required" data-erp-picker-select tabindex="-1" aria-hidden="true">
+                @if (!Required)
+                {
+                    <option value="@(UseTextValue ? "" : "0")" selected="@(!HasSelected)">— none —</option>
+                }
+                else
+                {
+                    <option value="" selected="@(!HasSelected)">— pick @ResolvedLabel.ToLowerInvariant() —</option>
+                }
+                @foreach (var row in _rows)
+                {
+                    <option value="@PostedValue(row)"
+                            data-id="@row.Id.ToString(CultureInfo.InvariantCulture)"
+                            data-code="@row.Code"
+                            data-name="@row.Name"
+                            data-extra="@row.Extra"
+                            data-href="@RecordHref(row)"
+                            selected="@IsSelected(row)">@FormatOption(row)</option>
+                }
+            </select>
+        }
+        <a class="epc-erp-lookup__link@(HasSelected ? "" : " is-empty")" data-erp-picker-link href="@LinkHref">@LinkText</a>
+        <button type="button" class="epc-erp-lookup__corner" data-erp-picker-corner aria-label="@("Open " + ResolvedLabel)" title="Open the list. Right-click to add a new record."></button>
+        <div class="epc-erp-lookup__menu" id="@MenuId" data-erp-picker-menu hidden role="listbox">
+            @foreach (var row in _rows)
+            {
+                <button type="button" class="epc-erp-lookup__opt" role="option" data-erp-lookup-opt="1" data-value="@PostedValue(row)" data-id="@row.Id.ToString(CultureInfo.InvariantCulture)" data-code="@row.Code" data-name="@row.Name" data-extra="@row.Extra" data-href="@RecordHref(row)" data-search="@SearchText(row)">@FormatOption(row)</button>
+            }
+            <p class="epc-erp-lookup__empty" data-erp-lookup-empty hidden="@(_rows.Count > 0)">No saved @ResolvedLabel.ToLowerInvariant() yet. Right-click the corner to add one.</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Kind { get; set; } = "customer";
+    [Parameter] public string FieldName { get; set; } = "id";
+    [Parameter] public string? InputId { get; set; }
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public long Value { get; set; }
+    [Parameter] public bool Required { get; set; }
+    [Parameter] public string? CodeFieldName { get; set; }
+    [Parameter] public string? NameFieldName { get; set; }
+    [Parameter] public int Min { get; set; } = 0;
+    [Parameter] public string? Placeholder { get; set; }
+    /// <summary><c>code</c> posts the master code or SKU. <c>name</c> posts the master name. Otherwise the id.</summary>
+    [Parameter] public string ValueMode { get; set; } = "id";
+    [Parameter] public string? SelectedCode { get; set; }
+    /// <summary>Optional sibling field filled from the option extra (karat purity, metal-stock metal · purity · karat).</summary>
+    [Parameter] public string? ExtraFieldName { get; set; }
+    /// <summary>One input: type a new code or pick an existing master. No search box above a dropdown.</summary>
+    [Parameter] public bool AllowNew { get; set; }
+    [Parameter] public int MaxLength { get; set; } = 80;
+
+    private IReadOnlyList<ErpMasterOption> _rows = [];
+    private string ResolvedKind => ErpMasterLookupReadService.ResolveKind(Kind) is { Length: > 0 } kind ? kind : Kind;
+    private string ResolvedLabel => string.IsNullOrWhiteSpace(Label) ? ErpMasterLookupReadService.KindLabel(ResolvedKind) : Label;
+    private string ResolvedInputId => string.IsNullOrWhiteSpace(InputId) ? FieldName : InputId!;
+    private string ListId => ResolvedInputId + "-list";
+    private string MenuId => ResolvedInputId + "-menu";
+    private string MasterPath => ErpMasterLookupReadService.MasterHref(ResolvedKind);
+    private string RecordApp => ErpMasterLookupReadService.RecordAppHref(ResolvedKind);
+    private string RecordKey => ErpMasterLookupReadService.RecordQueryKey(ResolvedKind);
+    private string ManageHref
+    {
+        get
+        {
+            var href = WithCompany(MasterPath);
+            return href.Contains('#', StringComparison.Ordinal) ? href : href + "#erp-module-new";
+        }
+    }
+
+    private bool UseCodeValue => string.Equals(ValueMode, "code", StringComparison.OrdinalIgnoreCase);
+    private bool UseNameValue => string.Equals(ValueMode, "name", StringComparison.OrdinalIgnoreCase);
+    private bool UseTextValue => UseCodeValue || UseNameValue;
+    private bool HasSelected => Value > 0 || !string.IsNullOrWhiteSpace(SelectedCode);
+    private string? ValueText => UseTextValue
+        ? SelectedCode
+        : (Value > 0 ? Value.ToString(CultureInfo.InvariantCulture) : null);
+    private ErpMasterOption? SelectedRow => _rows.FirstOrDefault(IsSelected);
+    private string LinkText => SelectedRow is { } row ? FormatOption(row) : (ValueText ?? "");
+    private string LinkHref => SelectedRow is { } row ? RecordHref(row) : WithCompany(MasterPath);
+
+    private string PostedValue(ErpMasterOption row)
+    {
+        if (UseNameValue && !string.IsNullOrWhiteSpace(row.Name))
+        {
+            return row.Name.Trim();
+        }
+
+        if (UseTextValue)
+        {
+            return string.IsNullOrWhiteSpace(row.Code) ? row.Id.ToString(CultureInfo.InvariantCulture) : row.Code;
+        }
+
+        return row.Id.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private bool IsSelected(ErpMasterOption row)
+        => UseNameValue
+            ? !string.IsNullOrWhiteSpace(SelectedCode) && string.Equals(row.Name, SelectedCode, StringComparison.OrdinalIgnoreCase)
+            : UseCodeValue
+                ? !string.IsNullOrWhiteSpace(SelectedCode) && string.Equals(row.Code, SelectedCode, StringComparison.OrdinalIgnoreCase)
+                : Value > 0 && Value == row.Id;
+
+    private string RecordHref(ErpMasterOption row)
+    {
+        if (row.Id <= 0 || string.IsNullOrWhiteSpace(RecordKey) || string.IsNullOrWhiteSpace(RecordApp))
+        {
+            return WithCompany(MasterPath);
+        }
+
+        return WithCompany(ErpRecordOpen.Href(RecordApp, RecordKey, row.Id));
+    }
+
+    private string WithCompany(string href)
+    {
+        var company = CompanyId;
+        if (string.IsNullOrWhiteSpace(company)
+            || string.IsNullOrWhiteSpace(href)
+            || href.Contains("company=", StringComparison.OrdinalIgnoreCase))
+        {
+            return href;
+        }
+
+        var hash = "";
+        var path = href;
+        var hashAt = href.IndexOf('#', StringComparison.Ordinal);
+        if (hashAt >= 0)
+        {
+            hash = href[hashAt..];
+            path = href[..hashAt];
+        }
+
+        var sep = path.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        return path + sep + "company=" + Uri.EscapeDataString(company) + hash;
+    }
+
+    private string? CompanyId
+    {
+        get
+        {
+            if (!Uri.TryCreate(Nav.Uri, UriKind.Absolute, out var uri) || string.IsNullOrEmpty(uri.Query))
+            {
+                return null;
+            }
+
+            var query = uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            foreach (var part in query)
+            {
+                var kv = part.Split('=', 2);
+                if (kv.Length == 2
+                    && (kv[0].Equals("company", StringComparison.OrdinalIgnoreCase)
+                        || kv[0].Equals("companyId", StringComparison.OrdinalIgnoreCase))
+                    && kv[1].Length > 0)
+                {
+                    return Uri.UnescapeDataString(kv[1]);
+                }
+            }
+
+            return null;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await Lookups.SearchAsync(ResolvedKind, null, ErpFirstPaint.PickerLimit);
+        _rows = result.Options;
+        if (Value > 0 && _rows.All(row => row.Id != Value))
+        {
+            var extra = await Lookups.SearchAsync(ResolvedKind, Value.ToString(CultureInfo.InvariantCulture), 8);
+            var match = extra.Options.Where(row => row.Id == Value).Take(1);
+            _rows = match.Concat(_rows).ToList();
+        }
+    }
+
+    private static string FormatOption(ErpMasterOption row)
+    {
+        var code = string.IsNullOrWhiteSpace(row.Code) ? row.Id.ToString(CultureInfo.InvariantCulture) : row.Code.Trim();
+        var name = string.IsNullOrWhiteSpace(row.Name) ? "" : row.Name.Trim();
+        if (name.Length == 0 || string.Equals(code, name, StringComparison.OrdinalIgnoreCase))
+        {
+            return string.IsNullOrWhiteSpace(row.Extra) ? code : code + " · " + row.Extra;
+        }
+
+        return string.IsNullOrWhiteSpace(row.Extra) ? code + " · " + name : code + " · " + name + " · " + row.Extra;
+    }
+
+    private static string SearchText(ErpMasterOption row)
+        => string.Join(' ', new[] { row.Code, row.Name, row.Extra, row.Id.ToString(CultureInfo.InvariantCulture) }
+            .Where(part => !string.IsNullOrWhiteSpace(part)));
+}

@@ -131,6 +131,22 @@ public static class PhpSurfaceLinkMap
         ("system/debug", "/cp/debug-console-app"),
         // Tenant SMTP is independent of Super CP portal fleet inventory.
         ("epc_tenant_email_settings", "/cp/tenant-email-app"),
+        ("epc_platform_mail", "/cp/super-mail-app"),
+        ("control/portal/epc_platform_mail", "/cp/super-mail-app"),
+        ("epc_integrations_guide", "/cp/integrations-guide-app"),
+        ("control/portal/epc_integrations_guide", "/cp/integrations-guide-app"),
+        ("epc_lifeos_guide", "/cp/lifeos-guide-app"),
+        ("control/portal/epc_lifeos_guide", "/cp/lifeos-guide-app"),
+        ("epc_lifeos_clients", "/cp/lifeos-clients-app"),
+        ("control/portal/epc_lifeos_clients", "/cp/lifeos-clients-app"),
+        ("epc_ops_guides", "/cp/ops-guides-app"),
+        ("control/portal/epc_ops_guides", "/cp/ops-guides-app"),
+        ("vin_fields", "/cp/vin-fields-app"),
+        ("shop/vin_fields", "/cp/vin-fields-app"),
+        ("epc_client_erp", "/cp/client-erp"),
+        ("control/portal/epc_client_erp", "/cp/client-erp"),
+        ("epc_deployment_models", "/cp/deployment-models-app"),
+        ("control/portal/epc_deployment_models", "/cp/deployment-models-app"),
         ("users/customer_approvals", "/cp/users-app"),
         ("customer_approvals", "/cp/users-app"),
         ("users/polya-registracii", "/cp/users-app"),
@@ -169,6 +185,8 @@ public static class PhpSurfaceLinkMap
         ("control/portal/epc_super_cp_communication", "/cp/platform-communication-app"),
         ("control/portal/epc_super_cp_customer_board", "/cp/customer-board-app"),
         ("control/portal/epc_tenant_control_center", "/cp/tenants-app"),
+        ("control/portal/epc_tenant_admins", "/cp/tenant-admins-app"),
+        ("epc_tenant_admins", "/cp/tenant-admins-app"),
         ("control/portal/epc_industry_packs", "/cp/industry-packs-app"),
         ("control/portal/epc_notifications", "/cp/notifications-app"),
         ("control/notifications_settings", "/cp/notifications-app"),
@@ -1538,6 +1556,15 @@ public static class PhpSurfaceLinkMap
             return false;
         }
 
+        // Company ERP on the Super host is already ASP.NET. Never remap
+        // /cp/client-erp/{key}/erp/… onto a PHP product href (that 302 plus the
+        // isolation cookie loops the browser and Fetch never lands).
+        if (path.StartsWith("/cp/client-erp/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/cp/client-erp", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
         var mapped = MapCpPhpPath(pathAndQuery);
         if (string.IsNullOrWhiteSpace(mapped))
         {
@@ -1591,8 +1618,17 @@ public static class PhpSurfaceLinkMap
         }
 
         // UAE tax lives under /finance/erp/… but must NOT be swallowed by the ERP shell remap.
+        // Already-app URLs (bare /erp or /cp/client-erp/{key}/erp) stay put.
         if (value.Contains("uae-tax-compliance", StringComparison.OrdinalIgnoreCase))
         {
+            var taxPath = value.Split('?', 2)[0].TrimEnd('/');
+            if (taxPath.EndsWith("/erp/uae-tax-compliance-app", StringComparison.OrdinalIgnoreCase)
+                || taxPath.Equals("/erp/uae-tax-compliance-app", StringComparison.OrdinalIgnoreCase)
+                || taxPath.Equals("/cp/uae-tax-compliance-app", StringComparison.OrdinalIgnoreCase))
+            {
+                return value;
+            }
+
             return ErpRecordOpen.PreserveRecordQuery("/erp/uae-tax-compliance-app", value);
         }
 
@@ -1930,31 +1966,45 @@ public static class PhpSurfaceLinkMap
         // AP ≠ purchasing; AR ≠ sales; credit_coll ≠ treasury.
         var areaHref = areaKey switch
         {
-            "overview" or "common" or "setup" or "enterprise" => "/erp",
-            "finance" or "gl" or "general_ledger" => "/erp/gl-journals-app",
-            "ap" => "/erp/payables-app",
-            "ar" => "/erp/receivables-app",
-            "sales" => "/erp/sales-orders-app",
-            "purchasing" => "/erp/purchase-orders-app",
-            "banking" => "/erp/cash-accounts-app",
-            "credit_coll" => "/erp/collections-dunning-app",
-            "inventory_mgmt" or "inventory" or "pim" => "/erp/inventory-stock-app",
-            "logistics" => "/erp/fulfillment-queue-app",
-            "warehouse" => "/erp/warehouses-app",
-            "payroll" or "payroll_area" => "/erp/payroll-app",
-            "people" or "leave_abs" => "/erp/hr-overview-app",
-            "tax" or "risk" => "/erp/vat-app",
-            "production" or "master_planning_area" or "mhei" => "/erp/production-overview-app",
-            "projects" => "/erp/projects-overview-app",
-            "retail" => "/erp/retail-commerce-app",
-            "service_mgmt" => "/erp/contracts-app",
-            "budgeting" => "/erp/budgets-app",
-            "fixed_assets" or "asset_mgmt" => "/erp/fixed-assets-app",
-            "cost_mgmt" or "cost_acct" => "/erp/cost-models-app",
-            "landed_cost_area" => "/erp/landed-cost-app",
-            "consolidations" => "/erp/consolidations-app",
-            "audit_wb" or "audit" => "/erp/audit-trail-app",
-            "expense" => "/erp/expense-reports-app",
+            "overview" => "/erp",
+            "setup" => "/erp/system-admin-workspace-app",
+            "common" => "/erp/common-workspace-app",
+            "enterprise" => "/erp/organization-admin-app",
+            "finance" or "gl" or "general_ledger" => "/erp/general-ledger-workspace-app",
+            "ap" => "/erp/payables-workspace-app",
+            "ar" => "/erp/receivables-workspace-app",
+            "sales" => "/erp/sales-workspace-app",
+            "purchasing" => "/erp/procurement-workspace-app",
+            "banking" => "/erp/cash-bank-workspace-app",
+            "credit_coll" => "/erp/credit-collections-workspace-app",
+            "inventory_mgmt" or "inventory" => "/erp/inventory-workspace-app",
+            "pim" => "/erp/pim-workspace-app",
+            "logistics" or "transportation" => "/erp/transportation-workspace-app",
+            "warehouse" => "/erp/warehouse-workspace-app",
+            "payroll" => "/erp/payroll-app",
+            "payroll_area" => "/erp/payroll-workspace-app",
+            "people" => "/erp/hr-workspace-app",
+            "leave_abs" => "/erp/leave-absence-app",
+            "tax" => "/erp/tax-workspace-app",
+            "risk" => "/erp/vat-app",
+            "production" => "/erp/production-workspace-app",
+            "master_planning_area" => "/erp/master-planning-app",
+            "mhei" => "/erp/mhei-app",
+            "projects" => "/erp/projects-workspace-app",
+            "questionnaire" => "/erp/questionnaire-workspace-app",
+            "rebate_mgmt" => "/erp/rebate-workspace-app",
+            "retail" => "/erp/retail-workspace-app",
+            "service_mgmt" => "/erp/service-workspace-app",
+            "time_att" => "/erp/time-attendance-app",
+            "budgeting" => "/erp/budgeting-workspace-app",
+            "fixed_assets" => "/erp/fixed-assets-workspace-app",
+            "asset_mgmt" => "/erp/asset-management-app",
+            "cost_mgmt" => "/erp/cost-management-app",
+            "cost_acct" => "/erp/cost-accounting-app",
+            "landed_cost_area" => "/erp/landed-cost-workspace-app",
+            "consolidations" => "/erp/consolidations-workspace-app",
+            "audit_wb" or "audit" => "/erp/audit-workbench-app",
+            "expense" => "/erp/expense-workspace-app",
             _ => "/erp",
         };
         return ErpRecordOpen.PreserveRecordQuery(areaHref, value);

@@ -1,0 +1,99 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+@if (_guides.Count > 0)
+{
+    <section class="epc-guide" aria-label="Step by step">
+        @foreach (var guide in _guides)
+        {
+            <div class="epc-guide__block">
+                <h3>@guide.Title</h3>
+                @if (!string.IsNullOrWhiteSpace(guide.Lead))
+                {
+                    <p class="epc-guide__lead">@guide.Lead</p>
+                }
+                <ol class="epc-guide__steps">
+                    @for (var i = 0; i < guide.Steps.Count; i++)
+                    {
+                        var step = guide.Steps[i];
+                        <li class="@(IsCurrent(step.Href) ? "is-current" : null)">
+                            <span class="epc-guide__n">@(i + 1)</span>
+                            <div>
+                                <a href="@step.Href">@step.Label</a>
+                                @if (!string.IsNullOrWhiteSpace(step.Detail))
+                                {
+                                    <p>@step.Detail</p>
+                                }
+                            </div>
+                        </li>
+                    }
+                </ol>
+            </div>
+        }
+    </section>
+}
+
+<style>
+    .epc-guide { margin:0 0 14px; padding:12px 14px; border:1px solid #dbe4ea; background:#fff; }
+    .epc-guide__block + .epc-guide__block { margin-top:14px; padding-top:12px; border-top:1px solid #e2e8f0; }
+    .epc-guide h3 { margin:0 0 4px; font-size:15px; }
+    .epc-guide__lead { margin:0 0 10px; color:#475569; }
+    .epc-guide__steps { display:flex; flex-wrap:wrap; gap:8px; list-style:none; margin:0; padding:0; }
+    .epc-guide__steps li { display:flex; gap:8px; align-items:flex-start; flex:1 1 220px; max-width:320px; padding:8px 10px; border:1px solid #dbe4ea; background:#f8fafc; position:relative; }
+    .epc-guide__steps li.is-current { border-color:#1d4ed8; background:#eff6ff; }
+    .epc-guide__n { flex:0 0 auto; width:22px; height:22px; border-radius:50%; background:#1d4f91; color:#fff; font-size:12px; font-weight:700; line-height:22px; text-align:center; }
+    .epc-guide__steps a { color:#1d4f91; font-weight:700; }
+    .epc-guide__steps p { margin:2px 0 0; font-size:12px; color:#475569; }
+</style>
+
+@code {
+    [Parameter] public string? Area { get; set; }
+    [Parameter] public string? Keys { get; set; }
+
+    private IReadOnlyList<ErpManualProcessCatalog.Guide> _guides = [];
+
+    protected override void OnParametersSet()
+        => _guides = ErpManualProcessCatalog.For(Area, Keys);
+
+    private bool IsCurrent(string href)
+    {
+        var request = Http.HttpContext?.Request;
+        if (request is null || string.IsNullOrWhiteSpace(href))
+        {
+            return false;
+        }
+
+        var path = request.Path.Value ?? "";
+        var targetPath = href.Split('?')[0];
+        if (!path.Equals(targetPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var q = href.IndexOf('?', StringComparison.Ordinal);
+        if (q < 0)
+        {
+            return true;
+        }
+
+        var query = href[(q + 1)..];
+        foreach (var part in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var eq = part.IndexOf('=');
+            if (eq <= 0)
+            {
+                continue;
+            }
+
+            var key = Uri.UnescapeDataString(part[..eq]);
+            var value = Uri.UnescapeDataString(part[(eq + 1)..]);
+            if (!string.Equals(request.Query[key].ToString(), value, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}

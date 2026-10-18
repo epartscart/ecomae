@@ -38,7 +38,7 @@ public sealed class CpPromoWriteTests
         Assert.Contains("name=\"code\"", razor);
         Assert.Contains("name=\"min_spend\"", razor);
         Assert.Contains("does not invent a send", razor);
-        Assert.Contains("stay Classic", razor);
+        Assert.DoesNotContain("stay Classic", razor);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor);
         Assert.DoesNotContain("ASP.NET", razor);
         Assert.DoesNotContain("/php-reference/", razor);

@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Text.Json;
 using EcomAE.Platform.Erp;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace EcomAE.Platform.Presentation;
 
@@ -29,11 +30,14 @@ public interface IErpNavTenantRules
 public sealed class ErpNavTenantRules : IErpNavTenantRules
 {
     private const string DisabledPrefix = "erp.nav.disabled.";
+    private static readonly Lazy<IReadOnlySet<string>> KnownIds = new(BuildKnownModuleIds);
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IMemoryCache _cache;
 
-    public ErpNavTenantRules(IErpWriteConnectionFactory connections)
+    public ErpNavTenantRules(IErpWriteConnectionFactory connections, IMemoryCache cache)
     {
         _connections = connections;
+        _cache = cache;
     }
 
     public async Task<ErpNavTenantRuleSet> ResolveAsync(
@@ -44,6 +48,12 @@ public sealed class ErpNavTenantRules : IErpNavTenantRules
         if (!_connections.IsConfigured || normalizedSiteKey.Length == 0)
         {
             return ErpNavTenantRuleSet.Empty;
+        }
+
+        var cacheKey = "ecomae.erp.nav-rules:" + normalizedSiteKey;
+        if (_cache.TryGetValue(cacheKey, out ErpNavTenantRuleSet? cached) && cached is not null)
+        {
+            return cached;
         }
 
         var disabled = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -95,7 +105,9 @@ public sealed class ErpNavTenantRules : IErpNavTenantRules
             return ErpNavTenantRuleSet.Empty;
         }
 
-        return new ErpNavTenantRuleSet(disabled, enabled);
+        var rules = new ErpNavTenantRuleSet(disabled, enabled);
+        _cache.Set(cacheKey, rules, TimeSpan.FromMinutes(2));
+        return rules;
     }
 
     public static string NormalizeSiteKey(string? value)
@@ -109,7 +121,9 @@ public sealed class ErpNavTenantRules : IErpNavTenantRules
             : string.Empty;
     }
 
-    private static IReadOnlySet<string> KnownModuleIds()
+    private static IReadOnlySet<string> KnownModuleIds() => KnownIds.Value;
+
+    private static IReadOnlySet<string> BuildKnownModuleIds()
     {
         var values = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var area in PhpModuleCatalog.ErpAreas)

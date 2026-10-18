@@ -1,5 +1,6 @@
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Configuration;
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Presentation;
@@ -88,6 +89,45 @@ public sealed class LegacyAdminLoginServiceTests
         Assert.True(connections.OpenForTenantCalled);
     }
 
+    [Fact]
+    public async Task ClientErpLoginEnsuresShopBeforeOpen()
+    {
+        var http = new HttpContextAccessor
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+        http.HttpContext.Request.Host = new HostString("www.ecomae.com");
+        http.HttpContext.Request.Path = "/cp/client-erp/indj/";
+        http.HttpContext.Items[TenantResolutionMiddleware.HttpContextItemKey] = new TenantContext(
+            Host: "www.ecomae.com",
+            Path: "/cp/client-erp/indj/",
+            Surface: TenantSurface.Erp,
+            Mode: TenantMode.ErpOnlyTenant,
+            SiteKey: "indj",
+            DatabaseName: "indj");
+
+        var options = Options.Create(new EcomAeOptions { SecretSuccession = "test-secret" });
+        var connections = new CapturingConnections();
+        var bootstrap = new CapturingShopBootstrap();
+        var service = new DbLegacyAdminLoginService(
+            connections,
+            new NoopSessionStore(),
+            options,
+            http,
+            NullLogger<DbLegacyAdminLoginService>.Instance,
+            bootstrap);
+
+        var outcome = await service.LoginAsync(
+            new LegacyLoginRequest("indj@ecomae.com", "x", "email", false, LegacyLoginSurface.Erp),
+            "127.0.0.1",
+            "test-agent");
+
+        Assert.True(bootstrap.Called);
+        Assert.Equal("indj", bootstrap.SiteKey);
+        Assert.True(connections.OpenForTenantCalled);
+        Assert.Equal("login_backend_error", outcome.Failure?.Code);
+    }
+
     private sealed class AlwaysConfiguredConnections : ITenantDbConnectionFactory
     {
         public bool IsConfigured => true;
@@ -128,6 +168,30 @@ public sealed class LegacyAdminLoginServiceTests
 
         public Task<System.Data.Common.DbConnection> OpenRegistryAsync(CancellationToken cancellationToken = default)
             => throw new InvalidOperationException("capture-only");
+    }
+
+    private sealed class CapturingShopBootstrap : IErpOnlyShopBootstrap
+    {
+        public bool Called { get; private set; }
+        public string? SiteKey { get; private set; }
+
+        public Task<ErpOnlyShopEnsureResult> EnsureForSiteKeyAsync(
+            string siteKey,
+            string? passwordOverride = null,
+            CancellationToken cancellationToken = default)
+        {
+            Called = true;
+            SiteKey = siteKey;
+            return Task.FromResult(new ErpOnlyShopEnsureResult(true, true, true, true, "captured"));
+        }
+
+        public Task<ErpOnlyShopEnsureResult> EnsureOperatorLoginAsync(
+            string siteKey,
+            string email,
+            string password,
+            bool replacePassword,
+            CancellationToken cancellationToken = default)
+            => EnsureForSiteKeyAsync(siteKey, password, cancellationToken);
     }
 
     private sealed class NoopSessionStore : ILegacySessionStore
@@ -178,7 +242,19 @@ public sealed class LegacyAdminLoginServiceTests
         var wrong = LoginErrorHelper.FromUri("https://www.epartscart.com/cp/login?error=invalid_credentials");
         Assert.NotNull(wrong);
         Assert.Contains("taxofinca", wrong, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("SecretSuccession", wrong, StringComparison.Ordinal);
+        Assert.Contains("shop secret", wrong, StringComparison.OrdinalIgnoreCase);
+
+        var clientErp = LoginErrorHelper.FromUri("https://www.ecomae.com/cp/client-erp/indj/?error=login_backend_error");
+        Assert.Equal(LoginErrorHelper.ClientErpShopBackendHint, clientErp);
+        Assert.DoesNotContain("USE_PHP_DP_CONFIG", clientErp, StringComparison.Ordinal);
+        Assert.Contains("stay on the platform DB", clientErp, StringComparison.Ordinal);
+
+        var superCp = LoginErrorHelper.FromUri("https://www.ecomae.com/cp/login?error=login_backend_error");
+        Assert.Equal(LoginErrorHelper.SuperHostBackendHint, superCp);
+        Assert.DoesNotContain("USE_PHP_DP_CONFIG", superCp, StringComparison.Ordinal);
+
+        var tenantHost = LoginErrorHelper.FromUri("https://www.epartscart.com/cp/login?error=login_backend_error");
+        Assert.Equal(LoginErrorHelper.TenantHostBackendHint, tenantHost);
     }
 
     [Fact]

@@ -43,9 +43,9 @@
         .epc-prices-table { width:100%; border-collapse:collapse; font-size:.84rem; }
         .epc-prices-table th, .epc-prices-table td { padding:.5rem .65rem; border-bottom:1px solid #f1f5f9; text-align:left; vertical-align:top; }
         .epc-prices-table th { background:#f8fafc; color:#475569; font-size:.72rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-prices-dl { display:grid; grid-template-columns:10rem 1fr; gap:.4rem .75rem; background:#fff; border:1px solid var(--epc-p-line); border-radius:.55rem; padding:1rem; }
-        .epc-prices-dl dt { color:#64748b; font-size:.78rem; }
-        .epc-prices-dl dd { margin:0; font-weight:600; }
+        .epc-prices-dl { display:flex; flex-wrap:wrap; align-items:stretch; gap:.4rem .45rem; background:#fff; border:1px solid var(--epc-p-line); border-radius:.55rem; padding:.75rem .85rem; }
+        .epc-prices-dl dt { flex:0 0 auto; min-width:5.1rem; margin:0; padding:.38rem .2rem .38rem .55rem; border:1px solid #d9e2ec; border-right:0; border-radius:6px 0 0 6px; background:#f8fafc; color:#64748b; font-size:10px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+        .epc-prices-dl dd { flex:0 1 8.75rem; margin:0 .2rem 0 0; padding:.38rem .65rem .38rem .3rem; border:1px solid #d9e2ec; border-left:0; border-radius:0 6px 6px 0; font-weight:750; }
         .epc-prices-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #93c5fd; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
         .epc-price-hist-cell { min-width:9rem; }
         .epc-price-hist-meta { display:block; margin-top:.2rem; font-size:.72rem; color:#64748b; max-width:11rem; word-break:break-all; }
@@ -56,7 +56,7 @@
         .epc-prices-flash-ok { margin:0 0 1rem; padding:.7rem .9rem; border-radius:.4rem; background:#ecfdf5; color:#065f46; }
         .epc-prices-flash-err { margin:0 0 1rem; padding:.7rem .9rem; border-radius:.4rem; background:#fef2f2; color:#991b1b; }
         .epc-prices-complete { display:flex; flex-wrap:wrap; gap:.4rem; align-items:end; margin:0 0 1rem; }
-        @@media (max-width:900px){ .epc-prices-kpis{grid-template-columns:1fr;} .epc-prices-dl{grid-template-columns:1fr;} }
+        @@media (max-width:900px){ .epc-prices-kpis{grid-template-columns:1fr;} }
     </style>
 </HeadContent>
 
@@ -137,7 +137,7 @@
                 </label>
                 <button type="submit">Import with this column map</button>
             </form>
-            <p class="help-block">Same column numbers as PHP ajax_5: 1-based file columns saved on the list, then the file is imported. Header rows are skipped.</p>
+            <p class="help-block">Same 1-based file columns saved on the list, then the file is imported. Header rows are skipped.</p>
         }
 
         @if (_isAdmin && _way == "cron")
@@ -172,9 +172,8 @@
         else if (_view == "multivendor")
         {
             <div class="epc-prices-note">
-                Multi-vendor ingest is PHP <code>ajax_epc_multivendor_ingest</code>
-                (<code>cp/content/shop/prices_upload/for_multivendor/form.php</code>).
-                Drop a combined Excel/CSV there. File ingest stay Classic.
+                Multi-vendor ingest uses the combined Excel/CSV drop on this workspace.
+                Drop a combined Excel/CSV there. File ingest are not available on this page.
             </div>
             @if (_isAdmin)
             {
@@ -199,7 +198,7 @@
                     <label>Vendor name <input type="text" name="vendor_full" maxlength="255" /></label>
                     <button type="submit">Save vendor code</button>
                 </form>
-                <p class="help-block" style="margin:0 0 1rem">File ingest stay Classic. This page does not invent a send.</p>
+                <p class="help-block" style="margin:0 0 1rem">File ingest are not available on this page. This page does not invent a send.</p>
             }
         }
         else if (_view == "price")
@@ -208,8 +207,8 @@
             @if (_detail is null)
             {
                 <div class="epc-prices-note">
-                    Creating a list writes to <code>shop_docpart_prices</code> via PHP <code>price.php</code>.
-                    This console is read-only. Use the live PHP manager to add FTP / e-mail / URL credentials.
+                    Creating a list writes to <code>shop_docpart_prices</code> on this workspace.
+                    This console is read-only. Use the live price-list manager to add FTP / e-mail / URL credentials.
                 </div>
             }
             else

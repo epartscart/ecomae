@@ -93,6 +93,10 @@
             {
                 <em class="epc-erp-jw-badge">Jewellery modules</em>
             }
+            else if (_realEstate)
+            {
+                <em class="epc-erp-realestate-badge">Real-estate modules</em>
+            }
             else if (_fitOut)
             {
                 <em class="epc-erp-fitout-badge">Fit-out modules</em>
@@ -122,10 +126,10 @@
                     <li class="@(selected ? "active" : null)" role="none">
                         <a role="menuitem" href="@ErpHostContext.SwitchCompanyHref(_request, (int)company.Id)">
                             <i class="fa @(selected ? "fa-check" : "fa-building-o")" aria-hidden="true"></i>
-                            <strong>@company.Code</strong> · @company.Name
+                            <strong>@LegalOrganizationLabel.Display(company.Code, company.Name)</strong>
                             <span class="text-muted epc-erp-company-meta">
                                 @(string.IsNullOrWhiteSpace(company.CurrencyCode) ? "AED" : company.CurrencyCode)
-                                · @(jw ? "jewellery modules" : ErpIndustryNav.IsFitOutCompany(company) ? "fit-out modules" : "core modules")
+                                · @(jw ? "jewellery modules" : ErpIndustryNav.IsRealEstateCompany(company) ? "real-estate modules" : ErpIndustryNav.IsFitOutCompany(company) ? "fit-out modules" : "core modules")
                                 @if (!string.IsNullOrWhiteSpace(company.IndustryPack))
                                 {
                                     <text> · @company.IndustryPack</text>
@@ -142,7 +146,11 @@
         <span class="epc-erp-company-fallback" title="@_message">No companies loaded</span>
     }
 
-    @if (Variant.Equals("Panel", StringComparison.OrdinalIgnoreCase) && PlatformHostPolicy.IsSuperCpHost(_ctx.Host))
+    <a class="epc-erp-shell-link" href="/erp/organization-app" title="Legal entity, business unit, cost centre, financial dimensions">
+        <i class="fa fa-sitemap" aria-hidden="true"></i> Organization
+    </a>
+
+    @if (Variant.Equals("Panel", StringComparison.OrdinalIgnoreCase) && _showFleet)
     {
         <a class="epc-erp-shell-link" href="/erp/fleet-app" title="Operator fleet ERP view">
             <i class="fa fa-sitemap" aria-hidden="true"></i> Fleet ERP
@@ -197,6 +205,8 @@
     private string _industryLabel = "Core / multi-industry";
     private bool _jewellery;
     private bool _fitOut;
+    private bool _realEstate;
+    private bool _showFleet;
     private string _message = "";
 
     protected override async Task OnInitializedAsync()
@@ -205,14 +215,16 @@
         _ctx = ErpHostContext.Resolve(_request?.Host.Host);
         var active = ErpHostContext.ActiveCompanyIdFromQuery(_request);
         var digest = await Dashboards.BuildErpCompaniesDigestAsync(50, Http.HttpContext?.RequestAborted ?? default);
-        var isSuper = PlatformHostPolicy.IsSuperCpHost(_ctx.Host);
+        var isSuper = SuperCpHostGate.IsAllowed(Http.HttpContext);
+        _showFleet = isSuper;
         _companies = ErpIndustryNav.EnsureSwitchableCompanies(digest.Companies, isSuper, _ctx.BrandLabel);
         _message = digest.Message;
         if (_companies.Count == 0)
         {
             _industryCode = _ctx.IndustryCode;
             _industryLabel = _ctx.IndustryLabel;
-            _jewellery = ErpIndustryNav.IsJewelleryFromHostOrPack(_ctx.IndustryCode, null, null);
+            _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(Http.HttpContext));
+            _realEstate = ErpIndustryNav.ShowRealEstateModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(Http.HttpContext));
             return;
         }
 
@@ -220,10 +232,14 @@
             ? active.Value
             : _companies[0].Id;
         var current = _companies.FirstOrDefault(c => c.Id == _activeCompanyId) ?? _companies[0];
-        _activeLabel = $"{current.Code} · {current.Name}";
-        _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, current);
-        _fitOut = ErpIndustryNav.IsFitOutCompany(current);
-        _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(current.IndustryPack) ? "core" : current.IndustryPack);
-        _industryLabel = ErpIndustryNav.IndustryLabelForPack(current.IndustryPack, _jewellery);
+        _activeLabel = LegalOrganizationLabel.Display(current.Code, current.Name, null, _ctx.BrandLabel);
+        _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, current, TenantContext.IndustryFrom(Http.HttpContext));
+        _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, current, TenantContext.IndustryFrom(Http.HttpContext));
+        _realEstate = ErpIndustryNav.ShowRealEstateModules(_ctx.IndustryCode, current, TenantContext.IndustryFrom(Http.HttpContext));
+        _industryCode = _jewellery ? "jewellery"
+            : _realEstate ? (string.IsNullOrWhiteSpace(current.IndustryPack) ? "real_estate" : current.IndustryPack)
+            : _fitOut ? (string.IsNullOrWhiteSpace(current.IndustryPack) ? "fit_out" : current.IndustryPack)
+            : (string.IsNullOrWhiteSpace(current.IndustryPack) ? "core" : current.IndustryPack);
+        _industryLabel = ErpIndustryNav.IndustryLabelForPack(_industryCode, _jewellery);
     }
 }

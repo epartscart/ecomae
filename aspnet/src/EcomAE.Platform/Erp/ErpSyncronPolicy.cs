@@ -20,6 +20,11 @@ public static class ErpSyncronPolicy
 
     public static readonly IReadOnlyList<string> ItemTypes = ["standard", "perishable", "serialized"];
 
+    /// <summary>Syntetos–Boylan labels used on the recommended-order workbench.</summary>
+    public static readonly IReadOnlyList<string> DemandTypes = ["Fast", "Erratic", "Slow", "Lumpy", "New"];
+
+    public static readonly IReadOnlyList<string> OrderLineStatuses = ["pending", "confirmed", "rejected", "drafted"];
+
     public const int ForecastDays = 30;
     public const decimal DefaultServiceLevel = 95m;
     public const int DefaultLeadTimeDays = 7;
@@ -57,14 +62,59 @@ public static class ErpSyncronPolicy
         int LeadTimeDays,
         decimal ServiceLevelTarget,
         string PolicyName,
-        string Action);
+        string Action,
+        string DemandType = "New",
+        decimal UnitCost = 0m,
+        string ItemGroup = "",
+        long SupplierId = 0,
+        string SupplierName = "",
+        string Status = "ok",
+        string DueDate = "",
+        decimal OrderQty = 0m,
+        long PoId = 0,
+        string ItemType = "");
+
+    /// <summary>A saved decision for one item × warehouse on the recommended-order workbench.</summary>
+    public sealed record OrderLine(
+        long ItemId,
+        long WarehouseId,
+        long SupplierId,
+        string SupplierName,
+        decimal OrderQty,
+        decimal UnitCost,
+        string Status,
+        string DueDate,
+        long PoId);
+
+    public sealed record ConfirmedOrderLine(
+        long ItemId,
+        long WarehouseId,
+        long SupplierId,
+        string SupplierName,
+        decimal OrderQty,
+        decimal UnitCost,
+        string Sku,
+        string ItemName,
+        string WarehouseName);
 
     public sealed record ForecastRow(long ItemId, string Sku, long WarehouseId, string WarehouseName, string PeriodStart, string PeriodEnd, decimal ForecastQty, string Method);
 
     public sealed record ServiceLevelRow(long ItemId, string Sku, long WarehouseId, string WarehouseName, string PeriodMonth, decimal DemandQty, decimal FulfilledQty, int StockoutEvents, decimal ServiceLevel);
 
     /// <summary>One item × warehouse with its stock and its daily demand (oldest day first, one entry per calendar day).</summary>
-    public sealed record ItemWarehouse(long ItemId, string Sku, string ItemName, string ItemType, long WarehouseId, string WarehouseName, decimal OnHand, IReadOnlyList<decimal> DailyDemand);
+    public sealed record ItemWarehouse(
+        long ItemId,
+        string Sku,
+        string ItemName,
+        string ItemType,
+        long WarehouseId,
+        string WarehouseName,
+        decimal OnHand,
+        IReadOnlyList<decimal> DailyDemand,
+        string ItemGroup = "",
+        long SupplierId = 0,
+        string SupplierName = "",
+        decimal UnitCost = 0m);
 
     public static decimal ServiceLevelZ(decimal pct) => pct switch
     {
@@ -113,6 +163,53 @@ public static class ErpSyncronPolicy
         return Round4(forecast);
     }
 
+    /// <summary>
+    /// Classifies a daily series the way the recommended-order screen labels demand.
+    /// Fast is smooth (ADI below 1.32 and CV² below 0.49), Erratic is variable and frequent,
+    /// Slow is intermittent with a stable size, Lumpy is intermittent and variable.
+    /// New when fewer than two days in the series have demand.
+    /// </summary>
+    public static string DemandType(IReadOnlyList<decimal>? daily)
+    {
+        if (daily is null || daily.Count < 2)
+        {
+            return "New";
+        }
+
+        var positives = new List<decimal>();
+        foreach (var day in daily)
+        {
+            if (day > 0m)
+            {
+                positives.Add(day);
+            }
+        }
+
+        if (positives.Count < 2)
+        {
+            return "New";
+        }
+
+        var adi = (decimal)daily.Count / positives.Count;
+        var mean = positives.Average();
+        if (mean <= 0m)
+        {
+            return "New";
+        }
+
+        var variance = positives.Sum(day => (day - mean) * (day - mean)) / positives.Count;
+        var cv2 = variance / (mean * mean);
+        var intermittent = adi >= 1.32m;
+        var variable = cv2 >= 0.49m;
+        return (intermittent, variable) switch
+        {
+            (false, false) => "Fast",
+            (false, true) => "Erratic",
+            (true, false) => "Slow",
+            _ => "Lumpy",
+        };
+    }
+
     /// <summary>The item policy for the SKU, else the category policy for the item type, else the global policy.</summary>
     public static Policy? PolicyFor(IReadOnlyList<Policy> policies, string sku, string itemType)
         => policies.FirstOrDefault(p => p.Scope == "item" && string.Equals(p.ScopeRef, sku, StringComparison.OrdinalIgnoreCase))
@@ -130,7 +227,7 @@ public static class ErpSyncronPolicy
         };
     }
 
-    public static Recommendation Recommend(ItemWarehouse row, Policy? policy)
+    public static Recommendation Recommend(ItemWarehouse row, Policy? policy, DateOnly? today = null)
     {
         var lead = policy?.LeadTimeDays ?? DefaultLeadTimeDays;
         var service = policy?.ServiceLevelPct ?? DefaultServiceLevel;
@@ -165,9 +262,90 @@ public static class ErpSyncronPolicy
             }
         }
 
+        var status = action is "stockout" or "reorder" ? "pending" : "ok";
+        var due = today is { } day ? day.AddDays(Math.Max(lead, 0)).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : "";
         return new Recommendation(
             row.ItemId, row.Sku, row.ItemName, row.WarehouseId, row.WarehouseName, row.OnHand,
-            daily, safety, rop, suggested, lead, service, policy?.PolicyName ?? "", action);
+            daily, safety, rop, suggested, lead, service, policy?.PolicyName ?? "", action,
+            DemandType(row.DailyDemand), row.UnitCost, row.ItemGroup, row.SupplierId, row.SupplierName,
+            status, due, suggested, 0, row.ItemType);
+    }
+
+    /// <summary>Overlays a saved order-line decision onto a calculated recommendation.</summary>
+    public static Recommendation ApplyOrderLine(Recommendation recommendation, OrderLine line)
+    {
+        var supplierId = line.SupplierId > 0 ? line.SupplierId : recommendation.SupplierId;
+        var supplierName = line.SupplierName.Length > 0 ? line.SupplierName : recommendation.SupplierName;
+        var unitCost = line.UnitCost > 0 ? line.UnitCost : recommendation.UnitCost;
+        var due = line.DueDate.Length > 0 ? line.DueDate : recommendation.DueDate;
+        var status = OrderLineStatuses.Contains(line.Status) ? line.Status : recommendation.Status;
+        return recommendation with
+        {
+            SupplierId = supplierId,
+            SupplierName = supplierName,
+            UnitCost = unitCost,
+            DueDate = due,
+            Status = status,
+            OrderQty = Round4(line.OrderQty),
+            PoId = line.PoId,
+        };
+    }
+
+    public static IReadOnlyList<(long ItemId, long WarehouseId, decimal Qty)> ParseLineGrid(string? grid)
+    {
+        var list = new List<(long, long, decimal)>();
+        if (string.IsNullOrWhiteSpace(grid))
+        {
+            return list;
+        }
+
+        foreach (var raw in grid.Split(['\n', ',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var parts = raw.Split(':');
+            if (parts.Length < 3
+                || !long.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out var itemId)
+                || !long.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var warehouseId)
+                || !decimal.TryParse(parts[2], NumberStyles.Any, CultureInfo.InvariantCulture, out var qty)
+                || itemId <= 0
+                || warehouseId <= 0)
+            {
+                continue;
+            }
+
+            if (qty < 0)
+            {
+                throw new ErpWriteException("Order quantity cannot be negative.");
+            }
+
+            list.Add((itemId, warehouseId, Round4(qty)));
+        }
+
+        return list;
+    }
+
+    public static IReadOnlyList<(long ItemId, long WarehouseId)> ParseLineKeys(string? keys)
+    {
+        var list = new List<(long, long)>();
+        if (string.IsNullOrWhiteSpace(keys))
+        {
+            return list;
+        }
+
+        foreach (var raw in keys.Split([',', ' ', ';', '\n', '\r', '\t'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var parts = raw.Split(':');
+            if (parts.Length == 2
+                && long.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out var itemId)
+                && long.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var warehouseId)
+                && itemId > 0
+                && warehouseId > 0
+                && !list.Contains((itemId, warehouseId)))
+            {
+                list.Add((itemId, warehouseId));
+            }
+        }
+
+        return list;
     }
 
     public static string Validate(Policy policy)
@@ -279,6 +457,23 @@ public static class ErpSyncronPolicy
               `created_at` INT UNSIGNED NOT NULL DEFAULT 0,
               UNIQUE KEY `uk_item_wh_month` (`item_id`, `warehouse_id`, `period_month`),
               INDEX `idx_period` (`period_month`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """, cancellationToken).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(connection, null, """
+            CREATE TABLE IF NOT EXISTS `epc_erp_inv_order_lines` (
+              `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+              `item_id` INT UNSIGNED NOT NULL,
+              `warehouse_id` INT UNSIGNED NOT NULL,
+              `supplier_id` INT UNSIGNED NOT NULL DEFAULT 0,
+              `supplier_name` VARCHAR(180) NOT NULL DEFAULT '',
+              `order_qty` DECIMAL(14,4) NOT NULL DEFAULT 0,
+              `unit_cost` DECIMAL(14,4) NOT NULL DEFAULT 0,
+              `status` VARCHAR(16) NOT NULL DEFAULT 'pending',
+              `due_date` DATE NULL,
+              `po_id` INT UNSIGNED NOT NULL DEFAULT 0,
+              `updated_at` INT UNSIGNED NOT NULL DEFAULT 0,
+              UNIQUE KEY `uk_item_wh` (`item_id`, `warehouse_id`),
+              INDEX `idx_status` (`status`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
             """, cancellationToken).ConfigureAwait(false);
     }
@@ -459,8 +654,27 @@ public static class ErpSyncronPolicy
 
     public static async Task<IReadOnlyList<Recommendation>> RecommendAsync(DbConnection connection, IReadOnlyList<Policy> policies, long warehouseId, DateOnly today, CancellationToken cancellationToken)
     {
+        await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await EnsureOrderLineColumnsAsync(connection, cancellationToken).ConfigureAwait(false);
         var rows = await LoadItemWarehousesAsync(connection, WindowFor(policies), warehouseId, today, cancellationToken).ConfigureAwait(false);
-        return rows.Select(r => Recommend(r, PolicyFor(policies, r.Sku, r.ItemType))).ToList();
+        var extras = await LoadItemExtrasAsync(connection, warehouseId, cancellationToken).ConfigureAwait(false);
+        var lines = await LoadOrderLinesAsync(connection, warehouseId, cancellationToken).ConfigureAwait(false);
+        var list = new List<Recommendation>(rows.Count);
+        foreach (var row in rows)
+        {
+            var enriched = extras.TryGetValue((row.ItemId, row.WarehouseId), out var extra)
+                ? row with { ItemGroup = extra.ItemGroup, SupplierId = extra.SupplierId, SupplierName = extra.SupplierName, UnitCost = extra.UnitCost }
+                : row;
+            var recommendation = Recommend(enriched, PolicyFor(policies, enriched.Sku, enriched.ItemType), today);
+            if (lines.TryGetValue((row.ItemId, row.WarehouseId), out var line))
+            {
+                recommendation = ApplyOrderLine(recommendation, line);
+            }
+
+            list.Add(recommendation);
+        }
+
+        return list;
     }
 
     public static async Task<IReadOnlyList<(long Id, string Name)>> WarehousesAsync(DbConnection connection, CancellationToken cancellationToken)
@@ -477,8 +691,376 @@ public static class ErpSyncronPolicy
         return list;
     }
 
+    public static async Task<IReadOnlyList<(long Id, string Name)>> SuppliersAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        if (!await TableExistsAsync(connection, "epc_erp_suppliers", cancellationToken).ConfigureAwait(false))
+        {
+            return [];
+        }
+
+        var list = new List<(long, string)>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT `id`, `name` FROM `epc_erp_suppliers` WHERE `active` = 1 ORDER BY `name`, `id`";
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            list.Add((Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture), reader.GetString(1)));
+        }
+
+        return list;
+    }
+
+    /// <summary>Inserts or updates the order quantity. An empty status keeps the saved status and defaults a new row to pending.</summary>
+    public static async Task UpsertOrderLineAsync(
+        DbConnection connection,
+        long itemId,
+        long warehouseId,
+        decimal orderQty,
+        long supplierId,
+        string supplierName,
+        decimal unitCost,
+        string? status,
+        string? dueDate,
+        CancellationToken cancellationToken)
+    {
+        if (itemId <= 0 || warehouseId <= 0)
+        {
+            throw new ErpWriteException("Item and warehouse are required.");
+        }
+
+        if (orderQty < 0 || unitCost < 0)
+        {
+            throw new ErpWriteException("Order quantity cannot be negative.");
+        }
+
+        var changeStatus = status is not null && OrderLineStatuses.Contains(status);
+        var storedStatus = changeStatus ? status! : "pending";
+        string? due = null;
+        if (!string.IsNullOrWhiteSpace(dueDate))
+        {
+            if (!DateOnly.TryParseExact(dueDate.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+            {
+                throw new ErpWriteException("Due date must be YYYY-MM-DD.");
+            }
+
+            due = dueDate.Trim();
+        }
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("""
+                INSERT INTO `epc_erp_inv_order_lines`
+                  (`item_id`,`warehouse_id`,`supplier_id`,`supplier_name`,`order_qty`,`unit_cost`,`status`,`due_date`,`po_id`,`updated_at`)
+                VALUES (?,?,?,?,?,?,?,?,0,?)
+                ON DUPLICATE KEY UPDATE
+                  `order_qty` = VALUES(`order_qty`),
+                  `supplier_id` = IF(VALUES(`supplier_id`) > 0, VALUES(`supplier_id`), `supplier_id`),
+                  `supplier_name` = IF(VALUES(`supplier_name`) <> '', VALUES(`supplier_name`), `supplier_name`),
+                  `unit_cost` = IF(VALUES(`unit_cost`) > 0, VALUES(`unit_cost`), `unit_cost`),
+                  `due_date` = IFNULL(VALUES(`due_date`), `due_date`),
+                  `status` = IF(? = 1, VALUES(`status`), `status`),
+                  `updated_at` = VALUES(`updated_at`)
+                """),
+            cancellationToken,
+            itemId,
+            warehouseId,
+            supplierId,
+            Clip(supplierName.Trim(), 180),
+            Round4(orderQty),
+            Round4(unitCost),
+            storedStatus,
+            due,
+            DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            changeStatus ? 1 : 0).ConfigureAwait(false);
+    }
+
+    public static async Task<int> SetOrderLineStatusAsync(
+        DbConnection connection,
+        IReadOnlyList<(long ItemId, long WarehouseId)> keys,
+        string status,
+        IReadOnlyList<string> fromStatuses,
+        CancellationToken cancellationToken)
+    {
+        if (!OrderLineStatuses.Contains(status) || fromStatuses.Count == 0)
+        {
+            return 0;
+        }
+
+        var placeholders = string.Join(",", fromStatuses.Select((_, i) => "?"));
+        var changed = 0;
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        foreach (var (itemId, warehouseId) in keys)
+        {
+            object?[] args = [status, now, itemId, warehouseId, .. fromStatuses.Cast<object?>()];
+            changed += await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `epc_erp_inv_order_lines` SET `status` = ?, `updated_at` = ? WHERE `item_id` = ? AND `warehouse_id` = ? AND `status` IN (" + placeholders + ")"),
+                cancellationToken,
+                args).ConfigureAwait(false);
+        }
+
+        return changed;
+    }
+
+    public static async Task<int> SetAllOrderLineStatusAsync(
+        DbConnection connection,
+        string status,
+        string fromStatus,
+        CancellationToken cancellationToken)
+    {
+        if (!OrderLineStatuses.Contains(status) || !OrderLineStatuses.Contains(fromStatus))
+        {
+            return 0;
+        }
+
+        return await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("UPDATE `epc_erp_inv_order_lines` SET `status` = ?, `updated_at` = ? WHERE `status` = ?"),
+            cancellationToken,
+            status, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), fromStatus).ConfigureAwait(false);
+    }
+
+    public static async Task<IReadOnlyList<ConfirmedOrderLine>> ConfirmedOrderLinesAsync(
+        DbConnection connection,
+        IReadOnlyList<(long ItemId, long WarehouseId)>? onlyKeys,
+        CancellationToken cancellationToken)
+    {
+        var list = new List<ConfirmedOrderLine>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT l.`item_id`, l.`warehouse_id`, l.`supplier_id`, l.`supplier_name`, l.`order_qty`, l.`unit_cost`,"
+                              + " COALESCE(i.`sku`, ''), COALESCE(i.`name`, ''), COALESCE(w.`name`, '')"
+                              + " FROM `epc_erp_inv_order_lines` l"
+                              + " LEFT JOIN `epc_erp_inv_items` i ON i.`id` = l.`item_id`"
+                              + " LEFT JOIN `epc_erp_inv_warehouses` w ON w.`id` = l.`warehouse_id`"
+                              + " WHERE l.`status` = 'confirmed' AND l.`order_qty` > 0"
+                              + " ORDER BY l.`supplier_id`, i.`sku`, w.`name`";
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var itemId = Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture);
+            var warehouseId = Convert.ToInt64(reader.GetValue(1), CultureInfo.InvariantCulture);
+            if (onlyKeys is { Count: > 0 } && !onlyKeys.Contains((itemId, warehouseId)))
+            {
+                continue;
+            }
+
+            list.Add(new ConfirmedOrderLine(
+                itemId,
+                warehouseId,
+                Convert.ToInt64(reader.GetValue(2), CultureInfo.InvariantCulture),
+                reader.GetString(3),
+                reader.GetDecimal(4),
+                reader.GetDecimal(5),
+                reader.GetString(6),
+                reader.GetString(7),
+                reader.GetString(8)));
+        }
+
+        return list;
+    }
+
+    public static async Task StampDraftedAsync(
+        DbConnection connection,
+        long itemId,
+        long warehouseId,
+        long purchaseOrderId,
+        CancellationToken cancellationToken)
+        => await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("UPDATE `epc_erp_inv_order_lines` SET `status` = 'drafted', `po_id` = ?, `updated_at` = ? WHERE `item_id` = ? AND `warehouse_id` = ? AND `status` = 'confirmed'"),
+            cancellationToken,
+            purchaseOrderId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), itemId, warehouseId).ConfigureAwait(false);
+
+    public static async Task<(long Id, string Sku, string Name, string ItemType)?> FindItemAsync(
+        DbConnection connection,
+        long itemId,
+        string sku,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        if (itemId > 0)
+        {
+            command.CommandText = "SELECT `id`, `sku`, `name`, `item_type` FROM `epc_erp_inv_items` WHERE `active` = 1 AND `id` = @p0 LIMIT 1";
+            ErpDb.AddParameters(command, itemId);
+        }
+        else
+        {
+            var trimmed = sku.Trim();
+            if (trimmed.Length == 0)
+            {
+                return null;
+            }
+
+            command.CommandText = "SELECT `id`, `sku`, `name`, `item_type` FROM `epc_erp_inv_items` WHERE `active` = 1 AND `sku` = @p0 LIMIT 1";
+            ErpDb.AddParameters(command, trimmed);
+        }
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        return (
+            Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetString(3));
+    }
+
+    public static async Task<bool> WarehouseExistsAsync(DbConnection connection, long warehouseId, CancellationToken cancellationToken)
+        => warehouseId > 0 && await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_inv_warehouses` WHERE `id` = ? AND `active` = 1"),
+            cancellationToken,
+            warehouseId).ConfigureAwait(false) > 0;
+
+    public static async Task<string> SupplierNameAsync(DbConnection connection, long supplierId, CancellationToken cancellationToken)
+    {
+        if (supplierId <= 0 || !await TableExistsAsync(connection, "epc_erp_suppliers", cancellationToken).ConfigureAwait(false))
+        {
+            return "";
+        }
+
+        return await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `name` FROM `epc_erp_suppliers` WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            supplierId).ConfigureAwait(false) ?? "";
+    }
+
     private static int WindowFor(IReadOnlyList<Policy> policies)
         => policies.Count == 0 ? DefaultWindowDays : Math.Max(policies.Max(p => p.DemandWindowDays), DefaultWindowDays);
+
+    private static async Task EnsureOrderLineColumnsAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        await ErpLazySchema.AddColumnIfMissingAsync(connection, "epc_erp_inv_items", "item_group", "varchar(64) NOT NULL DEFAULT ''", cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.AddColumnIfMissingAsync(connection, "epc_erp_inv_items", "default_vendor_id", "int(11) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.AddColumnIfMissingAsync(connection, "epc_erp_inv_items", "purchase_price", "decimal(14,4) NOT NULL DEFAULT 0.0000", cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.AddColumnIfMissingAsync(connection, "epc_erp_inv_stock", "avg_unit_cost", "decimal(14,4) NOT NULL DEFAULT 0.0000", cancellationToken).ConfigureAwait(false);
+    }
+
+    private sealed record ItemExtra(string ItemGroup, long SupplierId, string SupplierName, decimal UnitCost);
+
+    private static async Task<Dictionary<(long ItemId, long WarehouseId), ItemExtra>> LoadItemExtrasAsync(
+        DbConnection connection,
+        long warehouseId,
+        CancellationToken cancellationToken)
+    {
+        var map = new Dictionary<(long, long), ItemExtra>();
+        var hasGroup = await ColumnExistsAsync(connection, "epc_erp_inv_items", "item_group", cancellationToken).ConfigureAwait(false);
+        var hasVendor = await ColumnExistsAsync(connection, "epc_erp_inv_items", "default_vendor_id", cancellationToken).ConfigureAwait(false);
+        var hasPrice = await ColumnExistsAsync(connection, "epc_erp_inv_items", "purchase_price", cancellationToken).ConfigureAwait(false);
+        var hasCost = await ColumnExistsAsync(connection, "epc_erp_inv_stock", "avg_unit_cost", cancellationToken).ConfigureAwait(false);
+        if (!hasGroup && !hasVendor && !hasPrice && !hasCost)
+        {
+            return map;
+        }
+
+        var names = new Dictionary<long, string>();
+        if (hasVendor && await TableExistsAsync(connection, "epc_erp_suppliers", cancellationToken).ConfigureAwait(false))
+        {
+            await using var suppliers = connection.CreateCommand();
+            suppliers.CommandText = "SELECT `id`, `name` FROM `epc_erp_suppliers`";
+            await using var supplierReader = await suppliers.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await supplierReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                names[Convert.ToInt64(supplierReader.GetValue(0), CultureInfo.InvariantCulture)] = supplierReader.GetString(1);
+            }
+        }
+
+        await using var command = connection.CreateCommand();
+        var whFilter = warehouseId > 0 ? " AND w.`id` = @p0" : "";
+        var costSql = hasCost
+            ? "(SELECT COALESCE(AVG(st.`avg_unit_cost`), 0) FROM `epc_erp_inv_stock` st WHERE st.`item_id` = i.`id` AND st.`warehouse_id` = w.`id`)"
+            : "0";
+        command.CommandText = "SELECT i.`id`, w.`id`, "
+                              + (hasGroup ? "IFNULL(i.`item_group`, '')" : "''") + ", "
+                              + (hasVendor ? "IFNULL(i.`default_vendor_id`, 0)" : "0") + ", "
+                              + (hasPrice ? "IFNULL(i.`purchase_price`, 0)" : "0") + ", "
+                              + costSql
+                              + " FROM `epc_erp_inv_items` i CROSS JOIN `epc_erp_inv_warehouses` w"
+                              + " WHERE i.`active` = 1 AND w.`active` = 1" + whFilter;
+        if (warehouseId > 0)
+        {
+            ErpDb.AddParameters(command, warehouseId);
+        }
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var itemId = Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture);
+            var whId = Convert.ToInt64(reader.GetValue(1), CultureInfo.InvariantCulture);
+            var supplierId = Convert.ToInt64(reader.GetValue(3), CultureInfo.InvariantCulture);
+            var price = Convert.ToDecimal(reader.GetValue(4), CultureInfo.InvariantCulture);
+            var average = Convert.ToDecimal(reader.GetValue(5), CultureInfo.InvariantCulture);
+            names.TryGetValue(supplierId, out var supplierName);
+            map[(itemId, whId)] = new ItemExtra(
+                reader.GetString(2),
+                supplierId,
+                supplierName ?? "",
+                average > 0 ? average : price);
+        }
+
+        return map;
+    }
+
+    private static async Task<Dictionary<(long, long), OrderLine>> LoadOrderLinesAsync(
+        DbConnection connection,
+        long warehouseId,
+        CancellationToken cancellationToken)
+    {
+        var map = new Dictionary<(long, long), OrderLine>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT `item_id`, `warehouse_id`, `supplier_id`, `supplier_name`, `order_qty`, `unit_cost`, `status`,"
+                              + " IFNULL(DATE_FORMAT(`due_date`, '%Y-%m-%d'), ''), `po_id` FROM `epc_erp_inv_order_lines`"
+                              + (warehouseId > 0 ? " WHERE `warehouse_id` = @p0" : "");
+        if (warehouseId > 0)
+        {
+            ErpDb.AddParameters(command, warehouseId);
+        }
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var itemId = Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture);
+            var whId = Convert.ToInt64(reader.GetValue(1), CultureInfo.InvariantCulture);
+            map[(itemId, whId)] = new OrderLine(
+                itemId,
+                whId,
+                Convert.ToInt64(reader.GetValue(2), CultureInfo.InvariantCulture),
+                reader.GetString(3),
+                reader.GetDecimal(4),
+                reader.GetDecimal(5),
+                reader.GetString(6),
+                reader.GetString(7),
+                Convert.ToInt64(reader.GetValue(8), CultureInfo.InvariantCulture));
+        }
+
+        return map;
+    }
+
+    private static async Task<bool> ColumnExistsAsync(DbConnection connection, string table, string column, CancellationToken cancellationToken)
+        => await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?"),
+            cancellationToken,
+            table, column).ConfigureAwait(false) > 0;
+
+    private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
+        => await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"),
+            cancellationToken,
+            table).ConfigureAwait(false) > 0;
 
     /// <summary>Writes the next-30-day forecast per item × warehouse, replacing any forecast already written today.</summary>
     public static async Task<int> RunForecastAsync(DbConnection connection, long warehouseId, DateOnly today, CancellationToken cancellationToken)

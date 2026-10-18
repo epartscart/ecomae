@@ -7,6 +7,7 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Erp
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -29,6 +30,19 @@
         · <a href="/erp/receivables-app">Receivables</a>
         · <a href="/erp/delivery-notes-app">Delivery notes</a>
     </p>
+    <ErpShippingPackPanel OpenedInvoiceId="_openedId" />
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="New invoice from sales order">
+            <form method="post" action="@EcomAeRoutes.ErpAjaxSoToInvoice">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/invoices-app" />
+                <ErpVoucherHeaderFields DateLabel="Invoice date" DateFieldName="invoice_date" NumberLabel="Invoice no" NumberPreview="Auto" />
+                <label>Sales order id <input class="form-control input-sm" type="number" name="id" min="1" required /></label>
+                <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Validate &amp; post invoice</button></div>
+            </form>
+        </ErpPhpCreateWell>
+    }
     <form method="get" action="/erp/invoices-app" class="form-inline" style="margin-bottom:10px;">
         <label>Show</label>
         <select name="f_status" class="form-control input-sm" onchange="this.form.submit()">
@@ -64,7 +78,7 @@
                 <a class="btn btn-xs btn-default" href="/erp/invoices-app">Close</a>
                 <a class="btn btn-xs btn-default" href="/erp/invoice-print?id=@_openedDetail.Id" target="_blank" rel="noopener">Print</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Invoice id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Invoice #</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.InvoiceNumber) ? "—" : _openedDetail.InvoiceNumber)</dd>
                 <dt>Category</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.DocCategory) ? "—" : _openedDetail.DocCategory)</dd>
@@ -106,6 +120,7 @@
                 BalanceDue="@_openedDetail.AmountDue"
                 Fields="@InvoiceWorkspaceFields"
                 Lines="@InvoiceWorkspaceLines"
+                RelatedDocuments="@InvoiceRelatedDocuments"
                 HeaderActions="@InvoiceHeaderActions" />
             @if (_openedAttachments.Count > 0)
             {
@@ -313,6 +328,34 @@
                 new("Financial dimensions", "Company / site / department", "Dimensions"),
                 new("Credit note", "Available only after validation", "Operational")
             ];
+    private IReadOnlyList<ErpRelatedDocumentNode> InvoiceRelatedDocuments =>
+        _openedDetail is null
+            ? []
+            : InvoiceWorkspaceKind.Contains("Purchase", StringComparison.OrdinalIgnoreCase)
+                ? ErpRelatedDocumentMapFactory.ForPurchase(
+                    _openedDetail.OrderId > 0 ? _openedDetail.OrderId.ToString(CultureInfo.InvariantCulture) : "",
+                    FormatTime(_openedDetail.TimeCreated),
+                    _openedDetail.CurrencyCode + " " + _openedDetail.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture),
+                    _openedDetail.OrderId > 0 ? ErpRecordOpen.Href("/erp/purchase-orders-app", "po_id", _openedDetail.OrderId) : "/erp/purchase-orders-app",
+                    null,
+                    string.IsNullOrWhiteSpace(_openedDetail.InvoiceNumber) ? _openedDetail.Id.ToString(CultureInfo.InvariantCulture) : _openedDetail.InvoiceNumber,
+                    FormatTime(_openedDetail.IssueDate),
+                    _openedDetail.CurrencyCode + " " + _openedDetail.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture),
+                    ErpRecordOpen.Href("/erp/invoices-app", "inv_id", _openedDetail.Id),
+                    currentIsPurchaseOrder: false,
+                    currentIsInvoice: true)
+                : ErpRelatedDocumentMapFactory.ForSales(
+                    _openedDetail.OrderId > 0 ? _openedDetail.OrderId.ToString(CultureInfo.InvariantCulture) : "",
+                    FormatTime(_openedDetail.TimeCreated),
+                    _openedDetail.CurrencyCode + " " + _openedDetail.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture),
+                    _openedDetail.OrderId > 0 ? ErpRecordOpen.Href("/erp/sales-orders-app", "so_id", _openedDetail.OrderId) : "/erp/sales-orders-app",
+                    null,
+                    string.IsNullOrWhiteSpace(_openedDetail.InvoiceNumber) ? _openedDetail.Id.ToString(CultureInfo.InvariantCulture) : _openedDetail.InvoiceNumber,
+                    FormatTime(_openedDetail.IssueDate),
+                    _openedDetail.CurrencyCode + " " + _openedDetail.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture),
+                    ErpRecordOpen.Href("/erp/invoices-app", "inv_id", _openedDetail.Id),
+                    currentIsSalesOrder: false,
+                    currentIsInvoice: true);
     private IReadOnlyList<ErpDocumentWorkspaceLine> InvoiceWorkspaceLines =>
         _openedDetail is null
             ? []

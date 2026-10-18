@@ -1,6 +1,9 @@
+using System.Data.Common;
+using System.Globalization;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
+using MySqlConnector;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -117,6 +120,7 @@ public sealed class ErpUaeTaxFtaFetchPhpParityTests
         {
             var text = File.ReadAllText(FindRepoFile(relative));
             Assert.Contains("/erp/uae-tax/fta-fetch", text, StringComparison.Ordinal);
+            Assert.Contains("ClientErpPath.PrefixIfBound", text, StringComparison.Ordinal);
             Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
             Assert.Contains("name=\"force\"", text, StringComparison.Ordinal);
             Assert.DoesNotContain("Legislation ingest stays on the Classic twin", text, StringComparison.Ordinal);
@@ -141,6 +145,7 @@ public sealed class ErpUaeTaxFtaFetchPhpParityTests
             item.AspNetRouteOrCapability == "/erp/uae-tax/fta-fetch");
         Assert.Equal("write-live-gated", form.Status);
         Assert.Contains("epc_uae_fta_fetch_legislation_updates", form.Notes, StringComparison.Ordinal);
+        Assert.Contains("core UAE library", form.Notes, StringComparison.Ordinal);
         Assert.DoesNotContain("PHP remains authoritative", form.Notes, StringComparison.Ordinal);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(item =>
             item.AspNetRouteOrCapability == "/erp/ajax/uae-tax-fta-fetch").Status);
@@ -156,8 +161,55 @@ public sealed class ErpUaeTaxFtaFetchPhpParityTests
         Assert.Contains("ON DUPLICATE KEY UPDATE", service, StringComparison.Ordinal);
         Assert.Contains("fta_legislation_index", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpUaeTaxFtaLegislation.cs")), StringComparison.Ordinal);
         Assert.Contains("CacheKey", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
+        Assert.Contains("ErpUaeTaxComplianceSchema.EnsureSchemaAsync", service, StringComparison.Ordinal);
+        Assert.Contains("CoreLibrarySeed", service, StringComparison.Ordinal);
         Assert.DoesNotContain("epc_uae_tax_compliance_ensure_schema", service, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CoreLibrarySeed_CoversVatCtEinvoiceExciseAndProcedures()
+    {
+        var items = ErpUaeTaxFtaLegislation.CoreLibrarySeed();
+        Assert.True(items.Count >= 8);
+        Assert.Contains(items, i => i.TaxCategory == "vat");
+        Assert.Contains(items, i => i.TaxCategory == "corporate_tax");
+        Assert.Contains(items, i => i.TaxCategory == "einvoicing");
+        Assert.Contains(items, i => i.TaxCategory == "excise");
+        Assert.Contains(items, i => i.TaxCategory == "procedures");
+        Assert.All(items, i => Assert.False(string.IsNullOrWhiteSpace(i.ErpSummary)));
+        Assert.All(items, i => Assert.False(string.IsNullOrWhiteSpace(i.ItemKey)));
+    }
+
+    [Fact]
+    public void ComplianceApp_IsPresentableAndKeepsFetchForm()
+    {
+        var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpUaeTaxComplianceApp.razor"));
+        Assert.Contains("epc-tax-fetch", text, StringComparison.Ordinal);
+        Assert.Contains("epc-tax-kpis", text, StringComparison.Ordinal);
+        Assert.Contains("Fetch FTA legislation", text, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", text, StringComparison.Ordinal);
+        Assert.Contains("ClientErpPathRewriteMiddleware.OriginalPathItem", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"csrf_guard_key\"", text, StringComparison.Ordinal);
+        Assert.Contains("FetchAction", text, StringComparison.Ordinal);
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(
+            "/cp/client-erp/indj/erp/uae-tax-compliance-app", out _));
+        Assert.True(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(
+            "/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1", out var mapped));
+        Assert.Equal("/erp/uae-tax-compliance-app", mapped);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SchemaHelper_CreatesTheFourLegislationTables()
+    {
+        var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpUaeTaxComplianceSchema.cs"));
+        Assert.Contains("epc_uae_tax_compliance_cache", text, StringComparison.Ordinal);
+        Assert.Contains("epc_uae_tax_legislation_items", text, StringComparison.Ordinal);
+        Assert.Contains("epc_uae_ct_adjustments", text, StringComparison.Ordinal);
+        Assert.Contains("epc_uae_tax_legislation_checklist", text, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS", text, StringComparison.Ordinal);
+        Assert.Contains("EnsureVatRefundsAsync", text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -188,6 +240,79 @@ public sealed class ErpUaeTaxFtaFetchPhpParityTests
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Presentation/ErpPhpTabRouteMap.cs"));
         Assert.Contains("[\"hr_law\"] = \"/erp/hr-overview-app?hv=statutory\"", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Fetch_OnThrowawayDatabase_CreatesSchemaAndLoadsCoreLibrary()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        try
+        {
+            var writes = new ErpUaeTaxFtaFetchWriteService(new FixedConnections(connectionString), new EmptyFtaHttp());
+            var result = await writes.FetchAsync(new ErpUaeTaxFtaFetchWriteRequest(Force: true));
+            Assert.True(result.Succeeded, result.Message);
+            Assert.True(result.ItemCount >= 8, result.Message);
+            Assert.Contains("core UAE", result.Message, StringComparison.Ordinal);
+            Assert.Equal(result.ItemCount.ToString(CultureInfo.InvariantCulture), await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_uae_tax_legislation_items"));
+            Assert.True(Convert.ToInt32(await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_uae_tax_compliance_cache"), CultureInfo.InvariantCulture) >= 1);
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
+    private static async Task<string> ScalarAsync(string connectionString, string sql)
+    {
+        await using var connection = new MySqlConnection(connectionString);
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        var value = await command.ExecuteScalarAsync();
+        return Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
+    }
+
+    private sealed class EmptyFtaHttp : IErpUaeFtaHttpClient
+    {
+        public Task<string> GetAsync(string url, CancellationToken cancellationToken = default)
+            => Task.FromResult(string.Empty);
+
+        public Task<string> PostFormAsync(string url, IReadOnlyDictionary<string, string> fields, CancellationToken cancellationToken = default)
+            => Task.FromResult(string.Empty);
+    }
+
+    private sealed class FixedConnections : IErpWriteConnectionFactory
+    {
+        private readonly string _connectionString;
+
+        public FixedConnections(string connectionString) => _connectionString = connectionString;
+
+        public bool IsConfigured => true;
+
+        public async Task<DbConnection> OpenAsync(CancellationToken cancellationToken = default)
+        {
+            var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            return connection;
+        }
     }
 
     private static string FixtureHtml() =>
