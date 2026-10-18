@@ -79,10 +79,10 @@
             <label>Name <input type="text" name="name" required maxlength="255" /></label>
             <button type="submit" class="btn btn-sm btn-primary">Create warehouse</button>
         </form>
-        <form method="post" action="/erp/ajax/inv-create-item" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+        <form id="erp-module-new" method="post" action="/erp/ajax/inv-create-item" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
-            <label>SKU <input type="text" name="sku" required maxlength="64" /></label>
+            <label>SKU <input type="text" name="sku" required maxlength="64" data-erp-new-field /></label>
             <label>Name <input type="text" name="name" required maxlength="255" /></label>
             <label>Type
                 <select name="itemType">

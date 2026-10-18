@@ -1161,6 +1161,11 @@ internal static class ErpLazySchema
             await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
         }
 
+        await ErpDb.TryExecuteAsync(
+            c,
+            "ALTER TABLE `epc_erp_pm_business_units` ADD `trn` varchar(40) NOT NULL DEFAULT ''",
+            ct).ConfigureAwait(false);
+
         // epc_erp_pm_seed_defaults: editable defaults so masters screens aren't empty.
         // Each table seeds only when completely empty (PHP seedIf semantics).
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();

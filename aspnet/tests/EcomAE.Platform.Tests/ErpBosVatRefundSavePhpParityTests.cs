@@ -20,6 +20,11 @@ public sealed class ErpBosVatRefundSavePhpParityTests
         Assert.Contains("epc-vat-actionbar", text, StringComparison.Ordinal);
         Assert.Contains("epc-vat-position", text, StringComparison.Ordinal);
         Assert.Contains("UAE registered country", text, StringComparison.Ordinal);
+        Assert.Contains("Visual guide", text, StringComparison.Ordinal);
+        Assert.Contains("Drill down", text, StringComparison.Ordinal);
+        Assert.Contains("Fetch FTA legislation", text, StringComparison.Ordinal);
+        Assert.Contains("Fetch &amp; build", text, StringComparison.Ordinal);
+        Assert.Contains("Article 65(5)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Open PHP reference", text, StringComparison.Ordinal);
@@ -56,10 +61,12 @@ public sealed class ErpBosVatRefundSavePhpParityTests
         Assert.Equal("refunded", ErpBosVatRefundSaveWriteService.NormalizeStatus("refunded"));
         Assert.Equal(12.50m, ErpBosVatRefundSaveWriteService.ResolveVat(null, 250, 5));
         var ae = ErpBosVatRefundSaveWriteService.SchemeFor("AE");
+        Assert.Equal(ErpTouristRefundLaw.TouristShare, ae.RefundRate);
+        Assert.Equal(ErpTouristRefundLaw.FixedFeeAed, ae.FeePerTag);
         var calc = ErpBosVatRefundSaveWriteService.Calculate(ae, 12.50m);
-        Assert.Equal(5.83m, calc.Refund);
-        Assert.Equal(4.80m, calc.Fee);
-        Assert.Equal(6.67m, calc.Retained);
+        Assert.Equal(7.28m, calc.Refund);
+        Assert.Equal(3.60m, calc.Fee);
+        Assert.Equal(5.22m, calc.Retained);
         Assert.Equal("Refund record saved (refund 5.83)", ErpBosVatRefundSaveWriteService.FormatSavedMessage(5.83m));
         Assert.Equal(1_788_480_000, ErpBosVatRefundSaveWriteService.ResolveSaleDateUnix("2026-09-04"));
     }
