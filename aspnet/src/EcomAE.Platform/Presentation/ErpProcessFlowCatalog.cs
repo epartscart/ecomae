@@ -158,6 +158,7 @@ public static class ErpProcessFlowCatalog
         ],
         ["sales"] =
         [
+            S("Pricing", "fa-tags", "/erp/pricing-app"),
             S("Prospects", "fa-user-plus", "/erp/crm-board-app"),
             S("Opportunities", "fa-filter", "/erp/crm-opportunities-app"),
             S("Estimates", "fa-file-text", "/erp/sales-quotations-app"),

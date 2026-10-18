@@ -50,6 +50,9 @@ public sealed class ErpWorkflowProcessFlowPhpParityTests
         Assert.Contains("Live site map", text, StringComparison.Ordinal);
         Assert.Contains("pf-guide", text, StringComparison.Ordinal);
         Assert.Contains("pf-tool-groups", text, StringComparison.Ordinal);
+        Assert.Contains("pf-om-canvas", text, StringComparison.Ordinal);
+        Assert.Contains("pf-wf-grid", text, StringComparison.Ordinal);
+        Assert.Contains("YOU ARE HERE", text, StringComparison.Ordinal);
         Assert.Contains("How a case moves", text, StringComparison.Ordinal);
         foreach (var view in new[] { "monitor", "orgmap", "hierarchy", "workforce", "inbox", "processes", "heads" })
         {

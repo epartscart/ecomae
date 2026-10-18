@@ -3391,12 +3391,45 @@ public sealed record ErpProcessFlowTaskDigest(
     string AssigneeName,
     string InitiatorName);
 
+public sealed record ErpProcessFlowStepDigest(
+    long CaseId,
+    int StepNo,
+    string Name,
+    string Department,
+    string Location,
+    long AssigneeId,
+    string AssigneeName,
+    string Status,
+    string Comment,
+    long ActivatedAt,
+    long CompletedAt,
+    string ActedByName);
+
+public sealed record ErpProcessFlowTemplateStep(
+    long ProcessId,
+    int StepNo,
+    string Name,
+    string Department);
+
+public sealed record ErpProcessFlowStaffPlace(
+    long UserId,
+    string Location,
+    string BusinessUnit,
+    string LegalEntity);
+
 public sealed record ErpProcessFlowTasksDigestResult(
     ErpProcessFlowTasksSummary Summary,
     IReadOnlyList<ErpProcessFlowTaskDigest> Tasks,
     int Count,
     string Source,
-    string Message);
+    string Message)
+{
+    public IReadOnlyList<ErpProcessFlowStepDigest> Steps { get; init; } = [];
+
+    public IReadOnlyList<ErpProcessFlowTemplateStep> TemplateSteps { get; init; } = [];
+
+    public IReadOnlyList<ErpProcessFlowStaffPlace> Places { get; init; } = [];
+}
 
 /// <summary>PHP <c>epc_rc_registry</c> report metadata (run closures stay PHP).</summary>
 public sealed record ErpReportCenterReportDigest(

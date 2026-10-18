@@ -9,25 +9,23 @@
 @inject IHttpContextAccessor Http
 <PageTitle>Process flow · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Process flow" BreadcrumbArea="Overview" BreadcrumbTab="Process flow">
 <style>
     .pf-track-wrap{background:#0f172a;border-radius:10px;padding:16px 18px 14px;margin:14px 0;}
     .pf-track-hd{color:#e2e8f0;font-size:13px;margin-bottom:10px;}
     .pf-track-hd .pin{color:#38bdf8;}
     .pf-route{display:flex;min-width:480px;position:relative;padding-top:6px;}
-    .pf-route .pf-line{position:absolute;top:26px;left:8%;right:8%;height:4px;background:#334155;border-radius:2px;}
-    .pf-route .pf-line-fill{position:absolute;top:26px;left:8%;height:4px;background:linear-gradient(90deg,#22c55e,#38bdf8);border-radius:2px;}
-    .pf-node{position:relative;flex:1;text-align:center;z-index:2;padding:0 4px;}
+    .pf-route .pf-line{position:absolute;top:26px;left:6%;right:6%;height:4px;background:#334155;border-radius:2px;}
+    .pf-route .pf-line-fill{position:absolute;top:26px;left:6%;height:4px;background:linear-gradient(90deg,#22c55e,#38bdf8);border-radius:2px;}
+    .pf-node{position:relative;flex:1;text-align:center;z-index:2;padding:0 6px;min-width:120px;}
     .pf-dot{width:42px;height:42px;line-height:42px;border-radius:50%;margin:0 auto;color:#fff;font-size:16px;box-shadow:0 0 0 4px #0f172a;}
-    .pf-dot.done{background:#22c55e;} .pf-dot.active{background:#3b82f6;} .pf-dot.pending{background:#475569;color:#cbd5e1;}
-    .pf-loc{color:#f1f5f9;font-weight:600;font-size:12px;margin-top:8px;}
+    .pf-dot.done{background:#22c55e;} .pf-dot.active{background:#3b82f6;} .pf-dot.pending{background:#475569;color:#cbd5e1;} .pf-dot.rejected{background:#dc2626;}
+    .pf-loc{color:#f1f5f9;font-weight:700;font-size:12px;margin-top:8px;}
     .pf-step{color:#cbd5e1;font-size:11px;margin-top:2px;}
     .pf-meta{color:#94a3b8;font-size:10px;margin-top:1px;}
     .pf-badge-here{display:inline-block;background:#38bdf8;color:#0f172a;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;margin-top:4px;letter-spacing:.5px;}
+    .pf-av{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;color:#fff;font-size:11px;font-weight:700;margin-top:6px;border:2px solid #0f172a;}
     .pf-tile{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:10px;margin-bottom:10px;}
-    .pf-om-node{background:#fff;border:1px solid #e2e8f0;border-radius:8px;min-width:140px;overflow:hidden;}
-    .pf-om-nhd{color:#fff;font-weight:700;font-size:12px;padding:8px 10px;display:flex;justify-content:space-between;}
-    .pf-om-nbody{padding:8px 10px;font-size:12px;color:#334155;}
     .pf-guide{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;}
     .pf-guide__step{flex:1 1 150px;background:#fff;border:1px solid #dbe4ea;border-top:3px solid #1d4f91;padding:8px 10px;}
     .pf-guide__n{display:inline-block;width:18px;height:18px;border-radius:50%;background:#1d4f91;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;margin-right:4px;}
@@ -39,9 +37,42 @@
     .pf-tool>p{flex:1 1 12rem;margin:0;align-self:center;color:#475569;font-size:12px;}
     .pf-tool form[data-epc-inline="1"]{display:flex !important;flex-wrap:wrap;gap:8px;align-items:flex-end;flex:1 1 100%;width:auto !important;max-width:none !important;margin:0 !important;padding:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important;}
     .pf-tool label{display:flex;flex-direction:column;gap:2px;margin:0;font-size:11px;font-weight:700;color:#475569;}
+    .pf-steps{width:100%;margin-top:8px;}
+    .pf-steps th{background:#f8fafc;}
+    .pf-om{display:grid;grid-template-columns:280px minmax(0,1fr);gap:12px;align-items:start;}
+    .pf-om-list{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;max-height:42rem;overflow:auto;}
+    .pf-om-canvas{background:#f8fafc;background-image:linear-gradient(#e8eef5 1px,transparent 1px),linear-gradient(90deg,#e8eef5 1px,transparent 1px);background-size:28px 28px;border:1px solid #e2e8f0;border-radius:10px;padding:14px;min-height:28rem;}
+    .pf-om-proc{margin:0 0 18px;background:rgba(255,255,255,.72);border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;}
+    .pf-om-proc h3{margin:0 0 10px;font-size:14px;display:flex;justify-content:space-between;gap:8px;}
+    .pf-om-flow{display:flex;align-items:stretch;gap:8px;overflow-x:auto;padding-bottom:4px;}
+    .pf-om-arrow{align-self:center;color:#64748b;font-size:22px;font-weight:700;}
+    .pf-om-node{background:#fff;border:1px solid #e2e8f0;border-radius:10px;min-width:168px;overflow:hidden;box-shadow:0 1px 2px rgba(15,23,42,.06);}
+    .pf-om-nhd{color:#fff;font-weight:700;font-size:12px;padding:8px 10px;display:flex;justify-content:space-between;}
+    .pf-om-nbody{padding:8px 10px;font-size:12px;color:#334155;}
+    .pf-om-people{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+    .pf-om-person{display:flex;align-items:center;gap:4px;font-size:11px;}
+    .pf-om-case{display:block;border:1px solid #e5e7eb;border-radius:8px;padding:8px;margin-top:8px;text-decoration:none;color:#0f172a;}
+    .pf-om-case:hover{border-color:#93c5fd;}
+    .pf-levels{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0;}
+    .pf-levels a{background:#fff;color:#334155;border:1px solid #cbd5e1;border-radius:6px;padding:3px 8px;font-size:12px;text-decoration:none;}
+    .pf-levels a.on{background:#2563eb;color:#fff;border-color:#2563eb;}
+    .pf-wf-kpis{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+    .pf-wf-kpi{flex:1;min-width:120px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;}
+    .pf-wf-kpi .l{font-size:11px;color:#6b7280;}
+    .pf-wf-kpi .v{font-size:24px;font-weight:700;color:#0f172a;}
+    .pf-wf-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;}
+    .pf-wf-group{margin-bottom:18px;}
+    .pf-wf-ghd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#0f172a;margin:0 0 8px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;}
+    .pf-wf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;}
+    .pf-wf-card{border:1px solid #e5e7eb;border-radius:9px;padding:9px 10px;background:#fff;border-left:4px solid #cbd5e1;}
+    .pf-wf-card.busy{border-left-color:#dc2626;}
+    .pf-wf-nm{font-size:13px;font-weight:700;color:#0f172a;}
+    .pf-wf-meta{font-size:11px;color:#64748b;margin-top:2px;}
+    .pf-face{width:36px;height:36px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex:0 0 auto;}
+    @@media (max-width: 900px) {
+        .pf-om{grid-template-columns:1fr;}
+    }
 </style>
-</HeadContent>
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Process flow" BreadcrumbArea="Overview" BreadcrumbTab="Process flow">
 
     <PhpErpModulePageHeader Title="Process flow" Subtitle="Define a process as a chain of steps, route work automatically from one person or department head to the next, and monitor exactly where every case has reached." />
 
@@ -123,34 +154,62 @@
                                 <text>Route stopped (@detail.Status.ToUpperInvariant()).</text>
                             }
                         </div>
+                        @{
+                            var route = RouteNodes(detail);
+                            var caseSteps = _steps.Where(step => step.CaseId == detail.Id).OrderBy(step => step.StepNo).ToList();
+                        }
                         <div class="pf-route-scroll" style="overflow-x:auto;">
-                            <div class="pf-route">
+                            <div class="pf-route" style="min-width:@(Math.Max(480, route.Count * 150).ToString(CultureInfo.InvariantCulture))px">
                                 <div class="pf-line"></div>
-                                <div class="pf-line-fill" style="width:@TrackFill(detail)"></div>
-                                <div class="pf-node @(detail.Status == "open" ? null : "is-active")">
-                                    <div class="pf-dot done"><i class="fa fa-check"></i></div>
-                                    <div class="pf-loc">Start</div>
-                                    <div class="pf-step">@(string.IsNullOrWhiteSpace(detail.CurrentLocation) ? "—" : detail.CurrentLocation)</div>
-                                    <div class="pf-meta">@ErpStaffDepartmentCatalog.NameFor(detail.CurrentDepartment)</div>
-                                </div>
-                                <div class="pf-node @(detail.Status == "open" ? "is-active" : null)">
-                                    <div class="pf-dot @(detail.Status == "open" ? "active" : (detail.Status == "done" ? "done" : "pending"))"><i class="fa @(detail.Status == "open" ? "fa-truck" : "fa-check")"></i></div>
-                                    <div class="pf-loc">In progress</div>
-                                    <div class="pf-step">@(string.IsNullOrWhiteSpace(detail.CurrentStepName) ? ("step " + detail.CurrentStepNo.ToString(CultureInfo.InvariantCulture)) : detail.CurrentStepName)</div>
-                                    <div class="pf-meta">@PersonLabel(detail.AssigneeName, detail.CurrentAssigneeId)</div>
-                                    @if (detail.Status == "open")
-                                    {
-                                        <div class="pf-badge-here">YOU ARE HERE</div>
-                                    }
-                                </div>
-                                <div class="pf-node">
-                                    <div class="pf-dot @(detail.Status == "done" ? "done" : "pending")"><i class="fa @(detail.Status == "done" ? "fa-check" : "fa-map-marker")"></i></div>
-                                    <div class="pf-loc">Finish</div>
-                                    <div class="pf-step">@(string.IsNullOrWhiteSpace(detail.ProcessName) ? "—" : detail.ProcessName)</div>
-                                </div>
+                                <div class="pf-line-fill" style="width:@TrackFill(route)"></div>
+                                @foreach (var node in route)
+                                {
+                                    <div class="pf-node">
+                                        <div class="pf-dot @node.Kind"><i class="fa @DotIcon(node.Kind)"></i></div>
+                                        <div class="pf-loc">@node.Title</div>
+                                        <div class="pf-step">@node.Sub</div>
+                                        @if (!string.IsNullOrWhiteSpace(node.Person))
+                                        {
+                                            <div class="pf-av" style="background:@AvatarColor(node.Person)">@Initials(node.Person)</div>
+                                            <div class="pf-meta">@node.Person</div>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(node.When))
+                                        {
+                                            <div class="pf-meta">@node.When</div>
+                                        }
+                                        @if (node.Here)
+                                        {
+                                            <div class="pf-badge-here">YOU ARE HERE</div>
+                                        }
+                                    </div>
+                                }
                             </div>
                         </div>
                     </div>
+                    <table class="table table-bordered table-condensed pf-steps">
+                        <thead><tr><th>#</th><th>Step</th><th>Assignee</th><th>Status</th><th>Acted by</th><th>When</th><th>Comment</th></tr></thead>
+                        <tbody>
+                            @if (caseSteps.Count == 0)
+                            {
+                                <tr><td colspan="7" class="text-muted">The step trail appears when this case has a saved route.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var step in caseSteps)
+                                {
+                                    <tr>
+                                        <td>@step.StepNo.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@step.Name</td>
+                                        <td>@(string.IsNullOrWhiteSpace(step.AssigneeName) ? "—" : step.AssigneeName)</td>
+                                        <td><span class="label label-@StepStatusClass(step.Status)">@TitleCase(step.Status)</span></td>
+                                        <td>@(string.IsNullOrWhiteSpace(step.ActedByName) ? "—" : step.ActedByName)</td>
+                                        <td>@(step.CompletedAt > 0 ? FormatDateTime(step.CompletedAt) : (step.ActivatedAt > 0 ? FormatDateTime(step.ActivatedAt) : "—"))</td>
+                                        <td>@(string.IsNullOrWhiteSpace(step.Comment) ? "—" : step.Comment)</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
                     @if (_isAdmin && detail.Status == "open")
                     {
                         <form method="post" action="/erp/process-flow/cases/act" class="pf-tool" data-epc-inline="1" style="margin-top:12px;">
@@ -263,18 +322,102 @@
     }
     else if (_view == "orgmap")
     {
-        <p class="text-muted">Open cases grouped by department — the live route each case is on.</p>
-        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
-            @foreach (var deptRow in ErpStaffDepartmentCatalog.All)
-            {
-                var n = _tasks.Count(t => t.Status == "open" && string.Equals(t.CurrentDepartment, deptRow.Code, StringComparison.OrdinalIgnoreCase));
-                <div class="pf-om-node">
-                    <div class="pf-om-nhd" style="background:@deptRow.Color;"><span>@deptRow.Name</span><span>@n.ToString(CultureInfo.InvariantCulture)</span></div>
-                    <div class="pf-om-nbody">@deptRow.Workflows[0]</div>
+        var boards = OrgBoards();
+        <p class="text-muted">Each process is a chain. The arrow shows where the work sits, and who is holding it.</p>
+        <div class="pf-om">
+            <aside class="pf-om-list">
+                <form method="get" action="/erp/process-flow-tasks-app">
+                    <input type="hidden" name="pf_view" value="orgmap" />
+                    @if (_companyId > 0)
+                    {
+                        <input type="hidden" name="company" value="@_companyId.ToString(CultureInfo.InvariantCulture)" />
+                    }
+                    <input class="form-control input-sm" name="q" value="@_query" placeholder="Search cases, ref, person..." />
+                </form>
+                <div class="pf-levels">
+                    @foreach (var level in ZoomLevels)
+                    {
+                        <a class="@(_zoom == level.Key ? "on" : null)" href="@ZoomHref("orgmap", level.Key)">@level.Label</a>
+                    }
                 </div>
-            }
+                <div class="pf-wf-meta">@_orgCases.Count.ToString(CultureInfo.InvariantCulture) cases · @_orgCases.Count(row => row.Status == "open").ToString(CultureInfo.InvariantCulture) open</div>
+                @if (_orgCases.Count == 0)
+                {
+                    <p class="text-muted" style="margin-top:8px">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No cases on this map." : _message) : "Sign in with ERP capability for live rows.")</p>
+                }
+                else
+                {
+                    @foreach (var row in _orgCases.Take(40))
+                    {
+                        <a class="pf-om-case" href="@CaseHref(row.Id)">
+                            <strong>@row.Title</strong>
+                            <div class="pf-wf-meta">@(string.IsNullOrWhiteSpace(row.CurrentLocation) ? ErpStaffDepartmentCatalog.NameFor(row.CurrentDepartment) : row.CurrentLocation) · @ErpStaffDepartmentCatalog.NameFor(row.CurrentDepartment)</div>
+                            <div class="pf-wf-meta">@(string.IsNullOrWhiteSpace(row.CurrentStepName) ? "Step " + row.CurrentStepNo.ToString(CultureInfo.InvariantCulture) : row.CurrentStepName)</div>
+                        </a>
+                    }
+                }
+            </aside>
+            <div class="pf-om-canvas">
+                @if (boards.Count == 0)
+                {
+                    <section class="pf-om-proc">
+                        <h3>Department route <span>0 open</span></h3>
+                        <div class="pf-om-flow">
+                            @for (var i = 0; i < ErpStaffDepartmentCatalog.All.Count; i++)
+                            {
+                                var deptRow = ErpStaffDepartmentCatalog.All[i];
+                                if (i > 0)
+                                {
+                                    <span class="pf-om-arrow" aria-hidden="true">→</span>
+                                }
+                                <div class="pf-om-node">
+                                    <div class="pf-om-nhd" style="background:@deptRow.Color"><span>@deptRow.Name</span><span>0</span></div>
+                                    <div class="pf-om-nbody">@deptRow.Workflows[0]<div class="text-muted">No one holding work here</div></div>
+                                </div>
+                            }
+                        </div>
+                    </section>
+                }
+                else
+                {
+                    @foreach (var board in boards)
+                    {
+                        <section class="pf-om-proc">
+                            <h3>@board.Name <span>@board.Open.ToString(CultureInfo.InvariantCulture) open</span></h3>
+                            <div class="pf-om-flow">
+                                @for (var i = 0; i < board.Lanes.Count; i++)
+                                {
+                                    var lane = board.Lanes[i];
+                                    if (i > 0)
+                                    {
+                                        <span class="pf-om-arrow" aria-hidden="true">→</span>
+                                    }
+                                    <div class="pf-om-node">
+                                        <div class="pf-om-nhd" style="background:@LaneColor(lane.Department)"><span>@ErpStaffDepartmentCatalog.NameFor(lane.Department)</span><span>@lane.Open.ToString(CultureInfo.InvariantCulture)</span></div>
+                                        <div class="pf-om-nbody">
+                                            <div>@lane.StepLabel</div>
+                                            @if (lane.People.Count == 0)
+                                            {
+                                                <div class="text-muted">No one holding work here</div>
+                                            }
+                                            else
+                                            {
+                                                <div class="pf-om-people">
+                                                    @foreach (var person in lane.People)
+                                                    {
+                                                        <div class="pf-om-person"><span class="pf-face" style="width:22px;height:22px;font-size:10px;background:@AvatarColor(person.Name)">@Initials(person.Name)</span> @person.Name <span class="text-muted">@person.Count.ToString(CultureInfo.InvariantCulture)</span></div>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </section>
+                    }
+                }
+            </div>
         </div>
-        @CaseTable(_tasks.Where(t => t.Status == "open").ToList(), 11, "No open cases.")
     }
     else if (_view == "hierarchy")
     {
@@ -297,28 +440,65 @@
     }
     else if (_view == "workforce")
     {
-        <p class="text-muted">Who is holding open cases right now.</p>
-        <table class="table table-bordered table-condensed">
-            <thead><tr><th>With</th><th>Dept</th><th>Open cases</th><th>Latest case</th></tr></thead>
-            <tbody>
-                @if (_workforce.Count == 0)
-                {
-                    <tr><td colspan="4" class="text-muted">No staff holding open cases.</td></tr>
-                }
-                else
-                {
-                    @foreach (var wfRow in _workforce)
-                    {
-                        <tr>
-                            <td>@wfRow.Name</td>
-                            <td>@wfRow.Dept</td>
-                            <td>@wfRow.Open.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@CaseHref(wfRow.CaseId)">@wfRow.Title</a></td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
+        var cards = WorkforceCards();
+        var shown = cards.SelectMany(group => group.Cards).Count();
+        <div class="pf-wf-kpis">
+            <div class="pf-wf-kpi"><div class="l">Accounts</div><div class="v">@_staff.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="pf-wf-kpi"><div class="l">By department</div><div class="v">@_staff.Select(row => row.DepartmentCode).Where(code => code.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).Count().ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="pf-wf-kpi"><div class="l">Legal entity</div><div class="v">@_places.Select(row => row.LegalEntity).Where(value => value.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).Count().ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="pf-wf-kpi"><div class="l">Location</div><div class="v">@_places.Select(row => row.Location).Where(value => value.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).Count().ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="pf-wf-kpi"><div class="l">All staff</div><div class="v">@_staff.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="pf-wf-kpi"><div class="l">Showing</div><div class="v">@shown.ToString(CultureInfo.InvariantCulture)</div></div>
+        </div>
+        <form method="get" action="/erp/process-flow-tasks-app" class="pf-wf-bar">
+            <input type="hidden" name="pf_view" value="workforce" />
+            @if (_companyId > 0)
+            {
+                <input type="hidden" name="company" value="@_companyId.ToString(CultureInfo.InvariantCulture)" />
+            }
+            <label>Group by
+                <select name="wf_group" class="form-control input-sm" onchange="this.form.submit()">
+                    <option value="department" selected="@(_wfGroup == "department")">Department</option>
+                    <option value="location" selected="@(_wfGroup == "location")">Location</option>
+                    <option value="entity" selected="@(_wfGroup == "entity")">Legal entity</option>
+                </select>
+            </label>
+            <input class="form-control input-sm" name="q" value="@_query" placeholder="Search staff" />
+            <button type="submit" class="btn btn-default btn-sm">Show</button>
+        </form>
+        @if (shown == 0)
+        {
+            <p class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_staffMessage) ? "No staff profiles yet." : _staffMessage) : "Sign in with ERP capability for live rows.")</p>
+        }
+        else
+        {
+            @foreach (var group in cards)
+            {
+                <section class="pf-wf-group">
+                    <div class="pf-wf-ghd">@group.Name <span class="text-muted">· @group.Cards.Count.ToString(CultureInfo.InvariantCulture) staff</span></div>
+                    <div class="pf-wf-grid">
+                        @foreach (var card in group.Cards)
+                        {
+                            <article class="pf-wf-card @(card.Open > 0 ? "busy" : null)">
+                                <div style="display:flex;gap:8px;align-items:flex-start;">
+                                    <span class="pf-face" style="background:@AvatarColor(card.Name)">@Initials(card.Name)</span>
+                                    <div>
+                                        <div class="pf-wf-nm">@card.Name</div>
+                                        <div class="pf-wf-meta">@(string.IsNullOrWhiteSpace(card.Title) ? ErpStaffDepartmentCatalog.NameFor(card.Department) : card.Title)</div>
+                                        <div class="pf-wf-meta">@ErpStaffDepartmentCatalog.NameFor(card.Department) · @(string.IsNullOrWhiteSpace(card.Location) ? "—" : card.Location)</div>
+                                        <div class="pf-wf-meta">@(string.IsNullOrWhiteSpace(card.BusinessUnit) ? "—" : card.BusinessUnit) · @(string.IsNullOrWhiteSpace(card.LegalEntity) ? "—" : card.LegalEntity)</div>
+                                        @if (card.Open > 0)
+                                        {
+                                            <div class="pf-wf-meta"><a href="@CaseHref(card.CaseId)">@card.Open.ToString(CultureInfo.InvariantCulture) open · @card.CaseTitle</a></div>
+                                        }
+                                    </div>
+                                </div>
+                            </article>
+                        }
+                    </div>
+                </section>
+            }
+        }
     }
     else if (_view == "processes")
     {
@@ -548,6 +728,24 @@
     private IReadOnlyList<(string Location, int Count)> _byLocation = [];
     private IReadOnlyList<(string Name, string Dept, int Open, long CaseId, string Title)> _workforce = [];
     private IReadOnlyList<(string Name, int Open, int Total)> _processes = [];
+    private IReadOnlyList<ErpProcessFlowStepDigest> _steps = [];
+    private IReadOnlyList<ErpProcessFlowTemplateStep> _templateSteps = [];
+    private IReadOnlyList<ErpProcessFlowStaffPlace> _places = [];
+    private IReadOnlyList<ErpStaffProfileDigest> _staff = [];
+    private IReadOnlyList<ErpProcessFlowTaskDigest> _orgCases = [];
+    private string _staffMessage = "";
+    private string _query = "";
+    private string _zoom = "overall";
+    private string _wfGroup = "department";
+
+    private static readonly (string Key, string Label)[] ZoomLevels =
+    [
+        ("overall", "Overall"),
+        ("department", "Department"),
+        ("user", "User"),
+        ("task", "Task"),
+        ("location", "Location"),
+    ];
 
     protected override async Task OnInitializedAsync()
     {
@@ -560,6 +758,11 @@
         _status = (ctx.Request.Query["f_status"].ToString() ?? "open").Trim().ToLowerInvariant();
         if (StatusFilters.All(s => s.Key != _status)) _status = "open";
         long.TryParse(ctx.Request.Query["pf_case"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _pfCaseId);
+        _query = (ctx.Request.Query["q"].ToString() ?? "").Trim();
+        _zoom = (ctx.Request.Query["pf_zoom"].ToString() ?? "overall").Trim().ToLowerInvariant();
+        if (ZoomLevels.All(level => level.Key != _zoom)) _zoom = "overall";
+        _wfGroup = (ctx.Request.Query["wf_group"].ToString() ?? "department").Trim().ToLowerInvariant();
+        if (_wfGroup is not ("department" or "location" or "entity")) _wfGroup = "department";
         _companyId = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
         _returnUrl = ViewHref(_view);
 
@@ -571,7 +774,14 @@
         var result = await Dashboards.BuildErpProcessFlowTasksDigestAsync(300);
         _summary = result.Summary;
         _tasks = result.Tasks;
+        _steps = result.Steps;
+        _templateSteps = result.TemplateSteps;
+        _places = result.Places;
         _message = result.Message;
+        var staff = await Dashboards.ListErpStaffAsync(400);
+        _staff = staff.Staff;
+        _staffMessage = staff.Message;
+        _orgCases = _tasks.Where(MatchesQuery).OrderByDescending(row => row.Status == "open").ThenBy(row => row.Title).ToList();
         _inbox = _tasks.Where(t => t.Status == "open" && _userId > 0 && t.CurrentAssigneeId == _userId).ToList();
         _inboxCount = _inbox.Count;
         _visible = _status == "all" ? _tasks : _tasks.Where(t => string.Equals(t.Status, _status, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -715,6 +925,246 @@
         return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
     }
 
-    private static string TrackFill(ErpProcessFlowTaskDigest row) =>
-        row.Status == "done" ? "84%" : (row.Status == "open" ? "50%" : "16%");
+    private static string TrackFill(IReadOnlyList<RouteNode> nodes)
+    {
+        if (nodes.Count <= 1) return "8%";
+        var active = 0;
+        for (var i = 0; i < nodes.Count; i++)
+        {
+            if (nodes[i].Kind is "done" or "active") active = i;
+        }
+
+        return Math.Clamp((int)Math.Round(active / (double)(nodes.Count - 1) * 84), 8, 84).ToString(CultureInfo.InvariantCulture) + "%";
+    }
+
+    private IReadOnlyList<RouteNode> RouteNodes(ErpProcessFlowTaskDigest detail)
+    {
+        var steps = _steps.Where(step => step.CaseId == detail.Id).OrderBy(step => step.StepNo).ToList();
+        if (steps.Count == 0)
+        {
+            var count = Math.Max(detail.StepCount, 1);
+            var list = new List<RouteNode>();
+            for (var n = 1; n <= count; n++)
+            {
+                var active = detail.Status == "open" && n == Math.Max(detail.CurrentStepNo, 1);
+                var done = detail.Status == "done" || n < Math.Max(detail.CurrentStepNo, 1);
+                var kind = done ? "done" : active ? "active" : "pending";
+                var title = active && !string.IsNullOrWhiteSpace(detail.CurrentLocation)
+                    ? detail.CurrentLocation
+                    : (n == detail.CurrentStepNo && !string.IsNullOrWhiteSpace(detail.CurrentStepName) ? detail.CurrentStepName : "Step " + n.ToString(CultureInfo.InvariantCulture));
+                var sub = active
+                    ? (string.IsNullOrWhiteSpace(detail.CurrentStepName) ? ErpStaffDepartmentCatalog.NameFor(detail.CurrentDepartment) : detail.CurrentStepName)
+                    : (done ? "Approved" : "Waiting");
+                var person = active ? PersonLabel(detail.AssigneeName, detail.CurrentAssigneeId) : "";
+                if (person == "—") person = "";
+                list.Add(new RouteNode(title, sub, person, "", kind, active));
+            }
+
+            return list;
+        }
+
+        return steps.Select(step =>
+        {
+            var kind = step.Status is "approved" or "skipped" or "done"
+                ? "done"
+                : step.Status == "rejected"
+                    ? "rejected"
+                    : step.Status == "active" ? "active" : "pending";
+            if (detail.Status == "done") kind = "done";
+            var title = !string.IsNullOrWhiteSpace(step.Location)
+                ? step.Location
+                : (string.IsNullOrWhiteSpace(step.Name) ? "Step " + step.StepNo.ToString(CultureInfo.InvariantCulture) : step.Name);
+            var sub = !string.IsNullOrWhiteSpace(step.Location)
+                ? step.Name
+                : ErpStaffDepartmentCatalog.NameFor(step.Department);
+            var when = step.CompletedAt > 0 ? FormatDateTime(step.CompletedAt) : step.ActivatedAt > 0 ? FormatDateTime(step.ActivatedAt) : "";
+            return new RouteNode(title, sub, step.AssigneeName, when, kind, step.Status == "active" && detail.Status == "open");
+        }).ToList();
+    }
+
+    private bool MatchesQuery(ErpProcessFlowTaskDigest row)
+    {
+        if (_query.Length == 0) return true;
+        return row.Title.Contains(_query, StringComparison.OrdinalIgnoreCase)
+            || row.Reference.Contains(_query, StringComparison.OrdinalIgnoreCase)
+            || row.AssigneeName.Contains(_query, StringComparison.OrdinalIgnoreCase)
+            || row.ProcessName.Contains(_query, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string ZoomHref(string view, string zoom)
+    {
+        var href = ViewHref(view) + "&pf_zoom=" + Uri.EscapeDataString(zoom);
+        return _query.Length == 0 ? href : href + "&q=" + Uri.EscapeDataString(_query);
+    }
+
+    private static string DotIcon(string kind) => kind switch
+    {
+        "done" => "fa-check",
+        "active" => "fa-user",
+        "rejected" => "fa-times",
+        _ => "fa-map-marker",
+    };
+
+    private static string StepStatusClass(string? status) => status switch
+    {
+        "approved" or "done" => "success",
+        "active" => "info",
+        "rejected" => "danger",
+        _ => "default",
+    };
+
+    private static string Initials(string? name)
+    {
+        var parts = (name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "?";
+        if (parts.Length == 1) return parts[0][..1].ToUpperInvariant();
+        return string.Concat(parts[0][..1], parts[^1][..1]).ToUpperInvariant();
+    }
+
+    private static string AvatarColor(string? name)
+    {
+        var hue = 0;
+        foreach (var ch in name ?? "") hue = (hue * 31 + ch) % 360;
+        return "hsl(" + hue.ToString(CultureInfo.InvariantCulture) + ",55%,42%)";
+    }
+
+    private static string LaneColor(string? department)
+    {
+        foreach (var row in ErpStaffDepartmentCatalog.All)
+        {
+            if (string.Equals(row.Code, department, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(row.Name, department, StringComparison.OrdinalIgnoreCase))
+            {
+                return row.Color;
+            }
+        }
+
+        return "#64748b";
+    }
+
+    private IReadOnlyList<OrgBoard> OrgBoards()
+    {
+        var open = _tasks.Where(row => row.Status == "open").ToList();
+        var processIds = _templateSteps.Select(step => step.ProcessId)
+            .Concat(open.Select(row => row.ProcessId))
+            .Where(id => id > 0)
+            .Distinct()
+            .ToList();
+        var boards = new List<OrgBoard>();
+        foreach (var processId in processIds)
+        {
+            var sample = open.FirstOrDefault(row => row.ProcessId == processId)
+                ?? _tasks.FirstOrDefault(row => row.ProcessId == processId);
+            var name = sample is null ? "Process #" + processId.ToString(CultureInfo.InvariantCulture) : ProcessLabel(sample);
+            var templates = _templateSteps.Where(step => step.ProcessId == processId).OrderBy(step => step.StepNo).ToList();
+            var lanes = new List<OrgLane>();
+            if (templates.Count == 0)
+            {
+                foreach (var dept in open.Where(row => row.ProcessId == processId).Select(row => row.CurrentDepartment).Distinct(StringComparer.OrdinalIgnoreCase))
+                {
+                    lanes.Add(LaneFor(processId, dept, [], open));
+                }
+            }
+            else if (_zoom is "task" or "user")
+            {
+                foreach (var step in templates)
+                {
+                    lanes.Add(LaneFor(processId, step.Department, [step], open, step.Name));
+                }
+            }
+            else
+            {
+                var bucket = new List<ErpProcessFlowTemplateStep>();
+                foreach (var step in templates)
+                {
+                    if (bucket.Count > 0 && !string.Equals(bucket[^1].Department, step.Department, StringComparison.OrdinalIgnoreCase))
+                    {
+                        lanes.Add(LaneFor(processId, bucket[0].Department, bucket, open));
+                        bucket = [];
+                    }
+
+                    bucket.Add(step);
+                }
+
+                if (bucket.Count > 0) lanes.Add(LaneFor(processId, bucket[0].Department, bucket, open));
+            }
+
+            if (lanes.Count > 0)
+            {
+                boards.Add(new OrgBoard(name, open.Count(row => row.ProcessId == processId), lanes));
+            }
+        }
+
+        return boards;
+    }
+
+    private OrgLane LaneFor(long processId, string department, IReadOnlyList<ErpProcessFlowTemplateStep> steps, IReadOnlyList<ErpProcessFlowTaskDigest> open, string? label = null)
+    {
+        var numbers = steps.Select(step => step.StepNo).ToHashSet();
+        var holding = open.Where(row => row.ProcessId == processId
+            && (numbers.Count == 0
+                ? string.Equals(row.CurrentDepartment, department, StringComparison.OrdinalIgnoreCase)
+                : numbers.Contains(row.CurrentStepNo))).ToList();
+        var people = holding
+            .Where(row => !string.IsNullOrWhiteSpace(row.AssigneeName))
+            .GroupBy(row => row.AssigneeName, StringComparer.OrdinalIgnoreCase)
+            .Select(group => new OrgPerson(group.Key, group.Count()))
+            .OrderByDescending(person => person.Count)
+            .Take(3)
+            .ToList();
+        var stepLabel = label ?? (steps.Count == 0
+            ? "Open work"
+            : steps.Count.ToString(CultureInfo.InvariantCulture) + " step" + (steps.Count == 1 ? "" : "s"));
+        return new OrgLane(department, holding.Count, stepLabel, people);
+    }
+
+    private IReadOnlyList<StaffGroup> WorkforceCards()
+    {
+        var query = _query;
+        var cards = _staff
+            .Where(row => row.Active)
+            .Select(row =>
+            {
+                var place = _places.FirstOrDefault(item => item.UserId == row.UserId);
+                var held = _workforce.FirstOrDefault(item => string.Equals(item.Name, row.DisplayName, StringComparison.OrdinalIgnoreCase));
+                return new StaffCard(
+                    string.IsNullOrWhiteSpace(row.DisplayName) ? "Staff #" + row.UserId.ToString(CultureInfo.InvariantCulture) : row.DisplayName,
+                    row.JobTitle,
+                    row.DepartmentCode,
+                    place?.Location ?? "",
+                    place?.BusinessUnit ?? "",
+                    place?.LegalEntity ?? "",
+                    held.Open,
+                    held.CaseId,
+                    held.Title ?? "");
+            })
+            .Where(card => query.Length == 0
+                || card.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
+                || card.Title.Contains(query, StringComparison.OrdinalIgnoreCase)
+                || card.Location.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        if (cards.Count == 0 && _workforce.Count > 0 && query.Length == 0)
+        {
+            cards = _workforce.Select(row => new StaffCard(row.Name, "", row.Dept, "", "", "", row.Open, row.CaseId, row.Title)).ToList();
+        }
+
+        string Key(StaffCard card) => _wfGroup switch
+        {
+            "location" => string.IsNullOrWhiteSpace(card.Location) ? "No location" : card.Location,
+            "entity" => string.IsNullOrWhiteSpace(card.LegalEntity) ? "No legal entity" : card.LegalEntity,
+            _ => ErpStaffDepartmentCatalog.NameFor(card.Department),
+        };
+        return cards
+            .GroupBy(Key, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(group => group.Key)
+            .Select(group => new StaffGroup(group.Key, group.OrderBy(card => card.Name).ToList()))
+            .ToList();
+    }
+
+    private sealed record RouteNode(string Title, string Sub, string Person, string When, string Kind, bool Here);
+    private sealed record OrgPerson(string Name, int Count);
+    private sealed record OrgLane(string Department, int Open, string StepLabel, IReadOnlyList<OrgPerson> People);
+    private sealed record OrgBoard(string Name, int Open, IReadOnlyList<OrgLane> Lanes);
+    private sealed record StaffCard(string Name, string Title, string Department, string Location, string BusinessUnit, string LegalEntity, int Open, long CaseId, string CaseTitle);
+    private sealed record StaffGroup(string Name, IReadOnlyList<StaffCard> Cards);
 }
