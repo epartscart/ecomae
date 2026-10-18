@@ -3,8 +3,14 @@
 @using EcomAE.Platform.Erp
 
 <section id="expiry-mail">
+    <style>
+        .expiry-letter { background: #fff; border: 1px solid #d6dee8; border-left: 4px solid #163a6b; border-radius: 8px; padding: 16px 18px; margin: 0 0 14px; max-width: 760px; }
+        .expiry-letter h4 { margin: 8px 0; font-size: 16px; color: #0f172a; }
+        .expiry-letter__body { white-space: pre-wrap; font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.55; color: #1e293b; }
+        .expiry-detail { margin: 0 0 4px; font-size: 13px; color: #334155; }
+    </style>
     <h3>Tenancy expiry email</h3>
-    <p class="text-muted">Three months before a tenancy ends, this page prepares an email from the draft. A tenant can have more than one address. List every landlord address that should receive the reply. Attach that tenant's documents one at a time. Each file stays on the tenant, and an open notice carries the files you add to it. Each reply is filed on the notice, one sender at a time. Automatic send stays off until you turn it on, and nothing is mailed while the company mail server is off. Tenancies that are not on file are not invented.</p>
+    <p class="text-muted">Three months before a tenancy ends, this page prepares an email from the draft. Read the preview and the details first. Nothing is mailed until you press Send under that letter. A tenant can have more than one address. List every landlord address that should receive the reply. Attach that tenant's documents one at a time. Each file stays on the tenant, and an open notice carries the files you add to it. Each reply is filed on the notice, one sender at a time. Tenancies that are not on file are not invented.</p>
     @if (!string.IsNullOrWhiteSpace(Note))
     {
         <p>@Note</p>
@@ -28,39 +34,22 @@
             <label>Landlord addresses that receive the reply
                 <textarea class="form-control" name="replyEmails" rows="3" placeholder="one address on each line, or separated by commas">@Book.Template.ReplyEmails</textarea>
             </label>
-            <label>
-                @if (Book.Template.AutoSend)
-                {
-                    <input type="checkbox" name="autoSend" value="true" checked />
-                }
-                else
-                {
-                    <input type="checkbox" name="autoSend" value="true" />
-                }
-                Send ready notices automatically each time this page is opened
-            </label>
             <button type="submit" class="btn btn-primary btn-sm">Save draft</button>
         </form>
     </ErpPhpCreateWell>
 
-    <form method="post" action="@SaveAction" class="re-filter">
-        <input type="hidden" name="confirmWrites" value="true" />
-        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
-        <input type="hidden" name="action" value="prepare_expiry" />
-        @Filter
-        <button type="submit" class="btn btn-default btn-sm">Check tenancies due now</button>
-    </form>
-    <form method="post" action="@SaveAction" class="re-filter">
-        <input type="hidden" name="confirmWrites" value="true" />
-        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
-        <input type="hidden" name="action" value="send_expiry_due" />
-        @Filter
-        <button type="submit" class="btn btn-primary btn-sm">Send every ready notice</button>
-    </form>
+    <h3 id="expiry-preview">Preview before send</h3>
+    <p class="text-muted">The letter uses the saved draft. Names, dates and addresses come from the tenancy on file. Opening this tab does not send it.</p>
+    @if (Book.Notices.Count == 0 && Previews.Count == 0)
+    {
+        var sample = ErpTenancyExpiryMail.Sample(Book.Template);
+        <p class="text-muted">No tenancy is on file yet. This sample shows the shape of the letter. It cannot be sent.</p>
+        @Letter(sample.Subject, sample.Body, sample.ToEmails, sample.ReplyEmails, "Sample", "Property Flat", "2026-12-31", "2026-09-30", "Sample preview")
+    }
 
     @if (Book.Notices.Count == 0)
     {
-        <p class="text-muted">No notice is prepared yet. When an active tenancy reaches three months before its end date, the letter appears here.</p>
+        <p class="text-muted">No notice is prepared yet. When an active tenancy reaches three months before its end date, the letter appears here and the send button sits under the preview.</p>
     }
     else
     {
@@ -84,10 +73,8 @@
                 {
                     <p>@notice.SendError</p>
                 }
-                <p>To: @(string.IsNullOrWhiteSpace(notice.ToEmails) ? "No tenant email yet" : notice.ToEmails)</p>
-                <p>Reply goes to: @(string.IsNullOrWhiteSpace(notice.ReplyEmails) ? "The sending mailbox" : notice.ReplyEmails)</p>
-                <p><strong>@notice.Subject</strong></p>
-                <pre style="white-space:pre-wrap">@notice.Body</pre>
+                <p class="text-muted">Read this letter and the details above it. Send stays under the preview.</p>
+                @Letter(notice.Subject, notice.Body, notice.ToEmails, notice.ReplyEmails, string.IsNullOrWhiteSpace(notice.LeaseCode) ? "Tenancy " + notice.LeaseId.ToString(CultureInfo.InvariantCulture) : notice.LeaseCode, (notice.PropertyName + " " + notice.UnitCode).Trim(), notice.EndDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), notice.DueOn.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), ErpTenancyExpiryMail.StatusLabel(notice.Status))
                 <p><strong>Documents on this notice</strong></p>
                 @foreach (var document in TenantDocuments(notice.TenantId))
                 {
@@ -183,6 +170,31 @@
         }
     }
 
+    @if (Previews.Count > 0)
+    {
+        <h4>Letters not prepared yet</h4>
+        <p class="text-muted">These are filled in so you can read them. They are not on the send list until you check tenancies that are due. Nothing is mailed from this preview.</p>
+        @foreach (var preview in Previews)
+        {
+            @Letter(preview.Subject, preview.Body, preview.ToEmails, preview.ReplyEmails, "Tenancy " + preview.LeaseId.ToString(CultureInfo.InvariantCulture), "", preview.EndDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), preview.DueOn.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), preview.Status == "needs_email" ? "Needs a tenant email" : "Preview only")
+        }
+    }
+
+    <form method="post" action="@SaveAction" class="re-filter">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+        <input type="hidden" name="action" value="prepare_expiry" />
+        @Filter
+        <button type="submit" class="btn btn-default btn-sm">Check tenancies due now</button>
+    </form>
+    <form method="post" action="@SaveAction" class="re-filter">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+        <input type="hidden" name="action" value="send_expiry_due" />
+        @Filter
+        <button type="submit" class="btn btn-primary btn-sm">Send every ready notice</button>
+    </form>
+
     @if (Book.Waiting.Count > 0)
     {
         <h4>Not due yet</h4>
@@ -241,6 +253,9 @@
     [Parameter] public int Year { get; set; }
     [Parameter] public long PropertyId { get; set; }
     [Parameter] public long UnitId { get; set; }
+    [Parameter] public string ReturnUrl { get; set; } = "";
+
+    private IReadOnlyList<ErpTenancyExpiryDraft> Previews => Book.Previews ?? [];
 
     private IEnumerable<ErpTenancyExpiryDocument> TenantDocuments(long tenantId)
         => (Book.Documents ?? []).Where(document => document.TenantId == tenantId);
@@ -301,9 +316,23 @@
         </form>
     </text>;
 
+    private RenderFragment Letter(string subject, string body, string to, string reply, string leaseCode, string place, string ends, string due, string status) => @<text>
+        <article class="expiry-letter">
+            <p class="expiry-detail"><strong>@leaseCode</strong> @place · ends @ends · prepare from @due · @status</p>
+            <p class="expiry-detail">To: @(string.IsNullOrWhiteSpace(to) ? "No tenant email yet" : to)</p>
+            <p class="expiry-detail">Reply goes to: @(string.IsNullOrWhiteSpace(reply) ? "The sending mailbox" : reply)</p>
+            <h4>@subject</h4>
+            <div class="expiry-letter__body">@body</div>
+        </article>
+    </text>;
+
     private RenderFragment Filter => @<text>
         <input type="hidden" name="filterYear" value="@Year.ToString(CultureInfo.InvariantCulture)" />
         <input type="hidden" name="filterPropertyId" value="@PropertyId.ToString(CultureInfo.InvariantCulture)" />
         <input type="hidden" name="filterUnitId" value="@UnitId.ToString(CultureInfo.InvariantCulture)" />
+        @if (ReturnUrl.StartsWith("/erp/", StringComparison.Ordinal) && !ReturnUrl.StartsWith("//", StringComparison.Ordinal))
+        {
+            <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+        }
     </text>;
 }

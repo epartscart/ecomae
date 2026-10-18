@@ -87,7 +87,8 @@ public sealed class ErpTenancyExpiryMailService : IErpTenancyExpiryMail
             .ToArray();
         var documents = await DocumentsAsync(connection, tenantIds, cancellationToken).ConfigureAwait(false);
         var links = await LinksAsync(connection, notices.Select(notice => notice.Id).ToArray(), cancellationToken).ConfigureAwait(false);
-        return new ErpTenancyExpiryBook(template, notices, waiting, ended, "", documents, links);
+        var previews = ErpTenancyExpiryMail.PreviewsFor(leases, template, known, today);
+        return new ErpTenancyExpiryBook(template, notices, waiting, ended, "", documents, links, previews);
     }
 
     public async Task<ErpSimpleWriteResult> SaveTemplateAsync(ErpTenancyExpiryTemplate template, CancellationToken cancellationToken = default)

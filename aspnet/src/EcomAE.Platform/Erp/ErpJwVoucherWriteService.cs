@@ -114,6 +114,7 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
         }
 
         var metalPurchase = ErpJwVocTypes.Matches(vocType, ErpJwVocTypes.MetalPurchaseAliases);
+        var preciousPurchase = metalPurchase || ErpJwVocTypes.Matches(vocType, ErpJwVocTypes.DiamondPurchaseAliases);
         if (metalPurchase && string.IsNullOrWhiteSpace(request.PartyCode))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Party is required. Pick an approved supplier.");
@@ -259,6 +260,23 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
         }
 
         var totalWithVat = RoundNonNeg(net + vat, 2);
+        if (preciousPurchase)
+        {
+            var amountAed = currency == "AED" ? totalWithVat : RoundNonNeg(totalWithVat * currRate, 2);
+            try
+            {
+                await ErpSupplierWriteService.RequireKycForJewelPurchaseAsync(
+                    connection,
+                    partyCode,
+                    amountAed,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (ErpWriteException ex)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", ex.Message);
+            }
+        }
+
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try

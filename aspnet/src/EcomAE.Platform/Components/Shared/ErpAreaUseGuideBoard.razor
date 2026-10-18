@@ -1,0 +1,323 @@
+@using System.Globalization
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject IHttpContextAccessor Http
+
+<section class="eg-guide" data-eg-guide data-mode="stage" aria-label="How to use every area">
+    <header class="eg-present">
+        <p class="eg-present__eyebrow">ECOM AE · Operating presentation</p>
+        <h2 class="eg-present__title">How to use every area</h2>
+        <p class="eg-present__lead">Every menu area, in the order the work moves. Play the cycle, or open all areas on one board. Each circle opens the live page.</p>
+        <div class="eg-present__controls">
+            <button type="button" data-eg-prev>Previous</button>
+            <button type="button" data-eg-play aria-pressed="false">Play</button>
+            <button type="button" data-eg-next>Next</button>
+            <button type="button" data-eg-all aria-pressed="false">All areas</button>
+            <span class="eg-present__count" data-eg-count>1 of @ErpAreaUseGuide.Lanes.Count.ToString(CultureInfo.InvariantCulture)</span>
+        </div>
+        <div class="eg-present__meter" aria-hidden="true"><span data-eg-meter style="width:@(MeterStart)"></span></div>
+    </header>
+    <nav class="eg-guide__jump" aria-label="Guide sections">
+        @foreach (var board in ErpAreaUseGuide.Boards)
+        {
+            <a href="@("#cat-" + board.CategoryId)" class="@(board.CategoryId == ErpAreaUseGuide.Boards[0].CategoryId ? "is-on" : null)">@board.Category</a>
+        }
+    </nav>
+    @{
+        var shown = 0;
+    }
+    @foreach (var board in ErpAreaUseGuide.Boards)
+    {
+        <h2 class="eg-guide__cat" id="@("cat-" + board.CategoryId)" data-stage="@(shown == 0 ? "1" : null)">@board.Category</h2>
+        @foreach (var lane in board.Lanes)
+        {
+            shown++;
+            <div class="eg-guide__lane" id="@ErpAreaUseGuide.Anchor(lane.AreaId)" data-eg-index="@shown.ToString(CultureInfo.InvariantCulture)" data-stage="@(shown == 1 ? "1" : null)">
+                <p class="eg-guide__index">@shown.ToString("00", CultureInfo.InvariantCulture)</p>
+                <p class="eg-guide__lane-name"><i class="fa @lane.Icon" aria-hidden="true"></i> @lane.Title</p>
+                <p class="eg-guide__use">@lane.Use</p>
+                @StepTrack(lane.Steps, 0)
+                @if (lane.JewellerySteps.Count > 0)
+                {
+                    <p class="eg-guide__more">Jewellery</p>
+                    @StepTrack(lane.JewellerySteps, lane.Steps.Count)
+                }
+            </div>
+        }
+    }
+</section>
+
+<style>
+    .eg-guide {
+        margin: 0 0 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 22px 22px 26px;
+        border: 1px solid #e6e1d6;
+        border-radius: 22px;
+        background:
+            radial-gradient(900px 220px at 0% 0%, rgba(37, 99, 235, .08), transparent 50%),
+            linear-gradient(180deg, #fbfaf7 0%, #f3f6fa 100%);
+        color: #0f2744;
+    }
+    .eg-present { display: flex; flex-direction: column; gap: 8px; max-width: 46rem; }
+    .eg-present__eyebrow { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #8a7340; }
+    .eg-present__eyebrow::after { content: ""; display: block; width: 42px; height: 2px; margin-top: 8px; background: linear-gradient(90deg, #c4a35a, #8a7340); }
+    .eg-present__title { margin: 0; font-size: 32px; line-height: 1.12; letter-spacing: -.03em; font-weight: 700; color: #0c1c33; }
+    .eg-present__lead { margin: 0; max-width: 40rem; color: #3d4f66; font-size: 15px; line-height: 1.5; }
+    .eg-present__controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+    .eg-present__controls button {
+        border: 1px solid #d5d0c4;
+        background: #fff;
+        color: #0f2744;
+        border-radius: 999px;
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: .01em;
+        cursor: pointer;
+    }
+    .eg-present__controls [data-eg-play],
+    .eg-present__controls button[aria-pressed="true"] { background: #0f2744; color: #f8f4ea; border-color: #0f2744; }
+    .eg-present__count { margin-left: 4px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #5b6b82; }
+    .eg-present__meter { height: 3px; margin-top: 10px; border-radius: 999px; background: #e6e1d6; overflow: hidden; max-width: 28rem; }
+    .eg-present__meter span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #1d4ed8, #c4a35a); transition: width .45s ease; }
+    .eg-guide__jump { display: flex; flex-wrap: wrap; gap: 6px; }
+    .eg-guide__jump a { display: inline-flex; padding: .4rem .75rem; border-radius: 999px; border: 1px solid #e0d9cc; background: rgba(255,255,255,.86); color: #1d4ed8; text-decoration: none; font-size: 12px; font-weight: 700; }
+    .eg-guide__jump a.is-on { background: #0f2744; color: #f8f4ea; border-color: #0f2744; }
+    .eg-guide__cat { margin: 10px 0 0; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #8a7340; }
+    .eg-guide[data-mode="stage"] .eg-guide__cat,
+    .eg-guide[data-mode="stage"] .eg-guide__lane { display: none; }
+    .eg-guide[data-mode="stage"] .eg-guide__cat[data-stage="1"],
+    .eg-guide[data-mode="stage"] .eg-guide__lane[data-stage="1"],
+    .eg-guide[data-mode="stage"] .eg-guide__cat.is-stage,
+    .eg-guide[data-mode="stage"] .eg-guide__lane.is-stage { display: block; }
+    .eg-guide__lane {
+        padding: 22px 18px 26px;
+        border: 1px solid #e7eef6;
+        border-radius: 20px;
+        background:
+            radial-gradient(720px 160px at 10% 0%, rgba(37, 99, 235, .10), transparent 58%),
+            linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%);
+        box-shadow: 0 16px 40px rgba(15, 39, 68, .06);
+    }
+    .eg-guide__index { margin: 0 0 6px; text-align: center; font-size: 12px; font-weight: 800; letter-spacing: .18em; color: #c4a35a; }
+    .eg-guide__lane-name {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #1d4ed8;
+    }
+    .eg-guide__use { margin: 8px auto 0; max-width: 44rem; text-align: center; color: #1e3a5f; font-size: 15px; font-weight: 600; line-height: 1.45; }
+    .eg-guide__more { margin: 18px 0 0; text-align: center; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #0f766e; }
+    .eg-guide__track { list-style: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 0; margin: 18px 0 0; padding: 6px 0 0; }
+    .eg-guide__step { display: flex; align-items: center; animation: eg-guide-rise .45s ease both; }
+    .eg-guide__step a { position: relative; display: flex; flex-direction: column; align-items: center; width: 128px; text-decoration: none; color: #1e3a5f; }
+    .eg-guide__step a:hover .eg-guide__icon, .eg-guide__step a:focus-visible .eg-guide__icon { transform: translateY(-3px); }
+    .eg-guide__step a:focus-visible { outline: 2px solid #2563eb; outline-offset: 4px; border-radius: 16px; }
+    .eg-guide__badge { position: absolute; top: -2px; left: 26px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: #fff; border: 1px solid #d5e3f2; color: #3d4f66; font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; z-index: 1; box-shadow: 0 2px 6px rgba(15, 39, 68, .08); }
+    .eg-guide__icon { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 12px 24px rgba(15, 39, 68, .16), inset 0 0 0 3px rgba(255,255,255,.22); transition: transform .18s ease; }
+    .eg-guide__icon i { font-size: 26px; }
+    .eg-guide__name { margin-top: 10px; font-size: 13px; font-weight: 700; line-height: 1.25; text-align: center; }
+    .tone-0 .eg-guide__icon { background: linear-gradient(160deg, #3b82f6, #1d4ed8); }
+    .tone-1 .eg-guide__icon { background: linear-gradient(160deg, #14b8a6, #0f766e); }
+    .tone-2 .eg-guide__icon { background: linear-gradient(160deg, #f59e0b, #b45309); }
+    .tone-3 .eg-guide__icon { background: linear-gradient(160deg, #8b5cf6, #6d28d9); }
+    .tone-4 .eg-guide__icon { background: linear-gradient(160deg, #fb7185, #be123c); }
+    .eg-guide__join { display: flex; align-items: center; justify-content: center; width: 52px; margin-top: 22px; }
+    .eg-guide__svg { display: block; width: 56px; height: 16px; }
+    .eg-guide__line { fill: none; stroke: #3b82f6; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 5 7; animation: eg-guide-dash 1.05s linear infinite; }
+    .eg-guide__head { fill: none; stroke: #1d4ed8; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    @@keyframes eg-guide-dash { to { stroke-dashoffset: -24; } }
+    @@keyframes eg-guide-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @@media (max-width: 720px) {
+        .eg-present__title { font-size: 22px; }
+        .eg-guide__track { flex-direction: column; align-items: stretch; }
+        .eg-guide__step { width: 100%; }
+        .eg-guide__step a { flex-direction: row; width: auto; gap: 12px; }
+        .eg-guide__name { margin-top: 0; text-align: left; }
+        .eg-guide__badge { left: 0; top: -4px; }
+        .eg-guide__join { transform: rotate(90deg); margin: 2px auto; width: auto; }
+        .eg-guide__index, .eg-guide__lane-name, .eg-guide__use, .eg-guide__more { text-align: left; justify-content: flex-start; }
+    }
+    @@media (prefers-reduced-motion: reduce) {
+        .eg-guide__line { animation: none; stroke-dasharray: none; }
+        .eg-guide__step { animation: none; }
+        .eg-guide__step a:hover .eg-guide__icon { transform: none; }
+    }
+</style>
+
+<script>
+    (function () {
+        var root = document.querySelector("[data-eg-guide]");
+        if (!root || root.getAttribute("data-eg-bound") === "1") return;
+        root.setAttribute("data-eg-bound", "1");
+        var lanes = root.querySelectorAll(".eg-guide__lane");
+        var cats = root.querySelectorAll(".eg-guide__cat");
+        var count = root.querySelector("[data-eg-count]");
+        var meter = root.querySelector("[data-eg-meter]");
+        var play = root.querySelector("[data-eg-play]");
+        var all = root.querySelector("[data-eg-all]");
+        var jumps = root.querySelectorAll(".eg-guide__jump a");
+        var timer = 0;
+        var index = 0;
+        function laneIndex(node) {
+            var raw = node.getAttribute("data-eg-index") || "1";
+            var n = parseInt(raw, 10);
+            return isNaN(n) ? 1 : n;
+        }
+        function show(next) {
+            if (!lanes.length) return;
+            if (next < 0) next = lanes.length - 1;
+            if (next >= lanes.length) next = 0;
+            index = next;
+            var current = lanes[index];
+            for (var i = 0; i < lanes.length; i++) {
+                lanes[i].classList.toggle("is-stage", lanes[i] === current);
+                if (lanes[i] !== current) lanes[i].removeAttribute("data-stage");
+            }
+            for (var c = 0; c < cats.length; c++) {
+                cats[c].classList.remove("is-stage");
+                cats[c].removeAttribute("data-stage");
+            }
+            var prev = current.previousElementSibling;
+            while (prev && !prev.classList.contains("eg-guide__cat")) prev = prev.previousElementSibling;
+            if (prev) prev.classList.add("is-stage");
+            if (count) count.textContent = laneIndex(current) + " of " + lanes.length;
+            if (meter) meter.style.width = ((index + 1) / lanes.length * 100) + "%";
+            var chapter = prev ? "#" + prev.id : "";
+            for (var j = 0; j < jumps.length; j++) {
+                jumps[j].classList.toggle("is-on", (jumps[j].getAttribute("href") || "") === chapter);
+            }
+            if (root.getAttribute("data-mode") === "stage") {
+                var top = root.getBoundingClientRect().top;
+                if (top < 0 || top > 120) root.scrollIntoView({ block: "start", behavior: "smooth" });
+            }
+            window.requestAnimationFrame(tidyJoins);
+        }
+        function tidyJoins() {
+            var joins = root.querySelectorAll(".eg-guide__join");
+            var narrow = window.matchMedia("(max-width: 720px)").matches;
+            for (var i = 0; i < joins.length; i++) joins[i].style.display = "";
+            if (narrow) return;
+            for (var pass = 0; pass < 6; pass++) {
+                var changed = false;
+                for (var n = 0; n < joins.length; n++) {
+                    var join = joins[n];
+                    var prev = join.previousElementSibling;
+                    var next = join.nextElementSibling;
+                    if (!prev || !next || prev.offsetParent === null) continue;
+                    var was = join.style.display;
+                    if (was === "none") join.style.display = "";
+                    var split = next.offsetTop > prev.offsetTop + 24;
+                    var want = split ? "none" : "";
+                    join.style.display = want;
+                    if (want !== was) changed = true;
+                }
+                if (!changed) break;
+            }
+        }
+        function stop() {
+            if (timer) window.clearInterval(timer);
+            timer = 0;
+            if (play) { play.setAttribute("aria-pressed", "false"); play.textContent = "Play"; }
+        }
+        function start() {
+            if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+            stop();
+            root.setAttribute("data-mode", "stage");
+            if (all) all.setAttribute("aria-pressed", "false");
+            if (play) { play.setAttribute("aria-pressed", "true"); play.textContent = "Pause"; }
+            timer = window.setInterval(function () { show(index + 1); }, 4200);
+        }
+        root.querySelector("[data-eg-prev]").addEventListener("click", function () { stop(); show(index - 1); });
+        root.querySelector("[data-eg-next]").addEventListener("click", function () { stop(); show(index + 1); });
+        play.addEventListener("click", function () { timer ? stop() : start(); });
+        all.addEventListener("click", function () {
+            stop();
+            var stack = root.getAttribute("data-mode") !== "stack";
+            root.setAttribute("data-mode", stack ? "stack" : "stage");
+            all.setAttribute("aria-pressed", stack ? "true" : "false");
+            all.textContent = stack ? "One area" : "All areas";
+            window.requestAnimationFrame(tidyJoins);
+        });
+        for (var j = 0; j < jumps.length; j++) {
+            jumps[j].addEventListener("click", function (event) {
+                var id = (this.getAttribute("href") || "").replace("#", "");
+                var cat = id ? document.getElementById(id) : null;
+                if (!cat) return;
+                event.preventDefault();
+                stop();
+                root.setAttribute("data-mode", "stage");
+                if (all) { all.setAttribute("aria-pressed", "false"); all.textContent = "All areas"; }
+                var lane = cat.nextElementSibling;
+                while (lane && !lane.classList.contains("eg-guide__lane")) lane = lane.nextElementSibling;
+                if (!lane) return;
+                for (var i = 0; i < lanes.length; i++) if (lanes[i] === lane) show(i);
+            });
+        }
+        window.addEventListener("resize", tidyJoins);
+        window.requestAnimationFrame(tidyJoins);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { window.requestAnimationFrame(tidyJoins); });
+        window.setTimeout(tidyJoins, 350);
+    })();
+</script>
+
+@code {
+    private string Href(string href)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, href);
+
+    private string MeterStart
+        => (100d / Math.Max(1, ErpAreaUseGuide.Lanes.Count)).ToString("0.####", CultureInfo.InvariantCulture) + "%";
+
+    private RenderFragment StepTrack(IReadOnlyList<ErpAreaUseGuide.Step> steps, int toneStart) => builder =>
+    {
+        builder.OpenElement(0, "ol");
+        builder.AddAttribute(1, "class", "eg-guide__track");
+        var seq = 2;
+        for (var i = 0; i < steps.Count; i++)
+        {
+            var step = steps[i];
+            var paint = "tone-" + ((toneStart + i) % 5).ToString(CultureInfo.InvariantCulture);
+            builder.OpenElement(seq++, "li");
+            builder.AddAttribute(seq++, "class", "eg-guide__step " + paint);
+            builder.AddAttribute(seq++, "style", "animation-delay:" + (i * 70).ToString(CultureInfo.InvariantCulture) + "ms");
+            builder.OpenElement(seq++, "a");
+            builder.AddAttribute(seq++, "href", Href(step.Href));
+            builder.OpenElement(seq++, "span");
+            builder.AddAttribute(seq++, "class", "eg-guide__badge");
+            builder.AddContent(seq++, step.Number.ToString(CultureInfo.InvariantCulture));
+            builder.CloseElement();
+            builder.OpenElement(seq++, "span");
+            builder.AddAttribute(seq++, "class", "eg-guide__icon");
+            builder.AddAttribute(seq++, "aria-hidden", "true");
+            builder.OpenElement(seq++, "i");
+            builder.AddAttribute(seq++, "class", "fa " + step.Icon);
+            builder.CloseElement();
+            builder.CloseElement();
+            builder.OpenElement(seq++, "span");
+            builder.AddAttribute(seq++, "class", "eg-guide__name");
+            builder.AddContent(seq++, step.Label);
+            builder.CloseElement();
+            builder.CloseElement();
+            builder.CloseElement();
+            if (i < steps.Count - 1)
+            {
+                builder.OpenElement(seq++, "li");
+                builder.AddAttribute(seq++, "class", "eg-guide__join");
+                builder.AddAttribute(seq++, "aria-hidden", "true");
+                builder.AddMarkupContent(seq++, """<svg class="eg-guide__svg" viewBox="0 0 56 16" focusable="false"><line class="eg-guide__line" x1="2" y1="8" x2="44" y2="8" /><polyline class="eg-guide__head" points="36,3 48,8 36,13" /></svg>""");
+                builder.CloseElement();
+            }
+        }
+
+        builder.CloseElement();
+    };
+}

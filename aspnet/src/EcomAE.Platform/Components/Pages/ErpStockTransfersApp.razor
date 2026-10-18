@@ -17,9 +17,16 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Stock transfers" Subtitle="Open a row for ship/receive times and the 280-character notes excerpt. Line bodies omitted. Ship and receive are not available on this page." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Stock transfers" Subtitle="New transfer saves a draft. Open a posted transfer to review ship and receive times." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
-
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
+    <ErpPhpViewTabs QueryName="pm_view" Active="@_view" BaseHref="@TabBase" Tabs="@_entryTabs" />
+    @if (_view == "entry")
+    {
+        <ErpSheetEntryForm Sheet="stock_transfer" IsAdmin="_isAdmin" ListHref="@TabBase" CompanyId="_company" />
+    }
+    else
+    {
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Stock transfer stats">
         <div class="kpi"><div class="lbl">Transfers</div><div class="val">@_summary.TransferCount.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Draft</div><div class="val">@_summary.DraftCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -50,7 +57,7 @@
                 Fields="@TransferWorkspaceFields"
                 Lines="@TransferWorkspaceLines"
                 Tabs="@TransferWorkspaceTabs" />
-            <p class="text-muted" style="margin:.85rem 0 0">Line bodies omitted. Ship and receive are not available on this page.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Line bodies omitted here. They stay on the transfer. This draft was posted from New transfer.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>
@@ -145,6 +152,7 @@
             </tbody>
         </table>
     </div>
+    }
 
 </PhpErpDesktopChrome>
 
@@ -159,6 +167,13 @@
     private long _openedId;
     private ErpStockTransferDetail? _opened;
     private IReadOnlyList<ErpStockTransferDigest> _openedSiblings = [];
+    private string _view = "posted";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private int _company = 1;
+    private static readonly IReadOnlyList<(string Key, string Label)> _entryTabs =
+        [("entry", "New transfer"), ("posted", "Posted transfers")];
+    private string TabBase => _listHref + "?company=" + _company.ToString(CultureInfo.InvariantCulture);
 
     private IReadOnlyList<string> TransferWorkspaceTabs => ["General", "Movement", "Lifecycle", "Audit"];
 
@@ -220,6 +235,10 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _company = ReadCompany(ctx);
+        _view = ReadView(ctx);
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "transfer_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -249,4 +268,15 @@
             }
         }
     }
+
+    private static int ReadCompany(HttpContext ctx)
+    {
+        var raw = ctx.Request.Query["company"].ToString();
+        return int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var company) && company > 0
+            ? company
+            : 1;
+    }
+
+    private static string ReadView(HttpContext ctx)
+        => ctx.Request.Query["pm_view"].ToString() is "entry" or "new" ? "entry" : "posted";
 }
