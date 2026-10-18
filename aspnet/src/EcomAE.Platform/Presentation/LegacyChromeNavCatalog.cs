@@ -156,8 +156,8 @@ public static class LegacyChromeNavCatalog
         new("Suppliers list", "/erp/suppliers-app"),
         new("Purchases list", "/erp/purchases-app"),
         new("Staff", "/erp/hr-overview-app"),
-        new("Income Statement", "/erp/report-center-app"),
-        new("Balance Sheet", "/erp/report-center-app"),
+        new("Income Statement", "/erp/report-center-app?tab=pl"),
+        new("Balance Sheet", "/erp/report-center-app?tab=balance_sheet"),
     ];
 
     /// <summary>BOS sidebar sections → ASP.NET BOS / CP / ERP routes only.</summary>

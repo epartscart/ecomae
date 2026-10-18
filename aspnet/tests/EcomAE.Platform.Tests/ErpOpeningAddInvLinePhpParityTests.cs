@@ -13,7 +13,7 @@ public sealed class ErpOpeningAddInvLinePhpParityTests
         Assert.Contains("/erp/opening/add-inv-line", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"batch_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"item_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"item_id\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"qty\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"unit_cost\"", text, StringComparison.Ordinal);
         Assert.Contains("FieldName=\"warehouse_id\"", text, StringComparison.Ordinal);

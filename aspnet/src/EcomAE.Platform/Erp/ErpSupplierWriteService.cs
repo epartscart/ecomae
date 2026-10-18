@@ -219,6 +219,163 @@ public sealed class ErpSupplierWriteService : IErpSupplierWriteService
         throw new ErpWriteException("Supplier is not approved for purchase. Complete UAE e-invoice, ownership and documents, then approve.");
     }
 
+    /// <summary>
+    /// A purchase at or above AED 55,000, or linked purchases with the same supplier that reach that amount, needs the complete KYC file.
+    /// </summary>
+    public static async Task RequireKycForCoveredPurchaseAsync(
+        DbConnection connection,
+        long supplierId,
+        decimal thisTotalAed,
+        long excludeId,
+        string amountTable,
+        CancellationToken cancellationToken,
+        string amountColumn = "total_amount")
+    {
+        if (supplierId <= 0)
+        {
+            throw new ErpWriteException("Supplier is required");
+        }
+
+        var table = amountTable switch
+        {
+            "epc_erp_purchase_orders" => "epc_erp_purchase_orders",
+            "epc_erp_purchases" => "epc_erp_purchases",
+            "epc_barcode_purchases" => "epc_barcode_purchases",
+            _ => string.Empty,
+        };
+        var column = amountColumn == "total_cost" ? "total_cost" : "total_amount";
+        var earlier = 0m;
+        if (table.Length > 0)
+        {
+            try
+            {
+                earlier = await ErpDb.DecimalAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional(
+                        "SELECT IFNULL(SUM(`" + column + "`),0) FROM `" + table + "`"
+                        + " WHERE `supplier_id`=? AND `id`<>? AND IFNULL(`status`,'') NOT IN ('void','voided','cancelled')"),
+                    cancellationToken,
+                    supplierId,
+                    excludeId).ConfigureAwait(false);
+            }
+            catch (DbException)
+            {
+                earlier = 0m;
+            }
+        }
+
+        var covered = thisTotalAed + earlier;
+        if (!ErpSupplierKycLaw.RequiresCompleteFile(covered))
+        {
+            return;
+        }
+
+        ErpSupplierOnboardState? state;
+        try
+        {
+            state = await LoadOnboardStateAsync(connection, supplierId, cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            throw new ErpWriteException(CoveredPurchaseMessage(covered, "the supplier file cannot be read"));
+        }
+
+        if (state is null)
+        {
+            throw new ErpWriteException("Supplier not found");
+        }
+
+        if (!ErpSupplierKycLaw.FileComplete(state))
+        {
+            throw new ErpWriteException(CoveredPurchaseMessage(covered, ErpSupplierKycLaw.MissingSummary(state)));
+        }
+    }
+
+    private static string CoveredPurchaseMessage(decimal amountAed, string missing)
+        => "Supplier KYC is incomplete for a buy of "
+            + amountAed.ToString("0.00", CultureInfo.InvariantCulture)
+            + " AED. "
+            + ErpSupplierKycLaw.Resolution
+            + " requires the complete file at AED "
+            + ErpSupplierKycLaw.CoveredAmountAed.ToString("0", CultureInfo.InvariantCulture)
+            + ", including a buy above AED "
+            + ErpSupplierKycLaw.NamedBuyAed.ToString("0", CultureInfo.InvariantCulture)
+            + ". Missing: "
+            + missing;
+
+    /// <summary>
+    /// Precious-metal and precious-stone voucher buys use the same AED 55,000 file, linked by party code.
+    /// </summary>
+    public static async Task RequireKycForJewelPurchaseAsync(
+        DbConnection connection,
+        string? partyCode,
+        decimal thisTotalAed,
+        CancellationToken cancellationToken)
+    {
+        var party = (partyCode ?? string.Empty).Trim();
+        var earlier = 0m;
+        if (party.Length > 0)
+        {
+            try
+            {
+                earlier = await ErpDb.DecimalAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional(
+                        "SELECT IFNULL(SUM(`total_with_vat`),0) FROM `epc_jewel_voucher`"
+                        + " WHERE `party_code`=? AND `voc_type` IN ('RMP','MMP','MLP','RDP','DMP','DLP')"
+                        + " AND IFNULL(`status`,'') NOT IN ('void','voided','cancelled')"),
+                    cancellationToken,
+                    party).ConfigureAwait(false);
+            }
+            catch (DbException)
+            {
+                earlier = 0m;
+            }
+        }
+
+        var covered = thisTotalAed + earlier;
+        if (!ErpSupplierKycLaw.RequiresCompleteFile(covered))
+        {
+            return;
+        }
+
+        long supplierId = 0;
+        if (party.Length > 0)
+        {
+            try
+            {
+                supplierId = await ErpDb.LongAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional(
+                        "SELECT `id` FROM `epc_erp_suppliers` WHERE `supplier_code`=? OR `vendor_account`=? OR `name`=? LIMIT 1"),
+                    cancellationToken,
+                    party,
+                    party,
+                    party).ConfigureAwait(false);
+            }
+            catch (DbException)
+            {
+                throw new ErpWriteException(CoveredPurchaseMessage(covered, "the supplier file cannot be read"));
+            }
+        }
+
+        if (supplierId <= 0)
+        {
+            throw new ErpWriteException(CoveredPurchaseMessage(covered, "the supplier is not on file"));
+        }
+
+        await RequireKycForCoveredPurchaseAsync(
+            connection,
+            supplierId,
+            covered,
+            0,
+            string.Empty,
+            cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<int> SyncFromStoragesAsync(CancellationToken cancellationToken = default)
     {
         if (!_connections.IsConfigured)

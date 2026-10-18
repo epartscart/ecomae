@@ -3,7 +3,13 @@ using System.Globalization;
 
 namespace EcomAE.Platform.Erp;
 
-public sealed record ErpGlLine(long CoaId, decimal Debit, decimal Credit, string LineNote);
+public sealed record ErpGlLine(
+    long CoaId,
+    decimal Debit,
+    decimal Credit,
+    string LineNote,
+    long BusinessUnitId = 0,
+    long LegalEntityId = 0);
 
 public sealed record ErpGlSalesInvoicePosting(
     long InvoiceId,
@@ -34,6 +40,15 @@ public sealed record ErpGlJournalHeader
     /// unless the caller supplies one, so tenant-country compliance stays with the caller.
     /// </summary>
     public string LegislationRef { get; init; } = string.Empty;
+
+    /// <summary>Business unit stamped from the document header. Zero is the company books.</summary>
+    public long BusinessUnitId { get; init; }
+
+    /// <summary>Transaction currency. Blank means the accounting currency.</summary>
+    public string CurrencyCode { get; init; } = string.Empty;
+
+    /// <summary>Units of accounting currency per 1 transaction currency. Zero is stored as 1.</summary>
+    public decimal ExchangeRate { get; init; } = 1m;
 }
 
 /// <summary>
@@ -162,7 +177,8 @@ public sealed class ErpGlPostingService : IErpGlPostingService
                 transaction,
                 ErpDb.Positional(
                     "INSERT INTO `epc_erp_gl_journals` (`journal_no`, `journal_date`, `reference`, `description`, `source_type`,"
-                    + " `source_id`, `company_id`, `uae_tax_legislation_ref`, `admin_id`, `time_created`) VALUES (?,?,?,?,?,?,?,?,?,?)"),
+                    + " `source_id`, `company_id`, `uae_tax_legislation_ref`, `admin_id`, `time_created`,"
+                    + " `business_unit_id`, `currency_code`, `exchange_rate`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"),
                 cancellationToken,
                 journalNo,
                 journalDate,
@@ -173,22 +189,33 @@ public sealed class ErpGlPostingService : IErpGlPostingService
                 companyId,
                 header.LegislationRef.Trim(),
                 adminId,
-                DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
+                DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                header.BusinessUnitId > 0 ? header.BusinessUnitId : 0L,
+                header.CurrencyCode.Trim().ToUpperInvariant(),
+                header.ExchangeRate == 0m ? 1m : header.ExchangeRate).ConfigureAwait(false);
 
             var journalId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
             foreach (var line in lines)
             {
+                var businessUnitId = line.BusinessUnitId > 0
+                    ? line.BusinessUnitId
+                    : header.BusinessUnitId > 0 ? header.BusinessUnitId : 0L;
+                var legalEntityId = line.LegalEntityId > 0
+                    ? line.LegalEntityId
+                    : header.CompanyId > 0 ? header.CompanyId : 0L;
                 await ErpDb.ExecuteAsync(
                     connection,
                     transaction,
                     ErpDb.Positional(
-                        "INSERT INTO `epc_erp_gl_lines` (`journal_id`, `coa_id`, `debit`, `credit`, `line_note`) VALUES (?,?,?,?,?)"),
+                        "INSERT INTO `epc_erp_gl_lines` (`journal_id`, `coa_id`, `debit`, `credit`, `line_note`, `business_unit_id`, `legal_entity_id`) VALUES (?,?,?,?,?,?,?)"),
                     cancellationToken,
                     journalId,
                     line.CoaId,
                     ErpTaxAmountCalculator.Round2(line.Debit),
                     ErpTaxAmountCalculator.Round2(line.Credit),
-                    (line.LineNote ?? string.Empty).Trim()).ConfigureAwait(false);
+                    (line.LineNote ?? string.Empty).Trim(),
+                    businessUnitId,
+                    legalEntityId).ConfigureAwait(false);
             }
 
             if (owned)
@@ -704,6 +731,50 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         {
             throw new ErpWriteException(PeriodBlockedMessage(periodStatus));
         }
+
+        await AssertFiscalYearAllowsPostingAsync(connection, transaction, postingDate, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// A fiscal year on hold or closed, and a fiscal period that is not open, refuse the journal.
+    /// No fiscal year for the date leaves posting allowed.
+    /// </summary>
+    private static async Task AssertFiscalYearAllowsPostingAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        long postingDate,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var yearStatus = await ErpDb.StringAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("SELECT `status` FROM `epc_fy_years` WHERE `start_date`<=? AND `end_date`>=? ORDER BY `id` DESC LIMIT 1"),
+                cancellationToken,
+                postingDate,
+                postingDate).ConfigureAwait(false);
+            var periodStatus = await ErpDb.StringAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(
+                    "SELECT p.`status` FROM `epc_fy_periods` p INNER JOIN `epc_fy_years` y ON y.`id`=p.`year_id`"
+                    + " WHERE p.`start_date`<=? AND p.`end_date`>=? ORDER BY p.`id` DESC LIMIT 1"),
+                cancellationToken,
+                postingDate,
+                postingDate).ConfigureAwait(false);
+            if (!ErpFiscalYearBooks.AllowsPosting(yearStatus, periodStatus))
+            {
+                throw new ErpWriteException(ErpFiscalYearBooks.BlockedMessage(yearStatus, periodStatus));
+            }
+        }
+        catch (ErpWriteException)
+        {
+            throw;
+        }
+        catch (DbException)
+        {
+        }
     }
 
     public static string PeriodBlockedMessage(string status)
@@ -830,7 +901,27 @@ public sealed class ErpGlPostingService : IErpGlPostingService
             cancellationToken).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(
             connection,
+            "ALTER TABLE `epc_erp_gl_journals` ADD `business_unit_id` int(11) NOT NULL DEFAULT 0",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_gl_journals` ADD `currency_code` varchar(8) NOT NULL DEFAULT ''",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_gl_journals` ADD `exchange_rate` decimal(16,8) NOT NULL DEFAULT 1.00000000",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
             "ALTER TABLE `epc_erp_cash_bank_entries` ADD `gl_journal_id` int(11) NOT NULL DEFAULT 0",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_gl_lines` ADD `business_unit_id` int(11) NOT NULL DEFAULT 0",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_gl_lines` ADD `legal_entity_id` int(11) NOT NULL DEFAULT 0",
             cancellationToken).ConfigureAwait(false);
     }
 }
