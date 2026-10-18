@@ -1,0 +1,298 @@
+@namespace EcomAE.Platform.Components.Shared
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IErpCreditManagementService Credit
+
+<style>
+    .epc-credit-app { margin: 0 0 1rem; padding: .9rem 1rem; border: 1px solid #c5d4de; border-radius: .4rem; background: #f8fafc; color: #1d2740; }
+    .epc-credit-app h2 { margin: 0 0 .4rem; font-size: 1.05rem; color: #1d2740; }
+    .epc-credit-app p, .epc-credit-app li, .epc-credit-app label, .epc-credit-app td, .epc-credit-app th, .epc-credit-app option { color: #1d2740; }
+    .epc-credit-app button { background: #1f4e79 !important; color: #fff !important; border: 0; border-radius: .25rem; padding: .35rem .75rem; }
+    .epc-credit-app select, .epc-credit-app input { color: #1d2740; background: #fff; }
+    .epc-credit-app select { min-width: 16rem; }
+    .epc-credit-app table { width: 100%; border-collapse: collapse; margin-top: .6rem; }
+    .epc-credit-app th, .epc-credit-app td { text-align: left; padding: .35rem .45rem; border-bottom: 1px solid #d5e0ea; vertical-align: top; }
+    .epc-credit-app form { display: flex; flex-wrap: wrap; gap: .45rem; align-items: end; margin: .6rem 0; }
+    .epc-credit-app .epc-credit-slots { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin: .6rem 0; }
+    .epc-credit-app .epc-credit-slots article { background: #fff; border: 1px solid #d5e0ea; border-top: 4px solid #1f4e79; border-radius: .35rem; padding: .55rem .7rem; }
+    .epc-credit-app .epc-credit-block { background: #fef2f2; color: #991b1b; padding: .55rem .7rem; border-radius: .3rem; }
+    .epc-credit-app .epc-credit-ok { background: #ecfdf5; color: #065f46; padding: .55rem .7rem; border-radius: .3rem; }
+    @@media (max-width: 800px) {
+        .epc-credit-app .epc-credit-slots { grid-template-columns: 1fr; }
+    }
+</style>
+
+<section class="epc-credit-app" aria-label="Credit application">
+    <h2>Credit application</h2>
+    <p>A credit customer files this application before an invoice is raised. The credit limit itself stays on the credit limit page. This page keeps the papers and the date the application expires.</p>
+    <div class="epc-credit-slots">
+        <article>
+            <h3>Company</h3>
+            <p>Attach the trade license once. Then add every partner. Each partner has their own passport, visa, and Emirates ID.</p>
+        </article>
+        <article>
+            <h3>Individual</h3>
+            <p>Attach the passport, visa, and Emirates ID of that person. A trade license is not used.</p>
+        </article>
+    </div>
+    <p>An invoice is blocked when a required document is missing, has no number, has no expiry, is already expired, or expires inside @ErpCreditApplication.MonthDays.ToString(CultureInfo.InvariantCulture) days. The same rule applies to the application expiry date. Replacing a file is how a document is updated. A customer with no credit profile is not blocked.</p>
+
+    @if (!_isAdmin)
+    {
+        <p>Sign in with ERP capability to file a credit application.</p>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(_message))
+        {
+            <p class="epc-credit-block">@_message</p>
+        }
+        @if (_application is { Filed: true, Gaps.Count: 0 })
+        {
+            <p class="epc-credit-ok">The papers and the application period are current.</p>
+        }
+        else if (_application is { Gaps.Count: > 0 } && _customerId > 0)
+        {
+            <div class="epc-credit-block" role="status">
+                <strong>Invoice blocked until these are updated.</strong>
+                <ul>
+                    @foreach (var gap in _application.Gaps)
+                    {
+                        <li>@gap</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <h2>Application</h2>
+        <form method="post" action="@ApplicationAction">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@ReturnPath" />
+            <label>Customer id <input type="number" name="customer_id" min="1" required value="@CustomerValue" style="width:7rem" /></label>
+            <label>Party
+                <select name="party_kind">
+                    <option value="company" selected="@(!ErpCreditApplication.IsIndividual(_application?.Party))">Company</option>
+                    <option value="individual" selected="@(ErpCreditApplication.IsIndividual(_application?.Party))">Individual</option>
+                </select>
+            </label>
+            <label>Application expires <input type="date" name="valid_until" value="@ErpCreditBlock.Day(_application?.ValidUntil ?? 0)" /></label>
+            <label>Requested limit <input type="number" name="requested_limit" min="0" step="0.01" value="@Money(_application?.RequestedLimit)" style="width:8rem" /></label>
+            <label>Requested terms days <input type="number" name="requested_terms_days" min="0" step="1" value="@Days(_application?.RequestedTerms)" style="width:6rem" /></label>
+            <button type="submit">Save application</button>
+        </form>
+
+        <h2>Partners</h2>
+        <p>One row per partner. Passport, visa, and Emirates ID are attached on that partner, not shared.</p>
+        <form method="post" action="@PartnerAction">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@ReturnPath" />
+            <label>Customer id <input type="number" name="customer_id" min="1" required value="@CustomerValue" style="width:7rem" /></label>
+            <label>Partner name <input type="text" name="partner_name" maxlength="200" /></label>
+            <button type="submit">Add partner</button>
+        </form>
+        <table>
+            <thead>
+                <tr><th>Partner</th><th>Name</th><th></th></tr>
+            </thead>
+            <tbody>
+                @if (_application is null || _application.Partners.Count == 0)
+                {
+                    <tr><td colspan="3">No partners yet.</td></tr>
+                }
+                else
+                {
+                    @foreach (var partner in _application.Partners)
+                    {
+                        <tr>
+                            <td>@partner.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@partner.Name</td>
+                            <td>
+                                <form method="post" action="@PartnerAction">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="@ReturnPath" />
+                                    <input type="hidden" name="customer_id" value="@CustomerValue" />
+                                    <input type="hidden" name="retire_partner_id" value="@partner.Id.ToString(CultureInfo.InvariantCulture)" />
+                                    <button type="submit">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <h2>Documents</h2>
+        <form method="post" action="@DocumentAction" enctype="multipart/form-data">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@ReturnPath" />
+            <label>Customer id <input type="number" name="customer_id" min="1" required value="@CustomerValue" style="width:7rem" /></label>
+            <label>Who
+                <select name="partner_id">
+                    <option value="0">Customer file</option>
+                    @if (_application is not null)
+                    {
+                        @foreach (var partner in _application.Partners)
+                        {
+                            <option value="@partner.Id.ToString(CultureInfo.InvariantCulture)">@partner.Name</option>
+                        }
+                    }
+                </select>
+            </label>
+            <label>Document
+                <select name="doc_kind">
+                    <option value="trade_license">Trade license</option>
+                    <option value="passport">Passport</option>
+                    <option value="visa">Visa</option>
+                    <option value="emirates_id">Emirates ID</option>
+                </select>
+            </label>
+            <label>Number <input type="text" name="doc_number" maxlength="80" /></label>
+            <label>Expires <input type="date" name="expiry" /></label>
+            <label>File <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.webp" /></label>
+            <button type="submit">Attach document</button>
+        </form>
+        <table>
+            <thead>
+                <tr><th>Who</th><th>Document</th><th>Number</th><th>Expires</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+                @if (_application is null || _application.Documents.Count == 0)
+                {
+                    <tr><td colspan="6">No documents attached yet.</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _application.Documents)
+                    {
+                        <tr>
+                            <td>@Who(row.PartnerId)</td>
+                            <td>@ErpCreditApplication.Label(row.Kind)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Number) ? "—" : row.Number)</td>
+                            <td>@(string.IsNullOrWhiteSpace(ErpCreditBlock.Day(row.ExpiryUnix)) ? "—" : ErpCreditBlock.Day(row.ExpiryUnix))</td>
+                            <td>@PaperStatus(row)</td>
+                            <td>
+                                @if (row.Attached && row.Id > 0)
+                                {
+                                    <a href="@DownloadHref(row.Id)">Open file</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+</section>
+
+@code {
+    private bool _isAdmin;
+    private long _companyId;
+    private long _customerId;
+    private string _message = "";
+    private ErpCreditApplicationSnapshot? _application;
+
+    private string CustomerValue => _customerId > 0 ? _customerId.ToString(CultureInfo.InvariantCulture) : "";
+
+    private string ReturnPath
+    {
+        get
+        {
+            var path = "/erp/credit-collections-workspace-app?tab=" + ErpCreditApplication.Tab;
+            if (_customerId > 0)
+            {
+                path += "&customer=" + _customerId.ToString(CultureInfo.InvariantCulture);
+            }
+
+            return CompanyPath(path);
+        }
+    }
+
+    private string ApplicationAction => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/credit-management/application");
+
+    private string PartnerAction => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/credit-management/partner");
+
+    private string DocumentAction => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/credit-management/document");
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        _companyId = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
+        if (long.TryParse(ctx.Request.Query["customer"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var customer) && customer > 0)
+        {
+            _customerId = customer;
+        }
+
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        try
+        {
+            _application = await Credit.LoadApplicationAsync(_customerId, ctx.RequestAborted);
+        }
+        catch (Exception ex)
+        {
+            _message = ex.Message;
+        }
+    }
+
+    private string CompanyPath(string path)
+    {
+        if (_companyId <= 0)
+        {
+            return path;
+        }
+
+        var sep = path.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        return path + sep + "company=" + _companyId.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private string DownloadHref(long id)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/credit-management/document?id=" + id.ToString(CultureInfo.InvariantCulture));
+
+    private string Who(long partnerId)
+    {
+        if (partnerId <= 0)
+        {
+            return "Customer";
+        }
+
+        var partner = _application?.Partners.FirstOrDefault(row => row.Id == partnerId);
+        return partner is null || string.IsNullOrWhiteSpace(partner.Name) ? "Partner " + partnerId.ToString(CultureInfo.InvariantCulture) : partner.Name;
+    }
+
+    private static string PaperStatus(ErpCreditDocumentRow row)
+    {
+        var label = ErpCreditApplication.Label(row.Kind);
+        if (!row.Attached)
+        {
+            return label + " is not attached.";
+        }
+
+        if (string.IsNullOrWhiteSpace(row.Number))
+        {
+            return label + " has no document number.";
+        }
+
+        return ErpCreditApplication.ExpiryReason(label, row.ExpiryUnix, DateTimeOffset.UtcNow.ToUnixTimeSeconds()) ?? "Current";
+    }
+
+    private static string Money(decimal? value)
+        => value is > 0m ? value.Value.ToString("0.00", CultureInfo.InvariantCulture) : "";
+
+    private static string Days(int? value)
+        => value is > 0 ? value.Value.ToString(CultureInfo.InvariantCulture) : "";
+}

@@ -97,6 +97,14 @@
             {
                 <ErpCustomerArPanel />
             }
+            else if (string.Equals(_page.Tab, ErpCreditApplication.Tab, StringComparison.OrdinalIgnoreCase))
+            {
+                <ErpCreditApplicationPanel />
+            }
+            else if (ErpCreditBlock.IsTab(_page.Tab))
+            {
+                <ErpCreditManagementPanel />
+            }
             else
             {
             <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Workspace KPIs">
