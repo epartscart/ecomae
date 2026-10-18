@@ -321,6 +321,7 @@ public static class ErpUaeTaxFtaLegislation
                 "Reconcile tourist refund claims to original tax invoice numbers before reducing output VAT in the return.",
                 "Update invoice template notes with Tourist Refund Scheme eligibility text per FTA Decision No. 2 of 2018 (as amended).",
                 "Retain refund operator acknowledgements with the tax invoice PDF for the statutory record period.",
+                "From 12 July 2026 the tourist receives 87% of the VAT minus AED 3.60 per tag (Decision No. 11 of 2026). Show the Planet barcode on the tax invoice. Planet invoices the retailer for the VAT every 15 days.",
             ];
         }
 

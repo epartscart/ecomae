@@ -526,7 +526,8 @@ a.ns-kpi-card:hover .kv {
 .epc-erp-doc-header {
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 14rem));
+    justify-content: start;
     gap: var(--epc-form-gap);
     margin: 0 0 .15rem;
     padding: .7rem .8rem;
@@ -615,6 +616,144 @@ a.ns-kpi-card:hover .kv {
     overflow-wrap: anywhere;
 }
 
+.epc-erp-lookup {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+    width: 100%;
+}
+
+.epc-erp-lookup .epc-erp-master-picker__q {
+    order: 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-right: 1.75rem;
+}
+
+.epc-erp-lookup__corner {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    z-index: 2;
+    width: 1.65rem;
+    border: 0;
+    border-left: 1px solid #d7e0ea;
+    background: #f8fafc;
+    cursor: pointer;
+}
+
+.epc-erp-lookup__corner::before {
+    content: "";
+    display: block;
+    margin: 0 auto;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid #334155;
+}
+
+.epc-erp-lookup__link {
+    position: absolute;
+    left: .5rem;
+    right: 1.85rem;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 650;
+    text-decoration: underline;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.epc-erp-lookup__link.is-empty,
+.epc-erp-lookup.is-editing .epc-erp-lookup__link,
+.epc-erp-lookup.is-open .epc-erp-lookup__link {
+    display: none;
+}
+
+.epc-erp-lookup.is-linked:not(.is-editing):not(.is-open) .epc-erp-master-picker__q {
+    color: transparent;
+    caret-color: #0f172a;
+}
+
+.epc-erp-lookup.is-ready .epc-erp-lookup__posted {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+.epc-erp-lookup:not(.is-ready) .epc-erp-lookup__corner,
+.epc-erp-lookup:not(.is-ready) .epc-erp-lookup__menu,
+.epc-erp-lookup:not(.is-ready) .epc-erp-lookup__link {
+    display: none;
+}
+
+.epc-erp-lookup:not(.is-ready):has(.epc-erp-lookup__posted) .epc-erp-master-picker__q {
+    display: none;
+}
+
+.epc-erp-lookup__menu {
+    max-height: 16rem;
+    overflow: auto;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    box-shadow: 0 12px 28px rgba(15, 35, 60, .16);
+}
+
+.epc-erp-lookup__opt {
+    display: block;
+    width: 100%;
+    padding: .4rem .65rem;
+    border: 0;
+    background: #fff;
+    color: #0f172a;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.epc-erp-lookup__opt:hover,
+.epc-erp-lookup__opt.is-active {
+    background: #e8f1ff;
+    color: #1d4ed8;
+}
+
+.epc-erp-lookup__opt[hidden] {
+    display: none;
+}
+
+.epc-erp-lookup__empty {
+    margin: 0;
+    padding: .55rem .65rem;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.epc-erp-lookup__empty[hidden] {
+    display: none;
+}
+
+.epc-erp-lookup__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+}
+
 .epc-fno-form .epc-erp-master-picker,
 .epc-fno-form .field .epc-erp-master-picker {
     width: 100%;
@@ -623,7 +762,8 @@ a.ns-kpi-card:hover .kv {
 .epc-erp-content-body form:not([data-epc-inline="1"]),
 .epc-cp-content-inner form:not([data-epc-inline="1"]) {
     display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 14rem));
+    justify-content: start;
     gap: var(--epc-form-gap);
     align-items: end;
     width: 100%;
@@ -706,6 +846,135 @@ a.ns-kpi-card:hover .kv {
     min-height: var(--epc-control-h);
 }
 
+/* Inline tool forms opt out of the field grid. Size each control to the data
+   so a name, an id, and a list sit on one line instead of a full-width row. */
+.epc-erp-content-body form[data-epc-inline="1"] > label,
+.epc-cp-content-inner form[data-epc-inline="1"] > label {
+    flex: 0 0 auto;
+    width: 13rem;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.epc-erp-content-body form label > input,
+.epc-erp-content-body form label > select,
+.epc-erp-content-body form label > textarea,
+.epc-cp-content-inner form label > input,
+.epc-cp-content-inner form label > select,
+.epc-cp-content-inner form label > textarea {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> input[type="number"]),
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> input[type="date"]),
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> input[type="time"]),
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> input[type="datetime-local"]),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> input[type="number"]),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> input[type="date"]),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> input[type="time"]),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> input[type="datetime-local"]) {
+    width: 7.25rem;
+}
+
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> select),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> select) {
+    width: 12.5rem;
+}
+
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> textarea),
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> input[name="description"]),
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> input[name="comment"]),
+.epc-erp-content-body form[data-epc-inline="1"] > label:has(> input[name="title"]),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> textarea),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> input[name="description"]),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> input[name="comment"]),
+.epc-cp-content-inner form[data-epc-inline="1"] > label:has(> input[name="title"]) {
+    width: 18rem;
+}
+
+.epc-erp-content-body table form[data-epc-inline="1"] > label,
+.epc-erp-content-body td form[data-epc-inline="1"] > label,
+.epc-erp-content-body th form[data-epc-inline="1"] > label,
+.epc-erp-content-body form.epc-ui-toolbar > label,
+.epc-cp-content-inner table form[data-epc-inline="1"] > label,
+.epc-cp-content-inner td form[data-epc-inline="1"] > label,
+.epc-cp-content-inner th form[data-epc-inline="1"] > label,
+.epc-cp-content-inner form.epc-ui-toolbar > label {
+    width: auto;
+    flex: 0 1 auto;
+}
+
+/* Labels nested in a field row (not only direct form children) stay data-sized. */
+.epc-erp-content-body form label:has(> input[type="text"]),
+.epc-erp-content-body form label:has(> input[type="email"]),
+.epc-erp-content-body form label:has(> input[type="password"]),
+.epc-erp-content-body form label:has(> input[type="search"]),
+.epc-erp-content-body form label:has(> input[type="tel"]),
+.epc-erp-content-body form label:has(> input[type="url"]),
+.epc-erp-content-body form label:has(> input:not([type])),
+.epc-cp-content-inner form label:has(> input[type="text"]),
+.epc-cp-content-inner form label:has(> input[type="email"]),
+.epc-cp-content-inner form label:has(> input[type="password"]),
+.epc-cp-content-inner form label:has(> input[type="search"]),
+.epc-cp-content-inner form label:has(> input[type="tel"]),
+.epc-cp-content-inner form label:has(> input[type="url"]),
+.epc-cp-content-inner form label:has(> input:not([type])) {
+    flex: 0 0 auto;
+    width: 13rem;
+    max-width: 100%;
+}
+
+.epc-erp-content-body form label:has(> input[type="number"]),
+.epc-erp-content-body form label:has(> input[type="date"]),
+.epc-erp-content-body form label:has(> input[type="time"]),
+.epc-erp-content-body form label:has(> input[type="datetime-local"]),
+.epc-cp-content-inner form label:has(> input[type="number"]),
+.epc-cp-content-inner form label:has(> input[type="date"]),
+.epc-cp-content-inner form label:has(> input[type="time"]),
+.epc-cp-content-inner form label:has(> input[type="datetime-local"]) {
+    width: 7.25rem;
+}
+
+.epc-erp-content-body form label:has(> select),
+.epc-cp-content-inner form label:has(> select) {
+    width: 12.5rem;
+}
+
+.epc-erp-content-body form label:has(> textarea),
+.epc-erp-content-body form label:has(> input[name="description"]),
+.epc-erp-content-body form label:has(> input[name="comment"]),
+.epc-erp-content-body form label:has(> input[name="title"]),
+.epc-cp-content-inner form label:has(> textarea),
+.epc-cp-content-inner form label:has(> input[name="description"]),
+.epc-cp-content-inner form label:has(> input[name="comment"]),
+.epc-cp-content-inner form label:has(> input[name="title"]) {
+    width: 18rem;
+}
+
+.epc-erp-content-body table label,
+.epc-erp-content-body form.epc-ui-toolbar label,
+.epc-cp-content-inner table label,
+.epc-cp-content-inner form.epc-ui-toolbar label {
+    width: auto;
+    flex: 0 1 auto;
+}
+
+.epc-erp-content-body form .form-group:has(> input, > select, > div > input, > div > select):not(:has(textarea)):not(:has(.checkbox)),
+.epc-cp-content-inner form .form-group:has(> input, > select, > div > input, > div > select):not(:has(textarea)):not(:has(.checkbox)) {
+    flex: 0 0 auto;
+    width: 14rem;
+    max-width: 100%;
+}
+
+.epc-erp-content-body form .form-group:has(input[type="number"]),
+.epc-erp-content-body form .form-group:has(input[type="date"]),
+.epc-cp-content-inner form .form-group:has(input[type="number"]),
+.epc-cp-content-inner form .form-group:has(input[type="date"]) {
+    width: 8.5rem;
+}
+
 .epc-erp-content-body form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="file"]):not([type="image"]),
 .epc-erp-content-body form select,
 .epc-erp-content-body form textarea,
@@ -728,19 +997,19 @@ a.ns-kpi-card:hover .kv {
 
 .epc-erp-content-body form textarea,
 .epc-cp-content-inner form textarea {
-    min-height: 5rem;
+    min-height: 3.25rem;
+    max-width: 28rem;
     resize: vertical;
 }
 
-/* Inline width="6rem" leftovers were leaving tiny controls inside the field grid. */
+/* A written width is the size of that value (an id, a code). Do not stretch it. */
 .epc-erp-content-body form input[style],
 .epc-erp-content-body form select[style],
 .epc-erp-content-body form textarea[style],
 .epc-cp-content-inner form input[style],
 .epc-cp-content-inner form select[style],
 .epc-cp-content-inner form textarea[style] {
-    width: 100% !important;
-    max-width: 100% !important;
+    max-width: 100%;
     box-sizing: border-box;
 }
 
@@ -783,10 +1052,15 @@ a.ns-kpi-card:hover .kv {
 
 .epc-erp-content-body form > button,
 .epc-erp-content-body form > .btn,
+.epc-cp-content-inner form > button,
+.epc-cp-content-inner form > .btn {
+    grid-column: auto;
+    justify-self: start;
+    width: auto;
+}
+
 .epc-erp-content-body form > .form-actions,
 .epc-erp-content-body .form-actions,
-.epc-cp-content-inner form > button,
-.epc-cp-content-inner form > .btn,
 .epc-cp-content-inner form > .form-actions,
 .epc-cp-content-inner .form-actions {
     grid-column: 1 / -1;
@@ -894,7 +1168,8 @@ a.ns-kpi-card:hover .kv {
 
 .epc-erp-content-body .epc-fno-form {
     display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 14rem));
+    justify-content: start;
     max-width: 64rem;
 }
 
@@ -945,7 +1220,8 @@ a.ns-kpi-card:hover .kv {
 .epc-erp-content-body form .row,
 .epc-cp-content-inner form .row {
     display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 14rem));
+    justify-content: start;
     gap: var(--epc-form-gap);
     margin: 0 !important;
     width: 100%;
@@ -984,7 +1260,8 @@ a.ns-kpi-card:hover .kv {
 .epc-erp-content-body #erp-module-new.panel .panel-body > .row,
 .epc-cp-content-inner #erp-module-new.panel .panel-body > .row {
     display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 14rem));
+    justify-content: start;
     gap: var(--epc-form-gap);
     margin: 0 0 .75rem !important;
     width: 100%;
@@ -1021,7 +1298,8 @@ a.ns-kpi-card:hover .kv {
 .epc-cp-content-inner form .row > [class*="col-"]:has(textarea),
 .epc-erp-content-body form > .form-group:has(textarea),
 .epc-cp-content-inner form > .form-group:has(textarea) {
-    grid-column: 1 / -1;
+    grid-column: span 2;
+    max-width: 28rem;
 }
 
 /* A grouped block (purchase, sales, stock) keeps its own fields in a row.
@@ -1029,7 +1307,8 @@ a.ns-kpi-card:hover .kv {
 .epc-erp-content-body form fieldset,
 .epc-cp-content-inner form fieldset {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 14rem));
+    justify-content: start;
     gap: var(--epc-form-gap);
     align-items: end;
     min-width: 0;
@@ -1048,10 +1327,62 @@ a.ns-kpi-card:hover .kv {
     margin: 0;
 }
 
+/* A fieldset cannot be a grid in Chromium: the fields spill out of the card.
+   Sheet entry uses a plain grid so type, entity, and the CSV stay inside the page. */
+.epc-erp-content-body form.epc-sheet-entry,
+.epc-cp-content-inner form.epc-sheet-entry {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+.epc-sheet-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--epc-form-gap);
+    align-items: end;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.epc-sheet-grid > label,
+.epc-sheet-grid > .epc-erp-master-picker {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.epc-sheet-grid > .epc-sheet-entry__wide,
+.epc-sheet-grid > .form-actions,
+.epc-sheet-grid > .epc-erp-master-picker:has(textarea) {
+    grid-column: 1 / -1;
+}
+
+.epc-sheet-grid > .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+    justify-content: flex-start;
+    margin: .15rem 0 0;
+}
+
 .epc-sheet-entry textarea {
     min-height: 9rem;
     width: 100%;
+    max-width: 100%;
     resize: vertical;
+    box-sizing: border-box;
+}
+
+@media (max-width: 800px) {
+    .epc-sheet-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .epc-erp-content-body form div > label,
@@ -1460,6 +1791,13 @@ a.epc-d365-ws .epc-moddir-link:hover {
     .epc-erp-content-body .ns-hero,
     .epc-erp-content-body .ns-hero-metrics {
         grid-template-columns: 1fr !important;
+    }
+
+    .epc-erp-content-body form label,
+    .epc-cp-content-inner form label,
+    .epc-erp-content-body form .form-group,
+    .epc-cp-content-inner form .form-group {
+        max-width: 100%;
     }
 
     .epc-erp-facts dd {

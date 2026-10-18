@@ -55,6 +55,19 @@
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="@_appPath" IsAdmin="_isAdmin" />
     <PhpErpModulePageHeader Title="@_page.Label" Subtitle="@_page.Purpose" PhpTabHref="@_phpTab" />
     <p class="help-block"><strong>How to use.</strong> @ErpAreaUseGuide.UseFor(_area) <a href="@GuideHref">How to use every area</a></p>
+    @if (ShowBooks)
+    {
+        <p class="help-block">
+            <strong>Statements.</strong>
+            <a href="@BooksHref("pl")">Profit and loss</a>
+            · <a href="@BooksHref("balance_sheet")">Balance sheet</a>
+            · <a href="@BooksHref("pl", "company")">Company</a>
+            · <a href="@BooksHref("pl", "business_unit")">Business unit</a>
+            · <a href="@BooksHref("balance_sheet", "consolidation")">Consolidation</a>
+            · <a href="@ClientErpPath.PrefixIfBound(Http.HttpContext, WithCompany("/erp/trial-balance-app"))">Trial balance</a>
+            · <a href="@ClientErpPath.PrefixIfBound(Http.HttpContext, WithCompany("/erp/tax-external-reporting-app"))">External reporting</a>
+        </p>
+    }
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
     <div class="epc-d365-workspace">
@@ -83,6 +96,14 @@
             else if (ErpCustomerAr.IsInquiryTab(_page.Tab))
             {
                 <ErpCustomerArPanel />
+            }
+            else if (string.Equals(_page.Tab, ErpCreditApplication.Tab, StringComparison.OrdinalIgnoreCase))
+            {
+                <ErpCreditApplicationPanel />
+            }
+            else if (ErpCreditBlock.IsTab(_page.Tab))
+            {
+                <ErpCreditManagementPanel />
             }
             else
             {
@@ -294,7 +315,7 @@
                                     }
                                     <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
                                     <button type="submit" class="btn btn-primary btn-sm">Follow to form</button>
-                                    <a class="btn btn-sm btn-default" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, dedicated)">Open @StepLabel(edge.ToTab)</a>
+                                    <a class="btn btn-sm btn-default" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, WithCompany(dedicated))">Open @StepLabel(edge.ToTab)</a>
                                 </form>
                             }
                             else
@@ -434,7 +455,7 @@
             @if (!string.IsNullOrWhiteSpace(_page.ExistingHref))
             {
                 <p class="help-block">This page already has a dedicated form.
-                    <a class="btn btn-sm btn-primary" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, _page.ExistingHref)">Open @_page.Label</a>
+                    <a class="btn btn-sm btn-primary" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, WithCompany(_page.ExistingHref))">Open @_page.Label</a>
                 </p>
                 @if (AxFields.Count > 0)
                 {
@@ -791,8 +812,53 @@
     private string GuideHref
         => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/guide-app") + "#" + ErpAreaUseGuide.Anchor(_area);
 
+    private bool ShowBooks => _area is "gl" or "finance" or "general_ledger" or "cost_acct" or "cost_mgmt" or "consolidations";
+
+    private string BooksHref(string tab, string? level = null)
+    {
+        var path = "/erp/report-center-app?tab=" + Uri.EscapeDataString(tab);
+        if (!string.IsNullOrWhiteSpace(level))
+        {
+            path += "&level=" + Uri.EscapeDataString(level);
+        }
+        else if (_area == "consolidations")
+        {
+            path += "&level=consolidation";
+        }
+        else if (_area == "cost_acct")
+        {
+            path += "&level=business_unit";
+        }
+
+        return ClientErpPath.PrefixIfBound(Http.HttpContext, WithCompany(path));
+    }
+
+    private string WithCompany(string path)
+    {
+        if (_companyId <= 0 || path.Contains("company=", StringComparison.OrdinalIgnoreCase))
+        {
+            return path;
+        }
+
+        var hash = string.Empty;
+        var hashAt = path.IndexOf('#');
+        if (hashAt >= 0)
+        {
+            hash = path[hashAt..];
+            path = path[..hashAt];
+        }
+
+        var sep = path.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        return path + sep + "company=" + _companyId.ToString(CultureInfo.InvariantCulture) + hash;
+    }
+
     private string PageHref(ErpD365Part3Catalog.Page page)
-        => ClientErpPath.PrefixIfBound(Http.HttpContext, page.AppPath + "?tab=" + page.Tab);
+    {
+        var path = !string.IsNullOrWhiteSpace(page.ExistingHref)
+            ? page.ExistingHref
+            : page.AppPath + "?tab=" + Uri.EscapeDataString(page.Tab);
+        return ClientErpPath.PrefixIfBound(Http.HttpContext, WithCompany(path));
+    }
 
     private string TabClass(string tab)
         => string.Equals(_page.Tab, tab, StringComparison.OrdinalIgnoreCase) ? "active" : "";
@@ -863,7 +929,7 @@
         ?? _area;
 
     private string StepHref(string tab)
-        => ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365ProcessCatalog.HrefForTab(tab));
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, WithCompany(ErpD365ProcessCatalog.HrefForTab(tab)));
 
     private static string StepLabel(string tab)
         => ErpD365WorkspaceCatalog.TryGet(tab, out var page) ? page.Label : tab;

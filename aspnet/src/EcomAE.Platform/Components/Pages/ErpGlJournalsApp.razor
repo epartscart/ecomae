@@ -40,21 +40,34 @@
                 <label>Journal date <input type="datetime-local" value="@JournalDateInput" data-date-input required /></label>
                 <label>Reference <input type="text" name="reference" required maxlength="80" /></label>
                 <label>Description <input type="text" name="description" required maxlength="255" /></label>
+                <p class="text-muted">Put the debit and the credit on different business units or legal entities when the entry crosses them. The books add the intercompany receivable and payable so each unit still tallies. The same TRN is not a tax invoice. A different TRN charges VAT.</p>
                 <div class="epc-erp-table-wrap">
                     <table class="table table-bordered table-condensed table-epc epc-erp-table">
-                        <thead><tr><th>COA account</th><th>Debit</th><th>Credit</th><th>Line note</th></tr></thead>
+                        <thead><tr><th>COA account</th><th>Legal entity</th><th>Business unit</th><th>Debit</th><th>Credit</th><th>Line note</th></tr></thead>
                         <tbody>
                             <tr>
-                                <td><select name="lines[0].coaId" required><option value="">Select account</option>@foreach (var account in _coaAccounts) { <option value="@account.Id">@account.Code · @account.Name</option> }</select></td>
+                                <td><ErpMasterPicker Kind="coa" FieldName="lines[0].coaId" InputId="gl-line-0" Label="Account" Required="true" /></td>
+                                <td><ErpMasterPicker Kind="legal-entity" FieldName="lines[0].legalEntityId" InputId="gl-line-0-le" Label="Legal entity" /></td>
+                                <td><ErpMasterPicker Kind="business-unit" FieldName="lines[0].businessUnitId" InputId="gl-line-0-bu" Label="Business unit" /></td>
                                 <td><input type="number" name="lines[0].debit" min="0" step="0.01" value="0" required /></td>
                                 <td><input type="number" name="lines[0].credit" min="0" step="0.01" value="0" required /></td>
                                 <td><input type="text" name="lines[0].lineNote" maxlength="255" /></td>
                             </tr>
                             <tr>
-                                <td><select name="lines[1].coaId" required><option value="">Select account</option>@foreach (var account in _coaAccounts) { <option value="@account.Id">@account.Code · @account.Name</option> }</select></td>
+                                <td><ErpMasterPicker Kind="coa" FieldName="lines[1].coaId" InputId="gl-line-1" Label="Account" Required="true" /></td>
+                                <td><ErpMasterPicker Kind="legal-entity" FieldName="lines[1].legalEntityId" InputId="gl-line-1-le" Label="Legal entity" /></td>
+                                <td><ErpMasterPicker Kind="business-unit" FieldName="lines[1].businessUnitId" InputId="gl-line-1-bu" Label="Business unit" /></td>
                                 <td><input type="number" name="lines[1].debit" min="0" step="0.01" value="0" required /></td>
                                 <td><input type="number" name="lines[1].credit" min="0" step="0.01" value="0" required /></td>
                                 <td><input type="text" name="lines[1].lineNote" maxlength="255" /></td>
+                            </tr>
+                            <tr>
+                                <td><ErpMasterPicker Kind="coa" FieldName="lines[2].coaId" InputId="gl-line-2" Label="Account" /></td>
+                                <td><ErpMasterPicker Kind="legal-entity" FieldName="lines[2].legalEntityId" InputId="gl-line-2-le" Label="Legal entity" /></td>
+                                <td><ErpMasterPicker Kind="business-unit" FieldName="lines[2].businessUnitId" InputId="gl-line-2-bu" Label="Business unit" /></td>
+                                <td><input type="number" name="lines[2].debit" min="0" step="0.01" value="0" /></td>
+                                <td><input type="number" name="lines[2].credit" min="0" step="0.01" value="0" /></td>
+                                <td><input type="text" name="lines[2].lineNote" maxlength="255" /></td>
                             </tr>
                         </tbody>
                     </table>
@@ -216,7 +229,6 @@
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=gl";
     private bool _isAdmin;
     private IReadOnlyList<ErpGlJournalDigest> _journals = [];
-    private IReadOnlyList<ErpCoaAccountDigest> _coaAccounts = [];
     private int _posted;
     private int _unbalanced;
     private decimal _totalDebit;
@@ -331,8 +343,6 @@
         }
 
         var result = await Dashboards.ListErpGlJournalsAsync(_limit, ctx.RequestAborted);
-        var coa = await Dashboards.ListErpCoaAccountsAsync(500, ctx.RequestAborted);
-        _coaAccounts = coa.Accounts;
         _journals = result.Journals;
         _openedJournal = _openedId > 0 ? _journals.FirstOrDefault(j => j.Id == _openedId) : null;
         if (_openedJournal is not null)

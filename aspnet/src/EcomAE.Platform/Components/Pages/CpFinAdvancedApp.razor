@@ -20,6 +20,16 @@
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/erp/fin-advanced-app")</p>
                 <p>Open a period for company allocation rules, cost-centre allocations, FY accruals, and FX runs. Accrual save and FX revalue stay on this page.</p>
+                <p class="help-block">
+                    <strong>Statements.</strong>
+                    <a href="@BooksHref("pl")">Profit and loss</a>
+                    · <a href="@BooksHref("balance_sheet")">Balance sheet</a>
+                    · <a href="@BooksHref("pl", "company")">Company</a>
+                    · <a href="@BooksHref("pl", "business_unit")">Business unit</a>
+                    · <a href="@BooksHref("balance_sheet", "consolidation")">Consolidation</a>
+                    · <a href="@BooksHref("reports", null, "/erp/trial-balance-app")">Trial balance</a>
+                    · <a href="@BooksHref("reports", null, "/erp/tax-external-reporting-app")">External reporting</a>
+                </p>
             </div>
         </div>
     </div>
@@ -308,6 +318,7 @@
     private IReadOnlyList<CpFinAccrualDigest> _openedAccruals = [];
     private IReadOnlyList<CpFinFxRunDigest> _openedFxRuns = [];
     private string _listHref = "/erp/fin-advanced-app";
+    private int _companyId;
 
     private string OpenedCaption => _openedPeriod is null
         ? ""
@@ -320,6 +331,7 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _companyId = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
         var path = ctx.Request.Path.Value;
         _listHref = string.Equals(path, "/erp/fin-advanced-app", StringComparison.OrdinalIgnoreCase)
             ? "/erp/fin-advanced-app"
@@ -359,6 +371,24 @@
                 _message = detail.Message;
             }
         }
+    }
+
+    private string BooksHref(string tab, string? level = null, string? path = null)
+    {
+        var href = string.IsNullOrWhiteSpace(path)
+            ? "/erp/report-center-app?tab=" + Uri.EscapeDataString(tab)
+            : path;
+        if (!string.IsNullOrWhiteSpace(level))
+        {
+            href += (href.Contains('?', StringComparison.Ordinal) ? "&" : "?") + "level=" + Uri.EscapeDataString(level);
+        }
+
+        if (_companyId > 0 && !href.Contains("company=", StringComparison.OrdinalIgnoreCase))
+        {
+            href += (href.Contains('?', StringComparison.Ordinal) ? "&" : "?") + "company=" + _companyId.ToString(CultureInfo.InvariantCulture);
+        }
+
+        return href;
     }
 
     private static string FormatUnix(long unix)
