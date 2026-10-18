@@ -34,7 +34,8 @@ public interface IErpAdvanceVatService
         decimal paymentAmount,
         long salesOrderId,
         long paymentTime,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        string? treatment = null);
 
     /// <summary>
     /// PHP <c>epc_uae_vat_record_advance_on_payment</c> for a <c>1_pay_for_order</c> ledger row, on the caller's
@@ -57,7 +58,9 @@ public interface IErpAdvanceVatService
         decimal paymentAmount,
         long purchaseOrderId,
         long paymentTime,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        string? treatment = null,
+        bool supplierTaxInvoiceHeld = true);
 
     /// <summary>PHP <c>epc_erp_gl_post_advance_receipt</c>.</summary>
     Task<long> PostAdvanceReceiptGlAsync(
@@ -132,6 +135,10 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
             connection,
             "ALTER TABLE `epc_uae_vat_advance` ADD `einvoice_document_id` int(11) NOT NULL DEFAULT 0",
             cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_uae_vat_advance` ADD `treatment` varchar(32) NOT NULL DEFAULT ''",
+            cancellationToken).ConfigureAwait(false);
 
         await ErpDb.TryExecuteAsync(
             connection,
@@ -153,6 +160,10 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
             + " KEY `x_supplier` (`supplier_id`,`adjusted`),"
             + " KEY `x_time` (`payment_time`)"
             + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='UAE VAT on supplier advance payments'",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_uae_vat_supplier_advance` ADD `treatment` varchar(32) NOT NULL DEFAULT ''",
             cancellationToken).ConfigureAwait(false);
 
         await SeedCoaAsync(connection, cancellationToken).ConfigureAwait(false);
@@ -258,7 +269,8 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
         decimal paymentAmount,
         long salesOrderId,
         long paymentTime,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? treatment = null)
     {
         ArgumentNullException.ThrowIfNull(connection);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
@@ -286,8 +298,8 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
             return 0L;
         }
 
-        var split = await SplitInclusiveAsync(connection, amount, cancellationToken).ConfigureAwait(false);
-        if (split.VatAmount <= 0m)
+        var split = await SplitForTreatmentAsync(connection, amount, treatment, true, ErpUaeSupplyTax.Customer, cancellationToken).ConfigureAwait(false);
+        if (split.VatAmount <= 0m && !ExplicitTreatment(treatment))
         {
             return 0L;
         }
@@ -307,8 +319,8 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
             null,
             ErpDb.Positional(
                 "INSERT INTO `epc_uae_vat_advance` (`order_id`, `user_id`, `ledger_id`, `cash_entry_id`, `sales_order_id`,"
-                + " `source_type`, `payment_amount`, `amount_ex_vat`, `vat_amount`, `vat_rate`, `payment_time`, `time_created`)"
-                + " VALUES (?,?,0,?,?,'receipt',?,?,?,?,?,?)"),
+                + " `source_type`, `payment_amount`, `amount_ex_vat`, `vat_amount`, `vat_rate`, `payment_time`, `time_created`, `treatment`)"
+                + " VALUES (?,?,0,?,?,'receipt',?,?,?,?,?,?,?)"),
             cancellationToken,
             orderId,
             userId,
@@ -319,7 +331,8 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
             split.VatAmount,
             split.VatRate,
             now,
-            now).ConfigureAwait(false);
+            now,
+            ClipTreatment(treatment)).ConfigureAwait(false);
         return await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
     }
 
@@ -330,7 +343,9 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
         decimal paymentAmount,
         long purchaseOrderId,
         long paymentTime,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? treatment = null,
+        bool supplierTaxInvoiceHeld = true)
     {
         ArgumentNullException.ThrowIfNull(connection);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
@@ -341,7 +356,8 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
             return 0L;
         }
 
-        if (!await SupplierAdvanceApplicableAsync(connection, supplierId, cancellationToken).ConfigureAwait(false))
+        var explicitTreatment = ExplicitTreatment(treatment);
+        if (!explicitTreatment && !await SupplierAdvanceApplicableAsync(connection, supplierId, cancellationToken).ConfigureAwait(false))
         {
             return 0L;
         }
@@ -357,8 +373,8 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
             return 0L;
         }
 
-        var split = await SplitInclusiveAsync(connection, amount, cancellationToken).ConfigureAwait(false);
-        if (split.VatAmount <= 0m)
+        var split = await SplitForTreatmentAsync(connection, amount, treatment, supplierTaxInvoiceHeld, ErpUaeSupplyTax.Vendor, cancellationToken).ConfigureAwait(false);
+        if (split.VatAmount <= 0m && !explicitTreatment)
         {
             return 0L;
         }
@@ -369,8 +385,8 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
             null,
             ErpDb.Positional(
                 "INSERT INTO `epc_uae_vat_supplier_advance` (`supplier_id`, `cash_entry_id`, `purchase_order_id`,"
-                + " `payment_amount`, `amount_ex_vat`, `vat_amount`, `vat_rate`, `payment_time`, `time_created`)"
-                + " VALUES (?,?,?,?,?,?,?,?,?)"),
+                + " `payment_amount`, `amount_ex_vat`, `vat_amount`, `vat_rate`, `payment_time`, `time_created`, `treatment`)"
+                + " VALUES (?,?,?,?,?,?,?,?,?,?)"),
             cancellationToken,
             supplierId,
             cashEntryId,
@@ -380,7 +396,8 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
             split.VatAmount,
             split.VatRate,
             now,
-            now).ConfigureAwait(false);
+            now,
+            ClipTreatment(treatment)).ConfigureAwait(false);
         return await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
     }
 
@@ -409,7 +426,8 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
             throw new ErpWriteException("COA cash/2050 missing");
         }
 
-        var split = await SplitInclusiveAsync(connection, entry.Amount, cancellationToken).ConfigureAwait(false);
+        var registeredCustomer = await LoadCustomerAdvanceSplitAsync(connection, cashEntryId, cancellationToken).ConfigureAwait(false);
+        var split = registeredCustomer ?? await SplitInclusiveAsync(connection, entry.Amount, cancellationToken).ConfigureAwait(false);
         var vat = split.VatAmount;
         var ex = vat > 0m ? split.AmountExVat : entry.Amount;
         var outputVatCoaId = vat > 0m
@@ -569,6 +587,68 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
             reader.IsDBNull(4) ? 0L : reader.GetInt64(4),
             reader.IsDBNull(5) ? 0L : reader.GetInt64(5),
             reader.IsDBNull(6) ? "cash" : reader.GetString(6));
+    }
+
+    private static async Task<ErpAdvanceVatSplit> SplitForTreatmentAsync(
+        DbConnection connection,
+        decimal amount,
+        string? treatment,
+        bool supplierTaxInvoiceHeld,
+        string side,
+        CancellationToken cancellationToken)
+    {
+        if (!ExplicitTreatment(treatment))
+        {
+            return await SplitInclusiveAsync(connection, null, amount, cancellationToken).ConfigureAwait(false);
+        }
+
+        var document = ErpUaeSupplyTax.FromTreatment(treatment);
+        var rate = document.VatRate > 0m
+            ? await VatRatePercentAsync(connection, null, cancellationToken).ConfigureAwait(false)
+            : 0m;
+        var posting = ErpUaeSupplyTax.Advance(side, amount, document, supplierTaxInvoiceHeld, rate);
+        return new ErpAdvanceVatSplit(posting.Net, posting.Vat, posting.Rate);
+    }
+
+    private static bool ExplicitTreatment(string? treatment)
+    {
+        var value = (treatment ?? string.Empty).Trim();
+        return value.Length > 0 && !value.Equals("taxable", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string ClipTreatment(string? treatment)
+    {
+        var value = (treatment ?? string.Empty).Trim().ToLowerInvariant();
+        return value.Length <= 32 ? value : value[..32];
+    }
+
+    private static async Task<ErpAdvanceVatSplit?> LoadCustomerAdvanceSplitAsync(
+        DbConnection connection,
+        long cashEntryId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = ErpDb.Positional(
+                "SELECT `amount_ex_vat`, `vat_amount`, `vat_rate` FROM `epc_uae_vat_advance`"
+                + " WHERE `cash_entry_id` = ? AND `source_type` = 'receipt' LIMIT 1");
+            ErpDb.AddParameters(command, cashEntryId);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            return new ErpAdvanceVatSplit(
+                ErpTaxAmountCalculator.Round2(reader.GetDecimal(0)),
+                ErpTaxAmountCalculator.Round2(reader.GetDecimal(1)),
+                reader.IsDBNull(2) ? 0m : reader.GetDecimal(2));
+        }
+        catch (DbException)
+        {
+            return null;
+        }
     }
 
     private static async Task<ErpAdvanceVatSplit?> LoadSupplierAdvanceSplitAsync(

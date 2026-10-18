@@ -193,6 +193,7 @@ public static class ErpPhpTabRouteMap
         ["project_accounting"] = "/erp/project-accounting-app",
         ["real_estate"] = "/erp/real-estate-app",
         ["real_estate_guide"] = "/erp/real-estate-app?tab=guide",
+        ["real_estate_compliance"] = "/erp/real-estate-app?tab=compliance",
         ["real_estate_year_book"] = "/erp/landlord-app?year=2025",
         ["real_estate_leases"] = "/erp/real-estate-app?tab=leases",
         ["real_estate_expiry"] = "/erp/real-estate-app?tab=expiry",
