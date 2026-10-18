@@ -53,7 +53,8 @@ public sealed record CpTenantAdminUserRow(
     int OpenSessions,
     long LastVisit,
     string HowTheyLogin,
-    string Status);
+    string Status,
+    string Phone = "");
 
 public sealed record CpTenantAdminDirectory(
     IReadOnlyList<CpTenantAdminUserRow> Users,
@@ -164,7 +165,8 @@ public sealed class CpTenantAdminDirectoryService : ICpTenantAdminDirectoryServi
                || Contains(row.SiteKey, needle)
                || Contains(row.TradeName, needle)
                || Contains(row.DepartmentName, needle)
-               || Contains(row.HowTheyLogin, needle);
+               || Contains(row.HowTheyLogin, needle)
+               || Contains(row.Phone, needle);
     }
 
     public static bool AuditLooksSafe(string? detailJson)
@@ -422,7 +424,8 @@ public sealed class CpTenantAdminDirectoryService : ICpTenantAdminDirectoryServi
             """
             SELECT u.`user_id`, IFNULL(u.`email`,''), IFNULL(u.`unlocked`,0),
                    IFNULL(u.`time_last_visit`,0),
-                   IFNULL(p.`display_name`,''), IFNULL(p.`department_code`,'')
+                   IFNULL(p.`display_name`,''), IFNULL(p.`department_code`,''),
+                   IFNULL(u.`phone`,'')
             FROM `users` u
             LEFT JOIN `epc_erp_staff_profiles` p ON p.`user_id` = u.`user_id`
             ORDER BY u.`user_id` DESC
@@ -468,7 +471,8 @@ public sealed class CpTenantAdminDirectoryService : ICpTenantAdminDirectoryServi
                 open,
                 lastVisit,
                 HowTheyLogin(tenant.TenantType, tenant.SiteKey, tenant.Hostname, email),
-                StatusLabel(unlocked, open, lastVisit, registryOperator)));
+                StatusLabel(unlocked, open, lastVisit, registryOperator),
+                Convert.ToString(reader.GetValue(6), CultureInfo.InvariantCulture) ?? string.Empty));
         }
 
         return rows;

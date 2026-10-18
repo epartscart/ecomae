@@ -42,7 +42,7 @@
             Sales, finance, warehouse, and HR colleagues sign in with their own email and password.
             Bind them to a department — not the Administrator group — unless they must manage every module.
             They sign in with email + password on this company login. You can open any user’s sessions and audit below.
-            <a href="/erp/user-control-app">Current-session capabilities</a>
+            <a href="/erp/user-control-app">Control module access</a>
             · <a href="/erp/staff-app">Staff directory</a>
             · <a href="/erp/audit-trail-app">Full audit trail</a>
         </p>
@@ -153,7 +153,10 @@
                                         <td>@(row.Administrator ? "Administrator" : (row.ErpTeam ? "ERP department" : "department"))</td>
                                         <td>@row.OpenSessions.ToString(CultureInfo.InvariantCulture)</td>
                                         <td>@FormatTime(row.LastVisit)</td>
-                                        <td><a class="btn btn-xs btn-primary" href="@UserHref(row.UserId)">Open</a></td>
+                                        <td>
+                                            <a class="btn btn-xs btn-primary" href="@UserHref(row.UserId)">Open</a>
+                                            <a class="btn btn-xs btn-default" href="@("/erp/user-control-app?user_id=" + row.UserId.ToString(CultureInfo.InvariantCulture))">Access</a>
+                                        </td>
                                     </tr>
                                 }
                             }
