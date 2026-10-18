@@ -1,0 +1,288 @@
+@namespace EcomAE.Platform.Components.Shared
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IErpRealEstateLawFetchWriteService Fetch
+
+<section class="re-law" aria-label="Real estate law">
+    <header class="re-law__hero">
+        <p class="re-law__kicker">Pack @ErpRealEstateLaw.PackVersion · in force from @ErpRealEstateLaw.CivilCodeFrom</p>
+        <h2>Property law, one picture</h2>
+        <p>@ErpRealEstateLaw.CivilCode is the civil code. It replaced @ErpRealEstateLaw.FormerCivilCode. Dubai and Abu Dhabi keep their own land, lease, and off-plan rules. Fetch checks the public legislation pages and stamps this pack. The wording on this page is not replaced by a web page.</p>
+    </header>
+
+    <ol class="re-law__flow" aria-label="How a property file moves through the law">
+        @foreach (var step in ErpRealEstateLaw.Steps)
+        {
+            <li>
+                <b>@step.Number.ToString(CultureInfo.InvariantCulture)</b>
+                <strong>@step.Title</strong>
+                <span>@step.Body</span>
+            </li>
+        }
+    </ol>
+
+    <div class="re-law__cards" aria-label="The laws">
+        @foreach (var card in ErpRealEstateLaw.Cards)
+        {
+            <article>
+                <h3>@card.Title</h3>
+                <p>@card.Body</p>
+            </article>
+        }
+    </div>
+
+    <div class="re-law__split">
+        <section aria-label="VAT on property">
+            <h3>VAT on the property</h3>
+            <p>@ErpRealEstateLaw.VatLaw. The place of a service related to the property is where the property is.</p>
+            <div class="re-law__vat">
+                @foreach (var tile in ErpRealEstateLaw.VatTiles)
+                {
+                    <div class="@("tone-" + tile.Tone)">
+                        <strong>@tile.Use</strong>
+                        <span>@tile.Treatment</span>
+                    </div>
+                }
+            </div>
+        </section>
+        <section aria-label="Dubai rent increase">
+            <h3>Dubai renewal cap</h3>
+            <p>@ErpRealEstateLaw.DubaiRent, read from the rent index. Abu Dhabi renewals stop at 5 percent under @ErpRealEstateLaw.AbuDhabiCap.</p>
+            <ol class="re-law__ladder">
+                @foreach (var rung in ErpRealEstateLaw.DubaiLadder)
+                {
+                    <li>
+                        <span>@rung.Gap</span>
+                        <b>@rung.Cap</b>
+                    </li>
+                }
+            </ol>
+        </section>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_note))
+    {
+        <p class="re-law__note" role="status">@_note</p>
+    }
+    @if (_decision is not null)
+    {
+        <div class="@(_decision.Allowed ? "re-law__ok" : "re-law__block")" role="status">
+            <strong>@_decision.Message</strong>
+            <ul>
+                @foreach (var finding in _decision.Findings)
+                {
+                    <li class="@finding.Level">@finding.Text</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <form method="get" action="@PageAction" class="re-law__form">
+        <input type="hidden" name="tab" value="compliance" />
+        <label>Emirate
+            <select name="emirate">
+                <option value="dubai" selected="@Is("emirate", "dubai")">Dubai</option>
+                <option value="abu_dhabi" selected="@Is("emirate", "abu_dhabi")">Abu Dhabi</option>
+                <option value="other" selected="@Is("emirate", "other")">Another emirate</option>
+            </select>
+        </label>
+        <label>File
+            <select name="kind">
+                <option value="lease" selected="@Is("kind", "lease")">Lease</option>
+                <option value="sale" selected="@Is("kind", "sale")">Sale</option>
+                <option value="offplan" selected="@Is("kind", "offplan")">Off-plan</option>
+            </select>
+        </label>
+        <label>Use
+            <select name="use">
+                <option value="residential" selected="@Is("use", "residential")">Residential</option>
+                <option value="commercial" selected="@Is("use", "commercial")">Commercial</option>
+                <option value="hotel" selected="@Is("use", "hotel")">Hotel or serviced</option>
+                <option value="bare_land" selected="@Is("use", "bare_land")">Bare land</option>
+            </select>
+        </label>
+        <label>Registered
+            <select name="registered">
+                <option value="yes" selected="@Is("registered", "yes")">Yes</option>
+                <option value="no" selected="@Is("registered", "no")">No</option>
+            </select>
+        </label>
+        <label>Term years <input type="number" name="term" min="0" step="1" value="@_term" style="width:5rem" /></label>
+        <label>Current rent <input type="number" name="current" min="0" step="0.01" value="@_current" style="width:8rem" /></label>
+        <label>Index average <input type="number" name="average" min="0" step="0.01" value="@_average" style="width:8rem" /></label>
+        <label>Proposed rent <input type="number" name="proposed" min="0" step="0.01" value="@_proposed" style="width:8rem" /></label>
+        <label>Escrow
+            <select name="escrow">
+                <option value="na" selected="@Is("escrow", "na")">Not off-plan</option>
+                <option value="yes" selected="@Is("escrow", "yes")">Yes</option>
+                <option value="no" selected="@Is("escrow", "no")">No</option>
+            </select>
+        </label>
+        <label>First supply within 3 years
+            <select name="first">
+                <option value="unknown" selected="@Is("first", "unknown")">Not known</option>
+                <option value="yes" selected="@Is("first", "yes")">Yes</option>
+                <option value="no" selected="@Is("first", "no")">No</option>
+            </select>
+        </label>
+        <label>Claimed VAT
+            <select name="vat">
+                <option value="" selected="@Is("vat", "")">Use the pack</option>
+                <option value="exempt" selected="@Is("vat", "exempt")">Exempt</option>
+                <option value="zero" selected="@Is("vat", "zero")">Zero-rated</option>
+                <option value="standard" selected="@Is("vat", "standard")">5 percent</option>
+            </select>
+        </label>
+        <label>Amount AED <input type="number" name="amount" min="0" step="0.01" value="@_amount" style="width:8rem" /></label>
+        <label><input type="checkbox" name="foreign" value="yes" checked="@_foreign" /> Buyer is not a UAE national</label>
+        <label>Designated area
+            <select name="designated">
+                <option value="unknown" selected="@Is("designated", "unknown")">Not confirmed</option>
+                <option value="yes" selected="@Is("designated", "yes")">Yes</option>
+                <option value="no" selected="@Is("designated", "no")">No</option>
+            </select>
+        </label>
+        <button type="submit">Check this file</button>
+    </form>
+
+    @if (_isAdmin)
+    {
+        <form method="post" action="@FetchAction" class="re-law__form">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/real-estate-app?tab=compliance" />
+            <label><input type="checkbox" name="force" value="true" /> Force refetch</label>
+            <button type="submit">Fetch real-estate legislation</button>
+        </form>
+        <p class="re-law__links"><a href="@AmlHref">Open the AML pack</a> for a broker or agent. The covered line stays AED 55,000.</p>
+    }
+    else
+    {
+        <p>Sign in with ERP capability to fetch the legislation pages.</p>
+    }
+</section>
+
+<style>
+    .re-law { color: #1d2740; background: #f8fafc; border: 1px solid #c5d4de; border-radius: .5rem; padding: 1rem; }
+    .re-law h2, .re-law h3, .re-law p, .re-law li, .re-law label, .re-law option { color: #1d2740; }
+    .re-law__hero { background: #0b1f3a; color: #f6f1e7; border-radius: .4rem; padding: .9rem 1rem; margin: 0 0 .8rem; }
+    .re-law__hero h2, .re-law__hero p { color: #f6f1e7; }
+    .re-law__kicker { margin: 0 0 .2rem; color: #c4a35a !important; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; }
+    .re-law__flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .5rem; list-style: none; padding: 0; margin: 0 0 .8rem; }
+    .re-law__flow li { background: #fff; border: 1px solid #d5e0ea; border-top: 4px solid #1f4e79; border-radius: .35rem; padding: .55rem .6rem; }
+    .re-law__flow b { display: inline-block; background: #1f4e79; color: #fff; border-radius: 99px; width: 1.4rem; height: 1.4rem; text-align: center; line-height: 1.4rem; margin-right: .3rem; }
+    .re-law__flow strong, .re-law__flow span { display: block; }
+    .re-law__flow span { font-size: .82rem; }
+    .re-law__cards { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin: 0 0 .8rem; }
+    .re-law__cards article { background: #fff; border: 1px solid #d5e0ea; border-radius: .35rem; padding: .7rem .8rem; }
+    .re-law__cards h3 { margin: 0 0 .3rem; font-size: 1rem; }
+    .re-law__cards p { margin: 0; font-size: .88rem; }
+    .re-law__split { display: grid; grid-template-columns: 1.2fr .8fr; gap: .6rem; margin: 0 0 .8rem; }
+    .re-law__split section { background: #fff; border: 1px solid #d5e0ea; border-radius: .35rem; padding: .7rem .8rem; }
+    .re-law__vat { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .4rem; }
+    .re-law__vat div { border-radius: .3rem; padding: .45rem .5rem; }
+    .re-law__vat strong, .re-law__vat span { display: block; }
+    .re-law__vat .tone-exempt { background: #ecfdf5; }
+    .re-law__vat .tone-zero { background: #eff6ff; }
+    .re-law__vat .tone-standard { background: #fff7ed; }
+    .re-law__ladder { list-style: none; padding: 0; margin: 0; }
+    .re-law__ladder li { display: flex; justify-content: space-between; gap: .5rem; padding: .35rem 0; border-bottom: 1px solid #e6eaf1; }
+    .re-law__form { display: flex; flex-wrap: wrap; gap: .45rem; align-items: end; margin: .6rem 0; }
+    .re-law button { background: #1f4e79 !important; color: #fff !important; border: 0; border-radius: .25rem; padding: .35rem .75rem; }
+    .re-law select, .re-law input { color: #1d2740; background: #fff; }
+    .re-law__ok, .re-law__block { border-radius: .35rem; padding: .7rem .8rem; margin: .4rem 0; }
+    .re-law__ok { background: #ecfdf5; }
+    .re-law__block { background: #fef2f2; }
+    .re-law__ok li.block, .re-law__block li.block { color: #991b1b; }
+    .re-law__note { background: #fff; border: 1px solid #d5e0ea; border-radius: .3rem; padding: .5rem .7rem; }
+    .re-law__links a { color: #1f4e79; }
+    @@media (max-width: 980px) {
+        .re-law__flow, .re-law__cards, .re-law__split, .re-law__vat { grid-template-columns: 1fr; }
+    }
+</style>
+
+@code {
+    private bool _isAdmin;
+    private string _note = "";
+    private string _term = "";
+    private string _current = "";
+    private string _average = "";
+    private string _proposed = "";
+    private string _amount = "";
+    private bool _foreign;
+    private ErpRealEstateLawDecision? _decision;
+    private readonly Dictionary<string, string> _query = new(StringComparer.OrdinalIgnoreCase);
+
+    private string PageAction => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/real-estate-app");
+
+    private string FetchAction => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/real-estate/legislation-fetch");
+
+    private string AmlHref => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/aml-compliance-app");
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        foreach (var key in new[] { "emirate", "kind", "use", "registered", "escrow", "first", "vat", "designated" })
+        {
+            _query[key] = ctx.Request.Query[key].ToString();
+        }
+
+        _term = ctx.Request.Query["term"].ToString();
+        _current = ctx.Request.Query["current"].ToString();
+        _average = ctx.Request.Query["average"].ToString();
+        _proposed = ctx.Request.Query["proposed"].ToString();
+        _amount = ctx.Request.Query["amount"].ToString();
+        _foreign = ctx.Request.Query["foreign"].ToString() is "yes" or "true" or "1";
+        if (_query.Values.Any(value => !string.IsNullOrWhiteSpace(value)))
+        {
+            _decision = ErpRealEstateLaw.Check(new ErpRealEstateLawFile(
+                _query["emirate"],
+                _query["kind"],
+                _query["use"],
+                _query["registered"] is not "no",
+                Int(_term),
+                Dec(_current),
+                Dec(_average),
+                Dec(_proposed),
+                _query["escrow"],
+                _foreign,
+                _query["designated"],
+                _query["first"],
+                _query["vat"],
+                Dec(_amount)));
+        }
+
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        try
+        {
+            _note = await Fetch.NoteAsync(ctx.RequestAborted);
+        }
+        catch (Exception ex)
+        {
+            _note = ex.Message;
+        }
+    }
+
+    private bool Is(string key, string value)
+        => string.Equals(_query.TryGetValue(key, out var raw) ? raw : string.Empty, value, StringComparison.OrdinalIgnoreCase);
+
+    private static int Int(string raw)
+        => int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) ? value : 0;
+
+    private static decimal Dec(string raw)
+        => decimal.TryParse(raw, NumberStyles.Any, CultureInfo.InvariantCulture, out var value) ? value : 0m;
+}

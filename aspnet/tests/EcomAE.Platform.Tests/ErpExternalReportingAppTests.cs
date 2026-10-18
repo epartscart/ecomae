@@ -98,6 +98,8 @@ public sealed class ErpExternalReportingAppTests
         Assert.Contains("epc-ext-bars", vat.BodyHtml, StringComparison.Ordinal);
         Assert.Contains("PINT-AE", vat.BodyHtml, StringComparison.Ordinal);
         Assert.Contains("Field guide", vat.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("Drill down", vat.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("Article 65(5)", vat.BodyHtml, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", vat.BodyHtml, StringComparison.Ordinal);
 
         var ct = ErpExternalReportingBuild.Build(Input("tax__corporate_income_tax_return", from, to, 8_400_000m, 6_200_000m));
@@ -107,6 +109,10 @@ public sealed class ErpExternalReportingAppTests
         Assert.Contains("AED 375,000", ct.BodyHtml, StringComparison.Ordinal);
         Assert.Contains("epc-ext-bars", ct.BodyHtml, StringComparison.Ordinal);
         Assert.Equal("0% / 9%", ct.Summary.First(s => s.Label == "Rate").Value);
+        Assert.Contains("Ministerial Decision 131/2026", ct.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("31 December 2029", ct.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("EUR 750 million", ct.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("Drill down", ct.BodyHtml, StringComparison.Ordinal);
 
         var afs = ErpExternalReportingBuild.Build(Input("fin__annual_financial_statements", from, to, 8_400_000m, 5_800_000m));
         Assert.Contains("IFRS 18", afs.Title, StringComparison.Ordinal);
@@ -115,6 +121,10 @@ public sealed class ErpExternalReportingAppTests
         Assert.Contains("Statement of Cash Flows", afs.BodyHtml, StringComparison.Ordinal);
         Assert.Contains("Table of contents", afs.BodyHtml, StringComparison.Ordinal);
         Assert.Contains("IFRS / IAS applicability index", afs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("Drill down", afs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("ifrs-sales-drill", afs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("indirect-method starting point", afs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("residual category", afs.BodyHtml, StringComparison.Ordinal);
         Assert.Contains("INV-", afs.BodyHtml, StringComparison.Ordinal);
         Assert.Contains("BILL-", afs.BodyHtml, StringComparison.Ordinal);
         Assert.True(afs.BodyHtml.Split("class=\"epc-aud-sec", StringSplitOptions.None).Length - 1 >= 40);
