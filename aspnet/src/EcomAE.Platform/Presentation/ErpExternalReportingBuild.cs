@@ -198,7 +198,7 @@ public static class ErpExternalReportingBuild
         var css = "border:1px solid #e2e6ee;border-radius:6px;margin-bottom:18px;overflow:hidden;";
 
         var body = "<p class=\"text-muted\">Official <strong>FTA VAT 201</strong> return generated from posted ERP data at the "
-            + ErpExternalReportingHtml.H(rPct) + "% standard rate. Standard-rated supplies are allocated by Emirate; categories without a GL tag are filled with representative <span class=\"label label-warning\" style=\"font-size:9px;\">sample</span> figures so the full return is complete. Click any box to drill into the source transactions.</p>"
+            + ErpExternalReportingHtml.H(rPct) + "% standard rate. Standard-rated supplies are allocated by Emirate; categories without a GL tag are filled with representative <span class=\"label label-warning\" style=\"font-size:9px;\">sample</span> figures so the full return is complete. Use <strong>Drill down</strong> on a box to see the invoices. For a person on the electronic invoicing system, Article 65(5) of the VAT Decree-Law makes the electronic invoice the tax invoice. The VAT 201 is still the return filed with the Federal Tax Authority.</p>"
             + ErpExternalReportingHtml.FieldGuide("Field guide — what goes in each VAT 201 box (and why)",
                 "Plain-language explanation of every box so you know which figure belongs where before you file. Governing law: Federal Decree-Law 8/2017 & VAT Executive Regulations (FTA).",
                 VatGuide(), open: true)
@@ -306,7 +306,8 @@ public static class ErpExternalReportingBuild
         var lossCap = decimal.Round(taxableBeforeLoss * 0.75m, 2);
         var lossUsed = Math.Min(lossesBf, lossCap);
         var taxable = Math.Max(0m, taxableBeforeLoss - lossUsed);
-        var sbr = sales <= 3000000m;
+        var sbrWindow = input.To.Date <= new DateTime(2029, 12, 31);
+        var sbr = sbrWindow && sales <= 3000000m;
         var taxableAfterSbr = sbr ? 0m : taxable;
         var above = Math.Max(0m, taxableAfterSbr - threshold);
         var ctDue = decimal.Round(above * rate9 / 100m, 2);
@@ -339,7 +340,7 @@ public static class ErpExternalReportingBuild
         CtRow(t, "Taxable income before loss relief", taxableBeforeLoss, ccy, "sub", "");
         CtRow(t, "Less: tax losses brought forward (max 75%)", lossUsed, ccy, "less", "Art. 37 — cap " + ErpExternalReportingHtml.Money(lossCap, ccy));
         CtRow(t, "Taxable income", taxable, ccy, "sub", "");
-        if (sbr) CtRow(t, "Small Business Relief applied (revenue ≤ AED 3m)", null, ccy, "info", "Taxable income treated as nil — Ministerial Decision 73/2023");
+        if (sbr) CtRow(t, "Small Business Relief applied (revenue ≤ AED 3m)", null, ccy, "info", "Taxable income treated as nil — Ministerial Decision 73/2023, extended by Ministerial Decision 131/2026 to tax periods ending on or before 31 December 2029");
         CtRow(t, "Taxable income subject to tax", taxableAfterSbr, ccy, "sub", "");
         t.Append("</tbody></table>");
 
@@ -377,7 +378,8 @@ public static class ErpExternalReportingBuild
             })
             + "<h4 style=\"color:#1d2740;margin-top:18px;\">2 · Elections &amp; reliefs</h4>"
             + "<table class=\"table table-bordered table-condensed\" style=\"font-size:12.5px;max-width:860px;\"><thead><tr style=\"background:#f0f3f8;\"><th>Election / relief</th><th>Status</th><th>Basis</th></tr></thead><tbody>"
-            + Elect("Small Business Relief", sbr ? "Elected (revenue ≤ AED 3m)" : "Not available (revenue > AED 3m)", "Ministerial Decision 73/2023 — Art. 21")
+            + Elect("Small Business Relief", sbr ? "Elected (revenue ≤ AED 3m)" : sbrWindow ? "Not available (revenue > AED 3m)" : "Not available (tax period ends after 31 December 2029)", "Ministerial Decision 73/2023, as amended by Ministerial Decision 131/2026 — Art. 21. The AED 3m threshold applies to tax periods ending on or before 31 December 2029.")
+            + Elect("Domestic Minimum Top-up Tax", "Separate return — not in this 9% computation", "In-scope multinational groups with global revenue of EUR 750 million, for financial years starting on or after 1 January 2025")
             + Elect("Free Zone — Qualifying Free Zone Person (0%)", "No — mainland LLC", "Cabinet Decision 100/2023; 0% on qualifying income, 9% otherwise")
             + Elect("Realisation basis (unrealised gains/losses)", "Not elected", "Ministerial Decision 134/2023 — Art. 20(3)")
             + Elect("Transfers within a Qualifying Group", "Not applied", "Art. 26")
@@ -450,12 +452,12 @@ public static class ErpExternalReportingBuild
         if (use18)
         {
             body.Append(ErpExternalReportingHtml.FieldGuide("Field guide — IFRS 18 presentation",
-                "Five P&L categories and three mandatory subtotals. IAS 1 is superseded for presentation and disclosure. Early applied for FY"
-                + input.To.Year.ToString(CultureInfo.InvariantCulture) + " (mandatory for periods beginning on/after 1 Jan 2027).",
+                "Five categories in the statement of profit or loss. Operating is the residual category. Three mandatory subtotals. IAS 1 is withdrawn for presentation and disclosure. Early applied for FY"
+                + input.To.Year.ToString(CultureInfo.InvariantCulture) + ". Mandatory for annual periods beginning on or after 1 January 2027. The July 2026 tentative amendment on substitute tax charges is not applied.",
                 IfrsGuide(), open: true));
             body.Append("<div style=\"border:1px solid #0b6e99;border-radius:6px;padding:10px 14px;margin:0 0 10px;background:#f3fafd;max-width:820px;\">")
                 .Append("<div style=\"font-weight:800;color:#0b6e99;font-size:13px;\">Presented under IFRS 18 — Presentation and Disclosure in Financial Statements</div>")
-                .Append("<div style=\"font-size:11.5px;color:#355;margin-top:3px;\">Mandatory subtotals: operating profit or loss; profit or loss before financing and income taxes; and profit or loss.</div></div>");
+                .Append("<div style=\"font-size:11.5px;color:#355;margin-top:3px;\">This trading entity has no specified main business activity of investing or of providing finance to customers, so the face presents operating profit or loss, profit or loss before financing and income taxes, and profit or loss.</div></div>");
         }
 
         body.Append(ErpExternalReportingHtml.BarChart("Financial position &amp; result",
@@ -497,7 +499,15 @@ public static class ErpExternalReportingBuild
         var pbt = cur.Pbt;
         if (use18)
         {
+            body.Append(ErpExternalReportingHtml.BarChart("IFRS 18 categories",
+            [
+                ("Operating", opProfit, "#2b6cb0"),
+                ("Investing", 0, "#2f855a"),
+                ("Financing", cur.Interest, "#b7791f"),
+                ("Income taxes", cur.Tax, "#805ad5"),
+            ]));
             body.Append("<h4 style=\"margin-top:22px;border-bottom:2px solid #2b3a55;padding-bottom:4px;\">Statement of Profit or Loss (period — IFRS 18)</h4>");
+            body.Append("<p style=\"margin:0 0 8px;\"><button type=\"button\" class=\"btn btn-primary btn-sm epc-drill-btn\" onclick=\"var el=document.getElementById('ifrs-sales-drill');if(el)el.scrollIntoView({block:'start'});\">Drill down</button> <span class=\"text-muted\">Sales invoices and supplier bills that support the categories.</span></p>");
             body.Append(ErpExternalReportingHtml.AmtTable(
             [
                 ("Operating category", 0, "head"),
@@ -539,12 +549,31 @@ public static class ErpExternalReportingBuild
 
         body.Append("<h4 style=\"margin-top:22px;border-bottom:2px solid #2b3a55;padding-bottom:4px;\">Statement of Cash Flows</h4>");
         body.Append(ErpExternalReportingHtml.AmtTable(
-        [
-            ("Net cash from operating activities", ds.CfOperating, ""),
-            ("Net cash from investing activities", ds.CfInvesting, ""),
-            ("Net cash from financing activities", ds.CfFinancing, ""),
-            ("Net increase / (decrease) in cash", ds.CfNet, "total"),
-        ], ccy));
+            use18
+                ?
+                [
+                    ("Operating profit or loss — indirect-method starting point", opProfit, ""),
+                    ("Net cash from operating activities", ds.CfOperating, ""),
+                    ("Net cash from investing activities", ds.CfInvesting, ""),
+                    ("Net cash from financing activities", ds.CfFinancing, ""),
+                    ("Net increase / (decrease) in cash", ds.CfNet, "total"),
+                ]
+                :
+                [
+                    ("Net cash from operating activities", ds.CfOperating, ""),
+                    ("Net cash from investing activities", ds.CfInvesting, ""),
+                    ("Net cash from financing activities", ds.CfFinancing, ""),
+                    ("Net increase / (decrease) in cash", ds.CfNet, "total"),
+                ], ccy));
+        if (use18)
+        {
+            var salesDocs = Invoices(cur.Rev, decimal.Round(cur.Rev * 0.05m, 2), input.From, input.To, "IFRSREV");
+            var purchaseDocs = Invoices(cur.Cogs + cur.Opex, decimal.Round((cur.Cogs + cur.Opex) * 0.05m, 2), input.From, input.To, "IFRSEXP", true);
+            body.Append("<div id=\"ifrs-sales-drill\"></div>");
+            body.Append("<h4 style=\"margin-top:22px;border-bottom:2px solid #2b3a55;padding-bottom:4px;\">Source-document drill-down</h4>");
+            body.Append(ErpExternalReportingHtml.VatBox("Revenue", "Sales invoices supporting the operating category", cur.Rev, decimal.Round(cur.Rev * 0.05m, 2), ccy, !input.HasLiveFigures, salesDocs));
+            body.Append(ErpExternalReportingHtml.VatBox("Expenses", "Supplier bills supporting cost of sales and operating expenses", cur.Cogs + cur.Opex, decimal.Round((cur.Cogs + cur.Opex) * 0.05m, 2), ccy, !input.HasLiveFigures, purchaseDocs));
+        }
         body.Append("<h4 style=\"margin-top:22px;border-bottom:2px solid #2b3a55;padding-bottom:4px;\">Notes to the Financial Statements</h4><ol style=\"max-width:820px;\">");
         body.Append("<li style=\"margin-bottom:8px;\">Reporting entity — ").Append(ErpExternalReportingHtml.H(entity))
             .Append(consol ? " and its subsidiaries (the \"Group\")." : ".").Append("</li>");
@@ -672,21 +701,46 @@ public static class ErpExternalReportingBuild
             ("Current tax payable", cur.Tax, ""), ("Total liabilities", cur.TotalLiab, "sub"), ("Total equity", cur.TotalEquity, "sub"),
             ("Total liabilities & equity", cur.TotalLiab + cur.TotalEquity, "total"),
         ], ccy), true));
-        body.Append(ErpExternalReportingHtml.Section(sectionTitles[2], ErpExternalReportingHtml.AmtTable([
+        var opProfitLong = cur.Gross - cur.Opex - cur.Depr;
+        body.Append(ErpExternalReportingHtml.Section(sectionTitles[2],
+            (use18
+                ? ErpExternalReportingHtml.BarChart("IFRS 18 categories", [
+                    ("Operating", opProfitLong, "#2b6cb0"),
+                    ("Investing", 0m, "#2f855a"),
+                    ("Financing", cur.Interest, "#b7791f"),
+                    ("Income taxes", cur.Tax, "#805ad5"),
+                ]) + "<p style=\"margin:0 0 8px;\"><button type=\"button\" class=\"btn btn-primary btn-sm epc-drill-btn\" onclick=\"var el=document.getElementById('ifrs-sales-drill');if(el)el.scrollIntoView({block:'start'});\">Drill down</button> <span class=\"text-muted\">Sales invoices and supplier bills that support the categories.</span></p>"
+                : "")
+            + ErpExternalReportingHtml.AmtTable([
             ("Operating category", 0, "head"), ("Revenue (IFRS 15)", cur.Rev, ""), ("Cost of sales", -cur.Cogs, ""),
             ("Operating expenses", -cur.Opex, ""), ("Depreciation and amortisation", -cur.Depr, ""),
-            ("Operating profit or loss", cur.Gross - cur.Opex - cur.Depr, "sub"),
-            ("Profit or loss before financing and income taxes", cur.Gross - cur.Opex - cur.Depr, "sub"),
+            ("Operating profit or loss", opProfitLong, "sub"),
+            ("Investing category", 0, "head"),
+            ("Income and expenses from investments", 0, ""),
+            ("Profit or loss before financing and income taxes", opProfitLong, "sub"),
             ("Financing category", 0, "head"),
-            ("Finance costs", -cur.Interest, ""), ("Profit before tax", cur.Pbt, "sub"), ("Income tax", -cur.Tax, ""),
+            ("Finance costs", -cur.Interest, ""), ("Profit before tax", cur.Pbt, "sub"),
+            ("Income taxes category", 0, "head"),
+            ("Income tax", -cur.Tax, ""),
+            ("Discontinued operations category", 0, "head"),
+            ("Profit or loss from discontinued operations", 0, ""),
             ("Profit / (loss) for the period", cur.Profit, "total"),
         ], ccy) + ErpExternalReportingHtml.Commentary("IFRS 18 presentation", [
-            use18 ? "The face presents operating, investing, financing, income-tax and discontinued-operation categories with mandatory subtotals." : "The face follows the IFRS statement presentation applicable to the reporting period.",
+            use18 ? "Operating is the residual category. This trading entity presents the three mandatory subtotals. The indirect cash-flow method starts from operating profit. The July 2026 tentative amendment on substitute tax charges is not applied." : "The face follows the IFRS statement presentation applicable to the reporting period.",
         ]), true));
-        body.Append(ErpExternalReportingHtml.Section(sectionTitles[3], ErpExternalReportingHtml.AmtTable([
-            ("Net cash from operating activities", ds.CfOperating, ""), ("Net cash from investing activities", ds.CfInvesting, ""),
-            ("Net cash from financing activities", ds.CfFinancing, ""), ("Net increase / (decrease) in cash", ds.CfNet, "total"),
-        ], ccy), true));
+        body.Append(ErpExternalReportingHtml.Section(sectionTitles[3], ErpExternalReportingHtml.AmtTable(
+            use18
+                ?
+                [
+                    ("Operating profit or loss — indirect-method starting point", opProfitLong, ""),
+                    ("Net cash from operating activities", ds.CfOperating, ""), ("Net cash from investing activities", ds.CfInvesting, ""),
+                    ("Net cash from financing activities", ds.CfFinancing, ""), ("Net increase / (decrease) in cash", ds.CfNet, "total"),
+                ]
+                :
+                [
+                    ("Net cash from operating activities", ds.CfOperating, ""), ("Net cash from investing activities", ds.CfInvesting, ""),
+                    ("Net cash from financing activities", ds.CfFinancing, ""), ("Net increase / (decrease) in cash", ds.CfNet, "total"),
+                ], ccy), true));
         body.Append(ErpExternalReportingHtml.Section(sectionTitles[4], ErpExternalReportingHtml.AmtTable([
             ("Opening equity", cur.TotalEquity - cur.Profit, ""), ("Profit / (loss)", cur.Profit, ""),
             ("Owner contributions / share capital", cur.ShareCap, ""), ("Other reserves movement", cur.Reserves, ""),
@@ -758,6 +812,7 @@ public static class ErpExternalReportingBuild
             ("Finance costs", -cur.Interest, ""), ("Tax", -cur.Tax, ""), ("Profit / (loss)", cur.Profit, "total"),
             ("Total assets", cur.TotalAssets, ""), ("Total liabilities", cur.TotalLiab, ""), ("Total equity", cur.TotalEquity, "total"),
         ], ccy), true));
+        body.Append("<div id=\"ifrs-sales-drill\"></div>");
         body.Append(ErpExternalReportingHtml.Section(sectionTitles[36],
             salesSourceDocs.Length > 0
                 ? ErpExternalReportingHtml.SourceVatBox("Revenue", "Sales invoices supporting reported revenue", cur.Rev, decimal.Round(cur.Rev * TaxRate(country) / 100m, 2), ccy, false, salesSourceDocs)
@@ -785,8 +840,8 @@ public static class ErpExternalReportingBuild
             ("warn", "Auditor must replace sample rows with live evidence where flagged."),
         ]), true));
         body.Append(ErpExternalReportingHtml.Section(sectionTitles[41],
-            ErpExternalReportingHtml.FieldGuide("IFRS / IAS applicability index",
-                "The PHP reference carries an explicit standard-by-standard applicability matrix. The ASP.NET pack exposes the same review point for every annual report.",
+            ErpExternalReportingHtml.FieldGuide("Field guide — IFRS 18 presentation",
+                "Standard-by-standard review of the presentation requirements applied in this pack. The section heading remains the IFRS / IAS applicability index.",
                 IfrsGuide(), open: true)
             + ErpExternalReportingHtml.KvTable([
                 ("IFRS 18", use18 ? "Applied / early applied" : "Not yet effective", false),
@@ -981,7 +1036,15 @@ public static class ErpExternalReportingBuild
         };
         t.Append("<tr style=\"").Append(bg).Append("\"><td>").Append(ErpExternalReportingHtml.H(label)).Append("</td><td style=\"text-align:right;white-space:nowrap;\">");
         t.Append(amount is null ? "" : ErpExternalReportingHtml.H(ErpExternalReportingHtml.Money(amount.Value, ccy)));
-        t.Append("</td><td style=\"font-size:11px;color:#777;\">").Append(ErpExternalReportingHtml.H(basis)).Append("</td></tr>");
+        t.Append("</td><td style=\"font-size:11px;color:#777;\">").Append(ErpExternalReportingHtml.H(basis));
+        if (kind != "head" && !string.IsNullOrWhiteSpace(basis))
+        {
+            t.Append(" <details class=\"epc-ct-drill\"><summary style=\"cursor:pointer;display:inline;color:#1d4e89;font-weight:700;\">Drill down</summary><div>")
+                .Append(ErpExternalReportingHtml.H(label)).Append(" — ").Append(ErpExternalReportingHtml.H(basis))
+                .Append("</div></details>");
+        }
+
+        t.Append("</td></tr>");
     }
 
     private static string Elect(string label, string val, string basis)
@@ -998,7 +1061,7 @@ public static class ErpExternalReportingBuild
     private static IReadOnlyList<(string Field, string Why)> VatGuide() =>
     [
         ("Box 1a–1g — Standard-rated supplies (by Emirate)", "Your 5% taxable sales, split by the Emirate where the supply takes place (place-of-supply rule)."),
-        ("Box 2 — Tourist refunds", "VAT refunded to tourists under the Planet/FTA tourist-refund scheme. Entered as a negative because it reduces output VAT."),
+        ("Box 2 — Tourist refunds", "VAT on goods refunded to overseas tourists under the Planet scheme (Decision No. 2 of 2018, as amended by Decision No. 11 of 2026). The Federal Tax Authority prepopulates this box for an enrolled retailer and it is not editable. A negative amount reduces output VAT. The retailer pays that VAT to Planet, not again to the Authority."),
         ("Box 3 — Reverse-charge supplies", "Supplies where the buyer accounts for the VAT — imported services, or local B2B gold/diamonds."),
         ("Box 4 — Zero-rated supplies", "Sales taxed at 0%: exports, international transport, first supply of new residential, qualifying education/healthcare."),
         ("Box 5 — Exempt supplies", "Supplies with no VAT and no input-VAT recovery: residential lease, bare land, local passenger transport."),
@@ -1024,18 +1087,24 @@ public static class ErpExternalReportingBuild
         ("− Exempt income", "Qualifying dividends and participation gains (Art. 22–23)."),
         ("Interest limitation (30% EBITDA)", "Net interest deductible only up to the higher of 30% of tax-EBITDA or AED 12m."),
         ("Tax-loss relief (75% cap)", "Brought-forward losses offset up to 75% of current-year taxable income."),
-        ("Small Business Relief", "If revenue is ≤ AED 3m, elect SBR and be treated as having no taxable income."),
+        ("Small Business Relief", "If revenue is at or below AED 3m in this period and every earlier period, the person may elect Small Business Relief and be treated as having no taxable income. Ministerial Decision 131 of 2026 extends that election to tax periods ending on or before 31 December 2029."),
+        ("Domestic Minimum Top-up Tax", "A separate return for an in-scope multinational group with global revenue of EUR 750 million, for financial years starting on or after 1 January 2025. It is not part of the 9% computation on this return."),
         ("Tax bands (0% / 9%)", "Taxable income up to AED 375,000 is taxed at 0%; the excess at 9%."),
     ];
 
     private static IReadOnlyList<(string Field, string Why)> IfrsGuide() =>
     [
-        ("Operating category", "Revenue and expenses from the entity's main business activities."),
-        ("Investing category", "Income and expenses from investments and associates."),
-        ("Financing category", "Interest and other financing income / expenses."),
-        ("Income taxes category", "Current and deferred tax."),
-        ("Discontinued operations", "Profit or loss from disposal groups (IFRS 5)."),
-        ("Three mandatory subtotals", "Operating profit; profit before financing and income taxes; profit or loss."),
+        ("Operating category", "The residual category. It holds income and expenses that are not investing, financing, income taxes, or discontinued operations."),
+        ("Investing category", "Income and expenses from assets that generate a return individually and largely independently of the entity's other resources, including associates and, for most entities, cash and cash equivalents."),
+        ("Financing category", "Income and expenses from liabilities that arise only from raising finance, including borrowings and interest on lease liabilities."),
+        ("Specified main business activity", "An entity that invests in assets, or that provides financing to customers, as a main business activity classifies that income and those expenses in operating. It does not present profit before financing and income taxes, and it considers an additional subtotal instead."),
+        ("Income taxes category", "Income tax within the scope of IAS 12. The issued standard leaves other government charges in operating. A July 2026 tentative decision to move certain substitute charges into income taxes is not yet an amendment, so this report does not apply it."),
+        ("Discontinued operations", "Profit or loss from discontinued operations under IFRS 5, in its own category."),
+        ("Mandatory subtotals", "Operating profit or loss; profit or loss before financing and income taxes; and profit or loss. An extra subtotal is added only when it gives a useful structured summary."),
+        ("Management-defined performance measures", "A subtotal of income and expenses used in public communications outside the financial statements, other than a subtotal required by IFRS. Every measure is disclosed in one note, with a reconciliation to the closest IFRS subtotal."),
+        ("Expenses by nature", "When operating expenses are presented by function, the notes still disclose depreciation, amortisation, employee benefits, impairment, and inventory write-downs."),
+        ("Statement of cash flows", "The indirect method starts from operating profit or loss. For most entities, interest and dividends received are investing cash flows, and interest and dividends paid are financing cash flows."),
+        ("Effective date", "Annual periods beginning on or after 1 January 2027. Earlier application is permitted and is disclosed. Comparatives are restated. IAS 1 is withdrawn for presentation and disclosure."),
     ];
 
     private static IReadOnlyList<(string Doc, string Date, string Party, string Trn, decimal Net, decimal Vat)> Invoices(

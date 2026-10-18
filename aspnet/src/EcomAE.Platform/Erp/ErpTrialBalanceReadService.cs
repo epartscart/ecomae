@@ -43,7 +43,7 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
         var credit = lines.Sum(l => l.Credit);
         var closing = lines.Sum(l => l.Closing);
         var message = ErpTrialBalanceParameters.UsesUnitLedger(parameters.DimensionSet, parameters.BusinessUnitId)
-            ? "Business unit ledger uses posted journals only. Company opening balances stay on the company trial balance."
+            ? "Business unit ledger uses posted journals only. Company opening balances stay on the company trial balance. A journal across units keeps each unit in balance with the intercompany receivable and payable."
             : string.Empty;
 
         return new(
@@ -71,8 +71,8 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
                    IFNULL(a.`account_type`, '') AS account_type,
                    IFNULL(a.`normal_side`, '') AS normal_side,
                    IFNULL(a.`opening_balance`, 0) AS opening_balance,
-                   IFNULL(j.`company_id`, 0) AS company_id,
-                   IFNULL(j.`business_unit_id`, 0) AS business_unit_id,
+                   IFNULL(NULLIF(l.`legal_entity_id`, 0), IFNULL(j.`company_id`, 0)) AS company_id,
+                   IFNULL(NULLIF(l.`business_unit_id`, 0), IFNULL(j.`business_unit_id`, 0)) AS business_unit_id,
                    IFNULL(j.`journal_no`, '') AS journal_no,
                    IFNULL(j.`source_type`, '') AS source_type,
                    IFNULL(j.`reference`, '') AS reference,
@@ -195,8 +195,8 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
             INNER JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1
             INNER JOIN `epc_erp_coa_accounts` a ON a.`id` = l.`coa_id`
             WHERE a.`code` = @code
-              AND (@bu = 0 OR IFNULL(j.`business_unit_id`, 0) = @bu)
-              AND (@company = 0 OR IFNULL(j.`company_id`, 0) IN (@company, 0))
+              AND (@bu = 0 OR IFNULL(NULLIF(l.`business_unit_id`, 0), IFNULL(j.`business_unit_id`, 0)) = @bu)
+              AND (@company = 0 OR IFNULL(NULLIF(l.`legal_entity_id`, 0), IFNULL(j.`company_id`, 0)) IN (@company, 0))
             ORDER BY journal_unix DESC, j.`id` DESC
             LIMIT 200
             """;
