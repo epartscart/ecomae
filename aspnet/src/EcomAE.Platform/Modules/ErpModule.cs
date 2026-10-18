@@ -2422,7 +2422,8 @@ public sealed class ErpModule : ISurfaceModule
                     LiveWriteFormBinder.Flag(form, "auto_allocate", "autoAllocate"),
                     LiveWriteFormBinder.ParallelLongs(form, "alloc_invoice_id[]", "alloc_invoice_id", "allocInvoiceId"),
                     LiveWriteFormBinder.ParallelDecimals(form, "alloc_amount[]", "alloc_amount", "allocAmount"),
-                    LiveWriteFormBinder.UnixDate(form, "voc_date", "voucher_date", "entry_date"));
+                    LiveWriteFormBinder.UnixDate(form, "voc_date", "voucher_date", "entry_date"),
+                    LiveWriteFormBinder.Text(form, "supply_treatment", "supplyTreatment"));
             }
             else
             {
@@ -2463,6 +2464,7 @@ public sealed class ErpModule : ISurfaceModule
                         AllocAmounts = body.AllocAmount,
                         Note = body.Note ?? string.Empty,
                         Time = body.Time,
+                        SupplyTreatment = body.SupplyTreatment ?? string.Empty,
                     },
                     session.UserId,
                     cancellationToken);
@@ -2500,7 +2502,9 @@ public sealed class ErpModule : ISurfaceModule
                     LiveWriteFormBinder.Flag(form, "auto_allocate", "autoAllocate"),
                     LiveWriteFormBinder.ParallelLongs(form, "alloc_invoice_id[]", "alloc_invoice_id", "allocInvoiceId"),
                     LiveWriteFormBinder.ParallelDecimals(form, "alloc_amount[]", "alloc_amount", "allocAmount"),
-                    LiveWriteFormBinder.UnixDate(form, "voc_date", "voucher_date", "entry_date"));
+                    LiveWriteFormBinder.UnixDate(form, "voc_date", "voucher_date", "entry_date"),
+                    LiveWriteFormBinder.Text(form, "supply_treatment", "supplyTreatment"),
+                    !form.ContainsKey("supplier_tax_invoice") || LiveWriteFormBinder.Flag(form, "supplier_tax_invoice", "supplierTaxInvoice"));
             }
             else
             {
@@ -2540,6 +2544,8 @@ public sealed class ErpModule : ISurfaceModule
                         Reference = body.Reference ?? string.Empty,
                         Note = body.Note ?? string.Empty,
                         Time = body.Time,
+                        SupplyTreatment = body.SupplyTreatment ?? string.Empty,
+                        SupplierTaxInvoiceHeld = body.SupplierTaxInvoice,
                     },
                     session.UserId,
                     cancellationToken);
@@ -30127,7 +30133,8 @@ public sealed class ErpModule : ISurfaceModule
         bool AutoAllocate = false,
         IReadOnlyList<long>? AllocInvoiceId = null,
         IReadOnlyList<decimal>? AllocAmount = null,
-        long Time = 0);
+        long Time = 0,
+        string? SupplyTreatment = null);
     private sealed record ErpPaymentVoucherBody(
         long SupplierId,
         long AccountId,
@@ -30141,7 +30148,9 @@ public sealed class ErpModule : ISurfaceModule
         bool AutoAllocate = false,
         IReadOnlyList<long>? AllocInvoiceId = null,
         IReadOnlyList<decimal>? AllocAmount = null,
-        long Time = 0);
+        long Time = 0,
+        string? SupplyTreatment = null,
+        bool SupplierTaxInvoice = true);
     private sealed record ErpSupplierCreateBody(
         string? Name, string? ContactEmail = null, bool ConfirmWrites = false, long StorageId = 0, string? ContactPhone = null, string? Trn = null,
         string? CurrencyCode = null, string? CountryCode = null, string? VatRegistered = null, string? VendorAccount = null, string? VendorGroup = null,
