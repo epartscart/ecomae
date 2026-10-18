@@ -23,10 +23,12 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
             : SessionCommandTimeoutSeconds;
 
     private readonly ITenantDbConnectionFactory _connections;
+    private readonly Microsoft.Extensions.Logging.ILogger<DbLegacySessionStore>? _log;
 
-    public DbLegacySessionStore(ITenantDbConnectionFactory connections)
+    public DbLegacySessionStore(ITenantDbConnectionFactory connections, Microsoft.Extensions.Logging.ILogger<DbLegacySessionStore>? log = null)
     {
         _connections = connections;
+        _log = log;
     }
 
     public bool IsConfigured => _connections.IsConfigured;
@@ -37,7 +39,10 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
     public Task<bool> CustomerSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default)
         => ExistsAsync(LegacySessionSql.CountCustomerSession, sessionToken, userId, cancellationToken);
 
-    public async Task<LegacyAdminIdentity?> GetAdminIdentityAsync(int userId, CancellationToken cancellationToken = default)
+    public Task<LegacyAdminIdentity?> GetAdminIdentityAsync(int userId, CancellationToken cancellationToken = default)
+        => GetAdminIdentityAsync(userId, null, cancellationToken);
+
+    public async Task<LegacyAdminIdentity?> GetAdminIdentityAsync(int userId, DbConnection? sharedConnection, CancellationToken cancellationToken = default)
     {
         if (!_connections.IsConfigured || userId <= 0)
         {
@@ -46,26 +51,40 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            var email = await ScalarStringAsync(connection, LegacySessionSql.SelectUserEmail, userId, cancellationToken).ConfigureAwait(false) ?? string.Empty;
-            var userGroups = await IntListAsync(connection, LegacySessionSql.SelectUserGroupIds, "@userId", userId, cancellationToken).ConfigureAwait(false);
-            var backendGroups = await IntListAsync(connection, LegacySessionSql.SelectBackendGroupIds, null, null, cancellationToken).ConfigureAwait(false);
-            if (backendGroups.Count == 0)
+            if (sharedConnection is not null)
             {
-                // PHP epc_auth_backend_group_ids falls back to group id 3 when none marked for_backend.
-                backendGroups = [3];
+                return await LoadIdentityAsync(sharedConnection, userId, cancellationToken).ConfigureAwait(false);
             }
 
-            var backendSet = backendGroups.ToHashSet();
-            var hasBackend = userGroups.Any(backendSet.Contains);
-            var effectiveGroups = await ExpandGroupAncestryAsync(connection, userGroups, cancellationToken).ConfigureAwait(false);
-            var modules = await LoadModuleAclAsync(connection, effectiveGroups, cancellationToken).ConfigureAwait(false);
-            return new LegacyAdminIdentity(email, userGroups, hasBackend, modules);
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            return await LoadIdentityAsync(connection, userId, cancellationToken).ConfigureAwait(false);
         }
-        catch
+        catch (Exception ex)
         {
+            _log?.LogWarning(ex, "Admin identity load failed userId={UserId} db={Database}", userId, sharedConnection?.Database);
             return null;
         }
+    }
+
+    private static async Task<LegacyAdminIdentity?> LoadIdentityAsync(
+        DbConnection connection,
+        int userId,
+        CancellationToken cancellationToken)
+    {
+        var email = await ScalarStringAsync(connection, LegacySessionSql.SelectUserEmail, userId, cancellationToken).ConfigureAwait(false) ?? string.Empty;
+        var userGroups = await IntListAsync(connection, LegacySessionSql.SelectUserGroupIds, "@userId", userId, cancellationToken).ConfigureAwait(false);
+        var backendGroups = await IntListAsync(connection, LegacySessionSql.SelectBackendGroupIds, null, null, cancellationToken).ConfigureAwait(false);
+        if (backendGroups.Count == 0)
+        {
+            // PHP epc_auth_backend_group_ids falls back to group id 3 when none marked for_backend.
+            backendGroups = [3];
+        }
+
+        var backendSet = backendGroups.ToHashSet();
+        var hasBackend = userGroups.Any(backendSet.Contains);
+        var effectiveGroups = await ExpandGroupAncestryAsync(connection, userGroups, cancellationToken).ConfigureAwait(false);
+        var modules = await LoadModuleAclAsync(connection, effectiveGroups, cancellationToken).ConfigureAwait(false);
+        return new LegacyAdminIdentity(email, userGroups, hasBackend, modules);
     }
 
     /// <summary>
