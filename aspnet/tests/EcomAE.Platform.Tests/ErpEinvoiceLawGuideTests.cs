@@ -27,6 +27,9 @@ public sealed class ErpEinvoiceLawGuideTests
     {
         var page = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpEinvoiceDocumentsApp.razor"));
         Assert.Contains("Visual guide", page, StringComparison.Ordinal);
+        Assert.Contains("Overall summary", page, StringComparison.Ordinal);
+        Assert.Contains("Drill down", page, StringComparison.Ordinal);
+        Assert.Contains("epc-ei-board", page, StringComparison.Ordinal);
         Assert.Contains("Five corners", page, StringComparison.Ordinal);
         Assert.Contains("ErpEinvoiceLaw.Corners", page, StringComparison.Ordinal);
         Assert.Contains("ErpEinvoiceLaw.Phases", page, StringComparison.Ordinal);

@@ -71,6 +71,9 @@ public sealed record ErpReceiptVoucherInput
     public string Note { get; init; } = string.Empty;
 
     public long Time { get; init; }
+
+    /// <summary>Empty or taxable keeps the 5 percent advance split. Any other code follows the UAE supply decision.</summary>
+    public string SupplyTreatment { get; init; } = string.Empty;
 }
 
 public sealed record ErpPaymentVoucherInput
@@ -100,6 +103,12 @@ public sealed record ErpPaymentVoucherInput
     public string Note { get; init; } = string.Empty;
 
     public long Time { get; init; }
+
+    /// <summary>Empty or taxable keeps the 5 percent advance split. Any other code follows the UAE supply decision.</summary>
+    public string SupplyTreatment { get; init; } = string.Empty;
+
+    /// <summary>Input VAT on a vendor advance is booked only when the supplier tax invoice is held.</summary>
+    public bool SupplierTaxInvoiceHeld { get; init; } = true;
 }
 
 /// <summary>PHP <c>epc_erp_transfer_voucher</c> payload.</summary>
@@ -466,7 +475,8 @@ public sealed class ErpCashWriteService : IErpCashWriteService
                 amount,
                 input.SalesOrderId,
                 time,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                input.SupplyTreatment).ConfigureAwait(false);
             var advanceJournalId = await TryPostAdvanceAsync(connection, cashEntryId, true, adminId, cancellationToken).ConfigureAwait(false);
             await LogAsync(connection, adminId, "receipt_voucher", cashEntryId, "Customer advance receipt posted", voucherNo, amount, cancellationToken).ConfigureAwait(false);
             return new ErpCashEntryResult(cashEntryId, voucherNo, advanceJournalId, ledgerId, true, 0m, amount);
@@ -674,7 +684,9 @@ public sealed class ErpCashWriteService : IErpCashWriteService
                 amount,
                 input.PurchaseOrderId,
                 time,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                input.SupplyTreatment,
+                input.SupplierTaxInvoiceHeld).ConfigureAwait(false);
             var advanceJournalId = await TryPostAdvanceAsync(connection, cashEntryId, false, adminId, cancellationToken).ConfigureAwait(false);
             await LogAsync(connection, adminId, "payment_voucher", cashEntryId, "Supplier advance payment posted", voucherNo, amount, cancellationToken).ConfigureAwait(false);
             return new ErpCashEntryResult(cashEntryId, voucherNo, advanceJournalId, 0, true, 0m, amount);
