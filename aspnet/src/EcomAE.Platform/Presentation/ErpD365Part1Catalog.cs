@@ -539,7 +539,8 @@ public static class ErpD365Part1Catalog
         yield return P(a, "cc_workflows", "Credit management workflows", "Setup", "Approval workflow for credit holds and limit changes.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/workflow-app", "fa-sitemap");
         yield return P(a, "cc_interest_setup", "Set up interest codes", "Setup", "Interest calculation method and ledger.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-cogs");
         yield return P(a, "cc_letter_sequence", "Set up collection letter sequence", "Setup", "Which letter is sent at each aging step.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-sort-numeric-asc");
-        yield return P(a, "cc_blocking_rules", "Blocking rules", "Setup", "Invoice blocking by account hold, credit limit, limit expiry, days overdue, overdue amount, and payment terms.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-ban");
+        yield return P(a, "cc_credit_application", "Credit application", "Credit management", "Credit application with a trade license and, for each partner, a passport, visa, and Emirates ID. Expired papers and papers inside one month block the invoice.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-id-card");
+        yield return P(a, "cc_blocking_rules", "Blocking rules", "Setup", "Invoice blocking by account hold, credit limit, limit expiry, days overdue, overdue amount, payment terms, and credit documents.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-ban");
         yield return P(a, "cc_scoring", "Scoring groups", "Setup", "Risk scores used to set a credit limit.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-star");
     }
 

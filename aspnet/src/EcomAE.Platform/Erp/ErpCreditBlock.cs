@@ -44,9 +44,10 @@ public static class ErpCreditBlock
         int GraceDays,
         bool OverdueAmount,
         decimal OverdueThreshold,
-        bool TermsOfPayment)
+        bool TermsOfPayment,
+        bool Documents = true)
     {
-        public static Rules Defaults { get; } = new(true, true, 100m, 0m, true, true, 1, 0, true, 0.01m, true);
+        public static Rules Defaults { get; } = new(true, true, 100m, 0m, true, true, 1, 0, true, 0.01m, true, true);
     }
 
     public sealed record Decision(

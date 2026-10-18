@@ -1,0 +1,205 @@
+@namespace EcomAE.Platform.Components.Shared
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IErpOrderSplitService Splits
+
+<style>
+    .epc-split { margin: 0 0 1rem; padding: .9rem 1rem; border: 1px solid #c5d4de; border-radius: .4rem; background: #f8fafc; color: #1d2740; }
+    .epc-split h2 { margin: 0 0 .4rem; font-size: 1.05rem; color: #1d2740; }
+    .epc-split p, .epc-split li, .epc-split label, .epc-split td, .epc-split th, .epc-split option { color: #1d2740; }
+    .epc-split button { background: #1f4e79 !important; color: #fff !important; border: 0; border-radius: .25rem; padding: .35rem .75rem; }
+    .epc-split select, .epc-split input, .epc-split textarea { color: #1d2740; background: #fff; }
+    .epc-split table { width: 100%; border-collapse: collapse; margin-top: .5rem; }
+    .epc-split th, .epc-split td { text-align: left; padding: .35rem .45rem; border-bottom: 1px solid #d5e0ea; }
+    .epc-split form { display: flex; flex-wrap: wrap; gap: .45rem; align-items: end; margin: .6rem 0; }
+    .epc-split .epc-split-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; margin: .6rem 0; }
+    .epc-split .epc-split-steps article { background: #fff; border: 1px solid #d5e0ea; border-top: 4px solid #1f4e79; border-radius: .35rem; padding: .5rem .6rem; }
+    @@media (max-width: 900px) {
+        .epc-split .epc-split-steps { grid-template-columns: 1fr 1fr; }
+    }
+</style>
+
+<section class="epc-split" aria-label="Partial confirmation and delivery">
+    <h2>Partial confirmation and delivery</h2>
+    <p>Confirm, deliver, or invoice part of a @SideName. The quantity that is not delivered stays a backorder until that backorder is cancelled. One order can have many deliveries and many invoices. One delivery, or one invoice, can list lines from several @SidePlural.</p>
+    <div class="epc-split-steps">
+        <article><strong>1 Confirm</strong><span> Accept part of the order. Delivery and invoice cannot pass the confirmed quantity.</span></article>
+        <article><strong>2 Deliver</strong><span> Ship or receive part of what was confirmed. Post another delivery for the rest.</span></article>
+        <article><strong>3 Invoice</strong><span> Invoice part of what was confirmed. The same order can be invoiced again later.</span></article>
+        <article><strong>4 Backorder</strong><span> Ordered @Example.Ordered.ToString("0.###", CultureInfo.InvariantCulture), confirmed @Example.Confirmed.ToString("0.###", CultureInfo.InvariantCulture), delivered @Example.Delivered.ToString("0.###", CultureInfo.InvariantCulture). Backorder @Example.Backorder.ToString("0.###", CultureInfo.InvariantCulture) until it is cancelled.</span></article>
+    </div>
+
+    @if (!_isAdmin)
+    {
+        <p>Sign in with ERP capability to post a partial confirmation, delivery, or invoice.</p>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(_message))
+        {
+            <p>@_message</p>
+        }
+        <form method="post" action="@PostAction">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@ReturnPath" />
+            <label>Action
+                <select name="action">
+                    <option value="confirm">Partial confirmation</option>
+                    <option value="deliver">Partial delivery</option>
+                    <option value="invoice">Partial invoice</option>
+                    <option value="cancel_backorder">Cancel backorder</option>
+                </select>
+            </label>
+            <label>Order <input type="number" name="order_id" min="1" value="@OrderValue" style="width:6rem" /></label>
+            <label>Line <input type="number" name="line_id" min="1" value="@_lineId" style="width:6rem" /></label>
+            <label>Quantity <input type="number" name="qty" min="0" step="0.001" value="@_qty" style="width:6rem" /></label>
+            <label>Several orders, one document
+                <textarea name="lines" rows="3" cols="28" placeholder="order:line:qty"></textarea>
+            </label>
+            <button type="submit">Post</button>
+        </form>
+        <p>Leave the box empty to post the single order line. To put several orders on one delivery or one invoice, enter one <code>order:line:qty</code> on each row.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Line</th>
+                    <th>Item</th>
+                    <th>Ordered</th>
+                    <th>Confirmed</th>
+                    <th>Delivered</th>
+                    <th>Invoiced</th>
+                    <th>Backorder</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_lines.Count == 0)
+                {
+                    <tr><td colspan="7">Open an order to see its backorder. A new order starts with nothing confirmed.</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _lines)
+                    {
+                        <tr>
+                            <td>@row.LineId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Description) ? "—" : row.Description)</td>
+                            <td>@row.Ordered.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                            <td>@row.Confirmed.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                            <td>@row.Delivered.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                            <td>@row.Invoiced.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                            <td>@row.Backorder.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+        @if (_documents.Count > 0)
+        {
+            <table>
+                <thead><tr><th>Document</th><th>Action</th><th>Quantity</th></tr></thead>
+                <tbody>
+                    @foreach (var doc in _documents)
+                    {
+                        <tr>
+                            <td>@doc.DocNo</td>
+                            <td>@ErpOrderSplit.ActionLabel(doc.Action)</td>
+                            <td>@doc.Qty.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    }
+</section>
+
+@code {
+    [Parameter]
+    public string Side { get; set; } = ErpOrderSplit.Sales;
+
+    [Parameter]
+    public long OrderId { get; set; }
+
+    private bool _isAdmin;
+    private string _message = "";
+    private string _lineId = "";
+    private string _qty = "";
+    private IReadOnlyList<ErpOrderSplitLineRow> _lines = [];
+    private IReadOnlyList<ErpOrderSplitDocRow> _documents = [];
+
+    private ErpOrderSplit.Line Example { get; } = Sample();
+
+    private string SideName => string.Equals(Side, ErpOrderSplit.Purchase, StringComparison.OrdinalIgnoreCase) ? "purchase order" : "sales order";
+
+    private string SidePlural => string.Equals(Side, ErpOrderSplit.Purchase, StringComparison.OrdinalIgnoreCase) ? "purchase orders" : "sales orders";
+
+    private string OrderValue => OrderId > 0 ? OrderId.ToString(CultureInfo.InvariantCulture) : "";
+
+    private string PostAction => ClientErpPath.PrefixIfBound(
+        Http.HttpContext,
+        string.Equals(Side, ErpOrderSplit.Purchase, StringComparison.OrdinalIgnoreCase)
+            ? "/erp/purchase-orders/split"
+            : "/erp/sales-orders/split");
+
+    private string ReturnPath
+    {
+        get
+        {
+            var purchase = string.Equals(Side, ErpOrderSplit.Purchase, StringComparison.OrdinalIgnoreCase);
+            var path = purchase ? "/erp/purchase-orders-app" : "/erp/sales-orders-app";
+            if (OrderId <= 0)
+            {
+                return path;
+            }
+
+            var key = purchase ? "po_id" : "so_id";
+            return path + "?" + key + "=" + OrderId.ToString(CultureInfo.InvariantCulture);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (long.TryParse(ctx.Request.Query["line"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var line) && line > 0)
+        {
+            _lineId = line.ToString(CultureInfo.InvariantCulture);
+        }
+
+        _qty = ctx.Request.Query["qty"].ToString();
+        if (!_isAdmin || OrderId <= 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var snap = await Splits.LoadAsync(Side, OrderId, ctx.RequestAborted);
+            _lines = snap.Lines;
+            _documents = snap.Documents;
+        }
+        catch (Exception ex)
+        {
+            _message = ex.Message;
+        }
+    }
+
+    private static ErpOrderSplit.Line Sample()
+    {
+        var line = new ErpOrderSplit.Line(1, 1, 10m, 0m, 0m, 0m, 0m);
+        line = ErpOrderSplit.Apply(line, ErpOrderSplit.Confirm, 6m);
+        line = ErpOrderSplit.Apply(line, ErpOrderSplit.Deliver, 4m);
+        return ErpOrderSplit.Apply(line, ErpOrderSplit.Invoice, 4m);
+    }
+}

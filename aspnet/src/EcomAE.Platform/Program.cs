@@ -510,6 +510,8 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpVoucherNumberService, EcomAE.
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTaxAmountCalculator, EcomAE.Platform.Erp.ErpTaxAmountCalculator>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAuditLogWriter, EcomAE.Platform.Erp.ErpAuditLogWriter>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSalesOrderWriteService, EcomAE.Platform.Erp.ErpSalesOrderWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOrderSplitService, EcomAE.Platform.Erp.ErpOrderSplitService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShippingPackService, EcomAE.Platform.Erp.ErpShippingPackService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryReservationWriteService, EcomAE.Platform.Erp.ErpInventoryReservationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlPostingService, EcomAE.Platform.Erp.ErpGlPostingService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSettlementAllocationService, EcomAE.Platform.Erp.ErpSettlementAllocationService>();
@@ -827,6 +829,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGoldRateSetWriteService, Ecom
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlKycSaveWriteService, EcomAE.Platform.Erp.ErpAmlKycSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlAlertStatusWriteService, EcomAE.Platform.Erp.ErpAmlAlertStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlLegislationFetchWriteService, EcomAE.Platform.Erp.ErpAmlLegislationFetchWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRealEstateLawFetchWriteService, EcomAE.Platform.Erp.ErpRealEstateLawFetchWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlCheckWriteService, EcomAE.Platform.Erp.ErpAmlCheckWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlSeedRulesWriteService, EcomAE.Platform.Erp.ErpAmlSeedRulesWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlSettingsSaveWriteService, EcomAE.Platform.Erp.ErpAmlSettingsSaveWriteService>();

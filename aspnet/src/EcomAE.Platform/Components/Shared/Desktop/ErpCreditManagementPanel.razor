@@ -33,6 +33,7 @@
         <li><strong>Days overdue.</strong> The oldest open invoice blocks the next invoice once the overdue days, after grace days, reach the threshold.</li>
         <li><strong>Overdue amount.</strong> The sum of overdue invoices blocks the next invoice when it passes the threshold.</li>
         <li><strong>Payment terms.</strong> Invoice terms longer than the allowed terms are blocked.</li>
+        <li><strong>Credit documents.</strong> A missing, expired, or soon-to-expire trade license, passport, visa, Emirates ID, or application period blocks the invoice. Each partner is checked separately.</li>
     </ul>
     <p>A customer with no credit profile is not blocked. Turning the hold off, or raising the limit, is how a blocked invoice is released. Supplier invoices are not part of this check.</p>
 
@@ -98,6 +99,7 @@
             <label><input type="checkbox" name="block_overdue_amount" value="true" checked="@_rules.OverdueAmount" /> Overdue amount</label>
             <label>Overdue threshold <input type="number" name="overdue_threshold" min="0" step="0.01" value="@_rules.OverdueThreshold.ToString("0.00", CultureInfo.InvariantCulture)" style="width:7rem" /></label>
             <label><input type="checkbox" name="block_terms" value="true" checked="@_rules.TermsOfPayment" /> Payment terms</label>
+            <label><input type="checkbox" name="block_documents" value="true" checked="@_rules.Documents" /> Credit documents</label>
             <button type="submit">Save blocking rules</button>
         </form>
 

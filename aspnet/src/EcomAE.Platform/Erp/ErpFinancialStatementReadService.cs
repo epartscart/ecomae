@@ -136,11 +136,30 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
 
         var (rate, reporting, rateNote) = await ResolveRateAsync(
             connection, accounting, requested, cancellationToken).ConfigureAwait(false);
+        ErpHeadOfficeMoney.Result? headOffice = null;
+        if (query.Level == ErpFinancialStatementLevel.Consolidation)
+        {
+            var office = requested.Length == 3 ? requested : accounting;
+            headOffice = await TryHeadOfficeAsync(
+                connection,
+                office,
+                query.Kind == ErpFinancialStatementKind.ProfitAndLoss,
+                cancellationToken).ConfigureAwait(false);
+            if (headOffice is { Applied: true })
+            {
+                rate = 1m;
+                accounting = headOffice.Currency;
+                reporting = headOffice.Currency;
+                rateNote = headOffice.Note;
+            }
+        }
 
         List<RawLine> raw;
         try
         {
-            raw = await LoadAccountsAsync(connection, query, cancellationToken).ConfigureAwait(false);
+            raw = headOffice is { Applied: true }
+                ? HeadOfficeRows(headOffice)
+                : await LoadAccountsAsync(connection, query, cancellationToken).ConfigureAwait(false);
         }
         catch (DbException ex)
         {
@@ -173,7 +192,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             }
         }
 
-        if (query.Level == ErpFinancialStatementLevel.Consolidation)
+        if (query.Level == ErpFinancialStatementLevel.Consolidation && headOffice is not { Applied: true })
         {
             var ledger = await LoadIcLedgerEliminationsAsync(connection, cancellationToken).ConfigureAwait(false);
             var useLedger = Math.Abs(ledger.Income) + Math.Abs(ledger.Expense) + Math.Abs(ledger.Asset) + Math.Abs(ledger.Liability) >= 0.005m;
@@ -186,7 +205,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             AddElim(built, "ELIM-LIAB", "Intercompany liability eliminated", "liability", -elimLiability, ref liabilities);
         }
 
-        if (built.Count == 0 && query.Level == ErpFinancialStatementLevel.Consolidation)
+        if (built.Count == 0 && query.Level == ErpFinancialStatementLevel.Consolidation && headOffice is not { Applied: true })
         {
             var figures = await LoadFiguresAsync(connection, cancellationToken).ConfigureAwait(false);
             if (figures is not null)
@@ -246,10 +265,12 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         var message = query.Level switch
         {
             ErpFinancialStatementLevel.BusinessUnit => "Posted ledger for this business unit. Opening balances stay on the company statement.",
-            ErpFinancialStatementLevel.Consolidation => "Consolidated posted ledger. Active elimination rules clear intercompany sales, purchases, receivables, and payables.",
+            ErpFinancialStatementLevel.Consolidation => headOffice is { Applied: true }
+                ? headOffice.Note
+                : "Consolidated posted ledger. Active elimination rules clear intercompany sales, purchases, receivables, and payables.",
             _ => "Posted ledger for this company. Accounts with no movement stay on the statement at zero.",
         };
-        if (rateNote.Length > 0)
+        if (rateNote.Length > 0 && !message.Contains(rateNote, StringComparison.Ordinal))
         {
             message = message + " " + rateNote;
         }
@@ -608,6 +629,179 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         {
             return null;
         }
+    }
+
+    private static async Task<ErpHeadOfficeMoney.Result?> TryHeadOfficeAsync(
+        DbConnection connection,
+        string reporting,
+        bool profitAndLoss,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var slices = await LoadCurrencySlicesAsync(connection, cancellationToken).ConfigureAwait(false);
+            var ledger = await LoadIcLedgerEliminationsAsync(connection, cancellationToken).ConfigureAwait(false);
+            var useLedger = Math.Abs(ledger.Income) + Math.Abs(ledger.Expense) + Math.Abs(ledger.Asset) + Math.Abs(ledger.Liability) >= 0.005m;
+            var elim = useLedger
+                ? ledger
+                : await LoadEliminationsAsync(connection, cancellationToken).ConfigureAwait(false);
+            var currency = OneCurrency(slices);
+            AddSlice(slices, "ELIM-REV", "Intercompany revenue eliminated", "revenue", currency, -elim.Income);
+            AddSlice(slices, "ELIM-EXP", "Intercompany expense eliminated", "expense", currency, -elim.Expense);
+            AddSlice(slices, "ELIM-ASSET", "Intercompany asset eliminated", "asset", currency, -elim.Asset);
+            AddSlice(slices, "ELIM-LIAB", "Intercompany liability eliminated", "liability", currency, -elim.Liability);
+            var rates = await LoadRatesAsync(connection, cancellationToken).ConfigureAwait(false);
+            var result = ErpHeadOfficeMoney.Consolidate(slices, reporting, rates, profitAndLoss);
+            return result.Applied ? result : null;
+        }
+        catch (DbException)
+        {
+            return null;
+        }
+    }
+
+    private static void AddSlice(
+        List<ErpHeadOfficeMoney.Slice> slices,
+        string code,
+        string name,
+        string type,
+        string currency,
+        decimal amount)
+    {
+        if (Math.Abs(amount) < 0.005m)
+        {
+            return;
+        }
+
+        slices.Add(new ErpHeadOfficeMoney.Slice(code, name, type, currency, amount));
+    }
+
+    private static string OneCurrency(IReadOnlyList<ErpHeadOfficeMoney.Slice> slices)
+    {
+        string currency = "";
+        foreach (var slice in slices)
+        {
+            var code = ErpHeadOfficeMoney.Code(slice.Currency);
+            if (code.Length != 3)
+            {
+                continue;
+            }
+
+            if (currency.Length == 0)
+            {
+                currency = code;
+            }
+            else if (!currency.Equals(code, StringComparison.Ordinal))
+            {
+                return "AED";
+            }
+        }
+
+        return currency.Length == 3 ? currency : "AED";
+    }
+
+    private static List<RawLine> HeadOfficeRows(ErpHeadOfficeMoney.Result result)
+    {
+        var rows = new List<RawLine>();
+        foreach (var line in result.Lines)
+        {
+            var debit = line.Amount > 0m ? line.Amount : 0m;
+            var credit = line.Amount < 0m ? -line.Amount : 0m;
+            rows.Add(new RawLine(line.Code, line.Name, line.Type, "debit", 0m, debit, credit));
+        }
+
+        return rows;
+    }
+
+    private static async Task<List<ErpHeadOfficeMoney.Slice>> LoadCurrencySlicesAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await ReadCurrencySlicesAsync(connection, true, cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            return await ReadCurrencySlicesAsync(connection, false, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static async Task<List<ErpHeadOfficeMoney.Slice>> ReadCurrencySlicesAsync(
+        DbConnection connection,
+        bool withEntity,
+        CancellationToken cancellationToken)
+    {
+        var currency = withEntity
+            ? """
+              UPPER(SUBSTRING(TRIM(CASE
+                  WHEN CHAR_LENGTH(TRIM(IFNULL(j.`currency_code`, ''))) >= 3 THEN j.`currency_code`
+                  WHEN CHAR_LENGTH(TRIM(IFNULL(e.`currency_code`, ''))) >= 3 THEN e.`currency_code`
+                  ELSE 'AED' END), 1, 3))
+              """
+            : """
+              UPPER(SUBSTRING(TRIM(CASE
+                  WHEN CHAR_LENGTH(TRIM(IFNULL(j.`currency_code`, ''))) >= 3 THEN j.`currency_code`
+                  ELSE 'AED' END), 1, 3))
+              """;
+        var entity = withEntity
+            ? " LEFT JOIN `epc_erp_pm_legal_entities` e ON e.`id` = IFNULL(NULLIF(l.`legal_entity_id`, 0), j.`company_id`) AND e.`active` = 1"
+            : "";
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "SELECT IFNULL(a.`code`, ''), IFNULL(a.`name`, ''), IFNULL(a.`account_type`, ''), IFNULL(a.`normal_side`, 'debit'),"
+            + " IFNULL(SUM(l.`debit`), 0), IFNULL(SUM(l.`credit`), 0), " + currency
+            + " FROM `epc_erp_coa_accounts` a"
+            + " INNER JOIN `epc_erp_gl_lines` l ON l.`coa_id` = a.`id`"
+            + " INNER JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1"
+            + entity
+            + " WHERE a.`active` = 1"
+            + " GROUP BY a.`id`, a.`code`, a.`name`, a.`account_type`, a.`normal_side`, " + currency;
+        var rows = new List<ErpHeadOfficeMoney.Slice>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var side = reader.GetString(3);
+            var debits = reader.GetDecimal(4);
+            var credits = reader.GetDecimal(5);
+            var amount = string.Equals(side, "credit", StringComparison.OrdinalIgnoreCase)
+                ? credits - debits
+                : debits - credits;
+            if (Math.Abs(amount) < 0.005m)
+            {
+                continue;
+            }
+
+            rows.Add(new ErpHeadOfficeMoney.Slice(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2).Trim().ToLowerInvariant(),
+                reader.GetString(6),
+                amount));
+        }
+
+        return rows;
+    }
+
+    private static async Task<IReadOnlyList<ErpHeadOfficeMoney.Rate>> LoadRatesAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        var rates = new List<ErpHeadOfficeMoney.Rate>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT IFNULL(`base_currency`, ''), IFNULL(`target_currency`, ''), `rate`
+            FROM `epc_fx_rates`
+            WHERE `rate` > 0
+            ORDER BY `effective_date`, `id`
+            """;
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rates.Add(new ErpHeadOfficeMoney.Rate(reader.GetString(0), reader.GetString(1), reader.GetDecimal(2)));
+        }
+
+        return rates;
     }
 
     private static async Task<string> AccountingCurrencyAsync(
