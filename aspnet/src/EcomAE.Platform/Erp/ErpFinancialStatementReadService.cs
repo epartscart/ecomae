@@ -21,14 +21,26 @@ public sealed record ErpFinancialStatementQuery(
     ErpFinancialStatementLevel Level,
     int CompanyId,
     long BusinessUnitId,
-    string ReportingCurrency)
+    string ReportingCurrency,
+    DateOnly? FromDate = null,
+    DateOnly? ToDate = null)
 {
+    public long FromUnix => FromDate is null
+        ? 0
+        : new DateTimeOffset(FromDate.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero).ToUnixTimeSeconds();
+
+    public long ToUnix => ToDate is null
+        ? 0
+        : new DateTimeOffset(ToDate.Value.ToDateTime(new TimeOnly(23, 59, 59)), TimeSpan.Zero).ToUnixTimeSeconds();
+
     public static ErpFinancialStatementQuery FromQuery(
         string? tab,
         string? level,
         string? company,
         string? businessUnit,
-        string? currency)
+        string? currency,
+        string? from = null,
+        string? to = null)
     {
         var kind = string.Equals(tab, "balance_sheet", StringComparison.OrdinalIgnoreCase)
             ? ErpFinancialStatementKind.BalanceSheet
@@ -47,7 +59,14 @@ public sealed record ErpFinancialStatementQuery(
             code = code[..8];
         }
 
-        return new(kind, scope, companyId < 0 ? 0 : companyId, unitId < 0 ? 0 : unitId, code);
+        var fromDate = ErpTrialBalanceParameters.ParseDate(from);
+        var toDate = ErpTrialBalanceParameters.ParseDate(to);
+        if (fromDate is not null && toDate is not null && toDate < fromDate)
+        {
+            (fromDate, toDate) = (toDate, fromDate);
+        }
+
+        return new(kind, scope, companyId < 0 ? 0 : companyId, unitId < 0 ? 0 : unitId, code, fromDate, toDate);
     }
 }
 
@@ -94,6 +113,17 @@ public interface IErpFinancialStatementReadService
 /// </summary>
 public sealed class ErpFinancialStatementReadService : IErpFinancialStatementReadService
 {
+    private const string JournalUnix =
+        "(CASE WHEN j.`journal_date` IS NULL THEN 0 WHEN j.`journal_date` < 100000000 THEN IFNULL(UNIX_TIMESTAMP(STR_TO_DATE(CAST(j.`journal_date` AS CHAR), '%Y%m%d')), 0) ELSE j.`journal_date` END)";
+
+    private const string ProfitCloseSql =
+        "j.`source_type` = 'adjustment' AND ("
+        + "LOWER(CONCAT(IFNULL(j.`journal_no`,''),' ',IFNULL(j.`reference`,''),' ',IFNULL(j.`description`,''))) LIKE '%year-end close%'"
+        + " OR LOWER(CONCAT(IFNULL(j.`journal_no`,''),' ',IFNULL(j.`reference`,''),' ',IFNULL(j.`description`,''))) LIKE '%year end close%'"
+        + " OR LOWER(CONCAT(IFNULL(j.`journal_no`,''),' ',IFNULL(j.`reference`,''),' ',IFNULL(j.`description`,''))) LIKE '%closing transaction%'"
+        + " OR LOWER(CONCAT(IFNULL(j.`journal_no`,''),' ',IFNULL(j.`reference`,''),' ',IFNULL(j.`description`,''))) LIKE '%profit and loss close%'"
+        + " OR LOWER(CONCAT(IFNULL(j.`journal_no`,''),' ',IFNULL(j.`reference`,''),' ',IFNULL(j.`description`,''))) LIKE '%p&l close%'"
+        + ")";
     private readonly IErpWriteConnectionFactory _connections;
 
     public ErpFinancialStatementReadService(IErpWriteConnectionFactory connections)
@@ -174,8 +204,8 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         var built = new List<(string Code, string Name, string Type, decimal Amount)>();
         foreach (var row in raw)
         {
-            var amount = Signed(row, query.Level);
-            var type = row.Type;
+            var amount = Signed(row, query);
+            var type = ErpAccountClass.Normalize(row.Type, row.Code);
             if (type is "revenue" or "income") income += amount;
             else if (type == "expense") expense += amount;
             else if (type == "asset") assets += amount;
@@ -268,7 +298,11 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             ErpFinancialStatementLevel.Consolidation => headOffice is { Applied: true }
                 ? headOffice.Note
                 : "Consolidated posted ledger. Active elimination rules clear intercompany sales, purchases, receivables, and payables.",
-            _ => "Posted ledger for this company. Accounts with no movement stay on the statement at zero.",
+            _ => query.Kind == ErpFinancialStatementKind.ProfitAndLoss && query.FromDate is not null
+                ? "Profit and loss for the selected dates. Income, expenses, and gross profit stay on this statement. The year-end close remains on retained earnings."
+                : query.Kind == ErpFinancialStatementKind.BalanceSheet && query.ToDate is not null
+                    ? "Balance sheet through the selected end date. Income, expenses, and gross profit for these dates stay visible. The year-end close is in retained earnings and is not added again."
+                    : "Posted ledger for this company. Accounts with no movement stay on the statement at zero.",
         };
         if (rateNote.Length > 0 && !message.Contains(rateNote, StringComparison.Ordinal))
         {
@@ -329,9 +363,12 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         total += amount;
     }
 
-    private static decimal Signed(RawLine row, ErpFinancialStatementLevel level)
+    private static decimal Signed(RawLine row, ErpFinancialStatementQuery query)
     {
-        var opening = level == ErpFinancialStatementLevel.BusinessUnit ? 0m : row.Opening;
+        var opening = query.Level == ErpFinancialStatementLevel.BusinessUnit
+            || (query.Kind == ErpFinancialStatementKind.ProfitAndLoss && query.FromDate is not null)
+            ? 0m
+            : row.Opening;
         return string.Equals(row.Side, "credit", StringComparison.OrdinalIgnoreCase)
             ? opening + row.Credits - row.Debits
             : opening + row.Debits - row.Credits;
@@ -359,17 +396,24 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         var filter = query.Level switch
         {
             ErpFinancialStatementLevel.BusinessUnit => " AND IFNULL(NULLIF(l.`business_unit_id`, 0), IFNULL(j.`business_unit_id`, 0)) = @unitId",
-            ErpFinancialStatementLevel.Company when query.CompanyId > 0 => " AND IFNULL(NULLIF(l.`legal_entity_id`, 0), IFNULL(j.`company_id`, 0)) IN (@companyId, 0)",
+            ErpFinancialStatementLevel.Company when query.CompanyId > 0 => " AND (IFNULL(j.`company_id`, 0) IN (0, @companyId) OR IFNULL(l.`legal_entity_id`, 0) = @companyId)",
             _ => string.Empty,
         };
+        var fromUnix = query.Kind == ErpFinancialStatementKind.ProfitAndLoss ? query.FromUnix : 0L;
+        var toUnix = query.ToUnix;
+        var excludeClose = query.Kind == ErpFinancialStatementKind.ProfitAndLoss ? 1 : 0;
+        var posted = "j.`id` IS NOT NULL"
+            + " AND (@fromUnix = 0 OR " + JournalUnix + " >= @fromUnix)"
+            + " AND (@toUnix = 0 OR " + JournalUnix + " <= @toUnix)"
+            + " AND (@excludeClose = 0 OR NOT (" + ProfitCloseSql + "))";
         command.CommandText =
             "SELECT IFNULL(a.`code`, '') AS code,"
             + " IFNULL(a.`name`, '') AS name,"
             + " IFNULL(a.`account_type`, '') AS account_type,"
             + " IFNULL(a.`normal_side`, 'debit') AS normal_side,"
             + " IFNULL(a.`opening_balance`, 0) AS opening_balance,"
-            + " IFNULL(SUM(CASE WHEN j.`id` IS NOT NULL THEN l.`debit` ELSE 0 END), 0) AS debits,"
-            + " IFNULL(SUM(CASE WHEN j.`id` IS NOT NULL THEN l.`credit` ELSE 0 END), 0) AS credits"
+            + " IFNULL(SUM(CASE WHEN " + posted + " THEN l.`debit` ELSE 0 END), 0) AS debits,"
+            + " IFNULL(SUM(CASE WHEN " + posted + " THEN l.`credit` ELSE 0 END), 0) AS credits"
             + " FROM `epc_erp_coa_accounts` a"
             + " LEFT JOIN `epc_erp_gl_lines` l ON l.`coa_id` = a.`id`"
             + " LEFT JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1"
@@ -377,6 +421,9 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             + " WHERE a.`active` = 1"
             + " GROUP BY a.`id`, a.`code`, a.`name`, a.`account_type`, a.`normal_side`, a.`opening_balance`"
             + " ORDER BY a.`code`";
+        Add(command, "@fromUnix", fromUnix);
+        Add(command, "@toUnix", toUnix);
+        Add(command, "@excludeClose", excludeClose);
         if (query.Level == ErpFinancialStatementLevel.BusinessUnit)
         {
             Add(command, "@unitId", query.BusinessUnitId);

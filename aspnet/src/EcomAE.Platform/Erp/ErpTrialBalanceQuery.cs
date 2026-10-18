@@ -85,7 +85,7 @@ public sealed record ErpTrialBalanceParameters(
             }
         }
 
-        var parsedLimit = 500;
+        var parsedLimit = 2000;
         if (int.TryParse(limit, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) && n > 0)
         {
             parsedLimit = Math.Min(n, 2000);
@@ -467,4 +467,8 @@ public sealed record ErpTrialBalanceResult(
     decimal CreditTotal,
     decimal ClosingTotal,
     string Source,
-    string Message);
+    string Message,
+    decimal Income = 0,
+    decimal Expenses = 0,
+    decimal GrossProfit = 0,
+    decimal NetProfit = 0);

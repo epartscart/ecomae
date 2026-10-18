@@ -110,10 +110,7 @@ public static class ErpIfrs18Face
         var other = operating.Where(line => IsExpense(line) && !IsCostOfSales(line.Name)).ToList();
 
         AddSection(rows, "Operating", revenue.Concat(cost).Concat(other));
-        if (revenue.Count > 0 || cost.Count > 0)
-        {
-            rows.Add(Subtotal(GrossProfit, Sum(revenue) - Sum(cost), SumReporting(revenue) - SumReporting(cost)));
-        }
+        rows.Add(Subtotal(GrossProfit, Sum(revenue) - Sum(cost), SumReporting(revenue) - SumReporting(cost)));
 
         var operatingProfit = Sum(operating.Where(line => !IsExpense(line))) - Sum(operating.Where(IsExpense));
         var operatingReporting = SumReporting(operating.Where(line => !IsExpense(line))) - SumReporting(operating.Where(IsExpense));
@@ -281,12 +278,44 @@ public static class ErpIfrs18Face
     private static decimal Round(decimal value)
         => Math.Round(value, 2, MidpointRounding.AwayFromZero);
 
+    public static (decimal Income, decimal Expense, decimal GrossProfit, decimal NetProfit) PeriodProfit(
+        IEnumerable<(string Name, string Type, decimal SignedAmount)> lines)
+    {
+        decimal income = 0, expense = 0, revenue = 0, cost = 0;
+        foreach (var line in lines)
+        {
+            var type = ErpAccountClass.Normalize(line.Type, string.Empty);
+            if (type is "revenue" or "income")
+            {
+                income += line.SignedAmount;
+                if (ClassifyProfit(line.Name) == ErpIfrs18Category.Operating)
+                {
+                    revenue += line.SignedAmount;
+                }
+            }
+            else if (type == "expense")
+            {
+                expense += line.SignedAmount;
+                if (ClassifyProfit(line.Name) == ErpIfrs18Category.Operating && IsCostOfSales(line.Name))
+                {
+                    cost += line.SignedAmount;
+                }
+            }
+        }
+
+        return (Round(income), Round(expense), Round(revenue - cost), Round(income - expense));
+    }
+
     private static bool IsCostOfSales(string? name)
     {
         var text = Normalize(name);
         return text.Contains("cost of goods", StringComparison.Ordinal)
             || text.Contains("cost of sales", StringComparison.Ordinal)
-            || text.Contains("cogs", StringComparison.Ordinal);
+            || text.Contains("cogs", StringComparison.Ordinal)
+            || text.Contains("purchases", StringComparison.Ordinal)
+            || text.Contains("direct cost", StringComparison.Ordinal)
+            || text.Contains("cost of revenue", StringComparison.Ordinal)
+            || text.Contains("property operating", StringComparison.Ordinal);
     }
 
     private static bool IsIncomeTax(string text)

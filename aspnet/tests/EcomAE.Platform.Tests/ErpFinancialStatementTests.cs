@@ -33,7 +33,8 @@ public sealed class ErpFinancialStatementTests
         Assert.Contains("ExistingHref", workspace, StringComparison.Ordinal);
 
         var service = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFinancialStatementReadService.cs"));
-        Assert.Contains("CASE WHEN j.`id` IS NOT NULL THEN l.`debit`", service, StringComparison.Ordinal);
+        Assert.Contains("THEN l.`debit` ELSE 0 END", service, StringComparison.Ordinal);
+        Assert.Contains("year-end close", service, StringComparison.Ordinal);
         Assert.Contains("epc_cons_ic", service, StringComparison.Ordinal);
         Assert.Contains("epc_fx_rates", service, StringComparison.Ordinal);
     }

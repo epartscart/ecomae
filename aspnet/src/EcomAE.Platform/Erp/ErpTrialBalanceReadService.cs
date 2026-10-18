@@ -33,7 +33,9 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
         await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpLazySchema.EnsureTrialBalanceSnapshotsAsync(connection, cancellationToken).ConfigureAwait(false);
 
-        var lines = await LoadLinesAsync(connection, parameters, cancellationToken).ConfigureAwait(false);
+        var loaded = await LoadLinesAsync(connection, parameters, cancellationToken).ConfigureAwait(false);
+        var lines = loaded.Lines;
+        var profit = ErpIfrs18Face.PeriodProfit(loaded.Profit);
         var vouchers = string.IsNullOrWhiteSpace(parameters.AccountCode)
             ? Array.Empty<ErpTrialBalanceVoucher>()
             : await LoadVouchersAsync(connection, parameters, cancellationToken).ConfigureAwait(false);
@@ -45,6 +47,8 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
         var message = ErpTrialBalanceParameters.UsesUnitLedger(parameters.DimensionSet, parameters.BusinessUnitId)
             ? "Business unit ledger uses posted journals only. Company opening balances stay on the company trial balance. A journal across units keeps each unit in balance with the intercompany receivable and payable."
             : string.Empty;
+        const string profitNote = "Income, expenses, and gross profit use this date range. The year-end close stays on retained earnings.";
+        message = message.Length == 0 ? profitNote : message + " " + profitNote;
 
         return new(
             parameters,
@@ -56,10 +60,14 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
             credit,
             closing,
             "live",
-            message);
+            message,
+            profit.Income,
+            profit.Expense,
+            profit.GrossProfit,
+            profit.NetProfit);
     }
 
-    private static async Task<IReadOnlyList<ErpTrialBalanceLine>> LoadLinesAsync(
+    private static async Task<LoadedLines> LoadLinesAsync(
         DbConnection connection,
         ErpTrialBalanceParameters parameters,
         CancellationToken cancellationToken)
@@ -71,7 +79,8 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
                    IFNULL(a.`account_type`, '') AS account_type,
                    IFNULL(a.`normal_side`, '') AS normal_side,
                    IFNULL(a.`opening_balance`, 0) AS opening_balance,
-                   IFNULL(NULLIF(l.`legal_entity_id`, 0), IFNULL(j.`company_id`, 0)) AS company_id,
+                   IFNULL(j.`company_id`, 0) AS journal_company,
+                   IFNULL(l.`legal_entity_id`, 0) AS line_entity,
                    IFNULL(NULLIF(l.`business_unit_id`, 0), IFNULL(j.`business_unit_id`, 0)) AS business_unit_id,
                    IFNULL(j.`journal_no`, '') AS journal_no,
                    IFNULL(j.`source_type`, '') AS source_type,
@@ -90,6 +99,7 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
             ORDER BY a.`code` ASC, j.`company_id` ASC
             """;
         var buckets = new Dictionary<string, LineAcc>(StringComparer.OrdinalIgnoreCase);
+        var profit = new List<(string Name, string Type, decimal SignedAmount)>();
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -98,7 +108,14 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
             var type = ReadString(reader, "account_type");
             var side = ReadString(reader, "normal_side");
             var openingBalance = ReadDec(reader, "opening_balance");
-            var companyId = ReadLong(reader, "company_id");
+            var journalCompany = ReadLong(reader, "journal_company");
+            var lineEntity = ReadLong(reader, "line_entity");
+            var companyId = lineEntity > 0 ? lineEntity : journalCompany;
+            if (parameters.CompanyId > 0 && (journalCompany == parameters.CompanyId || journalCompany == 0))
+            {
+                companyId = parameters.CompanyId;
+            }
+
             var businessUnitId = ReadLong(reader, "business_unit_id");
             var journalUnix = ReadLong(reader, "journal_unix");
             var unitLedger = ErpTrialBalanceParameters.UsesUnitLedger(parameters.DimensionSet, parameters.BusinessUnitId);
@@ -109,7 +126,7 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
                     continue;
                 }
             }
-            else if (parameters.CompanyId > 0 && companyId != 0 && companyId != parameters.CompanyId)
+            else if (!ErpAccountClass.InCompany(journalCompany, lineEntity, parameters.CompanyId))
             {
                 continue;
             }
@@ -159,10 +176,20 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
             {
                 acc.PeriodDebits += debit;
                 acc.PeriodCredits += credit;
+                if (!ErpAccountClass.IsProfitAndLossClose(source, journalNo, reference, description))
+                {
+                    var signed = string.Equals(side, "credit", StringComparison.OrdinalIgnoreCase)
+                        ? credit - debit
+                        : debit - credit;
+                    if (signed != 0m && parameters.MatchesFilter(code, name))
+                    {
+                        profit.Add((name, ErpAccountClass.Normalize(type, code), signed));
+                    }
+                }
             }
         }
 
-        return buckets.Values
+        var lines = buckets.Values
             .Where(a => parameters.MatchesFilter(a.Code, a.Name))
             .Select(a => ErpTrialBalanceParameters.BuildLine(
                 a.Code, a.Name, a.AccountType, a.NormalSide,
@@ -172,6 +199,7 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
             .ThenBy(l => l.Company, StringComparer.OrdinalIgnoreCase)
             .Take(parameters.Limit)
             .ToList();
+        return new LoadedLines(lines, profit);
     }
 
     private static async Task<IReadOnlyList<ErpTrialBalanceVoucher>> LoadVouchersAsync(
@@ -196,7 +224,7 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
             INNER JOIN `epc_erp_coa_accounts` a ON a.`id` = l.`coa_id`
             WHERE a.`code` = @code
               AND (@bu = 0 OR IFNULL(NULLIF(l.`business_unit_id`, 0), IFNULL(j.`business_unit_id`, 0)) = @bu)
-              AND (@company = 0 OR IFNULL(NULLIF(l.`legal_entity_id`, 0), IFNULL(j.`company_id`, 0)) IN (@company, 0))
+              AND (@company = 0 OR IFNULL(j.`company_id`, 0) IN (0, @company) OR IFNULL(l.`legal_entity_id`, 0) = @company)
             ORDER BY journal_unix DESC, j.`id` DESC
             LIMIT 200
             """;
@@ -319,6 +347,10 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
         var ordinal = reader.GetOrdinal(name);
         return reader.IsDBNull(ordinal) ? 0 : Convert.ToDecimal(reader.GetValue(ordinal), CultureInfo.InvariantCulture);
     }
+
+    private sealed record LoadedLines(
+        IReadOnlyList<ErpTrialBalanceLine> Lines,
+        IReadOnlyList<(string Name, string Type, decimal SignedAmount)> Profit);
 
     private sealed class LineAcc
     {

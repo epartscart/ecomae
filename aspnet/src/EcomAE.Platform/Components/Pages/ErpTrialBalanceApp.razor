@@ -51,6 +51,9 @@
         </div>
     </div>
 
+    <style>
+        #tb-parameters button.btn{background:#1f4e79 !important;color:#fff !important;border:0}
+    </style>
     <section id="tb-parameters" class="epc-erp-form-panel" style="margin:0 0 1rem">
         <div class="epc-erp-form-panel__head">
             <strong>Parameters</strong>
@@ -106,6 +109,13 @@
         </form>
     </section>
 
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Income and profit">
+        <div class="kpi"><div class="lbl">Income</div><div class="val">@_result.Income.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Expenses</div><div class="val">@_result.Expenses.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Gross profit</div><div class="val">@_result.GrossProfit.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Net profit</div><div class="val">@_result.NetProfit.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+    </div>
+    <p class="text-muted">Income, expenses, and gross profit use @_parameters.FromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) to @_parameters.ToDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture). The year-end close stays on retained earnings.</p>
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Trial balance totals">
         <div class="kpi"><div class="lbl">Accounts</div><div class="val">@_result.Lines.Count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Opening</div><div class="val">@_result.OpeningTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div>

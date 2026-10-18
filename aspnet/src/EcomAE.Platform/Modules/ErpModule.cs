@@ -25630,6 +25630,8 @@ public sealed class ErpModule : ISurfaceModule
         var company = context.Request.Query["company"].ToString();
         var businessUnit = context.Request.Query["bu"].ToString();
         var currency = context.Request.Query["currency"].ToString();
+        var from = context.Request.Query["from"].ToString();
+        var to = context.Request.Query["to"].ToString();
         ErpFinancialReportDocument document;
         if (tab.Equals("pl", StringComparison.OrdinalIgnoreCase)
             || tab.Equals("balance_sheet", StringComparison.OrdinalIgnoreCase)
@@ -25637,10 +25639,10 @@ public sealed class ErpModule : ISurfaceModule
             || tab.Equals("statements", StringComparison.OrdinalIgnoreCase))
         {
             var profit = await statements.ReadAsync(
-                ErpFinancialStatementQuery.FromQuery("pl", level, company, businessUnit, currency),
+                ErpFinancialStatementQuery.FromQuery("pl", level, company, businessUnit, currency, from, to),
                 cancellationToken).ConfigureAwait(false);
             var position = await statements.ReadAsync(
-                ErpFinancialStatementQuery.FromQuery("balance_sheet", level, company, businessUnit, currency),
+                ErpFinancialStatementQuery.FromQuery("balance_sheet", level, company, businessUnit, currency, from, to),
                 cancellationToken).ConfigureAwait(false);
             document = ErpIfrs18Face.PrimaryStatements(profit, position);
         }
