@@ -12,7 +12,6 @@
 @inject NavigationManager Nav
 @inject IErpDimensionLinkReadService DimensionLinks
 @inject IErpApSetupReadService ApSetup
-@inject IErpOrganizationMasterReadService OrganizationMasters
 @inject IErpSupplierOnboardReadService Onboard
 
 <PageTitle>Suppliers · ERP · eParts Cart</PageTitle>
@@ -340,11 +339,50 @@
     {
         <ErpPhpViewTabs QueryName="pm_view" Active="vendors" BaseHref="@AppHref("ap_setup")" Tabs="@_apTabs" />
     }
+    @if (_view != "ap_setup")
+    {
+        <style>
+            .epc-sk-grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:.45rem; margin:0 0 .8rem; }
+            .epc-sk-grid article { border:1px solid #d5dde6; border-radius:4px; padding:.5rem .6rem; background:#f7fafc; min-width:0; }
+            .epc-sk-grid strong { display:block; margin-bottom:.2rem; }
+            .epc-sk-marks { display:flex; flex-wrap:wrap; gap:.35rem; margin:0; padding:0; list-style:none; }
+            .epc-sk-marks li { border:1px solid #d5dde6; border-radius:4px; padding:.3rem .5rem; background:#fff; }
+            .epc-sk-miss { color:#9f1239; font-weight:700; }
+            .epc-sk-ok { color:#166534; font-weight:700; }
+            @@media (max-width: 900px) {
+                .epc-sk-grid { grid-template-columns:1fr; }
+            }
+        </style>
+        <h3 class="epc-erp-page-title" style="margin:.2rem 0 .45rem">Supplier AML and KYC</h3>
+        <p>@ErpSupplierKycLaw.Decree and @ErpSupplierKycLaw.Resolution require the supplier file before a covered buy. A single buy, or linked buys with the same supplier, that equals or exceeds AED 55,000 needs the complete file. A buy above AED 100,000 is inside that line. The purchase order, the purchase invoice, a precious-metal or precious-stone voucher, and a barcode purchase all stop until the file is complete.</p>
+        <div class="epc-sk-grid">
+            <article>
+                <strong>AED @ErpSupplierKycLaw.CoveredAmountAed.ToString("N0", CultureInfo.InvariantCulture)</strong>
+                Cabinet Resolution No. 134 of 2025. Dealers in precious metals and stones follow the same line for cash or a wire.
+            </article>
+            <article>
+                <strong>Above AED @ErpSupplierKycLaw.NamedBuyAed.ToString("N0", CultureInfo.InvariantCulture)</strong>
+                This buy is already above the legal line. It does not wait for a higher figure.
+            </article>
+            <article>
+                <strong>@ErpSupplierKycLaw.RetentionYears years</strong>
+                Keep the file for @ErpSupplierKycLaw.RetentionYears years after the relationship ends or the transaction is complete.
+            </article>
+        </div>
+        <p>The company file is the legal name, the registered address, the trade license, the memorandum of association, the articles of association, the names of senior management, the beneficial owner at @ErpSupplierKycLaw.BeneficialOwnerShare.ToString("0", CultureInfo.InvariantCulture)% with name, nationality, and identity, the identity of the person who acts, and proof that person is authorized. When the supplier is registered, the tax registration number is required.</p>
+        <ul class="epc-sk-marks">
+            @foreach (var mark in ErpSupplierKycLaw.FileMarks)
+            {
+                <li>@mark</li>
+            }
+        </ul>
+        <p class="text-muted" style="margin:.6rem 0 .8rem">Open a supplier to see which marks are present. Customer KYC and alert status stay on <a href="/erp/aml-compliance-app">AML compliance</a>.</p>
+    }
     @if (_isAdmin)
     {
         <ErpPhpCreateWell Title="Add vendor">
             <p class="text-muted" style="margin:0 0 .6rem">Save a draft, attach trade license and partner documents, then approve. Only approved suppliers appear on purchase.</p>
-            <form method="post" action="@CreateAction">
+            <form id="erp-module-new" method="post" action="@CreateAction">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@VendorReturnHref" />
                 <input type="hidden" name="scheme_id" value="0230" />
@@ -352,7 +390,7 @@
                     <tbody>
                         <tr>
                             <th style="width:9rem">Name *</th>
-                            <td><input class="form-control input-sm" name="name" required maxlength="190" placeholder="Legal / trade name" /></td>
+                            <td><input class="form-control input-sm" name="name" required maxlength="190" placeholder="Legal / trade name" data-erp-new-field /></td>
                             <th style="width:10rem">Supplier code</th>
                             <td><input class="form-control input-sm" name="supplier_code" maxlength="32" placeholder="Auto V-0001" /></td>
                             <th style="width:8rem">Currency</th>
@@ -363,13 +401,7 @@
                             </td>
                             <th style="width:10rem">AP / Chart of account</th>
                             <td>
-                                <select class="form-control input-sm" name="ap_coa_id">
-                                    <option value="0">— pick payable account —</option>
-                                    @foreach (var acc in _onboard.PayableAccounts)
-                                    {
-                                        <option value="@acc.Id">@acc.Code · @acc.Name</option>
-                                    }
-                                </select>
+                                <ErpMasterPicker Kind="coa" FieldName="ap_coa_id" InputId="supplier-ap-coa" Label="Payable account" />
                             </td>
                         </tr>
                         <tr>
@@ -390,10 +422,7 @@
                             </td>
                             <th>Legal entity</th>
                             <td>
-                                <select class="form-control input-sm" name="legal_entity_id">
-                                    <option value="0">— none —</option>
-                                    @foreach (var entity in _org.LegalEntities.Where(r => r.Active)) { <option value="@entity.Id">@entity.Code · @entity.Name</option> }
-                                </select>
+                                <ErpMasterPicker Kind="legal-entity" FieldName="legal_entity_id" InputId="supplier-legal" Label="Legal entity" />
                             </td>
                             <th>Business unit</th>
                             <td>
@@ -514,7 +543,17 @@
                     </tr>
                 </tbody>
             </table>
-            <p style="margin:0 0 .4rem"><strong>Onboard checklist</strong> — approve turns on only when every box is green.</p>
+            <p style="margin:0 0 .4rem"><strong>Onboard checklist</strong> — approve turns on only when every box is green. A covered buy also needs the KYC file below.</p>
+            @if (_onboard.KycFindings.Count > 0)
+            {
+                <p style="margin:0 0 .4rem"><strong>KYC file for a covered buy</strong> — AED @ErpSupplierKycLaw.CoveredAmountAed.ToString("N0", CultureInfo.InvariantCulture) and above, including a buy above AED @ErpSupplierKycLaw.NamedBuyAed.ToString("N0", CultureInfo.InvariantCulture).</p>
+                <p style="margin:0 0 .75rem">
+                    @foreach (var mark in _onboard.KycFindings)
+                    {
+                        <span class="label @(mark.Met ? "label-success" : "label-danger")" style="margin:0 .25rem .25rem 0">@(mark.Met ? "Present" : "Missing") · @mark.Label</span>
+                    }
+                </p>
+            }
             <p style="margin:0 0 .75rem">
                 @foreach (var check in _onboard.Checks)
                 {
@@ -570,6 +609,12 @@
                         <option value="trade_license">Trade license</option>
                         <option value="trn_certificate">TRN certificate</option>
                         <option value="partner_id">Partner / owner ID</option>
+                        <option value="memorandum">Memorandum of association</option>
+                        <option value="articles">Articles of association</option>
+                        <option value="senior_management">Senior management</option>
+                        <option value="beneficial_owner_id">Beneficial owner identity</option>
+                        <option value="signatory_id">Authorized signatory identity</option>
+                        <option value="signatory_authority">Authority to act</option>
                     </select></label>
                     <input class="form-control input-sm" type="file" name="document_file" required />
                     <button type="submit" class="btn btn-default btn-sm">Upload document</button>
@@ -685,7 +730,6 @@
     ];
     private ErpApSetupSnapshot _ap = new([], [], [], "n/a", "");
     private IReadOnlyList<ErpApSetupRow> _apRows = [];
-    private ErpOrganizationMasterSnapshot _org = new([], [], [], [], [], [], "n/a", "");
     private ErpSupplierOnboardSnapshot _onboard = new(null, [], [], [], false, [], new Dictionary<long, string>(), "n/a", "");
     private IReadOnlyList<ErpSupplierDigest> _suppliers = [];
     private ErpSupplierPortalSummary _portal = new(0, 0, 0, 0, "n/a", "");
@@ -740,7 +784,7 @@
         {
             "supplier_portal" => "Delivery, responsiveness, spend and payables scorecards.",
             "ap_setup" => "Add vendors and configure payment methods, terms, and vendor groups used on payable posting.",
-            _ => "Add a vendor, then open a row for the TRN excerpt and currency used on bills."
+            _ => "Add a vendor, keep the KYC file, then open a row. A buy at AED 55,000 needs that file, including a buy above AED 100,000."
         };
         _flashOk = (ctx.Request.Query["ok"].ToString() ?? string.Empty).Trim();
         _flashErr = (ctx.Request.Query["err"].ToString() ?? string.Empty).Trim();
@@ -754,7 +798,6 @@
         }
 
         _ap = await ApSetup.LoadAsync(200, ctx.RequestAborted);
-        _org = await OrganizationMasters.LoadAsync(200, ctx.RequestAborted);
         _onboard = await Onboard.LoadAsync(_openedId, 200, ctx.RequestAborted);
         _apRows = _pmView switch
         {

@@ -39,6 +39,7 @@ public sealed class CpTenantAdminDirectoryTests
         Assert.Single(fleet);
         Assert.Equal("asap", fleet[0].SiteKey);
         Assert.False(CpTenantAdminDirectoryService.Matches(rows[0], "real"));
+        Assert.True(CpTenantAdminDirectoryService.Matches(rows[0] with { Phone = "+971501112233" }, "501112233"));
     }
 
     [Fact]

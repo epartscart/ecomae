@@ -27,7 +27,10 @@ public sealed record ErpSupplierOnboardSnapshot(
     IReadOnlyList<ErpPayableAccountRow> PayableAccounts,
     IReadOnlyDictionary<long, string> StatusById,
     string Source,
-    string Message);
+    string Message)
+{
+    public IReadOnlyList<ErpSupplierKycFinding> KycFindings { get; init; } = [];
+}
 
 public interface IErpSupplierOnboardReadService
 {
@@ -69,7 +72,10 @@ public sealed class ErpSupplierOnboardReadService : IErpSupplierOnboardReadServi
         var header = await LoadHeaderAsync(c, supplierId, accounts, cancellationToken).ConfigureAwait(false);
         var docs = await LoadDocumentsAsync(c, supplierId, cancellationToken).ConfigureAwait(false);
         var checks = ErpSupplierOnboard.Evaluate(state);
-        return new(header, state.Owners, docs, checks, ErpSupplierOnboard.CanApprove(checks), accounts, statuses, "database", string.Empty);
+        return new(header, state.Owners, docs, checks, ErpSupplierOnboard.CanApprove(checks), accounts, statuses, "database", string.Empty)
+        {
+            KycFindings = ErpSupplierKycLaw.Assess(state),
+        };
     }
 
     private static async Task<ErpSupplierOnboardRow?> LoadHeaderAsync(
