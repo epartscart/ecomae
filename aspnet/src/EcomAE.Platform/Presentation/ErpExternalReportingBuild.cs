@@ -1061,7 +1061,7 @@ public static class ErpExternalReportingBuild
     private static IReadOnlyList<(string Field, string Why)> VatGuide() =>
     [
         ("Box 1a–1g — Standard-rated supplies (by Emirate)", "Your 5% taxable sales, split by the Emirate where the supply takes place (place-of-supply rule)."),
-        ("Box 2 — Tourist refunds", "VAT refunded to tourists under the Planet/FTA tourist-refund scheme. Entered as a negative because it reduces output VAT."),
+        ("Box 2 — Tourist refunds", "VAT on goods refunded to overseas tourists under the Planet scheme (Decision No. 2 of 2018, as amended by Decision No. 11 of 2026). The Federal Tax Authority prepopulates this box for an enrolled retailer and it is not editable. A negative amount reduces output VAT. The retailer pays that VAT to Planet, not again to the Authority."),
         ("Box 3 — Reverse-charge supplies", "Supplies where the buyer accounts for the VAT — imported services, or local B2B gold/diamonds."),
         ("Box 4 — Zero-rated supplies", "Sales taxed at 0%: exports, international transport, first supply of new residential, qualifying education/healthcare."),
         ("Box 5 — Exempt supplies", "Supplies with no VAT and no input-VAT recovery: residential lease, bare land, local passenger transport."),

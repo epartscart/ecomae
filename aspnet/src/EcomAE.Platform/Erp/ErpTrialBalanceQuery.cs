@@ -160,6 +160,9 @@ public sealed record ErpTrialBalanceParameters(
     public string ExportHref()
         => ExportPath + "?" + QueryString();
 
+    public string FileHref(string format)
+        => "/erp/trial-balance/file?" + QueryString() + "&format=" + Uri.EscapeDataString(format);
+
     public static bool IsClosingTransaction(string? sourceType, string? journalNo, string? reference, string? description)
     {
         if (!string.Equals(sourceType?.Trim(), "adjustment", StringComparison.OrdinalIgnoreCase))

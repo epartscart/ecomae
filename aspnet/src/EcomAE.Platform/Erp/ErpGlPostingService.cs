@@ -731,6 +731,50 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         {
             throw new ErpWriteException(PeriodBlockedMessage(periodStatus));
         }
+
+        await AssertFiscalYearAllowsPostingAsync(connection, transaction, postingDate, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// A fiscal year on hold or closed, and a fiscal period that is not open, refuse the journal.
+    /// No fiscal year for the date leaves posting allowed.
+    /// </summary>
+    private static async Task AssertFiscalYearAllowsPostingAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        long postingDate,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var yearStatus = await ErpDb.StringAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("SELECT `status` FROM `epc_fy_years` WHERE `start_date`<=? AND `end_date`>=? ORDER BY `id` DESC LIMIT 1"),
+                cancellationToken,
+                postingDate,
+                postingDate).ConfigureAwait(false);
+            var periodStatus = await ErpDb.StringAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(
+                    "SELECT p.`status` FROM `epc_fy_periods` p INNER JOIN `epc_fy_years` y ON y.`id`=p.`year_id`"
+                    + " WHERE p.`start_date`<=? AND p.`end_date`>=? ORDER BY p.`id` DESC LIMIT 1"),
+                cancellationToken,
+                postingDate,
+                postingDate).ConfigureAwait(false);
+            if (!ErpFiscalYearBooks.AllowsPosting(yearStatus, periodStatus))
+            {
+                throw new ErpWriteException(ErpFiscalYearBooks.BlockedMessage(yearStatus, periodStatus));
+            }
+        }
+        catch (ErpWriteException)
+        {
+            throw;
+        }
+        catch (DbException)
+        {
+        }
     }
 
     public static string PeriodBlockedMessage(string status)
