@@ -17,9 +17,16 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Stock movement ledger" Subtitle="Open a row for the 280-character note excerpt, batch, and total cost. Writes are not available on this page." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Stock movement ledger" Subtitle="New movement posts the inventory ledger. Open a posted movement for the note, batch, and total cost." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
-
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
+    <ErpPhpViewTabs QueryName="pm_view" Active="@_view" BaseHref="@TabBase" Tabs="@_entryTabs" />
+    @if (_view == "entry")
+    {
+        <ErpSheetEntryForm Sheet="stock_movement" IsAdmin="_isAdmin" ListHref="@TabBase" CompanyId="_company" />
+    }
+    else
+    {
     <div class="epc-erp-kpi epc-erp-stat-row">
         <div class="kpi"><div class="lbl">Movements</div><div class="val">@_summary.MovementCount.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">In lines</div><div class="val">@_summary.InCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -50,7 +57,7 @@
                 Fields="@MovementWorkspaceFields"
                 Lines="@MovementWorkspaceLines"
                 Tabs="@MovementWorkspaceTabs" />
-            <p class="text-muted" style="margin:.85rem 0 0">Writes are not available on this page.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">This movement was posted from New movement.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NoteExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">note excerpt</p>
@@ -197,7 +204,8 @@
         </table>
     </div>
 
-    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">Source: @_summary.Source. Ledger view for record_movement and transfers. Writes are not available on this page.</div>
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">Source: @_summary.Source. Ledger view for record_movement and transfers.</div>
+    }
 </PhpErpDesktopChrome>
 
 @code {
@@ -212,6 +220,13 @@
     private IReadOnlyList<ErpInventoryMovementDigest> _openedSiblings = [];
     private IReadOnlyList<MoveWarehouseRow> _byWarehouse = [];
     private IReadOnlyList<MoveItemRow> _byItem = [];
+    private string _view = "posted";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private int _company = 1;
+    private static readonly IReadOnlyList<(string Key, string Label)> _entryTabs =
+        [("entry", "New movement"), ("posted", "Posted movements")];
+    private string TabBase => _listHref + "?company=" + _company.ToString(CultureInfo.InvariantCulture);
     private IReadOnlyList<string> MovementWorkspaceTabs => ["General", "Quantity", "Costing", "Traceability"];
 
     private sealed record MoveWarehouseRow(long WarehouseId, string WarehouseName, int Lines, decimal QtyIn, decimal QtyOut, decimal Cost);
@@ -267,6 +282,10 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _company = ReadCompany(ctx);
+        _view = ReadView(ctx);
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "movement_id");
         var session = await Sessions.ValidateAsync(ctx);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -318,6 +337,17 @@
             }
         }
     }
+
+    private static int ReadCompany(HttpContext ctx)
+    {
+        var raw = ctx.Request.Query["company"].ToString();
+        return int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var company) && company > 0
+            ? company
+            : 1;
+    }
+
+    private static string ReadView(HttpContext ctx)
+        => ctx.Request.Query["pm_view"].ToString() is "entry" or "new" ? "entry" : "posted";
 
     private static string FormatTime(long unix)
     {

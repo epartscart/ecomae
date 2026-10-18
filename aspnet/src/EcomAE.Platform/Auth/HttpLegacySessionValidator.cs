@@ -30,7 +30,7 @@ public sealed class HttpLegacySessionValidator : ILegacySessionValidator
                 LegacySessionKind.Admin,
                 adminUser,
                 adminSession,
-                LegacyAdminPermissionSets.ForRequestHost(httpContext.Request.Host.Host)));
+                LegacyAdminPermissionSets.ForRequest(httpContext)));
         }
 
         var customerSession = httpContext.Request.Cookies["session"];

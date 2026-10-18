@@ -33,11 +33,11 @@
         @if (_isAdmin)
         {
             <ErpPhpCreateWell Title="New virtual warehouse">
-                <form method="post" action="@EcomAeRoutes.ErpVirtualWarehouseCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <form id="erp-module-new" method="post" action="@EcomAeRoutes.ErpVirtualWarehouseCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="/erp/warehouses-app?tab=virtual_warehouse" />
                     <input type="hidden" name="is_sellable" value="1" />
-                    <label>Code <input class="form-control input-sm" name="code" placeholder="Auto" /></label>
+                    <label>Code <input class="form-control input-sm" name="code" placeholder="Auto" data-erp-new-field /></label>
                     <label>Name <input class="form-control input-sm" name="name" placeholder="Exhibition hall" /></label>
                     <label>Type
                         <select class="form-control input-sm" name="type">
@@ -56,10 +56,10 @@
                 <form method="post" action="@EcomAeRoutes.ErpVirtualWarehouseTransferForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="/erp/warehouses-app?tab=virtual_warehouse" />
-                    <label>From id <input class="form-control input-sm" name="from_warehouse_id" type="number" min="1" required /></label>
-                    <label>To id <input class="form-control input-sm" name="to_warehouse_id" type="number" min="1" required /></label>
+                    <ErpMasterPicker Kind="warehouse" FieldName="from_warehouse_id" InputId="wh-xfer-from" Label="From warehouse" Required="true" Min="1" />
+                    <ErpMasterPicker Kind="warehouse" FieldName="to_warehouse_id" InputId="wh-xfer-to" Label="To warehouse" Required="true" Min="1" />
                     <label>Reason <input class="form-control input-sm" name="reason" value="exhibition" /></label>
-                    <label>SKU <input class="form-control input-sm" name="sku" placeholder="SKU-1" /></label>
+                    <ErpMasterPicker Kind="item" FieldName="sku" InputId="wh-xfer-sku" Label="Item" ValueMode="code" />
                     <label>Qty <input class="form-control input-sm" name="qty" type="number" step="0.001" value="1" /></label>
                     <button type="submit" class="btn btn-primary btn-sm">Create transfer</button>
                 </form>
@@ -231,6 +231,16 @@
                 <p class="text-muted">No same-active siblings yet.</p>
             }
         </div>
+    }
+    @if (_isAdmin)
+    {
+        <form id="erp-module-new" method="post" action="/erp/ajax/inv-create-warehouse" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/warehouses-app" />
+            <label>Code <input type="text" name="code" required maxlength="32" data-erp-new-field /></label>
+            <label>Name <input type="text" name="name" required maxlength="255" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Create warehouse</button>
+        </form>
     }
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Warehouse KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_warehouses.Count</div></div>

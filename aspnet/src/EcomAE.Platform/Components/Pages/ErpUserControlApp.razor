@@ -9,13 +9,14 @@
 @inject IHttpContextAccessor Http
 @inject IErpRbacAuditReadService RbacAudit
 @inject IErpPermissionScopeReadService PermissionScopes
+@inject IErpTenantUserAdminService Users
 
 <PageTitle>ERP user control · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="ERP user control" BreadcrumbArea="Administration" BreadcrumbTab="User control">
     <PhpErpModulePageHeader Title="ERP user control"
-                            Subtitle="Review role, capability, area, action, and module access before enabling live changes." />
+                            Subtitle="Choose any user, then grant or remove each module and the actions inside it." />
 
     @if (!_isAdmin)
     {
@@ -23,6 +24,15 @@
     }
     else
     {
+        @if (_flashOk.Length > 0)
+        {
+            <div class="alert alert-success" role="status">@_flashOk</div>
+        }
+        @if (_flashErr.Length > 0)
+        {
+            <div class="alert alert-danger" role="alert">@_flashErr</div>
+        }
+
         <div class="epc-erp-kpi epc-erp-stat-row" aria-label="ERP user control summary">
             <div class="kpi"><div class="lbl">Current operator</div><div class="val">@(_email.Length == 0 ? "—" : _email)</div></div>
             <div class="kpi"><div class="lbl">Surface capabilities</div><div class="val">@_capabilities.Count</div></div>
@@ -32,6 +42,105 @@
             <div class="kpi"><div class="lbl">Delegations</div><div class="val">@_delegations.Count</div></div>
         </div>
 
+        <div class="hpanel epc-erp-section">
+            <div class="panel-heading hbuilt"><i class="fa fa-user"></i> Choose the user to control</div>
+            <div class="panel-body">
+                <form method="get" action="/erp/user-control-app">
+                    <div class="form-group">
+                        <label for="erp-control-user">User</label>
+                        <select id="erp-control-user" class="form-control" name="user_id">
+                            <option value="">Choose a user</option>
+                            @foreach (var row in _directory)
+                            {
+                                <option value="@row.UserId.ToString(CultureInfo.InvariantCulture)" selected="@(_selectedUserId == row.UserId)">
+                                    @(string.IsNullOrWhiteSpace(row.DisplayName) ? row.Email : row.DisplayName) — @(string.IsNullOrWhiteSpace(row.Email) ? ("#" + row.UserId.ToString(CultureInfo.InvariantCulture)) : row.Email)
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-default">Open user</button>
+                    </div>
+                </form>
+                <p class="text-muted">
+                    Tick Limit this user, then tick the modules and actions they may use.
+                    Validate checks the selection. Post saves it.
+                    Once a limit is posted, only those modules and actions stay open.
+                    A user with no posted limit keeps their current access.
+                    Super ERP is not limited by these rows.
+                </p>
+            </div>
+        </div>
+
+        <div class="hpanel epc-erp-section">
+            <div class="panel-heading hbuilt"><i class="fa fa-shield"></i> Module and action access @(_selectedLabel.Length == 0 ? "" : "· " + _selectedLabel)</div>
+            <div class="panel-body">
+                <form method="post" action="/erp/user-control/grant" id="erp-user-control-grant">
+                    <input type="hidden" name="returnUrl" value="@_returnHref" />
+                    <input type="hidden" name="user_id" value="@(_selectedUserId > 0 ? _selectedUserId.ToString(CultureInfo.InvariantCulture) : "")" />
+                    <input type="hidden" name="confirmWrites" id="epc-grant-confirm" value="" />
+                    <div class="form-group">
+                        <label class="checkbox-inline" for="erp-control-limit">
+                            <input id="erp-control-limit" type="checkbox" name="limit_user" value="1" checked="@_limitChecked" />
+                            Limit this user to the modules and actions below
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="erp-control-limit-amt">Approval limit</label>
+                        <input id="erp-control-limit-amt" class="form-control" type="text" name="approval_limit" value="@_approvalLimit" placeholder="Unlimited if empty" />
+                    </div>
+                    <div class="form-group">
+                        <label for="erp-control-companies">Company ids</label>
+                        <input id="erp-control-companies" class="form-control" type="text" name="company_ids" value="@_companyIds" placeholder="All companies if empty" />
+                    </div>
+                    <div class="form-group">
+                        <label for="erp-control-sites">Site ids</label>
+                        <input id="erp-control-sites" class="form-control" type="text" name="site_ids" value="@_siteIds" placeholder="All sites if empty" />
+                    </div>
+                    <div class="epc-erp-table-wrap">
+                        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Module</th>
+                                    <th>All</th>
+                                    @foreach (var action in ErpCapabilityCatalog.Actions)
+                                    {
+                                        <th>@action</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var group in ErpCapabilityCatalog.Groups)
+                                {
+                                    var all = AreaAll(group.Key);
+                                    <tr>
+                                        <td>
+                                            <strong>@group.Label</strong>
+                                            <div class="text-muted">@group.Description</div>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" name="grant_all" value="@group.Key" checked="@all" aria-label="@group.Label all actions" />
+                                        </td>
+                                        @foreach (var action in ErpCapabilityCatalog.Actions)
+                                        {
+                                            <td>
+                                                <input type="checkbox" name="grant" value="@($"{group.Key}|{action}")" checked="@ActionChecked(group.Key, action)" aria-label="@($"{group.Label} {action}")" />
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-default" name="intent" value="validate" formnovalidate>Validate</button>
+                        <button type="submit" class="btn btn-primary" id="epc-grant-post" name="intent" value="post">Post</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <h3 style="margin-top:1.2rem">Your access</h3>
         <div class="epc-erp-table-wrap">
             <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
                 <thead>
@@ -90,7 +199,7 @@
                         {
                             <tr>
                                 <td>Direct grant</td>
-                                <td>@grant.GroupKey</td>
+                                <td>@FormatGroup(grant.GroupKey)</td>
                                 <td>@FormatSet(grant.Actions)</td>
                                 <td>@FormatScope(grant.CompanyIds)</td>
                                 <td>@FormatScope(grant.SiteIds)</td>
@@ -146,7 +255,7 @@
 
         <p class="text-muted">
             This window is the control-plane view for role → capability → area/action mappings
-            of the signed-in operator.
+            of the signed-in operator, and the place that posts module and action grants for any chosen user.
             Prepare department users, lock or reset passwords, and open login plus audit logs on
             <a href="/erp/users-app">Users &amp; credentials</a>.
             Company/site scope, approval limits, effective dates, and delegations are loaded from
@@ -156,14 +265,33 @@
     }
 </PhpErpDesktopChrome>
 
+<script>
+    (function () {
+        var post = document.getElementById("epc-grant-post");
+        var confirm = document.getElementById("epc-grant-confirm");
+        if (!post || !confirm) return;
+        post.addEventListener("click", function () { confirm.value = "true"; });
+    })();
+</script>
+
 @code {
     private bool _isAdmin;
     private string _email = string.Empty;
+    private string _flashOk = string.Empty;
+    private string _flashErr = string.Empty;
+    private string _selectedLabel = string.Empty;
+    private string _returnHref = "/erp/user-control-app";
+    private string _approvalLimit = string.Empty;
+    private string _companyIds = string.Empty;
+    private string _siteIds = string.Empty;
+    private int _selectedUserId;
+    private bool _limitChecked;
     private IReadOnlyList<string> _capabilities = [];
     private IReadOnlyList<ModuleAclEntry> _modules = [];
     private IReadOnlyList<ErpRbacAuditEntry> _auditEntries = [];
     private IReadOnlyList<ErpPermissionGrant> _grants = [];
     private IReadOnlyList<ErpPermissionDelegation> _delegations = [];
+    private IReadOnlyList<ErpTenantUserRow> _directory = [];
     private LegacySessionContext? _session;
 
     protected override async Task OnInitializedAsync()
@@ -182,14 +310,67 @@
             return;
         }
 
+        _flashOk = (ctx.Request.Query["ok"].ToString() ?? string.Empty).Trim();
+        _flashErr = (ctx.Request.Query["err"].ToString() ?? string.Empty).Trim();
+        _ = int.TryParse(ctx.Request.Query["user_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _selectedUserId);
         _email = session.Email;
         _capabilities = session.Capabilities;
         _modules = session.Modules;
         _auditEntries = await RbacAudit.ListAsync(50, ctx.RequestAborted);
-        var scopedPermissions = await PermissionScopes.ListForUserAsync(session.UserId, ctx.RequestAborted);
+        try
+        {
+            var directory = await Users.ListAsync(null, null, 200, ctx.RequestAborted);
+            _directory = directory.Users;
+        }
+        catch (Exception)
+        {
+            _directory = [];
+        }
+
+        var grantUser = _selectedUserId > 0 ? _selectedUserId : session.UserId;
+        var scopedPermissions = await PermissionScopes.ListForUserAsync(grantUser, ctx.RequestAborted);
         _grants = scopedPermissions.Grants;
         _delegations = scopedPermissions.Delegations;
+        _limitChecked = _selectedUserId > 0 && _grants.Count > 0;
+        var selected = _directory.FirstOrDefault(row => row.UserId == _selectedUserId);
+        _selectedLabel = selected is null
+            ? string.Empty
+            : (string.IsNullOrWhiteSpace(selected.DisplayName) ? selected.Email : selected.DisplayName);
+        var first = _grants.FirstOrDefault(grant => !string.Equals(grant.GroupKey, ErpPermissionGrantWriteService.RestrictedGroup, StringComparison.Ordinal));
+        _approvalLimit = first?.ApprovalLimit?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+        _companyIds = first?.CompanyIds is { Count: > 0 } ? string.Join(",", first.CompanyIds.Order()) : string.Empty;
+        _siteIds = first?.SiteIds is { Count: > 0 } ? string.Join(",", first.SiteIds.Order()) : string.Empty;
+        _returnHref = _selectedUserId > 0
+            ? "/erp/user-control-app?user_id=" + _selectedUserId.ToString(CultureInfo.InvariantCulture)
+            : "/erp/user-control-app";
     }
+
+    private bool AreaAll(string groupKey)
+    {
+        var grant = FindGrant(groupKey);
+        if (grant is null || _selectedUserId <= 0)
+        {
+            return false;
+        }
+
+        return grant.Actions is null
+            || grant.Actions.Count == 0
+            || ErpCapabilityCatalog.Actions.All(action => grant.Actions.Contains(action));
+    }
+
+    private bool ActionChecked(string groupKey, string action)
+    {
+        if (_selectedUserId <= 0 || AreaAll(groupKey))
+        {
+            return false;
+        }
+
+        var grant = FindGrant(groupKey);
+        return grant?.Actions?.Contains(action) == true;
+    }
+
+    private ErpPermissionGrant? FindGrant(string groupKey)
+        => _grants.FirstOrDefault(grant => string.Equals(grant.GroupKey, groupKey, StringComparison.OrdinalIgnoreCase));
 
     private bool AreaEnabled(ErpCapabilityGroup group)
         => _session is not null && ErpCapabilityCatalog.CanAccess(_session, group.Key);
@@ -198,6 +379,11 @@
         => _session is null
             ? "—"
             : string.Join(", ", ErpCapabilityCatalog.Actions.Where(action => ErpCapabilityCatalog.CanAction(_session, group.Key, action)));
+
+    private static string FormatGroup(string groupKey)
+        => string.Equals(groupKey, ErpPermissionGrantWriteService.RestrictedGroup, StringComparison.Ordinal)
+            ? "No module access"
+            : groupKey;
 
     private static string FormatAuditTime(long time)
         => time <= 0

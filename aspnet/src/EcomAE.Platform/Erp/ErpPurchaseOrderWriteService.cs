@@ -127,6 +127,13 @@ public sealed class ErpPurchaseOrderWriteService : IErpPurchaseOrderWriteService
 
         var amountEx = ErpTaxAmountCalculator.Round2(input.AmountExVat);
         var tax = await _tax.CalcPurchaseAsync(connection, null, amountEx, input.SupplierId, false, cancellationToken).ConfigureAwait(false);
+        await ErpSupplierWriteService.RequireKycForCoveredPurchaseAsync(
+            connection,
+            input.SupplierId,
+            tax.TotalAmount,
+            input.Id,
+            "epc_erp_purchase_orders",
+            cancellationToken).ConfigureAwait(false);
         var status = AllowedStatuses.Contains(input.Status, StringComparer.Ordinal) ? input.Status : "draft";
         var notes = (input.Notes ?? string.Empty).Trim();
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
