@@ -59,6 +59,7 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
     private readonly IErpAuditLogWriter _audit;
     private readonly IErpProcessFlowSyncService? _processFlow;
     private readonly IErpInventoryReservationWriteService? _reservations;
+    private readonly IErpCreditManagementService? _credit;
 
     public ErpSalesInvoiceWriteService(
         IErpWriteConnectionFactory connections,
@@ -68,7 +69,8 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         IErpGlPostingService gl,
         IErpAuditLogWriter audit,
         IErpProcessFlowSyncService? processFlow = null,
-        IErpInventoryReservationWriteService? reservations = null)
+        IErpInventoryReservationWriteService? reservations = null,
+        IErpCreditManagementService? credit = null)
     {
         _connections = connections;
         _vouchers = vouchers;
@@ -78,6 +80,7 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         _audit = audit;
         _processFlow = processFlow;
         _reservations = reservations;
+        _credit = credit;
     }
 
     /// <summary>PHP <c>epc_einvoice_save_document</c>: advance the order's process-flow case once a tax invoice is saved (best-effort).</summary>
@@ -148,6 +151,21 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         }
 
         var paymentTerms = await SettingAsync(connection, "payment_terms", "Within 7 days", cancellationToken).ConfigureAwait(false);
+        if (_credit is not null)
+        {
+            var termsDays = ErpCreditBlock.TermsDaysBetween(
+                issueDate,
+                dueDate,
+                ErpCreditBlock.TermsDaysFromText(paymentTerms, 30));
+            await _credit.EnsureAllowsInvoiceAsync(
+                connection,
+                order.CustomerUserId,
+                totalIncl,
+                termsDays,
+                0,
+                cancellationToken).ConfigureAwait(false);
+        }
+
         var paymentMeans = await SettingAsync(connection, "payment_means_code", "30", cancellationToken).ConfigureAwait(false);
         var bankAccount = await SettingAsync(connection, "seller_bank_account", string.Empty, cancellationToken).ConfigureAwait(false);
         var taxBreakdown = BuildTaxBreakdown(lines, subtotal, totalVat);
@@ -444,6 +462,7 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         }
 
         var buyerCountry = Value(buyer, "buyer_country_code").ToUpperInvariant();
+        errors.AddRange(ErpAmlProgramme.InvoiceRestrictions(buyerCountry, sellerCountry));
         var buyerTrn = Digits(Value(buyer, "buyer_trn"));
         if (buyerTrn.Length > 0 && !TaxRegistrationValid(buyerCountry, buyerTrn))
         {

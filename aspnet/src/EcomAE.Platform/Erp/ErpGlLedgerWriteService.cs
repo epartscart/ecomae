@@ -16,6 +16,12 @@ public sealed record ErpManualJournalInput
     public long JournalDate { get; init; }
 
     public string IdempotencyKey { get; init; } = string.Empty;
+
+    public long CompanyId { get; init; }
+
+    public long BusinessUnitId { get; init; }
+
+    public string CurrencyCode { get; init; } = string.Empty;
 }
 
 /// <summary>PHP <c>epc_erp_gl_create_coa</c> payload.</summary>
@@ -81,7 +87,10 @@ public sealed record ErpCashAccountInput
     public string Notes { get; init; } = string.Empty;
 }
 
-public sealed record ErpJournalResult(long JournalId, string JournalNo);
+public sealed record ErpJournalResult(long JournalId, string JournalNo)
+{
+    public string Note { get; init; } = string.Empty;
+}
 
 public sealed record ErpReversedJournalResult(
     long JournalId,
@@ -174,6 +183,14 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureCoaSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        var prepared = await ErpIntercompanyJournal.PrepareAsync(
+            connection,
+            lines,
+            input.BusinessUnitId,
+            input.CompanyId,
+            cancellationToken).ConfigureAwait(false);
+        lines = prepared.Lines;
+        ErpGlPostingService.Validate(lines);
         var idempotencyKey = input.IdempotencyKey.Trim();
         var claimedIdempotency = false;
         if (idempotencyKey.Length > 0)
@@ -205,12 +222,21 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
                     Reference = input.Reference,
                     Description = input.Description.Trim().Length > 0 ? input.Description : "Manual journal entry",
                     SourceType = "manual",
+                    CompanyId = prepared.HeaderLegalEntityId,
+                    BusinessUnitId = prepared.HeaderBusinessUnitId,
+                    CurrencyCode = input.CurrencyCode,
                 },
                 lines,
                 adminId,
                 cancellationToken).ConfigureAwait(false);
 
             var journalNo = await JournalNoAsync(connection, journalId, cancellationToken).ConfigureAwait(false);
+            await ErpIntercompanyJournal.PersistAsync(
+                connection,
+                journalId,
+                prepared,
+                prepared.HeaderLegalEntityId,
+                cancellationToken).ConfigureAwait(false);
             await LogAsync(
                 connection,
                 adminId,
@@ -223,7 +249,7 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
                     ["lines"] = lines.Count.ToString(CultureInfo.InvariantCulture),
                 },
                 cancellationToken).ConfigureAwait(false);
-            var result = new ErpJournalResult(journalId, journalNo);
+            var result = new ErpJournalResult(journalId, journalNo) { Note = prepared.Note };
             if (claimedIdempotency)
             {
                 await StoreManualJournalIdempotencyAsync(
@@ -356,6 +382,7 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
         CancellationToken cancellationToken)
     {
         await EnsureCoaSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(
             connection,
             "ALTER TABLE `epc_erp_gl_journals` ADD `reversed_by_journal_id` int(11) NOT NULL DEFAULT 0",
@@ -397,7 +424,9 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
                 line.CoaId,
                 ErpTaxAmountCalculator.Round2(line.Credit),
                 ErpTaxAmountCalculator.Round2(line.Debit),
-                "Reversal — " + line.LineNote))
+                "Reversal — " + line.LineNote,
+                line.BusinessUnitId,
+                line.LegalEntityId))
             .ToList();
 
         var trimmedNote = (note ?? string.Empty).Trim();
@@ -413,6 +442,7 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
                 // A reversal stays booked in the original entry's company, whichever
                 // company is active in the session now.
                 CompanyId = journal.CompanyId,
+                BusinessUnitId = journal.BusinessUnitId,
             },
             reversed,
             adminId,
@@ -734,14 +764,14 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
             key[..Math.Min(80, key.Length)],
             adminId);
 
-    private static async Task<(string JournalNo, long CompanyId, long ReversedByJournalId)?> JournalHeadAsync(
+    private static async Task<(string JournalNo, long CompanyId, long ReversedByJournalId, long BusinessUnitId)?> JournalHeadAsync(
         DbConnection connection,
         long journalId,
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
         command.CommandText = ErpDb.Positional(
-            "SELECT `journal_no`, `company_id`, COALESCE(`reversed_by_journal_id`, 0)"
+            "SELECT `journal_no`, `company_id`, COALESCE(`reversed_by_journal_id`, 0), COALESCE(`business_unit_id`, 0)"
             + " FROM `epc_erp_gl_journals` WHERE `id` = ? AND `active` = 1 LIMIT 1");
         ErpDb.AddParameters(command, journalId);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -752,8 +782,9 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
 
         return (
             reader.IsDBNull(0) ? string.Empty : reader.GetString(0),
-            reader.IsDBNull(1) ? 0L : reader.GetInt64(1),
-            reader.IsDBNull(2) ? 0L : reader.GetInt64(2));
+            reader.IsDBNull(1) ? 0L : Convert.ToInt64(reader.GetValue(1), CultureInfo.InvariantCulture),
+            reader.IsDBNull(2) ? 0L : Convert.ToInt64(reader.GetValue(2), CultureInfo.InvariantCulture),
+            reader.IsDBNull(3) ? 0L : Convert.ToInt64(reader.GetValue(3), CultureInfo.InvariantCulture));
     }
 
     private static async Task<List<ErpGlLine>> JournalLinesAsync(
@@ -764,16 +795,19 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
         var lines = new List<ErpGlLine>();
         await using var command = connection.CreateCommand();
         command.CommandText = ErpDb.Positional(
-            "SELECT `coa_id`, `debit`, `credit`, `line_note` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? ORDER BY `id` ASC");
+            "SELECT `coa_id`, `debit`, `credit`, `line_note`, COALESCE(`business_unit_id`, 0), COALESCE(`legal_entity_id`, 0)"
+            + " FROM `epc_erp_gl_lines` WHERE `journal_id` = ? ORDER BY `id` ASC");
         ErpDb.AddParameters(command, journalId);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
             lines.Add(new ErpGlLine(
-                reader.IsDBNull(0) ? 0L : reader.GetInt64(0),
+                reader.IsDBNull(0) ? 0L : Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
                 reader.IsDBNull(1) ? 0m : reader.GetDecimal(1),
                 reader.IsDBNull(2) ? 0m : reader.GetDecimal(2),
-                reader.IsDBNull(3) ? string.Empty : reader.GetString(3)));
+                reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                reader.IsDBNull(4) ? 0L : Convert.ToInt64(reader.GetValue(4), CultureInfo.InvariantCulture),
+                reader.IsDBNull(5) ? 0L : Convert.ToInt64(reader.GetValue(5), CultureInfo.InvariantCulture)));
         }
 
         return lines;
