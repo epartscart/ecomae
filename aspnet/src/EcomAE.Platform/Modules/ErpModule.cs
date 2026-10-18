@@ -333,6 +333,9 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpCreditPartnerSave, HandleCreditPartnerAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpCreditDocument, HandleCreditDocumentSaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpCreditDocument, HandleCreditDocumentOpenAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpSalesOrderSplit, HandleOrderSplitAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpPurchaseOrderSplit, HandleOrderSplitAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpInvoiceShippingPack, HandleShippingPackAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpApprovalsRequestDecide, HandleBosWfDecideAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpApprovalsRequestRaise, HandleBosWfRaiseAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpContactsPartiesSave, HandleOaPartySaveAsync).DisableAntiforgery();
@@ -2419,7 +2422,8 @@ public sealed class ErpModule : ISurfaceModule
                     LiveWriteFormBinder.Flag(form, "auto_allocate", "autoAllocate"),
                     LiveWriteFormBinder.ParallelLongs(form, "alloc_invoice_id[]", "alloc_invoice_id", "allocInvoiceId"),
                     LiveWriteFormBinder.ParallelDecimals(form, "alloc_amount[]", "alloc_amount", "allocAmount"),
-                    LiveWriteFormBinder.UnixDate(form, "voc_date", "voucher_date", "entry_date"));
+                    LiveWriteFormBinder.UnixDate(form, "voc_date", "voucher_date", "entry_date"),
+                    LiveWriteFormBinder.Text(form, "supply_treatment", "supplyTreatment"));
             }
             else
             {
@@ -2460,6 +2464,7 @@ public sealed class ErpModule : ISurfaceModule
                         AllocAmounts = body.AllocAmount,
                         Note = body.Note ?? string.Empty,
                         Time = body.Time,
+                        SupplyTreatment = body.SupplyTreatment ?? string.Empty,
                     },
                     session.UserId,
                     cancellationToken);
@@ -2497,7 +2502,9 @@ public sealed class ErpModule : ISurfaceModule
                     LiveWriteFormBinder.Flag(form, "auto_allocate", "autoAllocate"),
                     LiveWriteFormBinder.ParallelLongs(form, "alloc_invoice_id[]", "alloc_invoice_id", "allocInvoiceId"),
                     LiveWriteFormBinder.ParallelDecimals(form, "alloc_amount[]", "alloc_amount", "allocAmount"),
-                    LiveWriteFormBinder.UnixDate(form, "voc_date", "voucher_date", "entry_date"));
+                    LiveWriteFormBinder.UnixDate(form, "voc_date", "voucher_date", "entry_date"),
+                    LiveWriteFormBinder.Text(form, "supply_treatment", "supplyTreatment"),
+                    !form.ContainsKey("supplier_tax_invoice") || LiveWriteFormBinder.Flag(form, "supplier_tax_invoice", "supplierTaxInvoice"));
             }
             else
             {
@@ -2537,6 +2544,8 @@ public sealed class ErpModule : ISurfaceModule
                         Reference = body.Reference ?? string.Empty,
                         Note = body.Note ?? string.Empty,
                         Time = body.Time,
+                        SupplyTreatment = body.SupplyTreatment ?? string.Empty,
+                        SupplierTaxInvoiceHeld = body.SupplierTaxInvoice,
                     },
                     session.UserId,
                     cancellationToken);
@@ -18660,6 +18669,127 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleShippingPackAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShippingPackService packs,
+        CancellationToken cancellationToken)
+    {
+        const string fallback = "/erp/invoices-app";
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + Uri.EscapeDataString(fallback), "Admin ERP capability required for shipping documents.");
+        }
+
+        var action = "prepare";
+        var invoices = string.Empty;
+        var packages = 0;
+        var weight = 0m;
+        var carrier = string.Empty;
+        var tracking = string.Empty;
+        var shipTo = string.Empty;
+        var packId = 0L;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            action = LiveWriteFormBinder.Text(form, "action");
+            invoices = LiveWriteFormBinder.Text(form, "invoices");
+            packages = LiveWriteFormBinder.Int(form, "packages");
+            weight = LiveWriteFormBinder.Dec(form, "weight");
+            carrier = LiveWriteFormBinder.Text(form, "carrier");
+            tracking = LiveWriteFormBinder.Text(form, "tracking");
+            shipTo = LiveWriteFormBinder.Text(form, "ship_to", "shipTo");
+            packId = LiveWriteFormBinder.Long(form, "pack_id", "packId");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                false,
+                "Confirm the shipping documents before they are prepared.",
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "confirm_writes_required", message = "Confirm the shipping documents before they are prepared.", session = SessionPayload(session) });
+        }
+
+        var release = string.Equals(action, "release", StringComparison.OrdinalIgnoreCase);
+        var written = release
+            ? await packs.ReleaseAsync(packId, cancellationToken)
+            : await packs.PrepareAsync(new ErpShippingPackPrepare(ErpShippingPack.Parse(invoices), packages, weight, carrier, tracking, shipTo), cancellationToken);
+        if (LiveWriteFormBinder.WantsHtml(context) && written.Succeeded && !release)
+        {
+            var dest = ClientErpPath.PrefixIfBound(context, "/erp/invoices-app?pack=" + written.Id.ToString(CultureInfo.InvariantCulture));
+            return Results.Redirect(dest + "&ok=" + Uri.EscapeDataString(written.Message ?? string.Empty));
+        }
+
+        return LiveWriteFormBinder.Complete(
+            context,
+            fallback,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleOrderSplitAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpOrderSplitService splits,
+        CancellationToken cancellationToken)
+    {
+        var sales = context.Request.Path.Value?.Contains("/sales-orders/", StringComparison.OrdinalIgnoreCase) == true;
+        var side = sales ? ErpOrderSplit.Sales : ErpOrderSplit.Purchase;
+        var fallback = sales ? "/erp/sales-orders-app" : "/erp/purchase-orders-app";
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + Uri.EscapeDataString(fallback), "Admin ERP capability required for a partial order.");
+        }
+
+        var action = string.Empty;
+        var linesText = string.Empty;
+        var orderId = 0L;
+        var lineId = 0L;
+        var qty = 0m;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            action = LiveWriteFormBinder.Text(form, "action");
+            linesText = LiveWriteFormBinder.Text(form, "lines");
+            orderId = LiveWriteFormBinder.Long(form, "order_id", "orderId");
+            lineId = LiveWriteFormBinder.Long(form, "line_id", "lineId");
+            qty = LiveWriteFormBinder.Dec(form, "qty");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        var moves = ErpOrderSplit.Parse(linesText).ToList();
+        if (moves.Count == 0 && orderId > 0 && lineId > 0 && qty > 0m)
+        {
+            moves.Add(new ErpOrderSplit.Move(orderId, lineId, qty));
+        }
+
+        if (!confirm)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                false,
+                "Confirm the partial order before it is posted.",
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "confirm_writes_required", message = "Confirm the partial order before it is posted.", session = SessionPayload(session) });
+        }
+
+        var written = await splits.PostAsync(new ErpOrderSplitPost(side, action, moves), cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            fallback,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleCreditApplicationAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -30003,7 +30133,8 @@ public sealed class ErpModule : ISurfaceModule
         bool AutoAllocate = false,
         IReadOnlyList<long>? AllocInvoiceId = null,
         IReadOnlyList<decimal>? AllocAmount = null,
-        long Time = 0);
+        long Time = 0,
+        string? SupplyTreatment = null);
     private sealed record ErpPaymentVoucherBody(
         long SupplierId,
         long AccountId,
@@ -30017,7 +30148,9 @@ public sealed class ErpModule : ISurfaceModule
         bool AutoAllocate = false,
         IReadOnlyList<long>? AllocInvoiceId = null,
         IReadOnlyList<decimal>? AllocAmount = null,
-        long Time = 0);
+        long Time = 0,
+        string? SupplyTreatment = null,
+        bool SupplierTaxInvoice = true);
     private sealed record ErpSupplierCreateBody(
         string? Name, string? ContactEmail = null, bool ConfirmWrites = false, long StorageId = 0, string? ContactPhone = null, string? Trn = null,
         string? CurrencyCode = null, string? CountryCode = null, string? VatRegistered = null, string? VendorAccount = null, string? VendorGroup = null,
