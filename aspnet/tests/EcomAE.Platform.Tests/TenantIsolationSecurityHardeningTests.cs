@@ -1,5 +1,6 @@
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Services;
+using Microsoft.AspNetCore.Http;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -41,6 +42,47 @@ public sealed class TenantIsolationSecurityHardeningTests
         Assert.Contains(EcomAE.Platform.Security.EcomAePermissions.SuperBosAccess, super);
         Assert.DoesNotContain(EcomAE.Platform.Security.EcomAePermissions.SuperBosAccess, tenant);
         Assert.Contains(EcomAE.Platform.Security.EcomAePermissions.TenantCpAccess, tenant);
+    }
+
+    [Fact]
+    public void CompanyOnSuperHostStaysATenant()
+    {
+        var company = new DefaultHttpContext();
+        company.Request.Host = new HostString("www.ecomae.com");
+        company.Request.Path = "/erp/app";
+        company.Items[ClientErpPath.HttpContextItemKey] = "real";
+        company.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] =
+            TenantContext.ForKnownTenant(
+                "real",
+                "www.ecomae.com",
+                TenantMode.ErpOnlyTenant,
+                TenantSurface.Erp,
+                "/cp/client-erp/real/erp",
+                databaseName: "real");
+
+        var companyPerms = LegacyAdminPermissionSets.ForRequest(company);
+        Assert.Contains(EcomAE.Platform.Security.EcomAePermissions.TenantErpAccess, companyPerms);
+        Assert.DoesNotContain(EcomAE.Platform.Security.EcomAePermissions.SuperCpAccess, companyPerms);
+        Assert.DoesNotContain(EcomAE.Platform.Security.EcomAePermissions.SuperErpAccess, companyPerms);
+        Assert.DoesNotContain(EcomAE.Platform.Security.EcomAePermissions.SuperBosAccess, companyPerms);
+
+        var platform = new DefaultHttpContext();
+        platform.Request.Host = new HostString("www.ecomae.com");
+        platform.Request.Path = "/erp";
+        platform.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] =
+            TenantContext.ForKnownTenant(
+                "platform",
+                "www.ecomae.com",
+                TenantMode.Platform,
+                TenantSurface.Erp,
+                "/erp",
+                databaseName: "ecomae");
+        platform.Request.Headers.Cookie = ClientErpPath.CookieName + "=real";
+
+        var platformPerms = LegacyAdminPermissionSets.ForRequest(platform);
+        Assert.Contains(EcomAE.Platform.Security.EcomAePermissions.SuperErpAccess, platformPerms);
+        Assert.Contains(EcomAE.Platform.Security.EcomAePermissions.SuperCpAccess, platformPerms);
+        Assert.False(LegacyAdminPermissionSets.IsCompanyRequest(platform));
     }
 
     [Fact]

@@ -20,6 +20,9 @@ public sealed class ErpWorkflowCreatePhpParityTests
         Assert.Contains("department_code", text, StringComparison.Ordinal);
         Assert.Contains("workflow_step", text, StringComparison.Ordinal);
         Assert.Contains("epc-wf-done", text, StringComparison.Ordinal);
+        Assert.Contains("epc-wf-actions__row", text, StringComparison.Ordinal);
+        Assert.Contains("data-epc-inline=\"1\"", text, StringComparison.Ordinal);
+        Assert.Contains("How to use this board", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Process-flow cases stay", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);

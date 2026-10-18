@@ -120,7 +120,9 @@ public static class IndustrySpecificRoutePolicy
         }
 
         if (path.Equals("/erp/real-estate-app", StringComparison.OrdinalIgnoreCase)
-            || path.StartsWith("/erp/real-estate/", StringComparison.OrdinalIgnoreCase))
+            || path.StartsWith("/erp/real-estate/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/erp/landlord-app", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/erp/landlord/", StringComparison.OrdinalIgnoreCase))
         {
             return "real_estate";
         }

@@ -182,16 +182,23 @@ public static class OAuthCallbackEndpoint
                 return Redirect(location);
             }
 
+            var dest = OAuthCallback.SafeReturnPath(state);
+            if (!string.Equals(state.AuthMode, "storefront", StringComparison.OrdinalIgnoreCase))
+            {
+                var landing = await Erp.ErpLandingPageService.TryReadAsync(connection, cancellationToken).ConfigureAwait(false);
+                dest = Erp.ErpLandingPage.Prefer(dest, landing);
+            }
+
             LegacyLoginCookieWriter.Apply(
                 context.Response,
-                new LegacyLoginSuccess(userId, profile.Email, session, csrf, state.AuthMode != "storefront", OAuthCallback.SafeReturnPath(state)),
+                new LegacyLoginSuccess(userId, profile.Email, session, csrf, state.AuthMode != "storefront", dest),
                 rememberMe: false);
             if (state.Provider == "google")
             {
                 RememberGoogle(context, profile.Email);
             }
 
-            return Redirect(OAuthCallback.SafeReturnPath(state));
+            return Redirect(dest);
         }
         catch (DbException)
         {

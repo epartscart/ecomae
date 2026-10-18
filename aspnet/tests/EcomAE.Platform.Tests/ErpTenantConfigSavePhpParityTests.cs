@@ -14,6 +14,9 @@ public sealed class ErpTenantConfigSavePhpParityTests
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"company_name\"", text, StringComparison.Ordinal);
         Assert.Contains("ERP settings", text, StringComparison.Ordinal);
+        Assert.Contains("Accounting setup", text, StringComparison.Ordinal);
+        Assert.Contains("How to use this", text, StringComparison.Ordinal);
+        Assert.Contains("class=\"epc-setup-form\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
     }

@@ -10,6 +10,7 @@ public static class ErpRealEstatePortfolioReset
 {
     public static readonly string[] Tables =
     [
+        "epc_erp_re_year_lines",
         "epc_erp_re_expense_splits",
         "epc_erp_re_expenses",
         "epc_erp_re_floors",

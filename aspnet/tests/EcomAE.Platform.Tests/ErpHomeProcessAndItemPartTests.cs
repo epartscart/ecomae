@@ -178,7 +178,7 @@ public sealed class ErpHomeProcessAndItemPartTests
         var page = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpProductInfoApp.razor"));
         Assert.Contains("inventory_part", page, StringComparison.Ordinal);
         Assert.Contains("inventory_assembly", page, StringComparison.Ordinal);
-        Assert.Contains("name=\"bom_sku\"", page, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"bom_sku\"", page, StringComparison.Ordinal);
         Assert.Contains("Bill of materials", page, StringComparison.Ordinal);
     }
 
