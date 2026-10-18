@@ -917,6 +917,8 @@ public static class EcomAeRoutes
     public const string ErpInvoices = "/erp/invoices";
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
     public const string ErpInvoicesApp = "/erp/invoices-app";
+    /// <summary>Merge several customer invoices into one shipping invoice and one packing slip.</summary>
+    public const string ErpInvoiceShippingPack = "/erp/invoices/shipping-pack";
     /// <summary>Printable invoice document (HTML, admin-gated).</summary>
     public const string ErpInvoicePrint = "/erp/invoice-print";
     /// <summary>JSON open-balance readback for the receipt-voucher form.</summary>
