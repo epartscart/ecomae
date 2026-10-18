@@ -52,7 +52,7 @@ public sealed class ErpBosWfRequestReadPhpParityTests
         Assert.Contains("id=\"approval-request-@r.Id\"", text, StringComparison.Ordinal);
         Assert.Contains("id=\"approval-history-@r.Id\"", text, StringComparison.Ordinal);
         Assert.Contains("value=\"@r.Id\"", text, StringComparison.Ordinal);
-        Assert.Contains("Reject this request?", text, StringComparison.Ordinal);
+        Assert.Contains(">Reject</button>", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
     }
 
