@@ -52,13 +52,16 @@
     .epc-cp-shell .epc-cp-header-bar a,
     .epc-erp-cp-shell .epc-erp-topbar a:not(.btn):not(.epc-erp-global-search__hit),
     .epc-erp-cp-shell .epc-erp-topbar__nav,
-    .epc-erp-cp-shell .epc-erp-topbar__user {
-        color: rgba(255, 255, 255, .9);
+    .epc-erp-cp-shell .epc-erp-topbar__user,
+    .epc-erp-cp-shell .epc-erp-topbar__brand,
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-landing,
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-landing label {
+        color: #fff !important;
     }
 
     .epc-cp-shell .epc-cp-header-bar a:hover,
     .epc-erp-cp-shell .epc-erp-topbar a:not(.btn):not(.epc-erp-global-search__hit):hover {
-        color: #fff;
+        color: #fff !important;
     }
 
     .epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__input {
@@ -778,6 +781,18 @@
     .epc-erp-cp-shell .epc-jw-panel-nav a.is-active,
     .epc-erp-cp-shell .epc-dash-customize__role:hover,
     .epc-erp-cp-shell .epc-dash-customize__role.is-active {
+        color: #fff !important;
+    }
+
+    /* The accent rule paints every link blue. On the navy bar that blue disappears. */
+    .epc-cp-shell .epc-cp-header-bar a,
+    .epc-erp-cp-shell .epc-erp-topbar a:not(.btn):not(.epc-erp-global-search__hit),
+    .epc-erp-cp-shell .epc-erp-topbar a:not(.btn):not(.epc-erp-global-search__hit):hover,
+    .epc-erp-cp-shell .epc-erp-topbar__nav,
+    .epc-erp-cp-shell .epc-erp-topbar__user,
+    .epc-erp-cp-shell .epc-erp-topbar__brand,
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-landing,
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-landing label {
         color: #fff !important;
     }
 </style>

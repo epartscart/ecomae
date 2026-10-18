@@ -54,7 +54,7 @@ public sealed class CpWorkshopWritePhpParityTests
         Assert.Contains("value=\"add_line\"", text, StringComparison.Ordinal);
         Assert.Contains("value=\"create_appointment\"", text, StringComparison.Ordinal);
         Assert.Contains("value=\"convert_appointment\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"customer_name\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"customer_name\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"labour_desc\"", text, StringComparison.Ordinal);
         Assert.Contains("id=\"epc-ws-checkin-form\"", text, StringComparison.Ordinal);
         Assert.Contains("id=\"epc-ws-seed\"", text, StringComparison.Ordinal);

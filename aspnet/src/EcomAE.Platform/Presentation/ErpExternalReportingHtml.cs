@@ -125,7 +125,7 @@ public static class ErpExternalReportingHtml
 
     public static string VatHeader() =>
         "<div style=\"display:flex;align-items:center;width:100%;gap:8px;background:#2b3a55;color:#fff;padding:7px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-radius:4px 4px 0 0;\">"
-        + "<span style=\"width:46px;\">Box</span><span style=\"flex:1;\">Description</span>"
+        + "<span style=\"width:110px;\">Box</span><span style=\"flex:1;\">Description</span>"
         + "<span style=\"width:150px;text-align:right;\">Amount</span>"
         + "<span style=\"width:130px;text-align:right;\">VAT amount</span>"
         + "<span style=\"width:120px;text-align:right;\">Adjustment</span></div>";
@@ -176,12 +176,12 @@ public static class ErpExternalReportingHtml
         IReadOnlyList<DrillRow>? invoices)
     {
         var hint = invoices is { Count: > 0 }
-            ? " <span class=\"epc-drill-hint\" style=\"font-size:10px;color:#2b6cb0;font-weight:600;\">▸ " + invoices.Count.ToString(CultureInfo.InvariantCulture) + " invoices</span>"
+            ? " <span class=\"epc-drill-hint\" style=\"font-size:10px;color:#2b6cb0;font-weight:600;white-space:nowrap;\">▸ " + invoices.Count.ToString(CultureInfo.InvariantCulture) + " invoices</span> <span class=\"btn btn-xs btn-primary epc-drill-btn\">Drill down</span>"
             : "";
         var sampleMark = sample ? " <span class=\"label label-warning\" style=\"font-size:9px;\">sample</span>" : "";
-        var summary = "<div class=\"epc-line\" style=\"display:flex;align-items:center;width:100%;gap:8px;color:#1e293b;\">"
-            + "<span style=\"width:46px;font-weight:700;\">" + H(box) + "</span>"
-            + "<span style=\"flex:1;\">" + H(desc) + sampleMark + hint + "</span>"
+        var summary = "<div class=\"epc-line\" style=\"display:flex;align-items:center;width:100%;gap:8px;color:#1e293b;flex-wrap:wrap;\">"
+            + "<span style=\"width:110px;font-weight:700;flex:0 0 110px;\">" + H(box) + "</span>"
+            + "<span style=\"flex:1 1 220px;min-width:160px;\">" + H(desc) + sampleMark + hint + "</span>"
             + "<span style=\"width:150px;text-align:right;\">" + H(Money(amount, ccy)) + "</span>"
             + "<span style=\"width:130px;text-align:right;font-weight:600;\">" + H(Money(vat, ccy)) + "</span>"
             + "<span style=\"width:120px;text-align:right;color:#475569;\">" + H(Money(0, ccy)) + "</span></div>";

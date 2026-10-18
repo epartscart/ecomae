@@ -159,7 +159,7 @@
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="syncron_action" value="record_service_level" />
                 <input type="hidden" name="returnUrl" value="@ServiceHref" />
-                <label>Item id <input class="form-control input-sm" type="number" min="1" name="item_id" required style="width:6rem" /></label>
+                <ErpMasterPicker Kind="item" FieldName="item_id" InputId="syncron-service-item" Label="Item" Required="true" Min="1" />
                 <label>Warehouse @WarehouseSelect("warehouse_id", -1)</label>
                 <label>Month <input class="form-control input-sm" type="month" name="period_month" value="@_thisMonth" required /></label>
                 <label>Demand <input class="form-control input-sm" type="number" step="any" min="0" name="demand_qty" required style="width:6rem" /></label>
@@ -215,8 +215,8 @@
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="syncron_action" value="manual_order" />
                 <input type="hidden" name="returnUrl" value="@OrdersHref" />
-                <label>SKU <input class="form-control input-sm" name="sku" maxlength="64" /></label>
-                <label>Item id <input class="form-control input-sm" type="number" min="0" name="item_id" style="width:6rem" /></label>
+                <ErpMasterPicker Kind="item" FieldName="item_id" InputId="syncron-order-item" Label="Item" CodeFieldName="sku" />
+                <input type="hidden" name="sku" value="" />
                 <label>Warehouse @WarehouseSelect("warehouse_id", -1)</label>
                 <label>Supplier @SupplierSelect("supplier_id", "No supplier")</label>
                 <label>Order quantity <input class="form-control input-sm" type="number" step="any" min="0.0001" name="order_qty" required style="width:7rem" /></label>

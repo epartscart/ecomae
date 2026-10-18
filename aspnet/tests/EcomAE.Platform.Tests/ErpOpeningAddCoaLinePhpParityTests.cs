@@ -13,7 +13,7 @@ public sealed class ErpOpeningAddCoaLinePhpParityTests
         Assert.Contains("/erp/opening/add-coa-line", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"batch_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"entity_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"entity_id\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"debit\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"credit\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", text, StringComparison.Ordinal);
