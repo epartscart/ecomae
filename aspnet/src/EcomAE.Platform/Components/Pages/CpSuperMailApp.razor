@@ -2,28 +2,90 @@
 @page "/bos/mail-app"
 @page "/erp/super-mail-app"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Cp
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
 @inject ICpTenantControlCenterService ControlCenter
+@inject IErpTenantUserAdminService Users
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Platform mail · Super CP · ECOM AE</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<style>
+    .mail-signins{margin:0 0 16px}
+    .mail-signins h3{margin:0 0 4px;font-size:15px;color:#0f172a}
+    .mail-signins__lead{margin:0 0 10px;color:#475569}
+    .mail-counts{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+    .mail-count{flex:1 1 160px;background:#fff;border:1px solid #dbe4ea;border-top:3px solid #0f4c81;padding:10px 12px}
+    .mail-count span{display:block;font-size:12px;font-weight:700;color:#475569}
+    .mail-count strong{display:block;margin-top:2px;font-size:22px;color:#0f172a}
+    .mail-people{max-height:28rem;overflow:auto}
+</style>
 
 @if (_allowed)
 {
     <PhpCpDesktopChrome IsAdmin="_isAdmin">
         <PhpCpModulePageHeader Title="Platform mailboxes"
-                               Subtitle="Super operator plus ERP-only company boxes on ecomae.com. This page does not invent a send."
+                               Subtitle="How many people this company has, how many are signed in, and each last login. Mailboxes stay below. This page does not invent a send."
                                PhpTabHref="@_phpTab">
             <a class="ghost" href="/cp/tenants-app">Tenants</a>
             <a class="ghost" href="/cp/tenant-email-app">Tenant SMTP</a>
             <a class="ghost" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a>
         </PhpCpModulePageHeader>
+
+        <section class="mail-signins" aria-label="Company sign-in">
+            <h3>Who is signed in</h3>
+            <p class="mail-signins__lead">These are the people who can open this company. Signed in means a session was active in the last 8 hours. The list is the person and the last login time only.</p>
+            @if (_isAdmin && _presence.Source == "tenant-users")
+            {
+                <div class="mail-counts">
+                    <div class="mail-count"><span>Users</span><strong>@_presence.UserCount.ToString(CultureInfo.InvariantCulture)</strong></div>
+                    <div class="mail-count"><span>Signed in now</span><strong>@_presence.SignedInCount.ToString(CultureInfo.InvariantCulture)</strong></div>
+                    <div class="mail-count"><span>Last login</span><strong>@FormatLogin(_presence.LatestLoginUnix)</strong></div>
+                </div>
+                @if (_presence.Message.Length > 0)
+                {
+                    <p class="text-muted">@_presence.Message</p>
+                }
+                else
+                {
+                    <div class="epc-scp-table-card mail-people">
+                        <table class="epc-scp-data-table table table-epc-pro">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Last login</th>
+                                    <th>Signed in</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var person in _presence.People)
+                                {
+                                    <tr>
+                                        <td>@person.Name@if (!string.Equals(person.Name, person.Email, StringComparison.OrdinalIgnoreCase) && person.Email.Length > 0) { <text> · @person.Email</text> }</td>
+                                        <td>@FormatLogin(person.LastLoginUnix)</td>
+                                        <td>@(person.SignedIn ? "Yes" : "—")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+            else if (_isAdmin)
+            {
+                <p class="text-muted">User counts are not available on this database.</p>
+            }
+            else
+            {
+                <p class="text-muted">Sign in as a super operator to see who is signed in.</p>
+            }
+        </section>
 
         <div class="epc-scp-table-card">
             <table class="epc-scp-data-table table table-epc-pro">
@@ -81,6 +143,7 @@ else
     private bool _allowed;
     private bool _isAdmin;
     private IReadOnlyList<MailRow> _boxes = [];
+    private ErpTenantLoginPresence _presence = new(0, 0, 0, [], "n/a", string.Empty);
 
     private sealed record MailRow(string SiteKey, string TradeName, string Email, string Login);
 
@@ -100,6 +163,7 @@ else
             return;
         }
 
+        _presence = await Users.LoginPresenceAsync(ctx.RequestAborted);
         var view = await ControlCenter.LoadAsync(ctx.RequestAborted);
         _boxes = view.Tenants
             .Where(t => t.TenantType == "erp_only" && !string.IsNullOrWhiteSpace(t.AdminEmail))
@@ -110,4 +174,9 @@ else
                 t.ErpLoginUrl))
             .ToArray();
     }
+
+    private static string FormatLogin(long unix)
+        => unix <= 0
+            ? "—"
+            : DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd HH:mm 'UTC'", CultureInfo.InvariantCulture);
 }

@@ -93,7 +93,9 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
         {
             "customer" or "customers" or "user" or "users" or "user-id" or "customer-user-id" => "customer",
             "supplier" or "suppliers" or "vendor" or "vendors" => "supplier",
-            "item" or "items" or "sku" or "inventory" or "item-code" => "item",
+            "item" or "items" or "sku" or "inventory" or "item-code" or "item-id" => "item",
+            "coa" or "chart" or "chart-account" or "chart-of-accounts" or "gl" or "gl-account" => "coa",
+            "warehouse" or "warehouses" or "warehouse-id" or "wh" => "warehouse",
             "jw-metal-stock" or "metal-stock" or "jw-item" or "jw-stock" or "jw-stock-code" => "jw-metal-stock",
             "jw-karat" or "karat" or "karats" => "jw-karat",
             "jw-currency" or "jw-curr" => "jw-currency",
@@ -114,6 +116,8 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "tenant" or "tenants" => "tenant",
             "contractor" or "contractors" => "contractor",
             "business-unit" or "business-units" or "branch" or "branches" or "bu" => "business-unit",
+            "legal-entity" or "legal-entities" or "legal-entity-id" => "legal-entity",
+            "cost-centre" or "cost-center" or "cost-centres" or "cc" => "cost-centre",
             _ => string.Empty,
         };
     }
@@ -124,6 +128,8 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "customer" => "/erp/receivables-app",
             "supplier" => "/erp/suppliers-app",
             "item" => "/erp/inventory-stock-app",
+            "coa" => "/erp/coa-accounts-app",
+            "warehouse" => "/erp/warehouses-app",
             "jw-metal-stock" => "/erp/jewellery-stock-verification-app?tab=jw_metal_stock",
             "jw-karat" => "/erp/jewellery-masters-app?tab=jw_karat",
             "jw-currency" => "/erp/jewellery-masters-app?tab=jw_currency",
@@ -139,7 +145,28 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "tenant" => "/erp/real-estate-app?tab=leases",
             "contractor" => "/erp/real-estate-app?tab=construction",
             "business-unit" => "/erp/organization-app?tab=business_units",
+            "legal-entity" => "/erp/organization-app?tab=legal_entities",
+            "cost-centre" => "/erp/organization-app?tab=cost_centres",
             _ => "/erp",
+        };
+
+    public static string RecordAppHref(string kind)
+        => kind switch
+        {
+            "item" => "/erp/product-info-app",
+            _ => MasterHref(kind),
+        };
+
+    public static string RecordQueryKey(string kind)
+        => kind switch
+        {
+            "customer" => "customer_id",
+            "supplier" => "supplier_id",
+            "item" => "pm_item_id",
+            "coa" => "account_id",
+            "warehouse" => "warehouse_id",
+            "account" => "account_id",
+            _ => "",
         };
 
     public static string KindLabel(string kind)
@@ -148,6 +175,8 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "customer" => "Customer",
             "supplier" => "Supplier",
             "item" => "Item",
+            "coa" => "Chart account",
+            "warehouse" => "Warehouse",
             "jw-metal-stock" => "Metal stock",
             "jw-karat" => "Karat",
             "jw-currency" => "Currency",
@@ -168,6 +197,8 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "tenant" => "Tenant",
             "contractor" => "Contractor",
             "business-unit" => "Business unit",
+            "legal-entity" => "Legal entity",
+            "cost-centre" => "Cost centre",
             _ => "Master",
         };
 
@@ -240,6 +271,8 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "customer" => await LoadCustomersAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
             "supplier" => await LoadApprovedSuppliersAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
             "item" => await LoadItemsAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
+            "coa" => await LoadChartAccountsAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
+            "warehouse" => await LoadWarehousesAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
             "jw-metal-stock" => await LoadMetalStockAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
             "jw-karat" => await LoadKaratsAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
             "jw-currency" => await LoadSimpleAsync(
@@ -277,6 +310,12 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
                 query, limit, cancellationToken).ConfigureAwait(false),
             "business-unit" => await LoadSimpleAsync(
                 connection, "business-unit", "epc_erp_pm_business_units", "id", "code", "name", "code",
+                query, limit, cancellationToken, requireActive: true).ConfigureAwait(false),
+            "legal-entity" => await LoadSimpleAsync(
+                connection, "legal-entity", "epc_erp_pm_legal_entities", "id", "code", "name", "code",
+                query, limit, cancellationToken, requireActive: true).ConfigureAwait(false),
+            "cost-centre" => await LoadSimpleAsync(
+                connection, "cost-centre", "epc_cc_centers", "id", "code", "name", "code",
                 query, limit, cancellationToken, requireActive: true).ConfigureAwait(false),
             _ => [],
         };
@@ -392,6 +431,59 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             + " GROUP BY TRIM(`" + column + "`) ORDER BY TRIM(`" + column + "`) ASC LIMIT "
             + limit.ToString(CultureInfo.InvariantCulture);
         return await ReadRowsAsync(connection, kind, sql, query, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<IReadOnlyList<ErpMasterOption>> LoadChartAccountsAsync(
+        DbConnection connection,
+        string query,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        if (!await TableExistsAsync(connection, "epc_erp_coa_accounts", cancellationToken).ConfigureAwait(false))
+        {
+            return [];
+        }
+
+        var sql = "SELECT `id`, IFNULL(`code`,''), IFNULL(`name`,''), IFNULL(`account_type`,'')"
+            + " FROM `epc_erp_coa_accounts` WHERE `active` = 1"
+            + AndLike(query, ["CAST(`id` AS CHAR)", "`code`", "`name`", "`account_type`"])
+            + " ORDER BY `code` ASC LIMIT " + limit.ToString(CultureInfo.InvariantCulture);
+        return await ReadRowsAsync(connection, "coa", sql, query, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<IReadOnlyList<ErpMasterOption>> LoadWarehousesAsync(
+        DbConnection connection,
+        string query,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        var rows = new List<ErpMasterOption>();
+        if (await TableExistsAsync(connection, "epc_erp_inv_warehouses", cancellationToken).ConfigureAwait(false))
+        {
+            var sql = "SELECT `id`, IFNULL(NULLIF(TRIM(`code`), ''), CAST(`id` AS CHAR)), IFNULL(`name`,''), 'Stock'"
+                + " FROM `epc_erp_inv_warehouses` WHERE `active` = 1"
+                + AndLike(query, ["CAST(`id` AS CHAR)", "`code`", "`name`"])
+                + " ORDER BY `code` ASC LIMIT " + limit.ToString(CultureInfo.InvariantCulture);
+            rows.AddRange(await ReadRowsAsync(connection, "warehouse", sql, query, cancellationToken).ConfigureAwait(false));
+        }
+
+        if (await TableExistsAsync(connection, "epc_warehouses", cancellationToken).ConfigureAwait(false))
+        {
+            var sql = "SELECT `id`, IFNULL(NULLIF(TRIM(`code`), ''), CAST(`id` AS CHAR)), IFNULL(`name`,''), IFNULL(`type`,'')"
+                + " FROM `epc_warehouses` WHERE `is_active` = 1"
+                + AndLike(query, ["CAST(`id` AS CHAR)", "`code`", "`name`", "`type`"])
+                + " ORDER BY `code` ASC LIMIT " + limit.ToString(CultureInfo.InvariantCulture);
+            var seen = rows.Select(row => row.Id).ToHashSet();
+            foreach (var row in await ReadRowsAsync(connection, "warehouse", sql, query, cancellationToken).ConfigureAwait(false))
+            {
+                if (seen.Add(row.Id))
+                {
+                    rows.Add(row);
+                }
+            }
+        }
+
+        return rows.Count <= limit ? rows : rows.Take(limit).ToArray();
     }
 
     private static async Task<IReadOnlyList<ErpMasterOption>> LoadItemsAsync(

@@ -1,0 +1,319 @@
+@page "/erp/intercompany-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Components.Shared.Desktop
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IErpIntercompanySetupService Setup
+
+<PageTitle>Intercompany · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Intercompany" BreadcrumbArea="Record to Report" BreadcrumbTab="Intercompany">
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="@ErpIntercompanySetupService.AppPath" IsAdmin="_isAdmin" />
+    <PhpErpModulePageHeader Title="Intercompany" Subtitle="Relationships, accounts, elimination, UAE VAT and corporate tax, and currencies." />
+
+    <style>
+        .epc-ic-tabs { display:flex; flex-wrap:wrap; gap:.4rem; margin:0 0 .8rem; }
+        .epc-ic-tabs a { padding:.35rem .7rem; border:1px solid #c5cdd6; border-radius:4px; text-decoration:none; }
+        .epc-ic-tabs a.is-active { background:#1f4e79; color:#fff; border-color:#1f4e79; }
+        .epc-ic-grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:.55rem .8rem; }
+        .epc-ic-grid label { display:flex; flex-direction:column; gap:.2rem; font-size:12px; min-width:0; }
+        .epc-ic-grid .wide, .epc-ic-grid .form-actions { grid-column:1 / -1; }
+        .epc-ic-note { margin:0 0 .7rem; }
+        @@media (max-width: 800px) { .epc-ic-grid { grid-template-columns:1fr; } }
+    </style>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status">@_flashErr</div>
+    }
+
+    <nav class="epc-ic-tabs" aria-label="Intercompany setup">
+        <a class="@TabClass("relationships")" href="@Href("relationships")">Relationships</a>
+        <a class="@TabClass("accounts")" href="@Href("accounts")">Accounts</a>
+        <a class="@TabClass("elimination")" href="@Href("elimination")">Elimination</a>
+        <a class="@TabClass("tax")" href="@Href("tax")">UAE VAT and corporate tax</a>
+        <a class="@TabClass("currency")" href="@Href("currency")">Currencies</a>
+    </nav>
+
+    @if (_tab == "accounts")
+    {
+        <section class="epc-erp-form-panel">
+            <p class="epc-ic-note">Sales, purchases, receivables, and payables each post to their own chart account. The same accounts are set for legal entities, business units, and cost centres.</p>
+            <form method="post" action="/erp/intercompany/save" class="epc-ic-grid">
+                @Hidden("accounts")
+                <input type="hidden" name="action" value="account" />
+                <label>Transaction
+                    <select name="purpose">
+                        <option value="sales">Sales</option>
+                        <option value="purchase">Purchase</option>
+                        <option value="receivable">Receivable</option>
+                        <option value="payable">Payable</option>
+                    </select>
+                </label>
+                <label>Scope
+                    <select name="scope">
+                        <option value="legal_entity">Legal entity</option>
+                        <option value="business_unit">Business unit</option>
+                        <option value="cost_centre">Cost centre</option>
+                    </select>
+                </label>
+                <label>Chart account <input name="coa_code" list="ic-coa" required maxlength="16" /></label>
+                <datalist id="ic-coa">
+                    <option value="1180">Intercompany receivable</option>
+                    <option value="2180">Intercompany payable</option>
+                    <option value="4180">Intercompany sales</option>
+                    <option value="5180">Intercompany purchases</option>
+                </datalist>
+                <div class="form-actions"><button type="submit" class="btn btn-primary">Save account</button></div>
+            </form>
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Transaction</th><th>Scope</th><th>Chart account</th></tr></thead>
+                <tbody>
+                    @if (_setup.Accounts.Count == 0)
+                    {
+                        <tr><td colspan="3">@EmptyRow</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _setup.Accounts)
+                        {
+                            <tr><td>@row.Purpose</td><td>@row.Scope</td><td>@row.CoaCode</td></tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </section>
+    }
+    else if (_tab == "elimination")
+    {
+        <section class="epc-erp-form-panel">
+            <p class="epc-ic-note">Full elimination clears intercompany sales against purchases, and receivables against payables, on the consolidated statement.</p>
+            <form method="post" action="/erp/intercompany/save" class="epc-ic-grid">
+                @Hidden("elimination")
+                <input type="hidden" name="action" value="rule" />
+                <label>Rule code <input name="rule_code" required maxlength="32" /></label>
+                <label>Name <input name="rule_name" required maxlength="190" /></label>
+                <label>Method
+                    <select name="method">
+                        <option value="full">Full</option>
+                        <option value="none">Do not eliminate</option>
+                    </select>
+                </label>
+                <label>Debit side
+                    <select name="debit_purpose">
+                        <option value="purchase">Purchase</option>
+                        <option value="receivable">Receivable</option>
+                        <option value="sales">Sales</option>
+                        <option value="payable">Payable</option>
+                    </select>
+                </label>
+                <label>Credit side
+                    <select name="credit_purpose">
+                        <option value="sales">Sales</option>
+                        <option value="payable">Payable</option>
+                        <option value="purchase">Purchase</option>
+                        <option value="receivable">Receivable</option>
+                    </select>
+                </label>
+                <label>Active
+                    <select name="rule_active">
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </label>
+                <div class="form-actions"><button type="submit" class="btn btn-primary">Save elimination rule</button></div>
+            </form>
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Code</th><th>Name</th><th>Debit</th><th>Credit</th><th>Method</th><th>Active</th></tr></thead>
+                <tbody>
+                    @if (_setup.Rules.Count == 0)
+                    {
+                        <tr><td colspan="6">@EmptyRow</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var rule in _setup.Rules)
+                        {
+                            <tr>
+                                <td>@rule.Code</td>
+                                <td>@rule.Name</td>
+                                <td>@rule.DebitPurpose</td>
+                                <td>@rule.CreditPurpose</td>
+                                <td>@rule.Method</td>
+                                <td>@(rule.Active ? "Yes" : "No")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </section>
+    }
+    else if (_tab == "tax")
+    {
+        <section class="epc-erp-form-panel">
+            <p class="epc-ic-note">Federal Decree-Law 8 of 2017. Supplies between members of a VAT group are disregarded. Separate taxable persons charge sales group VAT and purchase group VAT. A movement inside one legal entity is not a supply.</p>
+            <p class="epc-ic-note">Federal Decree-Law 47 of 2022 Article 34 requires an arm's length price. Article 40 eliminates intra-group transactions for a corporate tax group. Article 26 qualifying-group relief is not applied automatically.</p>
+            <p class="epc-ic-note"><strong>Legal entity:</strong> @ErpIntercompanyTax.VatTreatment("legal_entity", _setup.Policy.VatGroup, _setup.Policy.SalesVatRate, _setup.Policy.PurchaseVatRate) @ErpIntercompanyTax.CtTreatment("legal_entity", _setup.Policy.CtGroup) @ErpIntercompanyTax.TransferPricing(_setup.Policy.TpMethod)</p>
+            <p class="epc-ic-note"><strong>Business unit and cost centre:</strong> @ErpIntercompanyTax.VatTreatment("business_unit", _setup.Policy.VatGroup, _setup.Policy.SalesVatRate, _setup.Policy.PurchaseVatRate) @ErpIntercompanyTax.CtTreatment("cost_centre", _setup.Policy.CtGroup)</p>
+            <form method="post" action="/erp/intercompany/save" class="epc-ic-grid">
+                @Hidden("tax")
+                <input type="hidden" name="action" value="tax" />
+                <label>VAT group
+                    <select name="vat_group">
+                        <option value="0" selected="@(!_setup.Policy.VatGroup)">Separate taxable persons</option>
+                        <option value="1" selected="@_setup.Policy.VatGroup">VAT group — supplies disregarded</option>
+                    </select>
+                </label>
+                <label>Corporate tax group
+                    <select name="ct_group">
+                        <option value="0" selected="@(!_setup.Policy.CtGroup)">Separate taxable persons</option>
+                        <option value="1" selected="@_setup.Policy.CtGroup">Tax group — Article 40</option>
+                    </select>
+                </label>
+                <label>Transfer pricing
+                    <select name="tp_method">
+                        <option value="cup" selected="@(_setup.Policy.TpMethod == "cup")">Comparable uncontrolled price</option>
+                        <option value="resale" selected="@(_setup.Policy.TpMethod == "resale")">Resale price</option>
+                        <option value="cost_plus" selected="@(_setup.Policy.TpMethod == "cost_plus")">Cost plus</option>
+                        <option value="tnmm" selected="@(_setup.Policy.TpMethod == "tnmm")">Transactional net margin</option>
+                        <option value="profit_split" selected="@(_setup.Policy.TpMethod == "profit_split")">Profit split</option>
+                    </select>
+                </label>
+                <label>Sales group VAT % <input type="number" name="sales_vat_rate" min="0" max="100" step="0.01" value="@_setup.Policy.SalesVatRate.ToString("0.##", CultureInfo.InvariantCulture)" /></label>
+                <label>Purchase group VAT % <input type="number" name="purchase_vat_rate" min="0" max="100" step="0.01" value="@_setup.Policy.PurchaseVatRate.ToString("0.##", CultureInfo.InvariantCulture)" /></label>
+                <div class="form-actions"><button type="submit" class="btn btn-primary">Save tax setup</button></div>
+            </form>
+        </section>
+    }
+    else if (_tab == "currency")
+    {
+        <section class="epc-erp-form-panel">
+            <p class="epc-ic-note">Reporting currency is the currency of the consolidated and company statements. Closing rate translates the balance sheet. Average rate translates profit and loss. The voucher keeps the transaction currency and the exchange rate. A blank transaction currency stays in the accounting currency.</p>
+            <form method="post" action="/erp/intercompany/save" class="epc-ic-grid">
+                @Hidden("currency")
+                <input type="hidden" name="action" value="currency" />
+                <label>Reporting currency <input name="reporting_currency" maxlength="3" value="@_setup.Policy.ReportingCurrency" required /></label>
+                <label>Transaction currency <input name="transaction_currency" maxlength="3" value="@_setup.Policy.TransactionCurrency" placeholder="Voucher currency" /></label>
+                <label>Translation
+                    <select name="translation_method">
+                        <option value="closing_average" selected="@(_setup.Policy.TranslationMethod != "current")">Closing rate for the balance sheet, average rate for profit and loss</option>
+                        <option value="current" selected="@(_setup.Policy.TranslationMethod == "current")">Current rate</option>
+                    </select>
+                </label>
+                <div class="form-actions"><button type="submit" class="btn btn-primary">Save currencies</button></div>
+            </form>
+        </section>
+    }
+    else
+    {
+        <section class="epc-erp-form-panel">
+            <p class="epc-ic-note">Pair two legal entities, two business units, or two cost centres. The pair is the customer and vendor for sales, purchases, receivables, and payables between them. A general journal that debits one party and credits another creates that pair, and the receivable and payable, on its own.</p>
+            <form method="post" action="/erp/intercompany/save" class="epc-ic-grid">
+                @Hidden("relationships")
+                <input type="hidden" name="action" value="relationship" />
+                <label>Scope
+                    <select name="scope">
+                        <option value="legal_entity">Legal entity</option>
+                        <option value="business_unit">Business unit</option>
+                        <option value="cost_centre">Cost centre</option>
+                    </select>
+                </label>
+                <label>From <input name="from_code" list="ic-parties" required maxlength="40" /></label>
+                <label>To <input name="to_code" list="ic-parties" required maxlength="40" /></label>
+                <label>Role
+                    <select name="role">
+                        <option value="both">Customer and vendor</option>
+                        <option value="customer">Customer</option>
+                        <option value="vendor">Vendor</option>
+                    </select>
+                </label>
+                <datalist id="ic-parties">
+                    @foreach (var party in _setup.Parties)
+                    {
+                        <option value="@party.Code">@ScopeLabel(party.Scope) · @party.Name</option>
+                    }
+                </datalist>
+                <div class="form-actions"><button type="submit" class="btn btn-primary">Save relationship</button></div>
+            </form>
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Scope</th><th>From</th><th>To</th><th>Role</th></tr></thead>
+                <tbody>
+                    @if (_setup.Relationships.Count == 0)
+                    {
+                        <tr><td colspan="4">@(_isAdmin ? "No relationships yet." : EmptyRow)</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _setup.Relationships)
+                        {
+                            <tr><td>@ScopeLabel(row.Scope)</td><td>@row.FromCode</td><td>@row.ToCode</td><td>@row.Role</td></tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </section>
+    }
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private string _tab = "relationships";
+    private string _company = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private ErpIntercompanySetup _setup = new([], [], [], new(false, false, 5m, 5m, "cup", "AED", "closing_average", ""), [], "migration", "");
+    private string EmptyRow => _isAdmin ? "Sign in is ready. Nothing is stored yet." : "Sign in with ERP capability for live rows.";
+
+    private string TabClass(string tab) => tab == _tab ? "is-active" : "";
+
+    private string Href(string tab)
+    {
+        var href = ErpIntercompanySetupService.AppPath + "?tab=" + tab;
+        return _company.Length == 0 ? href : href + "&company=" + Uri.EscapeDataString(_company);
+    }
+
+    private RenderFragment Hidden(string tab) => @<text>
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="tab" value="@tab" />
+        <input type="hidden" name="company" value="@_company" />
+    </text>;
+
+    private static string ScopeLabel(string scope) => scope switch
+    {
+        "business_unit" => "Business unit",
+        "cost_centre" => "Cost centre",
+        _ => "Legal entity",
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var q = ctx.Request.Query;
+        var tab = (q["tab"].ToString() ?? "").Trim().ToLowerInvariant();
+        _tab = tab is "accounts" or "elimination" or "tax" or "currency" ? tab : "relationships";
+        _company = (q["company"].ToString() ?? "").Trim();
+        _flashOk = q["ok"].ToString() ?? "";
+        _flashErr = q["err"].ToString() ?? "";
+        var session = await Sessions.ValidateAsync(ctx);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _setup = await Setup.ReadAsync(ctx.RequestAborted);
+    }
+}

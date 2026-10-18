@@ -115,6 +115,7 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
     private readonly IErpAdvanceVatService _advanceVat;
     private readonly IErpAuditLogWriter _audit;
     private readonly IErpProcessFlowSyncService? _processFlow;
+    private readonly IErpCreditManagementService? _credit;
 
     public ErpInvoiceFromOrderWriteService(
         IErpWriteConnectionFactory connections,
@@ -122,7 +123,8 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
         IErpGlPostingService gl,
         IErpAdvanceVatService advanceVat,
         IErpAuditLogWriter audit,
-        IErpProcessFlowSyncService? processFlow = null)
+        IErpProcessFlowSyncService? processFlow = null,
+        IErpCreditManagementService? credit = null)
     {
         _connections = connections;
         _cash = cash;
@@ -130,6 +132,7 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
         _advanceVat = advanceVat;
         _audit = audit;
         _processFlow = processFlow;
+        _credit = credit;
     }
 
     /// <summary>PHP <c>epc_einvoice_save_document</c>: advance the order's process-flow case once a tax invoice is saved (best-effort).</summary>
@@ -687,6 +690,27 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
         long documentId;
         decimal advanceVatCredit;
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        if (_credit is not null)
+        {
+            var termsDays = ErpCreditBlock.TermsDaysBetween(
+                draft.IssueDate,
+                draft.DueDate,
+                ErpCreditBlock.TermsDaysFromText(draft.PaymentTerms, 30));
+            var exposure = ErpCreditBlock.Round(draft.TotalIncl - draft.Paid);
+            if (exposure <= 0m)
+            {
+                exposure = draft.AmountDue;
+            }
+
+            await _credit.EnsureAllowsInvoiceAsync(
+                connection,
+                draft.UserId,
+                exposure,
+                termsDays,
+                0,
+                cancellationToken).ConfigureAwait(false);
+        }
+
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {

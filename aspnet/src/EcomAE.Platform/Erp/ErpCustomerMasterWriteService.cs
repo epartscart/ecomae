@@ -159,6 +159,8 @@ public sealed class ErpCustomerMasterWriteService : IErpCustomerMasterWriteServi
             ["postal_code"] = PostedOrExisting(request.PostalCode, existing, "postal_code", 32, null),
             ["country_code"] = PostedOrExisting(request.CountryCode, existing, "country_code", 8, null)
         };
+        map["permanent_limit"] = map["credit_limit"];
+        map["permanent_terms_days"] = map["terms_days"];
         return map;
     }
 
@@ -174,6 +176,8 @@ public sealed class ErpCustomerMasterWriteService : IErpCustomerMasterWriteServi
         var values = new List<object?>();
         AppendSet(sets, values, columns, merged, "credit_limit");
         AppendSet(sets, values, columns, merged, "terms_days");
+        AppendSet(sets, values, columns, merged, "permanent_limit");
+        AppendSet(sets, values, columns, merged, "permanent_terms_days");
         AppendSet(sets, values, columns, merged, "on_hold");
         AppendSet(sets, values, columns, merged, "risk_band");
         AppendSet(sets, values, columns, merged, "notes");
@@ -236,6 +240,8 @@ public sealed class ErpCustomerMasterWriteService : IErpCustomerMasterWriteServi
 
         Add("credit_limit", merged["credit_limit"]);
         Add("terms_days", merged["terms_days"]);
+        Add("permanent_limit", merged["permanent_limit"]);
+        Add("permanent_terms_days", merged["permanent_terms_days"]);
         Add("on_hold", merged["on_hold"]);
         Add("risk_band", merged["risk_band"]);
         Add("notes", merged["notes"]);
