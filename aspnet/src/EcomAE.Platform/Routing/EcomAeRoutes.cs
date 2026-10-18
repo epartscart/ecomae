@@ -908,11 +908,17 @@ public static class EcomAeRoutes
     public const string ErpInvoicesCancel = "/erp/invoices/cancel";
     /// <summary>ERP so_cancel compatibility endpoint with dry-run and confirmed-write modes.</summary>
     public const string ErpSalesOrdersCancel = "/erp/sales-orders/cancel";
+    /// <summary>Post a partial confirmation, delivery, invoice, or backorder cancellation. One document can list several sales orders.</summary>
+    public const string ErpSalesOrderSplit = "/erp/sales-orders/split";
     /// <summary>Wave B dry-run draft PO delete (PHP po_delete remains authoritative).</summary>
     public const string ErpPurchaseOrdersDelete = "/erp/purchase-orders/delete";
+    /// <summary>Post a partial confirmation, delivery, invoice, or backorder cancellation. One document can list several purchase orders.</summary>
+    public const string ErpPurchaseOrderSplit = "/erp/purchase-orders/split";
     public const string ErpInvoices = "/erp/invoices";
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
     public const string ErpInvoicesApp = "/erp/invoices-app";
+    /// <summary>Merge several customer invoices into one shipping invoice and one packing slip.</summary>
+    public const string ErpInvoiceShippingPack = "/erp/invoices/shipping-pack";
     /// <summary>Printable invoice document (HTML, admin-gated).</summary>
     public const string ErpInvoicePrint = "/erp/invoice-print";
     /// <summary>JSON open-balance readback for the receipt-voucher form.</summary>
@@ -2880,6 +2886,16 @@ public static class EcomAeRoutes
     public const string ErpFiscalYearCreate = "/erp/fiscal-years/create";
     /// <summary>Hold, open, or close a fiscal year. Close posts the P&amp;L entry and opens the next year.</summary>
     public const string ErpFiscalYearAction = "/erp/fiscal-years/action";
+    /// <summary>Save a customer's permanent credit limit and terms, and an optional temporary limit that replaces them between two dates.</summary>
+    public const string ErpCreditProfileSave = "/erp/credit-management/profile";
+    /// <summary>Save the invoice blocking rules for a company: hold, credit limit, expiry, days overdue, overdue amount, and payment terms.</summary>
+    public const string ErpCreditRulesSave = "/erp/credit-management/rules";
+    /// <summary>Save the credit application party, requested limit, and the date the application expires.</summary>
+    public const string ErpCreditApplicationSave = "/erp/credit-management/application";
+    /// <summary>Add or remove a partner on a credit application. Each partner keeps their own papers.</summary>
+    public const string ErpCreditPartnerSave = "/erp/credit-management/partner";
+    /// <summary>Attach or open a credit-application document. POST stores the file. GET opens one stored file.</summary>
+    public const string ErpCreditDocument = "/erp/credit-management/document";
     /// <summary>Live PHP bos_wf_decide twin (confirmWrites=true writes).</summary>
     public const string ErpApprovalsRequestDecide = "/erp/approvals/requests/decide";
     /// <summary>Live PHP epc_bos_wf_raise / bos_wf_raise_test twin (confirmWrites=true writes).</summary>
@@ -3066,6 +3082,8 @@ public static class EcomAeRoutes
     public const string ErpPmSave = "/erp/pm/save";
     public const string ErpRealEstateApp = "/erp/real-estate-app";
     public const string ErpRealEstateSave = "/erp/real-estate/save";
+    /// <summary>Stamp the real-estate law pack and check the public legislation pages. The pack text is not overwritten.</summary>
+    public const string ErpRealEstateLawFetch = "/erp/real-estate/legislation-fetch";
     public const string ErpRealEstateReport = "/erp/real-estate/report";
     public const string ErpRealEstateWorkbook = "/erp/real-estate/workbook";
     public const string ErpLandlordApp = "/erp/landlord-app";
@@ -3149,6 +3167,9 @@ public static class EcomAeRoutes
     public const string ErpTrialBalanceApp = "/erp/trial-balance-app";
     public const string ErpTrialBalanceSnapshot = "/erp/trial-balance/snapshot";
     public const string ErpTrialBalanceExport = "/erp/trial-balance/export";
+    public const string ErpTrialBalanceFile = "/erp/trial-balance/file";
+    /// <summary>IFRS 18 statement print, PDF, and Excel.</summary>
+    public const string ErpFinancialReportFile = "/erp/financial-reports/file";
     public const string ErpIntercompanyApp = "/erp/intercompany-app";
     /// <summary>Intercompany relationship, account, elimination, tax, and currency setup. confirmWrites=true writes the setup tables.</summary>
     public const string ErpIntercompanySave = "/erp/intercompany/save";

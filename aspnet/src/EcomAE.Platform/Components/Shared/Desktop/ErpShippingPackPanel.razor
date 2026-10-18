@@ -1,0 +1,250 @@
+@namespace EcomAE.Platform.Components.Shared
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IErpShippingPackService Packs
+
+<style>
+    .epc-ship { margin: 0 0 1rem; padding: .9rem 1rem; border: 1px solid #c5d4de; border-radius: .4rem; background: #f8fafc; color: #1d2740; }
+    .epc-ship h2, .epc-ship h3 { margin: 0 0 .4rem; color: #1d2740; }
+    .epc-ship h2 { font-size: 1.05rem; }
+    .epc-ship h3 { font-size: .95rem; }
+    .epc-ship p, .epc-ship li, .epc-ship label, .epc-ship td, .epc-ship th, .epc-ship option { color: #1d2740; }
+    .epc-ship button { background: #1f4e79 !important; color: #fff !important; border: 0; border-radius: .25rem; padding: .35rem .75rem; }
+    .epc-ship select, .epc-ship input, .epc-ship textarea { color: #1d2740; background: #fff; }
+    .epc-ship table { width: 100%; border-collapse: collapse; margin-top: .45rem; }
+    .epc-ship th, .epc-ship td { text-align: left; padding: .35rem .45rem; border-bottom: 1px solid #d5e0ea; }
+    .epc-ship form { display: flex; flex-wrap: wrap; gap: .45rem; align-items: end; margin: .6rem 0; }
+    .epc-ship .epc-ship-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; margin: .6rem 0; }
+    .epc-ship .epc-ship-steps article, .epc-ship .epc-ship-paper { background: #fff; border: 1px solid #d5e0ea; border-top: 4px solid #1f4e79; border-radius: .35rem; padding: .5rem .6rem; }
+    .epc-ship .epc-ship-papers { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .7rem; }
+    .epc-ship .num { text-align: right; }
+    @@media (max-width: 900px) {
+        .epc-ship .epc-ship-steps, .epc-ship .epc-ship-papers { grid-template-columns: 1fr; }
+    }
+</style>
+
+<section class="epc-ship" id="shipping-documents" aria-label="Shipping documents">
+    <h2>Shipping documents</h2>
+    <p>When several invoices for one customer leave together, merge them into one shipping invoice and one packing slip. The source invoices stay open. This paper is the shipping set, not a second tax invoice.</p>
+    <div class="epc-ship-steps">
+        <article><strong>1 Invoices</strong><span> List every invoice in the shipment. They must be the same customer and the same currency.</span></article>
+        <article><strong>2 Shipping invoice</strong><span> One paper with the amounts. Example total @Example.Gross.ToString("0.00", CultureInfo.InvariantCulture) from @Example.Invoices.Count.ToString(CultureInfo.InvariantCulture) invoices.</span></article>
+        <article><strong>3 Packing slip</strong><span> The same lines, quantities only. Example quantity @Example.Quantity.ToString("0.###", CultureInfo.InvariantCulture).</span></article>
+        <article><strong>4 Release</strong><span> Release a pack when the shipment is cancelled. Those invoices can then be merged again.</span></article>
+    </div>
+
+    @if (!_isAdmin)
+    {
+        <p>Sign in with ERP capability to prepare a shipping invoice and a packing slip.</p>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(_message))
+        {
+            <p>@_message</p>
+        }
+        @if (OpenedInvoiceId > 0)
+        {
+            <p>Opened invoice @OpenedInvoiceId.ToString(CultureInfo.InvariantCulture). Add it with the other invoices that ship together.</p>
+        }
+        <form method="post" action="@PostAction">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/invoices-app" />
+            <input type="hidden" name="action" value="prepare" />
+            <label>Invoices
+                <textarea name="invoices" rows="3" cols="24" placeholder="100&#10;101"></textarea>
+            </label>
+            <label>Packages <input type="number" name="packages" min="0" step="1" value="1" style="width:5rem" /></label>
+            <label>Weight kg <input type="number" name="weight" min="0" step="0.001" value="0" style="width:6rem" /></label>
+            <label>Carrier <input type="text" name="carrier" maxlength="80" style="width:8rem" /></label>
+            <label>Tracking <input type="text" name="tracking" maxlength="80" style="width:8rem" /></label>
+            <label>Ship to <input type="text" name="ship_to" maxlength="255" style="width:14rem" /></label>
+            <button type="submit">Prepare shipping documents</button>
+        </form>
+        <p>Enter one invoice id on each row, or separate them with commas. At least two invoices.</p>
+
+        @if (_pack is not null)
+        {
+            <p><strong>@_pack.ShippingInvoiceNo</strong> and <strong>@_pack.PackingSlipNo</strong> for @_pack.CustomerName. @(_pack.Active ? "This shipment is open." : "Released. These invoices can be merged again.")</p>
+            @if (_pack.Active)
+            {
+                <form method="post" action="@PostAction">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@("/erp/invoices-app?pack=" + _pack.Id.ToString(CultureInfo.InvariantCulture))" />
+                    <input type="hidden" name="action" value="release" />
+                    <input type="hidden" name="pack_id" value="@_pack.Id.ToString(CultureInfo.InvariantCulture)" />
+                    <button type="submit">Release this pack</button>
+                </form>
+            }
+            <div class="epc-ship-papers">
+                <article class="epc-ship-paper">
+                    <h3>Shipping invoice @_pack.ShippingInvoiceNo</h3>
+                    <p>@_pack.CustomerName · @_pack.Currency · @ShipMeta(_pack)</p>
+                    <table>
+                        <thead>
+                            <tr><th>Invoice</th><th>Item</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Net</th><th class="num">VAT</th><th class="num">Gross</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in _pack.Rows)
+                            {
+                                <tr>
+                                    <td>@row.InvoiceNumber</td>
+                                    <td>@Item(row)</td>
+                                    <td class="num">@row.Qty.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                                    <td class="num">@row.UnitPrice.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                    <td class="num">@row.Net.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                    <td class="num">@row.Vat.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                    <td class="num">@row.Gross.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                            <tr>
+                                <td colspan="4">Total of the source invoices</td>
+                                <td class="num">@_pack.Net.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                <td class="num">@_pack.Vat.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                <td class="num">@_pack.Gross.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </article>
+                <article class="epc-ship-paper">
+                    <h3>Packing slip @_pack.PackingSlipNo</h3>
+                    <p>@_pack.CustomerName · @ShipMeta(_pack)</p>
+                    <table>
+                        <thead>
+                            <tr><th>Invoice</th><th>Item</th><th>Description</th><th class="num">Qty</th><th>UoM</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in _pack.Rows)
+                            {
+                                <tr>
+                                    <td>@row.InvoiceNumber</td>
+                                    <td>@row.Item</td>
+                                    <td>@(string.IsNullOrWhiteSpace(row.Description) ? "—" : row.Description)</td>
+                                    <td class="num">@row.Qty.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(row.Uom) ? "—" : row.Uom)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </article>
+            </div>
+        }
+
+        <table>
+            <thead>
+                <tr><th>Shipping invoice</th><th>Packing slip</th><th>Customer</th><th class="num">Invoices</th><th class="num">Total</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+                @if (_recent.Count == 0)
+                {
+                    <tr><td colspan="7">No shipping packs yet. Enter at least two invoice ids.</td></tr>
+                }
+                else
+                {
+                    @foreach (var pack in _recent)
+                    {
+                        <tr>
+                            <td>@pack.ShippingInvoiceNo</td>
+                            <td>@pack.PackingSlipNo</td>
+                            <td>@(string.IsNullOrWhiteSpace(pack.CustomerName) ? "Customer " + pack.CustomerId.ToString(CultureInfo.InvariantCulture) : pack.CustomerName)</td>
+                            <td class="num">@pack.InvoiceCount.ToString(CultureInfo.InvariantCulture)</td>
+                            <td class="num">@pack.Gross.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                            <td>@(pack.Active ? "Open" : "Released")</td>
+                            <td><a href="@("/erp/invoices-app?pack=" + pack.Id.ToString(CultureInfo.InvariantCulture))">Open</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public long OpenedInvoiceId { get; set; }
+
+    private bool _isAdmin;
+    private string _message = "";
+    private ErpShippingPackDetail? _pack;
+    private IReadOnlyList<ErpShippingPackSummary> _recent = [];
+    private ErpShippingPack.Built Example { get; } = ErpShippingPack.Sample();
+
+    private string PostAction => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/invoices/shipping-pack");
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        _message = ctx.Request.Query["ok"].ToString();
+        if (string.IsNullOrWhiteSpace(_message))
+        {
+            _message = ctx.Request.Query["err"].ToString();
+        }
+
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        if (!long.TryParse(ctx.Request.Query["pack"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var packId))
+        {
+            packId = 0;
+        }
+
+        try
+        {
+            var snap = await Packs.LoadAsync(packId, ctx.RequestAborted);
+            _pack = snap.Pack;
+            _recent = snap.Recent;
+        }
+        catch (Exception ex)
+        {
+            _message = ex.Message;
+        }
+    }
+
+    private static string Item(ErpShippingPackLineRow row)
+        => string.IsNullOrWhiteSpace(row.Item) ? row.Description : row.Item;
+
+    private static string ShipMeta(ErpShippingPackDetail pack)
+    {
+        var parts = new List<string>();
+        if (pack.Packages > 0)
+        {
+            parts.Add(pack.Packages.ToString(CultureInfo.InvariantCulture) + " packages");
+        }
+
+        if (pack.WeightKg > 0m)
+        {
+            parts.Add(pack.WeightKg.ToString("0.###", CultureInfo.InvariantCulture) + " kg");
+        }
+
+        if (!string.IsNullOrWhiteSpace(pack.Carrier))
+        {
+            parts.Add(pack.Carrier);
+        }
+
+        if (!string.IsNullOrWhiteSpace(pack.TrackingNo))
+        {
+            parts.Add(pack.TrackingNo);
+        }
+
+        if (!string.IsNullOrWhiteSpace(pack.ShipTo))
+        {
+            parts.Add(pack.ShipTo);
+        }
+
+        return parts.Count == 0 ? "No carrier yet" : string.Join(" · ", parts);
+    }
+}
