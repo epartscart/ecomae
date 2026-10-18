@@ -9,9 +9,9 @@ namespace EcomAE.Platform.Middleware;
 /// Stops a user who has posted area grants from opening or posting a module they were not given.
 /// Pages that are not tied to a capability area stay available so the dashboard and guide still open.
 /// </summary>
-public sealed class ErpControlledAccessMiddleware(ILegacySessionValidator sessions)
+public sealed class ErpControlledAccessMiddleware(RequestDelegate next)
 {
-    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+    public async Task InvokeAsync(HttpContext context, ILegacySessionValidator sessions)
     {
         var path = ErpControlledAccess.Normalize(context.Request.Path.Value);
         if (ErpControlledAccess.AreaForPath(path) is null)

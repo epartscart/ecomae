@@ -287,9 +287,7 @@ public sealed class CpNotificationSettingsWriteService : ICpNotificationSettings
         cmd.CommandText = ErpDb.Positional(
             "SELECT IFNULL(`foreseen_email`,0), IFNULL(`foreseen_sms`,0), IFNULL(`email_subject`,''), IFNULL(`email_body`,''), IFNULL(`sms_body`,''), " +
             "IFNULL(`default_email_subject`,''), IFNULL(`default_email_body`,''), IFNULL(`default_sms_body`,'') FROM `notifications_settings` WHERE `id` = ? LIMIT 1");
-        var p = cmd.CreateParameter();
-        p.Value = id;
-        cmd.Parameters.Add(p);
+        ErpDb.AddParameters(cmd, id);
         await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {

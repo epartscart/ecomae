@@ -214,6 +214,13 @@ public sealed class ErpPurchaseInvoiceWriteService : IErpPurchaseInvoiceWriteSer
         var amountEx = ErpTaxAmountCalculator.Round2(input.AmountExVat);
         var tax = await _tax.CalcPurchaseAsync(connection, null, amountEx, input.SupplierId, input.Import, cancellationToken).ConfigureAwait(false);
         var total = tax.ImportDuty > 0m ? tax.TotalWithDuty : tax.TotalAmount;
+        await ErpSupplierWriteService.RequireKycForCoveredPurchaseAsync(
+            connection,
+            input.SupplierId,
+            total,
+            0,
+            "epc_erp_purchases",
+            cancellationToken).ConfigureAwait(false);
         var invoiceNumber = input.InvoiceNumber.Trim();
         var purchaseDate = input.PurchaseDate > 0 ? input.PurchaseDate : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var status = input.Status.Trim().Length > 0 ? input.Status.Trim() : "confirmed";

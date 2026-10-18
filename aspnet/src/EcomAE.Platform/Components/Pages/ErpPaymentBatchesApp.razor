@@ -26,15 +26,7 @@
     {
         <form method="post" action="/erp/ajax/payment-batch-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="returnUrl" value="/erp/payment-batches-app" />
-            <label>Pay from account
-                <select name="account_id">
-                    <option value="0">—</option>
-                    @foreach (var account in _accounts)
-                    {
-                        <option value="@account.Id">@account.Name (@account.CurrencyCode)</option>
-                    }
-                </select>
-            </label>
+            <ErpMasterPicker Kind="account" FieldName="account_id" InputId="pay-batch-account" Label="Pay from account" />
             <label>Type
                 <select name="batch_type">
                     <option value="sepa">SEPA</option>
@@ -203,7 +195,6 @@
     private const string _listHref = "/erp/payment-batches-app";
     private bool _isAdmin;
     private IReadOnlyList<ErpPaymentBatchDigest> _batches = [];
-    private IReadOnlyList<ErpCashAccountDigest> _accounts = [];
     private IReadOnlyList<ErpDimensionCatalog> _dimensionCatalog = [];
     private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private bool IsDimensionSelected(string key, long valueId)
@@ -243,7 +234,6 @@
         _batches = result.Batches;
         _source = result.Source;
         _message = result.Message;
-        _accounts = (await Dashboards.ListErpCashAccountsAsync(500, ctx.RequestAborted)).Accounts;
         _dimensionCatalog = await DimensionCatalog.LoadAsync(100, ctx.RequestAborted);
 
         if (_openedId > 0)
