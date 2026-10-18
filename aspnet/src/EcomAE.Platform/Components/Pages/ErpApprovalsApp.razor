@@ -14,10 +14,44 @@
 
 <PageTitle>ERP Approvals · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
+<style>
+    .ap-guide{margin:0 0 14px;padding:12px 14px;border:1px solid #dbe4ea;background:#fff;}
+    .ap-guide h3{margin:0 0 4px;font-size:15px;color:#0f172a;}
+    .ap-guide__lead{margin:0 0 10px;color:#475569;}
+    .ap-ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;list-style:none;margin:0;padding:0;}
+    .ap-ladder li{border:1px solid #dbe4ea;border-top:3px solid #1d4f91;background:#f8fafc;padding:8px 10px;}
+    .ap-lv{display:inline-block;width:18px;height:18px;border-radius:50%;background:#1d4f91;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;margin-right:4px;}
+    .ap-ladder strong{color:#0f172a;}
+    .ap-band{display:block;font-size:12px;color:#0f172a;margin-top:4px;}
+    .ap-ladder p{margin:4px 0 0;font-size:12px;color:#475569;}
+    .ap-boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin:0 0 14px;}
+    .ap-board{background:#fff;border:1px solid #dbe4ea;padding:12px;}
+    .ap-board h3{margin:0 0 4px;font-size:14px;}
+    .ap-board>p{margin:0 0 8px;color:#475569;font-size:12px;}
+    .ap-level-form,.ap-maint form[data-epc-inline="1"]{display:flex !important;flex-wrap:wrap;gap:8px;align-items:flex-end;width:auto !important;max-width:none !important;margin:0 0 8px !important;padding:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important;}
+    .ap-level-form label,.ap-maint label{display:flex;flex-direction:column;gap:2px;margin:0;font-size:11px;font-weight:700;color:#475569;}
+    .ap-row-actions{display:flex;flex-wrap:nowrap;gap:4px;align-items:center;}
+    .ap-row-actions form[data-epc-inline="1"]{display:inline-flex !important;width:auto !important;margin:0 !important;padding:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important;}
+</style>
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Approvals" BreadcrumbArea="Home" BreadcrumbTab="Approvals">
 
-    
-    <PhpErpModulePageHeader Title="Approval queue" Subtitle="Pending sales orders, purchase orders, journals, invoices, and stock." />
+    <PhpErpModulePageHeader Title="Approval levels" Subtitle="Save stores the document. Post is the step that hits the books. Each amount needs the level that covers it." />
+
+    <section class="ap-guide" aria-label="How approval works">
+        <h3>How approval works</h3>
+        <p class="ap-guide__lead">Saving keeps the document as a draft. Posting confirms a purchase order, posts an invoice or journal, or releases a payment. A person may save up to their save level and post up to their post level. Above that, the next level must approve first. The person who saved the document cannot be the only approver of its post.</p>
+        <ol class="ap-ladder">
+            @foreach (var band in ErpApprovalLevelCatalog.Standard)
+            {
+                <li>
+                    <span class="ap-lv">@band.Level</span><strong>@band.Role</strong>
+                    <span class="ap-band">Save up to @band.SaveUpTo</span>
+                    <span class="ap-band">Post up to @band.PostUpTo</span>
+                    <p>@band.Meaning</p>
+                </li>
+            }
+        </ol>
+    </section>
     <ul class="nav nav-pills" style="margin-bottom:14px;">
         <li class="active"><a href="/erp/approvals-app">Queue</a></li>
         <li><a href="/erp/sales-orders-app">Sales orders</a></li>
@@ -33,69 +67,64 @@
     {
         <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
     }
+    <div class="ap-boards" aria-label="Saved approval levels">
+        <section class="ap-board">
+            <h3>Save levels</h3>
+            <p>Who may store a draft, and up to what amount, before it must be sent for approval.</p>
+            @LevelTable(_rules.Where(rule => rule.Active && rule.Gate == "save").ToList(), "No save level yet. Set one below.")
+        </section>
+        <section class="ap-board">
+            <h3>Post levels</h3>
+            <p>Who may post the document to the books. Posting above a level waits for the next approver.</p>
+            @LevelTable(_rules.Where(rule => rule.Active && rule.Gate != "save").ToList(), "No post level yet. Set one below.")
+        </section>
+    </div>
+
     @if (_isAdmin)
     {
-        <form method="post" action="/erp/ajax/bos-wf-disable-rule" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/approvals-app" />
-            <label>Rule id <input type="number" name="id" min="1" required style="width:6rem" /></label>
-            <button type="submit">Disable rule</button>
-        </form>
-        <form method="post" action="/erp/approvals/requests/raise" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/approvals-app" />
-            <label>Type <input type="text" name="entity_type" value="purchase_order" /></label>
-            <label>Entity id <input type="number" name="entity_id" min="1" style="width:6rem" /></label>
-            <label>Ref <input type="text" name="entity_ref" /></label>
-            <label>Amount <input type="number" name="amount" step="0.01" /></label>
-            <label>Title <input type="text" name="title" /></label>
-            <button type="submit">Raise test request</button>
-        </form>
-        <form method="post" action="/erp/approvals/requests/decide" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/approvals-app" />
-            <label>Request id <input type="number" name="request_id" min="1" required style="width:6rem" /></label>
-            <label>Decision
-                <select name="decision">
-                    <option value="approve">Approve</option>
-                    <option value="reject">Reject</option>
-                </select>
-            </label>
-            <label>Comment <input type="text" name="comment" /></label>
-            <button type="submit">Decide request</button>
-        </form>
-        <form method="post" action="/erp/approvals/rules/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/approvals-app" />
-            <label>Rule id <input type="number" name="rule_id" min="0" style="width:6rem" /></label>
-            <label>Name <input type="text" name="name" required /></label>
-            <label>Document type
-                <select name="entity_type">
-                    <option value="purchase_order">Purchase order</option>
-                    <option value="sales_order">Sales order</option>
-                    <option value="purchase_invoice">Purchase invoice / bill</option>
-                    <option value="sales_invoice">Sales invoice</option>
-                    <option value="payment_voucher">Payment voucher</option>
-                    <option value="receipt_voucher">Receipt voucher</option>
-                    <option value="gl_journal">GL journal</option>
-                    <option value="expense">Expense claim</option>
-                    <option value="rfq">RFQ</option>
-                </select>
-            </label>
-            <label>Condition
-                <select name="operator">
-                    <option value=">=">amount ≥</option>
-                    <option value=">">amount &gt;</option>
-                    <option value="<=">amount ≤</option>
-                    <option value="any">any amount</option>
-                </select>
-            </label>
-            <label>Threshold <input type="number" step="0.01" name="threshold_amount" value="10000" style="width:7rem" /></label>
-            <label>Priority <input type="number" name="priority" value="100" style="width:5rem" /></label>
-            <label>Approver role <input type="text" name="step_role" value="Manager" /></label>
-            <label>Step label <input type="text" name="step_label" placeholder="Approval" /></label>
-            <button type="submit">Save rule</button>
-        </form>
+        <section class="ap-board" style="margin-bottom:14px;">
+            <h3>Set a level</h3>
+            <p>Choose the document, whether this level covers save or post, the level number, the role, and the amount they may approve.</p>
+            <form method="post" action="/erp/approvals/rules/save" class="ap-level-form" data-epc-inline="1">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                <input type="hidden" name="operator" value="@(">=")" />
+                <input type="hidden" name="priority" value="100" />
+                <label>Rule id <input type="number" name="rule_id" min="0" value="0" class="form-control input-sm" style="width:5rem" /></label>
+                <label>Name <input type="text" name="name" required maxlength="160" class="form-control input-sm" placeholder="PO post · Manager" /></label>
+                <label>Document
+                    <select name="entity_type" class="form-control input-sm">
+                        <option value="purchase_order">Purchase order</option>
+                        <option value="sales_order">Sales order</option>
+                        <option value="purchase_invoice">Purchase invoice / bill</option>
+                        <option value="sales_invoice">Sales invoice</option>
+                        <option value="payment_voucher">Payment voucher</option>
+                        <option value="receipt_voucher">Receipt voucher</option>
+                        <option value="gl_journal">GL journal</option>
+                        <option value="expense">Expense claim</option>
+                        <option value="rfq">RFQ</option>
+                    </select>
+                </label>
+                <label>When
+                    <select name="step_gate" class="form-control input-sm">
+                        <option value="save">Save — store the draft</option>
+                        <option value="post" selected>Post — hit the books</option>
+                    </select>
+                </label>
+                <label>Level
+                    <select name="step_level" class="form-control input-sm">
+                        @foreach (var band in ErpApprovalLevelCatalog.Standard)
+                        {
+                            <option value="@band.Level.ToString(CultureInfo.InvariantCulture)">@band.Level · @band.Role</option>
+                        }
+                    </select>
+                </label>
+                <label>Approver role <input type="text" name="step_role" value="Manager" class="form-control input-sm" /></label>
+                <label>Step label <input type="text" name="step_label" value="Post" class="form-control input-sm" /></label>
+                <label>Up to amount <input type="number" step="0.01" name="threshold_amount" value="10000" class="form-control input-sm" style="width:8rem" /></label>
+                <button type="submit" class="btn btn-sm btn-primary">Save rule</button>
+            </form>
+        </section>
     }
 
     @if (_opened is not null)
@@ -190,18 +219,18 @@
                             <td>@r.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td><span class="label label-warning">Step @((r.CurrentStep + 1).ToString(CultureInfo.InvariantCulture))/@r.StepCount.ToString(CultureInfo.InvariantCulture): @r.CurrentStepLabel</span></td>
                             <td><small>@Day(r.CreatedAt)</small></td>
-                            <td style="white-space:nowrap">
-                                <form method="post" action="/erp/approvals/requests/decide" style="display:inline-block;margin:0">
+                            <td class="ap-row-actions">
+                                <form method="post" action="/erp/approvals/requests/decide" data-epc-inline="1">
                                     <input type="hidden" name="confirmWrites" value="true" />
-                                    <input type="hidden" name="returnUrl" value="/erp/approvals-app" />
+                                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
                                     <input type="hidden" name="request_id" value="@r.Id" />
                                     <input type="hidden" name="decision" value="approve" />
-                                    <input type="text" name="comment" placeholder="Comment" style="width:120px" />
+                                    <input type="text" name="comment" placeholder="Comment" class="form-control input-sm" style="width:120px" />
                                     <button class="btn btn-xs btn-success" type="submit">Approve</button>
                                 </form>
-                                <form method="post" action="/erp/approvals/requests/decide" style="display:inline-block;margin:0" onsubmit="return confirm('Reject this request?');">
+                                <form method="post" action="/erp/approvals/requests/decide" data-epc-inline="1">
                                     <input type="hidden" name="confirmWrites" value="true" />
-                                    <input type="hidden" name="returnUrl" value="/erp/approvals-app" />
+                                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
                                     <input type="hidden" name="request_id" value="@r.Id" />
                                     <input type="hidden" name="decision" value="reject" />
                                     <button class="btn btn-xs btn-danger" type="submit">Reject</button>
@@ -263,6 +292,40 @@
                 </tbody>
             </table>
         </div>
+
+        <section class="ap-board ap-maint" style="margin-top:14px;">
+            <h3>Maintain a request</h3>
+            <p>Turn a level off, raise a request for a document, or decide a request by its number. The queue above is the day-to-day path.</p>
+            <form method="post" action="/erp/ajax/bos-wf-disable-rule" data-epc-inline="1">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                <label>Rule id <input type="number" name="id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
+                <button type="submit" class="btn btn-sm btn-default">Disable rule</button>
+            </form>
+            <form method="post" action="/erp/approvals/requests/raise" data-epc-inline="1">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                <label>Type <input type="text" name="entity_type" value="purchase_order" class="form-control input-sm" /></label>
+                <label>Entity id <input type="number" name="entity_id" min="1" class="form-control input-sm" style="width:6rem" /></label>
+                <label>Ref <input type="text" name="entity_ref" class="form-control input-sm" /></label>
+                <label>Amount <input type="number" name="amount" step="0.01" class="form-control input-sm" /></label>
+                <label>Title <input type="text" name="title" class="form-control input-sm" /></label>
+                <button type="submit" class="btn btn-sm btn-default">Raise test request</button>
+            </form>
+            <form method="post" action="/erp/approvals/requests/decide" data-epc-inline="1">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                <label>Request id <input type="number" name="request_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
+                <label>Decision
+                    <select name="decision" class="form-control input-sm">
+                        <option value="approve">Approve</option>
+                        <option value="reject">Reject</option>
+                    </select>
+                </label>
+                <label>Comment <input type="text" name="comment" class="form-control input-sm" /></label>
+                <button type="submit" class="btn btn-sm btn-default">Decide request</button>
+            </form>
+        </section>
     }
 
 </PhpErpDesktopChrome>
@@ -277,6 +340,9 @@
     private string _openedId = "";
     private ErpApprovalQueueItemDigest? _opened;
     private EcomAE.Platform.Erp.ErpBosWfRequestReadResult _requests = EcomAE.Platform.Erp.ErpBosWfRequestReadResult.Empty("n/a", "");
+    private IReadOnlyList<EcomAE.Platform.Erp.ErpBosWfRuleRow> _rules = [];
+    private int _companyId;
+    private string _returnUrl = "/erp/approvals-app";
     private IReadOnlyList<string> ApprovalWorkspaceTabs => ["General", "Queue", "Target", "Actions"];
 
     private IReadOnlyList<ErpDocumentWorkspaceField> ApprovalWorkspaceFields => _opened is null
@@ -304,6 +370,10 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _openedId = ctx.Request.Query["item"].ToString() ?? "";
+        _companyId = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
+        _returnUrl = _companyId > 0
+            ? "/erp/approvals-app?company=" + _companyId.ToString(CultureInfo.InvariantCulture)
+            : "/erp/approvals-app";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
@@ -318,6 +388,7 @@
         _message = result.Message;
         _opened = string.IsNullOrWhiteSpace(_openedId) ? null : _queue.FirstOrDefault(item => item.Id == _openedId);
         _requests = await ApprovalRequests.ReadAsync(ctx.RequestAborted);
+        _rules = await ApprovalRequests.ReadRulesAsync(ctx.RequestAborted);
     }
 
     private static string Day(long unix) => DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
@@ -343,5 +414,34 @@
         _ => "/erp/dashboard-summary-app",
     };
 
-    private static string ApprovalHref(string id) => "/erp/approvals-app?item=" + Uri.EscapeDataString(id);
+    private string ApprovalHref(string id)
+    {
+        var href = "/erp/approvals-app?item=" + Uri.EscapeDataString(id);
+        return _companyId > 0 ? href + "&company=" + _companyId.ToString(CultureInfo.InvariantCulture) : href;
+    }
+
+    private RenderFragment LevelTable(IReadOnlyList<EcomAE.Platform.Erp.ErpBosWfRuleRow> rows, string empty) => __builder =>
+    {
+        <table class="table table-condensed table-bordered" style="margin:0;">
+            <thead><tr><th>Level</th><th>Role</th><th>Document</th><th>Up to</th></tr></thead>
+            <tbody>
+                @if (rows.Count == 0)
+                {
+                    <tr><td colspan="4" class="text-muted">@empty</td></tr>
+                }
+                else
+                {
+                    @foreach (var rule in rows)
+                    {
+                        <tr>
+                            <td>@(rule.Level > 0 ? rule.Level.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td>@(string.IsNullOrWhiteSpace(rule.Role) ? rule.Name : rule.Role)</td>
+                            <td>@EcomAE.Platform.Erp.ErpBosWfRequestReadService.EntityTypeLabel(rule.EntityType)</td>
+                            <td>@rule.Threshold.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    };
 }

@@ -767,6 +767,13 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         if (amountEx <= 0 || supplierId <= 0) return (0, 0);
 
         var tax = await _tax.CalcPurchaseAsync(c, null, (decimal)amountEx, (int)supplierId, false, ct).ConfigureAwait(false);
+        await ErpSupplierWriteService.RequireKycForCoveredPurchaseAsync(
+            c,
+            supplierId,
+            tax.TotalAmount,
+            0,
+            "epc_erp_purchase_orders",
+            ct).ConfigureAwait(false);
         var now = Now();
         var poNo = await _vouchers.NextAsync(c, null, "PO", ct).ConfigureAwait(false);
         var writes = 0;

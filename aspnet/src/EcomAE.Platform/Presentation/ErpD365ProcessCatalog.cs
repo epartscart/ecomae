@@ -487,6 +487,7 @@ public static class ErpD365ProcessCatalog
             "Set accounts receivable parameters, blocking rules, and letter sequence first.",
             "Company credit limit type; customer-group limit; document credit check.",
             S("cc_parameters", Stage.Setup, "Accounts receivable parameters"),
+            S("cc_credit_application", Stage.Setup, "Credit application"),
             S("cc_blocking_rules", Stage.Setup, "Blocking rules"),
             S("cc_letter_sequence", Stage.Setup, "Collection letter sequence"),
             S("cc_all_customers", Stage.Masters, "Customers"),

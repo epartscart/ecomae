@@ -79,11 +79,11 @@
         <form id="erp-module-new" method="post" action="/erp/aftersales/rma-create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_listHref" />
-            <label>Customer id <input type="number" name="customer_id" min="0" style="width:5rem" /></label>
+            <ErpMasterPicker Kind="customer" FieldName="customer_id" InputId="rma-create-customer" Label="Customer" />
             <label>Source order <input type="number" name="source_id" min="0" style="width:5rem" /></label>
             <label>RMA no <input type="text" name="rma_no" placeholder="RMA-…" /></label>
             <label>Reason <input type="text" name="reason" /></label>
-            <label>Item id <input type="number" name="item_id" min="1" required style="width:5rem" /></label>
+            <ErpMasterPicker Kind="item" FieldName="item_id" InputId="rma-create-item" Label="Item" Required="true" Min="1" />
             <label>Qty <input type="text" name="qty" required placeholder="1" /></label>
             <label>Unit price <input type="text" name="unit_price" placeholder="0.00" /></label>
             <label>Note <input type="text" name="condition_note" /></label>
@@ -107,16 +107,16 @@
         <form method="post" action="@EcomAeRoutes.ErpAftersalesWarrantyRegister" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_listHref" />
-            <label>Item id <input type="number" name="item_id" min="0" style="width:5rem" /></label>
+            <ErpMasterPicker Kind="item" FieldName="item_id" InputId="warranty-item" Label="Item" />
             <label>Serial <input type="text" name="serial_no" /></label>
-            <label>Customer id <input type="number" name="customer_id" min="0" style="width:5rem" /></label>
+            <ErpMasterPicker Kind="customer" FieldName="customer_id" InputId="warranty-customer" Label="Customer" />
             <label>Months <input type="number" name="months" min="0" value="12" style="width:4rem" /></label>
             <button type="submit" class="btn btn-xs btn-primary">Register warranty</button>
         </form>
         <form method="post" action="@EcomAeRoutes.ErpAftersalesJobCreate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_listHref" />
-            <label>Customer id <input type="number" name="customer_id" min="0" style="width:5rem" /></label>
+            <ErpMasterPicker Kind="customer" FieldName="customer_id" InputId="service-job-customer" Label="Customer" />
             <label>Asset <input type="text" name="asset_ref" /></label>
             <label>Complaint <input type="text" name="complaint" required /></label>
             <label><input type="checkbox" name="under_warranty" value="1" /> Under warranty</label>
@@ -133,7 +133,7 @@
                 </select>
             </label>
             <label>Description <input type="text" name="description" /></label>
-            <label>Item id <input type="number" name="item_id" min="0" style="width:5rem" /></label>
+            <ErpMasterPicker Kind="item" FieldName="item_id" InputId="service-job-item" Label="Item" />
             <label>Qty <input type="text" name="qty" value="1" /></label>
             <label>Unit price <input type="text" name="unit_price" value="0" /></label>
             <label>Tax % <input type="text" name="tax_percent" value="0" /></label>

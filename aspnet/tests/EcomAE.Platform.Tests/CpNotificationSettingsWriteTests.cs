@@ -1,6 +1,10 @@
+using System.Data.Common;
+using System.Globalization;
 using EcomAE.Platform.Cp;
+using EcomAE.Platform.Erp;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Routing;
+using MySqlConnector;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -68,6 +72,9 @@ public class CpNotificationSettingsWriteTests
         Assert.Contains("epc-cn-toggle is-on", razor);
         Assert.Contains("epc-cn-toggle is-off", razor);
         Assert.Contains("epc-cn-toggle is-na", razor);
+        Assert.Contains("What this page is for", razor);
+        Assert.Contains("How to use this page", razor);
+        Assert.Contains("data-epc-inline=\"1\"", razor);
         foreach (var th in new[] { "<th>ID</th>", "<th>Caption</th>", "<th>Name</th>", "<th>Event</th>", "<th>Description</th>" })
         {
             Assert.Contains(th, razor);
@@ -172,6 +179,139 @@ public class CpNotificationSettingsWriteTests
         Assert.Contains("ControlPanelNotificationsRestore", module);
         Assert.Contains("ControlPanelNotificationsSave", module);
         Assert.Contains("ICpNotificationSettingsEditorService", src);
+    }
+
+    [Fact]
+    public async Task Toggle_OnThrowawayDatabase_EnablesDisablesAndRefusesUnsupportedChannel()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_ntf_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        try
+        {
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE notifications_settings (
+                  id BIGINT PRIMARY KEY,
+                  name VARCHAR(64) NOT NULL,
+                  caption VARCHAR(255) NOT NULL,
+                  event VARCHAR(255) NOT NULL,
+                  description VARCHAR(255) NOT NULL,
+                  email_on INT NOT NULL,
+                  sms_on INT NOT NULL,
+                  foreseen_email INT NOT NULL,
+                  foreseen_sms INT NOT NULL,
+                  send_for_not_confirmed INT NOT NULL,
+                  email_subject VARCHAR(255) NOT NULL,
+                  email_body TEXT NOT NULL,
+                  sms_body TEXT NOT NULL,
+                  default_email_subject VARCHAR(255) NOT NULL,
+                  default_email_body TEXT NOT NULL,
+                  default_sms_body TEXT NOT NULL,
+                  vars TEXT NOT NULL
+                )
+                """);
+            await ExecuteAsync(connectionString, "CREATE TABLE lang_text_strings (str_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "CREATE TABLE lang_text_strings_translation (str_key VARCHAR(64) NOT NULL, lang_code VARCHAR(8) NOT NULL, value TEXT NOT NULL)");
+            await ExecuteAsync(connectionString, "CREATE TABLE lang_languages (lang_code VARCHAR(8) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO lang_languages (lang_code) VALUES ('en')");
+            await ExecuteAsync(connectionString, """
+                INSERT INTO notifications_settings
+                  (id, name, caption, event, description, email_on, sms_on, foreseen_email, foreseen_sms, send_for_not_confirmed,
+                   email_subject, email_body, sms_body, default_email_subject, default_email_body, default_sms_body, vars)
+                VALUES
+                  (7, 'order placed', 'Order placed', 'A customer places an order', 'Sent to the customer',
+                   0, 0, 1, 0, 0,
+                   'Your order', '<p>Order %order_id%</p>', '',
+                   'Your order', '<p>Order %order_id%</p>', '',
+                   '[{"name":"order_id","caption":"Order"}]')
+                """);
+
+            var connections = new NotifyConnections(connectionString);
+            var writes = new CpNotificationSettingsWriteService(connections);
+            var on = await writes.ToggleAsync(new CpNotificationToggleRequest(7, "email", 1));
+            Assert.True(on.Succeeded, on.Message);
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT email_on FROM notifications_settings WHERE id = 7"));
+
+            var off = await writes.ToggleAsync(new CpNotificationToggleRequest(7, "email", 0));
+            Assert.True(off.Succeeded, off.Message);
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT email_on FROM notifications_settings WHERE id = 7"));
+
+            var sms = await writes.ToggleAsync(new CpNotificationToggleRequest(7, "sms", 1));
+            Assert.False(sms.Succeeded);
+            Assert.Equal("not_foreseen", sms.Code);
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT sms_on FROM notifications_settings WHERE id = 7"));
+
+            var saved = await writes.SaveAsync(new CpNotificationSaveRequest(7, true, "Order ready", "<p>Ready</p>", true, "no sms", "en"));
+            Assert.True(saved.Succeeded, saved.Message);
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT email_on FROM notifications_settings WHERE id = 7"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT sms_on FROM notifications_settings WHERE id = 7"));
+            Assert.Equal("Order ready", await ScalarAsync(connectionString, "SELECT email_subject FROM notifications_settings WHERE id = 7"));
+
+            var restored = await writes.RestoreDefaultsAsync([7]);
+            Assert.True(restored.Succeeded, restored.Message);
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT email_on FROM notifications_settings WHERE id = 7"));
+            Assert.Equal("Your order", await ScalarAsync(connectionString, "SELECT email_subject FROM notifications_settings WHERE id = 7"));
+
+            var rows = await new CpNotificationSettingsEditorService(connections).ListAsync("en");
+            Assert.Equal("Order placed", Assert.Single(rows).Caption);
+            Assert.Equal(1, rows[0].ForeseenEmail);
+            Assert.Equal(0, rows[0].ForeseenSms);
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
+    private static async Task ExecuteAsync(string connectionString, string sql)
+    {
+        await using var connection = new MySqlConnection(connectionString);
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        await command.ExecuteNonQueryAsync();
+    }
+
+    private static async Task<string> ScalarAsync(string connectionString, string sql)
+    {
+        await using var connection = new MySqlConnection(connectionString);
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        var value = await command.ExecuteScalarAsync();
+        return Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
+    }
+
+    private sealed class NotifyConnections : IErpWriteConnectionFactory
+    {
+        private readonly string _connectionString;
+
+        public NotifyConnections(string connectionString) => _connectionString = connectionString;
+
+        public bool IsConfigured => true;
+
+        public async Task<DbConnection> OpenAsync(CancellationToken cancellationToken = default)
+        {
+            var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            return connection;
+        }
     }
 
     private static string FindRepoRoot()

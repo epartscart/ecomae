@@ -149,7 +149,7 @@ public sealed class ErpBosVatRefundSaveWriteService : IErpBosVatRefundSaveWriteS
         var key = (country ?? string.Empty).Trim().ToUpperInvariant();
         return key switch
         {
-            "AE" => new("AE", "Tourist Refund Scheme (Tax-Free)", "Planet", 5.0m, 0.85m, 4.80m),
+            "AE" => new("AE", "Tourist Refund Scheme (Tax-Free)", "Planet", ErpTouristRefundLaw.VatRate, ErpTouristRefundLaw.TouristShare, ErpTouristRefundLaw.FixedFeeAed),
             "SA" => new("SA", "Tourist VAT Refund", "Authorised operator", 15.0m, 0.85m, 0m),
             _ => new("", "VAT refund scheme", "Authorised operator", 0m, 1.0m, 0m)
         };
