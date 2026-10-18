@@ -147,7 +147,9 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
         CancellationToken cancellationToken)
     {
         var pool = _poolOptions.Value;
-        var attempts = Math.Clamp(pool.OpenRetryAttempts, 1, 5);
+        var attempts = ErpFirstPaint.IsLoginPath(_httpContextAccessor.HttpContext?.Request.Path ?? default)
+            ? 1
+            : Math.Clamp(pool.OpenRetryAttempts, 1, 5);
         var delay = Math.Clamp(pool.OpenRetryDelayMilliseconds, 25, 2_000);
 
         for (var attempt = 1; ; attempt++)
@@ -193,7 +195,7 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
     }
 
     /// <summary>
-    /// Login uses a separate pool of 8 and an 8s wait. The catalog pool of 32
+    /// Login opens a direct connection with an 8s wait. The catalog pool of 32
     /// and the 1s first-paint cap stay on every other page.
     /// </summary>
     private void KeepLoginConnection(MySqlConnectionStringBuilder builder)
@@ -203,7 +205,9 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
             return;
         }
 
-        builder.MaximumPoolSize = 8;
+        // A separate pool still deadlocks when every slot is checked out.
+        // Login opens a direct connection. The catalog keeps its pool of 32.
+        builder.Pooling = false;
         builder.ConnectionTimeout = 8;
         if (builder.DefaultCommandTimeout < 8)
         {
