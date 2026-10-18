@@ -18,6 +18,33 @@ public sealed class ErpIndustryNavTests
         Assert.True(jw.Sum(g => g.Links.Count) >= main.Sum(g => g.Links.Count));
         Assert.DoesNotContain(main.SelectMany(g => g.Links), ErpIndustryNav.IsJewelleryTab);
         Assert.Contains(jw.SelectMany(g => g.Links), ErpIndustryNav.IsJewelleryTab);
+        Assert.Contains(main.SelectMany(g => g.Links), t => t.Id.EndsWith("/aml_compliance", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void CoreCompany_ShowsSharedWorkspaces_AndHidesJewelleryOnlyTabs()
+    {
+        var company = new ErpCompanyDigest(1, "MAIN", "Main Company", "AED", "AE", "", true);
+        var nav = ErpIndustryNav.FilterTopnav(
+            LegacyDesktopChromeCatalog.ErpTopnav(),
+            new ErpIndustryNav.ErpNavAudience("current", "core", "AE", IsSuperErp: false, Company: company));
+        var links = nav.SelectMany(g => g.Columns ?? []).SelectMany(c => c.Tabs).ToList();
+
+        Assert.Equal("/erp/aml-compliance-app", TopMenuLinks.ErpHref(links.Single(t => t.Id.EndsWith("/aml_compliance", StringComparison.OrdinalIgnoreCase)).Href));
+        Assert.Equal("/erp/pricing-app", TopMenuLinks.ErpHref(links.Single(t => t.Id.EndsWith("/pricing", StringComparison.OrdinalIgnoreCase)).Href));
+        Assert.Equal("/erp/intercompany-app", TopMenuLinks.ErpHref(links.Single(t => t.Id.EndsWith("/intercompany", StringComparison.OrdinalIgnoreCase)).Href));
+        Assert.Contains(nav, g => g.Id == "compliance_tax" && g.Columns!.SelectMany(c => c.Tabs).Any(t => t.Id.EndsWith("/aml_compliance", StringComparison.OrdinalIgnoreCase)));
+        Assert.Contains(nav, g => g.Id == "order_to_cash" && g.Columns!.SelectMany(c => c.Tabs).Any(t => t.Id.EndsWith("/pricing", StringComparison.OrdinalIgnoreCase)));
+        Assert.Contains(nav, g => g.Id == "record_to_report" && g.Columns!.SelectMany(c => c.Tabs).Any(t => t.Id.EndsWith("/intercompany", StringComparison.OrdinalIgnoreCase)));
+        Assert.DoesNotContain(links, t => t.Id.Contains("jw_", StringComparison.OrdinalIgnoreCase) || t.Id.EndsWith("/gold_rate", StringComparison.OrdinalIgnoreCase));
+
+        var hidden = ErpIndustryNav.Inspect(new ErpIndustryNav.ErpNavAudience("current", "core", "AE", false, Company: company))
+            .Where(row => !row.Visible)
+            .Select(row => row.TabKey)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain("aml_compliance", hidden);
+        Assert.Contains("jw_karat", hidden);
+        Assert.Contains("project_accounting", hidden);
     }
 
     [Theory]
