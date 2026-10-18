@@ -131,23 +131,113 @@ public sealed class ErpTenancyExpiryMailTests
         Assert.Equal(new DateOnly(2026, 10, 15), ErpTenancyExpiryMail.GulfToday(new DateTime(2026, 10, 15, 19, 0, 0, DateTimeKind.Utc)));
         Assert.Equal(new DateOnly(2026, 10, 16), ErpTenancyExpiryMail.GulfToday(new DateTime(2026, 10, 15, 20, 30, 0, DateTimeKind.Utc)));
         Assert.Contains("three months", ErpTenancyExpiryMail.DefaultBody, StringComparison.Ordinal);
+        var sample = ErpTenancyExpiryMail.Sample();
+        Assert.Equal("sample", sample.Status);
+        Assert.Contains("Tenant name", sample.Body, StringComparison.Ordinal);
+        Assert.DoesNotContain("{{tenant_name}}", sample.Body, StringComparison.Ordinal);
+        var filled = ErpTenancyExpiryMail.PreviewsFor(
+            [new ErpTenancyLeaseFact(9, "L9", "active", new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31), 50000m, "Ada", "ada@example.com", "", "Tower", "12", 4)],
+            ErpTenancyExpiryMail.DefaultTemplate,
+            new HashSet<long>(),
+            new DateOnly(2026, 6, 1));
+        Assert.Single(filled);
+        Assert.Contains("Ada", filled[0].Body, StringComparison.Ordinal);
+        Assert.Equal("ada@example.com", filled[0].ToEmails);
+        var hidden = ErpTenancyExpiryMail.PreviewsFor(
+            [new ErpTenancyLeaseFact(9, "L9", "active", new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31), 50000m, "Ada", "ada@example.com", "", "Tower", "12", 4)],
+            ErpTenancyExpiryMail.DefaultTemplate,
+            new HashSet<long> { 9 },
+            new DateOnly(2026, 6, 1));
+        Assert.Empty(hidden);
+    }
+
+    [Fact]
+    public void OneFileAtATimeStaysInsideTheTenantFolder()
+    {
+        Assert.True(ErpTenancyDocumentFiles.AllowedExtension("pdf"));
+        Assert.True(ErpTenancyDocumentFiles.AllowedExtension("webp"));
+        Assert.False(ErpTenancyDocumentFiles.AllowedExtension("exe"));
+        Assert.Equal("passport.pdf", ErpTenancyDocumentFiles.DisplayName("../../passport.pdf"));
+        Assert.Equal("Passport", ErpTenancyDocumentFiles.TypeLabel("passport"));
+        Assert.Equal(1, ErpTenancyDocumentFiles.Sensitive("emirates_id"));
+        Assert.Equal(0, ErpTenancyDocumentFiles.Sensitive("ejari"));
+        Assert.Equal("Emirates ID", ErpTenancyDocumentFiles.TitleOrName("  ", "Emirates ID.pdf"));
+        var root = Path.Combine(Path.GetTempPath(), "re-docs-" + Guid.NewGuid().ToString("N"));
+        var path = ErpTenancyDocumentFiles.Resolve(root, ErpTenancyDocumentFiles.StorageKey(12, "abc.pdf"));
+        Assert.NotNull(path);
+        Assert.StartsWith(Path.GetFullPath(root) + Path.DirectorySeparatorChar, path, StringComparison.Ordinal);
+        Assert.Null(ErpTenancyDocumentFiles.Resolve(root, "../secret.pdf"));
+        Assert.Null(ErpTenancyDocumentFiles.Resolve(root, "/etc/passwd"));
+    }
+
+    [Fact]
+    public void SeveralDocumentsAttachTogetherOrNone()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "re-mail-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        var one = Path.Combine(dir, "a.pdf");
+        var two = Path.Combine(dir, "b.pdf");
+        File.WriteAllText(one, "a");
+        File.WriteAllText(two, "b");
+        try
+        {
+            using var mail = new MailMessage();
+            var error = CpTenantEmailWriteService.BindAttachments(mail, new CpTenantEmailMessage(
+                "a@x.test",
+                "s",
+                "b",
+                Attachments: [new CpTenantEmailAttachment(one, "Passport.pdf"), new CpTenantEmailAttachment(two, "Visa.pdf")]));
+            Assert.Null(error);
+            Assert.Equal(2, mail.Attachments.Count);
+            Assert.Equal("Passport.pdf", mail.Attachments[0].Name);
+            Assert.Equal("Visa.pdf", mail.Attachments[1].Name);
+
+            using var missing = new MailMessage();
+            var blocked = CpTenantEmailWriteService.BindAttachments(missing, new CpTenantEmailMessage(
+                "a@x.test",
+                "s",
+                "b",
+                Attachments: [new CpTenantEmailAttachment(one, "Passport.pdf"), new CpTenantEmailAttachment(Path.Combine(dir, "gone.pdf"), "Gone.pdf")]));
+            Assert.Equal("Attachment file not found.", blocked);
+            Assert.Empty(missing.Attachments);
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
     }
 
     [Fact]
     public void PageKeepsTheDraftAndPostsTheNoticeActions()
     {
         var root = FindRepoRoot();
-        var page = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpLandlordApp.razor"));
+        var page = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor"));
+        var yearBook = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpLandlordApp.razor"));
         var panel = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Shared/ErpTenancyExpiryPanel.razor"));
         Assert.Contains("ErpTenancyExpiryPanel", page, StringComparison.Ordinal);
+        Assert.Contains("tab=expiry", page, StringComparison.Ordinal);
+        Assert.Contains("Expiry.LoadAsync", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("SendDueAsync", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("ErpTenancyExpiryPanel", yearBook, StringComparison.Ordinal);
+        Assert.DoesNotContain("SendDueAsync", yearBook, StringComparison.Ordinal);
+        Assert.Contains("tab=expiry", yearBook, StringComparison.Ordinal);
         Assert.Contains("save_expiry_template", panel, StringComparison.Ordinal);
         Assert.Contains("send_expiry_due", panel, StringComparison.Ordinal);
         Assert.Contains("file_expiry_reply", panel, StringComparison.Ordinal);
         Assert.Contains("name=\"replyEmails\"", panel, StringComparison.Ordinal);
-        Assert.Contains("name=\"autoSend\"", panel, StringComparison.Ordinal);
+        Assert.Contains("Preview before send", panel, StringComparison.Ordinal);
+        Assert.Contains("expiry-letter", panel, StringComparison.Ordinal);
+        Assert.Contains("name=\"returnUrl\"", panel, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"autoSend\"", panel, StringComparison.Ordinal);
         Assert.Contains("name=\"csrf_guard_key\"", panel, StringComparison.Ordinal);
         Assert.Contains("{{tenant_name}}", panel, StringComparison.Ordinal);
+        Assert.Contains("attach_expiry_document", panel, StringComparison.Ordinal);
+        Assert.Contains("attach_tenant_document", panel, StringComparison.Ordinal);
+        Assert.Contains("type=\"file\" name=\"document\"", panel, StringComparison.Ordinal);
+        Assert.DoesNotContain("multiple", panel, StringComparison.Ordinal);
+        Assert.Equal("real_estate", EcomAE.Platform.Middleware.IndustrySpecificRoutePolicy.RequiredIndustry("/erp/landlord/document"));
         var module = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
+        Assert.Contains("ErpLandlordDocument", module, StringComparison.Ordinal);
         Assert.Contains("IErpTenancyExpiryMail expiry", module, StringComparison.Ordinal);
         Assert.Contains("save_expiry_template", module, StringComparison.Ordinal);
     }

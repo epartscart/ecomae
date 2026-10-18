@@ -18,6 +18,13 @@ public interface IErpTenantUserAdminService
         int limit,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Company sign-in only: how many people can open this company, how many have a
+    /// session active in the last 8 hours, and each person's last login. No phone,
+    /// department, or credential fields.
+    /// </summary>
+    Task<ErpTenantLoginPresence> LoginPresenceAsync(CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<ErpTenantUserSessionRow>> ListSessionsAsync(
         long userId,
         int limit,
@@ -108,6 +115,18 @@ public sealed record ErpTenantUserDirectory(
     int DepartmentCount,
     int OpenSessions,
     int AuditToday,
+    string Source,
+    string Message);
+
+/// <summary>One person on the super sign-in list: name, email, last login, and whether a session is open.</summary>
+public sealed record ErpTenantLoginPresenceRow(string Name, string Email, long LastLoginUnix, bool SignedIn);
+
+/// <summary>Headcount, people signed in now, and the newest last-login time for this company.</summary>
+public sealed record ErpTenantLoginPresence(
+    int UserCount,
+    int SignedInCount,
+    long LatestLoginUnix,
+    IReadOnlyList<ErpTenantLoginPresenceRow> People,
     string Source,
     string Message);
 
@@ -383,6 +402,83 @@ public sealed class ErpTenantUserAdminService : IErpTenantUserAdminService
         {
             return new ErpTenantUserDirectory([], 0, 0, 0, 0, 0, "error", ex.Message);
         }
+    }
+
+    public async Task<ErpTenantLoginPresence> LoginPresenceAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new ErpTenantLoginPresence(0, 0, 0, [], "n/a", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var rows = await LoadUsersAsync(connection, cancellationToken).ConfigureAwait(false);
+            return SummarizeLogins(rows);
+        }
+        catch (DbException ex)
+        {
+            return new ErpTenantLoginPresence(0, 0, 0, [], "error", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Counts people, not session rows. Two open sessions for one person still count as one signed-in user.
+    /// A session counts as open when it was active in the last 8 hours.
+    /// </summary>
+    public static ErpTenantLoginPresence SummarizeLogins(IReadOnlyList<ErpTenantUserRow> rows)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+        var people = new List<ErpTenantLoginPresenceRow>(rows.Count);
+        var latest = 0L;
+        var signedIn = 0;
+        foreach (var row in rows)
+        {
+            var email = (row.Email ?? string.Empty).Trim();
+            var name = (row.DisplayName ?? string.Empty).Trim();
+            var open = row.OpenSessions > 0;
+            if (open)
+            {
+                signedIn++;
+            }
+
+            if (row.LastVisit > latest)
+            {
+                latest = row.LastVisit;
+            }
+
+            people.Add(new ErpTenantLoginPresenceRow(
+                name.Length > 0 ? name : email,
+                email,
+                row.LastVisit,
+                open));
+        }
+
+        people.Sort(static (left, right) =>
+        {
+            var open = right.SignedIn.CompareTo(left.SignedIn);
+            if (open != 0)
+            {
+                return open;
+            }
+
+            var login = right.LastLoginUnix.CompareTo(left.LastLoginUnix);
+            if (login != 0)
+            {
+                return login;
+            }
+
+            return string.Compare(left.Name, right.Name, StringComparison.OrdinalIgnoreCase);
+        });
+
+        return new ErpTenantLoginPresence(
+            people.Count,
+            signedIn,
+            latest,
+            people,
+            "tenant-users",
+            people.Count == 0 ? "No people can sign in to this company yet." : string.Empty);
     }
 
     public async Task<IReadOnlyList<ErpTenantUserSessionRow>> ListSessionsAsync(

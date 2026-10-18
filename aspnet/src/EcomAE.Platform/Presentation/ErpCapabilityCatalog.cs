@@ -46,6 +46,13 @@ public static class ErpCapabilityCatalog
             return true;
         }
 
+        if (IsControlled(session))
+        {
+            return session.AreaGrants!.Any(grant =>
+                GroupEquals(grant.GroupKey, groupKey)
+                && (grant.AllActions || grant.Actions.Count > 0));
+        }
+
         if (session.Modules.Count == 0 || session.Modules.Any(m => m.OpenAccess))
         {
             return true;
@@ -56,13 +63,29 @@ public static class ErpCapabilityCatalog
 
     public static bool CanAction(LegacySessionContext session, string groupKey, string action)
     {
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return false;
+        }
+
+        if (session.Permissions.Contains(EcomAePermissions.SuperErpAccess))
+        {
+            return true;
+        }
+
+        if (IsControlled(session))
+        {
+            return session.AreaGrants!.Any(grant =>
+                GroupEquals(grant.GroupKey, groupKey)
+                && (grant.AllActions || grant.Actions.Any(saved => saved.Equals(action, StringComparison.OrdinalIgnoreCase))));
+        }
+
         if (!CanAccess(session, groupKey))
         {
             return false;
         }
 
-        if (session.Permissions.Contains(EcomAePermissions.SuperErpAccess)
-            || action is "View" or "New" or "Edit" or "Submit" or "Print" or "Export")
+        if (action is "View" or "New" or "Edit" or "Submit" or "Print" or "Export")
         {
             return true;
         }
@@ -71,6 +94,12 @@ public static class ErpCapabilityCatalog
             ModuleMatches(module.Caption, groupKey)
             && module.Caption.Contains(action, StringComparison.OrdinalIgnoreCase));
     }
+
+    private static bool IsControlled(LegacySessionContext session)
+        => session.AreaGrants is { Count: > 0 };
+
+    private static bool GroupEquals(string left, string right)
+        => string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
 
     private static bool ModuleMatches(string caption, string groupKey)
     {

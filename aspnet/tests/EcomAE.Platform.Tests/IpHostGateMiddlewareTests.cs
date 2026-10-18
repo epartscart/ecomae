@@ -34,6 +34,27 @@ public sealed class IpHostGateMiddlewareTests
     }
 
     [Fact]
+    public async Task CompanyOnSuperHostDoesNotOpenIp()
+    {
+        var nextCalled = false;
+        var mw = new IpHostGateMiddleware(_ =>
+        {
+            nextCalled = true;
+            return Task.CompletedTask;
+        });
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Host = new HostString("www.ecomae.com");
+        ctx.Request.Path = "/ip/ecosystem-app";
+        ctx.Items[ClientErpPath.HttpContextItemKey] = "real";
+        ctx.Response.Body = new MemoryStream();
+
+        await mw.InvokeAsync(ctx);
+
+        Assert.False(nextCalled);
+        Assert.Equal(StatusCodes.Status404NotFound, ctx.Response.StatusCode);
+    }
+
+    [Fact]
     public async Task TenantHostGets404ForIp()
     {
         var nextCalled = false;
