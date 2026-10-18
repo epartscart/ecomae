@@ -32,9 +32,9 @@ a.cta:hover{text-decoration:underline}
 <script>
 (function () {
   // Escape hatch: never stay on /epc-platform-splash.html forever.
-  // Probe home; when it is real storefront HTML (not this splash), go there.
+  // Probe /health only. Do not follow a redirect into the homepage.
   var tries = 0;
-  var maxTries = 12; // ~60s then force /
+  var maxTries = 4; // health only, then open the store
   var splashMarker = 'Loading your store';
 
   function isSplashFile(path) {
@@ -76,11 +76,16 @@ a.cta:hover{text-decoration:underline}
   function probe() {
     tries += 1;
     var msg = document.getElementById('msg');
-    fetch('/?epc_warmup_probe=' + Date.now(), {
+    fetch('/health?epc_warmup_probe=' + Date.now(), {
       credentials: 'same-origin',
       cache: 'no-store',
-      headers: { 'Accept': 'text/html' }
+      redirect: 'manual',
+      headers: { 'Accept': 'text/plain' }
     }).then(function (r) {
+      if (r.type === 'opaqueredirect') {
+        goHome();
+        return;
+      }
       return r.text().then(function (html) {
         if (r.ok && !looksLikeSplash(html)) {
           goHome();
@@ -92,14 +97,14 @@ a.cta:hover{text-decoration:underline}
           return;
         }
         if (msg) msg.textContent = 'Still warming up (try ' + tries + '/' + maxTries + ')…';
-        setTimeout(probe, 5000);
+        setTimeout(probe, 15000);
       });
     }).catch(function () {
       if (tries >= maxTries) {
         goHome();
         return;
       }
-      setTimeout(probe, 5000);
+      setTimeout(probe, 15000);
     });
   }
 
