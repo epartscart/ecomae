@@ -1,0 +1,54 @@
+@using System.Globalization
+@using EcomAE.Platform.Erp
+
+@if (Admin && Line.ParentId == 0)
+{
+    @if (string.Equals(Line.Status, "recorded", StringComparison.OrdinalIgnoreCase))
+    {
+        <a class="btn btn-default btn-xs" href="@EditHref">Edit</a>
+    }
+    <form method="post" action="@SaveAction" style="display:inline">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+        <input type="hidden" name="action" value="delete" />
+        <input type="hidden" name="id" value="@Line.Id.ToString(CultureInfo.InvariantCulture)" />
+        <input type="hidden" name="filterYear" value="@FilterYear.ToString(CultureInfo.InvariantCulture)" />
+        <input type="hidden" name="filterPropertyId" value="@FilterPropertyId.ToString(CultureInfo.InvariantCulture)" />
+        <input type="hidden" name="filterUnitId" value="@FilterUnitId.ToString(CultureInfo.InvariantCulture)" />
+        <button type="submit" class="btn btn-default btn-xs">Delete</button>
+    </form>
+    @if (string.Equals(Line.Status, "recorded", StringComparison.OrdinalIgnoreCase))
+    {
+        <form method="post" action="@SaveAction" style="display:inline">
+            <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+            <input type="hidden" name="action" value="void" />
+            <input type="hidden" name="id" value="@Line.Id.ToString(CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="filterYear" value="@FilterYear.ToString(CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="filterPropertyId" value="@FilterPropertyId.ToString(CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="filterUnitId" value="@FilterUnitId.ToString(CultureInfo.InvariantCulture)" />
+            <button type="submit" class="btn btn-default btn-xs">Void</button>
+        </form>
+        <form method="post" action="@SaveAction" style="display:inline">
+            <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+            <input type="hidden" name="action" value="reverse" />
+            <input type="hidden" name="id" value="@Line.Id.ToString(CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="filterYear" value="@FilterYear.ToString(CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="filterPropertyId" value="@FilterPropertyId.ToString(CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="filterUnitId" value="@FilterUnitId.ToString(CultureInfo.InvariantCulture)" />
+            <button type="submit" class="btn btn-default btn-xs">Reverse</button>
+        </form>
+    }
+}
+
+@code {
+    [Parameter] public ErpLandlordLine Line { get; set; } = null!;
+    [Parameter] public bool Admin { get; set; }
+    [Parameter] public string SaveAction { get; set; } = "";
+    [Parameter] public string EditHref { get; set; } = "";
+    [Parameter] public int FilterYear { get; set; }
+    [Parameter] public long FilterPropertyId { get; set; }
+    [Parameter] public long FilterUnitId { get; set; }
+    [Parameter] public string Csrf { get; set; } = "";
+}

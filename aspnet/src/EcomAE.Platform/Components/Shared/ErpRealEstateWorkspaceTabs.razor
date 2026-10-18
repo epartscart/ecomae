@@ -1,0 +1,18 @@
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject IHttpContextAccessor Http
+
+<nav class="epc-org-tabs" aria-label="Real estate workspaces">
+    @foreach (var tab in ErpRealEstateWorkspace.Tabs)
+    {
+        var active = string.Equals(tab.Key, Active, StringComparison.OrdinalIgnoreCase);
+        <a class="@(active ? "active" : null)" href="@Href(tab.Href)"><i class="fa @tab.Icon"></i> @tab.Label</a>
+    }
+</nav>
+
+@code {
+    [Parameter] public string Active { get; set; } = "dashboard";
+
+    private string Href(string href)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, href);
+}

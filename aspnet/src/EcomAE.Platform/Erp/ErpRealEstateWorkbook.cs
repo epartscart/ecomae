@@ -17,7 +17,7 @@ public static class ErpRealEstateWorkbook
     [
         "Owners", "Properties", "Buildings", "Units", "Tenants", "Agreements",
         "Rent_Schedule", "PDC_Cheques", "Collections", "Expenses", "Maintenance",
-        "Deposits", "Investments", "Documents",
+        "Deposits", "Investments", "Documents", "Year_Lines",
     ];
 
     public sealed record Sheet(
@@ -355,6 +355,7 @@ public static class ErpRealEstateWorkbook
             "deposits" or "deposit" => "deposits",
             "investments" or "investment" => "investments",
             "documents" or "document" => "documents",
+            "year_lines" or "yearlines" or "year_line" => "year_lines",
             _ => "",
         };
 
@@ -375,28 +376,30 @@ public static class ErpRealEstateWorkbook
             "deposits" => "Deposits",
             "investments" => "Investments",
             "documents" => "Documents",
+            "year_lines" => "Year_Lines",
             _ => canon,
         };
 
     private static bool Applies(string canon)
-        => canon is "owners" or "properties" or "buildings" or "units" or "tenants" or "agreements" or "pdc_cheques" or "expenses" or "maintenance" or "documents";
+        => canon is "owners" or "properties" or "buildings" or "units" or "tenants" or "agreements" or "pdc_cheques" or "expenses" or "maintenance" or "documents" or "year_lines";
 
     private static string[] Headers(string display)
         => Canon(display) switch
         {
             "owners" => ["Code*", "Name*", "Owner"],
-            "properties" or "buildings" => ["Code*", "Name*", "Category", "Emirate", "City", "Community", "PortfolioCode"],
+            "properties" or "buildings" => ["Code*", "Name*", "Category", "Emirate", "City", "Community", "PortfolioCode", "Holder", "RentStartYear", "PlannedUnits"],
             "units" => ["PropertyCode*", "UnitCode*", "Name", "Type", "Area", "Floor"],
             "tenants" => ["Code*", "Name*", "Contact", "Type", "EmiratesId", "Passport", "Email", "Nationality", "IdExpiry"],
             "agreements" => ["Code*", "PropertyCode*", "TenantCode*", "UnitCode", "Start*", "End*", "AnnualRent*", "Frequency*", "Deposit", "Ejari"],
             "rent_schedule" => ["AgreementCode*", "DueDate*", "Amount*"],
             "pdc_cheques" => ["ChequeNo*", "Bank*", "Amount*", "ChequeDate*", "PropertyCode", "TenantCode", "AgreementCode", "Status"],
             "collections" => ["AgreementCode*", "Date*", "Amount*", "Method"],
-            "expenses" => ["Code*", "PropertyCode*", "Category*", "Amount*", "Vat", "Capital", "Supplier", "ExpenseDate"],
+            "expenses" => ["Code*", "PropertyCode*", "Category*", "Amount*", "Vat", "Capital", "Supplier", "ExpenseDate", "Year", "UnitCode", "Spread"],
             "maintenance" => ["PropertyCode*", "Description*", "Category", "Amount", "Capital", "Vendor", "Scheduled"],
             "deposits" => ["AgreementCode*", "Amount*", "Status"],
             "investments" => ["PropertyCode*", "PurchasePrice*", "Costs", "MarketValue"],
             "documents" => ["Code*", "Title*", "Type*", "RelatedKind", "RelatedCode", "StorageKey", "FileName", "Expiry"],
+            "year_lines" => ["Code*", "Year*", "Kind*", "PropertyCode*", "Amount*", "Category", "UnitCode", "Spread", "Note", "MovementDate"],
             _ => ["Code*"],
         };
 
@@ -404,18 +407,19 @@ public static class ErpRealEstateWorkbook
         => Canon(display) switch
         {
             "owners" => ["OWN-ABC", "ABC Properties LLC", "ABC Properties LLC"],
-            "properties" or "buildings" => ["BLD-A", "Building A", "residential", "Dubai", "Business Bay", "Business Bay", "OWN-ABC"],
+            "properties" or "buildings" => ["BLD-A", "Building A", "residential", "Dubai", "Business Bay", "Business Bay", "OWN-ABC", "Named holder", "2017", "10"],
             "units" => ["BLD-A", "A-101", "Apartment 101", "apartment", "85", "1"],
             "tenants" => ["TEN-1", "Sara Ali", "+971500000000", "individual", "784-0000-0000000-0", "", "sara@example.com", "AE", "2028-01-01"],
             "agreements" => ["AGR-101", "BLD-A", "TEN-1", "A-101", "2027-01-01", "2027-12-31", "120000", "quarterly", "5000", ""],
             "rent_schedule" => ["AGR-101", "2027-01-01", "30000"],
             "pdc_cheques" => ["000456", "ENBD", "30000", "2027-01-01", "BLD-A", "TEN-1", "AGR-101", "received"],
             "collections" => ["AGR-101", "2027-01-01", "30000", "cheque"],
-            "expenses" => ["EXP-1", "BLD-A", "repairs", "1500", "75", "no", "Cooling Co", "2027-02-01"],
+            "expenses" => ["EXP-1", "BLD-A", "repairs", "1500", "75", "no", "Cooling Co", "2027-02-01", "2027", "", "building"],
             "maintenance" => ["BLD-A", "AC service", "repairs", "800", "no", "Cooling Co", "2027-02-01"],
             "deposits" => ["AGR-101", "5000", "held"],
             "investments" => ["BLD-A", "2000000", "50000", "2300000"],
             "documents" => ["DOC-456", "Cheque 000456", "cheque_front", "cheque", "000456", "cheques/000456/front.jpg", "front.jpg", ""],
+            "year_lines" => ["Y2027-INC-BLD-A", "2027", "income", "BLD-A", "120000", "rental", "", "building", "December rent", "2027-12-31"],
             _ => [""],
         };
 
@@ -434,6 +438,7 @@ public static class ErpRealEstateWorkbook
             "deposits" => ["agreementcode", "amount"],
             "investments" => ["propertycode", "purchaseprice"],
             "documents" => ["code", "title", "type"],
+            "year_lines" => ["code", "year", "kind", "propertycode", "amount"],
             _ => ["code"],
         };
 
@@ -585,6 +590,53 @@ public static class ErpRealEstateWorkbook
                 if (Get("propertycode").Length == 0 || Get("description").Length == 0)
                 {
                     yield return prefix + "property code and description are required.";
+                }
+
+                break;
+            case "year_lines":
+                if (Get("code").Length == 0 || Get("propertycode").Length == 0)
+                {
+                    yield return prefix + "code and property code are required.";
+                }
+                else if (!seen.Add("year|" + Get("code")))
+                {
+                    yield return prefix + "duplicate code " + Get("code") + ".";
+                }
+
+                var yearKind = Get("kind").ToLowerInvariant();
+                if (yearKind is not ("income" or "expense" or "investment" or "recovery" or "through_2024"))
+                {
+                    yield return prefix + "kind must be income, expense, investment, recovery or through_2024.";
+                }
+
+                if (!int.TryParse(Get("year"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var lineYear) || lineYear < 1990 || lineYear > 2100)
+                {
+                    yield return prefix + "year is required.";
+                }
+
+                var yearAmount = Get("amount").Replace(",", "").Trim();
+                var yearMoney = decimal.TryParse(yearAmount, NumberStyles.Number, CultureInfo.InvariantCulture, out var yearValue) && yearValue > 0;
+                if (yearKind == "recovery")
+                {
+                    if (yearAmount.Length > 0 && (!decimal.TryParse(yearAmount, NumberStyles.Number, CultureInfo.InvariantCulture, out var recoveryValue) || recoveryValue < 0))
+                    {
+                        yield return prefix + "recovery amount cannot be negative.";
+                    }
+                }
+                else if (!yearMoney)
+                {
+                    yield return prefix + "amount must be greater than zero.";
+                }
+
+                var yearSpread = Get("spread").ToLowerInvariant();
+                if (yearSpread.Length > 0 && yearSpread is not ("building" or "flat" or "all_flats"))
+                {
+                    yield return prefix + "spread must be building, flat or all_flats.";
+                }
+
+                if (Get("movementdate").Length > 0 && !DateOk(Get("movementdate")))
+                {
+                    yield return prefix + "movement date must be yyyy-MM-dd.";
                 }
 
                 break;

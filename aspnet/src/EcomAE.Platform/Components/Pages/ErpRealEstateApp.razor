@@ -5,10 +5,13 @@
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Services
 @inject ILegacySessionValidator Sessions
+@inject ICpCsrfGuard Csrf
 @inject IHttpContextAccessor Http
 @inject IErpRealEstateReadService RealEstate
+@inject IErpTenancyExpiryMail Expiry
 
 <PageTitle>Real estate · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -16,11 +19,13 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Real estate" BreadcrumbArea="Industry" BreadcrumbTab="@_tabLabel">
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/real-estate-app" IsAdmin="_isAdmin" />
     <PhpErpModulePageHeader
-        Title="Investment, development and construction"
-        Subtitle="Property master, pipeline, leases, cheques, development, BOQ, escrow, off-plan instalments and contractor certificates — linked to legal entities, GL, VAT and existing finance. Posted rows cannot be edited; void (keep on file) or delete them. Reverse remains available. Opportunities stay off both statements. Completed acquisitions, deposits, cheques, escrow and certificates hit the balance sheet; rent, fair-value moves (IAS 40 through P&L, not OCI) and recognized unit sales (IFRS 15) hit the income statement. Off-plan collections stay a contract liability until sold."
+        Title="@(_tab == ErpRealEstateGuide.TabKey ? "Real estate, step by step" : _tab == ErpRealEstateLaw.Tab ? "Real estate law" : "Investment, development and construction")"
+        Subtitle="@(_tab == ErpRealEstateGuide.TabKey || _tab == ErpRealEstateLaw.Tab ? null : "Property master, pipeline, leases, cheques, development, BOQ, escrow, off-plan instalments and contractor certificates — linked to legal entities, GL, VAT and existing finance. Posted rows cannot be edited; void (keep on file) or delete them. Reverse remains available. Opportunities stay off both statements. Completed acquisitions, deposits, cheques, escrow and certificates hit the balance sheet; rent, fair-value moves (IAS 40 through P&L, not OCI) and recognized unit sales (IFRS 15) hit the income statement. Off-plan collections stay a contract liability until sold.")"
         PhpTabHref="/erp/real-estate-app" />
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
+    @if (_tab != ErpRealEstateGuide.TabKey && _tab != ErpRealEstateLaw.Tab)
+    {
     <div class="re-board-dock" aria-label="Download investment report from any tab">
         <div>
             <strong>Investment report</strong>
@@ -30,6 +35,7 @@
             <a class="btn btn-sm re-board-btn" href="@ReportHref("html")" target="_blank" rel="noopener">Open presentation</a>
             <a class="btn btn-sm re-board-btn" href="@ReportHref("pdf")">Download PDF</a>
             <a class="btn btn-sm re-board-btn" href="@ReportHref("docx")">Download Word</a>
+            <a class="btn btn-sm re-board-btn" href="@LandlordHref">Year book</a>
         </div>
     </div>
     <style>
@@ -45,40 +51,66 @@
         .re-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin: 0 0 12px; }
         .re-filter label { font-size: 12px; color: #334155; }
     </style>
+    }
 
-    <nav class="epc-org-tabs" aria-label="Real estate workspaces">
-        @foreach (var tab in Tabs)
+    <ErpRealEstateWorkspaceTabs Active="@_tab" />
+
+    @if (_tab == ErpRealEstateGuide.TabKey)
+    {
+        <ErpRealEstateGuideBoard />
+    }
+    else if (_tab == ErpRealEstateLaw.Tab)
+    {
+        <ErpRealEstateLawBoard />
+    }
+    else if (_tab == "expiry")
+    {
+        @if (_isAdmin)
         {
-            <a class="@TabClass(tab.Key)" href="@OrgHref(tab.Key)"><i class="fa @tab.Icon"></i> @tab.Label</a>
+            <ErpTenancyExpiryPanel Book="_expiry" SaveAction="@LandlordSave" Csrf="@_csrf" ReturnUrl="/erp/real-estate-app?tab=expiry" />
         }
-    </nav>
-
+    }
+    else
+    {
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Real estate KPIs">
-        <div class="kpi"><div class="lbl">Opportunities</div><div class="val">@_snap.Kpis.Opportunities.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Owned properties</div><div class="val">@_snap.Kpis.OwnedProperties.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Active leases</div><div class="val">@_snap.Kpis.ActiveLeases.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Portfolio cost</div><div class="val">@_snap.Kpis.PortfolioCost.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Fair value</div><div class="val">@_snap.Kpis.PortfolioFair.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Gross yield</div><div class="val">@((_snap.Kpis.GrossYield * 100).ToString("0.00", CultureInfo.InvariantCulture))%</div></div>
-        <div class="kpi"><div class="lbl">Occupancy</div><div class="val">@((_snap.Kpis.Occupancy * 100).ToString("0.0", CultureInfo.InvariantCulture))%</div></div>
-        <div class="kpi"><div class="lbl">Cost to complete</div><div class="val">@_snap.Kpis.CostToComplete.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Escrow held</div><div class="val">@_snap.Kpis.EscrowBalance.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Vacant units</div><div class="val">@_snap.Kpis.VacantUnits.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Recognized rent</div><div class="val">@_snap.Kpis.RecognizedRent.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Rent collected</div><div class="val">@_snap.Kpis.RentCollected.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Outstanding</div><div class="val">@_snap.Kpis.OutstandingRent.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">PDCs in hand</div><div class="val">@_snap.Kpis.PdcInHand.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Cheques due</div><div class="val">@_snap.Kpis.ChequesDue.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">NOI</div><div class="val">@_snap.Kpis.Noi.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Net cash flow</div><div class="val">@_snap.Kpis.NetCashFlow.ToString("N0", CultureInfo.InvariantCulture)</div></div>
+        <a class="kpi" href="@OrgHref("opportunities")"><div class="lbl">Opportunities</div><div class="val">@_snap.Kpis.Opportunities.ToString(CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("properties")"><div class="lbl">Owned properties</div><div class="val">@_snap.Kpis.OwnedProperties.ToString(CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("leases")"><div class="lbl">Active leases</div><div class="val">@_snap.Kpis.ActiveLeases.ToString(CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("reports")"><div class="lbl">Portfolio cost</div><div class="val">@_snap.Kpis.PortfolioCost.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("reports")"><div class="lbl">Fair value</div><div class="val">@_snap.Kpis.PortfolioFair.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("reports")"><div class="lbl">Gross yield</div><div class="val">@((_snap.Kpis.GrossYield * 100).ToString("0.00", CultureInfo.InvariantCulture))%</div></a>
+        <a class="kpi" href="@OrgHref("leases")"><div class="lbl">Occupancy</div><div class="val">@((_snap.Kpis.Occupancy * 100).ToString("0.0", CultureInfo.InvariantCulture))%</div></a>
+        <a class="kpi" href="@OrgHref("construction")"><div class="lbl">Cost to complete</div><div class="val">@_snap.Kpis.CostToComplete.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("construction")"><div class="lbl">Escrow held</div><div class="val">@_snap.Kpis.EscrowBalance.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("properties")"><div class="lbl">Vacant units</div><div class="val">@_snap.Kpis.VacantUnits.ToString(CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=2025#income-lines")"><div class="lbl">Recognized rent</div><div class="val">@_snap.Kpis.RecognizedRent.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("collections")"><div class="lbl">Rent collected</div><div class="val">@_snap.Kpis.RentCollected.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("collections")"><div class="lbl">Outstanding</div><div class="val">@_snap.Kpis.OutstandingRent.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("calendar")"><div class="lbl">PDCs in hand</div><div class="val">@_snap.Kpis.PdcInHand.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("calendar")"><div class="lbl">Cheques due</div><div class="val">@_snap.Kpis.ChequesDue.ToString(CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=2025#profit-and-loss")"><div class="lbl">NOI</div><div class="val">@_snap.Kpis.Noi.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=2025#profit-and-loss")"><div class="lbl">Net cash flow</div><div class="val">@_snap.Kpis.NetCashFlow.ToString("N0", CultureInfo.InvariantCulture)</div></a>
     </div>
     <div class="re-meters" aria-label="Landlord position">
         <div class="re-meter"><strong>Occupancy @((_snap.Kpis.Occupancy * 100).ToString("0.0", CultureInfo.InvariantCulture))%</strong><i><b style="width:@Meter(_snap.Kpis.Occupancy, 1m)%"></b></i></div>
         <div class="re-meter"><strong>Collected vs recognized</strong><i><b style="width:@Meter(_snap.Kpis.RentCollected, _snap.Kpis.RecognizedRent)%"></b></i></div>
         <div class="re-meter"><strong>Collection efficiency @((_snap.Kpis.Collection * 100).ToString("0.0", CultureInfo.InvariantCulture))%</strong><i><b style="width:@Meter(_snap.Kpis.Collection, 1m)%"></b></i></div>
+        @if (_snap.YearBook is { Year: > 0 } book)
+        {
+            <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Year book on the dashboard">
+                <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=" + book.Year.ToString(CultureInfo.InvariantCulture) + "#income-lines")"><div class="lbl">@book.Year income</div><div class="val">@book.YearIncome.ToString("N2", CultureInfo.InvariantCulture)</div></a>
+                <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=" + book.Year.ToString(CultureInfo.InvariantCulture) + "#expense-lines")"><div class="lbl">@book.Year expenses</div><div class="val">@book.YearExpense.ToString("N2", CultureInfo.InvariantCulture)</div></a>
+                <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=" + book.Year.ToString(CultureInfo.InvariantCulture) + "#profit-and-loss")"><div class="lbl">@book.Year profit &amp; loss</div><div class="val">@book.YearReturn.ToString("N2", CultureInfo.InvariantCulture)</div></a>
+                <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=0#income-lines")"><div class="lbl">All years income</div><div class="val">@book.AllIncome.ToString("N2", CultureInfo.InvariantCulture)</div></a>
+                <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=0#expense-lines")"><div class="lbl">All years expenses</div><div class="val">@book.AllExpense.ToString("N2", CultureInfo.InvariantCulture)</div></a>
+                <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=0#profit-and-loss")"><div class="lbl">All years profit &amp; loss</div><div class="val">@book.AllReturn.ToString("N2", CultureInfo.InvariantCulture)</div></a>
+            </div>
+            <p class="text-muted">These figures are the year book. <a href="@FinanceHref("/erp/landlord-app?year=" + book.Year.ToString(CultureInfo.InvariantCulture) + "#profit-and-loss")">Profit &amp; loss</a> opens income minus expenses. Rent and expense cards above use them until a lease or a posted supplier bill exists. <a href="@LandlordHref">Open the year book</a> · <a href="@CoaHref">Chart of accounts</a></p>
+        }
     </div>
 
     <p class="text-muted">Finance links: legal entity, invoices, cash/bank, ageing, GL and VAT stay on the existing ERP modules. Cheques in hand are not cash until bank clearance. Recognized rent is spread over the lease; receiving a cheque does not book the whole year as income. NOI is recognized rent minus posted operating expenses. Capital improvements, financing, depreciation and tax stay out of NOI. Landlord cards follow the emirate and property filter. Investment cards stay on the whole portfolio. Posted documents cannot be edited. Use Void to keep the original row, or Delete to remove it. Reverse is also available on posted rows.</p>
+    }
 
     @if (!string.IsNullOrWhiteSpace(_snap.Message))
     {
@@ -761,7 +793,7 @@
         else if (_tab == "import")
         {
             <ErpPhpCreateWell Title="Real estate workbook">
-                <p class="text-muted">One workbook covers owners, buildings, units, tenants, agreements, cheques, expenses and document keys. Download the template, fill a sheet, then import that sheet. Cleared cheques and rent schedules are not imported as cash or as a second billing run. Agreements generate the schedule. A received cheque is not cash.</p>
+                <p class="text-muted">One workbook covers owners, buildings, units, tenants, agreements, cheques, expenses, document keys and the year book. Download the template, fill a sheet, then import that sheet. Year lines measure income, expense, investment and recovery. They are not posted vouchers. An expense row with a year also lands on the year book. Cleared cheques and rent schedules are not imported as cash or as a second billing run. Agreements generate the schedule. A received cheque is not cash. Open the <a href="@LandlordHref">year book</a> to record the next year.</p>
                 <p>
                     <a class="btn btn-primary btn-sm" href="@WorkbookHref("template")">Download import template</a>
                     <a class="btn btn-default btn-sm" href="@WorkbookHref("export")">Export registers</a>
@@ -783,6 +815,7 @@
                             <option>Expenses</option>
                             <option>Maintenance</option>
                             <option>Documents</option>
+                            <option>Year_Lines</option>
                         </select>
                     </label>
                     <label>Excel file <input class="form-control input-sm" type="file" name="upload" accept=".xlsx,.xls" /></label>
@@ -819,6 +852,8 @@
         }
     }
 
+    @if (_tab is not ("guide" or "expiry"))
+    {
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
@@ -901,31 +936,13 @@
             <a class="btn btn-sm re-board-btn" href="@ReportHref("html")" target="_blank" rel="noopener">Open presentation</a>
             <a class="btn btn-sm re-board-btn" href="@ReportHref("pdf")">Download PDF</a>
             <a class="btn btn-sm re-board-btn" href="@ReportHref("docx")">Download Word</a>
+            <a class="btn btn-sm re-board-btn" href="@LandlordHref">Year book</a>
         </div>
     </div>
+    }
 </PhpErpDesktopChrome>
 
 @code {
-    private static readonly (string Key, string Label, string Icon)[] Tabs =
-    [
-        ("dashboard", "Dashboard", "fa-dashboard"),
-        ("opportunities", "Opportunities", "fa-lightbulb-o"),
-        ("properties", "Properties", "fa-building"),
-        ("acquisitions", "Buy / sell", "fa-exchange"),
-        ("valuations", "Valuation", "fa-line-chart"),
-        ("leases", "Tenants & leases", "fa-key"),
-        ("collections", "Rent & cheques", "fa-money"),
-        ("maintenance", "Maintenance", "fa-wrench"),
-        ("projects", "Development", "fa-sitemap"),
-        ("sales", "Unit sales", "fa-home"),
-        ("construction", "Contracts", "fa-hard-hat"),
-        ("calendar", "Calendars", "fa-calendar"),
-        ("documents", "Documents", "fa-folder-open"),
-        ("import", "Import / export", "fa-file-excel-o"),
-        ("alerts", "Alerts", "fa-bell"),
-        ("reports", "Reports", "fa-bar-chart"),
-    ];
-
     private bool _isAdmin;
     private string _tab = "dashboard";
     private string _tabLabel = "Dashboard";
@@ -933,6 +950,8 @@
     private string _flashErr = "";
     private string _emirate = "";
     private long _propertyId;
+    private string _csrf = "";
+    private ErpTenancyExpiryBook _expiry = ErpTenancyExpiryBook.Empty("");
     private ErpRealEstateSnapshot _snap = new(
         new ErpRealEstateKpis(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
         [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],
@@ -956,11 +975,17 @@
     private string WorkbookHref(string kind)
         => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/real-estate/workbook?kind=" + kind);
 
+    private string LandlordHref
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/landlord-app?year=2025");
+
+    private string LandlordSave
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/landlord/save");
+
+    private string CoaHref
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/coa-accounts-app");
+
     private static int Meter(decimal part, decimal whole)
         => whole <= 0 ? 0 : (int)Math.Min(100m, decimal.Round(part / whole * 100m, 0, MidpointRounding.AwayFromZero));
-
-    private string TabClass(string tab)
-        => string.Equals(_tab, tab, StringComparison.OrdinalIgnoreCase) ? "active" : "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -973,7 +998,7 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _tab = NormalizeTab(ctx.Request.Query["tab"].ToString());
-        _tabLabel = Tabs.FirstOrDefault(t => t.Key == _tab).Label ?? "Dashboard";
+        _tabLabel = ErpRealEstateWorkspace.Label(_tab);
         _emirate = ctx.Request.Query["emirate"].ToString() ?? "";
         long.TryParse(ctx.Request.Query["propertyId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _propertyId);
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
@@ -981,6 +1006,20 @@
         if (!_isAdmin)
         {
             return;
+        }
+
+        if (_tab == "expiry")
+        {
+            _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
+            try
+            {
+                _expiry = await Expiry.LoadAsync(ErpTenancyExpiryMail.GulfToday(DateTime.UtcNow), ctx.RequestAborted);
+            }
+            catch (Exception ex)
+            {
+                var text = ex.Message.Length > 300 ? ex.Message[..300] : ex.Message;
+                _expiry = ErpTenancyExpiryBook.Empty(text);
+            }
         }
 
         _snap = await RealEstate.LoadScopedAsync(_propertyId, _emirate, ctx.RequestAborted);
@@ -1006,10 +1045,7 @@
     }
 
     private static string NormalizeTab(string? raw)
-    {
-        var tab = (raw ?? string.Empty).Trim().ToLowerInvariant();
-        return Tabs.Any(t => t.Key == tab) ? tab : "dashboard";
-    }
+        => ErpRealEstateGuide.Normalize(raw);
 
     private static IReadOnlyList<(ErpRealEstateRow Row, decimal Change)> BuildValuationTimeline(
         IReadOnlyList<ErpRealEstateRow> valuations)

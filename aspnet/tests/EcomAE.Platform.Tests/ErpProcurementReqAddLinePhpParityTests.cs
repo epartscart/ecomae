@@ -15,7 +15,7 @@ public sealed class ErpProcurementReqAddLinePhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpPurchaseRequestsApp.razor"));
         Assert.Contains("/erp/procurement/requisitions/add-line", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"item_code\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"item_code\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"unit_price\"", text, StringComparison.Ordinal);
         Assert.Contains("Add line", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Add line stays on the Classic twin", text, StringComparison.Ordinal);

@@ -75,7 +75,9 @@ public sealed class OperatorGuidesParityTests
     [Fact]
     public void ErpBooksCoverPhpGuideSet()
     {
-        Assert.Equal(6, ErpGuideBooks.All.Count);
+        Assert.Equal(7, ErpGuideBooks.All.Count);
+        Assert.Equal(ErpGuideBooks.Areas, ErpGuideBooks.Get(null).Key);
+        Assert.Equal(ErpGuideBooks.Modules, ErpGuideBooks.Get("missing-book").Key);
         Assert.True(ErpGuideBooks.Get(ErpGuideBooks.Howto).Chapters.Count >= 8);
         Assert.True(ErpGuideBooks.Get(ErpGuideBooks.Full).Chapters.Count >= 3);
         Assert.True(ErpGuideBooks.Get(ErpGuideBooks.Advanced).Chapters.Count >= 6);

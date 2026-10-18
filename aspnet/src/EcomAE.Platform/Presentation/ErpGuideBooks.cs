@@ -16,6 +16,7 @@ namespace EcomAE.Platform.Presentation;
 /// </summary>
 public static class ErpGuideBooks
 {
+    public const string Areas = "areas";
     public const string Modules = "modules";
     public const string Howto = "howto";
     public const string Full = "full";
@@ -27,6 +28,10 @@ public static class ErpGuideBooks
 
     public static IReadOnlyList<Book> All { get; } =
     [
+        new(Areas, "How to use every area",
+            "Every menu area, in the order the work happens. Open a numbered step to do that work.",
+            "/erp/guide-app",
+            []),
         new(Modules, "ERP module book",
             "Step-by-step module guide from epc_guide_modules() — What it is, Setup, Daily work, Accounting impact, Tips.",
             "/ERP/?epc_erp_shell=1&area=overview&tab=guide",
@@ -55,10 +60,28 @@ public static class ErpGuideBooks
 
     public static Book Get(string? key)
     {
-        var needle = string.IsNullOrWhiteSpace(key) ? Modules : key.Trim();
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return ByKey(Areas);
+        }
+
+        var needle = key.Trim();
         foreach (var book in All)
         {
             if (book.Key.Equals(needle, StringComparison.OrdinalIgnoreCase))
+            {
+                return book;
+            }
+        }
+
+        return ByKey(Modules);
+    }
+
+    private static Book ByKey(string key)
+    {
+        foreach (var book in All)
+        {
+            if (book.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
             {
                 return book;
             }

@@ -3,47 +3,60 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject IErpLandlordBook LandlordBook
+@inject IErpIndustryPulseReadService IndustryPulse
 
-<PageTitle>Executive dashboard · ERP · eParts Cart</PageTitle>
+<PageTitle>@_pageTitle</PageTitle>
 <PhpChromeStyles Surface="erp" />
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard" BreadcrumbArea="Home" BreadcrumbTab="Executive dashboard">
 
-    <PhpErpModulePageHeader Title="Executive dashboard" Subtitle="Cross-module executive cockpit — headline KPIs, working capital, approval queue and planning alerts." />
+    <PhpErpModulePageHeader Title="@_boardTitle" Subtitle="@_boardLead" />
 
-    <div class="epc-infographic" aria-label="Executive KPI infographic">
+    <div class="epc-infographic" data-industry="@_kind" aria-label="@_boardTitle">
         <div class="epc-infographic__head">
             <div>
-                <div class="epc-infographic__eyebrow">ERP executive cockpit</div>
-                <h2 class="epc-infographic__title">Finance, fulfilment, and control at a glance</h2>
-                <p class="epc-infographic__sub">Colour-coded work queues with direct actions and tenant-safe context.</p>
+                <div class="epc-infographic__eyebrow">@_companyLabel · @_industryLabel</div>
+                <h2 class="epc-infographic__title">@_boardTitle</h2>
+                <p class="epc-infographic__sub">@_boardLead</p>
             </div>
             <div class="epc-infographic__legend">
                 <span><i></i>Healthy</span><span class="is-alert"><i></i>Attention</span><span class="is-action"><i></i>Action</span>
             </div>
         </div>
-        <div class="epc-exec-kpis" aria-label="Executive KPIs">
-        @ExecTile("Cash position", _s.CashPosition.ToString("N2", CultureInfo.InvariantCulture), "/erp/cash-accounts-app", "#2bb3c0", "Cash &amp; bank")
-        @ExecTile("Receivables", _s.Receivables.ToString("N2", CultureInfo.InvariantCulture), "/erp/receivables-app", Health(_s.Receivables, warnAbove: false), "Open AR")
-        @ExecTile("Payables", _s.Payables.ToString("N2", CultureInfo.InvariantCulture), "/erp/payables-app", Health(_s.Payables, warnAbove: true), "Open AP")
-        @ExecTile("Stock value", _s.StockValue.ToString("N2", CultureInfo.InvariantCulture), "/erp/inventory-stock-app", "#0a7d33", "On-hand inventory")
-        @ExecTile("Revenue (ex. VAT)", _s.RevenueExVat.ToString("N2", CultureInfo.InvariantCulture), "/erp/invoices-app", "#2bb3c0", "Completed sales")
-        @ExecTile("Orders", _s.OrdersCount.ToString(CultureInfo.InvariantCulture), "/erp/sales-orders-app", "#2563eb", "Sales orders")
-        @ExecTile("VAT net payable", _s.VatNetPayable.ToString("N2", CultureInfo.InvariantCulture), "/erp/vat-app", Health(_s.VatNetPayable, warnAbove: true), "Current return")
-        @ExecTile("Period status", _s.PeriodStatus, "/erp/period-close-app", string.Equals(_s.PeriodStatus, "open", StringComparison.OrdinalIgnoreCase) ? "#0a7d33" : "#c98a00", "Fiscal period")
+        <div class="epc-exec-kpis" aria-label="Industry KPIs">
+            @foreach (var tile in _industryTiles)
+            {
+                @ExecTile(tile.Label, tile.Value, tile.Href, tile.Color, tile.Hint)
+            }
         </div>
+    </div>
+
+    <h5 class="epc-eds-sec"><i class="fa fa-book"></i> Executive dashboard</h5>
+    <p class="text-muted">Cash, receivables, payables, stock, and tax stay on this board for every industry.</p>
+    <div class="epc-exec-kpis" aria-label="Executive KPIs">
+        @ExecTile("Cash position", Money(_s.CashPosition), Go("/erp/cash-accounts-app"), "#2bb3c0", "Cash & bank")
+        @ExecTile("Receivables", Money(_s.Receivables), Go("/erp/receivables-app"), Health(_s.Receivables, warnAbove: false), "Open AR")
+        @ExecTile("Payables", Money(_s.Payables), Go("/erp/payables-app"), Health(_s.Payables, warnAbove: true), "Open AP")
+        @ExecTile("Stock value", Money(_s.StockValue), Go("/erp/inventory-stock-app"), "#0a7d33", "On-hand inventory")
+        @ExecTile("Revenue (ex. VAT)", Money(_s.RevenueExVat), Go("/erp/invoices-app"), "#2bb3c0", "Completed sales")
+        @ExecTile("Orders", _s.OrdersCount.ToString(CultureInfo.InvariantCulture), Go("/erp/sales-orders-app"), "#2563eb", "Sales orders")
+        @ExecTile("VAT net payable", Money(_s.VatNetPayable), Go("/erp/vat-app"), Health(_s.VatNetPayable, warnAbove: true), "Current return")
+        @ExecTile("Period status", _s.PeriodStatus, Go("/erp/period-close-app"), string.Equals(_s.PeriodStatus, "open", StringComparison.OrdinalIgnoreCase) ? "#0a7d33" : "#c98a00", "Fiscal period")
     </div>
 
     <h5 class="epc-eds-sec"><i class="fa fa-sitemap"></i> Process flow</h5>
     <div class="epc-exec-kpis" aria-label="Process flow">
-        @ExecTile("Open cases", _s.ProcessOpen.ToString(CultureInfo.InvariantCulture), "/erp/process-flow-tasks-app", "#2563eb", "Monitor")
-        @ExecTile("Completed", _s.ProcessDone.ToString(CultureInfo.InvariantCulture), "/erp/process-flow-tasks-app?pf_view=monitor&amp;f_status=done", "#0a7d33", "Done")
-        @ExecTile("Overdue", _s.ProcessOverdue.ToString(CultureInfo.InvariantCulture), "/erp/process-flow-tasks-app", _s.ProcessOverdue > 0 ? "#c0392b" : "#0a7d33", "SLA")
+        @ExecTile("Open cases", _s.ProcessOpen.ToString(CultureInfo.InvariantCulture), Go("/erp/process-flow-tasks-app"), "#2563eb", "Monitor")
+        @ExecTile("Completed", _s.ProcessDone.ToString(CultureInfo.InvariantCulture), Go("/erp/process-flow-tasks-app?pf_view=monitor&f_status=done"), "#0a7d33", "Done")
+        @ExecTile("Overdue", _s.ProcessOverdue.ToString(CultureInfo.InvariantCulture), Go("/erp/process-flow-tasks-app"), _s.ProcessOverdue > 0 ? "#c0392b" : "#0a7d33", "SLA")
     </div>
 
     <h5 class="epc-eds-sec"><i class="fa fa-check-square-o"></i> Approval queue</h5>
@@ -65,7 +78,7 @@
                             <td>@item.Category</td>
                             <td>@item.Label</td>
                             <td>@item.Count.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@item.Link">@item.Action</a></td>
+                            <td><a href="@Go(item.Link)">@item.Action</a></td>
                             <td><span class="label label-@(item.Severity is "high" or "bad" ? "danger" : (item.Severity is "warn" or "medium" ? "warning" : "default"))">@item.Severity</span></td>
                         </tr>
                     }
@@ -76,12 +89,12 @@
 
     <h5 class="epc-eds-sec"><i class="fa fa-truck"></i> Working capital</h5>
     <div class="epc-exec-kpis">
-        @ExecTile("Supplier credit", _s.SupplierCredit.ToString("N2", CultureInfo.InvariantCulture), "/erp/suppliers-app", "#0a7d33", "Credit notes")
-        @ExecTile("Supplier debit", _s.SupplierDebit.ToString("N2", CultureInfo.InvariantCulture), "/erp/payables-app", "#c98a00", "Open bills")
-        @ExecTile("Supplier net", _s.SupplierNet.ToString("N2", CultureInfo.InvariantCulture), "/erp/suppliers-app", "#2563eb", "Net position")
-        @ExecTile("Active suppliers", _s.ActiveSuppliers.ToString(CultureInfo.InvariantCulture), "/erp/suppliers-app", "#2bb3c0", "Masters")
-        @ExecTile("Active purchases", _s.ActivePurchases.ToString(CultureInfo.InvariantCulture), "/erp/purchases-app", "#2563eb", "Open POs / bills")
-        @ExecTile("Active items", _s.InventoryItems.ToString(CultureInfo.InvariantCulture), "/erp/inventory-stock-app", "#0a7d33", "SKU count")
+        @ExecTile("Supplier credit", Money(_s.SupplierCredit), Go("/erp/suppliers-app"), "#0a7d33", "Credit notes")
+        @ExecTile("Supplier debit", Money(_s.SupplierDebit), Go("/erp/payables-app"), "#c98a00", "Open bills")
+        @ExecTile("Supplier net", Money(_s.SupplierNet), Go("/erp/suppliers-app"), "#2563eb", "Net position")
+        @ExecTile("Active suppliers", _s.ActiveSuppliers.ToString(CultureInfo.InvariantCulture), Go("/erp/suppliers-app"), "#2bb3c0", "Masters")
+        @ExecTile("Active purchases", _s.ActivePurchases.ToString(CultureInfo.InvariantCulture), Go("/erp/purchases-app"), "#2563eb", "Open POs / bills")
+        @ExecTile("Active items", _s.InventoryItems.ToString(CultureInfo.InvariantCulture), Go("/erp/inventory-stock-app"), "#0a7d33", "SKU count")
     </div>
 
     @if (!_isAdmin)
@@ -97,6 +110,16 @@
 
 @code {
     private bool _isAdmin;
+    private string _kind = ErpIndustryDashboardCatalog.Trading;
+    private string _boardTitle = ErpIndustryDashboardCatalog.Title(ErpIndustryDashboardCatalog.Trading);
+    private string _boardLead = ErpIndustryDashboardCatalog.Lead(ErpIndustryDashboardCatalog.Trading);
+    private string _pageTitle = "Executive dashboard · ERP · eParts Cart";
+    private string _companyLabel = "This company";
+    private string _industryLabel = "Trading";
+    private long _activeCompanyId;
+    private ErpIndustryPulse _pulse = ErpIndustryPulse.Empty;
+    private ErpLandlordMeasure _yearBook = ErpLandlordMeasure.Empty;
+    private List<DashTile> _industryTiles = [];
     private ErpDashboardSummary _s = new(
         0, 0, 0, 0, 0, 0, 0,
         0, 0, 0,
@@ -109,19 +132,149 @@
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null) return;
+        if (ctx is null)
+        {
+            BuildTiles();
+            return;
+        }
+
+        var host = ErpHostContext.Resolve(ctx.Request.Host.Host);
+        var companies = ErpIndustryNav.EnsureSwitchableCompanies(
+            (await Dashboards.BuildErpCompaniesDigestAsync(50, ctx.RequestAborted)).Companies,
+            SuperCpHostGate.IsAllowed(ctx),
+            host.BrandLabel);
+        var activeQ = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request);
+        var active = companies.FirstOrDefault(company => activeQ is > 0 && company.Id == activeQ)
+            ?? companies.FirstOrDefault();
+        var jewellery = false;
+        var realEstate = false;
+        var fitOut = false;
+        if (active is not null)
+        {
+            _activeCompanyId = active.Id;
+            _companyLabel = LegalOrganizationLabel.Display(active.Code, active.Name, null, host.BrandLabel);
+            jewellery = ErpIndustryNav.ShowJewelleryModules(host.IndustryCode, active, TenantContext.IndustryFrom(ctx));
+            fitOut = ErpIndustryNav.ShowFitOutModules(host.IndustryCode, active, TenantContext.IndustryFrom(ctx));
+            realEstate = ErpIndustryNav.ShowRealEstateModules(host.IndustryCode, active, TenantContext.IndustryFrom(ctx));
+            var pack = jewellery ? "jewellery"
+                : realEstate ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "real_estate" : active.IndustryPack)
+                : fitOut ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "fit_out" : active.IndustryPack)
+                : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
+            _kind = ErpIndustryDashboardCatalog.Kind(jewellery, realEstate, fitOut, pack);
+            _industryLabel = ErpIndustryNav.IndustryLabelForPack(pack, jewellery);
+        }
+        else
+        {
+            jewellery = ErpIndustryNav.ShowJewelleryModules(host.IndustryCode, null, TenantContext.IndustryFrom(ctx));
+            fitOut = ErpIndustryNav.ShowFitOutModules(host.IndustryCode, null, TenantContext.IndustryFrom(ctx));
+            realEstate = ErpIndustryNav.ShowRealEstateModules(host.IndustryCode, null, TenantContext.IndustryFrom(ctx));
+            _kind = ErpIndustryDashboardCatalog.Kind(jewellery, realEstate, fitOut, host.IndustryCode);
+            _industryLabel = string.IsNullOrWhiteSpace(host.IndustryLabel) ? "Trading" : host.IndustryLabel;
+            _companyLabel = string.IsNullOrWhiteSpace(host.BrandLabel) ? "This company" : host.BrandLabel;
+        }
+
+        _boardTitle = ErpIndustryDashboardCatalog.Title(_kind);
+        _boardLead = ErpIndustryDashboardCatalog.Lead(_kind);
+        _pageTitle = _boardTitle + " · Executive dashboard · ERP";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
-        if (!_isAdmin) return;
+        if (_isAdmin)
+        {
+            var result = await Dashboards.BuildErpAsync(ctx.RequestAborted);
+            _s = result.Summary;
+            _queue = result.ApprovalQueue;
+            _pulse = await IndustryPulse.ReadAsync((int)_activeCompanyId, ctx.RequestAborted);
+            if (_kind == ErpIndustryDashboardCatalog.RealEstate)
+            {
+                _yearBook = await LandlordBook.MeasureAsync(ctx.RequestAborted);
+            }
+        }
 
-        var result = await Dashboards.BuildErpAsync(ctx.RequestAborted);
-        _s = result.Summary;
-        _queue = result.ApprovalQueue;
+        BuildTiles();
     }
+
+    private void BuildTiles()
+    {
+        var n = CultureInfo.InvariantCulture;
+        _industryTiles = _kind switch
+        {
+            ErpIndustryDashboardCatalog.Jewellery =>
+            [
+                Tile("24K sell", _pulse.GoldSell24k > 0 ? Money(_pulse.GoldSell24k) : "—", Go("/erp/jewellery-masters-app?tab=gold_rate"), "#b45309", string.IsNullOrWhiteSpace(_pulse.GoldDate) ? "Latest board rate" : _pulse.GoldDate),
+                Tile("Metal items", _pulse.MetalItems.ToString("N0", n), Go("/erp/jewellery-masters-app?tab=jw_metal_stock"), "#0a7d33", "Metal stock master"),
+                Tile("Metal grams", _pulse.MetalGrams.ToString("N2", n), Go("/erp/jewellery-masters-app?tab=jw_stock_balance"), "#0f766e", "Weight on hand"),
+                Tile("Repair jobs", _pulse.RepairJobs.ToString("N0", n), Go("/erp/jewellery-repairs-app"), "#2563eb", "Workshop receipts"),
+                Tile("Retail sales", Money(_s.RevenueExVat), Go("/erp/jewellery-retail-app"), "#2bb3c0", "Completed sales"),
+                Tile("Stock value", Money(_s.StockValue), Go("/erp/inventory-stock-app"), "#1d4f91", "On-hand inventory"),
+            ],
+            ErpIndustryDashboardCatalog.RealEstate =>
+            [
+                Tile((_yearBook.Year > 0 ? _yearBook.Year.ToString(n) : "Year") + " income", Money(_yearBook.YearIncome), Go(YearBook("#income-lines")), "#0f766e", "Rent and other income"),
+                Tile("Expenses", Money(_yearBook.YearExpense), Go(YearBook("#expense-lines")), "#c98a00", "Property expenses"),
+                Tile("Profit & loss", Money(_yearBook.YearReturn), Go(YearBook("#profit-and-loss")), "#1d4f91", "Income minus expenses"),
+                Tile("Properties", _yearBook.Properties.ToString("N0", n), Go("/erp/real-estate-app?tab=properties"), "#0a7d33", "Register"),
+                Tile("All-years return", Money(_yearBook.AllReturn), Go("/erp/landlord-app?year=0#profit-and-loss"), "#2563eb", "Life of the portfolio"),
+                Tile("Cash position", Money(_s.CashPosition), Go("/erp/cash-accounts-app"), "#2bb3c0", "Cleared cash only"),
+            ],
+            ErpIndustryDashboardCatalog.FitOut =>
+            [
+                Tile("Site records", _pulse.FitOutRecords.ToString("N0", n), Go("/erp/fitout/delivery-dashboard"), "#0f766e", "Delivery and progress"),
+                Tile("Site amount", Money(_pulse.FitOutAmount), Go("/erp/fitout/executive-dashboard"), "#1d4f91", "Recorded site value"),
+                Tile("Open purchases", _s.ActivePurchases.ToString("N0", n), Go("/erp/purchases-app"), "#2563eb", "Project procurement"),
+                Tile("Stock value", Money(_s.StockValue), Go("/erp/inventory-stock-app"), "#0a7d33", "Material on hand"),
+                Tile("Payables", Money(_s.Payables), Go("/erp/payables-app"), Health(_s.Payables, true), "Subcontract and suppliers"),
+                Tile("Projects", "Open", Go("/erp/project-accounting-app"), "#b45309", "Cost control"),
+            ],
+            ErpIndustryDashboardCatalog.AutoParts =>
+            [
+                Tile("Orders", _s.OrdersCount.ToString("N0", n), Go("/erp/sales-orders-app"), "#2563eb", "Parts sales orders"),
+                Tile("Stock value", Money(_s.StockValue), Go("/erp/inventory-stock-app"), "#0a7d33", "Fitment stock"),
+                Tile("Active items", _s.InventoryItems.ToString("N0", n), Go("/erp/product-info-app"), "#1d4f91", "SKU master"),
+                Tile("Low stock", _s.LowStockItems.ToString("N0", n), Go("/erp/inventory-stock-app"), _s.LowStockItems > 0 ? "#c0392b" : "#0a7d33", "Below reorder"),
+                Tile("Suppliers", _s.ActiveSuppliers.ToString("N0", n), Go("/erp/suppliers-app"), "#0f766e", "Vendor master"),
+                Tile("Purchases", _s.ActivePurchases.ToString("N0", n), Go("/erp/purchases-app"), "#b45309", "Open POs"),
+            ],
+            _ =>
+            [
+                Tile("Orders", _s.OrdersCount.ToString("N0", n), Go("/erp/sales-orders-app"), "#2563eb", "Sales orders"),
+                Tile("Revenue (ex. VAT)", Money(_s.RevenueExVat), Go("/erp/invoices-app"), "#2bb3c0", "Completed sales"),
+                Tile("Stock value", Money(_s.StockValue), Go("/erp/inventory-stock-app"), "#0a7d33", "On-hand inventory"),
+                Tile("Active items", _s.InventoryItems.ToString("N0", n), Go("/erp/product-info-app"), "#1d4f91", "Item master"),
+                Tile("Suppliers", _s.ActiveSuppliers.ToString("N0", n), Go("/erp/suppliers-app"), "#0f766e", "Vendor master"),
+                Tile("VAT net payable", Money(_s.VatNetPayable), Go("/erp/vat-app"), Health(_s.VatNetPayable, true), "Current return"),
+            ],
+        };
+    }
+
+    private string YearBook(string hash)
+        => "/erp/landlord-app?year=" + (_yearBook.Year > 0 ? _yearBook.Year : DateTime.UtcNow.Year).ToString(CultureInfo.InvariantCulture) + hash;
+
+    private string Go(string href)
+    {
+        if (string.IsNullOrWhiteSpace(href))
+        {
+            return "/erp";
+        }
+
+        var fragmentIndex = href.IndexOf('#');
+        var path = fragmentIndex < 0 ? href : href[..fragmentIndex];
+        var fragment = fragmentIndex < 0 ? "" : href[fragmentIndex..];
+        if (_activeCompanyId > 0 && !path.Contains("company=", StringComparison.OrdinalIgnoreCase))
+        {
+            path += (path.Contains('?', StringComparison.Ordinal) ? "&" : "?") + "company=" + _activeCompanyId.ToString(CultureInfo.InvariantCulture);
+        }
+
+        return path + fragment;
+    }
+
+    private static string Money(decimal value) => value.ToString("N2", CultureInfo.InvariantCulture);
 
     private static string Health(decimal value, bool warnAbove) =>
         value == 0 ? "#8a97a8" : (warnAbove && value > 0 ? "#c98a00" : "#0a7d33");
+
+    private static DashTile Tile(string label, string value, string href, string color, string hint)
+        => new(label, value, href, color, hint);
 
     private RenderFragment ExecTile(string label, string value, string href, string color, string hint) => __builder =>
     {
@@ -133,4 +286,6 @@
             </a>
         </div>
     };
+
+    private sealed record DashTile(string Label, string Value, string Href, string Color, string Hint);
 }
