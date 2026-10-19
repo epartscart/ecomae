@@ -383,6 +383,9 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutApprovalDecide, HandleFitOutApprovalDecideAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutEstimateCsv, HandleFitOutEstimateCsvAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutDemoSeed, HandleFitOutDemoSeedAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutDemoClear, HandleFitOutDemoClearAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutReport, HandleFitOutReportAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutWorkbook, HandleFitOutWorkbookAsync);
         endpoints.MapGet(EcomAeRoutes.ErpAsapWorkbook, HandleAsapWorkbookAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutDeliveryDashboard, HandleFitOutDeliveryDashboardAsync);
@@ -26429,6 +26432,107 @@ public sealed class ErpModule : ISurfaceModule
 
         return Results.Content(
             ErpRealEstateReportPack.Html(snap, title, pdfHref, docxHref, utc),
+            "text/html; charset=utf-8");
+    }
+
+    /// <summary>Fit-out workspace demo seed: inserts DEMO-tagged rows across the fit-out tables.</summary>
+    private static async Task<IResult> HandleFitOutDemoSeedAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutDemoSeedWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fitout/workspace", "Admin ERP capability required for demo seeding.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to load the DEMO-tagged fit-out sample data.", session = SessionPayload(session) });
+        }
+
+        var message = await writes.SeedDemoAsync(cancellationToken);
+        var ok = !message.StartsWith("TenantRegistry DB is not configured", StringComparison.Ordinal);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/fitout/workspace?tab=guide",
+            ok,
+            message,
+            new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>Fit-out workspace demo clear: deletes only DEMO-tagged rows, safe at any time.</summary>
+    private static async Task<IResult> HandleFitOutDemoClearAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutDemoSeedWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fitout/workspace", "Admin ERP capability required for demo clearing.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to remove the DEMO-tagged fit-out sample data.", session = SessionPayload(session) });
+        }
+
+        var message = await writes.ClearDemoAsync(cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/fitout/workspace?tab=guide",
+            true,
+            message,
+            new { ok = true, writes = 1, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>Fit-out workspace board pack: HTML in-page, PDF/DOCX download, scoped by project + period.</summary>
+    private static async Task<IResult> HandleFitOutReportAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutWorkspaceReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fitout/workspace?tab=reports", "Admin ERP capability required for the fit-out board pack.");
+        }
+
+        long.TryParse(context.Request.Query["project"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var projectId);
+        var period = context.Request.Query["period"].ToString() ?? string.Empty;
+        var snap = await reads.LoadAsync(projectId, period, cancellationToken);
+        var project = snap.Projects.FirstOrDefault(p => p.Id == projectId);
+        var title = "Fit-out board pack — " + (projectId > 0 && project is not null ? project.Name : "all projects")
+                    + (period.Length == 7 ? " · " + period : string.Empty);
+        var utc = DateTime.UtcNow;
+        var stem = ErpFitOutReportPack.FileStem(projectId > 0 ? "p" + projectId.ToString(CultureInfo.InvariantCulture) : "all", utc);
+        var format = (context.Request.Query["format"].ToString() ?? string.Empty).Trim().ToLowerInvariant();
+        var suffix = (projectId > 0 ? "&project=" + projectId.ToString(CultureInfo.InvariantCulture) : string.Empty)
+                     + (period.Length == 7 ? "&period=" + Uri.EscapeDataString(period) : string.Empty);
+        var pdfHref = ClientErpPath.PrefixIfBound(context, EcomAeRoutes.ErpFitOutReport + "?format=pdf" + suffix);
+        var docxHref = ClientErpPath.PrefixIfBound(context, EcomAeRoutes.ErpFitOutReport + "?format=docx" + suffix);
+        if (format is "pdf")
+        {
+            return Results.File(ErpFitOutReportPack.Pdf(snap, title, utc), "application/pdf", stem + ".pdf");
+        }
+
+        if (format is "docx" or "word" or "doc")
+        {
+            return Results.File(
+                ErpFitOutReportPack.Docx(snap, title, utc),
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                stem + ".docx");
+        }
+
+        return Results.Content(
+            ErpFitOutReportPack.Html(snap, title, pdfHref, docxHref, utc),
             "text/html; charset=utf-8");
     }
 

@@ -2984,6 +2984,12 @@ public static class EcomAeRoutes
     public const string ErpFitOutEstimateCsv =
         "/erp/fitout/estimates/csv";
     public const string ErpFitOutWorkbook = "/erp/fitout/workbook";
+    /// <summary>Fit-out workspace demo seed: inserts DEMO-tagged rows only.</summary>
+    public const string ErpFitOutDemoSeed = "/erp/fitout/demo-seed";
+    /// <summary>Fit-out workspace demo clear: deletes only DEMO-tagged rows.</summary>
+    public const string ErpFitOutDemoClear = "/erp/fitout/demo-clear";
+    /// <summary>Fit-out workspace board pack: HTML in-page, PDF/DOCX download.</summary>
+    public const string ErpFitOutReport = "/erp/fitout/report";
 
     /// <summary>ASAP automotive master workbook. kind=package returns the ZIP.</summary>
     public const string ErpAsapWorkbook = "/erp/asap/workbook";

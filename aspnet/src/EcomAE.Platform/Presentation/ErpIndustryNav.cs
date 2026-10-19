@@ -71,7 +71,8 @@ public static class ErpIndustryNav
         return code.Contains("fitout", StringComparison.Ordinal)
             || code.Contains("fit_out", StringComparison.Ordinal)
             || code.Contains("fit-out", StringComparison.Ordinal)
-            || code.Contains("construction", StringComparison.Ordinal);
+            || code.Contains("construction", StringComparison.Ordinal)
+            || code.Contains("building_materials", StringComparison.Ordinal);
     }
 
     /// <summary>Fit-out modules are allowed by the host industry or by the active company (pack, code or name), like the route gate.</summary>
@@ -94,6 +95,7 @@ public static class ErpIndustryNav
         return pack.Contains("fitout", StringComparison.Ordinal)
             || pack.Contains("fit-out", StringComparison.Ordinal)
             || pack.Contains("construction", StringComparison.Ordinal)
+            || pack.Contains("building_materials", StringComparison.Ordinal)
             || code.Contains("fit", StringComparison.Ordinal)
             || name.Contains("fit-out", StringComparison.Ordinal)
             || name.Contains("fitout", StringComparison.Ordinal)

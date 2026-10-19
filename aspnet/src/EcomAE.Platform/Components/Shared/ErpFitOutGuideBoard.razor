@@ -1,0 +1,102 @@
+@using System.Globalization
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject IHttpContextAccessor Http
+
+<section class="fo-guide" aria-label="Fit-out guide">
+    @{ var tone = 0; }
+    @foreach (var lane in ErpFitOutGuide.Lanes)
+    {
+        <div class="fo-guide__lane">
+            <p class="fo-guide__lane-name"><i class="fa @lane.Icon" aria-hidden="true"></i> @lane.Title</p>
+            <ol class="fo-guide__track">
+                @for (var i = 0; i < lane.Steps.Count; i++)
+                {
+                    var step = lane.Steps[i];
+                    var paint = "tone-" + (tone % 5).ToString(CultureInfo.InvariantCulture);
+                    tone++;
+                    <li class="fo-guide__step @paint">
+                        <a href="@Href(step.Href)" title="@step.Detail">
+                            <span class="fo-guide__badge">@step.Number.ToString(CultureInfo.InvariantCulture)</span>
+                            <span class="fo-guide__icon" aria-hidden="true"><i class="fa @step.Icon"></i></span>
+                            <span class="fo-guide__name">@step.Label</span>
+                            <span class="fo-guide__detail">@step.Detail</span>
+                        </a>
+                    </li>
+                    @if (i < lane.Steps.Count - 1)
+                    {
+                        <li class="fo-guide__join" aria-hidden="true">
+                            <svg class="fo-guide__svg" viewBox="0 0 56 16" focusable="false">
+                                <line class="fo-guide__line" x1="2" y1="8" x2="44" y2="8" />
+                                <polyline class="fo-guide__head" points="36,3 48,8 36,13" />
+                            </svg>
+                        </li>
+                    }
+                }
+            </ol>
+        </div>
+    }
+</section>
+
+<style>
+    .fo-guide { margin: 0 0 16px; display: flex; flex-direction: column; gap: 14px; }
+    .fo-guide__lane {
+        padding: 14px 16px 16px;
+        border: 1px solid #d5e3f2;
+        border-radius: 16px;
+        background:
+            radial-gradient(720px 120px at 8% 0%, rgba(13, 148, 136, .10), transparent 60%),
+            linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%);
+    }
+    .fo-guide__lane-name {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: #0f766e;
+    }
+    .fo-guide__track { list-style: none; display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: flex-start; gap: 6px 0; margin: 10px 0 0; padding: 4px 0 0; }
+    .fo-guide__step { display: flex; align-items: center; }
+    .fo-guide__step a { position: relative; display: flex; flex-direction: column; align-items: center; width: 170px; text-decoration: none; color: #1e3a5f; }
+    .fo-guide__step a:hover .fo-guide__icon, .fo-guide__step a:focus-visible .fo-guide__icon { transform: translateY(-2px); }
+    .fo-guide__step a:focus-visible { outline: 2px solid #0f766e; outline-offset: 3px; border-radius: 12px; }
+    .fo-guide__badge { position: absolute; top: -2px; left: 22px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; background: #fff; border: 1px solid #d5e3f2; color: #3d4f66; font-size: 10px; font-weight: 800; line-height: 16px; text-align: center; z-index: 1; }
+    .fo-guide__icon { width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 8px 16px rgba(15, 39, 68, .14); transition: transform .16s ease; }
+    .fo-guide__icon i { font-size: 22px; }
+    .fo-guide__name { margin-top: 8px; font-size: 12px; font-weight: 700; line-height: 1.25; text-align: center; }
+    .fo-guide__detail { margin-top: 4px; font-size: 11px; font-weight: 400; line-height: 1.35; text-align: center; color: #55677d; }
+    .tone-0 .fo-guide__icon { background: linear-gradient(160deg, #14b8a6, #0f766e); }
+    .tone-1 .fo-guide__icon { background: linear-gradient(160deg, #3b82f6, #1d4ed8); }
+    .tone-2 .fo-guide__icon { background: linear-gradient(160deg, #f59e0b, #b45309); }
+    .tone-3 .fo-guide__icon { background: linear-gradient(160deg, #8b5cf6, #6d28d9); }
+    .tone-4 .fo-guide__icon { background: linear-gradient(160deg, #fb7185, #be123c); }
+    .fo-guide__join { display: flex; align-items: center; justify-content: center; width: 44px; margin-top: 18px; }
+    .fo-guide__svg { display: block; width: 52px; height: 16px; }
+    .fo-guide__line { fill: none; stroke: #14b8a6; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 5 7; animation: fo-guide-dash 1.05s linear infinite; }
+    .fo-guide__head { fill: none; stroke: #0f766e; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    @@keyframes fo-guide-dash { to { stroke-dashoffset: -24; } }
+    @@media (max-width: 720px) {
+        .fo-guide__track { flex-direction: column; align-items: stretch; }
+        .fo-guide__step { width: 100%; }
+        .fo-guide__step a { flex-direction: row; width: auto; gap: 12px; }
+        .fo-guide__name { margin-top: 0; text-align: left; }
+        .fo-guide__detail { text-align: left; }
+        .fo-guide__badge { left: 0; top: -4px; }
+        .fo-guide__join { transform: rotate(90deg); margin: 2px auto; width: auto; }
+    }
+    @@media (prefers-reduced-motion: reduce) {
+        .fo-guide__line { animation: none; stroke-dasharray: none; }
+        .fo-guide__step a:hover .fo-guide__icon { transform: none; }
+    }
+</style>
+
+@code {
+    [Parameter] public string QuerySuffix { get; set; } = string.Empty;
+
+    private string Href(string href)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, href + QuerySuffix);
+}
