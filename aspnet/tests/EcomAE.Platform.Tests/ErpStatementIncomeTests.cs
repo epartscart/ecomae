@@ -19,14 +19,20 @@ public sealed class ErpStatementIncomeTests
         Assert.True(ErpAccountClass.InCompany(1, 9, 1));
         Assert.False(ErpAccountClass.InCompany(2, 0, 1));
         Assert.True(ErpAccountClass.InCompany(2, 1, 1));
-        Assert.True(ErpAccountClass.InCompany(0, 0, 1));
+        Assert.False(ErpAccountClass.InCompany(0, 0, 1));
         Assert.True(ErpAccountClass.InCompany(5, 5, 0));
 
         Assert.True(ErpAccountClass.IsProfitAndLossClose("adjustment", "YE-1", "year-end close", "Year-end close FY2025"));
         Assert.True(ErpAccountClass.IsProfitAndLossClose("adjustment", "", "p&l close", ""));
+        Assert.True(ErpAccountClass.IsProfitAndLossClose("adjustment", "", "FY-CLOSE-12-1", "Clear income"));
         Assert.False(ErpAccountClass.IsProfitAndLossClose("adjustment", "YE-DEP", "", "Year-end depreciation"));
         Assert.False(ErpAccountClass.IsProfitAndLossClose("adjustment", "YE-FX", "", "Year-end currency revaluation"));
+        Assert.False(ErpAccountClass.IsProfitAndLossClose("adjustment", "", "FY-DEPR-12-1", "Year-end depreciation"));
+        Assert.False(ErpAccountClass.IsProfitAndLossClose("adjustment", "", "FY-FX-12-1", "Year-end currency revaluation"));
+        Assert.False(ErpAccountClass.IsProfitAndLossClose("adjustment", "", "FX-REVAL 2026-06-10", "Period-end FX revaluation of open foreign-currency receivables"));
+        Assert.False(ErpAccountClass.IsProfitAndLossClose("adjustment", "", "DEPR-2026-07", "Fixed asset depreciation 2026-07"));
         Assert.False(ErpAccountClass.IsProfitAndLossClose("manual", "YE-1", "year-end close", "Year-end close FY2025"));
+        Assert.False(ErpAccountClass.IsProfitAndLossClose("manual", "", "FY-CLOSE-12-1", "Clear income"));
     }
 
     [Fact]

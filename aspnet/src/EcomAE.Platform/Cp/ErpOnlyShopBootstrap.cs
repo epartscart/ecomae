@@ -168,6 +168,16 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
 
             await using (shop)
             {
+                if (await ShopAlreadyServesLoginAsync(shop, cancellationToken).ConfigureAwait(false))
+                {
+                    return new ErpOnlyShopEnsureResult(
+                        true,
+                        true,
+                        true,
+                        true,
+                        "Shop login already ready on `" + dbName + "`.");
+                }
+
                 await EnsureSchemaAsync(shop, cancellationToken).ConfigureAwait(false);
                 await EnsureIndustryProfileAsync(
                     shop,
@@ -200,6 +210,25 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
                 false,
                 false,
                 "Shop ensure failed: " + ex.GetType().Name);
+        }
+    }
+
+    /// <summary>
+    /// A company that already has the login table does not need the full shop
+    /// build on every sign-in. A missing table still runs the build.
+    /// </summary>
+    public static async Task<bool> ShopAlreadyServesLoginAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT 1 FROM `users` LIMIT 1";
+            await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+        catch (DbException)
+        {
+            return false;
         }
     }
 

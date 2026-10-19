@@ -14,6 +14,8 @@ public sealed class ErpBosVatRefundSavePhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpVatApp.razor"));
         Assert.Contains("/erp/ajax/bos-vat-refund-save", text, StringComparison.Ordinal);
         Assert.Contains("/erp/ajax/bos-vat-refund-status", text, StringComparison.Ordinal);
+        Assert.Contains("ClientErpPath.PrefixIfBound", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("action=\"/erp/", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.Contains("Save record", text, StringComparison.Ordinal);
         Assert.Contains("ContextItems=\"@_headerContextItems\"", text, StringComparison.Ordinal);

@@ -123,6 +123,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         + " OR LOWER(CONCAT(IFNULL(j.`journal_no`,''),' ',IFNULL(j.`reference`,''),' ',IFNULL(j.`description`,''))) LIKE '%closing transaction%'"
         + " OR LOWER(CONCAT(IFNULL(j.`journal_no`,''),' ',IFNULL(j.`reference`,''),' ',IFNULL(j.`description`,''))) LIKE '%profit and loss close%'"
         + " OR LOWER(CONCAT(IFNULL(j.`journal_no`,''),' ',IFNULL(j.`reference`,''),' ',IFNULL(j.`description`,''))) LIKE '%p&l close%'"
+        + " OR LOWER(CONCAT(IFNULL(j.`journal_no`,''),' ',IFNULL(j.`reference`,''),' ',IFNULL(j.`description`,''))) LIKE '%fy-close%'"
         + ")";
     private readonly IErpWriteConnectionFactory _connections;
 
@@ -405,7 +406,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         var filter = query.Level switch
         {
             ErpFinancialStatementLevel.BusinessUnit => " AND IFNULL(NULLIF(l.`business_unit_id`, 0), IFNULL(j.`business_unit_id`, 0)) = @unitId",
-            ErpFinancialStatementLevel.Company when query.CompanyId > 0 => " AND (IFNULL(j.`company_id`, 0) IN (0, @companyId) OR IFNULL(l.`legal_entity_id`, 0) = @companyId)",
+            ErpFinancialStatementLevel.Company when query.CompanyId > 0 => " AND (IFNULL(j.`company_id`, 0) = @companyId OR IFNULL(l.`legal_entity_id`, 0) = @companyId)",
             _ => string.Empty,
         };
         var fromUnix = query.Kind == ErpFinancialStatementKind.ProfitAndLoss ? query.FromUnix : 0L;
@@ -701,13 +702,26 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             var elim = useLedger
                 ? ledger
                 : await LoadEliminationsAsync(connection, cancellationToken).ConfigureAwait(false);
-            var currency = OneCurrency(slices);
-            AddSlice(slices, "ELIM-REV", "Intercompany revenue eliminated", "revenue", currency, -elim.Income);
-            AddSlice(slices, "ELIM-EXP", "Intercompany expense eliminated", "expense", currency, -elim.Expense);
-            AddSlice(slices, "ELIM-ASSET", "Intercompany asset eliminated", "asset", currency, -elim.Asset);
-            AddSlice(slices, "ELIM-LIAB", "Intercompany liability eliminated", "liability", currency, -elim.Liability);
+            var currency = SharedCurrency(slices);
+            var elimAmount = Math.Abs(elim.Income) + Math.Abs(elim.Expense) + Math.Abs(elim.Asset) + Math.Abs(elim.Liability);
+            var elimHeld = currency.Length != 3 && elimAmount >= 0.005m;
+            if (!elimHeld)
+            {
+                AddSlice(slices, "ELIM-REV", "Intercompany revenue eliminated", "revenue", currency, -elim.Income);
+                AddSlice(slices, "ELIM-EXP", "Intercompany expense eliminated", "expense", currency, -elim.Expense);
+                AddSlice(slices, "ELIM-ASSET", "Intercompany asset eliminated", "asset", currency, -elim.Asset);
+                AddSlice(slices, "ELIM-LIAB", "Intercompany liability eliminated", "liability", currency, -elim.Liability);
+            }
+
             var rates = await LoadRatesAsync(connection, cancellationToken).ConfigureAwait(false);
             var result = ErpHeadOfficeMoney.Consolidate(slices, reporting, rates, profitAndLoss);
+            if (elimHeld && result.Applied)
+            {
+                var note = result.Note.Length == 0
+                    ? MixedEliminationNote
+                    : result.Note + " " + MixedEliminationNote;
+                result = result with { Note = note };
+            }
             if (result.Applied)
             {
                 return result;
@@ -738,7 +752,14 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         slices.Add(new ErpHeadOfficeMoney.Slice(code, name, type, currency, amount));
     }
 
-    private static string OneCurrency(IReadOnlyList<ErpHeadOfficeMoney.Slice> slices)
+    private const string MixedEliminationNote =
+        "Intercompany eliminations stay off this statement because the companies do not share one currency.";
+
+    /// <summary>
+    /// Currency of every operating slice when they agree. A mixed book returns
+    /// an empty code so an untagged elimination is not converted as dirhams.
+    /// </summary>
+    private static string SharedCurrency(IReadOnlyList<ErpHeadOfficeMoney.Slice> slices)
     {
         string currency = "";
         foreach (var slice in slices)
@@ -755,11 +776,11 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             }
             else if (!currency.Equals(code, StringComparison.Ordinal))
             {
-                return "AED";
+                return "";
             }
         }
 
-        return currency.Length == 3 ? currency : "AED";
+        return currency.Length == 3 ? currency : "";
     }
 
     private static List<RawLine> HeadOfficeRows(ErpHeadOfficeMoney.Result result)

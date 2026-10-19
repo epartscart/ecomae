@@ -60,7 +60,9 @@ public sealed class ErpOnlyShopBootstrapTests
         {
             await using var connection = new MySqlConnection(cs);
             await connection.OpenAsync();
+            Assert.False(await ErpOnlyShopBootstrap.ShopAlreadyServesLoginAsync(connection, CancellationToken.None));
             await ErpOnlyShopBootstrap.EnsureSchemaAsync(connection, CancellationToken.None);
+            Assert.True(await ErpOnlyShopBootstrap.ShopAlreadyServesLoginAsync(connection, CancellationToken.None));
             Assert.True(await ErpOnlyShopBootstrap.EnsureOperatorAsync(
                 connection, "indj@ecomae.com", "TempShopPass9", CancellationToken.None));
             Assert.True(await ErpOnlyShopBootstrap.EnsureOperatorAsync(

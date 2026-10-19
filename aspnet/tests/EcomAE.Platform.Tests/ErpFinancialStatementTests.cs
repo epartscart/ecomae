@@ -194,12 +194,16 @@ public sealed class ErpFinancialStatementTests
             }
 
             var mixed = await read.ReadAsync(ErpFinancialStatementQuery.FromQuery("pl", "consolidation", "0", "0", "USD"));
-            Assert.Equal(75.25m, mixed.IncomeAccounting);
-            Assert.Equal(4.05m, mixed.ExpenseAccounting);
+            Assert.Equal(82m, mixed.IncomeAccounting);
+            Assert.Equal(10.80m, mixed.ExpenseAccounting);
             Assert.Contains("EUR to USD at 1.1", mixed.Message, StringComparison.Ordinal);
+            Assert.Contains("do not share one currency", mixed.Message, StringComparison.Ordinal);
+            Assert.DoesNotContain(mixed.Lines, line => line.Code.StartsWith("ELIM-", StringComparison.Ordinal));
             var euroCash = await read.ReadAsync(ErpFinancialStatementQuery.FromQuery("balance_sheet", "consolidation", "0", "0", "USD"));
-            Assert.Equal(79.30m, euroCash.AssetAccounting);
+            Assert.Equal(82m, euroCash.AssetAccounting);
+            Assert.Equal(10.80m, euroCash.LiabilityAccounting);
             Assert.Equal(0m, euroCash.BalanceCheckAccounting);
+            Assert.Contains("do not share one currency", euroCash.Message, StringComparison.Ordinal);
 
             var missing = await read.ReadAsync(ErpFinancialStatementQuery.FromQuery("pl", "company", "1", "0", "EUR"));
             Assert.Equal("AED", missing.ReportingCurrency);

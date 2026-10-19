@@ -45,9 +45,10 @@ public static class ErpAccountClass
     }
 
     /// <summary>
-    /// A journal belongs to the selected company when the header company matches,
-    /// the line legal entity matches, or neither was set. A line entity must not
-    /// hide a journal whose header company is the one on the report.
+    /// A journal belongs to the selected company when the header company matches
+    /// or the line legal entity matches. An unassigned header is not a member of
+    /// every company. A line entity must not hide a journal whose header company
+    /// is the one on the report.
     /// </summary>
     public static bool InCompany(long journalCompanyId, long lineLegalEntityId, int selectedCompanyId)
     {
@@ -61,7 +62,7 @@ public static class ErpAccountClass
             return true;
         }
 
-        return journalCompanyId == 0 || journalCompanyId == selectedCompanyId;
+        return journalCompanyId == selectedCompanyId;
     }
 
     /// <summary>
@@ -81,6 +82,7 @@ public static class ErpAccountClass
             || blob.Contains("year end close", StringComparison.Ordinal)
             || blob.Contains("closing transaction", StringComparison.Ordinal)
             || blob.Contains("p&l close", StringComparison.Ordinal)
-            || blob.Contains("profit and loss close", StringComparison.Ordinal);
+            || blob.Contains("profit and loss close", StringComparison.Ordinal)
+            || blob.Contains("fy-close", StringComparison.Ordinal);
     }
 }
