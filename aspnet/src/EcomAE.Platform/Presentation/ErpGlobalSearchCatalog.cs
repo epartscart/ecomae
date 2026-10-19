@@ -39,6 +39,8 @@ public static class ErpGlobalSearchCatalog
         {
             rows.InsertRange(0,
             [
+                new("Fit-out workspace & guide", "/erp/fitout/workspace", "industry", "fa-map-signs"),
+                new("Fit-out board pack", "/erp/fitout/workspace?tab=reports", "industry", "fa-bar-chart"),
                 new("Projects & cost control", "/erp/project-accounting-app", "industry", "fa-sitemap"),
                 new("Site delivery dashboard", "/erp/fitout/delivery-dashboard", "industry", "fa-truck"),
                 new("Project P&L & forecast", "/erp/fitout/executive-dashboard", "industry", "fa-line-chart"),

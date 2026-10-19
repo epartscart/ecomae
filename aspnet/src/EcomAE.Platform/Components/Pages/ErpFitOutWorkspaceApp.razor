@@ -1,0 +1,322 @@
+@page "/erp/fitout/workspace"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject ICpCsrfGuard Csrf
+@inject IHttpContextAccessor Http
+@inject IErpFitOutWorkspaceReadService Workspace
+
+<PageTitle>Fit-out workspace · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Fit-out workspace" BreadcrumbArea="Industry" BreadcrumbTab="@_tabLabel">
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/fitout/workspace" IsAdmin="_isAdmin" />
+    <PhpErpModulePageHeader
+        Title="@(_tab == ErpFitOutGuide.TabKey ? "Fit-out, step by step" : "Fit-out workspace")"
+        Subtitle="Projects, cost codes, estimate/BOQ to contract, procurement and 3-way match, materials, shared-cost allocation, and the monthly claim → POC → P&L/WIP cycle. Load the tagged sample data, learn the flow, then remove it before going live."
+        PhpTabHref="/erp/fitout/workspace" />
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
+
+    <div class="fo-board-dock" aria-label="Workspace actions and project filter">
+        <div class="fo-board-dock__col">
+            <strong>Fit-out workspace</strong>
+            <form class="fo-filter" method="get" action="@SelfHref">
+                <input type="hidden" name="tab" value="@_tab" />
+                <label>
+                    <span>Project</span>
+                    <select name="project">
+                        <option value="0" selected="@(_projectId == 0)">All projects</option>
+                        @foreach (var p in _snap.Projects)
+                        {
+                            <option value="@p.Id.ToString(CultureInfo.InvariantCulture)" selected="@(_projectId == p.Id)">@p.Code — @p.Name</option>
+                        }
+                    </select>
+                </label>
+                <label>
+                    <span>Period</span>
+                    <input type="month" name="period" value="@_period" />
+                </label>
+                <button class="btn btn-sm fo-board-btn" type="submit">Apply filter</button>
+                @if (_projectId > 0 || _period.Length > 0)
+                {
+                    <a class="btn btn-sm fo-board-btn" href="@SelfHref?tab=@_tab">Clear</a>
+                }
+            </form>
+        </div>
+        <div class="fo-board-dock__actions">
+            @if (_isAdmin)
+            {
+                <form method="post" action="@DemoHref("seed")" class="fo-inline">
+                    <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
+                    <input type="hidden" name="confirmWrites" value="1" />
+                    <input type="hidden" name="returnUrl" value="@(SelfHref + "?tab=" + _tab + QuerySuffix)" />
+                    <button class="btn btn-sm fo-board-btn" type="submit"><i class="fa fa-cloud-download"></i> Load sample data</button>
+                </form>
+                <form method="post" action="@DemoHref("clear")" class="fo-inline">
+                    <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
+                    <input type="hidden" name="confirmWrites" value="1" />
+                    <input type="hidden" name="returnUrl" value="@(SelfHref + "?tab=" + _tab + QuerySuffix)" />
+                    <button class="btn btn-sm fo-board-btn fo-board-btn--danger" type="submit"><i class="fa fa-trash"></i> Remove sample data</button>
+                </form>
+            }
+            <a class="btn btn-sm fo-board-btn" href="@ReportHref("html")" target="_blank" rel="noopener">Board pack</a>
+            <a class="btn btn-sm fo-board-btn" href="@ReportHref("pdf")">PDF</a>
+            <a class="btn btn-sm fo-board-btn" href="@ReportHref("docx")">Word</a>
+        </div>
+    </div>
+    <style>
+        .fo-board-dock { position: sticky; top: 0; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 14px; padding: 10px 14px; background: linear-gradient(90deg, #06302b, #0f766e); color: #ecfdf5; border-bottom: 3px solid #14b8a6; border-radius: 6px; box-shadow: 0 8px 24px rgba(6,48,43,.22); }
+        .fo-board-dock strong { color: #5eead4; }
+        .fo-board-dock__col { display: flex; flex-direction: column; gap: 6px; }
+        .fo-board-dock__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .fo-board-btn { background: #5eead4 !important; color: #06302b !important; border: 0 !important; font-weight: 600; }
+        .fo-board-btn--danger { background: #fda4af !important; color: #4c0519 !important; }
+        .fo-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+        .fo-filter label { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: #a7f3d0; }
+        .fo-filter select, .fo-filter input { font-size: 13px; padding: 4px 8px; border: 1px solid #5eead4; border-radius: 6px; background: #f0fdfa; color: #06302b; min-width: 210px; }
+        .fo-filter input { min-width: 140px; }
+        .fo-inline { display: inline; margin: 0; }
+        .fo-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; }
+        .fo-card { background: #fff; border: 1px solid #d5e3f2; border-radius: 10px; padding: 12px 14px; }
+        .fo-card h3 { margin: 0 0 8px; font-size: 14px; color: #0f766e; }
+        table.fo { border-collapse: collapse; width: 100%; font-size: 12px; }
+        table.fo th, table.fo td { border: 1px solid #e2e8f0; padding: 4px 8px; text-align: left; }
+        table.fo th { background: #f0fdfa; color: #0f766e; }
+        table.fo td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    </style>
+
+    <ErpFitOutWorkspaceTabs Active="@_tab" QuerySuffix="@QuerySuffix" />
+
+    @if (_tab == ErpFitOutGuide.TabKey)
+    {
+        <ErpFitOutGuideBoard QuerySuffix="@QuerySuffix" />
+    }
+    else
+    {
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Fit-out KPIs">
+            <a class="kpi" href="@TabHref("projects")"><div class="lbl">Projects</div><div class="val">@_snap.Kpis.Projects.ToString(CultureInfo.InvariantCulture)</div></a>
+            <a class="kpi" href="@TabHref("projects")"><div class="lbl">Contract value</div><div class="val">@_snap.Kpis.ContractValue.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+            <a class="kpi" href="@TabHref("procurement")"><div class="lbl">Committed</div><div class="val">@_snap.Kpis.Committed.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+            <a class="kpi" href="@TabHref("costing")"><div class="lbl">Actual cost</div><div class="val">@_snap.Kpis.Actual.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+            <a class="kpi" href="@TabHref("claims")"><div class="lbl">Certified</div><div class="val">@_snap.Kpis.Certified.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+            <a class="kpi" href="@TabHref("month-end")"><div class="lbl">WIP</div><div class="val">@_snap.Kpis.Wip.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+            <a class="kpi" href="@TabHref("reports")"><div class="lbl">P&amp;L</div><div class="val">@_snap.Kpis.ProfitLoss.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+            <a class="kpi" href="@TabHref("claims")"><div class="lbl">Pending approvals</div><div class="val">@_snap.Kpis.PendingApprovals.ToString(CultureInfo.InvariantCulture)</div></a>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_snap.Message))
+        {
+            <p class="text-muted">@_snap.Message</p>
+        }
+
+        @if (_tab == "projects")
+        {
+            <div class="fo-grid2">
+                <div class="fo-card">
+                    <h3>Projects</h3>
+                    <table class="fo"><tr><th>Code</th><th>Name</th><th class="num">Contract</th><th class="num">Budget</th><th>Status</th></tr>
+                        @foreach (var p in _snap.Projects)
+                        {
+                            <tr><td>@p.Code</td><td>@p.Name</td><td class="num">@p.ContractValue.ToString("N0")</td><td class="num">@p.BudgetCost.ToString("N0")</td><td>@p.Status</td></tr>
+                        }
+                    </table>
+                </div>
+                <div class="fo-card">
+                    <h3>Hierarchical cost codes</h3>
+                    @RowsTable(_snap.CostCodes, "")
+                </div>
+                <div class="fo-card">
+                    <h3>Contract terms (advance / retention / warranty)</h3>
+                    @RowsTable(_snap.Contracts, "")
+                </div>
+            </div>
+        }
+        else if (_tab == "costing")
+        {
+            <div class="fo-grid2">
+                <div class="fo-card"><h3>Estimates</h3>@RowsTable(_snap.Estimates, "Markup %")</div>
+                <div class="fo-card"><h3>BOQ lines</h3>@RowsTable(_snap.BoqLines, "Line value")</div>
+                <div class="fo-card"><h3>Quotations</h3>@RowsTable(_snap.Quotations, "Revision")</div>
+                <div class="fo-card"><h3>Approved budgets</h3>@RowsTable(_snap.Budgets, "Cost budget")</div>
+                <div class="fo-card"><h3>Cost ledger</h3>@RowsTable(_snap.CostLedger, "Amount")</div>
+            </div>
+        }
+        else if (_tab == "materials")
+        {
+            <div class="fo-grid2">
+                <div class="fo-card"><h3>Material issues &amp; returns</h3>@RowsTable(_snap.MaterialMovements, "Amount")</div>
+                <div class="fo-card"><h3>Shared-cost allocations</h3>@RowsTable(_snap.Allocations, "Amount")</div>
+            </div>
+        }
+        else if (_tab == "procurement")
+        {
+            <div class="fo-grid2">
+                <div class="fo-card"><h3>PR → PO → GRN chain</h3>@RowsTable(_snap.ProcurementLinks, "Committed")</div>
+                <div class="fo-card"><h3>Three-way matches</h3>@RowsTable(_snap.ThreeWayMatches, "Variance")</div>
+                <div class="fo-card"><h3>RFQs &amp; vendor bills</h3>@RowsTable(_snap.SiteRecords.Where(r => r.Kind is "supplier_rfq" or "vendor_bill").ToArray(), "Amount")</div>
+            </div>
+        }
+        else if (_tab == "claims")
+        {
+            <div class="fo-grid2">
+                <div class="fo-card"><h3>Client progress claims</h3>@RowsTable(_snap.Claims, "Amount")</div>
+                <div class="fo-card"><h3>Subcontract chain</h3>@RowsTable(_snap.Subcontracts, "Amount")</div>
+            </div>
+        }
+        else if (_tab == "month-end")
+        {
+            <div class="fo-grid2">
+                <div class="fo-card"><h3>Weighted progress</h3>@RowsTable(_snap.SiteRecords.Where(r => r.Kind == "weighted_progress").ToArray(), "%")</div>
+                <div class="fo-card"><h3>POC recognition runs</h3>@RowsTable(_snap.Recognitions, "% complete")</div>
+                <div class="fo-card"><h3>Site records</h3>@RowsTable(_snap.SiteRecords, "Amount")</div>
+            </div>
+        }
+        else if (_tab == "reports")
+        {
+            <div class="fo-card" style="margin-bottom:14px">
+                <h3>Board pack</h3>
+                <p class="text-muted">Per-project cost ledger, committed vs actual vs forecast, material register, claims history, WIP and project P&amp;L — scoped to the current project + period filter.</p>
+                <p>
+                    <a class="btn btn-sm" href="@ReportHref("html")" target="_blank" rel="noopener">Open board pack</a>
+                    <a class="btn btn-sm" href="@ReportHref("pdf")">Download PDF</a>
+                    <a class="btn btn-sm" href="@ReportHref("docx")">Download Word</a>
+                </p>
+            </div>
+            <div class="fo-grid2">
+                <div class="fo-card">
+                    <h3>Project P&amp;L</h3>
+                    <table class="fo"><tr><th>Code</th><th>Project</th><th class="num">Contract</th><th class="num">Budget</th><th>Status</th></tr>
+                        @foreach (var p in _snap.Projects)
+                        {
+                            <tr><td>@p.Code</td><td>@p.Name</td><td class="num">@p.ContractValue.ToString("N0")</td><td class="num">@p.BudgetCost.ToString("N0")</td><td>@p.Status</td></tr>
+                        }
+                    </table>
+                </div>
+                <div class="fo-card"><h3>Cost ledger</h3>@RowsTable(_snap.CostLedger, "Amount")</div>
+                <div class="fo-card"><h3>Committed vs forecast</h3>@RowsTable(_snap.ProcurementLinks, "Committed")</div>
+                <div class="fo-card"><h3>Material register</h3>@RowsTable(_snap.MaterialMovements, "Amount")</div>
+                <div class="fo-card"><h3>Claims history</h3>@RowsTable(_snap.Claims, "Amount")</div>
+                <div class="fo-card"><h3>WIP / recognition</h3>@RowsTable(_snap.Recognitions, "%")</div>
+            </div>
+        }
+    }
+</PhpErpDesktopChrome>
+
+@code {
+    private ErpFitOutWorkspaceSnapshot _snap = new(
+        [], new ErpFitOutWorkspaceKpis(0, 0, 0, 0, 0, 0, 0, 0),
+        [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], "");
+    private string _tab = ErpFitOutGuide.TabKey;
+    private string _tabLabel = "Guide";
+    private long _projectId;
+    private string _period = string.Empty;
+    private bool _isAdmin;
+    private string _csrf = string.Empty;
+    private string _flashOk = string.Empty;
+    private string _flashErr = string.Empty;
+
+    private string QuerySuffix
+    {
+        get
+        {
+            var suffix = string.Empty;
+            if (_projectId > 0)
+            {
+                suffix += "&project=" + _projectId.ToString(CultureInfo.InvariantCulture);
+            }
+
+            if (_period.Length > 0)
+            {
+                suffix += "&period=" + Uri.EscapeDataString(_period);
+            }
+
+            return suffix;
+        }
+    }
+
+    private string SelfHref
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/fitout/workspace");
+
+    private string TabHref(string tab)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/fitout/workspace?tab=" + tab + QuerySuffix);
+
+    private string ReportHref(string format)
+        => ClientErpPath.PrefixIfBound(
+            Http.HttpContext,
+            "/erp/fitout/report?format=" + format + "&project=" + _projectId.ToString(CultureInfo.InvariantCulture)
+            + (_period.Length > 0 ? "&period=" + Uri.EscapeDataString(_period) : string.Empty));
+
+    private string DemoHref(string action)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/fitout/demo-" + action);
+
+    private RenderFragment RowsTable(IReadOnlyList<ErpFitOutRow> rows, string amountLabel) => builder =>
+    {
+        var seq = 0;
+        builder.OpenElement(seq++, "table");
+        builder.AddAttribute(seq++, "class", "fo");
+        builder.OpenElement(seq++, "tr");
+        foreach (var head in new[] { "Type", "Ref", "Name", "Status", amountLabel.Length == 0 ? "Amount" : amountLabel, "Qty/%", "Detail" })
+        {
+            builder.OpenElement(seq++, "th");
+            builder.AddContent(seq++, head);
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+        foreach (var r in rows)
+        {
+            builder.OpenElement(seq++, "tr");
+            foreach (var cell in new[] { r.Kind, r.Code, r.Name, r.Status })
+            {
+                builder.OpenElement(seq++, "td");
+                builder.AddContent(seq++, cell);
+                builder.CloseElement();
+            }
+
+            builder.OpenElement(seq++, "td");
+            builder.AddAttribute(seq++, "class", "num");
+            builder.AddContent(seq++, r.Amount.ToString("N2", CultureInfo.InvariantCulture));
+            builder.CloseElement();
+            builder.OpenElement(seq++, "td");
+            builder.AddAttribute(seq++, "class", "num");
+            builder.AddContent(seq++, r.Amount2.ToString("0.##", CultureInfo.InvariantCulture));
+            builder.CloseElement();
+            builder.OpenElement(seq++, "td");
+            builder.AddContent(seq++, r.Detail);
+            builder.CloseElement();
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? string.Empty;
+        _flashErr = ctx.Request.Query["err"].ToString() ?? string.Empty;
+        _tab = ErpFitOutGuide.Normalize(ctx.Request.Query["tab"].ToString());
+        _tabLabel = ErpFitOutWorkspace.Label(_tab);
+        _period = ctx.Request.Query["period"].ToString() ?? string.Empty;
+        long.TryParse(ctx.Request.Query["project"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _projectId);
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (_isAdmin)
+        {
+            _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
+        }
+
+        _snap = await Workspace.LoadAsync(_projectId, _period, ctx.RequestAborted);
+    }
+}

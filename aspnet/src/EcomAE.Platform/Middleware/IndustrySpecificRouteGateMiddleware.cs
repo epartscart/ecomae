@@ -192,10 +192,11 @@ public static class IndustrySpecificRoutePolicy
 
         if (required is "fitout" or "fit_out")
         {
-            return value is "fitout" or "fit_out" or "construction" or "construction_contracting"
+            return value is "fitout" or "fit_out" or "construction" or "construction_contracting" or "building_materials"
                 || value.Contains("fitout", StringComparison.Ordinal)
                 || value.Contains("fit-out", StringComparison.Ordinal)
-                || value.Contains("construction", StringComparison.Ordinal);
+                || value.Contains("construction", StringComparison.Ordinal)
+                || value.Contains("building_materials", StringComparison.Ordinal);
         }
 
         if (required is "real_estate" or "realestate")
