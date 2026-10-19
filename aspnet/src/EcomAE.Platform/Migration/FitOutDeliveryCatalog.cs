@@ -42,7 +42,7 @@ public static class FitOutDeliveryCatalog
         new("P4 advanced", "P4 advanced", "CEO, PM, finance and procurement dashboards", "partial", "ERP dashboards"),
         new("P4 advanced", "P4 advanced", "Sales, estimation and procurement reports", "partial", "ERP reporting"),
         new("P4 advanced", "P4 advanced", "Inventory, subcontract and finance reports", "partial", "ERP reporting"),
-        new("P4 advanced", "P4 advanced", "Fit-out scenario acceptance evidence — /erp/fitout/workspace rehearsal: Load sample data seeds a tagged DEMO project chain (estimate→BOQ→contract→budget→PR/PO/GRN/match→issue/return→claim→POC recognition→shared-cost allocation), Remove sample data deletes only DEMO-tagged rows", "pending", "Migration gates")
+        new("P4 advanced", "P4 advanced", "Fit-out scenario acceptance evidence — /erp/fitout/workspace rehearsal: Load sample data seeds a tagged DEMO project chain (estimate→BOQ→contract→budget→PR/PO/GRN/match→issue/return→claim→POC recognition→shared-cost allocation), Remove sample data deletes only DEMO-tagged rows (incl. demo GL journals), and Post to GL posts balanced IFRS 15 journals so project figures reach the income statement, balance sheet and dashboard insights", "pending", "Migration gates")
     ];
 
     public static object BuildReport() => new

@@ -39,6 +39,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
     private readonly IErpPrjaTxnAddWriteService _txns;
     private readonly IErpPrjaRecognitionWriteService _recognition;
     private readonly IErpCostCenterWriteService _costCenters;
+    private readonly IErpFitOutGlPostWriteService _glPost;
 
     public ErpFitOutDemoSeedWriteService(
         IErpWriteConnectionFactory connections,
@@ -54,7 +55,8 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         IErpPrjaBudgetSaveWriteService budgets,
         IErpPrjaTxnAddWriteService txns,
         IErpPrjaRecognitionWriteService recognition,
-        IErpCostCenterWriteService costCenters)
+        IErpCostCenterWriteService costCenters,
+        IErpFitOutGlPostWriteService glPost)
     {
         _connections = connections;
         _projects = projects;
@@ -70,6 +72,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         _txns = txns;
         _recognition = recognition;
         _costCenters = costCenters;
+        _glPost = glPost;
     }
 
     public async Task<string> SeedDemoAsync(CancellationToken cancellationToken = default)
@@ -104,6 +107,14 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         await ApproveDemoClaimsAsync(connection, cancellationToken).ConfigureAwait(false);
         await PersistMarksAsync(connection, marks, cancellationToken).ConfigureAwait(false);
 
+        // Post the demo rows to the GL scoped to each seeded project — never 0/all-projects,
+        // which would also sweep up every unposted live transaction.
+        var glNote = string.Empty;
+        foreach (var project in projects)
+        {
+            glNote = await _glPost.PostAsync(project.Id, null, cancellationToken).ConfigureAwait(false);
+        }
+
         return "Demo data loaded: " + projects.Count + " projects, " + customers + " customers, "
                + suppliers.Count + " suppliers, " + items + " items, " + costCodes + " cost codes, "
                + estimates + " estimate/BOQ/quotation rows, " + contracts + " contract terms, "
@@ -112,7 +123,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                + claims + " claims/recognition postings, " + allocations
                + " allocation rows. Total contract value "
                + projects.Sum(p => p.ContractValue).ToString("N0", CultureInfo.InvariantCulture)
-               + " across the demo projects.";
+               + " across the demo projects. " + glNote;
     }
 
     /// <summary>
@@ -189,6 +200,22 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         await EnsureRegistryAsync(connection, cancellationToken).ConfigureAwait(false);
         var removed = 0;
 
+        // Demo GL journals first, matched to the registered demo rows they were
+        // posted for — live journals can never match a registry row.
+        foreach (var sql in DemoJournalDeletes())
+        {
+            try
+            {
+                removed += await ErpDb.ExecuteAsync(connection, null, sql, cancellationToken).ConfigureAwait(false);
+            }
+            catch (MySqlException)
+            {
+            }
+            catch (DbException)
+            {
+            }
+        }
+
         // Child rows with no tag of their own are demo data only through a
         // registered parent: approval audit rows follow their delivery record,
         // POC recognition rows follow their project.
@@ -262,6 +289,26 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         }
 
         return "Removed " + removed + " demo row(s). Live rows and users were not touched.";
+    }
+
+    // Journals the month-end GL bridge posted for demo rows. Each DELETE joins the
+    // journal's source back to the demo registry; live journals can never match.
+    private static IEnumerable<string> DemoJournalDeletes()
+    {
+        // Claim journals on registered progress-claim records.
+        yield return "DELETE l FROM `epc_erp_gl_lines` l INNER JOIN `epc_erp_gl_journals` j ON j.`id`=l.`journal_id`"
+                     + " INNER JOIN `" + RegistryTable + "` r ON r.`table_name`='ecomae_fitout_delivery_records' AND r.`row_id`=j.`source_id`"
+                     + " WHERE j.`source_type`='adjustment' AND j.`reference` LIKE 'FO-%-IPC-%'";
+        yield return "DELETE j FROM `epc_erp_gl_journals` j"
+                     + " INNER JOIN `" + RegistryTable + "` r ON r.`table_name`='ecomae_fitout_delivery_records' AND r.`row_id`=j.`source_id`"
+                     + " WHERE j.`source_type`='adjustment' AND j.`reference` LIKE 'FO-%-IPC-%'";
+        // PRJA journals on registered transactions.
+        yield return "DELETE l FROM `epc_erp_gl_lines` l INNER JOIN `epc_erp_gl_journals` j ON j.`id`=l.`journal_id`"
+                     + " INNER JOIN `" + RegistryTable + "` r ON r.`table_name`='epc_prja_txn' AND r.`row_id`=j.`source_id`"
+                     + " WHERE j.`source_type`='adjustment' AND j.`reference` LIKE 'FO-%-TXN-%'";
+        yield return "DELETE j FROM `epc_erp_gl_journals` j"
+                     + " INNER JOIN `" + RegistryTable + "` r ON r.`table_name`='epc_prja_txn' AND r.`row_id`=j.`source_id`"
+                     + " WHERE j.`source_type`='adjustment' AND j.`reference` LIKE 'FO-%-TXN-%'";
     }
 
     // The delivery-record approval whitelist excludes client_progress_claim and

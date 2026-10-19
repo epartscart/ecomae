@@ -386,6 +386,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutDemoSeed, HandleFitOutDemoSeedAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutDemoClear, HandleFitOutDemoClearAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutReport, HandleFitOutReportAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutGlPost, HandleFitOutGlPostAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutClaimInvoice, HandleFitOutClaimInvoiceAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutWorkbook, HandleFitOutWorkbookAsync);
         endpoints.MapGet(EcomAeRoutes.ErpAsapWorkbook, HandleAsapWorkbookAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutDeliveryDashboard, HandleFitOutDeliveryDashboardAsync);
@@ -26541,6 +26543,85 @@ public sealed class ErpModule : ISurfaceModule
         return Results.Content(
             ErpFitOutReportPack.Html(snap, title, pdfHref, docxHref, utc),
             "text/html; charset=utf-8");
+    }
+
+    /// <summary>Fit-out month-end bridge: posts IFRS 15 journals (cost, POC revenue, claims, advances) to the GL.</summary>
+    private static async Task<IResult> HandleFitOutGlPostAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutGlPostWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fitout/workspace?tab=month-end", "Admin ERP capability required for GL posting.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to post fit-out journals to the GL.", session = SessionPayload(session) });
+        }
+
+        long.TryParse(context.Request.Form["project"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var projectId);
+        var period = context.Request.Form["period"].ToString();
+        // A malformed period must not silently widen the posting window.
+        if (period.Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(period, "^\\d{4}-\\d{2}$"))
+        {
+            return Results.Ok(new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "invalid_period", message = "Period must be YYYY-MM.", session = SessionPayload(session) });
+        }
+
+        var message = await writes.PostAsync(projectId, period, cancellationToken);
+        var ok = !message.StartsWith("TenantRegistry DB is not configured", StringComparison.Ordinal);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/fitout/workspace?tab=month-end",
+            ok,
+            message,
+            new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>Fit-out claims → UAE FTA tax invoices: builds e-invoice docs for approved claims and links them to the project.</summary>
+    private static async Task<IResult> HandleFitOutClaimInvoiceAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutClaimInvoiceWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fitout/workspace?tab=claims", "Admin ERP capability required for invoice issue.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to issue tax invoices for approved claims.", session = SessionPayload(session) });
+        }
+
+        long.TryParse(context.Request.Form["claim"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var claimId);
+        long.TryParse(context.Request.Form["project"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var projectId);
+        string message;
+        var ok = true;
+        if (claimId > 0)
+        {
+            var result = await writes.CreateFromClaimAsync(claimId, session.UserId, cancellationToken);
+            ok = result.Succeeded;
+            message = result.Message;
+        }
+        else
+        {
+            message = await writes.CreatePendingAsync(projectId, session.UserId, cancellationToken);
+        }
+
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/fitout/workspace?tab=claims",
+            ok,
+            message,
+            new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleJewelleryWorkbookAsync(
