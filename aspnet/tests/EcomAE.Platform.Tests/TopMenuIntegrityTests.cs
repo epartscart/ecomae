@@ -24,7 +24,7 @@ public sealed class TopMenuIntegrityTests
         // Sign-in pages and the generic module host are not menu destinations.
         "CpLoginApp.razor", "ErpLoginApp.razor", "ErpModuleApp.razor",
         // Linked from other pages, not from the top menu.
-        "CpDashboardSummaryApp.razor", "ErpNavigationCoverageApp.razor",
+        "CpDashboardSummaryApp.razor", "ErpNavigationCoverageApp.razor", "ErpFitOutWorkspaceApp.razor",
         "CpPriceListsApp.razor", "CpPricesEditApp.razor", "CpPoApprovalsApp.razor", "CpCrmActivitiesApp.razor",
         "CpAdminSessionsApp.razor", "CpPrintDocsApp.razor", "CpBulkUploadApp.razor", "CpFinanceCloseApp.razor",
     ];
