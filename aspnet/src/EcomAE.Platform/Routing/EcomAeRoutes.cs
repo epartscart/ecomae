@@ -2990,6 +2990,8 @@ public static class EcomAeRoutes
     public const string ErpFitOutDemoClear = "/erp/fitout/demo-clear";
     /// <summary>Fit-out workspace board pack: HTML in-page, PDF/DOCX download.</summary>
     public const string ErpFitOutReport = "/erp/fitout/report";
+    /// <summary>Fit-out month-end bridge: posts IFRS 15 project journals into the GL.</summary>
+    public const string ErpFitOutGlPost = "/erp/fitout/gl-post";
 
     /// <summary>ASAP automotive master workbook. kind=package returns the ZIP.</summary>
     public const string ErpAsapWorkbook = "/erp/asap/workbook";

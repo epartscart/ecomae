@@ -64,6 +64,14 @@
                     <input type="hidden" name="returnUrl" value="@(SelfHref + "?tab=" + _tab + QuerySuffix)" />
                     <button class="btn btn-sm fo-board-btn fo-board-btn--danger" type="submit"><i class="fa fa-trash"></i> Remove sample data</button>
                 </form>
+                <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/fitout/gl-post")" class="fo-inline">
+                    <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
+                    <input type="hidden" name="confirmWrites" value="1" />
+                    <input type="hidden" name="project" value="@_projectId" />
+                    <input type="hidden" name="period" value="@_period" />
+                    <input type="hidden" name="returnUrl" value="@(SelfHref + "?tab=" + _tab + QuerySuffix)" />
+                    <button class="btn btn-sm fo-board-btn" type="submit"><i class="fa fa-book"></i> Post to GL</button>
+                </form>
             }
             <a class="btn btn-sm fo-board-btn" href="@ReportHref("html")" target="_blank" rel="noopener">Board pack</a>
             <a class="btn btn-sm fo-board-btn" href="@ReportHref("pdf")">PDF</a>
@@ -175,6 +183,10 @@
                 <div class="fo-card"><h3>Weighted progress</h3>@RowsTable(_snap.SiteRecords.Where(r => r.Kind == "weighted_progress").ToArray(), "%")</div>
                 <div class="fo-card"><h3>POC recognition runs</h3>@RowsTable(_snap.Recognitions, "% complete")</div>
                 <div class="fo-card"><h3>Site records</h3>@RowsTable(_snap.SiteRecords, "Amount")</div>
+                <div class="fo-card">
+                    <h3>Post to the general ledger (IFRS 15)</h3>
+                    <p class="text-muted">Posts project cost (Dr contract cost / Cr AP), POC revenue (Dr contract asset / Cr contract revenue), certified claims (Dr receivable / Cr contract asset + VAT) and client advances (Dr bank / Cr contract liability) into the GL — so the income statement, balance sheet and dashboard insights include the fit-out figures. Scoped to the current project + period filter; already-posted rows are skipped.</p>
+                </div>
             </div>
         }
         else if (_tab == "reports")

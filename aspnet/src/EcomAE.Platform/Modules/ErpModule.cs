@@ -386,6 +386,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutDemoSeed, HandleFitOutDemoSeedAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutDemoClear, HandleFitOutDemoClearAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutReport, HandleFitOutReportAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutGlPost, HandleFitOutGlPostAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutWorkbook, HandleFitOutWorkbookAsync);
         endpoints.MapGet(EcomAeRoutes.ErpAsapWorkbook, HandleAsapWorkbookAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutDeliveryDashboard, HandleFitOutDeliveryDashboardAsync);
@@ -26541,6 +26542,37 @@ public sealed class ErpModule : ISurfaceModule
         return Results.Content(
             ErpFitOutReportPack.Html(snap, title, pdfHref, docxHref, utc),
             "text/html; charset=utf-8");
+    }
+
+    /// <summary>Fit-out month-end bridge: posts IFRS 15 journals (cost, POC revenue, claims, advances) to the GL.</summary>
+    private static async Task<IResult> HandleFitOutGlPostAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutGlPostWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fitout/workspace?tab=month-end", "Admin ERP capability required for GL posting.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to post fit-out journals to the GL.", session = SessionPayload(session) });
+        }
+
+        long.TryParse(context.Request.Form["project"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var projectId);
+        var period = context.Request.Form["period"].ToString();
+        var message = await writes.PostAsync(projectId, period, cancellationToken);
+        var ok = !message.StartsWith("TenantRegistry DB is not configured", StringComparison.Ordinal);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/fitout/workspace?tab=month-end",
+            ok,
+            message,
+            new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleJewelleryWorkbookAsync(

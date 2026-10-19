@@ -39,6 +39,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
     private readonly IErpPrjaTxnAddWriteService _txns;
     private readonly IErpPrjaRecognitionWriteService _recognition;
     private readonly IErpCostCenterWriteService _costCenters;
+    private readonly IErpFitOutGlPostWriteService _glPost;
 
     public ErpFitOutDemoSeedWriteService(
         IErpWriteConnectionFactory connections,
@@ -54,7 +55,8 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         IErpPrjaBudgetSaveWriteService budgets,
         IErpPrjaTxnAddWriteService txns,
         IErpPrjaRecognitionWriteService recognition,
-        IErpCostCenterWriteService costCenters)
+        IErpCostCenterWriteService costCenters,
+        IErpFitOutGlPostWriteService glPost)
     {
         _connections = connections;
         _projects = projects;
@@ -70,6 +72,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         _txns = txns;
         _recognition = recognition;
         _costCenters = costCenters;
+        _glPost = glPost;
     }
 
     public async Task<string> SeedDemoAsync(CancellationToken cancellationToken = default)
@@ -101,6 +104,8 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         var allocations = await SeedAllocationsAsync(projects, cancellationToken).ConfigureAwait(false);
         await ApproveDemoClaimsAsync(connection, cancellationToken).ConfigureAwait(false);
 
+        var glNote = await _glPost.PostAsync(0, null, cancellationToken).ConfigureAwait(false);
+
         return "Demo data loaded: " + projects.Count + " projects, " + customers + " customers, "
                + suppliers.Count + " suppliers, " + items + " items, " + costCodes + " cost codes, "
                + estimates + " estimate/BOQ/quotation rows, " + contracts + " contract terms, "
@@ -109,7 +114,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                + claims + " claims/recognition postings, " + allocations
                + " allocation rows. Total contract value "
                + projects.Sum(p => p.ContractValue).ToString("N0", CultureInfo.InvariantCulture)
-               + " across the demo projects.";
+               + " across the demo projects. " + glNote;
     }
 
     public async Task<string> ClearDemoAsync(CancellationToken cancellationToken = default)
@@ -121,6 +126,22 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         var removed = 0;
+
+        // Demo GL journals first, while the demo rows they point at still carry
+        // their DEMO tags — otherwise the journal's source row can no longer be matched.
+        foreach (var sql in DemoJournalDeletes())
+        {
+            try
+            {
+                removed += await ErpDb.ExecuteAsync(connection, null, sql, cancellationToken).ConfigureAwait(false);
+            }
+            catch (MySqlException)
+            {
+            }
+            catch (DbException)
+            {
+            }
+        }
 
         // Child rows that carry no DEMO text tag are still demo data when their parent
         // project/record is DEMO-tagged: contract terms, POC recognition runs and the
@@ -181,6 +202,33 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         }
 
         return "Removed " + removed + " demo row(s) tagged DEMO. Live rows and users were not touched.";
+    }
+
+    // Journals the month-end GL bridge posted for demo rows. Each DELETE joins the
+    // journal's source back to its demo-tagged row; live journals can never match.
+    private static IEnumerable<string> DemoJournalDeletes()
+    {
+        // Claim journals on DEMO-referenced progress claims.
+        yield return "DELETE l FROM `epc_erp_gl_lines` l INNER JOIN `epc_erp_gl_journals` j ON j.`id`=l.`journal_id`"
+                     + " WHERE j.`source_type`='fitout_claim' AND j.`source_id` IN"
+                     + " (SELECT `id` FROM `ecomae_fitout_delivery_records` WHERE `reference` LIKE 'DEMO-%')";
+        yield return "DELETE j FROM `epc_erp_gl_journals` j"
+                     + " WHERE j.`source_type`='fitout_claim' AND j.`source_id` IN"
+                     + " (SELECT `id` FROM `ecomae_fitout_delivery_records` WHERE `reference` LIKE 'DEMO-%')";
+        // PRJA journals on DEMO-tagged transactions.
+        yield return "DELETE l FROM `epc_erp_gl_lines` l INNER JOIN `epc_erp_gl_journals` j ON j.`id`=l.`journal_id`"
+                     + " WHERE j.`source_type` IN ('fitout_prja_cost','fitout_prja_rev','fitout_prja_bill') AND j.`source_id` IN"
+                     + " (SELECT `id` FROM `epc_prja_txn` WHERE `category` LIKE 'DEMO-%' OR `description` LIKE 'DEMO |%')";
+        yield return "DELETE j FROM `epc_erp_gl_journals` j"
+                     + " WHERE j.`source_type` IN ('fitout_prja_cost','fitout_prja_rev','fitout_prja_bill') AND j.`source_id` IN"
+                     + " (SELECT `id` FROM `epc_prja_txn` WHERE `category` LIKE 'DEMO-%' OR `description` LIKE 'DEMO |%')";
+        // Advance journals on contract terms whose project is DEMO-coded.
+        yield return "DELETE l FROM `epc_erp_gl_lines` l INNER JOIN `epc_erp_gl_journals` j ON j.`id`=l.`journal_id`"
+                     + " WHERE j.`source_type`='fitout_advance' AND j.`source_id` IN"
+                     + " (SELECT `id` FROM `epc_prj_projects` WHERE `code` LIKE 'DEMO-%' OR `name` LIKE 'DEMO |%')";
+        yield return "DELETE j FROM `epc_erp_gl_journals` j"
+                     + " WHERE j.`source_type`='fitout_advance' AND j.`source_id` IN"
+                     + " (SELECT `id` FROM `epc_prj_projects` WHERE `code` LIKE 'DEMO-%' OR `name` LIKE 'DEMO |%')";
     }
 
     // The delivery-record approval whitelist excludes client_progress_claim and
