@@ -99,6 +99,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         var site = await SeedSiteRecordsAsync(projects, suppliers, cancellationToken).ConfigureAwait(false);
         var claims = await SeedClaimsAndRecognitionAsync(projects, cancellationToken).ConfigureAwait(false);
         var allocations = await SeedAllocationsAsync(projects, cancellationToken).ConfigureAwait(false);
+        await ApproveDemoClaimsAsync(connection, cancellationToken).ConfigureAwait(false);
 
         return "Demo data loaded: " + projects.Count + " projects, " + customers + " customers, "
                + suppliers.Count + " suppliers, " + items + " items, " + costCodes + " cost codes, "
@@ -141,7 +142,11 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
 
         foreach (var (table, columns) in DemoTables())
         {
-            var predicate = string.Join(" OR ", columns.Select(col => "`" + col + "` LIKE 'DEMO%'"));
+            // Both tag forms are required — a bare 'DEMO%' would also match live
+            // rows such as "Demolition works".
+            var predicate = string.Join(
+                " OR ",
+                columns.Select(col => "`" + col + "` LIKE 'DEMO |%' OR `" + col + "` LIKE 'DEMO-%'"));
             try
             {
                 removed += await ErpDb.ExecuteAsync(
@@ -157,7 +162,42 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             }
         }
 
+        // Demo cost centres are deleted last, after the demo allocation rows, and
+        // only when no remaining (non-demo) allocation still references them.
+        try
+        {
+            removed += await ErpDb.ExecuteAsync(
+                connection, null,
+                "DELETE c FROM `epc_cc_centers` c " +
+                "WHERE (c.`code` LIKE 'DEMO-%' OR c.`name` LIKE 'DEMO |%') " +
+                "AND NOT EXISTS (SELECT 1 FROM `epc_cc_allocations` a WHERE a.`cost_center_id` = c.`id`)",
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (MySqlException)
+        {
+        }
+        catch (DbException)
+        {
+        }
+
         return "Removed " + removed + " demo row(s) tagged DEMO. Live rows and users were not touched.";
+    }
+
+    // The delivery-record approval whitelist excludes client_progress_claim and
+    // subcontract_certification, so DecideApprovalAsync can never flip them.
+    // Certify the demo rows directly, scoped strictly to DEMO references.
+    private static async Task ApproveDemoClaimsAsync(DbConnection connection, CancellationToken ct)
+    {
+        try
+        {
+            await ErpDb.ExecuteAsync(connection, null,
+                "UPDATE `ecomae_fitout_delivery_records` SET `status`='approved' " +
+                "WHERE `reference` LIKE 'DEMO-%' AND `record_type` IN ('client_progress_claim','subcontract_certification')",
+                ct).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+        }
     }
 
     /// <summary>
@@ -179,7 +219,6 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         yield return ("epc_prja_txn", ["category", "description"]);
         yield return ("epc_prja_recognition", ["method"]);
         yield return ("epc_cc_allocations", ["run_label"]);
-        yield return ("epc_cc_centers", ["code", "name"]);
         yield return ("epc_erp_suppliers", ["name", "vendor_account"]);
         yield return ("epc_erp_inv_items", ["code", "name"]);
         yield return ("epc_erp_inv_warehouses", ["code", "name"]);
@@ -191,9 +230,9 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
     private static IEnumerable<string> DemoLinkedDeletes()
     {
         const string demoProjects = "SELECT `id` FROM `epc_prj_projects` WHERE `code` LIKE 'DEMO-%' OR `name` LIKE 'DEMO |%'";
-        const string demoRecords = "SELECT `id` FROM `ecomae_fitout_delivery_records` WHERE `reference` LIKE 'DEMO-%' OR `title` LIKE 'DEMO |%' OR `description` LIKE 'DEMO%'";
+        const string demoRecords = "SELECT `id` FROM `ecomae_fitout_delivery_records` WHERE `reference` LIKE 'DEMO-%' OR `title` LIKE 'DEMO |%' OR `description` LIKE 'DEMO |%'";
         yield return "DELETE FROM `ecomae_fitout_contract_terms` WHERE `contract_id` IN (" + demoProjects + ")";
-        yield return "DELETE FROM `epc_prja_recognition` WHERE `method` LIKE 'DEMO%' OR `project_id` IN (" + demoProjects + ")";
+        yield return "DELETE FROM `epc_prja_recognition` WHERE `method` LIKE 'DEMO-%' OR `project_id` IN (" + demoProjects + ")";
         yield return "DELETE FROM `ecomae_fitout_approval_audit` WHERE `delivery_record_id` IN (" + demoRecords + ")";
     }
 
@@ -295,14 +334,40 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                     "`created_at_utc` datetime NULL," +
                     "PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
                     ct).ConfigureAwait(false);
+                // Provisioned schemas may not have created_at_utc: only write the
+                // columns that actually exist so the demo warehouse always lands.
+                var columns = new List<string> { "code", "name" };
+                var values = new List<object?> { RefPrefix + "WH-01", "DEMO | Main Warehouse" };
+                if (await HasColumnAsync(connection, table, "created_at_utc", ct).ConfigureAwait(false))
+                {
+                    columns.Add("created_at_utc");
+                    values.Add(DateTime.UtcNow);
+                }
+
                 await ErpDb.ExecuteAsync(connection, null,
-                    ErpDb.Positional("INSERT INTO `" + table + "` (`code`,`name`,`created_at_utc`) VALUES (?,?,UTC_TIMESTAMP())"),
-                    ct, RefPrefix + "WH-01", "DEMO | Main Warehouse").ConfigureAwait(false);
+                    ErpDb.Positional(
+                        "INSERT INTO `" + table + "` (`" + string.Join("`,`", columns) + "`) VALUES ("
+                        + string.Join(",", columns.Select(_ => "?")) + ")"),
+                    ct, values.ToArray()).ConfigureAwait(false);
             }
             catch (DbException)
             {
             }
         }
+    }
+
+    private static async Task<bool> HasColumnAsync(
+        DbConnection connection,
+        string table,
+        string column,
+        CancellationToken ct)
+    {
+        var value = await ErpDb.ScalarAsync(connection, null,
+            ErpDb.Positional(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND COLUMN_NAME=?"),
+            ct, table, column).ConfigureAwait(false);
+        return value is not null && value is not DBNull
+               && Convert.ToInt64(value, CultureInfo.InvariantCulture) > 0;
     }
 
     private static async Task<int> SeedItemsAsync(DbConnection connection, CancellationToken ct)
@@ -330,14 +395,36 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             "`created_at_utc` datetime NULL," +
             "PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
             ct).ConfigureAwait(false);
+        // Write only columns that exist — provisioned item tables differ.
+        var optional = new (string Column, Func<(string Code, string Name, decimal Cost), object?> Value)[]
+        {
+            ("unit_cost", i => i.Cost),
+            ("warehouse_id", _ => 1L),
+            ("created_at_utc", _ => DateTime.UtcNow),
+        };
+        var columns = new List<string> { "code", "name" };
+        var extras = new List<Func<(string Code, string Name, decimal Cost), object?>>();
+        foreach (var (column, value) in optional)
+        {
+            if (await HasColumnAsync(connection, "epc_erp_inv_items", column, ct).ConfigureAwait(false))
+            {
+                columns.Add(column);
+                extras.Add(value);
+            }
+        }
+
         var count = 0;
-        foreach (var (code, name, cost) in items)
+        foreach (var item in items)
         {
             try
             {
+                var values = new List<object?> { item.Code, item.Name };
+                values.AddRange(extras.Select(v => v(item)));
                 await ErpDb.ExecuteAsync(connection, null,
-                    ErpDb.Positional("INSERT INTO `epc_erp_inv_items` (`code`,`name`,`unit_cost`,`warehouse_id`,`created_at_utc`) VALUES (?,?,?,?,UTC_TIMESTAMP())"),
-                    ct, code, name, cost, 1).ConfigureAwait(false);
+                    ErpDb.Positional(
+                        "INSERT INTO `epc_erp_inv_items` (`" + string.Join("`,`", columns) + "`) VALUES ("
+                        + string.Join(",", columns.Select(_ => "?")) + ")"),
+                    ct, values.ToArray()).ConfigureAwait(false);
                 count++;
             }
             catch (DbException)
@@ -474,10 +561,10 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                 count += line.Succeeded ? 1 : 0;
             }
 
-            // One BOQ revision per project: the approved estimate is revised once.
+            // One BOQ revision per project: a second revision row (same code) so
+            // revision 1 stays comparable against the changed scope.
             var revised = await _estimates.SaveEstimateAsync(
                 new ErpFitOutEstimateSaveRequest(
-                    Id: estimate.Id,
                     ProjectId: project.Id,
                     Code: RefPrefix + "EST-" + project.Id,
                     Title: NamePrefix + "Rev 2 — client scope change (glazing upgrade) " + shortName,
@@ -674,18 +761,18 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         {
             seq++;
             var day = new DateOnly(2026, 9, 20 + seq);
-            var entries = new (string Type, string Ref, string Title, string Desc, decimal Amount)[]
+            var entries = new (string Type, string Ref, string Title, string Desc, decimal Qty, decimal Amount)[]
             {
-                ("site_daily_report", RefPrefix + "SDR-" + seq, "DEMO | Daily report", "DEMO | 48 workers on site, fine weather", 0m),
-                ("timesheet", RefPrefix + "TS-" + seq, "DEMO | Timesheet", "DEMO | 320 labour hours booked", 0m),
-                ("equipment_usage", RefPrefix + "EQ-" + seq, "DEMO | Equipment", "DEMO | Crane + scissor lift hours", 0m),
-                ("variation", RefPrefix + "VAR-" + seq, "DEMO | Variation", "DEMO | Lobby feature wall added", 18500m),
-                ("rfi", RefPrefix + "RFI-" + seq, "DEMO | RFI", "DEMO | MEP riser detail query", 0m),
-                ("drawing_revision", RefPrefix + "DR-" + seq, "DEMO | Drawing rev C", "DEMO | IFC revision C issued", 0m),
-                ("qa_inspection", RefPrefix + "QA-" + seq, "DEMO | QA-QC inspection", "DEMO | Blockwork inspection passed", 0m),
-                ("snag", RefPrefix + "SNAG-" + seq, "DEMO | Snag", "DEMO | Door alignment G-04", 0m),
+                ("site_daily_report", RefPrefix + "SDR-" + seq, "DEMO | Daily report", "DEMO | 48 workers on site, fine weather", 0m, 0m),
+                ("timesheet", RefPrefix + "TS-" + seq, "DEMO | Timesheet", "DEMO | 320 labour hours booked", 320m, 0m),
+                ("equipment_usage", RefPrefix + "EQ-" + seq, "DEMO | Equipment", "DEMO | Crane + scissor lift hours", 14m, 0m),
+                ("variation", RefPrefix + "VAR-" + seq, "DEMO | Variation", "DEMO | Lobby feature wall added", 0m, 18500m),
+                ("rfi", RefPrefix + "RFI-" + seq, "DEMO | RFI", "DEMO | MEP riser detail query", 0m, 0m),
+                ("drawing_revision", RefPrefix + "DR-" + seq, "DEMO | Drawing rev C", "DEMO | IFC revision C issued", 0m, 0m),
+                ("qa_inspection", RefPrefix + "QA-" + seq, "DEMO | QA-QC inspection", "DEMO | Blockwork inspection passed", 0m, 0m),
+                ("snag", RefPrefix + "SNAG-" + seq, "DEMO | Snag", "DEMO | Door alignment G-04", 0m, 0m),
             };
-            foreach (var (type, reference, title, desc, amount) in entries)
+            foreach (var (type, reference, title, desc, qty, amount) in entries)
             {
                 var result = await _records.SaveAsync(
                     new ErpFitOutDeliveryRecordSaveRequest(
@@ -694,6 +781,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                         Reference: reference,
                         Title: title,
                         Description: desc,
+                        Quantity: qty,
                         Amount: amount,
                         EventDate: day,
                         Status: type == "variation" ? "approved" : null),

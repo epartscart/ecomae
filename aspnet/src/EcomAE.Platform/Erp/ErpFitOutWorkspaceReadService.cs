@@ -243,7 +243,7 @@ public sealed class ErpFitOutWorkspaceReadService : IErpFitOutWorkspaceReadServi
                 null, "a.`time_created`", 0, periodIso, cancellationToken, unixDate: true).ConfigureAwait(false);
             allocations = allocations.Concat(weightedProgress).OrderBy(r => r.Id).ToArray();
 
-            var kpis = await LoadKpisAsync(connection, projectId, projects, cancellationToken).ConfigureAwait(false);
+            var kpis = await LoadKpisAsync(connection, projectId, periodIso, projects, cancellationToken).ConfigureAwait(false);
             return new ErpFitOutWorkspaceSnapshot(
                 projects, kpis, costCodes, estimates, boqLines, quotations, contracts,
                 budgets, ledger, movements, links, matches, claims, subcontracts, site,
@@ -291,11 +291,17 @@ public sealed class ErpFitOutWorkspaceReadService : IErpFitOutWorkspaceReadServi
     private static async Task<ErpFitOutWorkspaceKpis> LoadKpisAsync(
         DbConnection connection,
         long projectId,
+        string? periodIso,
         IReadOnlyList<ErpFitOutProject> projects,
         CancellationToken ct)
     {
         var scoped = projectId > 0 ? projects.Where(p => p.Id == projectId).ToArray() : projects;
         var contract = scoped.Sum(p => p.ContractValue);
+        var projectClause = projectId > 0
+            ? " AND `project_id`=" + projectId.ToString(CultureInfo.InvariantCulture)
+            : string.Empty;
+        // Committed is cumulative (the link rows carry no posting date); actual,
+        // revenue and certified all honour the selected YYYY-MM period.
         var committed = await ScalarMoneyAsync(
             connection,
             "SELECT COALESCE(SUM(`committed_amount`),0) FROM `ecomae_fitout_procurement_links`"
@@ -304,17 +310,20 @@ public sealed class ErpFitOutWorkspaceReadService : IErpFitOutWorkspaceReadServi
         var materialActual = await ScalarMoneyAsync(
             connection,
             "SELECT COALESCE(SUM(`quantity`*`unit_cost`),0) FROM `ecomae_fitout_material_movements` WHERE `movement`='issue'"
-            + (projectId > 0 ? " AND `project_id`=" + projectId.ToString(CultureInfo.InvariantCulture) : string.Empty),
+            + projectClause
+            + (periodIso is not null ? " AND DATE_FORMAT(`created_at_utc`,'%Y-%m')='" + periodIso + "'" : string.Empty),
             ct).ConfigureAwait(false);
         var txnCost = await ScalarMoneyAsync(
             connection,
             "SELECT COALESCE(SUM(`amount`),0) FROM `epc_prja_txn` WHERE `txn_type`='cost'"
-            + (projectId > 0 ? " AND `project_id`=" + projectId.ToString(CultureInfo.InvariantCulture) : string.Empty),
+            + projectClause
+            + (periodIso is not null ? " AND DATE_FORMAT(FROM_UNIXTIME(`txn_date`),'%Y-%m')='" + periodIso + "'" : string.Empty),
             ct).ConfigureAwait(false);
         var txnRevenue = await ScalarMoneyAsync(
             connection,
             "SELECT COALESCE(SUM(`amount`),0) FROM `epc_prja_txn` WHERE `txn_type` IN ('revenue','billing')"
-            + (projectId > 0 ? " AND `project_id`=" + projectId.ToString(CultureInfo.InvariantCulture) : string.Empty),
+            + projectClause
+            + (periodIso is not null ? " AND DATE_FORMAT(FROM_UNIXTIME(`txn_date`),'%Y-%m')='" + periodIso + "'" : string.Empty),
             ct).ConfigureAwait(false);
         var certified = await ScalarMoneyAsync(
             connection,
@@ -323,7 +332,8 @@ public sealed class ErpFitOutWorkspaceReadService : IErpFitOutWorkspaceReadServi
             WHERE `record_type` IN ('client_progress_claim','client_payment_certificate','progress_claim')
               AND `status`='approved'
             """
-            + (projectId > 0 ? " AND `project_id`=" + projectId.ToString(CultureInfo.InvariantCulture) : string.Empty),
+            + projectClause
+            + (periodIso is not null ? " AND DATE_FORMAT(`event_date`,'%Y-%m')='" + periodIso + "'" : string.Empty),
             ct).ConfigureAwait(false);
         var pending = await ScalarLongAsync(
             connection,

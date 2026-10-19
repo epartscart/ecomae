@@ -26508,6 +26508,13 @@ public sealed class ErpModule : ISurfaceModule
         long.TryParse(context.Request.Query["project"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var projectId);
         var period = context.Request.Query["period"].ToString() ?? string.Empty;
         var snap = await reads.LoadAsync(projectId, period, cancellationToken);
+        // A project-scoped pack must not leak other projects' names or figures:
+        // filter the project list itself, not just the row sections.
+        if (projectId > 0)
+        {
+            snap = snap with { Projects = snap.Projects.Where(p => p.Id == projectId).ToArray() };
+        }
+
         var project = snap.Projects.FirstOrDefault(p => p.Id == projectId);
         var title = "Fit-out board pack — " + (projectId > 0 && project is not null ? project.Name : "all projects")
                     + (period.Length == 7 ? " · " + period : string.Empty);
