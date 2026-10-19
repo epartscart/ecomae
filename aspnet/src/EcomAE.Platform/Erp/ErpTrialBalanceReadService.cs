@@ -111,7 +111,7 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
             var journalCompany = ReadLong(reader, "journal_company");
             var lineEntity = ReadLong(reader, "line_entity");
             var companyId = lineEntity > 0 ? lineEntity : journalCompany;
-            if (parameters.CompanyId > 0 && (journalCompany == parameters.CompanyId || journalCompany == 0))
+            if (parameters.CompanyId > 0 && journalCompany == parameters.CompanyId)
             {
                 companyId = parameters.CompanyId;
             }
@@ -224,7 +224,7 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
             INNER JOIN `epc_erp_coa_accounts` a ON a.`id` = l.`coa_id`
             WHERE a.`code` = @code
               AND (@bu = 0 OR IFNULL(NULLIF(l.`business_unit_id`, 0), IFNULL(j.`business_unit_id`, 0)) = @bu)
-              AND (@company = 0 OR IFNULL(j.`company_id`, 0) IN (0, @company) OR IFNULL(l.`legal_entity_id`, 0) = @company)
+              AND (@company = 0 OR IFNULL(j.`company_id`, 0) = @company OR IFNULL(l.`legal_entity_id`, 0) = @company)
             ORDER BY journal_unix DESC, j.`id` DESC
             LIMIT 200
             """;

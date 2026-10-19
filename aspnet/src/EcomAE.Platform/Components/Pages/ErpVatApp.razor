@@ -75,9 +75,9 @@
     {
         <div class="epc-vat-actionbar" aria-label="VAT operations">
             <div class="epc-vat-actionbar__label">VAT operations</div>
-        <form method="post" action="/erp/ajax/bos-vat-refund-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+        <form method="post" action="@Act("/erp/ajax/bos-vat-refund-save")" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/vat-app?tab=vat_refund" />
+            <input type="hidden" name="returnUrl" value="@Act("/erp/vat-app?tab=vat_refund")" />
             <label>Tax-free tag / ref <input type="text" name="tag_ref" placeholder="Planet tag no." /></label>
             <label>Invoice ref <input type="text" name="invoice_ref" placeholder="SI-..." /></label>
             <label>Sale date <input type="text" name="sale_date" placeholder="yyyy-MM-dd" /></label>
@@ -86,9 +86,9 @@
             <label>VAT amount <input type="number" step="0.01" name="vat_amount" placeholder="auto" /></label>
             <button type="submit">Save record</button>
         </form>
-        <form method="post" action="/erp/ajax/bos-vat-refund-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+        <form method="post" action="@Act("/erp/ajax/bos-vat-refund-status")" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/vat-app?tab=vat_refund" />
+            <input type="hidden" name="returnUrl" value="@Act("/erp/vat-app?tab=vat_refund")" />
             <label>Refund id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <label>Status
                 <select name="status">
@@ -103,9 +103,9 @@
         </form>
         @if (_tabLabel == "Tourist refund")
         {
-            <form method="post" action="/erp/tourist-refund/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <form method="post" action="@Act("/erp/tourist-refund/create")" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/erp/vat-app?tab=tourist_refund" />
+                <input type="hidden" name="returnUrl" value="@Act("/erp/vat-app?tab=tourist_refund")" />
                 <input type="hidden" name="refund_provider" value="Planet" />
                 <label>Tourist name <input name="tourist_name" required /></label>
                 <label>Passport or GCC ID <input name="passport_no" required /></label>
@@ -130,23 +130,23 @@
                 </label>
                 <button type="submit">Create tourist refund</button>
             </form>
-            <form method="post" action="/erp/tourist-refund/validate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <form method="post" action="@Act("/erp/tourist-refund/validate")" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/erp/vat-app?tab=tourist_refund" />
+                <input type="hidden" name="returnUrl" value="@Act("/erp/vat-app?tab=tourist_refund")" />
                 <label>Barcode <input name="barcode" required maxlength="100" /></label>
                 <button type="submit">Validate tourist refund</button>
             </form>
-            <form method="post" action="/erp/tourist-refund/planet-invoice" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <form method="post" action="@Act("/erp/tourist-refund/planet-invoice")" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/erp/vat-app?tab=tourist_refund" />
+                <input type="hidden" name="returnUrl" value="@Act("/erp/vat-app?tab=tourist_refund")" />
                 <label>Planet invoice <input name="planet_invoice_no" required /></label>
                 <label>Invoice date <input name="invoice_date" placeholder="yyyy-MM-dd" /></label>
                 <label>Tags <input name="barcodes" placeholder="Leave blank for every validated tag" /></label>
                 <button type="submit">Record Planet invoice</button>
             </form>
-            <form method="post" action="/erp/tourist-refund/planet-pay" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <form method="post" action="@Act("/erp/tourist-refund/planet-pay")" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/erp/vat-app?tab=tourist_refund" />
+                <input type="hidden" name="returnUrl" value="@Act("/erp/vat-app?tab=tourist_refund")" />
                 <label>Planet invoice <input name="planet_invoice_no" required /></label>
                 <label>Pay date <input name="pay_date" placeholder="yyyy-MM-dd" /></label>
                 <label>From
@@ -162,10 +162,10 @@
     }
 
     <p class="text-muted" style="margin:8px 0 12px;">
-        <a href="/erp/vat-app">VAT</a>
-        · <a href="/erp/vat-app?tab=vat_return">VAT return</a>
-        · <a href="/erp/vat-app?tab=vat_refund">VAT refund</a>
-        · <a href="/erp/vat-app?tab=tourist_refund">Tourist refund</a>
+        <a href="@Act("/erp/vat-app")">VAT</a>
+        · <a href="@Act("/erp/vat-app?tab=vat_return")">VAT return</a>
+        · <a href="@Act("/erp/vat-app?tab=vat_refund")">VAT refund</a>
+        · <a href="@Act("/erp/vat-app?tab=tourist_refund")">Tourist refund</a>
     </p>
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="VAT return KPIs">
@@ -258,25 +258,25 @@
     <div class="epc-vat-board" aria-label="FTA VAT 201">
         <section class="epc-vat-form">
             <h3>@_vat.Form</h3>
-            @VatRow("1", "Standard-rated supplies", _vat.SalesExVat, _vat.OutputVat, "/erp/invoices-app", false)
-            @VatRow("2", "Tax refunds to tourists", -_tourist.ValidatedExclusive, -_tourist.ValidatedVat, "/erp/vat-app?tab=tourist_refund", false)
-            @VatRow("3", "Reverse-charge supplies", 0m, 0m, "/erp/invoices-app", false)
-            @VatRow("4", "Zero-rated supplies", 0m, 0m, "/erp/invoices-app", false)
-            @VatRow("5", "Exempt supplies", 0m, 0m, "/erp/invoices-app", false)
-            @VatRow("6", "Goods imported into the UAE", 0m, 0m, "/erp/purchases-app", false)
-            @VatRow("7", "Adjustments to imports", 0m, 0m, "/erp/purchases-app", false)
-            @VatRow("8", "Totals — outputs", _vat.SalesExVat - _tourist.ValidatedExclusive, OutputAfterTourist, "/erp/invoices-app", true)
-            @VatRow("9", "Standard-rated expenses", _vat.PurchaseExVat, _vat.InputVat, "/erp/purchases-app", false)
-            @VatRow("10", "Reverse charge recoverable", 0m, 0m, "/erp/purchases-app", false)
-            @VatRow("11", "Totals — inputs", _vat.PurchaseExVat, _vat.InputVat, "/erp/purchases-app", true)
-            @VatRow("12", "Due tax for the period", OutputAfterTourist, OutputAfterTourist, "/erp/invoices-app", true)
-            @VatRow("13", "Recoverable tax for the period", _vat.InputVat, _vat.InputVat, "/erp/purchases-app", true)
+            @VatRow("1", "Standard-rated supplies", _vat.SalesExVat, _vat.OutputVat, Act("/erp/invoices-app"), false)
+            @VatRow("2", "Tax refunds to tourists", -_tourist.ValidatedExclusive, -_tourist.ValidatedVat, Act("/erp/vat-app?tab=tourist_refund"), false)
+            @VatRow("3", "Reverse-charge supplies", 0m, 0m, Act("/erp/invoices-app"), false)
+            @VatRow("4", "Zero-rated supplies", 0m, 0m, Act("/erp/invoices-app"), false)
+            @VatRow("5", "Exempt supplies", 0m, 0m, Act("/erp/invoices-app"), false)
+            @VatRow("6", "Goods imported into the UAE", 0m, 0m, Act("/erp/purchases-app"), false)
+            @VatRow("7", "Adjustments to imports", 0m, 0m, Act("/erp/purchases-app"), false)
+            @VatRow("8", "Totals — outputs", _vat.SalesExVat - _tourist.ValidatedExclusive, OutputAfterTourist, Act("/erp/invoices-app"), true)
+            @VatRow("9", "Standard-rated expenses", _vat.PurchaseExVat, _vat.InputVat, Act("/erp/purchases-app"), false)
+            @VatRow("10", "Reverse charge recoverable", 0m, 0m, Act("/erp/purchases-app"), false)
+            @VatRow("11", "Totals — inputs", _vat.PurchaseExVat, _vat.InputVat, Act("/erp/purchases-app"), true)
+            @VatRow("12", "Due tax for the period", OutputAfterTourist, OutputAfterTourist, Act("/erp/invoices-app"), true)
+            @VatRow("13", "Recoverable tax for the period", _vat.InputVat, _vat.InputVat, Act("/erp/purchases-app"), true)
             <div class="epc-vat-row is-net">
                 <strong>14</strong>
                 <span>@_netLabel <span class="text-muted">(@_vat.Form)</span></span>
                 <strong>@Money(NetAfterTourist)</strong>
                 <span></span>
-                <a class="btn btn-xs btn-primary" href="/erp/tax-external-reporting-app?cat=tax&amp;rep=tax__vat_return&amp;fetch=1">Drill down</a>
+                <a class="btn btn-xs btn-primary" href="@Act("/erp/tax-external-reporting-app?cat=tax&rep=tax__vat_return&fetch=1")">Drill down</a>
             </div>
         </section>
         <aside class="epc-vat-bars" aria-label="VAT composition">
@@ -285,7 +285,7 @@
             @Bar("Input", _vat.InputVat, "#2f855a")
             @Bar("Net", NetAfterTourist, "#c53030")
             <p class="epc-vat-position__note">Sales incl. VAT @Money(_vat.SalesInclVat). Purchases incl. VAT @Money(_vat.PurchaseInclVat).</p>
-            <p><a class="btn btn-primary btn-sm" href="/erp/tax-external-reporting-app?cat=tax&amp;rep=tax__vat_return&amp;fetch=1">Fetch &amp; build</a></p>
+            <p><a class="btn btn-primary btn-sm" href="@Act("/erp/tax-external-reporting-app?cat=tax&rep=tax__vat_return&fetch=1")">Fetch &amp; build</a></p>
         </aside>
     </div>
 
@@ -294,8 +294,8 @@
         <h2 style="font-size:16px;margin-top:18px;">Tax legislation</h2>
         @if (_isAdmin)
         {
-            <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/uae-tax/fta-fetch")" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 1rem;">
-                <input type="hidden" name="returnUrl" value="@ClientErpPath.PrefixIfBound(Http.HttpContext, _fetchReturn)" />
+            <form method="post" action="@Act("/erp/uae-tax/fta-fetch")" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 1rem;">
+                <input type="hidden" name="returnUrl" value="@Act(_fetchReturn)" />
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label><input type="checkbox" name="force" value="1" /> Force refetch</label>
                 <button type="submit" class="btn btn-primary btn-sm">Fetch FTA legislation</button>
@@ -364,6 +364,8 @@
     private IReadOnlyList<string> _headerContextItems = [];
     private ErpTouristRefundPosition _tourist = ErpTouristRefundPosition.Empty;
     private readonly ErpTouristRefundQuote _sample = ErpTouristRefundLaw.Calculate(50m);
+    private string Act(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext, path);
+
     private decimal OutputAfterTourist => _vat.OutputVat - _tourist.ValidatedVat;
     private decimal NetAfterTourist => OutputAfterTourist - _vat.InputVat;
     private string NetPositionWidth
