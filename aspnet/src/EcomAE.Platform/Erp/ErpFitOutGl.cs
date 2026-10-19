@@ -31,14 +31,13 @@ public static class ErpFitOutGl
         }
     }
 
-    /// <summary>Journal id already posted for this source row — the idempotency key that makes re-posting safe.</summary>
+    /// <summary>Journal id already posted for this unique FO-* reference — the idempotency key that makes re-posting safe.</summary>
     public static async Task<long> PostedJournalIdAsync(
         DbConnection connection,
-        string sourceType,
-        long sourceId,
+        string reference,
         CancellationToken cancellationToken)
     {
-        if (sourceId <= 0)
+        if (reference.Length == 0)
         {
             return 0;
         }
@@ -47,10 +46,9 @@ public static class ErpFitOutGl
             connection,
             null,
             ErpDb.Positional(
-                "SELECT `id` FROM `epc_erp_gl_journals` WHERE `source_type`=? AND `source_id`=? AND `active`=1 ORDER BY `id` LIMIT 1"),
+                "SELECT `id` FROM `epc_erp_gl_journals` WHERE `source_type`='adjustment' AND `reference`=? AND `active`=1 ORDER BY `id` LIMIT 1"),
             cancellationToken,
-            sourceType,
-            sourceId).ConfigureAwait(false);
+            reference).ConfigureAwait(false);
     }
 
     public static async Task<long> PostAsync(
@@ -60,7 +58,6 @@ public static class ErpFitOutGl
         int actorId,
         long companyId,
         long sourceId,
-        string sourceType,
         string reference,
         string description,
         IReadOnlyList<ErpFitOutIfrs.JournalLine> recipe,
@@ -84,6 +81,8 @@ public static class ErpFitOutGl
             lines.Add(new ErpGlLine(coa, line.Debit, line.Credit, line.Note));
         }
 
+        // source_type is a fixed enum shared with PHP documents; like real-estate
+        // postings, fit-out journals carry 'adjustment' and a unique FO-* reference.
         return await gl.PostJournalAsync(
             connection,
             transaction,
@@ -92,7 +91,7 @@ public static class ErpFitOutGl
                 JournalDate = journalDate > 0 ? journalDate : DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                 Reference = reference,
                 Description = description,
-                SourceType = sourceType,
+                SourceType = "adjustment",
                 SourceId = sourceId,
                 CompanyId = companyId,
                 LegislationRef = "IFRS15",

@@ -56,6 +56,7 @@ public sealed class ErpFitOutWorkspaceTests
         Assert.Contains("/erp/fitout/demo-clear", routes, StringComparison.Ordinal);
         Assert.Contains("/erp/fitout/report", routes, StringComparison.Ordinal);
         Assert.Contains("/erp/fitout/gl-post", routes, StringComparison.Ordinal);
+        Assert.Contains("/erp/fitout/claim-invoice", routes, StringComparison.Ordinal);
 
         var module = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
         Assert.Contains("HandleFitOutDemoSeedAsync", module, StringComparison.Ordinal);
@@ -66,11 +67,19 @@ public sealed class ErpFitOutWorkspaceTests
         Assert.Contains("ErpFitOutReport", module, StringComparison.Ordinal);
         Assert.Contains("HandleFitOutGlPostAsync", module, StringComparison.Ordinal);
         Assert.Contains("ErpFitOutGlPost", module, StringComparison.Ordinal);
+        Assert.Contains("HandleFitOutClaimInvoiceAsync", module, StringComparison.Ordinal);
+        Assert.Contains("ErpFitOutClaimInvoice", module, StringComparison.Ordinal);
 
         var program = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Program.cs"));
         Assert.Contains("IErpFitOutDemoSeedWriteService", program, StringComparison.Ordinal);
         Assert.Contains("IErpFitOutGlPostWriteService", program, StringComparison.Ordinal);
         Assert.Contains("IErpFitOutWorkspaceReadService", program, StringComparison.Ordinal);
+        Assert.Contains("IErpFitOutClaimInvoiceWriteService", program, StringComparison.Ordinal);
+
+        var claimInvoices = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Erp/ErpFitOutClaimInvoiceWriteService.cs"));
+        Assert.Contains("IErpManualInvoiceWriteService", claimInvoices, StringComparison.Ordinal);
+        Assert.Contains("FO-INV-P", claimInvoices, StringComparison.Ordinal);
+        Assert.Contains("ecomae_fitout_invoice_links", claimInvoices, StringComparison.Ordinal);
 
         var dashboard = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"));
         Assert.Contains("/erp/fitout/workspace", dashboard, StringComparison.Ordinal);
@@ -106,6 +115,7 @@ public sealed class ErpFitOutWorkspaceTests
         Assert.Contains("epc_prja_recognition", src, StringComparison.Ordinal);
         Assert.Contains("epc_cc_allocations", src, StringComparison.Ordinal);
         Assert.Contains("epc_prj_projects", src, StringComparison.Ordinal);
+        Assert.Contains("ecomae_fitout_demo_registry", src, StringComparison.Ordinal);
         Assert.DoesNotContain("`users`", src, StringComparison.Ordinal);
         Assert.DoesNotContain("DELETE FROM `users`", src, StringComparison.Ordinal);
         Assert.DoesNotContain("DROP TABLE", src, StringComparison.Ordinal);
@@ -124,8 +134,9 @@ public sealed class ErpFitOutWorkspaceTests
         Assert.Contains("epc_erp_gl_journals", gl, StringComparison.Ordinal);
         Assert.Contains("epc_prja_txn", service, StringComparison.Ordinal);
         Assert.Contains("client_progress_claim", service, StringComparison.Ordinal);
-        Assert.Contains("ecomae_fitout_contract_terms", service, StringComparison.Ordinal);
         Assert.Contains("PostedJournalIdAsync", service, StringComparison.Ordinal);
+        Assert.Contains("source_type`='adjustment'", gl, StringComparison.Ordinal);
+        Assert.Contains("\"adjustment\"", gl, StringComparison.Ordinal);
 
         foreach (var lines in new[]
                  {

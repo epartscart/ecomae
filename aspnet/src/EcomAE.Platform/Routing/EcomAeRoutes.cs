@@ -2992,6 +2992,8 @@ public static class EcomAeRoutes
     public const string ErpFitOutReport = "/erp/fitout/report";
     /// <summary>Fit-out month-end bridge: posts IFRS 15 project journals into the GL.</summary>
     public const string ErpFitOutGlPost = "/erp/fitout/gl-post";
+    /// <summary>Fit-out claim → UAE FTA tax invoice build + print link.</summary>
+    public const string ErpFitOutClaimInvoice = "/erp/fitout/claim-invoice";
 
     /// <summary>ASAP automotive master workbook. kind=package returns the ZIP.</summary>
     public const string ErpAsapWorkbook = "/erp/asap/workbook";

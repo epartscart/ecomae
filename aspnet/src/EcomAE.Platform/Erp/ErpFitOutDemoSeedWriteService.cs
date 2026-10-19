@@ -87,24 +87,33 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         await ErpLazySchema.EnsureProjectAccountingAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpLazySchema.EnsureCostCentersAsync(connection, cancellationToken).ConfigureAwait(false);
         await EnsureProjectsTableAsync(connection, cancellationToken).ConfigureAwait(false);
+        await EnsureRegistryAsync(connection, cancellationToken).ConfigureAwait(false);
 
-        var customers = await SeedCustomersAsync(connection, cancellationToken).ConfigureAwait(false);
-        var suppliers = await SeedSuppliersAsync(connection, cancellationToken).ConfigureAwait(false);
-        await SeedWarehouseAsync(connection, cancellationToken).ConfigureAwait(false);
-        var items = await SeedItemsAsync(connection, cancellationToken).ConfigureAwait(false);
-        var projects = await SeedProjectsAsync(customers, cancellationToken).ConfigureAwait(false);
-        var costCodes = await SeedCostCodesAsync(projects, cancellationToken).ConfigureAwait(false);
-        var estimates = await SeedEstimatesAsync(projects, cancellationToken).ConfigureAwait(false);
-        var contracts = await SeedContractsAsync(projects, cancellationToken).ConfigureAwait(false);
-        var budgets = await SeedBudgetsAsync(projects, cancellationToken).ConfigureAwait(false);
-        var procurement = await SeedProcurementAsync(projects, cancellationToken).ConfigureAwait(false);
-        var movements = await SeedMaterialMovementsAsync(projects, cancellationToken).ConfigureAwait(false);
-        var site = await SeedSiteRecordsAsync(projects, suppliers, cancellationToken).ConfigureAwait(false);
-        var claims = await SeedClaimsAndRecognitionAsync(projects, cancellationToken).ConfigureAwait(false);
-        var allocations = await SeedAllocationsAsync(projects, cancellationToken).ConfigureAwait(false);
+        var marks = new DemoMarks();
+        var customers = await SeedCustomersAsync(connection, marks, cancellationToken).ConfigureAwait(false);
+        var suppliers = await SeedSuppliersAsync(connection, marks, cancellationToken).ConfigureAwait(false);
+        await SeedWarehouseAsync(connection, marks, cancellationToken).ConfigureAwait(false);
+        var items = await SeedItemsAsync(connection, marks, cancellationToken).ConfigureAwait(false);
+        var projects = await SeedProjectsAsync(customers, marks, cancellationToken).ConfigureAwait(false);
+        var costCodes = await SeedCostCodesAsync(projects, marks, cancellationToken).ConfigureAwait(false);
+        var estimates = await SeedEstimatesAsync(projects, marks, cancellationToken).ConfigureAwait(false);
+        var contracts = await SeedContractsAsync(projects, marks, cancellationToken).ConfigureAwait(false);
+        var budgets = await SeedBudgetsAsync(projects, marks, cancellationToken).ConfigureAwait(false);
+        var procurement = await SeedProcurementAsync(projects, marks, cancellationToken).ConfigureAwait(false);
+        var movements = await SeedMaterialMovementsAsync(projects, marks, cancellationToken).ConfigureAwait(false);
+        var site = await SeedSiteRecordsAsync(projects, suppliers, marks, cancellationToken).ConfigureAwait(false);
+        var claims = await SeedClaimsAndRecognitionAsync(projects, marks, cancellationToken).ConfigureAwait(false);
+        var allocations = await SeedAllocationsAsync(projects, marks, connection, cancellationToken).ConfigureAwait(false);
         await ApproveDemoClaimsAsync(connection, cancellationToken).ConfigureAwait(false);
+        await PersistMarksAsync(connection, marks, cancellationToken).ConfigureAwait(false);
 
-        var glNote = await _glPost.PostAsync(0, null, cancellationToken).ConfigureAwait(false);
+        // Post the demo rows to the GL scoped to each seeded project — never 0/all-projects,
+        // which would also sweep up every unposted live transaction.
+        var glNote = string.Empty;
+        foreach (var project in projects)
+        {
+            glNote = await _glPost.PostAsync(project.Id, null, cancellationToken).ConfigureAwait(false);
+        }
 
         return "Demo data loaded: " + projects.Count + " projects, " + customers + " customers, "
                + suppliers.Count + " suppliers, " + items + " items, " + costCodes + " cost codes, "
@@ -117,6 +126,69 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                + " across the demo projects. " + glNote;
     }
 
+    /// <summary>
+    /// Table recording the exact row ids this seeder created. ClearDemoAsync
+    /// deletes only registered rows (plus children of registered parents), so a
+    /// live row that merely contains "DEMO" in a name or reference is never
+    /// removed. The registry persists across app restarts; pressing "Remove
+    /// sample data" at any time — including twice — is safe.
+    /// </summary>
+    private const string RegistryTable = "ecomae_fitout_demo_registry";
+
+    /// <summary>Table -> row ids written by the current seed run.</summary>
+    private sealed class DemoMarks
+    {
+        private readonly Dictionary<string, List<long>> _ids = new(StringComparer.Ordinal);
+
+        public void Add(string table, long id)
+        {
+            if (id <= 0)
+            {
+                return;
+            }
+
+            if (!_ids.TryGetValue(table, out var list))
+            {
+                _ids[table] = list = [];
+            }
+
+            list.Add(id);
+        }
+
+        public IReadOnlyDictionary<string, List<long>> All => _ids;
+    }
+
+    private static async Task EnsureRegistryAsync(DbConnection connection, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(connection,
+            "CREATE TABLE IF NOT EXISTS `" + RegistryTable + "` (" +
+            "`id` bigint NOT NULL AUTO_INCREMENT," +
+            "`table_name` varchar(64) NOT NULL," +
+            "`row_id` bigint NOT NULL," +
+            "PRIMARY KEY (`id`), KEY `x_table` (`table_name`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            ct).ConfigureAwait(false);
+    }
+
+    private static async Task PersistMarksAsync(DbConnection connection, DemoMarks marks, CancellationToken ct)
+    {
+        foreach (var (table, ids) in marks.All)
+        {
+            foreach (var id in ids)
+            {
+                try
+                {
+                    await ErpDb.ExecuteAsync(connection, null,
+                        ErpDb.Positional("INSERT INTO `" + RegistryTable + "` (`table_name`,`row_id`) VALUES (?,?)"),
+                        ct, table, id).ConfigureAwait(false);
+                }
+                catch (DbException)
+                {
+                }
+            }
+        }
+    }
+
     public async Task<string> ClearDemoAsync(CancellationToken cancellationToken = default)
     {
         if (!_connections.IsConfigured)
@@ -125,10 +197,11 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureRegistryAsync(connection, cancellationToken).ConfigureAwait(false);
         var removed = 0;
 
-        // Demo GL journals first, while the demo rows they point at still carry
-        // their DEMO tags — otherwise the journal's source row can no longer be matched.
+        // Demo GL journals first, matched to the registered demo rows they were
+        // posted for — live journals can never match a registry row.
         foreach (var sql in DemoJournalDeletes())
         {
             try
@@ -143,11 +216,20 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             }
         }
 
-        // Child rows that carry no DEMO text tag are still demo data when their parent
-        // project/record is DEMO-tagged: contract terms, POC recognition runs and the
-        // approval audit trail. Delete them through the demo-project linkage only —
-        // live parents can never match.
-        foreach (var sql in DemoLinkedDeletes())
+        // Child rows with no tag of their own are demo data only through a
+        // registered parent: approval audit rows follow their delivery record,
+        // POC recognition rows follow their project.
+        var linked = new[]
+        {
+            "DELETE a FROM `ecomae_fitout_approval_audit` a INNER JOIN `" + RegistryTable + "` r"
+                + " ON r.`table_name`='ecomae_fitout_delivery_records' AND r.`row_id`=a.`delivery_record_id`",
+            "DELETE r2 FROM `epc_prja_recognition` r2 INNER JOIN `" + RegistryTable + "` r"
+                + " ON r.`table_name`='epc_prj_projects' AND r.`row_id`=r2.`project_id`",
+            // contract_terms is keyed by contract_id (the seeded project id).
+            "DELETE t FROM `ecomae_fitout_contract_terms` t INNER JOIN `" + RegistryTable + "` r"
+                + " ON r.`table_name`='ecomae_fitout_contract_terms' AND r.`row_id`=t.`contract_id`",
+        };
+        foreach (var sql in linked)
         {
             try
             {
@@ -161,18 +243,14 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             }
         }
 
-        foreach (var (table, columns) in DemoTables())
+        foreach (var table in DemoTables())
         {
-            // Both tag forms are required — a bare 'DEMO%' would also match live
-            // rows such as "Demolition works".
-            var predicate = string.Join(
-                " OR ",
-                columns.Select(col => "`" + col + "` LIKE 'DEMO |%' OR `" + col + "` LIKE 'DEMO-%'"));
             try
             {
                 removed += await ErpDb.ExecuteAsync(
                     connection, null,
-                    "DELETE FROM `" + table + "` WHERE " + predicate,
+                    "DELETE t FROM `" + table + "` t INNER JOIN `" + RegistryTable + "` r"
+                        + " ON r.`table_name`='" + table + "' AND r.`row_id`=t.`id`",
                     cancellationToken).ConfigureAwait(false);
             }
             catch (MySqlException)
@@ -183,15 +261,15 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             }
         }
 
-        // Demo cost centres are deleted last, after the demo allocation rows, and
-        // only when no remaining (non-demo) allocation still references them.
+        // Demo cost centres are deleted last, after the demo allocation rows,
+        // and only when no remaining allocation still references them.
         try
         {
             removed += await ErpDb.ExecuteAsync(
                 connection, null,
-                "DELETE c FROM `epc_cc_centers` c " +
-                "WHERE (c.`code` LIKE 'DEMO-%' OR c.`name` LIKE 'DEMO |%') " +
-                "AND NOT EXISTS (SELECT 1 FROM `epc_cc_allocations` a WHERE a.`cost_center_id` = c.`id`)",
+                "DELETE c FROM `epc_cc_centers` c INNER JOIN `" + RegistryTable + "` r"
+                    + " ON r.`table_name`='epc_cc_centers' AND r.`row_id`=c.`id`"
+                    + " WHERE NOT EXISTS (SELECT 1 FROM `epc_cc_allocations` a WHERE a.`cost_center_id` = c.`id`)",
                 cancellationToken).ConfigureAwait(false);
         }
         catch (MySqlException)
@@ -201,34 +279,36 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         {
         }
 
-        return "Removed " + removed + " demo row(s) tagged DEMO. Live rows and users were not touched.";
+        try
+        {
+            await ErpDb.ExecuteAsync(connection, null,
+                "DELETE FROM `" + RegistryTable + "`", cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+        }
+
+        return "Removed " + removed + " demo row(s). Live rows and users were not touched.";
     }
 
     // Journals the month-end GL bridge posted for demo rows. Each DELETE joins the
-    // journal's source back to its demo-tagged row; live journals can never match.
+    // journal's source back to the demo registry; live journals can never match.
     private static IEnumerable<string> DemoJournalDeletes()
     {
-        // Claim journals on DEMO-referenced progress claims.
+        // Claim journals on registered progress-claim records.
         yield return "DELETE l FROM `epc_erp_gl_lines` l INNER JOIN `epc_erp_gl_journals` j ON j.`id`=l.`journal_id`"
-                     + " WHERE j.`source_type`='fitout_claim' AND j.`source_id` IN"
-                     + " (SELECT `id` FROM `ecomae_fitout_delivery_records` WHERE `reference` LIKE 'DEMO-%')";
+                     + " INNER JOIN `" + RegistryTable + "` r ON r.`table_name`='ecomae_fitout_delivery_records' AND r.`row_id`=j.`source_id`"
+                     + " WHERE j.`source_type`='adjustment' AND j.`reference` LIKE 'FO-%-IPC-%'";
         yield return "DELETE j FROM `epc_erp_gl_journals` j"
-                     + " WHERE j.`source_type`='fitout_claim' AND j.`source_id` IN"
-                     + " (SELECT `id` FROM `ecomae_fitout_delivery_records` WHERE `reference` LIKE 'DEMO-%')";
-        // PRJA journals on DEMO-tagged transactions.
+                     + " INNER JOIN `" + RegistryTable + "` r ON r.`table_name`='ecomae_fitout_delivery_records' AND r.`row_id`=j.`source_id`"
+                     + " WHERE j.`source_type`='adjustment' AND j.`reference` LIKE 'FO-%-IPC-%'";
+        // PRJA journals on registered transactions.
         yield return "DELETE l FROM `epc_erp_gl_lines` l INNER JOIN `epc_erp_gl_journals` j ON j.`id`=l.`journal_id`"
-                     + " WHERE j.`source_type` IN ('fitout_prja_cost','fitout_prja_rev','fitout_prja_bill') AND j.`source_id` IN"
-                     + " (SELECT `id` FROM `epc_prja_txn` WHERE `category` LIKE 'DEMO-%' OR `description` LIKE 'DEMO |%')";
+                     + " INNER JOIN `" + RegistryTable + "` r ON r.`table_name`='epc_prja_txn' AND r.`row_id`=j.`source_id`"
+                     + " WHERE j.`source_type`='adjustment' AND j.`reference` LIKE 'FO-%-TXN-%'";
         yield return "DELETE j FROM `epc_erp_gl_journals` j"
-                     + " WHERE j.`source_type` IN ('fitout_prja_cost','fitout_prja_rev','fitout_prja_bill') AND j.`source_id` IN"
-                     + " (SELECT `id` FROM `epc_prja_txn` WHERE `category` LIKE 'DEMO-%' OR `description` LIKE 'DEMO |%')";
-        // Advance journals on contract terms whose project is DEMO-coded.
-        yield return "DELETE l FROM `epc_erp_gl_lines` l INNER JOIN `epc_erp_gl_journals` j ON j.`id`=l.`journal_id`"
-                     + " WHERE j.`source_type`='fitout_advance' AND j.`source_id` IN"
-                     + " (SELECT `id` FROM `epc_prj_projects` WHERE `code` LIKE 'DEMO-%' OR `name` LIKE 'DEMO |%')";
-        yield return "DELETE j FROM `epc_erp_gl_journals` j"
-                     + " WHERE j.`source_type`='fitout_advance' AND j.`source_id` IN"
-                     + " (SELECT `id` FROM `epc_prj_projects` WHERE `code` LIKE 'DEMO-%' OR `name` LIKE 'DEMO |%')";
+                     + " INNER JOIN `" + RegistryTable + "` r ON r.`table_name`='epc_prja_txn' AND r.`row_id`=j.`source_id`"
+                     + " WHERE j.`source_type`='adjustment' AND j.`reference` LIKE 'FO-%-TXN-%'";
     }
 
     // The delivery-record approval whitelist excludes client_progress_claim and
@@ -249,39 +329,29 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
     }
 
     /// <summary>
-    /// Demo rows are found by the DEMO tag only: `DEMO-` on code/reference/category
-    /// columns or `DEMO |` on name/title/description columns. Account tables are
-    /// deliberately absent — demo clear never touches them.
+    /// Tables that can hold seeded demo rows (registry-keyed on `id`).
+    /// Account tables are deliberately absent — demo clear never touches them.
     /// </summary>
-    private static IEnumerable<(string Table, string[] Columns)> DemoTables()
+    private static IEnumerable<string> DemoTables()
     {
-        yield return ("ecomae_fitout_boq_lines", ["section", "description"]);
-        yield return ("ecomae_fitout_estimates", ["code", "title"]);
-        yield return ("ecomae_fitout_quotations", ["code", "title"]);
-        yield return ("ecomae_fitout_cost_codes", ["code", "name"]);
-        yield return ("ecomae_fitout_material_movements", ["item_code", "reference", "description"]);
-        yield return ("ecomae_fitout_procurement_links", ["description"]);
-        yield return ("ecomae_fitout_three_way_matches", ["invoice_reference"]);
-        yield return ("ecomae_fitout_delivery_records", ["reference", "title", "description"]);
-        yield return ("epc_prja_budget", ["category"]);
-        yield return ("epc_prja_txn", ["category", "description"]);
-        yield return ("epc_prja_recognition", ["method"]);
-        yield return ("epc_cc_allocations", ["run_label"]);
-        yield return ("epc_erp_suppliers", ["name", "vendor_account"]);
-        yield return ("epc_erp_inv_items", ["code", "name"]);
-        yield return ("epc_erp_inv_warehouses", ["code", "name"]);
-        yield return ("epc_warehouses", ["code", "name"]);
-        yield return ("epc_erp_customers", ["name"]);
-        yield return ("epc_prj_projects", ["code", "name"]);
-    }
-
-    private static IEnumerable<string> DemoLinkedDeletes()
-    {
-        const string demoProjects = "SELECT `id` FROM `epc_prj_projects` WHERE `code` LIKE 'DEMO-%' OR `name` LIKE 'DEMO |%'";
-        const string demoRecords = "SELECT `id` FROM `ecomae_fitout_delivery_records` WHERE `reference` LIKE 'DEMO-%' OR `title` LIKE 'DEMO |%' OR `description` LIKE 'DEMO |%'";
-        yield return "DELETE FROM `ecomae_fitout_contract_terms` WHERE `contract_id` IN (" + demoProjects + ")";
-        yield return "DELETE FROM `epc_prja_recognition` WHERE `method` LIKE 'DEMO-%' OR `project_id` IN (" + demoProjects + ")";
-        yield return "DELETE FROM `ecomae_fitout_approval_audit` WHERE `delivery_record_id` IN (" + demoRecords + ")";
+        yield return "ecomae_fitout_boq_lines";
+        yield return "ecomae_fitout_estimates";
+        yield return "ecomae_fitout_quotations";
+        yield return "ecomae_fitout_cost_codes";
+        yield return "ecomae_fitout_material_movements";
+        yield return "ecomae_fitout_procurement_links";
+        yield return "ecomae_fitout_three_way_matches";
+        yield return "ecomae_fitout_delivery_records";
+        yield return "epc_prja_budget";
+        yield return "epc_prja_txn";
+        yield return "epc_prja_recognition";
+        yield return "epc_cc_allocations";
+        yield return "epc_erp_suppliers";
+        yield return "epc_erp_inv_items";
+        yield return "epc_erp_inv_warehouses";
+        yield return "epc_warehouses";
+        yield return "epc_erp_customers";
+        yield return "epc_prj_projects";
     }
 
     private static async Task EnsureProjectsTableAsync(DbConnection connection, CancellationToken ct)
@@ -302,7 +372,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             ct).ConfigureAwait(false);
     }
 
-    private static async Task<int> SeedCustomersAsync(DbConnection connection, CancellationToken ct)
+    private static async Task<int> SeedCustomersAsync(DbConnection connection, DemoMarks marks, CancellationToken ct)
     {
         await ErpDb.TryExecuteAsync(connection,
             "CREATE TABLE IF NOT EXISTS `epc_erp_customers` (" +
@@ -322,6 +392,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                 await ErpDb.ExecuteAsync(connection, null,
                     ErpDb.Positional("INSERT INTO `epc_erp_customers` (`name`,`email`,`created_at_utc`) VALUES (?,?,UTC_TIMESTAMP())"),
                     ct, name, "demo-customer-" + i + "@demo.example").ConfigureAwait(false);
+                marks.Add("epc_erp_customers", await ErpDb.LastInsertIdAsync(connection, null, ct).ConfigureAwait(false));
                 count++;
             }
             catch (DbException)
@@ -332,7 +403,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         return count;
     }
 
-    private async Task<List<long>> SeedSuppliersAsync(DbConnection connection, CancellationToken ct)
+    private async Task<List<long>> SeedSuppliersAsync(DbConnection connection, DemoMarks marks, CancellationToken ct)
     {
         await ErpDb.TryExecuteAsync(connection,
             "CREATE TABLE IF NOT EXISTS `epc_erp_suppliers` (" +
@@ -358,7 +429,9 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                     ErpDb.Positional("INSERT INTO `epc_erp_suppliers` (`vendor_account`,`name`,`contact_email`,`contact_phone`,`active`,`time_created`) VALUES (?,?,?,?,1,UNIX_TIMESTAMP())"),
                     ct, RefPrefix + "SUP-" + i, name, "demo-sup-" + i + "@demo.example",
                     "+9715000000" + i).ConfigureAwait(false);
-                ids.Add(await ErpDb.LastInsertIdAsync(connection, null, ct).ConfigureAwait(false));
+                var id = await ErpDb.LastInsertIdAsync(connection, null, ct).ConfigureAwait(false);
+                ids.Add(id);
+                marks.Add("epc_erp_suppliers", id);
             }
             catch (DbException)
             {
@@ -368,7 +441,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         return ids;
     }
 
-    private static async Task SeedWarehouseAsync(DbConnection connection, CancellationToken ct)
+    private static async Task SeedWarehouseAsync(DbConnection connection, DemoMarks marks, CancellationToken ct)
     {
         foreach (var table in new[] { "epc_erp_inv_warehouses", "epc_warehouses" })
         {
@@ -397,6 +470,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                         "INSERT INTO `" + table + "` (`" + string.Join("`,`", columns) + "`) VALUES ("
                         + string.Join(",", columns.Select(_ => "?")) + ")"),
                     ct, values.ToArray()).ConfigureAwait(false);
+                marks.Add(table, await ErpDb.LastInsertIdAsync(connection, null, ct).ConfigureAwait(false));
             }
             catch (DbException)
             {
@@ -418,7 +492,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                && Convert.ToInt64(value, CultureInfo.InvariantCulture) > 0;
     }
 
-    private static async Task<int> SeedItemsAsync(DbConnection connection, CancellationToken ct)
+    private static async Task<int> SeedItemsAsync(DbConnection connection, DemoMarks marks, CancellationToken ct)
     {
         var items = new (string Code, string Name, decimal Cost)[]
         {
@@ -443,22 +517,40 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             "`created_at_utc` datetime NULL," +
             "PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
             ct).ConfigureAwait(false);
-        // Write only columns that exist — provisioned item tables differ.
+        // Write only columns that exist — provisioned item tables differ (some
+        // use `sku` instead of `code`, some require `item_type`/`unit`/`active`).
         var optional = new (string Column, Func<(string Code, string Name, decimal Cost), object?> Value)[]
         {
             ("unit_cost", i => i.Cost),
+            ("standard_cost", i => i.Cost),
+            ("purchase_price", i => i.Cost),
             ("warehouse_id", _ => 1L),
+            ("item_type", _ => "stock"),
+            ("unit", _ => "pcs"),
+            ("active", _ => 1),
+            ("time_created", _ => DateTimeOffset.UtcNow.ToUnixTimeSeconds()),
             ("created_at_utc", _ => DateTime.UtcNow),
         };
-        var columns = new List<string> { "code", "name" };
+        // Tag column: `code` on our own schema, `sku` on provisioned schemas.
+        var tagColumn = await HasColumnAsync(connection, "epc_erp_inv_items", "code", ct).ConfigureAwait(false)
+            ? "code"
+            : await HasColumnAsync(connection, "epc_erp_inv_items", "sku", ct).ConfigureAwait(false) ? "sku" : null;
+        if (tagColumn is null)
+        {
+            return 0;
+        }
+
+        var columns = new List<string> { tagColumn, "name" };
         var extras = new List<Func<(string Code, string Name, decimal Cost), object?>>();
         foreach (var (column, value) in optional)
         {
-            if (await HasColumnAsync(connection, "epc_erp_inv_items", column, ct).ConfigureAwait(false))
+            if (column == tagColumn || !await HasColumnAsync(connection, "epc_erp_inv_items", column, ct).ConfigureAwait(false))
             {
-                columns.Add(column);
-                extras.Add(value);
+                continue;
             }
+
+            columns.Add(column);
+            extras.Add(value);
         }
 
         var count = 0;
@@ -473,6 +565,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                         "INSERT INTO `epc_erp_inv_items` (`" + string.Join("`,`", columns) + "`) VALUES ("
                         + string.Join(",", columns.Select(_ => "?")) + ")"),
                     ct, values.ToArray()).ConfigureAwait(false);
+                marks.Add("epc_erp_inv_items", await ErpDb.LastInsertIdAsync(connection, null, ct).ConfigureAwait(false));
                 count++;
             }
             catch (DbException)
@@ -483,7 +576,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         return count;
     }
 
-    private async Task<List<ErpFitOutProject>> SeedProjectsAsync(int customerCount, CancellationToken ct)
+    private async Task<List<ErpFitOutProject>> SeedProjectsAsync(int customerCount, DemoMarks marks, CancellationToken ct)
     {
         var spec = new (string Code, string Name, decimal Contract, decimal Budget)[]
         {
@@ -509,6 +602,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             if (result.Succeeded)
             {
                 list.Add(new ErpFitOutProject(result.Id, code, name, contract, budget, "open"));
+                marks.Add("epc_prj_projects", result.Id);
             }
         }
 
@@ -517,6 +611,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
 
     private async Task<int> SeedCostCodesAsync(
         List<ErpFitOutProject> projects,
+        DemoMarks marks,
         CancellationToken ct)
     {
         var codes = new (string Code, string Name, string CostType, bool Child)[]
@@ -547,6 +642,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                 if (saved.Succeeded)
                 {
                     count++;
+                    marks.Add("ecomae_fitout_cost_codes", saved.Id);
                     if (!child && code == "DEMO-CC-100")
                     {
                         parents[code] = saved.Id;
@@ -558,7 +654,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         return count;
     }
 
-    private async Task<int> SeedEstimatesAsync(List<ErpFitOutProject> projects, CancellationToken ct)
+    private async Task<int> SeedEstimatesAsync(List<ErpFitOutProject> projects, DemoMarks marks, CancellationToken ct)
     {
         var count = 0;
         foreach (var project in projects)
@@ -579,6 +675,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             }
 
             count++;
+            marks.Add("ecomae_fitout_estimates", estimate.Id);
             var sort = 0;
             foreach (var (section, description, costType, qty, rate) in new (string, string, string, decimal, decimal)[]
                      {
@@ -606,7 +703,11 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                         WastagePercent: 5m,
                         TargetMarginPercent: 15m),
                     ct).ConfigureAwait(false);
-                count += line.Succeeded ? 1 : 0;
+                if (line.Succeeded)
+                {
+                    count++;
+                    marks.Add("ecomae_fitout_boq_lines", line.Id);
+                }
             }
 
             // One BOQ revision per project: a second revision row (same code) so
@@ -614,13 +715,17 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             var revised = await _estimates.SaveEstimateAsync(
                 new ErpFitOutEstimateSaveRequest(
                     ProjectId: project.Id,
-                    Code: RefPrefix + "EST-" + project.Id,
+                    Code: RefPrefix + "EST-" + project.Id + "-R2",
                     Title: NamePrefix + "Rev 2 — client scope change (glazing upgrade) " + shortName,
                     Revision: 2,
                     MarkupPercent: 15m,
                     Status: "approved"),
                 ct).ConfigureAwait(false);
-            count += revised.Succeeded ? 1 : 0;
+            if (revised.Succeeded)
+            {
+                count++;
+                marks.Add("ecomae_fitout_estimates", revised.Id);
+            }
 
             var quotation = await _quotations.SaveAsync(
                 new ErpFitOutQuotationSaveRequest(
@@ -631,13 +736,17 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                     ExpiresOn: DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
                     Status: "issued"),
                 ct).ConfigureAwait(false);
-            count += quotation.Succeeded ? 1 : 0;
+            if (quotation.Succeeded)
+            {
+                count++;
+                marks.Add("ecomae_fitout_quotations", quotation.Id);
+            }
         }
 
         return count;
     }
 
-    private async Task<int> SeedContractsAsync(List<ErpFitOutProject> projects, CancellationToken ct)
+    private async Task<int> SeedContractsAsync(List<ErpFitOutProject> projects, DemoMarks marks, CancellationToken ct)
     {
         var count = 0;
         foreach (var project in projects)
@@ -645,13 +754,17 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             var result = await _contracts.SaveAsync(
                 new ErpFitOutContractTermsSaveRequest(project.Id, 10m, 5m, 12),
                 ct).ConfigureAwait(false);
-            count += result.Succeeded ? 1 : 0;
+            if (result.Succeeded)
+            {
+                count++;
+                marks.Add("ecomae_fitout_contract_terms", result.Id);
+            }
         }
 
         return count;
     }
 
-    private async Task<int> SeedBudgetsAsync(List<ErpFitOutProject> projects, CancellationToken ct)
+    private async Task<int> SeedBudgetsAsync(List<ErpFitOutProject> projects, DemoMarks marks, CancellationToken ct)
     {
         var count = 0;
         foreach (var project in projects)
@@ -679,12 +792,26 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                     RevenueBudget: project.ContractValue),
                 ct).ConfigureAwait(false);
             count += (a.Succeeded ? 1 : 0) + (b.Succeeded ? 1 : 0) + (c.Succeeded ? 1 : 0);
+            if (a.Succeeded)
+            {
+                marks.Add("epc_prja_budget", a.Id);
+            }
+
+            if (b.Succeeded)
+            {
+                marks.Add("epc_prja_budget", b.Id);
+            }
+
+            if (c.Succeeded)
+            {
+                marks.Add("epc_prja_budget", c.Id);
+            }
         }
 
         return count;
     }
 
-    private async Task<int> SeedProcurementAsync(List<ErpFitOutProject> projects, CancellationToken ct)
+    private async Task<int> SeedProcurementAsync(List<ErpFitOutProject> projects, DemoMarks marks, CancellationToken ct)
     {
         var count = 0;
         var seq = 0;
@@ -708,6 +835,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             }
 
             count++;
+            marks.Add("ecomae_fitout_procurement_links", link.Id);
             var match = await _matches.SaveAsync(
                 new ErpFitOutThreeWayMatchSaveRequest(
                     ProcurementLinkId: link.Id,
@@ -720,7 +848,11 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                     InvoicedAmount: 1300m,
                     TolerancePercent: 2m),
                 ct).ConfigureAwait(false);
-            count += match.Succeeded ? 1 : 0;
+            if (match.Succeeded)
+            {
+                count++;
+                marks.Add("ecomae_fitout_three_way_matches", match.Id);
+            }
         }
 
         if (projects.Count > 0)
@@ -742,6 +874,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             if (link.Succeeded)
             {
                 count++;
+                marks.Add("ecomae_fitout_procurement_links", link.Id);
                 var match = await _matches.SaveAsync(
                     new ErpFitOutThreeWayMatchSaveRequest(
                         ProcurementLinkId: link.Id,
@@ -754,7 +887,11 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                         InvoicedAmount: 5000m,
                         TolerancePercent: 2m),
                     ct).ConfigureAwait(false);
-                count += match.Succeeded ? 1 : 0;
+                if (match.Succeeded)
+                {
+                    count++;
+                    marks.Add("ecomae_fitout_three_way_matches", match.Id);
+                }
             }
         }
 
@@ -763,6 +900,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
 
     private async Task<int> SeedMaterialMovementsAsync(
         List<ErpFitOutProject> projects,
+        DemoMarks marks,
         CancellationToken ct)
     {
         if (projects.Count == 0)
@@ -792,7 +930,11 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                     Movement: kind,
                     Reference: reference),
                 ct).ConfigureAwait(false);
-            count += result.Succeeded ? 1 : 0;
+            if (result.Succeeded)
+            {
+                count++;
+                marks.Add("ecomae_fitout_material_movements", result.Id);
+            }
         }
 
         return count;
@@ -801,6 +943,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
     private async Task<int> SeedSiteRecordsAsync(
         List<ErpFitOutProject> projects,
         List<long> suppliers,
+        DemoMarks marks,
         CancellationToken ct)
     {
         var count = 0;
@@ -834,7 +977,11 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                         EventDate: day,
                         Status: type == "variation" ? "approved" : null),
                     ct).ConfigureAwait(false);
-                count += result.Succeeded ? 1 : 0;
+                if (result.Succeeded)
+                {
+                    count++;
+                    marks.Add("ecomae_fitout_delivery_records", result.Id);
+                }
             }
 
             if (suppliers.Count > 0)
@@ -849,7 +996,11 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                         Description: "DEMO | request for quotation",
                         EventDate: day),
                     ct).ConfigureAwait(false);
-                count += rfq.Succeeded ? 1 : 0;
+                if (rfq.Succeeded)
+                {
+                    count++;
+                    marks.Add("ecomae_fitout_delivery_records", rfq.Id);
+                }
                 // vendor_bill stays 'draft' (approval-controlled) — matches the
                 // tolerance-fail three-way match.
                 var bill = await _records.SaveAsync(
@@ -864,7 +1015,11 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                         EventDate: day,
                         Status: "draft"),
                     ct).ConfigureAwait(false);
-                count += bill.Succeeded ? 1 : 0;
+                if (bill.Succeeded)
+                {
+                    count++;
+                    marks.Add("ecomae_fitout_delivery_records", bill.Id);
+                }
             }
         }
 
@@ -886,6 +1041,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             if (order.Succeeded)
             {
                 count++;
+                marks.Add("ecomae_fitout_delivery_records", order.Id);
                 var measurement = await _records.SaveAsync(
                     new ErpFitOutDeliveryRecordSaveRequest(
                         ProjectId: p.Id,
@@ -898,7 +1054,11 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                         CompletionPercent: 20m,
                         EventDate: new DateOnly(2026, 9, 28)),
                     ct).ConfigureAwait(false);
-                count += measurement.Succeeded ? 1 : 0;
+                if (measurement.Succeeded)
+                {
+                    count++;
+                    marks.Add("ecomae_fitout_delivery_records", measurement.Id);
+                }
                 var certification = await _records.SaveAsync(
                     new ErpFitOutDeliveryRecordSaveRequest(
                         ProjectId: p.Id,
@@ -914,6 +1074,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                 if (certification.Succeeded)
                 {
                     count++;
+                    marks.Add("ecomae_fitout_delivery_records", certification.Id);
                     await _records.DecideApprovalAsync(certification.Id, "approved", 0, ct).ConfigureAwait(false);
                 }
             }
@@ -924,6 +1085,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
 
     private async Task<int> SeedClaimsAndRecognitionAsync(
         List<ErpFitOutProject> projects,
+        DemoMarks marks,
         CancellationToken ct)
     {
         var count = 0;
@@ -945,7 +1107,11 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                         CompletionPercent: pct,
                         EventDate: day),
                     ct).ConfigureAwait(false);
-                count += progress.Succeeded ? 1 : 0;
+                if (progress.Succeeded)
+                {
+                    count++;
+                    marks.Add("ecomae_fitout_delivery_records", progress.Id);
+                }
 
                 var workDone = ErpFitOutCalc.Money(project.ContractValue * pct / 100m);
                 var retention = ErpFitOutCalc.Money(workDone * 5m / 100m);
@@ -967,6 +1133,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                 if (claim.Succeeded)
                 {
                     count++;
+                    marks.Add("ecomae_fitout_delivery_records", claim.Id);
                     await _records.DecideApprovalAsync(claim.Id, "approved", 0, ct).ConfigureAwait(false);
                 }
             }
@@ -983,7 +1150,11 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                     Fraction: 0.32m,
                     AsOf: asOf),
                 ct).ConfigureAwait(false);
-            count += run.Succeeded ? 1 : 0;
+            if (run.Succeeded)
+            {
+                count++;
+                marks.Add("epc_prja_recognition", run.Id);
+            }
             var cost = await _txns.AddAsync(
                 new ErpPrjaTxnAddWriteRequest(
                     ProjectId: project.Id,
@@ -993,7 +1164,11 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                     Amount: project.BudgetCost * 0.32m,
                     TxnDate: asOf),
                 ct).ConfigureAwait(false);
-            count += cost.Succeeded ? 1 : 0;
+            if (cost.Succeeded)
+            {
+                count++;
+                marks.Add("epc_prja_txn", cost.Id);
+            }
             var revenue = await _txns.AddAsync(
                 new ErpPrjaTxnAddWriteRequest(
                     ProjectId: project.Id,
@@ -1003,7 +1178,11 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                     Amount: project.ContractValue * 0.32m,
                     TxnDate: asOf),
                 ct).ConfigureAwait(false);
-            count += revenue.Succeeded ? 1 : 0;
+            if (revenue.Succeeded)
+            {
+                count++;
+                marks.Add("epc_prja_txn", revenue.Id);
+            }
         }
 
         return count;
@@ -1011,6 +1190,8 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
 
     private async Task<int> SeedAllocationsAsync(
         List<ErpFitOutProject> projects,
+        DemoMarks marks,
+        DbConnection connection,
         CancellationToken ct)
     {
         if (projects.Count == 0)
@@ -1031,6 +1212,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             if (center.Succeeded)
             {
                 weights[center.Id] = weight;
+                marks.Add("epc_cc_centers", center.Id);
                 weight = Math.Max(0.1m, weight - 0.15m);
             }
         }
@@ -1042,6 +1224,31 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
 
         var run = await _costCenters.PostAllocationAsync(
             RefPrefix + "SHARED-1", 15000m, weights, ct).ConfigureAwait(false);
-        return run.Succeeded ? weights.Count : 0;
+        if (run.Succeeded)
+        {
+            // Allocation rows carry no id in the result — mark them by the run
+            // label we just wrote.
+            try
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = "SELECT `id` FROM `epc_cc_allocations` WHERE `run_label` = @label";
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = "@label";
+                parameter.Value = RefPrefix + "SHARED-1";
+                command.Parameters.Add(parameter);
+                await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+                while (await reader.ReadAsync(ct).ConfigureAwait(false))
+                {
+                    marks.Add("epc_cc_allocations", reader.GetInt64(0));
+                }
+            }
+            catch (DbException)
+            {
+            }
+
+            return weights.Count;
+        }
+
+        return 0;
     }
 }
