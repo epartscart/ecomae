@@ -102,6 +102,7 @@ public sealed class ErpFitOutWorkspaceTests
         Assert.Contains("epc_prja_recognition", src, StringComparison.Ordinal);
         Assert.Contains("epc_cc_allocations", src, StringComparison.Ordinal);
         Assert.Contains("epc_prj_projects", src, StringComparison.Ordinal);
+        Assert.Contains("ecomae_fitout_demo_registry", src, StringComparison.Ordinal);
         Assert.DoesNotContain("`users`", src, StringComparison.Ordinal);
         Assert.DoesNotContain("DELETE FROM `users`", src, StringComparison.Ordinal);
         Assert.DoesNotContain("DROP TABLE", src, StringComparison.Ordinal);
