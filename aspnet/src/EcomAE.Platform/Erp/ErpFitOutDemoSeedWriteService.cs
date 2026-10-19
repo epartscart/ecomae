@@ -120,6 +120,25 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         var removed = 0;
+
+        // Child rows that carry no DEMO text tag are still demo data when their parent
+        // project/record is DEMO-tagged: contract terms, POC recognition runs and the
+        // approval audit trail. Delete them through the demo-project linkage only —
+        // live parents can never match.
+        foreach (var sql in DemoLinkedDeletes())
+        {
+            try
+            {
+                removed += await ErpDb.ExecuteAsync(connection, null, sql, cancellationToken).ConfigureAwait(false);
+            }
+            catch (MySqlException)
+            {
+            }
+            catch (DbException)
+            {
+            }
+        }
+
         foreach (var (table, columns) in DemoTables())
         {
             var predicate = string.Join(" OR ", columns.Select(col => "`" + col + "` LIKE 'DEMO%'"));
@@ -161,12 +180,21 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         yield return ("epc_prja_recognition", ["method"]);
         yield return ("epc_cc_allocations", ["run_label"]);
         yield return ("epc_cc_centers", ["code", "name"]);
-        yield return ("epc_erp_suppliers", ["code", "name"]);
+        yield return ("epc_erp_suppliers", ["name", "vendor_account"]);
         yield return ("epc_erp_inv_items", ["code", "name"]);
         yield return ("epc_erp_inv_warehouses", ["code", "name"]);
         yield return ("epc_warehouses", ["code", "name"]);
         yield return ("epc_erp_customers", ["name"]);
         yield return ("epc_prj_projects", ["code", "name"]);
+    }
+
+    private static IEnumerable<string> DemoLinkedDeletes()
+    {
+        const string demoProjects = "SELECT `id` FROM `epc_prj_projects` WHERE `code` LIKE 'DEMO-%' OR `name` LIKE 'DEMO |%'";
+        const string demoRecords = "SELECT `id` FROM `ecomae_fitout_delivery_records` WHERE `reference` LIKE 'DEMO-%' OR `title` LIKE 'DEMO |%' OR `description` LIKE 'DEMO%'";
+        yield return "DELETE FROM `ecomae_fitout_contract_terms` WHERE `contract_id` IN (" + demoProjects + ")";
+        yield return "DELETE FROM `epc_prja_recognition` WHERE `method` LIKE 'DEMO%' OR `project_id` IN (" + demoProjects + ")";
+        yield return "DELETE FROM `ecomae_fitout_approval_audit` WHERE `delivery_record_id` IN (" + demoRecords + ")";
     }
 
     private static async Task EnsureProjectsTableAsync(DbConnection connection, CancellationToken ct)
@@ -219,6 +247,18 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
 
     private async Task<List<long>> SeedSuppliersAsync(DbConnection connection, CancellationToken ct)
     {
+        await ErpDb.TryExecuteAsync(connection,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_suppliers` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`name` varchar(255) NOT NULL DEFAULT ''," +
+            "`contact_email` varchar(255) DEFAULT NULL," +
+            "`contact_phone` varchar(64) DEFAULT NULL," +
+            "`trn` varchar(64) DEFAULT NULL," +
+            "`vendor_account` varchar(32) DEFAULT NULL," +
+            "`active` tinyint(1) NOT NULL DEFAULT 1," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+            ct).ConfigureAwait(false);
         var ids = new List<long>();
         var names = new[] { "DEMO | Gulf Steel Trading", "DEMO | MEP Supplies Co", "DEMO | Finish Works LLC" };
         var i = 0;
@@ -228,7 +268,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             try
             {
                 await ErpDb.ExecuteAsync(connection, null,
-                    ErpDb.Positional("INSERT INTO `epc_erp_suppliers` (`code`,`name`,`email`,`phone`) VALUES (?,?,?,?)"),
+                    ErpDb.Positional("INSERT INTO `epc_erp_suppliers` (`vendor_account`,`name`,`contact_email`,`contact_phone`,`active`,`time_created`) VALUES (?,?,?,?,1,UNIX_TIMESTAMP())"),
                     ct, RefPrefix + "SUP-" + i, name, "demo-sup-" + i + "@demo.example",
                     "+9715000000" + i).ConfigureAwait(false);
                 ids.Add(await ErpDb.LastInsertIdAsync(connection, null, ct).ConfigureAwait(false));
