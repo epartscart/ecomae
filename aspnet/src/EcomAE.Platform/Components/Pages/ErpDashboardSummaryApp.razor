@@ -153,9 +153,10 @@
         {
             _activeCompanyId = active.Id;
             _companyLabel = LegalOrganizationLabel.Display(active.Code, active.Name, null, host.BrandLabel);
-            jewellery = ErpIndustryNav.ShowJewelleryModules(host.IndustryCode, active, TenantContext.IndustryFrom(ctx));
-            fitOut = ErpIndustryNav.ShowFitOutModules(host.IndustryCode, active, TenantContext.IndustryFrom(ctx));
-            realEstate = ErpIndustryNav.ShowRealEstateModules(host.IndustryCode, active, TenantContext.IndustryFrom(ctx));
+            var tenantIndustry = TenantContext.IndustryFrom(ctx) ?? host.IndustryCode;
+            jewellery = ErpIndustryNav.ShowJewelleryModules(tenantIndustry, active, tenantIndustry);
+            fitOut = ErpIndustryNav.ShowFitOutModules(tenantIndustry, active, tenantIndustry);
+            realEstate = ErpIndustryNav.ShowRealEstateModules(tenantIndustry, active, tenantIndustry);
             var pack = jewellery ? "jewellery"
                 : realEstate ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "real_estate" : active.IndustryPack)
                 : fitOut ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "fit_out" : active.IndustryPack)
@@ -165,9 +166,10 @@
         }
         else
         {
-            jewellery = ErpIndustryNav.ShowJewelleryModules(host.IndustryCode, null, TenantContext.IndustryFrom(ctx));
-            fitOut = ErpIndustryNav.ShowFitOutModules(host.IndustryCode, null, TenantContext.IndustryFrom(ctx));
-            realEstate = ErpIndustryNav.ShowRealEstateModules(host.IndustryCode, null, TenantContext.IndustryFrom(ctx));
+            var tenantIndustry = TenantContext.IndustryFrom(ctx) ?? host.IndustryCode;
+            jewellery = ErpIndustryNav.ShowJewelleryModules(tenantIndustry, null, tenantIndustry);
+            fitOut = ErpIndustryNav.ShowFitOutModules(tenantIndustry, null, tenantIndustry);
+            realEstate = ErpIndustryNav.ShowRealEstateModules(tenantIndustry, null, tenantIndustry);
             _kind = ErpIndustryDashboardCatalog.Kind(jewellery, realEstate, fitOut, host.IndustryCode);
             _industryLabel = string.IsNullOrWhiteSpace(host.IndustryLabel) ? "Trading" : host.IndustryLabel;
             _companyLabel = string.IsNullOrWhiteSpace(host.BrandLabel) ? "This company" : host.BrandLabel;

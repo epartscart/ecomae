@@ -27,7 +27,11 @@ public sealed class IndustrySpecificRouteGateMiddleware(
         var hostIndustry = ErpHostContext.Resolve(context.Request.Host.Host).IndustryCode;
         var tenantIndustry = TenantContext.IndustryFrom(context);
         var company = await ResolveActiveCompanyAsync(context);
-        var allowed = IndustrySpecificRoutePolicy.Allows(requiredIndustry, hostIndustry, company, tenantIndustry);
+        // Bound-tenant industry (portal row / launch catalog) wins over the
+        // storefront host fallback, which defaults to auto_parts on ecomae.com
+        // and would otherwise grant every CP tenant the auto-parts pack.
+        var effectiveIndustry = tenantIndustry ?? hostIndustry;
+        var allowed = IndustrySpecificRoutePolicy.Allows(requiredIndustry, effectiveIndustry, company, tenantIndustry);
         if (allowed)
         {
             await _next(context);
