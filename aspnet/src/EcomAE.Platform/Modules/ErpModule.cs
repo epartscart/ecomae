@@ -23760,7 +23760,8 @@ public sealed class ErpModule : ISurfaceModule
         var active = companies.FirstOrDefault(c => activeQ is > 0 && c.Id == activeQ) ?? companies.FirstOrDefault();
         var siteKey = context.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant ? tenant.SiteKey : host;
         var rules = await navRules.ResolveAsync(siteKey, cancellationToken);
-        var jewellery = ErpIndustryNav.ShowJewelleryModules(hostCtx.IndustryCode, active, TenantContext.IndustryFrom(context));
+        var tenantIndustryCode = TenantContext.IndustryFrom(context) ?? hostCtx.IndustryCode;
+        var jewellery = ErpIndustryNav.ShowJewelleryModules(tenantIndustryCode, active, tenantIndustryCode);
         var industry = active is null
             ? hostCtx.IndustryCode
             : jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);

@@ -1197,10 +1197,11 @@
         {
             _activeCompanyId = active.Id;
             _companyLabel = LegalOrganizationLabel.Display(active.Code, active.Name, null, _ctx.BrandLabel);
-            _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
-            _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
-            _realEstate = ErpIndustryNav.ShowRealEstateModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
-            _autoParts = ErpIndustryNav.ShowAutoPartsModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
+            var tenantIndustry = TenantContext.IndustryFrom(ctx) ?? _ctx.IndustryCode;
+            _jewellery = ErpIndustryNav.ShowJewelleryModules(tenantIndustry, active, tenantIndustry);
+            _fitOut = ErpIndustryNav.ShowFitOutModules(tenantIndustry, active, tenantIndustry);
+            _realEstate = ErpIndustryNav.ShowRealEstateModules(tenantIndustry, active, tenantIndustry);
+            _autoParts = ErpIndustryNav.ShowAutoPartsModules(tenantIndustry, active, tenantIndustry);
             _industryCode = _jewellery ? "jewellery"
                 : _autoParts ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "auto_parts" : active.IndustryPack)
                 : _realEstate ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "real_estate" : active.IndustryPack)
@@ -1210,9 +1211,10 @@
         }
         else
         {
-            _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
-            _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
-            _realEstate = ErpIndustryNav.ShowRealEstateModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
+            var tenantIndustry = TenantContext.IndustryFrom(ctx) ?? _ctx.IndustryCode;
+            _jewellery = ErpIndustryNav.ShowJewelleryModules(tenantIndustry, null, tenantIndustry);
+            _fitOut = ErpIndustryNav.ShowFitOutModules(tenantIndustry, null, tenantIndustry);
+            _realEstate = ErpIndustryNav.ShowRealEstateModules(tenantIndustry, null, tenantIndustry);
         }
 
         _nav = ErpIndustryNav.FilterTopnav(
