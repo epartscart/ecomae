@@ -18268,8 +18268,18 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return string.Empty;
         }
 
-        var company = ErpHostContext.ActiveCompanyIdFromQuery(_httpContextAccessor.HttpContext.Request) ?? 0;
-        return "home:" + database + ":" + company.ToString(CultureInfo.InvariantCulture) + ":" + periodFrom;
+        var request = _httpContextAccessor.HttpContext.Request;
+        var company = ErpHostContext.ActiveCompanyIdFromQuery(request) ?? 0;
+        // Named selectors (?cmp=indj) resolve to a different entity than the
+        // default one, so they must not share the "0" cache entry — key on the
+        // raw selector when no numeric id was resolved.
+        var selector = company > 0
+            ? company.ToString(CultureInfo.InvariantCulture)
+            : "sel:" + string.Join('|',
+                request.Query["company"].ToString().Trim(),
+                request.Query["companyId"].ToString().Trim(),
+                request.Query["cmp"].ToString().Trim());
+        return "home:" + database + ":" + selector + ":" + periodFrom;
     }
 
     private string CompaniesHotKey(int limit)
