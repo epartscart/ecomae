@@ -45,7 +45,7 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject IErpD365WorkspaceReadService WorkspaceRows
-@inject IErpPimWorkspaceReadService PimRows
+@inject IErpWorkspaceReadService WsRows
 @inject IErpD365ProcessReadService ProcessRows
 @inject ICpCsrfGuard Csrf
 
@@ -481,7 +481,7 @@
                     </form>
                 </section>
             }
-            else if (_isAdmin && _pimData is null)
+            else if (_isAdmin && _wsData is null)
             {
                 <ErpPhpCreateWell Title="@("New " + _page.Label)">
                     <form method="post" action="@SaveAction">
@@ -602,7 +602,7 @@
                 </ErpPhpCreateWell>
             }
 
-            @if (_pimData is { } pim)
+            @if (_wsData is { } pim)
             {
                 <div class="epc-erp-table-wrap">
                     @if (pim.ManageHref is { } manage)
@@ -735,7 +735,7 @@
     private IReadOnlyList<ErpD365Part3Catalog.Page> _pages = [];
     private IReadOnlyList<IGrouping<string, ErpD365Part3Catalog.Page>> _groups = [];
     private IReadOnlyList<ErpD365WorkspaceRow> _rows = [];
-    private ErpPimWorkspaceData? _pimData;
+    private ErpPimWorkspaceData? _wsData;
     private IReadOnlyList<ErpD365ProcessCatalog.ProcessLane> _lanes = [];
     private IReadOnlyList<ErpD365ProcessCatalog.ProcessLane> _studyLanes = [];
     private IReadOnlyList<ErpD365ProcessCatalog.InterlinkEdge> _edgesFrom = [];
@@ -967,7 +967,7 @@
         _edgesTo = ErpD365ProcessCatalog.EdgesTo(_page.Tab);
         if (_page.ExistingHref is null)
         {
-            _pimData = await PimRows.LoadAsync(_page.Tab, ctx.RequestAborted);
+            _wsData = await WsRows.LoadAsync(_page.Tab, ctx.RequestAborted);
         }
         if (_isAdmin)
         {
