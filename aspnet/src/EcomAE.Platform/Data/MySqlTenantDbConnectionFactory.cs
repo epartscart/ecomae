@@ -131,6 +131,11 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
             builder.MaximumPoolSize = (uint)pool.MaximumPoolSize;
         }
 
+        if (pool.MinimumPoolSize > 0)
+        {
+            builder.MinimumPoolSize = (uint)pool.MinimumPoolSize;
+        }
+
         if (pool.ConnectionTimeoutSeconds > 0)
         {
             builder.ConnectionTimeout = (uint)pool.ConnectionTimeoutSeconds;
