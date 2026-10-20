@@ -183,3 +183,20 @@ public class ErpBankingWorkspaceTests
         }
     }
 }
+
+public class ErpTaxWorkspaceTests
+{
+    [Fact]
+    public void Specs_AreKnownTabs()
+    {
+        var generic = ErpD365WorkspaceCatalog.ForArea("tax")
+            .Where(p => p.ExistingHref is null)
+            .Select(p => p.Tab)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var tab in ErpTaxWorkspaceSpecs.Tabs.Keys)
+        {
+            Assert.True(generic.Contains(tab), $"{tab} is not a generic tax tab in the catalog");
+        }
+    }
+}
