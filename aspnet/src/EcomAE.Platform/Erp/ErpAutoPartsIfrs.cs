@@ -15,6 +15,7 @@ public static class ErpAutoPartsIfrs
     public const string InventoryAccount = "1300";
     public const string ApAccount = "2000";
     public const string VatAccount = "2100";
+    public const string InputVatAccount = "1150";
     public const string RevenueAccount = "4000";
     public const string CogsAccount = "5000";
     public const string BankAccount = "1010";
@@ -23,6 +24,7 @@ public static class ErpAutoPartsIfrs
     public static readonly IReadOnlyList<(string Code, string Name, string Type, string Side, string Description, string Statement)> Accounts =
     [
         (InventoryAccount, "Parts Inventory", "asset", "debit", "Auto-parts stock on hand at weighted average cost", "balance_sheet"),
+        (InputVatAccount, "VAT input (recoverable)", "asset", "debit", "UAE VAT 5% on purchases", "balance_sheet"),
     ];
 
     public sealed record JournalLine(string Code, decimal Debit, decimal Credit, string Note);
@@ -63,7 +65,7 @@ public static class ErpAutoPartsIfrs
         };
         if (vat > 0)
         {
-            lines.Add(new JournalLine(VatAccount, vat, 0m, "Input VAT 5%"));
+            lines.Add(new JournalLine(InputVatAccount, vat, 0m, "Input VAT 5%"));
         }
         lines.Add(new JournalLine(ApAccount, 0m, net + vat, "Supplier payable"));
         return lines;

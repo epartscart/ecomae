@@ -195,6 +195,13 @@ public sealed class ErpJewelleryDemoSeedWriteService : IErpJewelleryDemoSeedWrit
         // demo issue flow can match (submitted/accepted are never deleted).
         foreach (var sql in new[]
         {
+            // Link row goes first while its document row still exists — the
+            // status join keeps links of preserved (submitted/accepted/queued)
+            // documents and drops links of the drafts about to be deleted.
+            "DELETE k FROM `ecomae_jw_invoice_links` k INNER JOIN `" + RegistryTable + "` r"
+            + " ON r.`table_name`='epc_jewel_voucher' AND r.`row_id`=k.`voucher_id`"
+            + " INNER JOIN `epc_einvoice_documents` d ON d.`id`=k.`invoice_id`"
+            + " WHERE d.`status` NOT IN ('submitted','accepted','queued')",
             "DELETE l FROM `epc_einvoice_lines` l INNER JOIN `ecomae_jw_invoice_links` k"
             + " ON k.`invoice_id`=l.`document_id` INNER JOIN `" + RegistryTable + "` r"
             + " ON r.`table_name`='epc_jewel_voucher' AND r.`row_id`=k.`voucher_id`"
@@ -208,10 +215,6 @@ public sealed class ErpJewelleryDemoSeedWriteService : IErpJewelleryDemoSeedWrit
             "DELETE d FROM `epc_einvoice_documents` d INNER JOIN `ecomae_jw_invoice_links` k"
             + " ON k.`invoice_id`=d.`id` INNER JOIN `" + RegistryTable + "` r"
             + " ON r.`table_name`='epc_jewel_voucher' AND r.`row_id`=k.`voucher_id`"
-            + " WHERE d.`status` NOT IN ('submitted','accepted','queued')",
-            "DELETE k FROM `ecomae_jw_invoice_links` k INNER JOIN `" + RegistryTable + "` r"
-            + " ON r.`table_name`='epc_jewel_voucher' AND r.`row_id`=k.`voucher_id`"
-            + " INNER JOIN `epc_einvoice_documents` d ON d.`id`=k.`invoice_id`"
             + " WHERE d.`status` NOT IN ('submitted','accepted','queued')",
         })
         {

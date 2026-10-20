@@ -50,7 +50,7 @@ public sealed class ErpJewelleryGlPostWriteService : IErpJewelleryGlPostWriteSer
         var purchaseTypes = new HashSet<string>(StringComparer.Ordinal);
         foreach (var t in ErpJwVocTypes.MetalPurchaseAliases.Concat(ErpJwVocTypes.DiamondPurchaseAliases)) purchaseTypes.Add(t);
         var saleTypes = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var t in ErpJwVocTypes.SalesAnalysisAliases) saleTypes.Add(t);
+        foreach (var t in ErpJwVocTypes.SalesAnalysisAliases.Concat(ErpJwVocTypes.RetailAliases).Concat(ErpJwVocTypes.MetalSaleAliases)) saleTypes.Add(t);
 
         var purchases = 0;
         var sales = 0;
