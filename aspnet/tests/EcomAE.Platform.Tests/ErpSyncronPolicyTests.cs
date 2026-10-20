@@ -358,6 +358,7 @@ public sealed class ErpSyncronPolicyTests
             Assert.True(drafted.Succeeded);
             Assert.Contains("PO-77", drafted.Message, StringComparison.Ordinal);
             Assert.Equal(5, purchaseOrders.Last?.SupplierId);
+            Assert.Equal("approved", purchaseOrders.Last?.Status);
             Assert.Equal("OIL", Assert.Single(purchaseOrders.Last!.Lines).ItemCode);
             Assert.Equal(("drafted", 77L), await LinePoAsync(db));
             Assert.True((await drafting.ApplyAsync(2, new ErpSyncronActionRequest("unconfirm_all"), ct)).Succeeded);

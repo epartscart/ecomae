@@ -335,8 +335,10 @@ public sealed class ErpSyncronWriteService : IErpSyncronWriteService
                     SupplierId = (int)group.Key,
                     Title = "Recommended orders " + today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                     AmountExVat = poLines.Sum(line => line.LineExVat),
-                    Status = "draft",
-                    Notes = "Drafted from recommended orders.",
+                    // Approved: confirmed recommendations open directly as purchase orders,
+                    // not drafts needing a second approval step.
+                    Status = "approved",
+                    Notes = "Created from recommended orders.",
                     Lines = poLines,
                 },
                 adminId,
@@ -348,7 +350,7 @@ public sealed class ErpSyncronWriteService : IErpSyncronWriteService
 
             drafted += group.Count();
             notes.Add(saved.PoNo + " for " + supplierName + " (" + group.Count().ToString(CultureInfo.InvariantCulture) + " lines).");
-            await LogAsync(connection, adminId, request.Action, saved.Id, "Draft purchase order from recommended orders", new Dictionary<string, string?>
+            await LogAsync(connection, adminId, request.Action, saved.Id, "Purchase order opened from recommended orders", new Dictionary<string, string?>
             {
                 ["po_no"] = saved.PoNo,
                 ["supplier_id"] = group.Key.ToString(CultureInfo.InvariantCulture),
@@ -366,7 +368,7 @@ public sealed class ErpSyncronWriteService : IErpSyncronWriteService
             return ErpSimpleWriteResult.Fail("invalid", string.Join(" ", notes));
         }
 
-        return new ErpSimpleWriteResult(true, "ok", "Drafted " + string.Join(" ", notes), 0, drafted);
+        return new ErpSimpleWriteResult(true, "ok", "Opened " + string.Join(" ", notes), 0, drafted);
     }
 
     private Task LogAsync(System.Data.Common.DbConnection connection, int adminId, string action, long entityId, string summary, IReadOnlyDictionary<string, string?>? detail, CancellationToken cancellationToken)
