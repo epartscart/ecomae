@@ -4835,7 +4835,13 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             command.CommandTimeout = 8;
             ErpFirstPaint.ApplyIfErp(command);
             // PHP epc_cross_load_stock_for_references uses docpart_sql_article_normalized_expr IN (...).
-            var articleMatch = LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(batch.Count);
+            // When the normalized article/article_show columns exist and are backfilled, use them
+            // instead — index seeks instead of a 15-REPLACE full-table scan per batch.
+            var useIndexedMatch = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false)
+                && await ProbePriceArticleShowSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
+            var articleMatch = useIndexedMatch
+                ? LegacySurfaceDashboardSql.StorefrontPriceArticleIndexedShowSearchInSql(batch.Count)
+                : LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(batch.Count);
             command.CommandText = $"""
                 SELECT d.`manufacturer`, d.`article`, d.`article_show`, d.`name`,
                        d.`price`, d.`exist`, d.`time_to_exe`, d.`price_id`
@@ -4848,23 +4854,38 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 """;
             BindArticleCandidates(command, batch);
 
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            var matchedAny = false;
+            var readerAttempts = useIndexedMatch ? 2 : 1;
+            for (var attempt = 0; attempt < readerAttempts; attempt++)
             {
-                var manufacturer = Convert.ToString(reader["manufacturer"] is DBNull ? string.Empty : reader["manufacturer"], CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
-                var articleRaw = Convert.ToString(reader["article"] is DBNull ? string.Empty : reader["article"], CultureInfo.InvariantCulture) ?? string.Empty;
-                var articleShow = Convert.ToString(reader["article_show"] is DBNull ? string.Empty : reader["article_show"], CultureInfo.InvariantCulture) ?? string.Empty;
-                var name = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
-                var price = Convert.ToDecimal(reader["price"] is DBNull ? 0m : reader["price"], CultureInfo.InvariantCulture);
-                var exist = Convert.ToDecimal(reader["exist"] is DBNull ? 0m : reader["exist"], CultureInfo.InvariantCulture);
-                var delivery = Convert.ToString(reader["time_to_exe"] is DBNull ? string.Empty : reader["time_to_exe"], CultureInfo.InvariantCulture) ?? string.Empty;
-                var priceId = Convert.ToInt32(reader["price_id"] is DBNull ? 0 : reader["price_id"], CultureInfo.InvariantCulture);
-                var articleNorm = PriceLookupRequest.NormalizeArticle(
-                    string.IsNullOrWhiteSpace(articleShow) ? articleRaw : articleShow);
-                if (manufacturer.Length == 0 || articleNorm.Length == 0 || !seenNorm.Contains(articleNorm))
+                if (attempt == 1)
                 {
-                    continue;
+                    // Indexed columns are only as fresh as the last backfill; a batch that found
+                    // nothing may hide rows imported since — same REPLACE re-check PHP does on miss.
+                    command.CommandText = command.CommandText.Replace(
+                        LegacySurfaceDashboardSql.StorefrontPriceArticleIndexedShowSearchInSql(batch.Count),
+                        LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(batch.Count),
+                        StringComparison.Ordinal);
                 }
+
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    matchedAny = true;
+                    var manufacturer = Convert.ToString(reader["manufacturer"] is DBNull ? string.Empty : reader["manufacturer"], CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
+                    var articleRaw = Convert.ToString(reader["article"] is DBNull ? string.Empty : reader["article"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var articleShow = Convert.ToString(reader["article_show"] is DBNull ? string.Empty : reader["article_show"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var name = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var price = Convert.ToDecimal(reader["price"] is DBNull ? 0m : reader["price"], CultureInfo.InvariantCulture);
+                    var exist = Convert.ToDecimal(reader["exist"] is DBNull ? 0m : reader["exist"], CultureInfo.InvariantCulture);
+                    var delivery = Convert.ToString(reader["time_to_exe"] is DBNull ? string.Empty : reader["time_to_exe"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var priceId = Convert.ToInt32(reader["price_id"] is DBNull ? 0 : reader["price_id"], CultureInfo.InvariantCulture);
+                    var articleNorm = PriceLookupRequest.NormalizeArticle(
+                        string.IsNullOrWhiteSpace(articleShow) ? articleRaw : articleShow);
+                    if (manufacturer.Length == 0 || articleNorm.Length == 0 || !seenNorm.Contains(articleNorm))
+                    {
+                        continue;
+                    }
 
                 var displayArticle = string.IsNullOrWhiteSpace(articleShow) ? articleRaw.Trim() : articleShow.Trim();
                 var key = manufacturer.ToUpperInvariant() + "|" + articleNorm;
@@ -4886,6 +4907,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     priceId);
 
                 if (best.Count >= stockMax)
+                {
+                    break;
+                }
+                }
+
+                if (matchedAny)
                 {
                     break;
                 }
@@ -4990,6 +5017,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     }
 
     private int? _priceArticleSearchColumnState; // null=unknown, 1=yes, -1=no
+    private int? _priceArticleShowSearchColumnState;
     private int? _analogsSearchColumnState;
 
     private async Task<bool> ProbePriceArticleSearchColumnAsync(DbConnection connection, CancellationToken cancellationToken)
@@ -5015,6 +5043,33 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         catch
         {
             _priceArticleSearchColumnState = -1;
+            return false;
+        }
+    }
+
+    private async Task<bool> ProbePriceArticleShowSearchColumnAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        if (_priceArticleShowSearchColumnState is 1)
+        {
+            return true;
+        }
+
+        if (_priceArticleShowSearchColumnState is -1)
+        {
+            return false;
+        }
+
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `article_show_search` FROM `shop_docpart_prices_data` LIMIT 1";
+            await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            _priceArticleShowSearchColumnState = 1;
+            return true;
+        }
+        catch
+        {
+            _priceArticleShowSearchColumnState = -1;
             return false;
         }
     }

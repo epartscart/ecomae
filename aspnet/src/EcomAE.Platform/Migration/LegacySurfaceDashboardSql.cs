@@ -4024,6 +4024,23 @@ public static class LegacySurfaceDashboardSql
     }
 
     /// <summary>
+    /// Indexed OR on the normalized <c>article_search</c>/<c>article_show_search</c> columns —
+    /// same match set as <see cref="StorefrontPriceArticleReplaceInSql"/> but both sides are index seeks
+    /// instead of 15-REPLACE full scans. Requires both columns to exist and be backfilled.
+    /// </summary>
+    public static string StorefrontPriceArticleIndexedShowSearchInSql(int count)
+    {
+        if (count <= 0)
+        {
+            return "0";
+        }
+
+        var a = BuildIndexedParams("a", count);
+        var b = BuildIndexedParams("b", count);
+        return $"(d.`article_search` IN ({a}) OR d.`article_show_search` IN ({b}))";
+    }
+
+    /// <summary>
     /// Single-article equality (no IN list) — PHP CHPU first-hit path for codes like A2N233V / DA320.
     /// Binds <c>@article</c> only (avoids multi-IN parameter reuse quirks).
     /// </summary>
