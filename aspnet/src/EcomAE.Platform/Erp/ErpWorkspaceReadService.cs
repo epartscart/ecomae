@@ -99,6 +99,15 @@ public sealed class ErpWorkspaceReadService : IErpWorkspaceReadService
                 spec.Ensure ?? ErpSalesWorkspaceSpecs.EnsureSalesAsync);
         }
 
+        foreach (var (tab, spec) in ErpCoverageSweepSpecs.Tabs)
+        {
+            if (!map.ContainsKey(tab))
+            {
+                map[tab] = new ErpWorkspaceSpec(spec.Headers, spec.Sql, spec.EmptyHint, spec.ManageHref,
+                    spec.Ensure ?? ErpCoverageSweepSpecs.EnsureAllAsync);
+            }
+        }
+
         return map;
     }
 

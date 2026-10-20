@@ -217,3 +217,29 @@ public class ErpSalesWorkspaceTests
         }
     }
 }
+
+public class ErpCoverageSweepTests
+{
+    [Fact]
+    public void EveryGenericTab_HasADataSpec()
+    {
+        var uncovered = new[]
+            {
+                "purchasing", "warehouse", "production", "master_planning_area", "enterprise",
+                "payroll_area", "ap", "transportation", "projects", "tax", "time_att",
+                "service_mgmt", "ar", "banking", "sales", "retail", "gl", "pim",
+                "asset_mgmt", "budgeting", "setup", "questionnaire", "landed_cost_area",
+                "common", "rebate_mgmt", "inventory_mgmt", "cost_acct", "credit_coll",
+                "expense", "fixed_assets", "leave_abs", "cost_mgmt", "people", "mhei",
+                "consolidations", "audit_wb",
+            }.SelectMany(ErpD365WorkspaceCatalog.ForArea)
+            .Where(p => p.ExistingHref is null)
+            .Select(p => p.Tab)
+            .Where(t => !ErpWorkspaceReadService.Specs.ContainsKey(t))
+            .Distinct()
+            .ToList();
+
+        Assert.True(uncovered.Count == 0,
+            "Generic tabs with no data spec: " + string.Join(", ", uncovered.Take(30)));
+    }
+}
