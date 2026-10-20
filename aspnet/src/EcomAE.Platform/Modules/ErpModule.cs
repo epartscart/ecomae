@@ -452,6 +452,30 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationRegen, HandleUaeTaxLegislationRegenAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationChecklistSet, HandleUaeTaxLegislationChecklistSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365WorkspaceSave, HandleD365WorkspaceSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpPimProductUpload, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpPimProductUploadService upload,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/pim-workspace-app?tab=pim_product_upload");
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Results.Redirect("/erp/login");
+            }
+
+            var csv = context.Request.HasFormContentType
+                ? LiveWriteFormBinder.Text(await context.Request.ReadFormAsync(cancellationToken), "csv")
+                : DryRunHtmlForm.Read(context.Request, "csv");
+            var confirm = context.Request.HasFormContentType
+                && LiveWriteFormBinder.Flag(
+                    await context.Request.ReadFormAsync(cancellationToken), "confirmWrites", "confirm_writes");
+            var result = confirm
+                ? await upload.UploadAsync(csv, session.UserId, cancellationToken)
+                : upload.DryRun(csv);
+            return DryRunHtmlForm.Redirect(ret, result.Ok, result.Message);
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpSheetEntry, HandleSheetEntryAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365ParameterSave, HandleD365ParameterSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365LinkSave, HandleD365LinkSaveAsync).DisableAntiforgery();

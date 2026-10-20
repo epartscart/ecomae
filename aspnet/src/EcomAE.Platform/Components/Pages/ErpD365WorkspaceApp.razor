@@ -45,6 +45,7 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject IErpD365WorkspaceReadService WorkspaceRows
+@inject IErpPimWorkspaceReadService PimRows
 @inject IErpD365ProcessReadService ProcessRows
 @inject ICpCsrfGuard Csrf
 
@@ -462,7 +463,25 @@
                     <p class="help-block">Fields on this menu: @string.Join(", ", AxFields.Select(field => field.Label)).</p>
                 }
             }
-            else if (_isAdmin)
+            else if (_isAdmin && _page.Tab == "pim_product_upload")
+            {
+                <section class="epc-d365-study-card" aria-label="Product upload">
+                    <h3>Product upload</h3>
+                    <p class="help-block">Paste CSV below — one product per line. Header row optional. Columns: sku, name, item_type, product_type, item_group, unit, purchase_unit, sales_unit, sales_price, costing_method, barcode, reorder_level, track_expiry, active. Existing skus are updated.</p>
+                    <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/pim/product-upload")">
+                        <input type="hidden" name="returnUrl" value="@PageHref(_page)" />
+                        <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                        <label>CSV
+                            <textarea class="form-control" name="csv" rows="10" style="font-family:monospace" placeholder="sku,name,item_type,unit,item_group,barcode,sales_price,active&#10;BRG-6203,Ball bearing 6203,standard,pcs,fasteners,8714101000,45.00,1"></textarea>
+                        </label>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-default btn-sm" name="confirmWrites" value="">Preview (dry run)</button>
+                            <button type="submit" class="btn btn-primary btn-sm" name="confirmWrites" value="true">Import products</button>
+                        </div>
+                    </form>
+                </section>
+            }
+            else if (_isAdmin && _pimData is null)
             {
                 <ErpPhpCreateWell Title="@("New " + _page.Label)">
                     <form method="post" action="@SaveAction">
@@ -583,7 +602,46 @@
                 </ErpPhpCreateWell>
             }
 
-            @if (string.IsNullOrWhiteSpace(_page.ExistingHref))
+            @if (_pimData is { } pim)
+            {
+                <div class="epc-erp-table-wrap">
+                    @if (pim.ManageHref is { } manage)
+                    {
+                        <p class="help-block" style="margin-bottom:6px">
+                            Manage products in <a href="@ClientErpPath.PrefixIfBound(Http.HttpContext, WithCompany(manage))">Product information</a>.
+                        </p>
+                    }
+                    <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                        <thead>
+                            <tr>
+                                @foreach (var header in pim.Headers)
+                                {
+                                    <th>@header</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (pim.Rows.Count == 0)
+                            {
+                                <tr><td colspan="@Math.Max(1, pim.Headers.Count)" class="text-muted">@pim.EmptyHint</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var row in pim.Rows)
+                                {
+                                    <tr>
+                                        @foreach (var cell in row)
+                                        {
+                                            <td>@(cell.Length == 0 ? "—" : cell)</td>
+                                        }
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else if (string.IsNullOrWhiteSpace(_page.ExistingHref))
             {
             <div class="epc-erp-table-wrap">
                 <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
@@ -677,6 +735,7 @@
     private IReadOnlyList<ErpD365Part3Catalog.Page> _pages = [];
     private IReadOnlyList<IGrouping<string, ErpD365Part3Catalog.Page>> _groups = [];
     private IReadOnlyList<ErpD365WorkspaceRow> _rows = [];
+    private ErpPimWorkspaceData? _pimData;
     private IReadOnlyList<ErpD365ProcessCatalog.ProcessLane> _lanes = [];
     private IReadOnlyList<ErpD365ProcessCatalog.ProcessLane> _studyLanes = [];
     private IReadOnlyList<ErpD365ProcessCatalog.InterlinkEdge> _edgesFrom = [];
@@ -906,6 +965,10 @@
             : [];
         _edgesFrom = ErpD365ProcessCatalog.EdgesFrom(_page.Tab);
         _edgesTo = ErpD365ProcessCatalog.EdgesTo(_page.Tab);
+        if (_page.ExistingHref is null)
+        {
+            _pimData = await PimRows.LoadAsync(_page.Tab, ctx.RequestAborted);
+        }
         if (_isAdmin)
         {
             _parameters = await ProcessRows.ListParametersAsync(
