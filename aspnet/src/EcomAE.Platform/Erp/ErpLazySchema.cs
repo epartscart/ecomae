@@ -1318,9 +1318,7 @@ internal static class ErpLazySchema
         // Reconcile the legacy `code`/`part_inactive`/`created_at_utc` flavor of the items
         // table: CREATE covers fresh DBs, but a table created by another writer may already
         // exist without the canonical columns — add them and backfill from the old names.
-        var hadSku = await ErpDb.ColumnKnownAsync(c, "epc_erp_inv_items", "sku", ct).ConfigureAwait(false);
         var hadActive = await ErpDb.ColumnKnownAsync(c, "epc_erp_inv_items", "active", ct).ConfigureAwait(false);
-        var hadTimeCreated = await ErpDb.ColumnKnownAsync(c, "epc_erp_inv_items", "time_created", ct).ConfigureAwait(false);
         var hadPartInactive = await ErpDb.ColumnKnownAsync(c, "epc_erp_inv_items", "part_inactive", ct).ConfigureAwait(false);
 
         await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "sku", "varchar(64) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
@@ -1331,8 +1329,12 @@ internal static class ErpLazySchema
         await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "active", "tinyint(1) NOT NULL DEFAULT 1", ct).ConfigureAwait(false);
         await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "time_created", "int(11) NOT NULL DEFAULT 0", ct).ConfigureAwait(false);
 
-        if (!hadSku && await ErpDb.ColumnKnownAsync(c, "epc_erp_inv_items", "code", ct).ConfigureAwait(false))
+        // Unique key for upsert-by-sku — pre-existing duplicate skus make this fail, which TryExecuteAsync swallows.
+        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_inv_items` ADD UNIQUE KEY `x_sku` (`sku`)", ct).ConfigureAwait(false);
+
+        if (await ErpDb.ColumnKnownAsync(c, "epc_erp_inv_items", "code", ct).ConfigureAwait(false))
         {
+            // Repeat on every ensure — writers that still insert `code` leave sku empty otherwise.
             await ErpDb.TryExecuteAsync(c, "UPDATE `epc_erp_inv_items` SET `sku`=`code` WHERE `sku`='' AND `code`<>''", ct).ConfigureAwait(false);
         }
 
@@ -1341,7 +1343,7 @@ internal static class ErpLazySchema
             await ErpDb.TryExecuteAsync(c, "UPDATE `epc_erp_inv_items` SET `active`=1-IFNULL(`part_inactive`,0)", ct).ConfigureAwait(false);
         }
 
-        if (!hadTimeCreated && await ErpDb.ColumnKnownAsync(c, "epc_erp_inv_items", "created_at_utc", ct).ConfigureAwait(false))
+        if (await ErpDb.ColumnKnownAsync(c, "epc_erp_inv_items", "created_at_utc", ct).ConfigureAwait(false))
         {
             await ErpDb.TryExecuteAsync(c, "UPDATE `epc_erp_inv_items` SET `time_created`=UNIX_TIMESTAMP(`created_at_utc`) WHERE `time_created`=0 AND `created_at_utc` IS NOT NULL", ct).ConfigureAwait(false);
         }
