@@ -403,6 +403,7 @@ public sealed class ErpPimWorkspaceReadService : IErpPimWorkspaceReadService
             try
             {
                 await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+                await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
                 await using var command = connection.CreateCommand();
                 command.CommandText = ErpDb.Positional(spec.Sql);
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
