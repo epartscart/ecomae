@@ -244,6 +244,7 @@ public static class ErpControlledAccess
             ("/erp/warehouses", "inventory"),
             ("/erp/warehouse-wms", "inventory"),
             ("/erp/product-info", "inventory"),
+            ("/erp/pim/", "inventory"),
             ("/erp/production-overview", "inventory"),
             ("/erp/quality-app", "inventory"),
             ("/erp/order-planning", "inventory"),

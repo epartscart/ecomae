@@ -48,7 +48,7 @@ public sealed class ErpPimWorkspaceReadService : IErpPimWorkspaceReadService
         new Dictionary<string, PimSpec>(StringComparer.OrdinalIgnoreCase)
         {
             ["pim_variant_model"] = new(
-                ["Item", "Product", "Variants", "Variant labels"],
+                ["SKU", "Item", "Type", "Group", "Unit", "Price", "Active", "Variants", "Variant labels"],
                 "SELECT " + ItemCols + ", COUNT(v.`id`), LEFT(GROUP_CONCAT(v.`variant_label` ORDER BY v.`id` SEPARATOR ', '),200)" +
                 " FROM `epc_erp_prod_variants` v JOIN `epc_erp_inv_items` i ON i.`id` = v.`item_id`" +
                 " WHERE IFNULL(v.`active`,1) = 1 GROUP BY v.`item_id` ORDER BY i.`sku` LIMIT 200",
@@ -251,7 +251,7 @@ public sealed class ErpPimWorkspaceReadService : IErpPimWorkspaceReadService
             ["pim_lifecycle_hist"] = new(
                 ["Action", "Entity", "Id", "Summary", "When"],
                 "SELECT IFNULL(a.`action`,''), IFNULL(a.`entity_type`,''), IFNULL(a.`entity_id`,0)," +
-                " LEFT(IFNULL(a.`summary`,''),120), FROM_UNIXTIME(IFNULL(a.`time_created`,0))" +
+                " LEFT(IFNULL(a.`summary`,''),120), FROM_UNIXTIME(IFNULL(a.`time`,0))" +
                 " FROM `epc_erp_audit_log` a" +
                 " WHERE a.`entity_type` IN ('item','pim_field','product','variant','bom')" +
                 " ORDER BY a.`id` DESC LIMIT 100",

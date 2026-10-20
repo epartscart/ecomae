@@ -18,7 +18,8 @@ public sealed record ErpPimProductRow(
     string Barcode,
     decimal ReorderLevel,
     bool TrackExpiry,
-    bool Active);
+    bool Active,
+    int Provided);
 
 public sealed record ErpPimProductUploadResult(
     bool Ok,
@@ -105,16 +106,25 @@ public sealed class ErpPimProductUploadService : IErpPimProductUploadService
                     "`purchase_unit`,`sales_unit`,`sales_price`,`costing_method`,`barcode`,`reorder_level`," +
                     "`track_expiry`,`active`,`time_created`)" +
                     " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)" +
-                    " ON DUPLICATE KEY UPDATE `name`=VALUES(`name`),`item_type`=VALUES(`item_type`)," +
-                    "`product_type`=VALUES(`product_type`),`item_group`=VALUES(`item_group`),`unit`=VALUES(`unit`)," +
-                    "`purchase_unit`=VALUES(`purchase_unit`),`sales_unit`=VALUES(`sales_unit`)," +
-                    "`sales_price`=VALUES(`sales_price`),`costing_method`=VALUES(`costing_method`)," +
-                    "`barcode`=VALUES(`barcode`),`reorder_level`=VALUES(`reorder_level`)," +
-                    "`track_expiry`=VALUES(`track_expiry`),`active`=VALUES(`active`)");
+                    " ON DUPLICATE KEY UPDATE `name`=VALUES(`name`)," +
+                    "`item_type`=IF((? & 1)<>0,VALUES(`item_type`),`item_type`)," +
+                    "`product_type`=IF((? & 2)<>0,VALUES(`product_type`),`product_type`)," +
+                    "`item_group`=IF((? & 4)<>0,VALUES(`item_group`),`item_group`)," +
+                    "`unit`=IF((? & 8)<>0,VALUES(`unit`),`unit`)," +
+                    "`purchase_unit`=IF((? & 16)<>0,VALUES(`purchase_unit`),`purchase_unit`)," +
+                    "`sales_unit`=IF((? & 32)<>0,VALUES(`sales_unit`),`sales_unit`)," +
+                    "`sales_price`=IF((? & 64)<>0,VALUES(`sales_price`),`sales_price`)," +
+                    "`costing_method`=IF((? & 128)<>0,VALUES(`costing_method`),`costing_method`)," +
+                    "`barcode`=IF((? & 256)<>0,VALUES(`barcode`),`barcode`)," +
+                    "`reorder_level`=IF((? & 512)<>0,VALUES(`reorder_level`),`reorder_level`)," +
+                    "`track_expiry`=IF((? & 1024)<>0,VALUES(`track_expiry`),`track_expiry`)," +
+                    "`active`=IF((? & 2048)<>0,VALUES(`active`),`active`)");
                 ErpDb.AddParameters(command,
                     row.Sku, row.Name, row.ItemType, row.ProductType, row.ItemGroup, row.Unit,
                     row.PurchaseUnit, row.SalesUnit, row.SalesPrice, row.CostingMethod, row.Barcode,
-                    row.ReorderLevel, row.TrackExpiry ? 1 : 0, row.Active ? 1 : 0, now);
+                    row.ReorderLevel, row.TrackExpiry ? 1 : 0, row.Active ? 1 : 0, now,
+                    row.Provided, row.Provided, row.Provided, row.Provided, row.Provided, row.Provided,
+                    row.Provided, row.Provided, row.Provided, row.Provided, row.Provided, row.Provided);
                 var affected = await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                 // INSERT ... ON DUPLICATE KEY UPDATE returns 1 for insert, 2 for update.
                 if (affected == 1) inserted++;
@@ -183,6 +193,12 @@ public sealed class ErpPimProductUploadService : IErpPimProductUploadService
                 continue;
             }
 
+            var provided = 0;
+            for (var c = 2; c <= 13; c++)
+            {
+                if (Cell(c).Length > 0) provided |= 1 << (c - 2);
+            }
+
             var itemType = Cell(2).ToLowerInvariant();
             if (itemType.Length == 0) itemType = "standard";
             if (itemType is not ("standard" or "perishable" or "serialized"))
@@ -193,6 +209,18 @@ public sealed class ErpPimProductUploadService : IErpPimProductUploadService
 
             var productType = Cell(3).ToLowerInvariant();
             if (productType.Length == 0) productType = "item";
+
+            if (Cell(8).Length > 0 && !decimal.TryParse(Cell(8), NumberStyles.Any, CultureInfo.InvariantCulture, out _))
+            {
+                errors.Add("Row " + lineNo + " (" + sku + "): sales_price must be a number.");
+                continue;
+            }
+
+            if (Cell(11).Length > 0 && !decimal.TryParse(Cell(11), NumberStyles.Any, CultureInfo.InvariantCulture, out _))
+            {
+                errors.Add("Row " + lineNo + " (" + sku + "): reorder_level must be a number.");
+                continue;
+            }
 
             if (!decimal.TryParse(Cell(8), NumberStyles.Any, CultureInfo.InvariantCulture, out var price)) price = 0;
             if (!decimal.TryParse(Cell(11), NumberStyles.Any, CultureInfo.InvariantCulture, out var reorder)) reorder = 0;
@@ -219,7 +247,8 @@ public sealed class ErpPimProductUploadService : IErpPimProductUploadService
                 Cell(10).Length > 128 ? Cell(10)[..128] : Cell(10),
                 reorder,
                 trackExpiry,
-                active));
+                active,
+                provided));
         }
 
         if (rows.Count > MaxRows)

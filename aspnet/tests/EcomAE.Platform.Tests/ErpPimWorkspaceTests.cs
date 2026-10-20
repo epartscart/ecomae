@@ -67,6 +67,24 @@ public class ErpPimWorkspaceTests
     }
 
     [Fact]
+    public void Upload_PartialRow_OnlyProvidesGivenColumns()
+    {
+        var (rows, errors) = ErpPimProductUploadService.Parse("A-1,Only name\nB-2,With price,,,,,,,99.5");
+        Assert.Empty(errors);
+        Assert.Equal(0, rows[0].Provided & 4095);          // no optional column given
+        Assert.Equal(64, rows[1].Provided & 64);           // sales_price given
+        Assert.Equal(0, rows[1].Provided & ~64 & 4095);    // nothing else
+    }
+
+    [Fact]
+    public void Upload_MalformedNumber_IsErrorNotZero()
+    {
+        var (rows, errors) = ErpPimProductUploadService.Parse("A-1,Name,,,,,,,abc");
+        Assert.Empty(rows);
+        Assert.Contains(errors, e => e.Contains("sales_price"));
+    }
+
+    [Fact]
     public void Upload_RejectsMissingSkuAndDuplicate()
     {
         var (rows, errors) = ErpPimProductUploadService.Parse(
