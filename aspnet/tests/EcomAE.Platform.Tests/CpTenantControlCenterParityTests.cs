@@ -169,7 +169,7 @@ public sealed class CpTenantControlCenterParityTests
     private static CpTenantControlRow Row(string type)
         => new(
             "key", "host", "Trade", type, CpTenantControlCenterService.TypeLabel(type),
-            CpTenantControlCenterService.BadgeClass(type), "db", "", "active", "active", "", "", "", "",
+            CpTenantControlCenterService.BadgeClass(type), "db", "", "active", "active", "", "", "", "", "",
             true, true, false, false, false, type.StartsWith("demo", StringComparison.Ordinal));
 
     private sealed class UnconfiguredConnections : EcomAE.Platform.Erp.IErpWriteConnectionFactory

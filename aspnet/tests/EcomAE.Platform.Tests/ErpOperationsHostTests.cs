@@ -1,5 +1,6 @@
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Cp;
+using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Services;
@@ -40,6 +41,7 @@ public sealed class ErpOperationsHostTests
     [InlineData("indj.operations.uae.ecomae.com.evil.test")]
     [InlineData("indj.ops.uae.ecomae.com")]
     [InlineData("indj.operations.ae.ecomae.com")]
+    [InlineData("acme-uk.operations.uae.ecomae.com")]
     [InlineData("localhost")]
     [InlineData("")]
     [InlineData(null)]
@@ -185,6 +187,58 @@ public sealed class ErpOperationsHostTests
         var active = ErpHostContext.ActiveCompanyFromQuery(companies, http.Request);
 
         Assert.Equal(1, active!.Id);
+    }
+
+    [Fact]
+    public async Task RewriteMiddleware_OperationsHostRoot_BecomesErpHome()
+    {
+        var middleware = new ClientErpPathRewriteMiddleware(ctx =>
+        {
+            ctx.Items["seen"] = ctx.Request.Path.Value;
+            return Task.CompletedTask;
+        });
+        var http = new DefaultHttpContext();
+        http.Request.Host = new HostString("indj.operations.uae.ecomae.com");
+        http.Request.Path = "/";
+
+        await middleware.InvokeAsync(http);
+
+        Assert.Equal("/erp", http.Items["seen"]);
+        Assert.Equal("indj", http.Response.Headers["X-EcomAE-Operations-Host"].ToString());
+    }
+
+    [Fact]
+    public async Task RewriteMiddleware_OperationsHostNonRootPath_Untouched()
+    {
+        var middleware = new ClientErpPathRewriteMiddleware(ctx =>
+        {
+            ctx.Items["seen"] = ctx.Request.Path.Value;
+            return Task.CompletedTask;
+        });
+        var http = new DefaultHttpContext();
+        http.Request.Host = new HostString("asap.operations.uae.ecomae.com");
+        http.Request.Path = "/erp/finance-app";
+
+        await middleware.InvokeAsync(http);
+
+        Assert.Equal("/erp/finance-app", http.Items["seen"]);
+    }
+
+    [Fact]
+    public async Task RewriteMiddleware_SuperHostRoot_Untouched()
+    {
+        var middleware = new ClientErpPathRewriteMiddleware(ctx =>
+        {
+            ctx.Items["seen"] = ctx.Request.Path.Value;
+            return Task.CompletedTask;
+        });
+        var http = new DefaultHttpContext();
+        http.Request.Host = new HostString("www.ecomae.com");
+        http.Request.Path = "/";
+
+        await middleware.InvokeAsync(http);
+
+        Assert.Equal("/", http.Items["seen"]);
     }
 
     private static IOptions<EcomAeOptions> EmptyOptions()

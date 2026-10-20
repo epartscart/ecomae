@@ -27,9 +27,14 @@ public static class ErpOperationsHost
             return false;
         }
 
-        siteKey = ClientErpPath.NormalizeSiteKey(match.Groups["slug"].Value);
-        if (siteKey.Length == 0)
+        var slug = match.Groups["slug"].Value.ToLowerInvariant();
+        siteKey = ClientErpPath.NormalizeSiteKey(slug);
+        // Site keys never contain '-' (NormalizeSiteKey strips them): a hyphenated
+        // slug would silently bind a *different* tenant (acme-uk → acmeuk), so
+        // canonical hosts only ever use [a-z0-9_]. Anything else is not ours.
+        if (siteKey.Length == 0 || siteKey != slug)
         {
+            siteKey = string.Empty;
             return false;
         }
 

@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Cp;
 
@@ -32,6 +33,7 @@ public sealed record CpTenantControlRow(
     string StorefrontUrl,
     string CpUrl,
     string ErpLoginUrl,
+    string ErpOperationsUrl,
     bool InRegistry,
     bool IsActive,
     bool DemoExpired,
@@ -304,6 +306,9 @@ public sealed class CpTenantControlCenterService : ICpTenantControlCenterService
             var demoExpired = isDemo && expires > 0 && expires < now;
             var status = Text(reader, "status");
             var (storefront, cp, erp) = Urls(type, siteKey, hostname);
+            var operationsUrl = type == "erp_only" && siteKey.Length > 0
+                ? ErpOperationsHost.CanonicalUrl(siteKey, null, "/")
+                : string.Empty;
 
             rows.Add(new CpTenantControlRow(
                 siteKey,
@@ -320,6 +325,7 @@ public sealed class CpTenantControlCenterService : ICpTenantControlCenterService
                 storefront,
                 cp,
                 erp,
+                operationsUrl,
                 true,
                 isActive,
                 demoExpired,
