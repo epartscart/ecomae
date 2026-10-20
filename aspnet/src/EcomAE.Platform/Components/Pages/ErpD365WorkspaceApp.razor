@@ -472,7 +472,7 @@
                         <input type="hidden" name="returnUrl" value="@PageHref(_page)" />
                         <input type="hidden" name="csrf_guard_key" value="@_csrf" />
                         <label>CSV
-                            <textarea class="form-control" name="csv" rows="10" style="font-family:monospace" placeholder="sku,name,item_type,unit,item_group,barcode,sales_price,active&#10;BRG-6203,Ball bearing 6203,standard,pcs,fasteners,8714101000,45.00,1"></textarea>
+                            <textarea class="form-control" name="csv" rows="10" style="font-family:monospace" placeholder="sku,name,item_type,product_type,item_group,unit,purchase_unit,sales_unit,sales_price,costing_method,barcode,reorder_level,track_expiry,active&#10;BRG-6203,Ball bearing 6203,standard,item,fasteners,pcs,pcs,pcs,45.00,average,8714101000,10,0,1"></textarea>
                         </label>
                         <div class="form-actions">
                             <button type="submit" class="btn btn-default btn-sm" name="confirmWrites" value="">Preview (dry run)</button>
