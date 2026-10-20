@@ -1041,9 +1041,7 @@
                 _isSuperHost,
                 _ctx.BrandLabel);
 
-            var activeQ = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request);
-            var active = companies.FirstOrDefault(c => activeQ is > 0 && c.Id == activeQ)
-                ?? companies.FirstOrDefault();
+            var active = ErpHostContext.ActiveCompanyFromQuery(companies, ctx.Request);
             if (active is not null)
             {
                 _activeCompanyId = active.Id;

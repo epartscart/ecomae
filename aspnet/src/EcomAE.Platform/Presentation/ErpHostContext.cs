@@ -72,6 +72,16 @@ public static class ErpHostContext
             return company;
         }
 
+        // D365 parity: ?cmp= is the legal-entity selector on operations hosts
+        // (tenant.operations.uae.ecomae.com/?cmp=indj). Named keys also work, so
+        // ?cmp=asag and ?cmp=2 both resolve a legal entity.
+        if (request.Query.TryGetValue("cmp", out var cmpVals)
+            && int.TryParse(cmpVals.FirstOrDefault(), out var cmp)
+            && cmp > 0)
+        {
+            return cmp;
+        }
+
         if (request.Query.TryGetValue("companyId", out var companyIdVals)
             && int.TryParse(companyIdVals.FirstOrDefault(), out var companyId)
             && companyId > 0)
@@ -80,6 +90,41 @@ public static class ErpHostContext
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Resolve the active legal entity honouring <c>?company=</c>/<c>?companyId=</c> ids
+    /// and the D365-style <c>?cmp=</c> selector — numeric values match the entity id,
+    /// anything else matches the entity code (<c>cmp=indj</c>, <c>cmp=asag</c>).
+    /// Falls back to the lowest-id entity, like PHP.
+    /// </summary>
+    public static ErpCompanyDigest? ActiveCompanyFromQuery(
+        IReadOnlyList<ErpCompanyDigest>? companies,
+        HttpRequest? request)
+    {
+        if (companies is null || companies.Count == 0)
+        {
+            return null;
+        }
+
+        var id = ActiveCompanyIdFromQuery(request);
+        if (id is > 0)
+        {
+            return companies.FirstOrDefault(c => c.Id == id.Value) ?? companies[0];
+        }
+
+        var cmp = request?.Query.TryGetValue("cmp", out var cmpVals) == true
+            ? cmpVals.ToString().Trim()
+            : null;
+        if (!string.IsNullOrWhiteSpace(cmp))
+        {
+            return companies.FirstOrDefault(c =>
+                       string.Equals(c.Code, cmp, StringComparison.OrdinalIgnoreCase)
+                       || string.Equals(c.Name, cmp, StringComparison.OrdinalIgnoreCase))
+                   ?? companies[0];
+        }
+
+        return companies[0];
     }
 
     /// <summary>
