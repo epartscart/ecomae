@@ -1098,6 +1098,8 @@ public static class EcomAeRoutes
     public const string ErpProductInfoCreateItemForm = "/erp/product-info/create-item";
     /// <summary>PIM attributes tab form POST (<c>pinfo_action</c> = create/deactivate field, add/remove option). Needs <c>confirmWrites=true</c>.</summary>
     public const string ErpProductInfoPimAction = "/erp/product-info/pim";
+    /// <summary>PIM workspace "Product upload" form POST — CSV import into <c>epc_erp_inv_items</c>; dry-run unless <c>confirmWrites=true</c>.</summary>
+    public const string ErpPimProductUpload = "/erp/pim/product-upload";
     /// <summary>Syncron inventory policy page: recommendations, policies, forecast and service levels.</summary>
     public const string ErpSyncronApp = "/erp/syncron-app";
     /// <summary>
