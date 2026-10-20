@@ -946,7 +946,7 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
             cancellationToken);
 
     /// <summary>Subset of PHP <c>epc_erp_ensure_schema</c> for the cash/bank account master.</summary>
-    private static async Task EnsureCashAccountSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+    internal static async Task EnsureCashAccountSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         await ErpDb.TryExecuteAsync(
             connection,
@@ -969,6 +969,20 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
 
         // PHP adds these through epc_erp_schema_add_column_if_missing for tenant
         // databases created before treasury/multi-entity fields existed.
+        // One cheap probe first: if the last column exists, all of them do —
+        // otherwise each caller would retry fourteen failing ALTERs per request.
+        var columnsDone = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "SELECT COUNT(*) FROM information_schema.columns"
+                + " WHERE table_schema=DATABASE() AND table_name='epc_erp_cash_bank_accounts' AND column_name='notes'"),
+            cancellationToken).ConfigureAwait(false);
+        if (columnsDone > 0)
+        {
+            return;
+        }
+
         foreach (var column in new[]
         {
             "`coa_id` int(11) NOT NULL DEFAULT 0",
