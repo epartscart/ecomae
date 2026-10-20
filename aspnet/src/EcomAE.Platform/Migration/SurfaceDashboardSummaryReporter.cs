@@ -338,18 +338,18 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         DbConnection connection,
         CancellationToken cancellationToken)
     {
-        var requested = ErpHostContext.ActiveCompanyIdFromQuery(_httpContextAccessor?.HttpContext?.Request);
-        var ids = new List<int>();
+        var request = _httpContextAccessor?.HttpContext?.Request;
+        var companies = new List<ErpCompanyDigest>();
         if (ErpFirstPaint.TryGetRequestCache(
                 _httpContextAccessor?.HttpContext,
                 ErpFirstPaint.CompaniesCacheKey + ":50",
                 out ErpCompaniesDigestResult? cachedCompanies)
             && cachedCompanies is not null)
         {
-            ids.AddRange(cachedCompanies.Companies.Select(c => (int)c.Id));
+            companies.AddRange(cachedCompanies.Companies);
         }
 
-        if (ids.Count == 0)
+        if (companies.Count == 0)
         {
             try
             {
@@ -360,7 +360,14 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    ids.Add(Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture));
+                    companies.Add(new ErpCompanyDigest(
+                        Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["currency_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["country_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        string.Empty,
+                        true));
                 }
             }
             catch
@@ -368,6 +375,13 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 // companies table optional — PHP resolve returns 0 (unscoped)
             }
         }
+
+        var ids = companies.Select(c => (int)c.Id).ToList();
+        // ?cmp=<code> selects the legal entity exactly like the dashboard chrome does;
+        // without it the ledger scope would stay on MAIN while the header says INDJ.
+        var requested = ErpHostContext.ActiveCompanyFromQuery(companies, request)?.Id is long resolvedId
+            ? (int?)resolvedId
+            : null;
 
         if (!await HasGlJournalCompanyIdAsync(connection, cancellationToken).ConfigureAwait(false))
         {
@@ -18254,8 +18268,18 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return string.Empty;
         }
 
-        var company = ErpHostContext.ActiveCompanyIdFromQuery(_httpContextAccessor.HttpContext.Request) ?? 0;
-        return "home:" + database + ":" + company.ToString(CultureInfo.InvariantCulture) + ":" + periodFrom;
+        var request = _httpContextAccessor.HttpContext.Request;
+        var company = ErpHostContext.ActiveCompanyIdFromQuery(request) ?? 0;
+        // Named selectors (?cmp=indj) resolve to a different entity than the
+        // default one, so they must not share the "0" cache entry — key on the
+        // raw selector when no numeric id was resolved.
+        var selector = company > 0
+            ? company.ToString(CultureInfo.InvariantCulture)
+            : "sel:" + string.Join('|',
+                request.Query["company"].ToString().Trim(),
+                request.Query["companyId"].ToString().Trim(),
+                request.Query["cmp"].ToString().Trim());
+        return "home:" + database + ":" + selector + ":" + periodFrom;
     }
 
     private string CompaniesHotKey(int limit)

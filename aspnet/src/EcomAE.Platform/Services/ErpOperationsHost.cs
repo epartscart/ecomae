@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace EcomAE.Platform.Services;
@@ -27,9 +28,14 @@ public static class ErpOperationsHost
             return false;
         }
 
-        siteKey = ClientErpPath.NormalizeSiteKey(match.Groups["slug"].Value);
-        if (siteKey.Length == 0)
+        var slug = match.Groups["slug"].Value.ToLowerInvariant();
+        siteKey = ClientErpPath.NormalizeSiteKey(slug);
+        // Site keys never contain '-' (NormalizeSiteKey strips them): a hyphenated
+        // slug would silently bind a *different* tenant (acme-uk → acmeuk), so
+        // canonical hosts only ever use [a-z0-9_]. Anything else is not ours.
+        if (siteKey.Length == 0 || siteKey != slug)
         {
+            siteKey = string.Empty;
             return false;
         }
 
@@ -40,23 +46,45 @@ public static class ErpOperationsHost
     public static bool IsOperationsHost(string? host)
         => HostPattern.IsMatch(host ?? string.Empty);
 
-    /// <summary>Canonical operations host for a tenant site key.</summary>
+    /// <summary>
+    /// True when a normalized site key can live in a DNS host label — only
+    /// [a-z0-9]. Keys containing '_' (e.g. fit_out) can never be an operations
+    /// host: DNS would not resolve them and TryParse rightly rejects them.
+    /// </summary>
+    public static bool IsValidSlug(string siteKey)
+    {
+        var key = ClientErpPath.NormalizeSiteKey(siteKey);
+        return key.Length > 0 && key.All(c => c is >= 'a' and <= 'z' or >= '0' and <= '9');
+    }
+
+    /// <summary>Canonical operations host for a tenant site key, or empty when the key is not host-safe.</summary>
     public static string HostFor(string siteKey, string? country = null)
     {
+        if (!IsValidSlug(siteKey))
+        {
+            return string.Empty;
+        }
+
         var key = ClientErpPath.NormalizeSiteKey(siteKey);
         var shard = string.IsNullOrWhiteSpace(country) ? DefaultCountry : country.Trim().ToLowerInvariant();
         return $"{key}.operations.{shard}.ecomae.com";
     }
 
-    /// <summary>Canonical absolute URL for a tenant path, e.g. https://indj.operations.uae.ecomae.com/erp.</summary>
+    /// <summary>Canonical absolute URL for a tenant path, e.g. https://indj.operations.uae.ecomae.com/erp. Empty when the key is not host-safe.</summary>
     public static string CanonicalUrl(string siteKey, string? country, string path)
     {
+        var host = HostFor(siteKey, country);
+        if (host.Length == 0)
+        {
+            return string.Empty;
+        }
+
         var bare = ClientErpPath.NormalizeRequestPath(path);
         if (bare == "/")
         {
             bare = "/erp";
         }
 
-        return $"https://{HostFor(siteKey, country)}{bare}";
+        return $"https://{host}{bare}";
     }
 }

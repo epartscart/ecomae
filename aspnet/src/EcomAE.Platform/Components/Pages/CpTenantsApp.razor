@@ -294,7 +294,11 @@
                                     {
                                         <a class="small" href="@t.ErpLoginUrl" target="_blank" rel="noopener">@t.ErpLoginUrl</a>
                                     }
-                                    else
+                                    @if (!string.IsNullOrWhiteSpace(t.ErpOperationsUrl))
+                                    {
+                                        <a class="small" href="@t.ErpOperationsUrl" target="_blank" rel="noopener" title="Dedicated operations host (D365-style)">@t.ErpOperationsUrl</a>
+                                    }
+                                    @if (string.IsNullOrWhiteSpace(t.ErpLoginUrl) && string.IsNullOrWhiteSpace(t.ErpOperationsUrl))
                                     {
                                         <span class="text-muted">—</span>
                                     }
@@ -341,6 +345,10 @@
                                     @if (!string.IsNullOrWhiteSpace(t.ErpLoginUrl))
                                     {
                                         <a class="btn btn-xs btn-info" target="_blank" rel="noopener" href="@t.ErpLoginUrl">ERP</a>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(t.ErpOperationsUrl))
+                                    {
+                                        <a class="btn btn-xs btn-info" target="_blank" rel="noopener" href="@t.ErpOperationsUrl" title="Dedicated operations host">Ops host</a>
                                     }
                                 </td>
                                 <td>
