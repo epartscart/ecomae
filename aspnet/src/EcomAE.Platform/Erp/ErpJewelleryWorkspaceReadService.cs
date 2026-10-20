@@ -56,7 +56,8 @@ public sealed class ErpJewelleryWorkspaceReadService : IErpJewelleryWorkspaceRea
         var met = string.IsNullOrWhiteSpace(metal) ? "" : metal.Trim();
         snapshot.Metals = await LoadMetalsAsync(connection, cancellationToken).ConfigureAwait(false);
 
-        var salesTypes = string.Join("','", ErpJwVocTypes.SalesAnalysisAliases);
+        var salesTypes = string.Join("','", ErpJwVocTypes.SalesAnalysisAliases
+            .Concat(ErpJwVocTypes.RetailAliases).Concat(ErpJwVocTypes.MetalSaleAliases).Distinct(StringComparer.Ordinal));
         var purchaseTypes = string.Join("','", ErpJwVocTypes.MetalPurchaseAliases.Concat(ErpJwVocTypes.DiamondPurchaseAliases));
 
         snapshot.Kpis =
