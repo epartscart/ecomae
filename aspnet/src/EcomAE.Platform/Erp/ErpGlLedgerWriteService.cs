@@ -946,7 +946,7 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
             cancellationToken);
 
     /// <summary>Subset of PHP <c>epc_erp_ensure_schema</c> for the cash/bank account master.</summary>
-    private static async Task EnsureCashAccountSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+    internal static async Task EnsureCashAccountSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         await ErpDb.TryExecuteAsync(
             connection,

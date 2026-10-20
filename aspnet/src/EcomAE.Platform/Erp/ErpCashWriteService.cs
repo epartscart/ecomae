@@ -1498,6 +1498,9 @@ public sealed class ErpCashWriteService : IErpCashWriteService
     /// <summary>Subset of PHP <c>epc_erp_ensure_schema</c> / <c>epc_erp_vouchers_ensure_schema</c> for the cash tables.</summary>
     internal static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
+        // AssertAccount reads the accounts master; it is created lazily by the
+        // cash-accounts create flow, so ensure it here or voucher writes 500.
+        await ErpGlLedgerWriteService.EnsureCashAccountSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(
             connection,
             "CREATE TABLE IF NOT EXISTS `epc_erp_cash_bank_entries` ("
