@@ -149,3 +149,20 @@ public class ErpApWorkspaceTests
         }
     }
 }
+
+public class ErpArWorkspaceTests
+{
+    [Fact]
+    public void Specs_AreKnownTabs()
+    {
+        var generic = ErpD365WorkspaceCatalog.ForArea("ar")
+            .Where(p => p.ExistingHref is null)
+            .Select(p => p.Tab)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var tab in ErpArWorkspaceSpecs.Tabs.Keys)
+        {
+            Assert.True(generic.Contains(tab), $"{tab} is not a generic ar tab in the catalog");
+        }
+    }
+}
