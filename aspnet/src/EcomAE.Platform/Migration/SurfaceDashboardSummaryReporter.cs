@@ -4854,24 +4854,39 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 """;
             BindArticleCandidates(command, batch);
 
-            var matchedAny = false;
+            // Norms the indexed columns resolved for this batch. A query value equals either
+            // norm(article) or norm(article_show) of every returned row — recording both lets us
+            // re-check only the values the indexed columns missed (rows imported since the last
+            // backfill) instead of re-scanning for the whole batch.
+            var hitNorms = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var readerAttempts = useIndexedMatch ? 2 : 1;
             for (var attempt = 0; attempt < readerAttempts; attempt++)
             {
                 if (attempt == 1)
                 {
-                    // Indexed columns are only as fresh as the last backfill; a batch that found
-                    // nothing may hide rows imported since — same REPLACE re-check PHP does on miss.
-                    command.CommandText = command.CommandText.Replace(
-                        LegacySurfaceDashboardSql.StorefrontPriceArticleIndexedShowSearchInSql(batch.Count),
-                        LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(batch.Count),
-                        StringComparison.Ordinal);
+                    var missing = batch.Where(n => !hitNorms.Contains(n)).ToList();
+                    if (missing.Count == 0)
+                    {
+                        break;
+                    }
+
+                    command.CommandText = $"""
+                        SELECT d.`manufacturer`, d.`article`, d.`article_show`, d.`name`,
+                               d.`price`, d.`exist`, d.`time_to_exe`, d.`price_id`
+                        FROM `shop_docpart_prices_data` d
+                        WHERE {LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(missing.Count)}
+                          AND IFNULL(d.`price`, 0) > 0
+                          AND IFNULL(d.`exist`, 0) > 0
+                        ORDER BY d.`manufacturer`, d.`article`
+                        LIMIT 800
+                        """;
+                    command.Parameters.Clear();
+                    BindArticleCandidates(command, missing);
                 }
 
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    matchedAny = true;
                     var manufacturer = Convert.ToString(reader["manufacturer"] is DBNull ? string.Empty : reader["manufacturer"], CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
                     var articleRaw = Convert.ToString(reader["article"] is DBNull ? string.Empty : reader["article"], CultureInfo.InvariantCulture) ?? string.Empty;
                     var articleShow = Convert.ToString(reader["article_show"] is DBNull ? string.Empty : reader["article_show"], CultureInfo.InvariantCulture) ?? string.Empty;
@@ -4880,8 +4895,19 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     var exist = Convert.ToDecimal(reader["exist"] is DBNull ? 0m : reader["exist"], CultureInfo.InvariantCulture);
                     var delivery = Convert.ToString(reader["time_to_exe"] is DBNull ? string.Empty : reader["time_to_exe"], CultureInfo.InvariantCulture) ?? string.Empty;
                     var priceId = Convert.ToInt32(reader["price_id"] is DBNull ? 0 : reader["price_id"], CultureInfo.InvariantCulture);
-                    var articleNorm = PriceLookupRequest.NormalizeArticle(
-                        string.IsNullOrWhiteSpace(articleShow) ? articleRaw : articleShow);
+                    var normA = PriceLookupRequest.NormalizeArticle(articleRaw);
+                    var normS = PriceLookupRequest.NormalizeArticle(articleShow);
+                    if (normA.Length > 0)
+                    {
+                        hitNorms.Add(normA);
+                    }
+
+                    if (normS.Length > 0)
+                    {
+                        hitNorms.Add(normS);
+                    }
+
+                    var articleNorm = string.IsNullOrWhiteSpace(articleShow) ? normA : normS;
                     if (manufacturer.Length == 0 || articleNorm.Length == 0 || !seenNorm.Contains(articleNorm))
                     {
                         continue;
@@ -4910,11 +4936,6 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 {
                     break;
                 }
-                }
-
-                if (matchedAny)
-                {
-                    break;
                 }
             }
         }
@@ -5016,20 +5037,18 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             .Replace(".", string.Empty, StringComparison.Ordinal);
     }
 
-    private int? _priceArticleSearchColumnState; // null=unknown, 1=yes, -1=no
-    private int? _priceArticleShowSearchColumnState;
-    private int? _analogsSearchColumnState;
+    // Column-presence probes are cached per database: one reporter instance can serve
+    // several tenant DBs, and a column present on one shop DB is not present on all.
+    private readonly Dictionary<string, int> _priceArticleSearchColumnState = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, int> _priceArticleShowSearchColumnState = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, int> _analogsSearchColumnState = new(StringComparer.OrdinalIgnoreCase);
 
     private async Task<bool> ProbePriceArticleSearchColumnAsync(DbConnection connection, CancellationToken cancellationToken)
     {
-        if (_priceArticleSearchColumnState is 1)
+        var db = connection.Database ?? string.Empty;
+        if (_priceArticleSearchColumnState.TryGetValue(db, out var cached))
         {
-            return true;
-        }
-
-        if (_priceArticleSearchColumnState is -1)
-        {
-            return false;
+            return cached is 1;
         }
 
         try
@@ -5037,26 +5056,22 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var command = connection.CreateCommand();
             command.CommandText = "SELECT `article_search` FROM `shop_docpart_prices_data` LIMIT 1";
             await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-            _priceArticleSearchColumnState = 1;
+            _priceArticleSearchColumnState[db] = 1;
             return true;
         }
         catch
         {
-            _priceArticleSearchColumnState = -1;
+            _priceArticleSearchColumnState[db] = -1;
             return false;
         }
     }
 
     private async Task<bool> ProbePriceArticleShowSearchColumnAsync(DbConnection connection, CancellationToken cancellationToken)
     {
-        if (_priceArticleShowSearchColumnState is 1)
+        var db = connection.Database ?? string.Empty;
+        if (_priceArticleShowSearchColumnState.TryGetValue(db, out var cached))
         {
-            return true;
-        }
-
-        if (_priceArticleShowSearchColumnState is -1)
-        {
-            return false;
+            return cached is 1;
         }
 
         try
@@ -5064,26 +5079,22 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var command = connection.CreateCommand();
             command.CommandText = "SELECT `article_show_search` FROM `shop_docpart_prices_data` LIMIT 1";
             await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-            _priceArticleShowSearchColumnState = 1;
+            _priceArticleShowSearchColumnState[db] = 1;
             return true;
         }
         catch
         {
-            _priceArticleShowSearchColumnState = -1;
+            _priceArticleShowSearchColumnState[db] = -1;
             return false;
         }
     }
 
     private async Task<bool> ProbeAnalogsSearchColumnsAsync(DbConnection connection, CancellationToken cancellationToken)
     {
-        if (_analogsSearchColumnState is 1)
+        var db = connection.Database ?? string.Empty;
+        if (_analogsSearchColumnState.TryGetValue(db, out var cached))
         {
-            return true;
-        }
-
-        if (_analogsSearchColumnState is -1)
-        {
-            return false;
+            return cached is 1;
         }
 
         try
@@ -5091,12 +5102,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var command = connection.CreateCommand();
             command.CommandText = "SELECT `article_search`, `analog_search` FROM `shop_docpart_articles_analogs_list` LIMIT 1";
             await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-            _analogsSearchColumnState = 1;
+            _analogsSearchColumnState[db] = 1;
             return true;
         }
         catch
         {
-            _analogsSearchColumnState = -1;
+            _analogsSearchColumnState[db] = -1;
             return false;
         }
     }
