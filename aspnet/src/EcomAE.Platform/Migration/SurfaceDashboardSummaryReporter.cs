@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Data.Common;
 using System.Globalization;
 using System.Linq;
@@ -4839,6 +4840,13 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             // instead — index seeks instead of a 15-REPLACE full-table scan per batch.
             var useIndexedMatch = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false)
                 && await ProbePriceArticleShowSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
+            // The indexed clause is complete only while the table is fully backfilled. Rows
+            // imported after the last backfill have empty search columns and are invisible to
+            // it — so when any unbackfilled row exists, re-check the whole batch with the
+            // REPLACE expression. A norm-level exclusion is NOT safe: an indexed hit for a
+            // norm doesn't prove an unbackfilled offer for the same norm doesn't exist.
+            var replaceFallback = useIndexedMatch
+                && await ProbePriceTableUnbackfilledOffersAsync(connection, cancellationToken).ConfigureAwait(false);
             var articleMatch = useIndexedMatch
                 ? LegacySurfaceDashboardSql.StorefrontPriceArticleIndexedShowSearchInSql(batch.Count)
                 : LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(batch.Count);
@@ -4854,34 +4862,26 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 """;
             BindArticleCandidates(command, batch);
 
-            // Norms the indexed columns resolved for this batch. A query value equals either
-            // norm(article) or norm(article_show) of every returned row — recording both lets us
-            // re-check only the values the indexed columns missed (rows imported since the last
-            // backfill) instead of re-scanning for the whole batch.
-            var hitNorms = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var readerAttempts = useIndexedMatch ? 2 : 1;
+            var readerAttempts = replaceFallback ? 2 : 1;
             for (var attempt = 0; attempt < readerAttempts; attempt++)
             {
                 if (attempt == 1)
                 {
-                    var missing = batch.Where(n => !hitNorms.Contains(n)).ToList();
-                    if (missing.Count == 0)
-                    {
-                        break;
-                    }
-
+                    // Unbackfilled rows can match ANY batch value — re-check the whole batch.
+                    // Rows already collected are deduplicated by the `best` dictionary (keeps
+                    // the lower price), so overlap with attempt 0 is harmless.
                     command.CommandText = $"""
                         SELECT d.`manufacturer`, d.`article`, d.`article_show`, d.`name`,
                                d.`price`, d.`exist`, d.`time_to_exe`, d.`price_id`
                         FROM `shop_docpart_prices_data` d
-                        WHERE {LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(missing.Count)}
+                        WHERE {LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(batch.Count)}
                           AND IFNULL(d.`price`, 0) > 0
                           AND IFNULL(d.`exist`, 0) > 0
                         ORDER BY d.`manufacturer`, d.`article`
                         LIMIT 800
                         """;
                     command.Parameters.Clear();
-                    BindArticleCandidates(command, missing);
+                    BindArticleCandidates(command, batch);
                 }
 
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -4897,16 +4897,6 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     var priceId = Convert.ToInt32(reader["price_id"] is DBNull ? 0 : reader["price_id"], CultureInfo.InvariantCulture);
                     var normA = PriceLookupRequest.NormalizeArticle(articleRaw);
                     var normS = PriceLookupRequest.NormalizeArticle(articleShow);
-                    if (normA.Length > 0)
-                    {
-                        hitNorms.Add(normA);
-                    }
-
-                    if (normS.Length > 0)
-                    {
-                        hitNorms.Add(normS);
-                    }
-
                     var articleNorm = string.IsNullOrWhiteSpace(articleShow) ? normA : normS;
                     if (manufacturer.Length == 0 || articleNorm.Length == 0 || !seenNorm.Contains(articleNorm))
                     {
@@ -5039,9 +5029,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
     // Column-presence probes are cached per database: one reporter instance can serve
     // several tenant DBs, and a column present on one shop DB is not present on all.
-    private readonly Dictionary<string, int> _priceArticleSearchColumnState = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, int> _priceArticleShowSearchColumnState = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, int> _analogsSearchColumnState = new(StringComparer.OrdinalIgnoreCase);
+    // ConcurrentDictionary: concurrent requests probe in parallel on the same instance.
+    private readonly ConcurrentDictionary<string, int> _priceArticleSearchColumnState = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, int> _priceArticleShowSearchColumnState = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, int> _analogsSearchColumnState = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, int> _priceTableUnbackfilledState = new(StringComparer.OrdinalIgnoreCase);
 
     private async Task<bool> ProbePriceArticleSearchColumnAsync(DbConnection connection, CancellationToken cancellationToken)
     {
@@ -5109,6 +5101,41 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             _analogsSearchColumnState[db] = -1;
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Per-database probe: does <c>shop_docpart_prices_data</c> contain rows the search columns
+    /// haven't covered yet (non-empty article/article_show with an empty normalized column)?
+    /// Such rows are invisible to the indexed match, so its caller falls back to the REPLACE
+    /// expression. On probe failure we conservatively report unbackfilled — the REPLACE path is
+    /// always correct, just slower.
+    /// </summary>
+    private async Task<bool> ProbePriceTableUnbackfilledOffersAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        var db = connection.Database ?? string.Empty;
+        if (_priceTableUnbackfilledState.TryGetValue(db, out var cached))
+        {
+            return cached is 1;
+        }
+
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT EXISTS(SELECT 1 FROM `shop_docpart_prices_data` d
+                              WHERE (d.`article_search` = '' AND IFNULL(d.`article`, '') <> '')
+                                 OR (d.`article_show_search` = '' AND IFNULL(d.`article_show`, '') <> ''))
+                """;
+            var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            var hasUnbackfilled = Convert.ToInt32(value is DBNull ? 0 : value, CultureInfo.InvariantCulture) is 1;
+            _priceTableUnbackfilledState[db] = hasUnbackfilled ? 1 : -1;
+            return hasUnbackfilled;
+        }
+        catch
+        {
+            _priceTableUnbackfilledState[db] = 1;
+            return true;
         }
     }
 
