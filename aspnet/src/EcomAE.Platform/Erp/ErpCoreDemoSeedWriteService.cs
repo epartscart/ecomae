@@ -171,6 +171,27 @@ public sealed class ErpCoreDemoSeedWriteService : IErpCoreDemoSeedWriteService
             await Exec(c, p("INSERT INTO `epc_erp_pm_budget_lines` (`budget_id`,`account_code`,`account_name`,`month_no`,`amount`,`time_updated`) VALUES (?,?,?,?,?,?)"), budId, "6000", "Demo cost", 10, 90000m, now);
         }
         await Exec(c, p("INSERT INTO `epc_prja_budget` (`company_id`,`project_id`,`category`,`cost_budget`,`revenue_budget`,`time_created`) VALUES (0,900001,'DEMO-project',75000,120000,?)"), now);
+        // Org-model + HR + periods + legal entities so D365-style module screens show rows.
+        for (var d = 1; d <= 3; d++)
+        {
+            var dcode = d == 1 ? "FIN" : d == 2 ? "OPS" : "SAL";
+            await Exec(c, p("INSERT IGNORE INTO `epc_erp_departments` (`code`,`name`,`group_value`,`sort_order`,`active`) VALUES (?,?,?,?,1)"),
+                dcode, d == 1 ? "Finance" : d == 2 ? "Operations" : "Sales", $"DEMO-dept-{dcode}", d);
+        }
+        for (var h = 1; h <= 4; h++)
+        {
+            await Exec(c, p("INSERT IGNORE INTO `epc_erp_hr_records` (`staff_profile_id`,`hire_date`,`leave_balance_days`,`manager_user_id`,`notes`,`time_updated`,`basic_salary`,`allowances`) VALUES (?,?,?,?,?, ?,?,?)"),
+                h, now - h * 400 * 86400, 21, 0, "DEMO hire record", now, 5000m * h, 800m * h);
+        }
+        await Exec(c, p("INSERT IGNORE INTO `epc_erp_periods` (`year_month`,`year`,`month`,`status`,`note`,`created_at`,`updated_at`) VALUES (?,?,?,'open','DEMO period',?,?)"),
+            DateTime.UtcNow.ToString("yyyy-MM"), DateTime.UtcNow.Year, DateTime.UtcNow.Month, now, now);
+        await Exec(c, p("INSERT IGNORE INTO `epc_erp_pm_legal_entities` (`code`,`name`,`country_code`,`currency_code`,`trn`,`note`,`active`,`time_created`,`time_updated`) VALUES ('DEMO-LE','Demo Legal Entity','AE','AED','100000000000001','DEMO entity',1,?,?)"), now, now);
+        var bomId2 = await ScalarSafe(c, "SELECT `id` FROM `epc_mfg_bom` WHERE `name`='DEMO-BOM-01' ORDER BY `id` DESC LIMIT 1");
+        var compItem = await ScalarSafe(c, "SELECT `id` FROM `epc_erp_inv_items` WHERE `sku`='DEMO-ITEM-02' LIMIT 1");
+        if (bomId2 > 0 && compItem > 0)
+        {
+            await Exec(c, p("INSERT INTO `epc_mfg_bom_lines` (`bom_id`,`component_item_id`,`qty_per`,`scrap_percent`) VALUES (?,?,2,0)"), bomId2, compItem);
+        }
         await Exec(c, "INSERT IGNORE INTO `epc_erp_audit_log` (`time`,`admin_id`,`action`,`entity_type`,`entity_id`,`summary`,`detail_json`,`ip_address`,`user_agent`)"
             + $" VALUES ({now},0,'demo.seed','workspace',0,'DEMO sample data loaded','{{\"demo\":true}}','127.0.0.1','devin-demo-seed')");
 
@@ -216,6 +237,11 @@ public sealed class ErpCoreDemoSeedWriteService : IErpCoreDemoSeedWriteService
             "DELETE FROM `epc_erp_pm_budget_lines` WHERE `budget_id` IN (SELECT `id` FROM `epc_erp_pm_budgets` WHERE `code`='DEMO-BUDGET')",
             "DELETE FROM `epc_erp_pm_budgets` WHERE `code`='DEMO-BUDGET'",
             "DELETE FROM `epc_prja_budget` WHERE `category`='DEMO-project'",
+            "DELETE d FROM `epc_mfg_bom_lines` d INNER JOIN `epc_mfg_bom` b ON b.`id`=d.`bom_id` WHERE b.`name`='DEMO-BOM-01'",
+            "DELETE FROM `epc_erp_departments` WHERE `group_value` LIKE 'DEMO-dept-%'",
+            "DELETE FROM `epc_erp_hr_records` WHERE `notes`='DEMO hire record'",
+            "DELETE FROM `epc_erp_periods` WHERE `note`='DEMO period'",
+            "DELETE FROM `epc_erp_pm_legal_entities` WHERE `code`='DEMO-LE'",
             "DELETE FROM `epc_erp_audit_log` WHERE `action`='demo.seed'",
         };
 
