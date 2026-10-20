@@ -131,7 +131,8 @@ public sealed class ErpJewelleryInvoiceWriteService : IErpJewelleryInvoiceWriteS
             return "TenantRegistry DB is not configured — invoice build skipped.";
         }
 
-        var salesTypes = string.Join("','", ErpJwVocTypes.SalesAnalysisAliases);
+        var salesTypes = string.Join("','", ErpJwVocTypes.SalesAnalysisAliases
+            .Concat(ErpJwVocTypes.RetailAliases).Concat(ErpJwVocTypes.MetalSaleAliases).Distinct(StringComparer.Ordinal));
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpJewelleryWorkspaceSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
@@ -180,8 +181,10 @@ public sealed class ErpJewelleryInvoiceWriteService : IErpJewelleryInvoiceWriteS
         }
         var row = new VoucherRow(reader.GetInt64(0), reader.GetString(1), reader.GetInt32(2), reader.IsDBNull(3) ? "" : reader.GetString(3));
         // Only sale vouchers can be issued as customer tax invoices — never a
-        // purchase, repair-receipt, advance or journal voucher.
-        return ErpJwVocTypes.SalesAnalysisAliases.Contains(row.Type, StringComparer.Ordinal) ? row : null;
+        // purchase, repair-receipt, advance or journal voucher. RSC/MSC sales
+        // count via the wider retail/metal-sale alias sets.
+        return ErpJwVocTypes.SalesAnalysisAliases.Concat(ErpJwVocTypes.RetailAliases).Concat(ErpJwVocTypes.MetalSaleAliases)
+            .Contains(row.Type, StringComparer.Ordinal) ? row : null;
     }
 
     private static async Task<List<LineRow>> LoadLinesAsync(DbConnection connection, long voucherId, CancellationToken ct)
