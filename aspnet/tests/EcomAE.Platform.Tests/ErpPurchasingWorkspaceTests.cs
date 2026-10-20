@@ -115,3 +115,20 @@ public class ErpProductionWorkspaceTests
         }
     }
 }
+
+public class ErpMasterPlanningWorkspaceTests
+{
+    [Fact]
+    public void Specs_AreKnownTabs()
+    {
+        var generic = ErpD365WorkspaceCatalog.ForArea("master_planning_area")
+            .Where(p => p.ExistingHref is null)
+            .Select(p => p.Tab)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var tab in ErpMasterPlanningWorkspaceSpecs.Tabs.Keys)
+        {
+            Assert.True(generic.Contains(tab), $"{tab} is not a generic master-planning tab in the catalog");
+        }
+    }
+}

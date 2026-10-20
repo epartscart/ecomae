@@ -121,7 +121,7 @@ public static class ErpPurchasingWorkspaceSpecs
             ["ps_txn_reports"] = new(
                 ["Vendor", "Kind", "Reference", "Debit/Credit", "Amount", "When", "Note"],
                 "SELECT IFNULL(s.`name`,'(none)'), IFNULL(a.`entry_kind`,'invoice')," +
-                " IFNULL(a.`reference`,''), IF(a.`is_credit`=1,'credit','debit'), a.`amount`," +
+                " IFNULL(a.`reference`,''), IF(a.`is_credit`=1,'debit','credit'), a.`amount`," +
                 " FROM_UNIXTIME(a.`time`), LEFT(IFNULL(a.`note`,''),100)" +
                 " FROM `epc_erp_supplier_accounting` a LEFT JOIN `epc_erp_suppliers` s ON s.`id` = a.`supplier_id`" +
                 " WHERE IFNULL(a.`active`,1) = 1" +
@@ -144,8 +144,10 @@ public static class ErpPurchasingWorkspaceSpecs
 
             ["ps_ledger_posting"] = new(
                 ["Journal", "Reference", "Amount", "Posted", "Summary"],
-                "SELECT j.`id`, IFNULL(j.`reference`,''), IFNULL(j.`total_amount`,0)," +
-                " FROM_UNIXTIME(j.`time_created`), LEFT(IFNULL(j.`summary`,''),120)" +
+                "SELECT j.`journal_no`, IFNULL(j.`reference`,'')," +
+                " IFNULL((SELECT SUM(l.`debit`) FROM `epc_erp_gl_lines` l" +
+                "  WHERE l.`journal_id` = j.`id`),0)," +
+                " FROM_UNIXTIME(j.`time_created`), LEFT(IFNULL(j.`description`,''),120)" +
                 " FROM `epc_erp_gl_journals` j WHERE j.`source_type` = 'purchase'" +
                 " ORDER BY j.`id` DESC LIMIT 200",
                 "No purchase GL postings yet — purchases post journals automatically.",
@@ -242,7 +244,7 @@ public static class ErpPurchasingWorkspaceSpecs
                 EnsurePurchasingAsync),
 
             ["ps_multisource"] = new(
-                ["Item", "Preferred vendor", "Manufacturer part"],
+                ["SKU", "Item", "Preferred vendor", "Manufacturer part"],
                 "SELECT IFNULL(i.`sku`,''), IFNULL(i.`name`,'')," +
                 " IFNULL(NULLIF(i.`preferred_vendor_name`,''),'(none)'), IFNULL(i.`manufacturer_part`,'')" +
                 " FROM `epc_erp_inv_items` i" +
