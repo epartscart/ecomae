@@ -206,13 +206,6 @@ public sealed class ErpAutoPartsDemoSeedWriteService : IErpAutoPartsDemoSeedWrit
         // demo issue flow can match (submitted/accepted are never deleted).
         foreach (var sql in new[]
         {
-            // Link row goes first while its document row still exists — the
-            // status join keeps links of preserved (submitted/accepted/queued)
-            // documents and drops links of the drafts about to be deleted.
-            "DELETE k FROM `ecomae_autoparts_invoice_links` k INNER JOIN `" + RegistryTable + "` r"
-            + " ON r.`table_name`='ecomae_autoparts_orders' AND r.`row_id`=k.`order_id`"
-            + " INNER JOIN `epc_einvoice_documents` d ON d.`id`=k.`invoice_id`"
-            + " WHERE d.`status` NOT IN ('submitted','accepted','queued')",
             "DELETE l FROM `epc_einvoice_lines` l INNER JOIN `ecomae_autoparts_invoice_links` k"
             + " ON k.`invoice_id`=l.`document_id` INNER JOIN `" + RegistryTable + "` r"
             + " ON r.`table_name`='ecomae_autoparts_orders' AND r.`row_id`=k.`order_id`"
@@ -227,6 +220,13 @@ public sealed class ErpAutoPartsDemoSeedWriteService : IErpAutoPartsDemoSeedWrit
             + " ON k.`invoice_id`=d.`id` INNER JOIN `" + RegistryTable + "` r"
             + " ON r.`table_name`='ecomae_autoparts_orders' AND r.`row_id`=k.`order_id`"
             + " WHERE d.`status` NOT IN ('submitted','accepted','queued')",
+            // Links last — after the document row: drops links whose document
+            // was deleted (LEFT JOIN null) or still draft, keeps links whose
+            // document survives (submitted/accepted/queued).
+            "DELETE k FROM `ecomae_autoparts_invoice_links` k INNER JOIN `" + RegistryTable + "` r"
+            + " ON r.`table_name`='ecomae_autoparts_orders' AND r.`row_id`=k.`order_id`"
+            + " LEFT JOIN `epc_einvoice_documents` d ON d.`id`=k.`invoice_id`"
+            + " WHERE d.`id` IS NULL OR d.`status` NOT IN ('submitted','accepted','queued')",
         })
         {
             try
