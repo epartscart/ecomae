@@ -41,6 +41,25 @@ public sealed class ErpWorkspaceReadService : IErpWorkspaceReadService
 
     public static readonly IReadOnlyDictionary<string, ErpWorkspaceSpec> Specs = BuildSpecs();
 
+    // Lazy ensures run CREATE/ALTER probes; dedupe per database+ensure for a short
+    // TTL so hundreds of tab loads per minute don't re-issue DDL on a throttled box.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, long> EnsureRuns = new();
+    private static readonly TimeSpan EnsureTtl = TimeSpan.FromMinutes(5);
+
+    private static async Task EnsureOnceAsync(
+        Func<DbConnection, CancellationToken, Task> ensure, DbConnection connection, CancellationToken ct)
+    {
+        var key = connection.Database + "|" + ensure.Method.DeclaringType!.FullName + "." + ensure.Method.Name;
+        var nowTicks = DateTimeOffset.UtcNow.Ticks;
+        if (EnsureRuns.TryGetValue(key, out var ranAt) && new TimeSpan(nowTicks - ranAt) < EnsureTtl)
+        {
+            return;
+        }
+
+        await ensure(connection, ct).ConfigureAwait(false);
+        EnsureRuns[key] = DateTimeOffset.UtcNow.Ticks;
+    }
+
     private static IReadOnlyDictionary<string, ErpWorkspaceSpec> BuildSpecs()
     {
         var map = new Dictionary<string, ErpWorkspaceSpec>(StringComparer.OrdinalIgnoreCase);
@@ -132,7 +151,7 @@ public sealed class ErpWorkspaceReadService : IErpWorkspaceReadService
                 await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
                 if (spec.Ensure is not null)
                 {
-                    await spec.Ensure(connection, cancellationToken).ConfigureAwait(false);
+                    await EnsureOnceAsync(spec.Ensure, connection, cancellationToken).ConfigureAwait(false);
                 }
 
                 await using var command = connection.CreateCommand();
