@@ -45,7 +45,7 @@ public sealed class ErpJewelleryGlPostWriteService : IErpJewelleryGlPostWriteSer
         await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpAutoPartsGl.EnsureCoaAsync(connection, cancellationToken).ConfigureAwait(false);
-        var companyId = await ErpLazySchema.ResolveActiveCompanyIdAsync(connection, 0, cancellationToken).ConfigureAwait(false);
+        var defaultCompanyId = await ErpLazySchema.ResolveActiveCompanyIdAsync(connection, 0, cancellationToken).ConfigureAwait(false);
 
         var purchaseTypes = new HashSet<string>(StringComparer.Ordinal);
         foreach (var t in ErpJwVocTypes.MetalPurchaseAliases.Concat(ErpJwVocTypes.DiamondPurchaseAliases)) purchaseTypes.Add(t);
@@ -56,12 +56,12 @@ public sealed class ErpJewelleryGlPostWriteService : IErpJewelleryGlPostWriteSer
         var sales = 0;
         var skipped = 0;
 
-        var vouchers = new List<(long Id, string Type, decimal Net, decimal Vat, decimal Gross, long Date)>();
+        var vouchers = new List<(long Id, string Type, decimal Net, decimal Vat, decimal Gross, long Date, long CompanyId)>();
         await using (var command = connection.CreateCommand())
         {
             command.CommandText = ErpDb.Positional(
-                "SELECT `id`,`voc_type`,`net_amount`,`vat_amount`,`total_with_vat`,UNIX_TIMESTAMP(`voc_date`)"
-                + " FROM `epc_jewel_voucher` WHERE `status`<>'cancelled'"
+                "SELECT `id`,`voc_type`,`net_amount`,`vat_amount`,`total_with_vat`,UNIX_TIMESTAMP(`voc_date`),`company_id`"
+                + " FROM `epc_jewel_voucher` WHERE `status` NOT IN ('draft','cancelled')"
                 + " AND (?<=0 OR `id`=?) AND (?=0 OR UNIX_TIMESTAMP(`voc_date`)>=?) AND (?=0 OR UNIX_TIMESTAMP(`voc_date`)<?)"
                 + " ORDER BY `id`");
             ErpDb.AddParameters(command, voucherId, voucherId, fromUtc, fromUtc, toUtc, toUtc);
@@ -69,7 +69,8 @@ public sealed class ErpJewelleryGlPostWriteService : IErpJewelleryGlPostWriteSer
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 vouchers.Add((reader.GetInt64(0), reader.GetString(1), reader.GetDecimal(2),
-                    reader.GetDecimal(3), reader.GetDecimal(4), reader.IsDBNull(5) ? 0 : reader.GetInt64(5)));
+                    reader.GetDecimal(3), reader.GetDecimal(4), reader.IsDBNull(5) ? 0 : reader.GetInt64(5),
+                    reader.IsDBNull(6) ? 0 : reader.GetInt64(6)));
             }
         }
 
@@ -82,8 +83,9 @@ public sealed class ErpJewelleryGlPostWriteService : IErpJewelleryGlPostWriteSer
                 {
                     skipped++;
                 }
-                else if (await ErpAutoPartsGl.PostAsync(_gl, connection, null, 0, companyId, v.Id, reference,
-                    "Metal purchase voucher " + v.Type + "-" + v.Id, ErpAutoPartsIfrs.PurchaseReceived(v.Net), v.Date, cancellationToken).ConfigureAwait(false) > 0)
+                else if (await ErpAutoPartsGl.PostAsync(_gl, connection, null, 0,
+                    v.CompanyId > 0 ? v.CompanyId : defaultCompanyId, v.Id, reference,
+                    "Metal purchase voucher " + v.Type + "-" + v.Id, ErpAutoPartsIfrs.PurchaseReceived(v.Net, v.Vat), v.Date, cancellationToken).ConfigureAwait(false) > 0)
                 {
                     purchases++;
                 }
@@ -98,7 +100,8 @@ public sealed class ErpJewelleryGlPostWriteService : IErpJewelleryGlPostWriteSer
                 else
                 {
                     var net = v.Vat > 0 ? v.Net : v.Gross - v.Vat;
-                    if (await ErpAutoPartsGl.PostAsync(_gl, connection, null, 0, companyId, v.Id, reference,
+                    if (await ErpAutoPartsGl.PostAsync(_gl, connection, null, 0,
+                        v.CompanyId > 0 ? v.CompanyId : defaultCompanyId, v.Id, reference,
                         "Jewellery sale voucher " + v.Type + "-" + v.Id, ErpAutoPartsIfrs.SaleInvoiced(net, v.Vat), v.Date, cancellationToken).ConfigureAwait(false) > 0)
                     {
                         sales++;

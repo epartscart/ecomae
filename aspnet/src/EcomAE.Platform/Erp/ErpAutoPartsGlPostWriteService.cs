@@ -79,7 +79,7 @@ public sealed class ErpAutoPartsGlPostWriteService : IErpAutoPartsGlPostWriteSer
                     skipped++;
                 }
                 else if (await ErpAutoPartsGl.PostAsync(_gl, connection, null, 0, companyId, o.Id, reference,
-                    "Parts purchase received — " + o.No, ErpAutoPartsIfrs.PurchaseReceived(o.Subtotal), o.Date, cancellationToken).ConfigureAwait(false) > 0)
+                    "Parts purchase received — " + o.No, ErpAutoPartsIfrs.PurchaseReceived(o.Subtotal, o.Vat), o.Date, cancellationToken).ConfigureAwait(false) > 0)
                 {
                     purchases++;
                 }
