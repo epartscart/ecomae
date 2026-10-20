@@ -86,3 +86,32 @@ public class ErpWarehouseWorkspaceTests
         }
     }
 }
+
+public class ErpProductionWorkspaceTests
+{
+    [Fact]
+    public void Specs_AreKnownProductionTabs()
+    {
+        var generic = ErpD365WorkspaceCatalog.ForArea("production")
+            .Where(p => p.ExistingHref is null)
+            .Select(p => p.Tab)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var tab in ErpProductionWorkspaceSpecs.Tabs.Keys)
+        {
+            Assert.True(generic.Contains(tab), $"{tab} is not a generic production tab in the catalog");
+        }
+    }
+
+    [Fact]
+    public void Specs_SqlTargetsRealTables()
+    {
+        foreach (var (tab, spec) in ErpProductionWorkspaceSpecs.Tabs)
+        {
+            Assert.StartsWith("SELECT", spec.Sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("epc_", spec.Sql, StringComparison.Ordinal);
+            Assert.False(string.IsNullOrWhiteSpace(spec.EmptyHint), tab);
+            Assert.True(spec.Headers.Count > 0, tab);
+        }
+    }
+}
