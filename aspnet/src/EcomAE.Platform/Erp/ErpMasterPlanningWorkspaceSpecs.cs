@@ -64,15 +64,6 @@ public static class ErpMasterPlanningWorkspaceSpecs
                 "No plan to run — add items and stock first.",
                 Forecast),
 
-            ["mp_workspace"] = new(
-                ["SKU", "Reserved", "Backorder", "Source", "Status", "Expires"],
-                "SELECT r.`sku`, r.`qty`, r.`backorder_qty`, r.`source_type`," +
-                " r.`status`, FROM_UNIXTIME(IFNULL(r.`expires_at`,0))" +
-                " FROM `epc_erp_inv_reservations` r" +
-                " ORDER BY r.`id` DESC LIMIT 300",
-                "No reservations — demand is planned here once orders reserve stock.",
-                Forecast),
-
             ["mp_vendor_groups"] = new(
                 ["Group", "Vendors", "Spend"],
                 "SELECT IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), COUNT(s.`id`)," +
