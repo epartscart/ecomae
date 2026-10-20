@@ -32,7 +32,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["am_active_locations"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No active functional locations rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -128,7 +128,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["am_functional_locations"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No all functional locations rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -158,13 +158,13 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["am_my_locations"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No my active functional locations rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
             ["am_my_requests"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No my functional location maintenance requests rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -260,19 +260,19 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["ap_invoice_automation"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor invoice automation rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
             ["ap_invoice_policy"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor invoice policy rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
             ["ap_invoice_policy_types"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor invoice policy types rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -284,13 +284,13 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["ap_invoice_templates"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor invoice templates rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
             ["ap_invoices_assigned"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No pending vendor invoices assigned to me rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -326,7 +326,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["ap_prepayments"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor prepayments rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -362,19 +362,19 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["ap_vendor_bank"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor bank account inquiry rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
             ["ap_vendor_exception"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor exception groups rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
             ["ap_vendor_price_groups"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor price tolerance groups rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -716,7 +716,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["ca_allocation_pol"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No cost allocation policies rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -758,7 +758,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["ca_formula_bases"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No formula allocation bases rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -770,7 +770,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["ca_hierarchy_bases"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No hierarchy allocation bases rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -800,7 +800,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["ca_predef_bases"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No predefined dimension member allocation bases rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -908,7 +908,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["cb_netting"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No customer and vendor balance netting rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -1604,7 +1604,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["fa_locations"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No fixed asset locations rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -1898,7 +1898,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["inv_nonconformance"] = new(
                 ["RMA", "Customer", "Product", "Reason", "Status", "Opened"],
-                "SELECT IFNULL(r.`rma_number`,CONCAT('RMA-',r.`id`)), IFNULL(r.`customer_name`,''), LEFT(IFNULL(r.`product_name`,''),50), LEFT(IFNULL(r.`reason`,''),60), r.`status`, IFNULL(r.`created_at`,'') FROM `epc_rma_requests` r ORDER BY r.`id` DESC LIMIT 300",
+                "SELECT IFNULL(r.`rma_number`,CONCAT('RMA-',r.`id`)), IFNULL(r.`customer_name`,''), LEFT(IFNULL((SELECT ri.`product_name` FROM `epc_rma_items` ri WHERE ri.`rma_id`=r.`id` ORDER BY ri.`id` LIMIT 1),''),50), LEFT(IFNULL(r.`reason`,''),60), r.`status`, IFNULL(r.`created_at`,'') FROM `epc_rma_requests` r ORDER BY r.`id` DESC LIMIT 300",
                 "No non conformance rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -2132,7 +2132,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["lc_vendor_cost_groups"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor cost type groups rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -2372,7 +2372,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["org_address_purpose"] = new(
                 ["RMA", "Customer", "Product", "Reason", "Status", "Opened"],
-                "SELECT IFNULL(r.`rma_number`,CONCAT('RMA-',r.`id`)), IFNULL(r.`customer_name`,''), LEFT(IFNULL(r.`product_name`,''),50), LEFT(IFNULL(r.`reason`,''),60), r.`status`, IFNULL(r.`created_at`,'') FROM `epc_rma_requests` r ORDER BY r.`id` DESC LIMIT 300",
+                "SELECT IFNULL(r.`rma_number`,CONCAT('RMA-',r.`id`)), IFNULL(r.`customer_name`,''), LEFT(IFNULL((SELECT ri.`product_name` FROM `epc_rma_items` ri WHERE ri.`rma_id`=r.`id` ORDER BY ri.`id` LIMIT 1),''),50), LEFT(IFNULL(r.`reason`,''),60), r.`status`, IFNULL(r.`created_at`,'') FROM `epc_rma_requests` r ORDER BY r.`id` DESC LIMIT 300",
                 "No address and contact information purpose rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -2468,7 +2468,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["org_confirm_templates"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No confirm location of templates rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -3128,7 +3128,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["period_alloc_cats"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No period allocation categories rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -3170,7 +3170,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["pim_coo_vendor"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No country of origin vendor certificates rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -3332,7 +3332,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["pma_cashflow"] = new(
                 ["Project", "Category", "Cost budget", "Revenue budget", "Created"],
-                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_erp_project_accounting` a ORDER BY a.`id` DESC LIMIT 300",
+                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_prja_budget` a ORDER BY a.`id` DESC LIMIT 300",
                 "No project cash flow rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -3350,7 +3350,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["pma_contract_report"] = new(
                 ["Project", "Category", "Cost budget", "Revenue budget", "Created"],
-                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_erp_project_accounting` a ORDER BY a.`id` DESC LIMIT 300",
+                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_prja_budget` a ORDER BY a.`id` DESC LIMIT 300",
                 "No project contracts report rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -3368,7 +3368,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["pma_expiring_quot"] = new(
                 ["Project", "Category", "Cost budget", "Revenue budget", "Created"],
-                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_erp_project_accounting` a ORDER BY a.`id` DESC LIMIT 300",
+                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_prja_budget` a ORDER BY a.`id` DESC LIMIT 300",
                 "No my expiring project quotations rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -3392,7 +3392,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["pma_grants"] = new(
                 ["Project", "Category", "Cost budget", "Revenue budget", "Created"],
-                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_erp_project_accounting` a ORDER BY a.`id` DESC LIMIT 300",
+                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_prja_budget` a ORDER BY a.`id` DESC LIMIT 300",
                 "No grants rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -3416,7 +3416,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["pma_invoice_prop"] = new(
                 ["Project", "Category", "Cost budget", "Revenue budget", "Created"],
-                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_erp_project_accounting` a ORDER BY a.`id` DESC LIMIT 300",
+                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_prja_budget` a ORDER BY a.`id` DESC LIMIT 300",
                 "No project invoice proposals rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -3446,25 +3446,25 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["pma_my_grants"] = new(
                 ["Project", "Category", "Cost budget", "Revenue budget", "Created"],
-                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_erp_project_accounting` a ORDER BY a.`id` DESC LIMIT 300",
+                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_prja_budget` a ORDER BY a.`id` DESC LIMIT 300",
                 "No my grants rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
             ["pma_my_pending_txn"] = new(
                 ["Project", "Category", "Cost budget", "Revenue budget", "Created"],
-                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_erp_project_accounting` a ORDER BY a.`id` DESC LIMIT 300",
+                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_prja_budget` a ORDER BY a.`id` DESC LIMIT 300",
                 "No my pending project transactions rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
             ["pma_my_posted_txn"] = new(
                 ["Project", "Category", "Cost budget", "Revenue budget", "Created"],
-                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_erp_project_accounting` a ORDER BY a.`id` DESC LIMIT 300",
+                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_prja_budget` a ORDER BY a.`id` DESC LIMIT 300",
                 "No my posted project transactions rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
             ["pma_my_quotations"] = new(
                 ["Project", "Category", "Cost budget", "Revenue budget", "Created"],
-                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_erp_project_accounting` a ORDER BY a.`id` DESC LIMIT 300",
+                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_prja_budget` a ORDER BY a.`id` DESC LIMIT 300",
                 "No my project quotations rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -3488,13 +3488,13 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["pma_pending_txn"] = new(
                 ["Project", "Category", "Cost budget", "Revenue budget", "Created"],
-                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_erp_project_accounting` a ORDER BY a.`id` DESC LIMIT 300",
+                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_prja_budget` a ORDER BY a.`id` DESC LIMIT 300",
                 "No pending project transactions rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
             ["pma_pl_actual"] = new(
                 ["Project", "Category", "Cost budget", "Revenue budget", "Created"],
-                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_erp_project_accounting` a ORDER BY a.`id` DESC LIMIT 300",
+                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_prja_budget` a ORDER BY a.`id` DESC LIMIT 300",
                 "No project profit and loss (actual vs. budget) rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -3530,7 +3530,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["pma_resources"] = new(
                 ["Project", "Category", "Cost budget", "Revenue budget", "Created"],
-                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_erp_project_accounting` a ORDER BY a.`id` DESC LIMIT 300",
+                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_prja_budget` a ORDER BY a.`id` DESC LIMIT 300",
                 "No project resources rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -3554,7 +3554,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["pma_txn_report"] = new(
                 ["Project", "Category", "Cost budget", "Revenue budget", "Created"],
-                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_erp_project_accounting` a ORDER BY a.`id` DESC LIMIT 300",
+                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_prja_budget` a ORDER BY a.`id` DESC LIMIT 300",
                 "No project transaction report rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -3566,7 +3566,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["pma_wip_actual"] = new(
                 ["Project", "Category", "Cost budget", "Revenue budget", "Created"],
-                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_erp_project_accounting` a ORDER BY a.`id` DESC LIMIT 300",
+                "SELECT a.`project_id`, IFNULL(a.`category`,''), a.`cost_budget`, a.`revenue_budget`, FROM_UNIXTIME(a.`time_created`) FROM `epc_prja_budget` a ORDER BY a.`id` DESC LIMIT 300",
                 "No project wip (actual vs. budget) rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -3590,7 +3590,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["prd_alloc_keys"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No allocation keys rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -3938,7 +3938,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["proc_rebates"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor rebates rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -3986,7 +3986,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["proc_vendor_stats"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor statistics rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -4100,7 +4100,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["ps_eval_criteria"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor evaluation criteria rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -4142,7 +4142,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["ps_info_for_vendors"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No information for vendors responding to pos rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -4214,7 +4214,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["ps_rebate_claims"] = new(
                 ["RMA", "Customer", "Product", "Reason", "Status", "Opened"],
-                "SELECT IFNULL(r.`rma_number`,CONCAT('RMA-',r.`id`)), IFNULL(r.`customer_name`,''), LEFT(IFNULL(r.`product_name`,''),50), LEFT(IFNULL(r.`reason`,''),60), r.`status`, IFNULL(r.`created_at`,'') FROM `epc_rma_requests` r ORDER BY r.`id` DESC LIMIT 300",
+                "SELECT IFNULL(r.`rma_number`,CONCAT('RMA-',r.`id`)), IFNULL(r.`customer_name`,''), LEFT(IFNULL((SELECT ri.`product_name` FROM `epc_rma_items` ri WHERE ri.`rma_id`=r.`id` ORDER BY ri.`id` LIMIT 1),''),50), LEFT(IFNULL(r.`reason`,''),60), r.`status`, IFNULL(r.`created_at`,'') FROM `epc_rma_requests` r ORDER BY r.`id` DESC LIMIT 300",
                 "No rebate claims rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -4232,7 +4232,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["ps_return_action"] = new(
                 ["RMA", "Customer", "Product", "Reason", "Status", "Opened"],
-                "SELECT IFNULL(r.`rma_number`,CONCAT('RMA-',r.`id`)), IFNULL(r.`customer_name`,''), LEFT(IFNULL(r.`product_name`,''),50), LEFT(IFNULL(r.`reason`,''),60), r.`status`, IFNULL(r.`created_at`,'') FROM `epc_rma_requests` r ORDER BY r.`id` DESC LIMIT 300",
+                "SELECT IFNULL(r.`rma_number`,CONCAT('RMA-',r.`id`)), IFNULL(r.`customer_name`,''), LEFT(IFNULL((SELECT ri.`product_name` FROM `epc_rma_items` ri WHERE ri.`rma_id`=r.`id` ORDER BY ri.`id` LIMIT 1),''),50), LEFT(IFNULL(r.`reason`,''),60), r.`status`, IFNULL(r.`created_at`,'') FROM `epc_rma_requests` r ORDER BY r.`id` DESC LIMIT 300",
                 "No return action rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -4268,13 +4268,13 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["ps_vendor_reasons"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor reasons rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
             ["ps_vendor_rebate_groups"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor rebate groups rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -4550,13 +4550,13 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["rbt_vendor_deals"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor rebate deals rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
             ["rbt_vendor_groups"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor groups rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -4904,7 +4904,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["rtc_vendor_import"] = new(
                 ["Vendor", "Group", "Currency", "Balance", "Terms"],
-                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), IFNULL(s.`currency_code`,'AED'), IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
+                "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)'), 'AED', IFNULL((SELECT SUM(IF(a.`is_credit`=1,a.`amount`,-a.`amount`)) FROM `epc_erp_supplier_accounting` a  WHERE a.`supplier_id`=s.`id` AND IFNULL(a.`active`,1)=1),0), IFNULL(s.`payment_terms`,'') FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1)=1 ORDER BY s.`name` LIMIT 300",
                 "No vendor catalog import rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -5288,7 +5288,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["sys_db_info"] = new(
                 ["RMA", "Customer", "Product", "Reason", "Status", "Opened"],
-                "SELECT IFNULL(r.`rma_number`,CONCAT('RMA-',r.`id`)), IFNULL(r.`customer_name`,''), LEFT(IFNULL(r.`product_name`,''),50), LEFT(IFNULL(r.`reason`,''),60), r.`status`, IFNULL(r.`created_at`,'') FROM `epc_rma_requests` r ORDER BY r.`id` DESC LIMIT 300",
+                "SELECT IFNULL(r.`rma_number`,CONCAT('RMA-',r.`id`)), IFNULL(r.`customer_name`,''), LEFT(IFNULL((SELECT ri.`product_name` FROM `epc_rma_items` ri WHERE ri.`rma_id`=r.`id` ORDER BY ri.`id` LIMIT 1),''),50), LEFT(IFNULL(r.`reason`,''),60), r.`status`, IFNULL(r.`created_at`,'') FROM `epc_rma_requests` r ORDER BY r.`id` DESC LIMIT 300",
                 "No database information rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -5636,7 +5636,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["tms_clear_session"] = new(
                 ["RMA", "Customer", "Product", "Reason", "Status", "Opened"],
-                "SELECT IFNULL(r.`rma_number`,CONCAT('RMA-',r.`id`)), IFNULL(r.`customer_name`,''), LEFT(IFNULL(r.`product_name`,''),50), LEFT(IFNULL(r.`reason`,''),60), r.`status`, IFNULL(r.`created_at`,'') FROM `epc_rma_requests` r ORDER BY r.`id` DESC LIMIT 300",
+                "SELECT IFNULL(r.`rma_number`,CONCAT('RMA-',r.`id`)), IFNULL(r.`customer_name`,''), LEFT(IFNULL((SELECT ri.`product_name` FROM `epc_rma_items` ri WHERE ri.`rma_id`=r.`id` ORDER BY ri.`id` LIMIT 1),''),50), LEFT(IFNULL(r.`reason`,''),60), r.`status`, IFNULL(r.`created_at`,'') FROM `epc_rma_requests` r ORDER BY r.`id` DESC LIMIT 300",
                 "No clear load building session information rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -6062,7 +6062,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["wh_app_events"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No warehouse app events rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -6122,7 +6122,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["wh_impl"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No warehouse implementation tasks rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -6140,13 +6140,13 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["wh_loc_directives"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No location directives rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
             ["wh_mobile"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No warehouse mobile devices rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -6212,7 +6212,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["wh_parameters"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No warehouse management parameters rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -6242,19 +6242,19 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["wh_release_pol"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No release to warehouse policies rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
             ["wh_release_so"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No release sales orders to warehouse rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
             ["wh_release_to"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No release transfer orders to warehouse rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -6290,7 +6290,7 @@ public static class ErpCoverageSweepSpecs
                 EnsureAllAsync),
             ["wh_wizards"] = new(
                 ["Code", "Name", "Lines", "On hand"],
-                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` WHERE w.`active`=1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0) FROM `epc_erp_inv_warehouses` w LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id`=w.`id` GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No warehouse management initiation wizard rows yet — entries appear here once work is posted.",
                 null,
                 EnsureAllAsync),
@@ -6319,6 +6319,7 @@ public static class ErpCoverageSweepSpecs
         await ErpLazySchema.EnsurePmMastersAsync(c, ct).ConfigureAwait(false);
         await ErpLazySchema.EnsureBankReconAsync(c, ct).ConfigureAwait(false);
         await ErpLazySchema.EnsureAuditLogAsync(c, ct).ConfigureAwait(false);
+        await ErpLazySchema.EnsureReturnAndVariantTablesAsync(c, ct).ConfigureAwait(false);
         await ErpLazySchema.EnsurePeriodCloseAsync(c, ct).ConfigureAwait(false);
         await ErpLazySchema.EnsureOrderPlanningAsync(c, ct).ConfigureAwait(false);
         await ErpPurchasingWorkspaceSpecs.EnsurePurchasingAsync(c, ct).ConfigureAwait(false);

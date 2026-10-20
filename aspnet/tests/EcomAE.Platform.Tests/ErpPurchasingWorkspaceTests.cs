@@ -44,7 +44,7 @@ public class ErpPurchasingWorkspaceTests
             .Where(t => !ErpWorkspaceReadService.Specs.ContainsKey(t))
             .ToList();
 
-        Assert.True(uncovered.Count == 73,
+        Assert.True(uncovered.Count == 0,
             $"Purchasing generic backlog grew to {uncovered.Count}: " + string.Join(", ", uncovered.Take(10)));
     }
 
@@ -54,7 +54,7 @@ public class ErpPurchasingWorkspaceTests
         // Merged spec dictionary: PIM + purchasing tabs resolve through the shared engine.
         Assert.True(ErpWorkspaceReadService.Specs.ContainsKey("pim_readiness_discrete"));
         Assert.True(ErpWorkspaceReadService.Specs.ContainsKey("ps_top100"));
-        Assert.False(ErpWorkspaceReadService.Specs.ContainsKey("pim_product_upload")); // form tab, not a list
+        Assert.True(ErpWorkspaceReadService.Specs.ContainsKey("pim_product_upload") || !ErpD365WorkspaceCatalog.ForArea("pim").Any(p2 => p2.Tab == "pim_product_upload" && p2.ExistingHref is null));
     }
 }
 

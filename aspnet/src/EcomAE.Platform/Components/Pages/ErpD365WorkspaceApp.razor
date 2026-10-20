@@ -184,6 +184,21 @@
                     }
                     @if (_isAdmin)
                     {
+                        <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/demo-seed")" class="epc-d365-follow">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@PageHref(_page)" />
+                            <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                            <button class="btn btn-sm btn-primary" type="submit"><i class="fa fa-cloud-download"></i> Load sample data</button>
+                        </form>
+                        <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/demo-clear")" class="epc-d365-follow">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@PageHref(_page)" />
+                            <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                            <button class="btn btn-sm btn-default" type="submit"><i class="fa fa-trash"></i> Remove sample data</button>
+                        </form>
+                    }
+                    @if (_isAdmin)
+                    {
                         <form method="post" action="@StudySaveAction" class="epc-d365-follow">
                             <input type="hidden" name="confirmWrites" value="true" />
                             <input type="hidden" name="returnUrl" value="@PageHref(_page)" />

@@ -392,6 +392,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpCoreDemoSeed, HandleCoreDemoSeedAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpCoreDemoClear, HandleCoreDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryDemoSeed, HandleJewelleryDemoSeedAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryDemoClear, HandleJewelleryDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryGlPost, HandleJewelleryGlPostAsync).DisableAntiforgery();
@@ -26497,6 +26499,63 @@ public sealed class ErpModule : ISurfaceModule
             ok,
             message,
             new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>Core workspace demo seed: loads DEMO-tagged rows across every area (admin only).</summary>
+    private static async Task<IResult> HandleCoreDemoSeedAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCoreDemoSeedWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/app", "Admin ERP capability required for demo seeding.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to load the DEMO-tagged sample data.", session = SessionPayload(session) });
+        }
+
+        var message = await writes.SeedAsync(cancellationToken);
+        var ok = !message.StartsWith("TenantRegistry DB is not configured", StringComparison.Ordinal);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/app",
+            ok,
+            message,
+            new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>Core workspace demo clear: deletes only DEMO-tagged rows (admin only).</summary>
+    private static async Task<IResult> HandleCoreDemoClearAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCoreDemoSeedWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/app", "Admin ERP capability required for demo clearing.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to remove the DEMO-tagged sample data.", session = SessionPayload(session) });
+        }
+
+        var message = await writes.ClearAsync(cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/app",
+            true,
+            message,
+            new { ok = true, writes = 1, phpAuthoritative = false, message, session = SessionPayload(session) });
     }
 
     /// <summary>Fit-out workspace demo clear: deletes only DEMO-tagged rows, safe at any time.</summary>

@@ -1868,6 +1868,24 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Dynamics-style trial balance snapshots'",
             ct);
 
+    /// <summary>
+    /// PHP-owned product-structure and RMA tables the workspace specs read
+    /// (content/shop/finance/epc_erp_product_structure.php, epc_warranty_rma.php).
+    /// </summary>
+    public static async Task EnsureReturnAndVariantTablesAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_erp_prod_variants` (`id` int(11) NOT NULL AUTO_INCREMENT, `item_id` int(11) NOT NULL DEFAULT 0, `base_sku` varchar(64) NOT NULL DEFAULT '', `variant_sku` varchar(120) NOT NULL, `variant_label` varchar(160) NOT NULL DEFAULT '', `combo_json` text, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_variant_sku` (`variant_sku`), KEY `x_item` (`item_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_rma_requests` (`id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, `site_key` VARCHAR(64) NOT NULL DEFAULT '', `rma_number` VARCHAR(32) NOT NULL, `warranty_id` INT UNSIGNED NULL, `customer_id` INT UNSIGNED NOT NULL DEFAULT 0, `customer_name` VARCHAR(128) NOT NULL DEFAULT '', `reason` VARCHAR(32) NOT NULL DEFAULT 'defective', `description` TEXT NULL, `status` VARCHAR(32) NOT NULL DEFAULT 'pending', `resolution_type` VARCHAR(32) NOT NULL DEFAULT 'none', `resolution_notes` TEXT NULL, `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, `completed_at` DATETIME NULL, UNIQUE KEY `uk_rma` (`rma_number`), INDEX `idx_site` (`site_key`), INDEX `idx_status` (`status`), INDEX `idx_warranty` (`warranty_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+            "CREATE TABLE IF NOT EXISTS `epc_rma_items` (`id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, `rma_id` INT UNSIGNED NOT NULL, `product_sku` VARCHAR(64) NOT NULL DEFAULT '', `product_name` VARCHAR(255) NOT NULL DEFAULT '', `qty` INT UNSIGNED NOT NULL DEFAULT 1, `unit_price` DECIMAL(12,2) NOT NULL DEFAULT 0.00, `condition_received` VARCHAR(32) NULL, `inspection_notes` TEXT NULL, INDEX `idx_rma` (`rma_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
     /// <summary>PHP <c>epc_entity_ensure_schema</c> (content/shop/finance/epc_multi_entity.php).</summary>
     public static async Task EnsureMultiEntityAsync(DbConnection c, CancellationToken ct)
     {
