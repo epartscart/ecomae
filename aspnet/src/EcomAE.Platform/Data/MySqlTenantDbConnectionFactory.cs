@@ -131,10 +131,15 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
             builder.MaximumPoolSize = (uint)pool.MaximumPoolSize;
         }
 
-        if (pool.MinimumPoolSize > 0)
-        {
-            builder.MinimumPoolSize = (uint)pool.MinimumPoolSize;
-        }
+        // Clamp to MaximumPoolSize — an oversized minimum makes MySqlConnector reject
+        // every open (login included), and warm pools multiply per pool variant, so a
+        // runaway min can exhaust max_connections. Always assigning also lets 0
+        // disable a positive minimum inherited from the base connection string.
+        // MaximumPoolSize <= 0 means "unset" — fall back to the builder's maximum
+        // so a configured warming value survives; negative maxima can't throw in Clamp.
+        var effectiveMax = pool.MaximumPoolSize > 0 ? pool.MaximumPoolSize : (int)builder.MaximumPoolSize;
+        var minPool = Math.Clamp(pool.MinimumPoolSize, 0, Math.Max(0, effectiveMax));
+        builder.MinimumPoolSize = (uint)minPool;
 
         if (pool.ConnectionTimeoutSeconds > 0)
         {

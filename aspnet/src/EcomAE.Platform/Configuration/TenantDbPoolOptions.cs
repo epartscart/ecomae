@@ -9,6 +9,8 @@ public sealed class TenantDbPoolOptions
 
     // Keep a few warm connections per tenant pool so idle-then-busy requests
     // do not pay the TCP+auth handshake on a cold pool. 0 = cold start (default).
+    // Clamped to MaximumPoolSize; warm connections multiply across pool variants
+    // (normal + first-paint + tenant pools), so keep this small on shared MySQL.
     public int MinimumPoolSize { get; set; } = 0;
 
     public int ConnectionTimeoutSeconds { get; set; } = 8;
