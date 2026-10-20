@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 
 namespace EcomAE.Platform.Erp;
 
@@ -98,11 +99,15 @@ public sealed class ErpO2cDocumentPrintService : IErpO2cDocumentPrintService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        // The column is added by the submit flow; printing must not 500 on a
+        // tenant that has never submitted to the ASP.
+        await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_documents` ADD COLUMN `fta_report_status` varchar(64) NOT NULL DEFAULT ''", cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
         command.CommandText = """
             SELECT d.`invoice_number`, d.`status`, d.`currency_code`, d.`subtotal_ex_vat`, d.`total_vat`,
                    d.`total_incl_vat`, d.`paid_amount`, d.`amount_due`, d.`issue_date`, d.`payment_due_date`,
-                   d.`doc_category`, IFNULL(u.`email`, '') AS `customer_email`, d.`sales_order_id`, d.`fta_report_status`
+                   d.`doc_category`, IFNULL(u.`email`, '') AS `customer_email`, d.`sales_order_id`, d.`fta_report_status`,
+                   d.`seller_json`, d.`buyer_json`
             FROM `epc_einvoice_documents` d
             LEFT JOIN `users` u ON u.`user_id` = d.`user_id`
             WHERE d.`id` = @p0
@@ -130,6 +135,8 @@ public sealed class ErpO2cDocumentPrintService : IErpO2cDocumentPrintService
         var customerEmail = ReadString(reader, 11);
         var salesOrderId = ReadLong(reader, 12);
         var ftaStatus = ReadString(reader, 13);
+        var sellerJson = ReadString(reader, 14);
+        var buyerJson = ReadString(reader, 15);
         await reader.DisposeAsync().ConfigureAwait(false);
 
         var lines = await LoadInvoiceLinesAsync(connection, id, cancellationToken).ConfigureAwait(false);
@@ -144,8 +151,28 @@ public sealed class ErpO2cDocumentPrintService : IErpO2cDocumentPrintService
         };
         builder.Append("<h1>").Append(Encode(docLabel))
             .Append(' ').Append(Encode(invoiceNumber)).Append("</h1>");
+        // FTA tax-invoice mandatory parties: seller + buyer with TRN when the
+        // e-invoice document carries them (null-safe for legacy rows).
+        var sellerName = JsonField(sellerJson, "seller_name");
+        var sellerTrn = JsonField(sellerJson, "seller_trn");
+        var sellerCity = JsonField(sellerJson, "seller_city");
+        var buyerName = JsonField(buyerJson, "name");
+        var buyerTrn = JsonField(buyerJson, "trn");
+        var buyerAddress = JsonField(buyerJson, "address");
+        if (sellerName.Length > 0 || buyerName.Length > 0 || sellerTrn.Length > 0 || buyerTrn.Length > 0)
+        {
+            builder.Append("<table style=\"margin-top:0\"><tbody><tr>"
+                + "<td style=\"width:50%;vertical-align:top\"><strong>Supplier</strong><br/>")
+                .Append(Encode(Blank(sellerName))).Append("<br/>TRN: ").Append(Encode(sellerTrn.Length > 0 ? sellerTrn : "—"))
+                .Append(sellerCity.Length > 0 ? "<br/>" + Encode(sellerCity) : "")
+                .Append("</td><td style=\"width:50%;vertical-align:top\"><strong>Customer</strong><br/>")
+                .Append(Encode(buyerName.Length > 0 ? buyerName : customerEmail))
+                .Append("<br/>TRN: ").Append(Encode(buyerTrn.Length > 0 ? buyerTrn : "—"))
+                .Append(buyerAddress.Length > 0 ? "<br/>" + Encode(buyerAddress) : "")
+                .Append("</td></tr></tbody></table>");
+        }
         builder.Append("<p>");
-        Meta(builder, "Customer", customerEmail);
+        Meta(builder, "Customer", buyerName.Length > 0 ? buyerName : customerEmail);
         Meta(builder, "Issue date", FmtDate(issueDate));
         if (dueDate > 0)
         {
@@ -817,6 +844,26 @@ public sealed class ErpO2cDocumentPrintService : IErpO2cDocumentPrintService
             <button type="button" onclick="window.print()" style="padding:8px 14px;font-size:13px;cursor:pointer;">Print / Save as PDF</button>
             </div>
             """);
+
+    private static string JsonField(string json, string name)
+    {
+        if (string.IsNullOrWhiteSpace(json) || json[0] != '{')
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
+                ? value.GetString() ?? string.Empty
+                : string.Empty;
+        }
+        catch (JsonException)
+        {
+            return string.Empty;
+        }
+    }
 
     private static void Meta(StringBuilder builder, string label, string? value)
         => builder.Append("<strong>").Append(Encode(label)).Append(":</strong> ")
