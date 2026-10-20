@@ -45,6 +45,19 @@ public sealed class RouteTenantResolver : ITenantResolver
 
         var registryRecord = await _tenantRegistry.FindByHostAsync(host, cancellationToken);
 
+        // D365-style dedicated tenant hosts: {site_key}.operations.{country3}.ecomae.com.
+        // The hostname binds the tenant exactly like /cp/client-erp/{key} does on the
+        // Super host, so the tenant lands on its own industry ERP with no CP path.
+        if (ErpOperationsHost.TryParse(host, out var operationsKey, out _))
+        {
+            var bound = await TryResolveErpOnlyAsync(host, path, operationsKey, cancellationToken);
+            if (bound is not null)
+            {
+                return bound;
+            }
+            // Unknown slug: fall through to the normal host/registry resolution.
+        }
+
         // SUPER-CP ISOLATION: platform hosts (www.ecomae.com / ecomae.com / cp.ecomae.com)
         // are ALWAYS Platform mode with the platform database. PHP registers erp-only
         // shared tenants under the www hostname in epc_portal_tenants — a live registry
@@ -56,40 +69,10 @@ public sealed class RouteTenantResolver : ITenantResolver
         {
             if (ClientErpPath.TryParse(path, out var clientErp) && clientErp.SiteKey.Length > 0)
             {
-                ClientErpTenantRecord? erpOnly = null;
-                try
+                var bound = await TryResolveErpOnlyAsync(host, path, clientErp.SiteKey, cancellationToken);
+                if (bound is not null)
                 {
-                    erpOnly = await _clientErpTenants
-                        .FindActiveErpOnlyAsync(clientErp.SiteKey, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                catch
-                {
-                    erpOnly = null;
-                }
-
-                if (erpOnly is not null && erpOnly.IsActive && !string.IsNullOrWhiteSpace(erpOnly.DatabaseName))
-                {
-                    var dedicatedUser = erpOnly.DbUser;
-                    var dedicatedPassword = erpOnly.DbPassword;
-                    if (!TenantContext.UsableDedicatedCredentials(dedicatedUser, dedicatedPassword))
-                    {
-                        dedicatedUser = null;
-                        dedicatedPassword = null;
-                    }
-
-                    return new TenantContext(
-                        host,
-                        path,
-                        TenantSurface.Erp,
-                        TenantMode.ErpOnlyTenant,
-                        erpOnly.SiteKey,
-                        erpOnly.DatabaseName,
-                        dedicatedUser,
-                        dedicatedPassword,
-                        erpOnly.DedicatedDb,
-                        ResolveIndustryCode(erpOnly.SiteKey, erpOnly.IndustryCode, host),
-                        DisplayName: TradeNameFor(erpOnly));
+                    return bound;
                 }
 
                 // Unknown / unusable key: stay on the platform DB so Super CP isolation
@@ -187,6 +170,56 @@ public sealed class RouteTenantResolver : ITenantResolver
             dbPassword,
             dedicated,
             ResolveIndustryCode(siteKey, null, host));
+    }
+
+    /// <summary>
+    /// Resolve an ERP-only tenant row (<c>epc_portal_tenants.erp_only_shared</c>) into a
+    /// bound tenant context. Shared by Super-CP <c>/cp/client-erp/{key}</c> paths and
+    /// dedicated <c>{key}.operations.{country}.ecomae.com</c> hosts.
+    /// </summary>
+    private async Task<TenantContext?> TryResolveErpOnlyAsync(
+        string host,
+        string path,
+        string siteKey,
+        CancellationToken cancellationToken)
+    {
+        ClientErpTenantRecord? erpOnly = null;
+        try
+        {
+            erpOnly = await _clientErpTenants
+                .FindActiveErpOnlyAsync(siteKey, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch
+        {
+            erpOnly = null;
+        }
+
+        if (erpOnly is null || !erpOnly.IsActive || string.IsNullOrWhiteSpace(erpOnly.DatabaseName))
+        {
+            return null;
+        }
+
+        var dedicatedUser = erpOnly.DbUser;
+        var dedicatedPassword = erpOnly.DbPassword;
+        if (!TenantContext.UsableDedicatedCredentials(dedicatedUser, dedicatedPassword))
+        {
+            dedicatedUser = null;
+            dedicatedPassword = null;
+        }
+
+        return new TenantContext(
+            host,
+            path,
+            TenantSurface.Erp,
+            TenantMode.ErpOnlyTenant,
+            erpOnly.SiteKey,
+            erpOnly.DatabaseName,
+            dedicatedUser,
+            dedicatedPassword,
+            erpOnly.DedicatedDb,
+            ResolveIndustryCode(erpOnly.SiteKey, erpOnly.IndustryCode, host),
+            DisplayName: TradeNameFor(erpOnly));
     }
 
     private static string? TradeNameFor(ClientErpTenantRecord row)
