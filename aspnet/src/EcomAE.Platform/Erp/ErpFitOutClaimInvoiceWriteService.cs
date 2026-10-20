@@ -51,13 +51,17 @@ public sealed class ErpFitOutClaimInvoiceWriteService : IErpFitOutClaimInvoiceWr
             return ErpSimpleWriteResult.Fail("not_found", "Approved client progress claim not found.");
         }
 
-        var existing = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT `invoice_id` FROM `ecomae_fitout_invoice_links` WHERE `project_id`=? AND `reference`=? LIMIT 1"),
-            cancellationToken,
-            claim.ProjectId,
-            "claim-" + claimId.ToString(CultureInfo.InvariantCulture)).ConfigureAwait(false);
+        var existing = 0L;
+        if (await LinksTableExistsAsync(connection, cancellationToken).ConfigureAwait(false))
+        {
+            existing = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `invoice_id` FROM `ecomae_fitout_invoice_links` WHERE `project_id`=? AND `reference`=? LIMIT 1"),
+                cancellationToken,
+                claim.ProjectId,
+                "claim-" + claimId.ToString(CultureInfo.InvariantCulture)).ConfigureAwait(false);
+        }
         if (existing > 0)
         {
             return ErpSimpleWriteResult.Ok("Invoice already issued for this claim.", existing);
@@ -70,9 +74,9 @@ public sealed class ErpFitOutClaimInvoiceWriteService : IErpFitOutClaimInvoiceWr
         var retention = ExtractAmount(claim.Description, "retention");
         var buyer = await LoadBuyerAsync(connection, claim.ProjectId, cancellationToken).ConfigureAwait(false);
 
-        var linesJson = JsonSerializer.Serialize(new object[]
+        var linesJson = JsonSerializer.Serialize(new[]
         {
-            new { itemName = "Progress claim — " + claim.Title, itemDescription = claim.Description, quantity = 1m, unitPrice = net, taxRate = 5m },
+            new ErpManualInvoiceLineInput("Progress claim — " + claim.Title, 1m, net, 5m, claim.Description),
         });
         var buyerJson = JsonSerializer.Serialize(new { name = buyer.Name, trn = buyer.Trn, address = buyer.Address });
 
@@ -129,6 +133,7 @@ public sealed class ErpFitOutClaimInvoiceWriteService : IErpFitOutClaimInvoiceWr
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var linksExist = await LinksTableExistsAsync(connection, cancellationToken).ConfigureAwait(false);
         var pending = new List<long>();
         await using (var command = connection.CreateCommand())
         {
@@ -136,7 +141,9 @@ public sealed class ErpFitOutClaimInvoiceWriteService : IErpFitOutClaimInvoiceWr
                 "SELECT r.`id` FROM `ecomae_fitout_delivery_records` r"
                 + " WHERE r.`record_type`='client_progress_claim' AND r.`status`='approved'"
                 + " AND (?<=0 OR r.`project_id`=?)"
-                + " AND NOT EXISTS (SELECT 1 FROM `ecomae_fitout_invoice_links` l WHERE l.`project_id`=r.`project_id` AND l.`reference`=CONCAT('claim-', r.`id`))"
+                + (linksExist
+                    ? " AND NOT EXISTS (SELECT 1 FROM `ecomae_fitout_invoice_links` l WHERE l.`project_id`=r.`project_id` AND l.`reference`=CONCAT('claim-', r.`id`))"
+                    : "")
                 + " ORDER BY r.`id`");
             ErpDb.AddParameters(command, projectId, projectId);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -199,7 +206,7 @@ public sealed class ErpFitOutClaimInvoiceWriteService : IErpFitOutClaimInvoiceWr
     {
         await using var command = connection.CreateCommand();
         command.CommandText = ErpDb.Positional(
-            "SELECT c.`name`, IFNULL(c.`trn`,''), IFNULL(c.`address`,'')"
+            "SELECT c.`name`, IFNULL(c.`email`,'')"
             + " FROM `epc_prj_projects` p INNER JOIN `epc_erp_customers` c ON c.`id`=p.`customer_id`"
             + " WHERE p.`id`=? LIMIT 1");
         ErpDb.AddParameters(command, projectId);
@@ -208,13 +215,24 @@ public sealed class ErpFitOutClaimInvoiceWriteService : IErpFitOutClaimInvoiceWr
             await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
             if (await reader.ReadAsync(ct).ConfigureAwait(false))
             {
-                return new BuyerRow(reader.GetString(0), reader.GetString(1), reader.GetString(2));
+                return new BuyerRow(reader.GetString(0), string.Empty, reader.GetString(1));
             }
         }
         catch (DbException)
         {
         }
         return new BuyerRow("Customer", string.Empty, string.Empty);
+    }
+
+    private static async Task<bool> LinksTableExistsAsync(DbConnection connection, CancellationToken ct)
+    {
+        return await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?"),
+            ct,
+            "ecomae_fitout_invoice_links").ConfigureAwait(false) > 0;
     }
 
     private static decimal ExtractAmount(string description, string label)
