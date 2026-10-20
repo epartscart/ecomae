@@ -1223,6 +1223,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAutoPartsGlPostWriteService, 
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAutoPartsInvoiceWriteService, EcomAE.Platform.Erp.ErpAutoPartsInvoiceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJewelleryWorkspaceReadService, EcomAE.Platform.Erp.ErpJewelleryWorkspaceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJewelleryDemoSeedWriteService, EcomAE.Platform.Erp.ErpJewelleryDemoSeedWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCoreDemoSeedWriteService, EcomAE.Platform.Erp.ErpCoreDemoSeedWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJewelleryGlPostWriteService, EcomAE.Platform.Erp.ErpJewelleryGlPostWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJewelleryInvoiceWriteService, EcomAE.Platform.Erp.ErpJewelleryInvoiceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRealEstateWriteService, EcomAE.Platform.Erp.ErpRealEstateWriteService>();

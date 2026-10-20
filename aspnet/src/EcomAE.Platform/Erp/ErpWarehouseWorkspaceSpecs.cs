@@ -197,7 +197,7 @@ public static class ErpWarehouseWorkspaceSpecs
                 "SELECT w.`code`, w.`name`, COUNT(st.`id`), IFNULL(SUM(st.`qty_on_hand`),0)" +
                 WhJoin +
                 " LEFT JOIN `epc_erp_inv_stock` st ON st.`warehouse_id` = w.`id`" +
-                " WHERE w.`active` = 1 GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
+                " GROUP BY w.`id` ORDER BY w.`code` LIMIT 200",
                 "No location profiles — warehouses carry the default location set.",
                 Stock),
 

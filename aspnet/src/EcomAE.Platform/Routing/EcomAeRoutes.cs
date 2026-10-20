@@ -3015,6 +3015,11 @@ public static class EcomAeRoutes
     /// <summary>Jewellery sale voucher → UAE FTA tax invoice build + print link.</summary>
     public const string ErpJewelleryIssueInvoice = "/erp/jewellery/issue-invoice";
 
+    /// <summary>Core workspace demo seed: inserts DEMO-tagged rows across every area.</summary>
+    public const string ErpCoreDemoSeed = "/erp/demo-seed";
+    /// <summary>Core workspace demo clear: deletes only DEMO-tagged rows.</summary>
+    public const string ErpCoreDemoClear = "/erp/demo-clear";
+
     /// <summary>ASAP automotive master workbook. kind=package returns the ZIP.</summary>
     public const string ErpAsapWorkbook = "/erp/asap/workbook";
     public const string ErpFitOutDeliveryDashboard =

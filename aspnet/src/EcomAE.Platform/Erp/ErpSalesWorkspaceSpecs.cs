@@ -112,7 +112,7 @@ public static class ErpSalesWorkspaceSpecs
             ["sm_cases"] = new(
                 ["RMA", "Customer", "Product", "Reason", "Status", "Opened"],
                 "SELECT IFNULL(r.`rma_number`, CONCAT('RMA-',r.`id`))," +
-                " IFNULL(r.`customer_name`,''), LEFT(IFNULL(r.`product_name`,''),50)," +
+                " IFNULL(r.`customer_name`,''), LEFT(IFNULL((SELECT ri.`product_name` FROM `epc_rma_items` ri WHERE ri.`rma_id`=r.`id` ORDER BY ri.`id` LIMIT 1),''),50)," +
                 " LEFT(IFNULL(r.`reason`,''),60), r.`status`, IFNULL(r.`created_at`,'')" +
                 " FROM `epc_rma_requests` r ORDER BY r.`id` DESC LIMIT 300",
                 "No return cases — RMA requests appear here.",
@@ -168,5 +168,6 @@ public static class ErpSalesWorkspaceSpecs
     {
         await ErpSalesOrderWriteService.EnsureSchemaAsync(c, ct).ConfigureAwait(false);
         await ErpSalesInvoiceWriteService.EnsureSchemaAsync(c, ct).ConfigureAwait(false);
+        await ErpLazySchema.EnsureReturnAndVariantTablesAsync(c, ct).ConfigureAwait(false);
     }
 }

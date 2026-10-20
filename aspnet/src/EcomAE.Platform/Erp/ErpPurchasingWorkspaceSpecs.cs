@@ -28,7 +28,7 @@ public static class ErpPurchasingWorkspaceSpecs
                 "SELECT IFNULL(s.`name`,'(none)'), IFNULL(NULLIF(s.`vendor_group`,''),'(none)')," +
                 " COUNT(DISTINCT p.`id`)," +
                 " SUM(p.`status` = 'received')," +
-                " IFNULL(SUM(p.`total_amount`),0), IFNULL(s.`currency_code`,'AED')" +
+                " IFNULL(SUM(p.`total_amount`),0), 'AED'" +
                 SupplierJoin +
                 " LEFT JOIN `epc_erp_purchase_orders` p ON p.`supplier_id` = s.`id`" +
                 " WHERE IFNULL(s.`active`,1) = 1" +
@@ -52,7 +52,7 @@ public static class ErpPurchasingWorkspaceSpecs
 
             ["ps_vendor_item_stats"] = new(
                 ["Item", "PO lines", "Qty ordered", "Qty received", "Spend"],
-                "SELECT IFNULL(NULLIF(l.`item_code`,''), NULLIF(l.`description`,''), '(unlisted)') AS item," +
+                "SELECT IFNULL(NULLIF(l.`item_code`,''), IFNULL(NULLIF(l.`description`,''), '(unlisted)')) AS item," +
                 " COUNT(l.`id`), IFNULL(SUM(l.`qty`),0), IFNULL(SUM(l.`qty_received`),0)," +
                 " IFNULL(SUM(l.`line_ex_vat`),0)" +
                 " FROM `epc_erp_po_lines` l" +
@@ -210,7 +210,7 @@ public static class ErpPurchasingWorkspaceSpecs
 
             ["ps_price_disc_groups"] = new(
                 ["Currency", "Vendors", "Avg spend"],
-                "SELECT IFNULL(s.`currency_code`,'AED'), COUNT(s.`id`)," +
+                "SELECT 'AED', COUNT(s.`id`)," +
                 " (SELECT IFNULL(AVG(b.`total_amount`),0) FROM `epc_erp_purchases` b" +
                 "  WHERE b.`supplier_id` = s.`id`)" +
                 SupplierJoin +

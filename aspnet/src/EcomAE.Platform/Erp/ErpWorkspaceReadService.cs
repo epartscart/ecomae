@@ -29,10 +29,14 @@ public interface IErpWorkspaceReadService
 public sealed class ErpWorkspaceReadService : IErpWorkspaceReadService
 {
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly ILogger<ErpWorkspaceReadService> _logger;
 
-    public ErpWorkspaceReadService(IErpWriteConnectionFactory connections)
+    public ErpWorkspaceReadService(
+        IErpWriteConnectionFactory connections,
+        ILogger<ErpWorkspaceReadService> logger)
     {
         _connections = connections;
+        _logger = logger;
     }
 
     public static readonly IReadOnlyDictionary<string, ErpWorkspaceSpec> Specs = BuildSpecs();
@@ -145,9 +149,10 @@ public sealed class ErpWorkspaceReadService : IErpWorkspaceReadService
                     rows.Add(cells);
                 }
             }
-            catch
+            catch (Exception exception)
             {
                 // Optional backing table missing on this tenant — show the hint row instead of 500.
+                _logger.LogWarning(exception, "Workspace spec failed for tab {Tab}", tab);
             }
         }
 

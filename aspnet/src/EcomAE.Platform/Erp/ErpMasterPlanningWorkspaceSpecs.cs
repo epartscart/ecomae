@@ -28,7 +28,7 @@ public static class ErpMasterPlanningWorkspaceSpecs
             ["mp_vendors"] = new(
                 ["Vendor", "Group", "Currency", "Country", "Terms"],
                 "SELECT s.`name`, IFNULL(NULLIF(s.`vendor_group`,''),'(none)')," +
-                " IFNULL(s.`currency_code`,'AED'), IFNULL(s.`country_code`,'')," +
+                " 'AED', IFNULL(s.`country_code`,'')," +
                 " IFNULL(s.`payment_terms`,'')" +
                 " FROM `epc_erp_suppliers` s WHERE IFNULL(s.`active`,1) = 1" +
                 " ORDER BY s.`name` LIMIT 300",
