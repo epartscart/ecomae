@@ -4823,6 +4823,20 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return [];
         }
 
+        // PHP epc_cross_load_stock_for_references uses docpart_sql_article_normalized_expr IN (...).
+        // When the normalized article/article_show columns exist and are backfilled, use them
+        // instead — index seeks instead of a 15-REPLACE full-table scan per batch.
+        var useIndexedMatch = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false)
+            && await ProbePriceArticleShowSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
+        // The indexed clause is complete only while the table is fully backfilled. Rows
+        // imported after the last backfill have empty/NULL search columns and are invisible to
+        // it — so when any unbackfilled row exists, re-check every batch with the REPLACE
+        // expression. A norm-level exclusion is NOT safe: an indexed hit for a norm doesn't
+        // prove an unbackfilled offer for the same norm doesn't exist. The probe runs fresh
+        // per call (never cached) so imports between calls are always detected.
+        var replaceFallback = useIndexedMatch
+            && await ProbePriceTableUnbackfilledOffersAsync(connection, cancellationToken).ConfigureAwait(false);
+
         var best = new Dictionary<string, StorefrontCrossStockDigest>(StringComparer.OrdinalIgnoreCase);
         for (var offset = 0; offset < norms.Count && best.Count < stockMax; offset += batchSize)
         {
@@ -4835,18 +4849,6 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var command = connection.CreateCommand();
             command.CommandTimeout = 8;
             ErpFirstPaint.ApplyIfErp(command);
-            // PHP epc_cross_load_stock_for_references uses docpart_sql_article_normalized_expr IN (...).
-            // When the normalized article/article_show columns exist and are backfilled, use them
-            // instead — index seeks instead of a 15-REPLACE full-table scan per batch.
-            var useIndexedMatch = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false)
-                && await ProbePriceArticleShowSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
-            // The indexed clause is complete only while the table is fully backfilled. Rows
-            // imported after the last backfill have empty search columns and are invisible to
-            // it — so when any unbackfilled row exists, re-check the whole batch with the
-            // REPLACE expression. A norm-level exclusion is NOT safe: an indexed hit for a
-            // norm doesn't prove an unbackfilled offer for the same norm doesn't exist.
-            var replaceFallback = useIndexedMatch
-                && await ProbePriceTableUnbackfilledOffersAsync(connection, cancellationToken).ConfigureAwait(false);
             var articleMatch = useIndexedMatch
                 ? LegacySurfaceDashboardSql.StorefrontPriceArticleIndexedShowSearchInSql(batch.Count)
                 : LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(batch.Count);
@@ -5033,7 +5035,6 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     private readonly ConcurrentDictionary<string, int> _priceArticleSearchColumnState = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, int> _priceArticleShowSearchColumnState = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, int> _analogsSearchColumnState = new(StringComparer.OrdinalIgnoreCase);
-    private readonly ConcurrentDictionary<string, int> _priceTableUnbackfilledState = new(StringComparer.OrdinalIgnoreCase);
 
     private async Task<bool> ProbePriceArticleSearchColumnAsync(DbConnection connection, CancellationToken cancellationToken)
     {
@@ -5105,36 +5106,30 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     }
 
     /// <summary>
-    /// Per-database probe: does <c>shop_docpart_prices_data</c> contain rows the search columns
-    /// haven't covered yet (non-empty article/article_show with an empty normalized column)?
-    /// Such rows are invisible to the indexed match, so its caller falls back to the REPLACE
-    /// expression. On probe failure we conservatively report unbackfilled — the REPLACE path is
-    /// always correct, just slower.
+    /// Does <c>shop_docpart_prices_data</c> contain rows the search columns haven't covered yet
+    /// (non-empty article/article_show with an empty or NULL normalized column)? Such rows are
+    /// invisible to the indexed match, so its caller falls back to the REPLACE expression.
+    /// On probe failure we conservatively report unbackfilled — the REPLACE path is always
+    /// correct, just slower.
     /// </summary>
     private async Task<bool> ProbePriceTableUnbackfilledOffersAsync(DbConnection connection, CancellationToken cancellationToken)
     {
-        var db = connection.Database ?? string.Empty;
-        if (_priceTableUnbackfilledState.TryGetValue(db, out var cached))
-        {
-            return cached is 1;
-        }
-
+        // Deliberately uncached: imports between calls must be seen. One indexed EXISTS
+        // per cross-stock load is negligible next to the batch queries it protects.
         try
         {
             await using var command = connection.CreateCommand();
             command.CommandText = """
                 SELECT EXISTS(SELECT 1 FROM `shop_docpart_prices_data` d
-                              WHERE (d.`article_search` = '' AND IFNULL(d.`article`, '') <> '')
-                                 OR (d.`article_show_search` = '' AND IFNULL(d.`article_show`, '') <> ''))
+                              WHERE (IFNULL(d.`article_search`, '') = '' AND IFNULL(d.`article`, '') <> '')
+                                 OR (IFNULL(d.`article_show_search`, '') = '' AND IFNULL(d.`article_show`, '') <> ''))
                 """;
             var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-            var hasUnbackfilled = Convert.ToInt32(value is DBNull ? 0 : value, CultureInfo.InvariantCulture) is 1;
-            _priceTableUnbackfilledState[db] = hasUnbackfilled ? 1 : -1;
-            return hasUnbackfilled;
+            return Convert.ToInt32(value is DBNull ? 0 : value, CultureInfo.InvariantCulture) is 1;
         }
         catch
         {
-            _priceTableUnbackfilledState[db] = 1;
+            // Conservative: the REPLACE path is always correct, just slower.
             return true;
         }
     }
