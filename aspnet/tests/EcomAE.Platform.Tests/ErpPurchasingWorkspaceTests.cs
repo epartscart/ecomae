@@ -57,3 +57,32 @@ public class ErpPurchasingWorkspaceTests
         Assert.False(ErpWorkspaceReadService.Specs.ContainsKey("pim_product_upload")); // form tab, not a list
     }
 }
+
+public class ErpWarehouseWorkspaceTests
+{
+    [Fact]
+    public void Specs_AreKnownWarehouseTabs()
+    {
+        var generic = ErpD365WorkspaceCatalog.ForArea("warehouse")
+            .Where(p => p.ExistingHref is null)
+            .Select(p => p.Tab)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var tab in ErpWarehouseWorkspaceSpecs.Tabs.Keys)
+        {
+            Assert.True(generic.Contains(tab), $"{tab} is not a generic warehouse tab in the catalog");
+        }
+    }
+
+    [Fact]
+    public void Specs_SqlTargetsRealTables()
+    {
+        foreach (var (tab, spec) in ErpWarehouseWorkspaceSpecs.Tabs)
+        {
+            Assert.StartsWith("SELECT", spec.Sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("epc_erp_", spec.Sql, StringComparison.Ordinal);
+            Assert.False(string.IsNullOrWhiteSpace(spec.EmptyHint), tab);
+            Assert.True(spec.Headers.Count > 0, tab);
+        }
+    }
+}
