@@ -127,6 +127,11 @@ public static class IndustrySpecificRoutePolicy
             return "real_estate";
         }
 
+        if (path.StartsWith("/erp/autoparts/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "auto_parts";
+        }
+
         return null;
     }
 
@@ -171,6 +176,11 @@ public static class IndustrySpecificRoutePolicy
             return ErpIndustryNav.IsRealEstateCompany(company);
         }
 
+        if (requiredIndustry.Equals("auto_parts", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErpIndustryNav.IsAutoPartsCompany(company);
+        }
+
         return false;
     }
 
@@ -197,6 +207,16 @@ public static class IndustrySpecificRoutePolicy
                 || value.Contains("fit-out", StringComparison.Ordinal)
                 || value.Contains("construction", StringComparison.Ordinal)
                 || value.Contains("building_materials", StringComparison.Ordinal);
+        }
+
+        if (required is "auto_parts" or "autoparts")
+        {
+            return value is "auto_parts" or "autoparts" or "auto-parts" or "automotive" or "auto" or "asap"
+                || value.Contains("auto_part", StringComparison.Ordinal)
+                || value.Contains("autopart", StringComparison.Ordinal)
+                || value.Contains("auto-part", StringComparison.Ordinal)
+                || value.Contains("spare_part", StringComparison.Ordinal)
+                || value.Contains("sparepart", StringComparison.Ordinal);
         }
 
         if (required is "real_estate" or "realestate")

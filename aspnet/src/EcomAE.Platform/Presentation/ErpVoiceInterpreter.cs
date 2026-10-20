@@ -366,7 +366,7 @@ public static class ErpVoiceInterpreter
             query = text;
         }
 
-        var hit = ErpGlobalSearchCatalog.Filter(ErpGlobalSearchCatalog.Build(true, true, true), query, 12)
+        var hit = ErpGlobalSearchCatalog.Filter(ErpGlobalSearchCatalog.Build(true, true, true, true), query, 12)
             .OrderByDescending(row => string.Equals(row.Label, query, StringComparison.OrdinalIgnoreCase) ? 1 : 0)
             .ThenBy(row => row.Label.Length)
             .ThenBy(row => row.Label, StringComparer.OrdinalIgnoreCase)

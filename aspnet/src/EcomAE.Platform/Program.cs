@@ -1214,6 +1214,14 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutWorkspaceReadService, E
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutDemoSeedWriteService, EcomAE.Platform.Erp.ErpFitOutDemoSeedWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutGlPostWriteService, EcomAE.Platform.Erp.ErpFitOutGlPostWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutClaimInvoiceWriteService, EcomAE.Platform.Erp.ErpFitOutClaimInvoiceWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAutoPartsWorkspaceReadService, EcomAE.Platform.Erp.ErpAutoPartsWorkspaceReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAutoPartsDemoSeedWriteService, EcomAE.Platform.Erp.ErpAutoPartsDemoSeedWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAutoPartsGlPostWriteService, EcomAE.Platform.Erp.ErpAutoPartsGlPostWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAutoPartsInvoiceWriteService, EcomAE.Platform.Erp.ErpAutoPartsInvoiceWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJewelleryWorkspaceReadService, EcomAE.Platform.Erp.ErpJewelleryWorkspaceReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJewelleryDemoSeedWriteService, EcomAE.Platform.Erp.ErpJewelleryDemoSeedWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJewelleryGlPostWriteService, EcomAE.Platform.Erp.ErpJewelleryGlPostWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJewelleryInvoiceWriteService, EcomAE.Platform.Erp.ErpJewelleryInvoiceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRealEstateWriteService, EcomAE.Platform.Erp.ErpRealEstateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpLandlordBook, EcomAE.Platform.Erp.ErpLandlordBookService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpIndustryPulseReadService, EcomAE.Platform.Erp.ErpIndustryPulseReadService>();

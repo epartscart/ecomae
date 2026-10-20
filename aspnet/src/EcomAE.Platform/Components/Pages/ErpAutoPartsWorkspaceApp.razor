@@ -1,0 +1,296 @@
+@page "/erp/autoparts/workspace"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject ICpCsrfGuard Csrf
+@inject IHttpContextAccessor Http
+@inject IErpAutoPartsWorkspaceReadService Workspace
+
+<PageTitle>Auto-parts workspace · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Auto-parts workspace" BreadcrumbArea="Industry" BreadcrumbTab="@_tabLabel">
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/autoparts/workspace" IsAdmin="_isAdmin" />
+    <PhpErpModulePageHeader
+        Title="@(_tab == ErpAutoPartsGuide.TabKey ? "Auto parts, step by step" : "Auto-parts workspace")"
+        Subtitle="Parts catalogue with OEM numbers and fitment, stock movements, supplier purchases, customer sales, UAE tax invoices and the month-end posting into the general ledger. Load the tagged sample data, learn the flow, then remove it before going live."
+        PhpTabHref="/erp/autoparts/workspace" />
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
+
+    <div class="fo-board-dock" aria-label="Workspace actions and category filter">
+        <div class="fo-board-dock__col">
+            <strong>Auto-parts workspace</strong>
+            <form class="fo-filter" method="get" action="@SelfHref">
+                <input type="hidden" name="tab" value="@_tab" />
+                <label>
+                    <span>Category</span>
+                    <select name="category">
+                        <option value="" selected="@(_category.Length == 0)">All categories</option>
+                        @foreach (var c in _snap.Categories)
+                        {
+                            <option value="@c" selected="@(string.Equals(_category, c, StringComparison.Ordinal))">@c</option>
+                        }
+                    </select>
+                </label>
+                <label>
+                    <span>Period</span>
+                    <input type="month" name="period" value="@_period" />
+                </label>
+                <button class="btn btn-sm fo-board-btn" type="submit">Apply filter</button>
+                @if (_category.Length > 0 || _period.Length > 0)
+                {
+                    <a class="btn btn-sm fo-board-btn" href="@SelfHref?tab=@_tab">Clear</a>
+                }
+            </form>
+        </div>
+        <div class="fo-board-dock__actions">
+            @if (_isAdmin)
+            {
+                <form method="post" action="@DemoHref("seed")" class="fo-inline">
+                    <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
+                    <input type="hidden" name="confirmWrites" value="1" />
+                    <input type="hidden" name="returnUrl" value="@(SelfHref + "?tab=" + _tab + QuerySuffix)" />
+                    <button class="btn btn-sm fo-board-btn" type="submit"><i class="fa fa-cloud-download"></i> Load sample data</button>
+                </form>
+                <form method="post" action="@DemoHref("clear")" class="fo-inline">
+                    <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
+                    <input type="hidden" name="confirmWrites" value="1" />
+                    <input type="hidden" name="returnUrl" value="@(SelfHref + "?tab=" + _tab + QuerySuffix)" />
+                    <button class="btn btn-sm fo-board-btn fo-board-btn--danger" type="submit"><i class="fa fa-trash"></i> Remove sample data</button>
+                </form>
+                <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/autoparts/gl-post")" class="fo-inline">
+                    <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
+                    <input type="hidden" name="confirmWrites" value="1" />
+                    <input type="hidden" name="period" value="@_period" />
+                    <input type="hidden" name="returnUrl" value="@(SelfHref + "?tab=" + _tab + QuerySuffix)" />
+                    <button class="btn btn-sm fo-board-btn" type="submit"><i class="fa fa-book"></i> Post to GL</button>
+                </form>
+                <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/autoparts/issue-invoice")" class="fo-inline">
+                    <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
+                    <input type="hidden" name="confirmWrites" value="1" />
+                    <input type="hidden" name="returnUrl" value="@(SelfHref + "?tab=invoices" + QuerySuffix)" />
+                    <button class="btn btn-sm fo-board-btn" type="submit"><i class="fa fa-file-text-o"></i> Issue tax invoices</button>
+                </form>
+            }
+            <a class="btn btn-sm fo-board-btn" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/reports/income-statement")" target="_blank" rel="noopener">Income statement</a>
+            <a class="btn btn-sm fo-board-btn" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/reports/balance-sheet")" target="_blank" rel="noopener">Balance sheet</a>
+            <a class="btn btn-sm fo-board-btn" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/reports/trial-balance")" target="_blank" rel="noopener">Trial balance</a>
+        </div>
+    </div>
+    <style>
+        .fo-board-dock { position: sticky; top: 0; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 14px; padding: 10px 14px; background: linear-gradient(90deg, #06302b, #0f766e); color: #ecfdf5; border-bottom: 3px solid #14b8a6; border-radius: 6px; box-shadow: 0 8px 24px rgba(6,48,43,.22); }
+        .fo-board-dock strong { color: #5eead4; }
+        .fo-board-dock__col { display: flex; flex-direction: column; gap: 6px; }
+        .fo-board-dock__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .fo-board-btn { background: #5eead4 !important; color: #06302b !important; border: 0 !important; font-weight: 600; }
+        .fo-board-btn--danger { background: #fda4af !important; color: #4c0519 !important; }
+        .fo-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+        .fo-filter label { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: #a7f3d0; }
+        .fo-filter select, .fo-filter input { font-size: 13px; padding: 4px 8px; border: 1px solid #5eead4; border-radius: 6px; background: #f0fdfa; color: #06302b; min-width: 210px; }
+        .fo-filter input { min-width: 140px; }
+        .fo-inline { display: inline; margin: 0; }
+        .fo-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; }
+        .fo-card { background: #fff; border: 1px solid #d5e3f2; border-radius: 10px; padding: 12px 14px; }
+        .fo-card h3 { margin: 0 0 8px; font-size: 14px; color: #0f766e; }
+        table.fo { border-collapse: collapse; width: 100%; font-size: 12px; }
+        table.fo th, table.fo td { border: 1px solid #e2e8f0; padding: 4px 8px; text-align: left; }
+        table.fo th { background: #f0fdfa; color: #0f766e; }
+        table.fo td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        table.fo td a { color: #1d4ed8; font-weight: 600; }
+    </style>
+
+    <ErpAutoPartsWorkspaceTabs Active="@_tab" QuerySuffix="@QuerySuffix" />
+
+    @if (_tab == ErpAutoPartsGuide.TabKey)
+    {
+        <ErpAutoPartsGuideBoard QuerySuffix="@QuerySuffix" />
+    }
+    else
+    {
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Auto-parts KPIs">
+            @foreach (var kpi in _snap.Kpis)
+            {
+                <div class="kpi"><div class="lbl">@kpi.Label</div><div class="val">@kpi.Value</div><div class="text-muted" style="font-size:11px">@kpi.Hint</div></div>
+            }
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_snap.Message))
+        {
+            <p class="text-muted">@_snap.Message</p>
+        }
+
+        @if (_tab == "catalogue")
+        {
+            <div class="fo-grid2">
+                <div class="fo-card">
+                    <h3>Parts catalogue</h3>
+                    @RowsTable(new[] { "Id", "SKU", "Part", "Brand", "OEM no.", "Category", "Fitment", "Cost", "Price", "Stock", "Reorder" }, _snap.Parts, 7, 8, 9)
+                </div>
+            </div>
+        }
+        else if (_tab == "stock")
+        {
+            <div class="fo-grid2">
+                <div class="fo-card"><h3>Stock movements</h3>@RowsTable(new[] { "Id", "Movement", "SKU", "Part", "Qty", "Unit cost", "Reference", "Date" }, _snap.Movements, 4, 5)</div>
+                <div class="fo-card"><h3>Low stock — reorder now</h3>@RowsTable(new[] { "SKU", "Part", "Brand", "Category", "On hand", "Reorder at" }, _snap.LowStock, 4, 5)</div>
+            </div>
+        }
+        else if (_tab == "purchases")
+        {
+            <div class="fo-grid2">
+                <div class="fo-card"><h3>Purchase orders</h3>@RowsTable(new[] { "Id", "PO no.", "Supplier", "Status", "Subtotal", "VAT", "Total", "Date" }, _snap.Purchases, 4, 5, 6)</div>
+                <div class="fo-card"><h3>Order lines</h3>@RowsTable(new[] { "Id", "Order", "Item", "Qty", "Unit price", "Line total" }, _snap.OrderLines, 3, 4, 5)</div>
+            </div>
+        }
+        else if (_tab == "sales")
+        {
+            <div class="fo-grid2">
+                <div class="fo-card"><h3>Sales orders</h3>@RowsTable(new[] { "Id", "SO no.", "Customer", "Status", "Subtotal", "VAT", "Total", "Date" }, _snap.Sales, 4, 5, 6)</div>
+            </div>
+        }
+        else if (_tab == "invoices")
+        {
+            <div class="fo-grid2">
+                <div class="fo-card"><h3>Issued tax invoices</h3>@RowsTable(new[] { "Id", "Order", "Invoice no.", "Net", "VAT", "Gross", "Print" }, _snap.Invoices, 6, 3, 4, 5)</div>
+            </div>
+        }
+        else if (_tab == "month-end")
+        {
+            <div class="fo-grid2">
+                <div class="fo-card">
+                    <h3>Post to the general ledger</h3>
+                    <p class="text-muted">Posts received purchases (Dr inventory / Cr supplier payable), invoiced sales (Dr receivable / Cr parts revenue / Cr 5% output VAT), cost of goods sold (Dr COGS / Cr inventory) and customer receipts (Dr bank / Cr receivable) into the GL — so the income statement, balance sheet and dashboard insights include the auto-parts figures. Scoped to the current period filter; already-posted rows are skipped.</p>
+                </div>
+                <div class="fo-card"><h3>GL journal trail</h3>@RowsTable(new[] { "Id", "Reference", "Journal", "Date" }, _snap.Ledger)</div>
+            </div>
+        }
+        else if (_tab == "reports")
+        {
+            <div class="fo-grid2">
+                <div class="fo-card"><h3>Sales register</h3>@RowsTable(new[] { "Id", "SO no.", "Customer", "Status", "Subtotal", "VAT", "Total", "Date" }, _snap.Sales, 4, 5, 6)</div>
+                <div class="fo-card"><h3>Stock valuation</h3>@RowsTable(new[] { "Id", "SKU", "Part", "Brand", "OEM no.", "Category", "Fitment", "Cost", "Price", "Stock", "Reorder" }, _snap.Parts, 7, 8, 9)</div>
+                <div class="fo-card"><h3>GL journal trail</h3>@RowsTable(new[] { "Id", "Reference", "Journal", "Date" }, _snap.Ledger)</div>
+            </div>
+        }
+    }
+</PhpErpDesktopChrome>
+
+@code {
+    private ErpAutoPartsWorkspaceSnapshot _snap = new();
+    private string _tab = ErpAutoPartsGuide.TabKey;
+    private string _tabLabel = "Guide";
+    private string _category = string.Empty;
+    private string _period = string.Empty;
+    private bool _isAdmin;
+    private string _csrf = string.Empty;
+    private string _flashOk = string.Empty;
+    private string _flashErr = string.Empty;
+
+    private string QuerySuffix
+    {
+        get
+        {
+            var suffix = string.Empty;
+            if (_category.Length > 0)
+            {
+                suffix += "&category=" + Uri.EscapeDataString(_category);
+            }
+
+            if (_period.Length > 0)
+            {
+                suffix += "&period=" + Uri.EscapeDataString(_period);
+            }
+
+            return suffix;
+        }
+    }
+
+    private string SelfHref
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/autoparts/workspace");
+
+    private string DemoHref(string action)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/autoparts/demo-" + action);
+
+    private RenderFragment RowsTable(string[] headers, IReadOnlyList<IReadOnlyList<string>> rows, params int[] numCols)
+        => RowsTable(headers, rows, -1, numCols);
+
+    private RenderFragment RowsTable(string[] headers, IReadOnlyList<IReadOnlyList<string>> rows, int linkCol, params int[] numCols) => builder =>
+    {
+        var seq = 0;
+        builder.OpenElement(seq++, "table");
+        builder.AddAttribute(seq++, "class", "fo");
+        builder.OpenElement(seq++, "tr");
+        foreach (var head in headers)
+        {
+            builder.OpenElement(seq++, "th");
+            builder.AddContent(seq++, head);
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+        foreach (var row in rows)
+        {
+            builder.OpenElement(seq++, "tr");
+            for (var i = 0; i < row.Count && i < headers.Length; i++)
+            {
+                var numeric = numCols.Contains(i);
+                builder.OpenElement(seq++, "td");
+                if (numeric)
+                {
+                    builder.AddAttribute(seq++, "class", "num");
+                }
+
+                var cell = row[i];
+                if (i == linkCol && cell.StartsWith("/", StringComparison.Ordinal))
+                {
+                    builder.OpenElement(seq++, "a");
+                    builder.AddAttribute(seq++, "href", ClientErpPath.PrefixIfBound(Http.HttpContext, cell));
+                    builder.AddAttribute(seq++, "target", "_blank");
+                    builder.AddAttribute(seq++, "rel", "noopener");
+                    builder.AddContent(seq++, "Print");
+                    builder.CloseElement();
+                }
+                else
+                {
+                    builder.AddContent(seq++, cell);
+                }
+
+                builder.CloseElement();
+            }
+
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? string.Empty;
+        _flashErr = ctx.Request.Query["err"].ToString() ?? string.Empty;
+        _tab = ErpAutoPartsGuide.Normalize(ctx.Request.Query["tab"].ToString());
+        _tabLabel = ErpAutoPartsWorkspace.Label(_tab);
+        _period = ctx.Request.Query["period"].ToString() ?? string.Empty;
+        _category = (ctx.Request.Query["category"].ToString() ?? string.Empty).Trim();
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (_isAdmin)
+        {
+            _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
+        }
+
+        _snap = await Workspace.LoadAsync(_category, _period, ctx.RequestAborted);
+    }
+}

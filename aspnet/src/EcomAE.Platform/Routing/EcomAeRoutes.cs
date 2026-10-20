@@ -2995,6 +2995,24 @@ public static class EcomAeRoutes
     /// <summary>Fit-out claim → UAE FTA tax invoice build + print link.</summary>
     public const string ErpFitOutClaimInvoice = "/erp/fitout/claim-invoice";
 
+    /// <summary>Auto-parts workspace demo seed: inserts DEMO-tagged rows only.</summary>
+    public const string ErpAutoPartsDemoSeed = "/erp/autoparts/demo-seed";
+    /// <summary>Auto-parts workspace demo clear: deletes only DEMO-tagged rows.</summary>
+    public const string ErpAutoPartsDemoClear = "/erp/autoparts/demo-clear";
+    /// <summary>Auto-parts month-end bridge: posts trading journals into the GL.</summary>
+    public const string ErpAutoPartsGlPost = "/erp/autoparts/gl-post";
+    /// <summary>Auto-parts sales order → UAE FTA tax invoice build + print link.</summary>
+    public const string ErpAutoPartsIssueInvoice = "/erp/autoparts/issue-invoice";
+
+    /// <summary>Jewellery workspace demo seed: inserts DEMO-tagged rows only.</summary>
+    public const string ErpJewelleryDemoSeed = "/erp/jewellery/demo-seed";
+    /// <summary>Jewellery workspace demo clear: deletes only DEMO-tagged rows.</summary>
+    public const string ErpJewelleryDemoClear = "/erp/jewellery/demo-clear";
+    /// <summary>Jewellery month-end bridge: posts voucher journals into the GL.</summary>
+    public const string ErpJewelleryGlPost = "/erp/jewellery/gl-post";
+    /// <summary>Jewellery sale voucher → UAE FTA tax invoice build + print link.</summary>
+    public const string ErpJewelleryIssueInvoice = "/erp/jewellery/issue-invoice";
+
     /// <summary>ASAP automotive master workbook. kind=package returns the ZIP.</summary>
     public const string ErpAsapWorkbook = "/erp/asap/workbook";
     public const string ErpFitOutDeliveryDashboard =
