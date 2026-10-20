@@ -12,7 +12,7 @@
 <PageTitle>Recommended orders · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Recommended orders" BreadcrumbArea="Inventory management" BreadcrumbTab="Inventory policy (Syncron)">
-    <PhpErpModulePageHeader Title="Recommended orders" Subtitle="Review the suggested order quantity for each item and warehouse, change it, then confirm, reject or draft a purchase order. Demand type is Fast, Slow, Erratic, Lumpy or New from the daily movement history. Policies, the 30-day forecast and monthly service levels stay on the other tabs." />
+    <PhpErpModulePageHeader Title="Recommended orders" Subtitle="Review the suggested order quantity for each item and warehouse, change it, then confirm, reject or open a purchase order. Demand type is Fast, Slow, Erratic, Lumpy or New from the daily movement history. Policies, the 30-day forecast and monthly service levels stay on the other tabs." />
     <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     <ErpManualProcessStrip Keys="syncron" />
@@ -20,7 +20,7 @@
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Inventory policy KPIs">
         <div class="kpi"><div class="lbl">Pending</div><div class="val">@CountStatus("pending")</div></div>
         <div class="kpi"><div class="lbl">Confirmed</div><div class="val">@CountStatus("confirmed")</div></div>
-        <div class="kpi"><div class="lbl">Drafted</div><div class="val">@CountStatus("drafted")</div></div>
+        <div class="kpi"><div class="lbl">Ordered</div><div class="val">@CountStatus("drafted")</div></div>
         <div class="kpi"><div class="lbl">Rejected</div><div class="val">@CountStatus("rejected")</div></div>
     </div>
 
@@ -232,7 +232,7 @@
                 <button type="submit" class="btn btn-primary btn-sm" name="syncron_action" value="confirm_lines">Confirm</button>
                 <button type="submit" class="btn btn-default btn-sm" name="syncron_action" value="unconfirm_all">Unconfirm all</button>
                 <button type="submit" class="btn btn-primary btn-sm" name="syncron_action" value="confirm_all">Confirm all</button>
-                <button type="submit" class="btn btn-default btn-sm" name="syncron_action" value="draft_orders">Draft</button>
+                <button type="submit" class="btn btn-default btn-sm" name="syncron_action" value="draft_orders">Purchase order</button>
                 <button type="submit" class="btn btn-danger btn-sm" name="syncron_action" value="reject_lines">Reject</button>
                 <button type="button" class="btn btn-default btn-sm" onclick="epcSyncronExport()">Export</button>
             </div>
@@ -295,7 +295,7 @@
                 </table>
             </div>
         </form>
-        <p class="text-muted" style="margin:.6rem 0 0;font-size:12px;">Update saves the quantities on this list. Confirm and Reject act on the ticked lines. Confirm all covers every pending line with a quantity, including lines hidden by the filter. Draft builds one draft purchase order per supplier from the confirmed lines that have a supplier. Lines with no supplier stay confirmed.</p>
+        <p class="text-muted" style="margin:.6rem 0 0;font-size:12px;">Update saves the quantities on this list. Confirm and Reject act on the ticked lines. Confirm all covers every pending line with a quantity, including lines hidden by the filter. Purchase order opens one approved purchase order per supplier from the confirmed lines that have a supplier. Lines with no supplier stay confirmed.</p>
         <script>
             function epcSyncronExport() {
                 var table = document.getElementById('syncron-order-lines');
@@ -326,7 +326,7 @@
     private static readonly IReadOnlyList<(string Key, string Label)> Views =
         [("recommendations", "Recommended orders"), ("policies", "Policies"), ("forecast", "Demand forecast"), ("service", "Service levels")];
     private static readonly IReadOnlyList<(string Key, string Label)> StatusFilters =
-        [("pending", "Pending"), ("confirmed", "Confirmed"), ("rejected", "Rejected"), ("drafted", "Drafted"), ("ok", "Within policy"), ("all", "All")];
+        [("pending", "Pending"), ("confirmed", "Confirmed"), ("rejected", "Rejected"), ("drafted", "Ordered"), ("ok", "Within policy"), ("all", "All")];
     private const string PoliciesHref = "/erp/syncron-app?sv=policies";
     private const string ForecastHref = "/erp/syncron-app?sv=forecast";
     private const string ServiceHref = "/erp/syncron-app?sv=service";
