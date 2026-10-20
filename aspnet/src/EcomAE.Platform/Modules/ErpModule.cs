@@ -388,6 +388,14 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpFitOutReport, HandleFitOutReportAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutGlPost, HandleFitOutGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutClaimInvoice, HandleFitOutClaimInvoiceAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoSeed, HandleAutoPartsDemoSeedAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryDemoSeed, HandleJewelleryDemoSeedAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryDemoClear, HandleJewelleryDemoClearAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryGlPost, HandleJewelleryGlPostAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryIssueInvoice, HandleJewelleryIssueInvoiceAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutWorkbook, HandleFitOutWorkbookAsync);
         endpoints.MapGet(EcomAeRoutes.ErpAsapWorkbook, HandleAsapWorkbookAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutDeliveryDashboard, HandleFitOutDeliveryDashboardAsync);
@@ -26619,6 +26627,266 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/fitout/workspace?tab=claims",
+            ok,
+            message,
+            new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>Auto-parts workspace demo seed: inserts DEMO-tagged rows only.</summary>
+    private static async Task<IResult> HandleAutoPartsDemoSeedAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpAutoPartsDemoSeedWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/autoparts/workspace", "Admin ERP capability required for demo seeding.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to load the DEMO-tagged auto-parts sample data.", session = SessionPayload(session) });
+        }
+
+        var message = await writes.SeedDemoAsync(cancellationToken);
+        var ok = !message.StartsWith("TenantRegistry DB is not configured", StringComparison.Ordinal);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/autoparts/workspace?tab=guide",
+            ok,
+            message,
+            new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>Auto-parts workspace demo clear: deletes only DEMO-tagged rows, safe at any time.</summary>
+    private static async Task<IResult> HandleAutoPartsDemoClearAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpAutoPartsDemoSeedWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/autoparts/workspace", "Admin ERP capability required for demo clearing.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to remove the DEMO-tagged auto-parts sample data.", session = SessionPayload(session) });
+        }
+
+        var message = await writes.ClearDemoAsync(cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/autoparts/workspace?tab=guide",
+            true,
+            message,
+            new { ok = true, writes = 1, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>Auto-parts month-end bridge: posts purchase/sale/COGS/receipt journals into the GL.</summary>
+    private static async Task<IResult> HandleAutoPartsGlPostAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpAutoPartsGlPostWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/autoparts/workspace?tab=month-end", "Admin ERP capability required for GL posting.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to post the auto-parts journals to the GL.", session = SessionPayload(session) });
+        }
+
+        long.TryParse(context.Request.Form["order"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var orderId);
+        var period = context.Request.Form["period"].ToString() ?? string.Empty;
+        var message = await writes.PostAsync(orderId, period, cancellationToken);
+        var ok = !message.StartsWith("TenantRegistry DB is not configured", StringComparison.Ordinal)
+                 && !message.StartsWith("Invalid period", StringComparison.Ordinal);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/autoparts/workspace?tab=month-end",
+            ok,
+            message,
+            new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>Auto-parts sales orders → UAE FTA tax invoices via the shared e-invoice writer.</summary>
+    private static async Task<IResult> HandleAutoPartsIssueInvoiceAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpAutoPartsInvoiceWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/autoparts/workspace?tab=invoices", "Admin ERP capability required for invoice issue.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to issue tax invoices for invoiced sales orders.", session = SessionPayload(session) });
+        }
+
+        long.TryParse(context.Request.Form["order"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var orderId);
+        string message;
+        var ok = true;
+        if (orderId > 0)
+        {
+            var result = await writes.CreateFromOrderAsync(orderId, session.UserId, cancellationToken);
+            ok = result.Succeeded;
+            message = result.Message;
+        }
+        else
+        {
+            message = await writes.CreatePendingAsync(session.UserId, cancellationToken);
+        }
+
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/autoparts/workspace?tab=invoices",
+            ok,
+            message,
+            new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>Jewellery workspace demo seed: inserts DEMO-tagged rows only.</summary>
+    private static async Task<IResult> HandleJewelleryDemoSeedAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpJewelleryDemoSeedWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/jewellery/workspace", "Admin ERP capability required for demo seeding.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to load the DEMO-tagged jewellery sample data.", session = SessionPayload(session) });
+        }
+
+        var message = await writes.SeedDemoAsync(cancellationToken);
+        var ok = !message.StartsWith("TenantRegistry DB is not configured", StringComparison.Ordinal);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/jewellery/workspace?tab=guide",
+            ok,
+            message,
+            new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>Jewellery workspace demo clear: deletes only DEMO-tagged rows, safe at any time.</summary>
+    private static async Task<IResult> HandleJewelleryDemoClearAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpJewelleryDemoSeedWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/jewellery/workspace", "Admin ERP capability required for demo clearing.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to remove the DEMO-tagged jewellery sample data.", session = SessionPayload(session) });
+        }
+
+        var message = await writes.ClearDemoAsync(cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/jewellery/workspace?tab=guide",
+            true,
+            message,
+            new { ok = true, writes = 1, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>Jewellery month-end bridge: posts purchase/sale voucher journals into the GL.</summary>
+    private static async Task<IResult> HandleJewelleryGlPostAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpJewelleryGlPostWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/jewellery/workspace?tab=month-end", "Admin ERP capability required for GL posting.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to post the jewellery vouchers to the GL.", session = SessionPayload(session) });
+        }
+
+        long.TryParse(context.Request.Form["voucher"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var voucherId);
+        var period = context.Request.Form["period"].ToString() ?? string.Empty;
+        var message = await writes.PostAsync(voucherId, period, cancellationToken);
+        var ok = !message.StartsWith("TenantRegistry DB is not configured", StringComparison.Ordinal)
+                 && !message.StartsWith("Invalid period", StringComparison.Ordinal);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/jewellery/workspace?tab=month-end",
+            ok,
+            message,
+            new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>Jewellery sale vouchers → UAE FTA tax invoices via the shared e-invoice writer.</summary>
+    private static async Task<IResult> HandleJewelleryIssueInvoiceAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpJewelleryInvoiceWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/jewellery/workspace?tab=invoices", "Admin ERP capability required for invoice issue.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to issue tax invoices for retail sale vouchers.", session = SessionPayload(session) });
+        }
+
+        long.TryParse(context.Request.Form["voucher"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var voucherId);
+        string message;
+        var ok = true;
+        if (voucherId > 0)
+        {
+            var result = await writes.CreateFromVoucherAsync(voucherId, session.UserId, cancellationToken);
+            ok = result.Succeeded;
+            message = result.Message;
+        }
+        else
+        {
+            message = await writes.CreatePendingAsync(session.UserId, cancellationToken);
+        }
+
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/jewellery/workspace?tab=invoices",
             ok,
             message,
             new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });

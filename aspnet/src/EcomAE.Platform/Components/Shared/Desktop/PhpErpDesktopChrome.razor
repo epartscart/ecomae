@@ -241,7 +241,7 @@
                     </div>
                 </div>
             }
-            <ErpGlobalSearch Jewellery="_jewellery" FitOut="_fitOut" RealEstate="_realEstate" CompanyId="_activeCompanyId" />
+            <ErpGlobalSearch Jewellery="_jewellery" FitOut="_fitOut" RealEstate="_realEstate" AutoParts="_autoParts" CompanyId="_activeCompanyId" />
             @if (_signedIn)
             {
                 <ErpVoiceBar AjaxHref="@VoiceAjaxHref" ToolsAjaxHref="@ToolsAjaxHref" />
@@ -865,6 +865,7 @@
     private bool _jewellery;
     private bool _fitOut;
     private bool _realEstate;
+    private bool _autoParts;
     private long _activeCompanyId;
     private string _userLabel = "Admin session";
     private string _companyLabel = "MAIN";
@@ -1199,7 +1200,9 @@
             _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
             _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
             _realEstate = ErpIndustryNav.ShowRealEstateModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
+            _autoParts = ErpIndustryNav.ShowAutoPartsModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
             _industryCode = _jewellery ? "jewellery"
+                : _autoParts ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "auto_parts" : active.IndustryPack)
                 : _realEstate ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "real_estate" : active.IndustryPack)
                 : _fitOut ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "fit_out" : active.IndustryPack)
                 : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);

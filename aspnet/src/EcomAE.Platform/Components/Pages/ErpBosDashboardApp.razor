@@ -78,6 +78,22 @@
                         <a class="ns-tile green" href="@WithCompany("/erp/jewellery-repairs-app")"><i class="fa fa-wrench ic"></i><span class="tl">Repair jobs</span></a>
                         <a class="ns-tile slate" href="@WithCompany("/erp/jewellery-masters-app?tab=gold_rate")"><i class="fa fa-line-chart ic"></i><span class="tl">Gold rate board</span></a>
                         <a class="ns-tile rust" href="@WithCompany("/erp/jewellery-masters-app?tab=jewellery_tag")"><i class="fa fa-tags ic"></i><span class="tl">Jewellery tags</span></a>
+                        <a class="ns-tile teal" href="@WithCompany("/erp/jewellery/workspace")"><i class="fa fa-map-signs ic"></i><span class="tl">Jewellery workspace &amp; guide</span></a>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (_autoParts)
+        {
+            <div class="ns-port" data-epc-industry-pack="auto_parts" data-epc-industry-first="auto_parts">
+                <h4><i class="fa fa-car"></i> Auto-parts modules</h4>
+                <div class="bd">
+                    <div class="ns-tiles" style="margin:0">
+                        <a class="ns-tile teal" href="@WithCompany("/erp/autoparts/workspace")"><i class="fa fa-map-signs ic"></i><span class="tl">Auto-parts workspace &amp; guide</span></a>
+                        <a class="ns-tile green" href="@WithCompany("/erp/autoparts/workspace?tab=catalogue")"><i class="fa fa-cogs ic"></i><span class="tl">Parts catalogue</span></a>
+                        <a class="ns-tile blue" href="@WithCompany("/erp/autoparts/workspace?tab=stock")"><i class="fa fa-cubes ic"></i><span class="tl">Stock &amp; movements</span></a>
+                        <a class="ns-tile slate" href="@WithCompany("/erp/autoparts/workspace?tab=sales")"><i class="fa fa-car ic"></i><span class="tl">Sales &amp; invoices</span></a>
+                        <a class="ns-tile gold" href="@WithCompany("/erp/autoparts/workspace?tab=month-end")"><i class="fa fa-book ic"></i><span class="tl">Month-end GL post</span></a>
                     </div>
                 </div>
             </div>
@@ -907,6 +923,7 @@
     private IReadOnlyList<PhpModuleCatalog.ModuleLink> _directoryTabs = PhpModuleCatalog.ErpTabs;
     private bool _fitOut;
     private bool _realEstate;
+    private bool _autoParts;
     private ErpLandlordMeasure _yearBook = ErpLandlordMeasure.Empty;
     private int _figureYear;
     private long _activeCompanyId;
@@ -1040,9 +1057,11 @@
                 _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
                 _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
                 _realEstate = ErpIndustryNav.ShowRealEstateModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
+                _autoParts = ErpIndustryNav.ShowAutoPartsModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
                 _industryCode = _jewellery ? "jewellery"
                     : _realEstate ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "real_estate" : active.IndustryPack)
                     : _fitOut ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "fit_out" : active.IndustryPack)
+                    : _autoParts ? "auto_parts"
                     : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
                 _industryLabel = ErpIndustryNav.IndustryLabelForPack(_industryCode, _jewellery);
             }

@@ -158,6 +158,43 @@ public static class ErpIndustryNav
         return code is "jewellery" or "jewelry";
     }
 
+    public static bool IsAutoPartsIndustry(string? industryCode)
+    {
+        var code = (industryCode ?? string.Empty).Trim().ToLowerInvariant();
+        return code.Contains("auto_part", StringComparison.Ordinal)
+            || code.Contains("autopart", StringComparison.Ordinal)
+            || code.Contains("auto-part", StringComparison.Ordinal)
+            || code.Contains("spare_part", StringComparison.Ordinal)
+            || code.Contains("sparepart", StringComparison.Ordinal)
+            || code is "automotive" or "auto" or "asap";
+    }
+
+    /// <summary>Auto-parts modules are allowed by the host industry or by the active company (pack, code or name), like the route gate.</summary>
+    public static bool ShowAutoPartsModules(string? hostIndustryCode, ErpCompanyDigest? company, string? tenantIndustry = null)
+        => IsAutoPartsIndustry(hostIndustryCode) || IsAutoPartsIndustry(tenantIndustry) || IsAutoPartsCompany(company);
+
+    public static bool IsAutoPartsCompany(ErpCompanyDigest? company)
+    {
+        if (company is null)
+        {
+            return false;
+        }
+
+        var pack = (company.IndustryPack ?? string.Empty).Trim().ToLowerInvariant();
+        var code = (company.Code ?? string.Empty).Trim().ToLowerInvariant();
+        var name = (company.Name ?? string.Empty).Trim().ToLowerInvariant();
+        return pack.Contains("auto_part", StringComparison.Ordinal)
+            || pack.Contains("autopart", StringComparison.Ordinal)
+            || pack.Contains("auto-part", StringComparison.Ordinal)
+            || pack.Contains("spare_part", StringComparison.Ordinal)
+            || pack.Contains("sparepart", StringComparison.Ordinal)
+            || code is "asap" or "auto" or "autoparts"
+            || name.Contains("auto part", StringComparison.Ordinal)
+            || name.Contains("autopart", StringComparison.Ordinal)
+            || name.Contains("spare part", StringComparison.Ordinal)
+            || name.Contains("sparepart", StringComparison.Ordinal);
+    }
+
     /// <summary>
     /// Product jewellery tenants (thejewellerytrend.com) always get jewellery
     /// modules — even when legal entity 1 is coded MAIN with an empty pack.

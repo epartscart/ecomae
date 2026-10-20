@@ -5,7 +5,7 @@ public static class ErpGlobalSearchCatalog
 {
     public sealed record Entry(string Label, string Href, string Group, string Icon, string Keywords = "");
 
-    public static IReadOnlyList<Entry> Build(bool jewellery, bool fitOut, bool realEstate = false)
+    public static IReadOnlyList<Entry> Build(bool jewellery, bool fitOut, bool realEstate = false, bool autoParts = false)
     {
         var rows = new List<Entry>(180);
         foreach (var tab in PhpModuleCatalog.ErpTabs.Concat(PhpModuleCatalog.AspNetErpTabs))
@@ -32,6 +32,18 @@ public static class ErpGlobalSearchCatalog
                 new("Repair jobs", "/erp/jewellery-repairs-app", "industry", "fa-wrench"),
                 new("Gold rate board", "/erp/jewellery-masters-app?tab=gold_rate", "industry", "fa-line-chart"),
                 new("Jewellery tags", "/erp/jewellery-masters-app?tab=jewellery_tag", "industry", "fa-tags"),
+                new("Jewellery workspace & guide", "/erp/jewellery/workspace", "industry", "fa-map-signs"),
+            ]);
+        }
+
+        if (autoParts)
+        {
+            rows.InsertRange(0,
+            [
+                new("Auto-parts workspace & guide", "/erp/autoparts/workspace", "industry", "fa-map-signs"),
+                new("Parts catalogue", "/erp/autoparts/workspace?tab=catalogue", "industry", "fa-cogs"),
+                new("Parts stock & movements", "/erp/autoparts/workspace?tab=stock", "industry", "fa-cubes"),
+                new("Parts sales & invoices", "/erp/autoparts/workspace?tab=sales", "industry", "fa-car"),
             ]);
         }
 

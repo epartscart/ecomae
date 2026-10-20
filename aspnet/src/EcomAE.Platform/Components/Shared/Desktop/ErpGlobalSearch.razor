@@ -94,6 +94,7 @@
     [Parameter] public bool Jewellery { get; set; }
     [Parameter] public bool FitOut { get; set; }
     [Parameter] public bool RealEstate { get; set; }
+    [Parameter] public bool AutoParts { get; set; }
     [Parameter] public long CompanyId { get; set; }
 
     private static readonly ConcurrentDictionary<string, string> JsonCache = new(StringComparer.Ordinal);
@@ -105,9 +106,9 @@
     protected override void OnParametersSet()
     {
         var key = ClientErpPath.BoundSiteKey(Http.HttpContext) ?? "";
-        var cacheKey = (Jewellery ? "1" : "0") + (FitOut ? "1" : "0") + (RealEstate ? "1" : "0") + "|" + key;
+        var cacheKey = (Jewellery ? "1" : "0") + (FitOut ? "1" : "0") + (RealEstate ? "1" : "0") + (AutoParts ? "1" : "0") + "|" + key;
         _catalogJson = JsonCache.GetOrAdd(cacheKey, _ => JsonSerializer.Serialize(
-            ErpGlobalSearchCatalog.Build(Jewellery, FitOut, RealEstate).Select(entry => new
+            ErpGlobalSearchCatalog.Build(Jewellery, FitOut, RealEstate, AutoParts).Select(entry => new
             {
                 label = entry.Label,
                 href = key.Length == 0 ? entry.Href : ClientErpPath.PrefixErpPath(key, entry.Href),
