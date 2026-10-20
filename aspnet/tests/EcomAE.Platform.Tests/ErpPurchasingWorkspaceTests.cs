@@ -166,3 +166,20 @@ public class ErpArWorkspaceTests
         }
     }
 }
+
+public class ErpBankingWorkspaceTests
+{
+    [Fact]
+    public void Specs_AreKnownTabs()
+    {
+        var generic = ErpD365WorkspaceCatalog.ForArea("banking")
+            .Where(p => p.ExistingHref is null)
+            .Select(p => p.Tab)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var tab in ErpBankingWorkspaceSpecs.Tabs.Keys)
+        {
+            Assert.True(generic.Contains(tab), $"{tab} is not a generic banking tab in the catalog");
+        }
+    }
+}
