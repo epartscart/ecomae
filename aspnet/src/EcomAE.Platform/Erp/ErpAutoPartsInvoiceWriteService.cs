@@ -69,7 +69,19 @@ public sealed class ErpAutoPartsInvoiceWriteService : IErpAutoPartsInvoiceWriteS
 
         var linesJson = JsonSerializer.Serialize(
             lines.Select(l => new ErpManualInvoiceLineInput(l.Description, l.Qty, l.UnitPrice, l.TaxRate, null)).ToArray());
-        var buyerJson = JsonSerializer.Serialize(new { name = order.PartyName, trn = "", address = "" });
+        var buyerJson = JsonSerializer.Serialize(new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["buyer_name"] = order.PartyName,
+            ["buyer_trn"] = "",
+            ["buyer_legal_reg_no"] = "",
+            ["buyer_legal_reg_type"] = "TL",
+            ["buyer_address_line1"] = "United Arab Emirates",
+            ["buyer_city"] = "Dubai",
+            ["buyer_emirate"] = "Dubai",
+            ["buyer_country_code"] = "AE",
+            ["buyer_email"] = "",
+            ["buyer_peppol_endpoint"] = "0235:9900000098",
+        });
 
         var written = await _invoices.SaveAsync(
             new ErpManualInvoiceWriteRequest(

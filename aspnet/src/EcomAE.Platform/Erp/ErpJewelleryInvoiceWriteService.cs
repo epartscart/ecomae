@@ -70,7 +70,19 @@ public sealed class ErpJewelleryInvoiceWriteService : IErpJewelleryInvoiceWriteS
 
         var linesJson = JsonSerializer.Serialize(
             lines.Select(l => new ErpManualInvoiceLineInput(l.Description, l.Qty, l.UnitPrice, 5m, null)).ToArray());
-        var buyerJson = JsonSerializer.Serialize(new { name = voucher.Customer, trn = "", address = "" });
+        var buyerJson = JsonSerializer.Serialize(new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["buyer_name"] = voucher.Customer,
+            ["buyer_trn"] = "",
+            ["buyer_legal_reg_no"] = "",
+            ["buyer_legal_reg_type"] = "TL",
+            ["buyer_address_line1"] = "United Arab Emirates",
+            ["buyer_city"] = "Dubai",
+            ["buyer_emirate"] = "Dubai",
+            ["buyer_country_code"] = "AE",
+            ["buyer_email"] = "",
+            ["buyer_peppol_endpoint"] = "0235:9900000098",
+        });
 
         var written = await _invoices.SaveAsync(
             new ErpManualInvoiceWriteRequest(
@@ -166,7 +178,10 @@ public sealed class ErpJewelleryInvoiceWriteService : IErpJewelleryInvoiceWriteS
         {
             return null;
         }
-        return new VoucherRow(reader.GetInt64(0), reader.GetString(1), reader.GetInt32(2), reader.IsDBNull(3) ? "" : reader.GetString(3));
+        var row = new VoucherRow(reader.GetInt64(0), reader.GetString(1), reader.GetInt32(2), reader.IsDBNull(3) ? "" : reader.GetString(3));
+        // Only sale vouchers can be issued as customer tax invoices — never a
+        // purchase, repair-receipt, advance or journal voucher.
+        return ErpJwVocTypes.SalesAnalysisAliases.Contains(row.Type, StringComparer.Ordinal) ? row : null;
     }
 
     private static async Task<List<LineRow>> LoadLinesAsync(DbConnection connection, long voucherId, CancellationToken ct)

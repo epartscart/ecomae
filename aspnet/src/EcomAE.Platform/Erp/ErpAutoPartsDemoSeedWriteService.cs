@@ -164,7 +164,16 @@ public sealed class ErpAutoPartsDemoSeedWriteService : IErpAutoPartsDemoSeedWrit
         await PersistMarksAsync(connection, marks, cancellationToken).ConfigureAwait(false);
 
         // Demo lands on the financial statements too — post the demo journals.
-        var glNote = await _glPost.PostAsync(0, null, cancellationToken).ConfigureAwait(false);
+        // Demo lands on the financial statements too — post journals for the
+        // demo orders only (never sweep every unposted live order).
+        var glNotes = new List<string>();
+        foreach (var orderId in marks.All.TryGetValue("ecomae_autoparts_orders", out var seededOrders) ? seededOrders : new List<long>())
+        {
+            glNotes.Add(await _glPost.PostAsync(orderId, null, cancellationToken).ConfigureAwait(false));
+        }
+        var glNote = glNotes.Count > 0
+            ? "Posted to GL for " + glNotes.Count + " demo order(s)."
+            : "No demo journals to post.";
 
         var demoMonth = thisMonth.ToString("yyyy-MM", CultureInfo.InvariantCulture);
         return "Loaded DEMO auto-parts data — " + parts.Length + " catalogue parts, 1 purchase order, "
@@ -199,16 +208,22 @@ public sealed class ErpAutoPartsDemoSeedWriteService : IErpAutoPartsDemoSeedWrit
         {
             "DELETE l FROM `epc_einvoice_lines` l INNER JOIN `ecomae_autoparts_invoice_links` k"
             + " ON k.`invoice_id`=l.`document_id` INNER JOIN `" + RegistryTable + "` r"
-            + " ON r.`table_name`='ecomae_autoparts_orders' AND r.`row_id`=k.`order_id`",
+            + " ON r.`table_name`='ecomae_autoparts_orders' AND r.`row_id`=k.`order_id`"
+            + " INNER JOIN `epc_einvoice_documents` d ON d.`id`=k.`invoice_id`"
+            + " WHERE d.`status` NOT IN ('submitted','accepted','queued')",
             "DELETE e FROM `epc_einvoice_events` e INNER JOIN `ecomae_autoparts_invoice_links` k"
             + " ON k.`invoice_id`=e.`document_id` INNER JOIN `" + RegistryTable + "` r"
-            + " ON r.`table_name`='ecomae_autoparts_orders' AND r.`row_id`=k.`order_id`",
+            + " ON r.`table_name`='ecomae_autoparts_orders' AND r.`row_id`=k.`order_id`"
+            + " INNER JOIN `epc_einvoice_documents` d ON d.`id`=k.`invoice_id`"
+            + " WHERE d.`status` NOT IN ('submitted','accepted','queued')",
             "DELETE d FROM `epc_einvoice_documents` d INNER JOIN `ecomae_autoparts_invoice_links` k"
             + " ON k.`invoice_id`=d.`id` INNER JOIN `" + RegistryTable + "` r"
             + " ON r.`table_name`='ecomae_autoparts_orders' AND r.`row_id`=k.`order_id`"
             + " WHERE d.`status` NOT IN ('submitted','accepted','queued')",
             "DELETE k FROM `ecomae_autoparts_invoice_links` k INNER JOIN `" + RegistryTable + "` r"
-            + " ON r.`table_name`='ecomae_autoparts_orders' AND r.`row_id`=k.`order_id`",
+            + " ON r.`table_name`='ecomae_autoparts_orders' AND r.`row_id`=k.`order_id`"
+            + " INNER JOIN `epc_einvoice_documents` d ON d.`id`=k.`invoice_id`"
+            + " WHERE d.`status` NOT IN ('submitted','accepted','queued')",
         })
         {
             try
@@ -253,7 +268,7 @@ public sealed class ErpAutoPartsDemoSeedWriteService : IErpAutoPartsDemoSeedWrit
         // posted by this workspace carry source_id = the order id, so matching
         // against registered demo order rows can never catch a live journal.
         yield return
-            "DELETE l FROM `epc_erp_gl_journal_lines` l"
+            "DELETE l FROM `epc_erp_gl_lines` l"
             + " INNER JOIN `epc_erp_gl_journals` j ON j.`id`=l.`journal_id`"
             + " WHERE j.`source_type`='adjustment' AND j.`reference` LIKE 'AP-%'"
             + " AND EXISTS (SELECT 1 FROM `" + RegistryTable + "` r"

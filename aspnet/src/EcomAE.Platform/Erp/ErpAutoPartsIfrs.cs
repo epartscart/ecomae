@@ -52,11 +52,22 @@ public static class ErpAutoPartsIfrs
 
     /// <summary>Purchase receipt of parts: Dr inventory / Cr supplier payable.</summary>
     public static IReadOnlyList<JournalLine> PurchaseReceived(decimal amount)
-        =>
-        [
-            new(InventoryAccount, amount, 0m, "Parts received into stock"),
-            new(ApAccount, 0m, amount, "Supplier payable"),
-        ];
+        => PurchaseReceived(amount, 0m);
+
+    /// <summary>Purchase receipt with input VAT: Dr inventory (net) / Dr input VAT / Cr supplier payable (gross).</summary>
+    public static IReadOnlyList<JournalLine> PurchaseReceived(decimal net, decimal vat)
+    {
+        var lines = new List<JournalLine>
+        {
+            new(InventoryAccount, net, 0m, "Parts received into stock"),
+        };
+        if (vat > 0)
+        {
+            lines.Add(new JournalLine(VatAccount, vat, 0m, "Input VAT 5%"));
+        }
+        lines.Add(new JournalLine(ApAccount, 0m, net + vat, "Supplier payable"));
+        return lines;
+    }
 
     /// <summary>Customer payment received: Dr bank / Cr AR.</summary>
     public static IReadOnlyList<JournalLine> PaymentReceived(decimal amount)
