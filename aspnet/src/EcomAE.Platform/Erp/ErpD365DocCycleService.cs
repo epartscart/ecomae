@@ -790,6 +790,7 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
         {
             return ErpSimpleWriteResult.Fail("no_name", "Prospect has no company or contact name.");
         }
+        var priorStatus = G(lead, "status");
         // Claim the lead before inserting the party so a concurrent conversion cannot duplicate it.
         var claimed = await ErpDb.ExecuteAsync(c, null,
             "UPDATE `epc_crm_leads` SET `status` = 'converted' WHERE `id` = ? AND `status` <> 'converted'",
@@ -820,7 +821,8 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
         catch
         {
             // Release the claim so a retry can convert this prospect.
-            await ErpDb.TryExecuteAsync(c, "UPDATE `epc_crm_leads` SET `status` = 'qualified' WHERE `id` = " + leadId.ToString(CultureInfo.InvariantCulture) + " AND `converted_party_id` = 0", t).ConfigureAwait(false);
+            // Release the claim (CancellationToken.None — the caller's token may be the reason we're here).
+            await ErpDb.TryExecuteAsync(c, "UPDATE `epc_crm_leads` SET `status` = '" + (priorStatus.Length > 0 && priorStatus != "converted" ? priorStatus : "qualified") + "' WHERE `id` = " + leadId.ToString(CultureInfo.InvariantCulture) + " AND `converted_party_id` = 0", CancellationToken.None).ConfigureAwait(false);
             throw;
         }
         await ErpDb.ExecuteAsync(c, null,

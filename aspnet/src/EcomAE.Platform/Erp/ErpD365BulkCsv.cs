@@ -216,8 +216,9 @@ public static class ErpD365BulkCsv
         }
         else
         {
-            var costSet = M(m, "cost_price").Length > 0
-                ? ", `cost_price` = " + (decimal.TryParse(M(m, "cost_price"), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var uc) ? uc.ToString(System.Globalization.CultureInfo.InvariantCulture) : "0")
+            // Only overwrite the cost when the imported value actually parses — a malformed cell must not zero a recorded cost.
+            var costSet = decimal.TryParse(M(m, "cost_price"), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var uc) && M(m, "cost_price").Length > 0
+                ? ", `cost_price` = " + uc.ToString(System.Globalization.CultureInfo.InvariantCulture)
                 : "";
             await ErpDb.ExecuteAsync(c, null,
                 "UPDATE `epc_erp_inv_items` SET `name` = ?, `unit` = ?" + costSet + ", `active` = ? WHERE `id` = ?",
