@@ -54,6 +54,20 @@ public sealed class ErpShamFoundationTests
         Assert.Contains("epc_erp_org_entity_accounts", file, StringComparison.Ordinal);
         Assert.Contains("AccountActiveForEntityAsync", file, StringComparison.Ordinal);
         Assert.Contains("cost_centre", file, StringComparison.Ordinal);
+        Assert.Contains("admin@alshamaligroup.com", file, StringComparison.Ordinal);
+        Assert.Contains("users_groups_bind", file, StringComparison.Ordinal);
+        Assert.Contains("RotatePasswordAsync", file, StringComparison.Ordinal);
+        Assert.Contains("LegacyLoginSecurity.HashPassword", file, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Admin_credential_constants_match_owner_instruction()
+    {
+        Assert.Equal("admin@alshamaligroup.com", ErpShamFoundationService.AdminEmail);
+        Assert.Equal("Admin$2026", ErpShamFoundationService.InitialAdminPassword);
+        // The seed never overwrites an existing password — rotation provision.
+        var file = Find("aspnet/src/EcomAE.Platform/Erp/ErpShamFoundationService.cs");
+        Assert.DoesNotContain("UPDATE `users` SET `password`=? WHERE LOWER(`email`)=LOWER(?) LIMIT", file, StringComparison.Ordinal);
     }
 
     [Fact]
