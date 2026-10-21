@@ -33,11 +33,36 @@ public sealed class ErpTenantGuideReadService : IErpTenantGuideReadService
         await using var conn = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
 
         var entities = new List<ErpTenantGuideEntity>();
+        // `consolidated` is a SHAM-added column — read it when present, else the
+        // entities still render (treated as consolidated: there is no perimeter flag).
+        var hasConsolidated = false;
         try
         {
             await using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = "SELECT `id`,`code`,`name`,`country_code`,`currency_code`,`consolidated` FROM `epc_erp_pm_legal_entities` WHERE `active`=1 ORDER BY `id`";
+                cmd.CommandText = "SELECT 1 FROM `epc_erp_pm_legal_entities` WHERE 1=0 LIMIT 0";
+                await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            }
+            try
+            {
+                await using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT `consolidated` FROM `epc_erp_pm_legal_entities` LIMIT 0";
+                    await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                }
+                hasConsolidated = true;
+            }
+            catch { /* column absent on non-SHAM tenants */ }
+        }
+        catch { /* pm legal-entity table absent */ }
+
+        try
+        {
+            await using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = hasConsolidated
+                    ? "SELECT `id`,`code`,`name`,`country_code`,`currency_code`,`consolidated` FROM `epc_erp_pm_legal_entities` WHERE `active`=1 ORDER BY `id`"
+                    : "SELECT `id`,`code`,`name`,`country_code`,`currency_code`,1 FROM `epc_erp_pm_legal_entities` WHERE `active`=1 ORDER BY `id`";
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -55,6 +80,7 @@ public sealed class ErpTenantGuideReadService : IErpTenantGuideReadService
 
         var bus = new List<ErpTenantGuideBu>();
         var warehouseCount = 0;
+        // ERP-only org BUs (SHAM §3: carries cost centre + default warehouse).
         try
         {
             await using (var cmd = conn.CreateCommand())
@@ -74,14 +100,42 @@ public sealed class ErpTenantGuideReadService : IErpTenantGuideReadService
                         reader.GetString(4)));
                 }
             }
+        }
+        catch { /* org BU table absent on this tenant */ }
 
+        // Standard ERP masters BUs (epc_erp_pm_business_units) — older tenants and
+        // the operational mirror; no cost-centre/warehouse columns there.
+        var known = new HashSet<string>(bus.Select(b => b.EntityId + "|" + b.Code), StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            await using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "SELECT `legal_entity_id`,`code`,`name` FROM `epc_erp_pm_business_units` WHERE `active`=1 ORDER BY `legal_entity_id`, `code`";
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var entityId = reader.GetInt32(0);
+                    var code = reader.GetString(1);
+                    if (known.Add(entityId + "|" + code))
+                    {
+                        bus.Add(new ErpTenantGuideBu(entityId, code, reader.GetString(2), "", ""));
+                    }
+                }
+            }
+        }
+        catch { /* pm BU table absent on this tenant */ }
+
+        bus.Sort((a, b) => a.EntityId != b.EntityId ? a.EntityId.CompareTo(b.EntityId) : string.CompareOrdinal(a.Code, b.Code));
+
+        try
+        {
             await using (var cmd = conn.CreateCommand())
             {
                 cmd.CommandText = "SELECT COUNT(*) FROM `epc_erp_inv_warehouses` WHERE `active`=1";
                 warehouseCount = Convert.ToInt32(await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false));
             }
         }
-        catch { /* org tables not seeded for this tenant */ }
+        catch { /* warehouse table absent */ }
 
         return new ErpTenantGuideModel { Entities = entities, BusinessUnits = bus, WarehouseCount = warehouseCount };
     }
