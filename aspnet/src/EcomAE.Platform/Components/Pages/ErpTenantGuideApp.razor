@@ -405,7 +405,7 @@
                 sb.Append($"<rect x=\"{x + 8}\" y=\"{by}\" width=\"{EntityWidth - 16}\" height=\"46\" rx=\"6\" fill=\"#eef4f9\" stroke=\"#c3d3de\"/>");
                 sb.Append($"<text x=\"{cx}\" y=\"{by + 15}\" text-anchor=\"middle\" fill=\"#12324f\" font-size=\"11\" font-weight=\"600\">{Esc(bu.Code)}</text>");
                 sb.Append($"<text x=\"{cx}\" y=\"{by + 29}\" text-anchor=\"middle\" fill=\"#4a627a\" font-size=\"9\">{Esc(Shorten(bu.Name))}</text>");
-                var dims = (bu.CostCentre != "" ? "CC " + bu.CostCentre : "") + (bu.Warehouse != "" ? " · WH " + bu.Warehouse : "");
+                var dims = (bu.CostCentre != "" ? "CC " + bu.CostCentre : "") + (bu.Warehouse != "" ? " · WH " + bu.Warehouse + "→CC " + bu.WarehouseCostCentre : "");
                 sb.Append($"<text x=\"{cx}\" y=\"{by + 41}\" text-anchor=\"middle\" fill=\"#6b8196\" font-size=\"8\">{Esc(dims)}</text>");
                 by += 56;
             }

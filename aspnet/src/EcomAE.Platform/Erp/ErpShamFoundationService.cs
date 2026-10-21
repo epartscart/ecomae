@@ -111,6 +111,10 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
 
         foreach (var sql in new[]
         {
+            // D365 F&O: a warehouse carries a financial cost centre; the BU's default
+            // warehouse inherits the BU cost centre on link.
+            "ALTER TABLE `epc_erp_inv_warehouses` ADD COLUMN `cost_centre` varchar(40) NOT NULL DEFAULT ''",
+            "UPDATE `epc_erp_inv_warehouses` `w` JOIN `epc_erp_org_business_units` `bu` ON `bu`.`default_warehouse_id`=`w`.`id` SET `w`.`cost_centre`=`bu`.`cost_centre` WHERE `w`.`cost_centre`='' AND `bu`.`cost_centre`<>''",
             "ALTER TABLE `epc_erp_pm_legal_entities` ADD COLUMN `consolidated` tinyint(1) NOT NULL DEFAULT 0",
             "ALTER TABLE `epc_erp_pm_legal_entities` ADD COLUMN `legal_reg_no` varchar(60) NOT NULL DEFAULT ''",
             "ALTER TABLE `epc_erp_pm_legal_entities` ADD COLUMN `entity_kind` varchar(24) NOT NULL DEFAULT 'llc'",
@@ -242,9 +246,9 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
                 var legacyWhCode = "WH-" + whSuffix;
                 await ErpDb.ExecuteAsync(connection, null,
                     ErpDb.Positional(
-                        "INSERT INTO `epc_erp_inv_warehouses` (`code`,`name`,`active`,`time_created`) "
-                        + "VALUES (?,?,1,?) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), `active`=1"),
-                    cancellationToken, whCode, "Al Shamali " + buName, now).ConfigureAwait(false);
+                        "INSERT INTO `epc_erp_inv_warehouses` (`code`,`name`,`active`,`cost_centre`,`time_created`) "
+                        + "VALUES (?,?,1,?,?) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), `active`=1, `cost_centre`=IF(`cost_centre`='',VALUES(`cost_centre`),`cost_centre`)"),
+                    cancellationToken, whCode, "Al Shamali " + buName, costCentre, now).ConfigureAwait(false);
                 var whId = (int)await ErpDb.LongAsync(connection, null,
                     ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `code`=? LIMIT 1"),
                     cancellationToken, whCode).ConfigureAwait(false);
