@@ -1,13 +1,17 @@
 @page "/erp/tenant-guide"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @using System.Text
 @using System.Web
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject IErpTenantGuideReadService Guide
+@inject ICpCsrfGuard Csrf
+@inject IErpShamModuleFlowsService Flows
 
 <PageTitle>Tenant guide · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -17,6 +21,16 @@
     .tg-card p, .tg-card li { font-size:12.5px; color:#40566c; line-height:1.55; }
     .tg-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
     .tg-num { display:inline-block; min-width:22px; height:22px; line-height:22px; border-radius:11px; background:#12324f; color:#fff; text-align:center; font-size:12px; margin-right:6px; }
+    .tg-form label { display:block; font-size:11px; color:#4a627a; margin:8px 0 2px; }
+    .tg-form input, .tg-form select, .tg-form textarea { width:100%; box-sizing:border-box; border:1px solid #c3d3de; border-radius:6px; padding:6px 8px; font-size:12.5px; }
+    .tg-form button { margin-top:10px; background:#12324f; color:#fff; border:0; border-radius:6px; padding:7px 14px; font-size:12.5px; cursor:pointer; }
+    .tg-flash { border-radius:8px; padding:10px 14px; margin:0 0 16px; font-size:13px; }
+    .tg-flash-ok { background:#e8f6ee; border:1px solid #9fd8b6; color:#0f6b3f; }
+    .tg-flash-err { background:#fdeaea; border:1px solid #f0b4b4; color:#9c1c1c; }
+    .tg-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .tg-table th, .tg-table td { border-bottom:1px solid #e4ecf2; padding:6px 8px; text-align:left; }
+    .tg-table th { color:#12324f; background:#f4f8fb; }
+    .tg-live { color:#0f6b3f; font-weight:600; } .tg-empty { color:#9c5c1c; font-weight:600; }
 </style>
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Tenant guide" BreadcrumbArea="Organization" BreadcrumbTab="Guide">
@@ -24,6 +38,15 @@
         Title="Your organisation, visually"
         Subtitle="A live map of this tenant's legal entities, business units and warehouses — plus how the main flows connect. This page reads the real org data, not a static document."
         PhpTabHref="/erp/tenant-guide" />
+
+    @if (_flashOk.Length > 0)
+    {
+        <div class="tg-flash tg-flash-ok">@_flashOk</div>
+    }
+    @if (_flashErr.Length > 0)
+    {
+        <div class="tg-flash tg-flash-err">@_flashErr</div>
+    }
 
     @if (!_loaded)
     {
@@ -74,12 +97,127 @@
                 <p>Lock a month per entity with <code>period-lock</code> — posting engines refuse locked periods. Consolidated statements include only the solid-green entities above; dashed ones stay off group reports.</p>
             </div>
         </div>
+
+        @if (_isAdmin)
+        {
+            <h3 style="margin:18px 0 10px;color:#12324f">Operate the blueprint (§8–§14)</h3>
+            <div class="tg-grid">
+                <div class="tg-card tg-form">
+                    <h3>MSP pricing (§8)</h3>
+                    <form method="post" action="@Post("/erp/sham/msp-set")">
+                        @HiddenFields()
+                        <label>Legal entity</label><input name="entity" value="@_cmp" required />
+                        <label>Business unit</label><input name="bu" value="@_bu" required />
+                        <label>Unit margin %</label><input name="unit" type="number" step="0.01" min="0" max="100" value="0" />
+                        <label>Offer margin %</label><input name="offer" type="number" step="0.01" min="0" max="100" value="0" />
+                        <label>Actual margin %</label><input name="actual" type="number" step="0.01" min="0" max="100" value="0" />
+                        <label>MSP margin %</label><input name="msp" type="number" step="0.01" min="0" max="100" value="0" />
+                        <button type="submit">Append MSP version</button>
+                    </form>
+                    <p style="margin-top:8px"><a href="@Get("/erp/sham/msp-check")?cmp=@Uri.EscapeDataString(_cmp)&amp;buc=@Uri.EscapeDataString(_bu)">View version history</a></p>
+                </div>
+
+                <div class="tg-card tg-form">
+                    <h3>Landed cost (§9)</h3>
+                    <form method="post" action="@Post("/erp/sham/landed-cost")">
+                        @HiddenFields()
+                        <label>Legal entity</label><input name="entity" value="@_cmp" required />
+                        <label>Business unit</label><input name="bu" value="@_bu" required />
+                        <label>Receipt ref</label><input name="receiptRef" placeholder="GRN-…" required />
+                        <label>Method</label>
+                        <select name="method"><option value="value">value</option><option value="qty">qty</option><option value="weight">weight</option></select>
+                        <label>Freight</label><input name="freight" type="number" step="0.01" min="0" value="0" />
+                        <label>Duty</label><input name="duty" type="number" step="0.01" min="0" value="0" />
+                        <label>Insurance</label><input name="insurance" type="number" step="0.01" min="0" value="0" />
+                        <label>Other</label><input name="other" type="number" step="0.01" min="0" value="0" />
+                        <label>Lines (JSON [{"itemCode","qty","weight","baseAmount"}])</label>
+                        <textarea name="lines" rows="3" required>[{"itemCode":"ITEM-1","qty":1,"weight":0,"baseAmount":100}]</textarea>
+                        <button type="submit">Allocate landed cost</button>
+                    </form>
+                </div>
+
+                <div class="tg-card tg-form">
+                    <h3>Eliminations (§10/§12)</h3>
+                    <form method="post" action="@Post("/erp/sham/elim-run")">
+                        @HiddenFields()
+                        <label>Group parent entity</label><input name="entity" value="@_cmp" required />
+                        <label>Period (YYYYMM)</label><input name="period" placeholder="@DateTime.UtcNow.ToString("yyyyMM")" required />
+                        <button type="submit">Post elimination journal</button>
+                    </form>
+                    <p style="margin-top:8px">Scans IC postings across full-consolidation members of this entity's group and posts the reversing journal into the parent. Idempotent per period.</p>
+                </div>
+
+                <div class="tg-card tg-form">
+                    <h3>E-invoicing (§11)</h3>
+                    <form method="get" action="@Get("/erp/sham/einvoice")">
+                        <label>Legal entity</label><input name="cmp" value="@_cmp" required />
+                        <label>Invoice ref</label><input name="ref" placeholder="INV-…" required />
+                        <button type="submit">Render UBL 2.1 XML</button>
+                    </form>
+                </div>
+
+                <div class="tg-card tg-form">
+                    <h3>Treasury (§13)</h3>
+                    <form method="post" action="@Post("/erp/sham/treasury")">
+                        @HiddenFields()
+                        <label>Legal entity</label><input name="entity" value="@_cmp" required />
+                        <label>Kind</label>
+                        <select name="kind"><option value="lc">LC</option><option value="cad">CAD</option><option value="fx">FX</option></select>
+                        <label>Reference</label><input name="ref" placeholder="LC-…" required />
+                        <label>Counterparty</label><input name="counterparty" />
+                        <label>Amount</label><input name="amount" type="number" step="0.01" min="0" value="0" />
+                        <label>Currency</label><input name="currency" value="AED" />
+                        <label>Expiry (unix seconds, optional)</label><input name="expiry" type="number" min="0" />
+                        <button type="submit">Register instrument</button>
+                    </form>
+                    <form method="post" action="@Post("/erp/sham/treasury")" style="margin-top:12px">
+                        @HiddenFields()
+                        <label>Transition</label>
+                        <select name="action"><option value="settle">settle</option><option value="expire">expire</option><option value="cancel">cancel</option></select>
+                        <label>Reference</label><input name="ref" required />
+                        <button type="submit">Apply transition</button>
+                    </form>
+                    <p style="margin-top:8px"><a href="@Get("/erp/sham/treasury-view")?cmp=@Uri.EscapeDataString(_cmp)">Open instruments + exposure</a></p>
+                </div>
+
+                <div class="tg-card">
+                    <h3>Module data flows (§14)</h3>
+                    @if (_flows != null)
+                    {
+                        <p>@_flows.Live of @_flows.Total modules live</p>
+                        <table class="tg-table">
+                            <thead><tr><th>Module</th><th>Rows</th><th>Feeds</th></tr></thead>
+                            <tbody>
+                            @foreach (var m in _flows.Modules)
+                            {
+                                <tr>
+                                    <td>@m.Module</td>
+                                    <td class="@(m.Rows > 0 ? "tg-live" : "tg-empty")">@m.Rows</td>
+                                    <td>@m.Feeds</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p>Module coverage requires the <code>vat-view</code> grant.</p>
+                    }
+                </div>
+            </div>
+        }
     }
 </PhpErpDesktopChrome>
 
 @code {
     private bool _isAdmin;
     private bool _loaded;
+    private string _csrf = string.Empty;
+    private string _cmp = string.Empty;
+    private string _bu = string.Empty;
+    private string _flashOk = string.Empty;
+    private string _flashErr = string.Empty;
+    private ErpShamModuleFlowsResult? _flows;
     private ErpTenantGuideModel _model = new();
 
     private const int EntityWidth = 200;
@@ -101,6 +239,20 @@
         {
             var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted).ConfigureAwait(false);
             _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+            if (_isAdmin)
+            {
+                _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted).ConfigureAwait(false);
+            }
+            _cmp = ctx.Request.Query["cmp"].ToString().Trim();
+            _bu = ErpHostContext.BuCodeFromQuery(ctx.Request);
+            _flashOk = ctx.Request.Query["ok"].ToString();
+            _flashErr = ctx.Request.Query["err"].ToString();
+            if (_isAdmin && (session.Capabilities?.Contains("erp") ?? false))
+            {
+                try { _flows = await Flows.LoadAsync(session.Email ?? string.Empty, ctx.RequestAborted).ConfigureAwait(false); }
+                catch { _flows = null; }
+                if (_flows is { Ok: false }) _flows = null;
+            }
         }
         try
         {
@@ -111,6 +263,19 @@
             _model = new ErpTenantGuideModel();
         }
         _loaded = true;
+    }
+
+    private string Post(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext!, path);
+    private string Get(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext!, path);
+
+    private MarkupString HiddenFields()
+    {
+        var returnUrl = HttpUtility.HtmlAttributeEncode(
+            (Http.HttpContext?.Request.Path.Value ?? "/erp/tenant-guide") + Http.HttpContext?.Request.QueryString.Value);
+        return (MarkupString)(
+            $"<input type=\"hidden\" name=\"confirmWrites\" value=\"true\" />"
+            + $"<input type=\"hidden\" name=\"returnUrl\" value=\"{returnUrl}\" />"
+            + $"<input type=\"hidden\" name=\"csrf_guard_key\" value=\"{HttpUtility.HtmlAttributeEncode(_csrf)}\" />");
     }
 
     private static string Shorten(string value) =>
