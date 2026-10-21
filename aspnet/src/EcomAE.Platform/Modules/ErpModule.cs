@@ -395,6 +395,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpShamInvoicePost, HandleShamInvoicePostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamIcPost, HandleShamIcPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamSalesInvoiceIssue, HandleShamSalesInvoiceIssueAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpShamPoReceive, HandleShamPoReceiveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
@@ -27109,6 +27110,49 @@ public sealed class ErpModule : ISurfaceModule
             res.Ok,
             res.Message,
             new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, invoiceId = res.InvoiceId, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM Phase-3 tail: entity×BU-scoped purchase receipt into the BU's default warehouse.</summary>
+    private static async Task<IResult> HandleShamPoReceiveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamPoReceiveService receives,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for SHAM PO receive.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to record a SHAM purchase receipt. Fields: entity|cmp, bu, po, itemId, sku, qty, cost, purchaseId, date. Scope check: 'po-receive' grant; warehouse = BU default.", session = SessionPayload(session) });
+        }
+
+        var entity = AmlText(fields, "entity");
+        if (entity.Length == 0)
+        {
+            entity = context.Request.Query["cmp"].ToString();
+        }
+
+        var bu = AmlText(fields, "bu");
+        if (bu.Length == 0)
+        {
+            bu = context.Request.Query["bu"].ToString();
+        }
+
+        var res = await receives.ReceiveAsync(
+            entity, bu, AmlText(fields, "po"), AmlLong(fields, "itemId"), AmlText(fields, "sku"),
+            AmlDec(fields, "qty"), AmlDec(fields, "cost"), AmlLong(fields, "purchaseId"), AmlText(fields, "date"),
+            session.Email ?? string.Empty, session.UserId, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/organization-admin-app?tab=org_bus",
+            res.Ok,
+            res.Message,
+            new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, code = res.Code, message = res.Message, session = SessionPayload(session) });
     }
 
     /// <summary>Auto-parts workspace demo seed: inserts DEMO-tagged rows only.</summary>

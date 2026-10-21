@@ -3011,6 +3011,8 @@ public static class EcomAeRoutes
     public const string ErpShamIcPost = "/erp/sham/ic-post";
     /// <summary>SHAM Phase-4: issue a sales-invoice document into the entity store (required before invoice-post).</summary>
     public const string ErpShamSalesInvoiceIssue = "/erp/sham/sales-invoice-issue";
+    /// <summary>SHAM Phase-3 tail: entity×BU-scoped purchase receipt into the BU's default warehouse.</summary>
+    public const string ErpShamPoReceive = "/erp/sham/po-receive";
     /// <summary>Auto-parts workspace demo clear: deletes only DEMO-tagged rows.</summary>
     public const string ErpAutoPartsDemoClear = "/erp/autoparts/demo-clear";
     /// <summary>Auto-parts month-end bridge: posts trading journals into the GL.</summary>
