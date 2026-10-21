@@ -35,7 +35,8 @@ public interface IErpInventoryReservationWriteService
         string sourceType,
         long sourceId,
         int adminId,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        int ownerCompanyId = 0);
 
     Task ConsumeBySourceAsync(
         DbConnection connection,
@@ -43,7 +44,8 @@ public interface IErpInventoryReservationWriteService
         string sourceType,
         long sourceId,
         int adminId,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        int ownerCompanyId = 0);
 
     Task ReconcileDocumentAsync(
         DbConnection connection,
@@ -53,7 +55,8 @@ public interface IErpInventoryReservationWriteService
         IReadOnlyList<ErpReservationLineNeed> lines,
         int adminId,
         bool confirm,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        int ownerCompanyId = 0);
 
     Task<ErpItemAtp> AtpAsync(long itemId, string? sku, CancellationToken cancellationToken = default);
 
@@ -295,6 +298,7 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
                 input.SourceId,
                 lineKey,
                 input.AdminId,
+                input.OwnerCompanyId,
                 cancellationToken).ConfigureAwait(false);
             var already = existing?.Qty ?? 0m;
             var atp = await LoadAtpAsync(connection, transaction, item.Value.Id, input.WarehouseId, input.OwnerCompanyId, cancellationToken).ConfigureAwait(false);
@@ -466,7 +470,8 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
         string sourceType,
         long sourceId,
         int adminId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        int ownerCompanyId = 0)
     {
         if (sourceId <= 0)
         {
@@ -474,16 +479,21 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
         }
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        await ErpDb.ExecuteAsync(
-            connection,
-            transaction,
-            ErpDb.Positional(
-                "UPDATE `epc_erp_inv_reservations` SET `status`=?, `expires_at`=0, `time_updated`=? WHERE `source_type`=? AND `source_id`=? AND `status`='held'"),
-            cancellationToken,
-            StatusConfirmed,
-            now,
-            NormalizeSource(sourceType),
-            sourceId).ConfigureAwait(false);
+        var ownerClause = ownerCompanyId > 0 ? " AND `owner_company_id`=?" : string.Empty;
+        await using var confirmCmd = connection.CreateCommand();
+        confirmCmd.Transaction = transaction;
+        confirmCmd.CommandText = ErpDb.Positional(
+            "UPDATE `epc_erp_inv_reservations` SET `status`=?, `expires_at`=0, `time_updated`=? WHERE `source_type`=? AND `source_id`=? AND `status`='held'" + ownerClause);
+        if (ownerCompanyId > 0)
+        {
+            ErpDb.AddParameters(confirmCmd, StatusConfirmed, now, NormalizeSource(sourceType), sourceId, ownerCompanyId);
+        }
+        else
+        {
+            ErpDb.AddParameters(confirmCmd, StatusConfirmed, now, NormalizeSource(sourceType), sourceId);
+        }
+
+        await confirmCmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public async Task ConsumeBySourceAsync(
@@ -492,7 +502,8 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
         string sourceType,
         long sourceId,
         int adminId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        int ownerCompanyId = 0)
     {
         if (sourceId <= 0)
         {
@@ -500,17 +511,21 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
         }
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        await ErpDb.ExecuteAsync(
-            connection,
-            transaction,
-            ErpDb.Positional(
-                "UPDATE `epc_erp_inv_reservations` SET `status`=?, `consumed_at`=?, `expires_at`=0, `time_updated`=? WHERE `source_type`=? AND `source_id`=? AND `status` IN ('held','confirmed')"),
-            cancellationToken,
-            StatusConsumed,
-            now,
-            now,
-            NormalizeSource(sourceType),
-            sourceId).ConfigureAwait(false);
+        var ownerClause = ownerCompanyId > 0 ? " AND `owner_company_id`=?" : string.Empty;
+        await using var consumeCmd = connection.CreateCommand();
+        consumeCmd.Transaction = transaction;
+        consumeCmd.CommandText = ErpDb.Positional(
+            "UPDATE `epc_erp_inv_reservations` SET `status`=?, `consumed_at`=?, `expires_at`=0, `time_updated`=? WHERE `source_type`=? AND `source_id`=? AND `status` IN ('held','confirmed')" + ownerClause);
+        if (ownerCompanyId > 0)
+        {
+            ErpDb.AddParameters(consumeCmd, StatusConsumed, now, now, NormalizeSource(sourceType), sourceId, ownerCompanyId);
+        }
+        else
+        {
+            ErpDb.AddParameters(consumeCmd, StatusConsumed, now, now, NormalizeSource(sourceType), sourceId);
+        }
+
+        await consumeCmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public async Task ReconcileDocumentAsync(
@@ -521,7 +536,8 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
         IReadOnlyList<ErpReservationLineNeed> lines,
         int adminId,
         bool confirm,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        int ownerCompanyId = 0)
     {
         ArgumentNullException.ThrowIfNull(connection);
         if (sourceId <= 0)
@@ -585,6 +601,7 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
                     SourceLineKey = "doc",
                     AdminId = adminId,
                     Durable = confirm,
+                    OwnerCompanyId = ownerCompanyId,
                 },
                 cancellationToken).ConfigureAwait(false);
             if (!result.Succeeded)
@@ -595,9 +612,17 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
 
         await using var list = connection.CreateCommand();
         list.Transaction = transaction;
+        var extrasOwnerClause = ownerCompanyId > 0 ? " AND `owner_company_id`=?" : string.Empty;
         list.CommandText = ErpDb.Positional(
-            "SELECT `id`, `item_id` FROM `epc_erp_inv_reservations` WHERE `source_type`=? AND `source_id`=? AND `status` IN ('held','confirmed')");
-        ErpDb.AddParameters(list, source, sourceId);
+            "SELECT `id`, `item_id` FROM `epc_erp_inv_reservations` WHERE `source_type`=? AND `source_id`=? AND `status` IN ('held','confirmed')" + extrasOwnerClause);
+        if (ownerCompanyId > 0)
+        {
+            ErpDb.AddParameters(list, source, sourceId, ownerCompanyId);
+        }
+        else
+        {
+            ErpDb.AddParameters(list, source, sourceId);
+        }
         var extras = new List<long>();
         await using (var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -627,7 +652,7 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
 
         if (confirm)
         {
-            await ConfirmBySourceAsync(connection, transaction, source, sourceId, adminId, cancellationToken).ConfigureAwait(false);
+            await ConfirmBySourceAsync(connection, transaction, source, sourceId, adminId, cancellationToken, ownerCompanyId).ConfigureAwait(false);
         }
     }
 
@@ -865,8 +890,12 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
         long sourceId,
         string lineKey,
         int adminId,
+        int ownerCompanyId,
         CancellationToken cancellationToken)
     {
+        // Owner scope: a hold another legal entity placed on the same document/item
+        // must never be reused or overwritten — it belongs to that entity's books.
+        var ownerClause = ownerCompanyId > 0 ? " AND `owner_company_id`=?" : string.Empty;
         await using var command = connection.CreateCommand();
         command.Transaction = transaction;
         if (sourceId > 0)
@@ -874,16 +903,32 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
             command.CommandText = ErpDb.Positional(
                 "SELECT `id`,`qty`,`status`,`expires_at` FROM `epc_erp_inv_reservations`"
                 + " WHERE `item_id`=? AND `source_type`=? AND `source_id`=? AND `status` IN ('held','confirmed')"
+                + ownerClause
                 + " ORDER BY `id` ASC LIMIT 1");
-            ErpDb.AddParameters(command, itemId, sourceType, sourceId);
+            if (ownerCompanyId > 0)
+            {
+                ErpDb.AddParameters(command, itemId, sourceType, sourceId, ownerCompanyId);
+            }
+            else
+            {
+                ErpDb.AddParameters(command, itemId, sourceType, sourceId);
+            }
         }
         else if (lineKey.Length > 0)
         {
             command.CommandText = ErpDb.Positional(
                 "SELECT `id`,`qty`,`status`,`expires_at` FROM `epc_erp_inv_reservations`"
                 + " WHERE `item_id`=? AND `source_type`=? AND `source_id`=0 AND `source_line_key`=? AND `reserved_by`=? AND `status` IN ('held','confirmed')"
+                + ownerClause
                 + " ORDER BY `id` ASC LIMIT 1");
-            ErpDb.AddParameters(command, itemId, sourceType, lineKey, adminId);
+            if (ownerCompanyId > 0)
+            {
+                ErpDb.AddParameters(command, itemId, sourceType, lineKey, adminId, ownerCompanyId);
+            }
+            else
+            {
+                ErpDb.AddParameters(command, itemId, sourceType, lineKey, adminId);
+            }
         }
         else
         {

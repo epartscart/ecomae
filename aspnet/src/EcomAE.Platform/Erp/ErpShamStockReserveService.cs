@@ -145,6 +145,54 @@ public sealed class ErpShamStockReserveService : IErpShamStockReserveService
             return new(false, "invalid", "A reservation id is required.", 0, string.Empty, 0m, 0m);
         }
 
+        // Scope check: the hold must belong to the resolved entity — a grant in one
+        // BU must not release another entity's reservation.
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            long ownerId = 0;
+            long holdWarehouseId = 0;
+            await using var holdCmd = connection.CreateCommand();
+            holdCmd.CommandText = ErpDb.Positional("SELECT `owner_company_id`, `warehouse_id` FROM `epc_erp_inv_reservations` WHERE `id`=? LIMIT 1");
+            ErpDb.AddParameters(holdCmd, reservationId);
+            await using (var holdReader = await holdCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (await holdReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    ownerId = holdReader.GetInt64(0);
+                    holdWarehouseId = holdReader.GetInt64(1);
+                }
+            }
+
+            if (ownerId == 0)
+            {
+                return new(false, "not_found", "Reservation " + reservationId + " does not exist.", 0, string.Empty, 0m, 0m);
+            }
+
+            if (ownerId != scope.EntityId)
+            {
+                return new(false, "scope", "Reservation " + reservationId + " belongs to a different legal entity — the grant cannot release it.", 0, string.Empty, 0m, 0m);
+            }
+
+            // Reject only when the hold sits in the CURRENT default warehouse of a
+            // DIFFERENT BU in this entity — holds stranded on a migrated/legacy
+            // warehouse stay releasable under the entity scope check above.
+            if (holdWarehouseId != 0 && holdWarehouseId != scope.WarehouseId)
+            {
+                var otherBu = await ErpDb.LongAsync(connection, null,
+                    ErpDb.Positional("SELECT `id` FROM `epc_erp_org_business_units` WHERE `entity_id`=? AND `default_warehouse_id`=? AND `status`='active' LIMIT 1"),
+                    cancellationToken, scope.EntityId, holdWarehouseId).ConfigureAwait(false);
+                if (otherBu != 0)
+                {
+                    return new(false, "scope", "Reservation " + reservationId + " is held in another business unit's warehouse — the grant cannot release it.", 0, string.Empty, 0m, 0m);
+                }
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return new(false, "error", ex.Message, 0, string.Empty, 0m, 0m);
+        }
+
         var result = await _reservations.ReleaseAsync(reservationId, adminId, cancellationToken).ConfigureAwait(false);
         return new(result.Succeeded, result.Code, result.Message, result.ReservationId, result.Sku, result.Qty, result.Available);
     }
