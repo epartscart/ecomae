@@ -12,7 +12,7 @@ public interface IErpTenantGuideReadService
 }
 
 public sealed record ErpTenantGuideEntity(int Id, string Code, string Name, string Country, string Currency, bool Consolidated);
-public sealed record ErpTenantGuideBu(int EntityId, string Code, string Name, string CostCentre, string Warehouse);
+public sealed record ErpTenantGuideBu(int Id, int EntityId, string Code, string Name, string CostCentre, string Warehouse);
 
 public sealed class ErpTenantGuideModel
 {
@@ -85,7 +85,7 @@ public sealed class ErpTenantGuideReadService : IErpTenantGuideReadService
         {
             await using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = "SELECT bu.`entity_id`, bu.`code`, bu.`name`, bu.`cost_centre`, COALESCE(w.`name`,'') "
+                cmd.CommandText = "SELECT bu.`id`, bu.`entity_id`, bu.`code`, bu.`name`, bu.`cost_centre`, COALESCE(w.`name`,'') "
                     + "FROM `epc_erp_org_business_units` bu "
                     + "LEFT JOIN `epc_erp_inv_warehouses` w ON w.`id` = bu.`default_warehouse_id` "
                     + "WHERE bu.`status`='active' ORDER BY bu.`entity_id`, bu.`code`";
@@ -94,10 +94,11 @@ public sealed class ErpTenantGuideReadService : IErpTenantGuideReadService
                 {
                     bus.Add(new ErpTenantGuideBu(
                         reader.GetInt32(0),
-                        reader.GetString(1),
+                        reader.GetInt32(1),
                         reader.GetString(2),
                         reader.GetString(3),
-                        reader.GetString(4)));
+                        reader.GetString(4),
+                        reader.GetString(5)));
                 }
             }
         }
@@ -110,15 +111,15 @@ public sealed class ErpTenantGuideReadService : IErpTenantGuideReadService
         {
             await using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = "SELECT `legal_entity_id`,`code`,`name` FROM `epc_erp_pm_business_units` WHERE `active`=1 ORDER BY `legal_entity_id`, `code`";
+                cmd.CommandText = "SELECT `id`,`legal_entity_id`,`code`,`name` FROM `epc_erp_pm_business_units` WHERE `active`=1 ORDER BY `legal_entity_id`, `code`";
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    var entityId = reader.GetInt32(0);
-                    var code = reader.GetString(1);
+                    var entityId = reader.GetInt32(1);
+                    var code = reader.GetString(2);
                     if (known.Add(entityId + "|" + code))
                     {
-                        bus.Add(new ErpTenantGuideBu(entityId, code, reader.GetString(2), "", ""));
+                        bus.Add(new ErpTenantGuideBu(reader.GetInt32(0), entityId, code, reader.GetString(3), "", ""));
                     }
                 }
             }

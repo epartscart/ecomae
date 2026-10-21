@@ -244,11 +244,14 @@ public static class ErpHostContext
     }
 
     /// <summary>
-    /// Entity + BU switch link by code (D365-style readable URLs): carries
-    /// <c>cmp=&lt;entity code&gt;</c> and optional <c>bu=&lt;BU code&gt;</c>
-    /// instead of the numeric <c>company=</c>. Other query params are preserved.
+    /// Entity + BU switch link carrying BOTH the numeric id and the readable
+    /// code: <c>company=&lt;id&gt;&amp;cmp=&lt;code&gt;</c> (and
+    /// <c>bu=&lt;id&gt;&amp;buc=&lt;code&gt;</c> for a BU). Id consumers
+    /// (ActiveCompanyIdFromQuery, trial-balance BU filters) keep resolving
+    /// numerics while the URL still shows the entity code. Other query
+    /// params are preserved; stale scope keys are dropped.
     /// </summary>
-    public static string SwitchEntityHref(HttpRequest request, string entityCode, string? buCode = null)
+    public static string SwitchEntityHref(HttpRequest request, long entityId, string entityCode, int? buId = null, string? buCode = null)
     {
         var path = request.Path.HasValue ? request.Path.Value! : "/erp";
         var query = new List<string>();
@@ -257,7 +260,9 @@ public static class ErpHostContext
             if (pair.Key.Equals("company", StringComparison.OrdinalIgnoreCase)
                 || pair.Key.Equals("companyId", StringComparison.OrdinalIgnoreCase)
                 || pair.Key.Equals("cmp", StringComparison.OrdinalIgnoreCase)
-                || pair.Key.Equals("bu", StringComparison.OrdinalIgnoreCase))
+                || pair.Key.Equals("bu", StringComparison.OrdinalIgnoreCase)
+                || pair.Key.Equals("buc", StringComparison.OrdinalIgnoreCase)
+                || pair.Key.Equals("businessUnit", StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
@@ -268,10 +273,18 @@ public static class ErpHostContext
             }
         }
 
-        query.Add($"cmp={Uri.EscapeDataString(entityCode)}");
+        query.Add($"company={entityId}");
+        if (!string.IsNullOrWhiteSpace(entityCode))
+        {
+            query.Add($"cmp={Uri.EscapeDataString(entityCode)}");
+        }
+        if (buId is > 0)
+        {
+            query.Add($"bu={buId.Value}");
+        }
         if (!string.IsNullOrWhiteSpace(buCode))
         {
-            query.Add($"bu={Uri.EscapeDataString(buCode)}");
+            query.Add($"buc={Uri.EscapeDataString(buCode)}");
         }
         return path + "?" + string.Join('&', query);
     }

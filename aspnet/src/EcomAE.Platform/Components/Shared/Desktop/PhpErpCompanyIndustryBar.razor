@@ -126,7 +126,7 @@
                     var selected = company.Id == _activeCompanyId;
                     var jw = ErpIndustryNav.IsJewelleryCompany(company);
                     <li class="@(selected ? "active" : null)" role="none">
-                        <a role="menuitem" href="@ErpHostContext.SwitchEntityHref(_request, company.Code)">
+                        <a role="menuitem" href="@ErpHostContext.SwitchEntityHref(_request, company.Id, company.Code)">
                             <i class="fa @(selected ? "fa-check" : "fa-building-o")" aria-hidden="true"></i>
                             <strong>@LegalOrganizationLabel.Display(company.Code, company.Name)</strong>
                             <span class="text-muted epc-erp-company-meta">
@@ -143,7 +143,7 @@
                     {
                         var buSelected = selected && bu.Code.Equals(_activeBuCode, StringComparison.OrdinalIgnoreCase);
                         <li class="@(buSelected ? "active" : null)" role="none">
-                            <a role="menuitem" href="@ErpHostContext.SwitchEntityHref(_request, company.Code, bu.Code)" style="padding-left:32px">
+                            <a role="menuitem" href="@ErpHostContext.SwitchEntityHref(_request, company.Id, company.Code, bu.Id, bu.Code)" style="padding-left:32px">
                                 <i class="fa @(buSelected ? "fa-check" : "fa-circle-o")" aria-hidden="true"></i>
                                 <strong>@bu.Code</strong>
                                 <span class="text-muted epc-erp-company-meta">@bu.Name</span>
@@ -237,7 +237,11 @@
             _bus = (await OrgGuide.ReadAsync(Http.HttpContext?.RequestAborted ?? default)).BusinessUnits;
         }
         catch { _bus = []; }
-        _activeBuCode = (_request?.Query.TryGetValue("bu", out var buQ) == true ? buQ.ToString() : "").Trim();
+        _activeBuCode = (_request?.Query.TryGetValue("buc", out var bucQ) == true ? bucQ.ToString() : "").Trim();
+        if (_activeBuCode.Length == 0)
+        {
+            _activeBuCode = (_request?.Query.TryGetValue("bu", out var buQ) == true ? buQ.ToString() : "").Trim();
+        }
         var isSuper = SuperCpHostGate.IsAllowed(Http.HttpContext);
         _showFleet = isSuper;
         _companies = ErpIndustryNav.EnsureSwitchableCompanies(digest.Companies, isSuper, _ctx.BrandLabel);
