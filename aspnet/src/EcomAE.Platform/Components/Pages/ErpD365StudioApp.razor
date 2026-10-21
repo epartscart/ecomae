@@ -240,6 +240,20 @@
     </div>
 
     <div class="tg-card">
+        <h3>Warehouses (InventLocations)</h3>
+        <p>Fields saved via the D365 field form above (kind=warehouse): site, type, entity, cost centre (SHAM links warehouses to cost centres), business unit, allow-negative, cycle counting, retail flags.</p>
+        <table class="tg-table">
+            <thead><tr><th>Id</th><th>Code</th><th>Name</th><th>Entity</th><th>Site</th><th>Type</th><th>Cost centre</th><th>BU</th></tr></thead>
+            <tbody>
+                @foreach (var r in _warehouses)
+                {
+                    <tr><td>@R(r,"id")</td><td>@R(r,"code")</td><td>@R(r,"name")</td><td>@R(r,"entity_id")</td><td>@R(r,"site")</td><td>@R(r,"type")</td><td>@R(r,"cost_centre_id")</td><td>@R(r,"business_unit_id")</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="tg-card">
         <h3>Prospects → customer / vendor (smmBusinessRelations)</h3>
         <p>Convert a qualified prospect into a customer or vendor master — the D365 prospect conversion flow. Already-converted prospects show their party id.</p>
         <table class="tg-table">
@@ -363,6 +377,7 @@
     private List<Dictionary<string, string?>> _analysis = [];
     private string _stmtEntity = "";
     private List<Dictionary<string, string?>> _prospects = [];
+    private List<Dictionary<string, string?>> _warehouses = [];
 
     private string P(string key) => _profile.TryGetValue(key, out var v) ? v ?? "" : "";
     private static string R(Dictionary<string, string?> row, string key) => row.TryGetValue(key, out var v) ? v ?? "" : "";
@@ -405,6 +420,9 @@
                 }
                 stmtSql += " GROUP BY c.`id` ORDER BY c.`name` LIMIT 200";
                 _stmtRows = await ErpD365DocCycleService.RowsAsync(conn, stmtSql, ctx.RequestAborted).ConfigureAwait(false);
+                _warehouses = await ErpD365DocCycleService.RowsAsync(conn,
+                    "SELECT `id`, `code`, `name`, `entity_id`, `site`, `type`, `cost_centre_id`, `business_unit_id` FROM `epc_erp_inv_warehouses` ORDER BY `code` LIMIT 200",
+                    ctx.RequestAborted).ConfigureAwait(false);
                 _prospects = (await D365.ProspectsAsync(conn, ctx.RequestAborted).ConfigureAwait(false)).Select(r => new Dictionary<string, string?>(r, StringComparer.Ordinal)).ToList();
                 _analysis = await ErpD365DocCycleService.RowsAsync(conn,
                     "SELECT d.`invoice_number`, d.`issue_date`, d.`currency_code`, d.`total_incl_vat` AS revenue,"
