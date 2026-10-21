@@ -28,6 +28,16 @@ public static class ErpOperationsHost
         @"^(?<slug>[a-z0-9]+)-operations-(?<country>[a-z]{3})\.ecomae\.com$",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
+    // UAT tier (D365 sandbox): {key}-sandbox-{country3}.ecomae.com binds the same
+    // tenant registry row but resolves {db}_sandbox instead of the live database.
+    private static readonly Regex FlatSandboxPattern = new(
+        @"^(?<slug>[a-z0-9]+)-sandbox-(?<country>[a-z]{3})\.ecomae\.com$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+    private static readonly Regex DeepSandboxPattern = new(
+        @"^(?<slug>[a-z0-9][a-z0-9-]*)\.sandbox\.(?<country>[a-z]{3})\.ecomae\.com$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
     public static bool TryParse(string? host, out string siteKey, out string country)
     {
         siteKey = string.Empty;
@@ -54,6 +64,34 @@ public static class ErpOperationsHost
         country = match.Groups["country"].Value.ToLowerInvariant();
         return true;
     }
+
+    /// <summary>Parse a sandbox host ({key}-sandbox-{ccc} or {key}.sandbox.{ccc}). Same slug rules as the operations host.</summary>
+    public static bool TryParseSandbox(string? host, out string siteKey, out string country)
+    {
+        siteKey = string.Empty;
+        country = string.Empty;
+        var value = host ?? string.Empty;
+        var flat = FlatSandboxPattern.Match(value);
+        var match = flat.Success ? flat : DeepSandboxPattern.Match(value);
+        if (!match.Success)
+        {
+            return false;
+        }
+
+        var slug = match.Groups["slug"].Value.ToLowerInvariant();
+        siteKey = ClientErpPath.NormalizeSiteKey(slug);
+        if (siteKey.Length == 0 || siteKey != slug)
+        {
+            siteKey = string.Empty;
+            return false;
+        }
+
+        country = match.Groups["country"].Value.ToLowerInvariant();
+        return true;
+    }
+
+    public static bool IsSandboxHost(string? host)
+        => FlatSandboxPattern.IsMatch(host ?? string.Empty) || DeepSandboxPattern.IsMatch(host ?? string.Empty);
 
     public static bool IsOperationsHost(string? host)
         => HostPattern.IsMatch(host ?? string.Empty) || FlatHostPattern.IsMatch(host ?? string.Empty);
@@ -106,4 +144,42 @@ public static class ErpOperationsHost
 
         return $"https://{host}{bare}";
     }
+
+    /// <summary>Canonical sandbox (UAT) host for a tenant site key, or empty when the key is not host-safe.</summary>
+    public static string SandboxHostFor(string siteKey, string? country = null)
+    {
+        if (!IsValidSlug(siteKey))
+        {
+            return string.Empty;
+        }
+
+        var key = ClientErpPath.NormalizeSiteKey(siteKey);
+        var shard = string.IsNullOrWhiteSpace(country) ? DefaultCountry : country.Trim().ToLowerInvariant();
+        var flatLabel = $"{key}-sandbox-{shard}";
+        return flatLabel.Length <= 63
+            ? flatLabel + ".ecomae.com"
+            : $"{key}.sandbox.{shard}.ecomae.com";
+    }
+
+    /// <summary>Canonical absolute sandbox URL for a tenant path. Empty when the key is not host-safe.</summary>
+    public static string SandboxCanonicalUrl(string siteKey, string? country, string path)
+    {
+        var host = SandboxHostFor(siteKey, country);
+        if (host.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        var bare = ClientErpPath.NormalizeRequestPath(path);
+        if (bare == "/")
+        {
+            bare = "/erp";
+        }
+
+        return $"https://{host}{bare}";
+    }
+
+    /// <summary>UAT database name for a tenant's live database name.</summary>
+    public static string SandboxDatabaseName(string liveDatabaseName)
+        => string.IsNullOrWhiteSpace(liveDatabaseName) ? string.Empty : liveDatabaseName.Trim() + "_sandbox";
 }

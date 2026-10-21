@@ -37,7 +37,8 @@ public sealed record TenantContext(
     string? DbPassword = null,
     bool DedicatedDb = false,
     string? IndustryCode = null,
-    string? DisplayName = null)
+    string? DisplayName = null,
+    bool IsSandbox = false)
 {
     public static TenantContext ForKnownTenant(
         string siteKey,

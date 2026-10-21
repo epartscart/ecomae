@@ -42,6 +42,7 @@
     .epc-erp-topbar__brand { display:flex; flex-direction:row; flex-wrap:nowrap; align-items:center; gap:.35rem; font-weight:800; font-size:15px; margin:0 .1rem 0 0; white-space:nowrap; }
     .epc-erp-topbar__brand img { height:30px; }
     .epc-erp-topbar__nav, .epc-erp-topbar__user { display:flex; gap:.7rem; font-size:13px; font-weight:600; color:#334155; margin-left:auto; }
+    .epc-erp-sandbox-banner { background:#b45309; color:#fff; font-size:12px; font-weight:700; letter-spacing:.04em; text-align:center; padding:.3rem .7rem; text-transform:uppercase; }
     /* epc-erp-right-clip: stay inside the viewport — do not size to 100vw then shift. */
     .epc-erp-main { max-width:none; width:100%; min-width:0; padding:0; box-sizing:border-box; }
     .epc-erp-layout { min-width:0; max-width:100%; }
@@ -85,6 +86,7 @@
     .epc-erp-topbar__brand { display:flex; flex-direction:row; flex-wrap:nowrap; align-items:center; gap:.35rem; font-weight:800; font-size:15px; margin:0 .1rem 0 0; white-space:nowrap; }
     .epc-erp-topbar__brand img { height:30px; }
     .epc-erp-topbar__nav, .epc-erp-topbar__user { display:flex; gap:.7rem; font-size:13px; font-weight:600; color:#334155; margin-left:auto; }
+    .epc-erp-sandbox-banner { background:#b45309; color:#fff; font-size:12px; font-weight:700; letter-spacing:.04em; text-align:center; padding:.3rem .7rem; text-transform:uppercase; }
     /* epc-erp-right-clip: stay inside the viewport — do not size to 100vw then shift. */
     .epc-erp-main { max-width:none; width:100%; min-width:0; padding:0; box-sizing:border-box; }
     .epc-erp-layout { min-width:0; max-width:100%; }
@@ -184,6 +186,12 @@
      data-epc-erp-company="@_activeCompanyId"
      data-epc-erp-jewellery="@(_jewellery ? "1" : "0")"
      data-epc-dash-home="@(IsDashboardHome ? "1" : "0")">
+    @if (_sandbox)
+    {
+        <div class="epc-erp-sandbox-banner" role="status" aria-label="Sandbox environment">
+            <i class="fa fa-flask" aria-hidden="true"></i> SANDBOX / UAT — test data only, not production
+        </div>
+    }
     <header class="epc-erp-topbar epc-erp-topbar--cp">
         <div class="epc-erp-topbar__inner">
             <a class="epc-erp-topbar__brand epc-erp-topbar__brand--hub" href="@ErpHomeHref">
@@ -857,6 +865,7 @@
     private bool _showBos;
     private bool _clientErp;
     private bool _showControlPanel = true;
+    private bool _sandbox;
     private bool _signedIn;
     private LegacySessionContext? _session;
     private string _accessDenied = string.Empty;
@@ -1166,6 +1175,7 @@
         // ERP-only tenants have no Control Panel surface — never advertise /cp.
         if (ctx.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant)
         {
+            _sandbox = tenant.IsSandbox;
             _showControlPanel = tenant.Mode is not TenantMode.ErpOnlyTenant;
             if (_showControlPanel && tenant.Mode is TenantMode.DemoTenant)
             {

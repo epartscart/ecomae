@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# Provision a tenant operations host: {key}-operations-{ccc}.ecomae.com
-# (D365-style dedicated host; ErpOperationsHost binds the tenant from it).
+# Provision a tenant dedicated host:
+#   production: {key}-operations-{ccc}.ecomae.com  (D365-style operations host)
+#   sandbox:    {key}-sandbox-{ccc}.ecomae.com     (D365-style UAT; binds {db}_sandbox)
 #
-# Usage: bash scripts/cloudpanel_ops_host_provision.sh <site_key> [country3]
+# Usage: bash scripts/cloudpanel_ops_host_provision.sh <site_key> [country3] [--sandbox]
 #   e.g. bash scripts/cloudpanel_ops_host_provision.sh abcd usa
+#        bash scripts/cloudpanel_ops_host_provision.sh abcd usa --sandbox
 #
-# Creates /etc/nginx/sites-enabled/<key>-ops-<ccc>.ecomae.com.conf:
+# Creates /etc/nginx/sites-enabled/<key>-<tier>-<ccc>.ecomae.com.conf:
 #   - :80  .well-known passthrough (Let's Encrypt HTTP-01) + https redirect
 #   - :443 proxy /erp (and bare /) to the ASP.NET platform on 127.0.0.1:5100;
 #     every other path is refused — the host is tenant-bound, so unrelated
@@ -13,10 +15,19 @@
 # Issues a free Let's Encrypt cert via webroot. Idempotent — safe to re-run.
 set -euo pipefail
 
-KEY="${1:?usage: $0 <site_key> [country3]}"
+KEY="${1:?usage: $0 <site_key> [country3] [--sandbox]}"
 COUNTRY="${2:-uae}"
-HOST="${KEY}-operations-${COUNTRY}.ecomae.com"
-CONF="/etc/nginx/sites-enabled/${KEY}-ops-${COUNTRY}.ecomae.com.conf"
+TIER="operations"
+CONF_TIER="ops"
+for arg in "${@:3}"; do
+  case "$arg" in
+    --sandbox) TIER="sandbox"; CONF_TIER="sandbox" ;;
+    *) echo "unknown argument '$arg' (expected --sandbox)" >&2; exit 2 ;;
+  esac
+done
+
+HOST="${KEY}-${TIER}-${COUNTRY}.ecomae.com"
+CONF="/etc/nginx/sites-enabled/${KEY}-${CONF_TIER}-${COUNTRY}.ecomae.com.conf"
 WEBROOT="/home/ecomae/htdocs/www.ecomae.com"
 
 if ! [[ "$KEY" =~ ^[a-z0-9]+$ ]]; then
@@ -82,7 +93,7 @@ server {
     proxy_set_header X-Forwarded-Proto \$scheme;
     proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
     proxy_set_header Cookie \$http_cookie;
-    proxy_set_header X-EcomAE-Route-Cutover $KEY-ops-host;
+    proxy_set_header X-EcomAE-Route-Cutover $KEY-$TIER-host;
   }
   location ~ ^/(erp|css|assets|_framework|_blazor|_content)(/|$) {
     proxy_pass http://127.0.0.1:5100;
@@ -93,7 +104,7 @@ server {
     proxy_set_header X-Forwarded-Proto \$scheme;
     proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
     proxy_set_header Cookie \$http_cookie;
-    proxy_set_header X-EcomAE-Route-Cutover $KEY-ops-host;
+    proxy_set_header X-EcomAE-Route-Cutover $KEY-$TIER-host;
   }
   location / { return 404; }
 }
