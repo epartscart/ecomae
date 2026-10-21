@@ -51,25 +51,17 @@
                 <button type="submit" class="btn btn-primary btn-sm" style="margin-top:8px">Save</button>
             </form>
         }
-        else if (Kind is "customers" or "vendors" or "delivery" or "prospects")
+        else if (Kind is "customers" or "vendors" or "delivery")
         {
             <form method="post" action="@Post("/erp/d365/fields-save")">
                 @Hidden()
-                <input type="hidden" name="kind" value="@(Kind == "prospects" ? "customer" : Kind == "delivery" ? "dn" : Kind)" />
+                <input type="hidden" name="kind" value="@(Kind == "delivery" ? "dn" : Kind)" />
                 <label>Record id</label><input name="id" type="number" min="1" required />
                 <label>Fields (name=value per line — all D365 fields)</label>
                 <textarea name="fields_kv" rows="3" style="width:100%"></textarea>
                 <button type="submit" class="btn btn-primary btn-sm" style="margin-top:8px">Save fields</button>
             </form>
-            @if (Kind == "prospects")
-            {
-                <form method="post" action="@Post("/erp/d365/prospect-convert")" style="margin-top:10px;display:flex;gap:8px;align-items:end">
-                    @Hidden()
-                    <label style="flex:1">Prospect (lead) id<input name="lead_id" type="number" min="1" required /></label>
-                    <label>Convert to<select name="party_type"><option value="customer">Customer</option><option value="vendor">Vendor</option></select></label>
-                    <button type="submit" class="btn btn-primary btn-sm">Convert prospect</button>
-                </form>
-            }
+
         }
         else if (Kind is "entity")
         {
@@ -83,6 +75,15 @@
                     }
                 </div>
                 <button type="submit" class="btn btn-primary btn-sm" style="margin-top:8px">Save document profile</button>
+            </form>
+        }
+        else if (Kind is "prospects")
+        {
+            <form method="post" action="@Post("/erp/d365/prospect-convert")" style="display:flex;gap:8px;align-items:end">
+                @Hidden()
+                <label style="flex:1">Prospect (lead) id<input name="lead_id" type="number" min="1" required /></label>
+                <label>Convert to<select name="party_type"><option value="customer">Customer</option><option value="vendor">Vendor</option></select></label>
+                <button type="submit" class="btn btn-primary btn-sm">Convert prospect</button>
             </form>
         }
         else if (Kind is "products")
@@ -191,7 +192,7 @@
         "customers" => ["id", "name", "account_code", "trn", "entity_id", "active"],
         "vendors" => ["id", "name", "account_code", "trn", "entity_id", "active"],
         "prospects" => ["id", "company", "contact_name", "email", "phone", "source", "status", "converted_party_id", "converted_party_type", "time_created"],
-        "delivery" => ["id", "delivery_note_no", "consignment_no", "packing_type", "delivery_mode", "status", "entity_id", "time_created"],
+        "delivery" => ["id", "entity_id", "warehouse", "site", "customer_account", "customer_name", "sales_order_no", "status_ext", "time_created"],
         "entity" => ["legal_entity_id", "legal_name", "trn", "bank_name", "invoice_title"],
         "reports" => [],
         _ => []
