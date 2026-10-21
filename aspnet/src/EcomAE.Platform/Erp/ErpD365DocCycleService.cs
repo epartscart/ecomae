@@ -77,6 +77,36 @@ public interface IErpD365DocCycleService
         IReadOnlyDictionary<string, string?> fields,
         int adminId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Create or update a D365 sales-quotation header (epc_erp_sales_quotations).</summary>
+    Task<ErpSimpleWriteResult> SaveQuotationHeaderAsync(
+        DbConnection connection,
+        long quotationId,
+        IReadOnlyDictionary<string, string?> fields,
+        int adminId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Insert a quotation line (variant, item, product name, category, qty/unit, price/discount/tax).</summary>
+    Task<ErpSimpleWriteResult> SaveQuotationLineAsync(
+        DbConnection connection,
+        long quotationId,
+        IReadOnlyDictionary<string, string?> fields,
+        int adminId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Transition quotation status: created|sent|confirmed|rejected|expired (D365 lifecycle).</summary>
+    Task<ErpSimpleWriteResult> SetQuotationStatusAsync(
+        DbConnection connection,
+        long quotationId,
+        string status,
+        int adminId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Quotation detail for the page/print: header row + lines.</summary>
+    Task<(Dictionary<string, string?>? Header, List<Dictionary<string, string?>> Lines)> QuotationAsync(
+        DbConnection connection,
+        long quotationId,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class ErpD365DocCycleService : IErpD365DocCycleService
@@ -169,6 +199,34 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
         "account_code", "fax", "area", "payment_terms", "credit_limit", "sales_tax_group",
         "delivery_terms", "mode_of_delivery", "warehouse", "salesman", "buyer_name",
         "buyer_address", "buyer_country", "buyer_phone", "registration_no",
+    ];
+
+    /// <summary>SalesQuotationListPage + SalesQuotationDetails fields (epc_erp_sales_quotations).</summary>
+    public static readonly string[] QuotationHeaderColumns =
+    [
+        "quote_no", "quote_name", "quotation_order_type", "quotation_type",
+        "prospect_account", "prospect_name", "customer_account", "customer_name",
+        "contact_id", "template", "status", "currency_code", "language_code",
+        "delivery_address_name", "delivery_address", "requested_receipt_date",
+        "requested_ship_date", "customer_requisition", "customer_reference",
+        "total_discount_pct", "total_discount_amount", "origin", "ownership",
+        "purchase_requisition", "sales_quotation_ref", "price_locked",
+        "sales_tax_group", "item_sales_tax_group", "mode_of_delivery",
+        "delivery_terms", "payment_terms", "warehouse", "site", "salesman",
+        "charges_amount", "multiline_discount_pct", "entity_id", "business_unit_id",
+        "time_sent", "time_confirmed", "time_expired",
+    ];
+
+    /// <summary>Quotation line fields (epc_erp_sales_quotation_lines).</summary>
+    public static readonly string[] QuotationLineColumns =
+    [
+        "variant_number", "line_type", "item_number", "product_name", "text",
+        "sales_category", "cw_qty", "cw_unit", "qty", "unit", "unit_price",
+        "discount_pct", "discount_amount", "vat_pct", "net_amount", "delivery_name",
+        "external_reference", "origin", "site", "warehouse", "requested_ship_date",
+        "requested_receipt_date", "msp", "charges_amount", "external_item_ref",
+        "packing_qty", "packing_unit", "sales_tax_group", "item_sales_tax_group",
+        "business_unit", "cost_centre", "legal_entity_dim", "worker_dim", "customs_name",
     ];
 
     /// <summary>Vendor-master columns (epc_erp_suppliers).</summary>
@@ -309,6 +367,55 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
             await Add(connection, "epc_erp_delivery_notes", col, def, cancellationToken).ConfigureAwait(false);
         }
 
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_sales_quotations` ("
+            + " `id` int(11) NOT NULL AUTO_INCREMENT,"
+            + " `quote_no` varchar(32) NOT NULL,"
+            + " `entity_id` int(11) NOT NULL DEFAULT 0,"
+            + " `business_unit_id` int(11) NOT NULL DEFAULT 0,"
+            + " `status` enum('created','sent','confirmed','rejected','expired','cancelled') NOT NULL DEFAULT 'created',"
+            + " `admin_id` int(11) NOT NULL DEFAULT 0,"
+            + " `time_created` int(11) NOT NULL DEFAULT 0,"
+            + " `time_updated` int(11) NOT NULL DEFAULT 0,"
+            + " PRIMARY KEY (`id`),"
+            + " UNIQUE KEY `x_quote_no` (`quote_no`),"
+            + " KEY `x_entity` (`entity_id`,`status`)"
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='D365 sales quotations'",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_sales_quotation_lines` ("
+            + " `id` int(11) NOT NULL AUTO_INCREMENT,"
+            + " `quotation_id` int(11) NOT NULL,"
+            + " `line_no` int(11) NOT NULL DEFAULT 1,"
+            + " `admin_id` int(11) NOT NULL DEFAULT 0,"
+            + " `time_created` int(11) NOT NULL DEFAULT 0,"
+            + " `time_updated` int(11) NOT NULL DEFAULT 0,"
+            + " PRIMARY KEY (`id`),"
+            + " KEY `x_quote` (`quotation_id`,`line_no`)"
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='D365 sales quotation lines'",
+            cancellationToken).ConfigureAwait(false);
+        foreach (var col in QuotationHeaderColumns)
+        {
+            var def = col is "total_discount_pct" or "total_discount_amount" or "multiline_discount_pct" or "charges_amount"
+                ? "decimal(14,2) NOT NULL DEFAULT 0.00"
+                : col is "time_sent" or "time_confirmed" or "time_expired" or "entity_id" or "business_unit_id" or "contact_id"
+                ? "int(11) NOT NULL DEFAULT 0"
+                : "varchar(255) NOT NULL DEFAULT ''";
+            if (col is "status" or "entity_id" or "business_unit_id") continue; // in CREATE
+            await Add(connection, "epc_erp_sales_quotations", col, def, cancellationToken).ConfigureAwait(false);
+        }
+        foreach (var col in QuotationLineColumns)
+        {
+            var def = col is "cw_qty" or "qty" or "unit_price" or "discount_pct" or "discount_amount" or "vat_pct" or "net_amount" or "packing_qty" or "msp" or "charges_amount"
+                ? "decimal(14,4) NOT NULL DEFAULT 0.0000"
+                : col is "text"
+                ? "text"
+                : "varchar(255) NOT NULL DEFAULT ''";
+            await Add(connection, "epc_erp_sales_quotation_lines", col, def, cancellationToken).ConfigureAwait(false);
+        }
+
         foreach (var col in CustomerColumns)
         {
             var def = col is "credit_limit" ? "decimal(14,2) NOT NULL DEFAULT 0.00"
@@ -410,6 +517,78 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
 
     public Task<ErpSimpleWriteResult> SaveVendorFieldsAsync(DbConnection c, long id, IReadOnlyDictionary<string, string?> f, int a, CancellationToken t = default)
         => SaveFieldsAsync(c, "epc_erp_suppliers", "id", id, VendorColumns, f, a, "Vendor details saved.", t);
+
+    public async Task<ErpSimpleWriteResult> SaveQuotationHeaderAsync(DbConnection c, long id, IReadOnlyDictionary<string, string?> f, int a, CancellationToken t = default)
+    {
+        await EnsureSchemaAsync(c, t).ConfigureAwait(false);
+        if (id > 0)
+        {
+            return await SaveFieldsAsync(c, "epc_erp_sales_quotations", "id", id, QuotationHeaderColumns, f, a, "Quotation header saved.", t).ConfigureAwait(false);
+        }
+
+        var set = BuildSets(QuotationHeaderColumns, f);
+        var cols = new List<string> { "`admin_id`", "`time_created`", "`time_updated`" };
+        var args = new List<object?> { a, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), DateTimeOffset.UtcNow.ToUnixTimeSeconds() };
+        cols.AddRange(set.Columns.Select(x => "`" + x + "`"));
+        args.AddRange(set.Args);
+        var placeholders = string.Join(",", args.Select((_, i) => "?"));
+        var insert = "INSERT INTO `epc_erp_sales_quotations` (" + string.Join(",", cols) + ") VALUES (" + placeholders + ")";
+        await ErpDb.ExecuteAsync(c, null, insert, t, args.ToArray()).ConfigureAwait(false);
+        var newId = await ErpDb.LastInsertIdAsync(c, null, t).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Quotation " + (f.TryGetValue("quote_no", out var qn) ? qn : "") + " created.", newId);
+    }
+
+    public async Task<ErpSimpleWriteResult> SaveQuotationLineAsync(DbConnection c, long quotationId, IReadOnlyDictionary<string, string?> f, int a, CancellationToken t = default)
+    {
+        await EnsureSchemaAsync(c, t).ConfigureAwait(false);
+        if (quotationId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Pass quotation id.");
+        }
+
+        var lineNo = await ErpDb.LongAsync(c, null, "SELECT IFNULL(MAX(`line_no`),0)+1 FROM `epc_erp_sales_quotation_lines` WHERE `quotation_id` = ?", t, quotationId).ConfigureAwait(false);
+        var set = BuildSets(QuotationLineColumns, f);
+        var cols = new List<string> { "`quotation_id`", "`line_no`", "`admin_id`", "`time_created`", "`time_updated`" };
+        var args = new List<object?> { quotationId, lineNo, a, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), DateTimeOffset.UtcNow.ToUnixTimeSeconds() };
+        cols.AddRange(set.Columns.Select(x => "`" + x + "`"));
+        args.AddRange(set.Args);
+        await ErpDb.ExecuteAsync(c, null,
+            "INSERT INTO `epc_erp_sales_quotation_lines` (" + string.Join(",", cols) + ") VALUES (" + string.Join(",", args.Select(_ => "?")) + ")",
+            t, args.ToArray()).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Quotation line " + lineNo + " added.", quotationId);
+    }
+
+    public async Task<ErpSimpleWriteResult> SetQuotationStatusAsync(DbConnection c, long quotationId, string status, int a, CancellationToken t = default)
+    {
+        await EnsureSchemaAsync(c, t).ConfigureAwait(false);
+        var norm = status.Trim().ToLowerInvariant();
+        if (norm is not ("created" or "sent" or "confirmed" or "rejected" or "expired" or "cancelled"))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Status must be created|sent|confirmed|rejected|expired|cancelled.");
+        }
+
+        var stampCol = norm switch
+        {
+            "sent" => ", `time_sent` = " + DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture),
+            "confirmed" => ", `time_confirmed` = " + DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture),
+            "expired" => ", `time_expired` = " + DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture),
+            _ => "",
+        };
+        var n = await ErpDb.ExecuteAsync(c, null,
+            "UPDATE `epc_erp_sales_quotations` SET `status` = ?, `time_updated` = ?" + stampCol + " WHERE `id` = ?",
+            t, norm, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), quotationId).ConfigureAwait(false);
+        return n > 0
+            ? ErpSimpleWriteResult.Ok("Quotation status = " + norm + ".", quotationId)
+            : ErpSimpleWriteResult.Fail("not_found", "Quotation " + quotationId + " not found.");
+    }
+
+    public async Task<(Dictionary<string, string?>?, List<Dictionary<string, string?>>)> QuotationAsync(DbConnection c, long quotationId, CancellationToken t = default)
+    {
+        await EnsureSchemaAsync(c, t).ConfigureAwait(false);
+        var header = await FirstRowAsync(c, "SELECT * FROM `epc_erp_sales_quotations` WHERE `id` = ? LIMIT 1", t, quotationId).ConfigureAwait(false);
+        var lines = await RowsAsync(c, "SELECT * FROM `epc_erp_sales_quotation_lines` WHERE `quotation_id` = ? ORDER BY `line_no`, `id`", t, quotationId).ConfigureAwait(false);
+        return (header, lines);
+    }
 
     internal async Task<ErpSimpleWriteResult> SaveFieldsAsync(
         DbConnection connection,
