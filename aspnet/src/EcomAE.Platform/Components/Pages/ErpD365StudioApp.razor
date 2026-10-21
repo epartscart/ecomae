@@ -194,6 +194,30 @@
     </div>
 
     <div class="tg-card tg-form">
+        <h3>Journals — general, customer payment, vendor payment</h3>
+        <p>LedgerJournalTable3 / _CustPaym / Table5 style: one header + dimensioned lines. Each line: <code>account_code|debit|credit|note|business_unit_id|cost_centre_id|legal_entity_id</code>.</p>
+        <form method="post" action="@Post("/erp/d365/journal-post")">
+            @HiddenFields()
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+                <label>Journal type
+                    <select name="journal_type">
+                        <option value="general">General journal</option>
+                        <option value="customer_payment">Customer payment</option>
+                        <option value="vendor_payment">Vendor payment</option>
+                    </select>
+                </label>
+                <label>Reference<input name="reference" /></label>
+                <label>Currency<input name="currency_code" value="AED" /></label>
+                <label>Description<input name="description" /></label>
+                <label>Legal entity id<input name="entity" type="number" min="0" value="0" /></label>
+                <label>Business unit id<input name="business_unit_id" type="number" min="0" value="0" /></label>
+            </div>
+            <label>Lines</label><textarea name="lines" placeholder="1111001|1000.00|0|Payment received|1|0|1&#10;3101001|0|1000.00|Bank|1|0|1" required></textarea>
+            <button type="submit">Post journal</button>
+        </form>
+    </div>
+
+    <div class="tg-card tg-form">
         <h3>Sales quotation — create, lifecycle, print</h3>
         <p>New quotation: pick kind <code>quote</code> in the fields form above and leave id blank (include <code>quote_no</code>, <code>customer_name</code>…). Add lines with kind <code>quote_line</code> and id = quotation id.</p>
         <form method="post" action="@Post("/erp/d365/quote-status")">

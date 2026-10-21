@@ -414,6 +414,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpD365GlSave, HandleD365GlSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365BankRecon, HandleD365BankReconAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpD365TbSet, HandleD365TbSetAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpD365JournalPost, HandleD365JournalPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamTaxRuleSet, HandleShamTaxRuleSetAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamTaxRules, HandleShamTaxRulesAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamLandedCost, HandleShamLandedCostAsync).DisableAntiforgery();
@@ -27660,6 +27661,108 @@ public sealed class ErpModule : ISurfaceModule
         await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         var rows = await gl.TrialBalanceBySetAsync(conn, setId, cancellationToken).ConfigureAwait(false);
         return Results.Ok(new { ok = true, count = rows.Count, rows });
+    }
+
+    /// <summary>
+    /// D365 journals (LedgerJournalTable3 / _CustPaym / Table5): post a journal with
+    /// dimensioned lines. Header fields: journal_type=general|customer_payment|vendor_payment,
+    /// description, reference, currency_code, entity/company_id, business_unit_id.
+    /// Lines textarea `lines`: one per row "account_code|debit|credit|note|bu_id|cc_id|le_id".
+    /// </summary>
+    private static async Task<IResult> HandleD365JournalPostAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpGlPostingService posting,
+        IErpD365GlService gl,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-studio", "Admin ERP capability required for journal posting.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. journal_type=general|customer_payment|vendor_payment, description, reference, currency_code, entity, business_unit_id; lines textarea: account_code|debit|credit|note|bu|cc|le per line.", session = SessionPayload(session) });
+        }
+
+        var sourceType = AmlText(fields, "journal_type") switch
+        {
+            "customer_payment" => "payment",
+            "vendor_payment" => "payment",
+            _ => "manual",
+        };
+        var header = new ErpGlJournalHeader
+        {
+            JournalDate = AmlUnix(fields, "journal_date", false),
+            Reference = AmlText(fields, "reference"),
+            Description = AmlText(fields, "description"),
+            SourceType = sourceType,
+            CompanyId = AmlLong(fields, "entity") > 0 ? AmlLong(fields, "entity") : AmlLong(fields, "company_id"),
+            BusinessUnitId = AmlLong(fields, "business_unit_id"),
+            CurrencyCode = AmlText(fields, "currency_code"),
+            ExchangeRate = AmlDec(fields, "exchange_rate") > 0 ? AmlDec(fields, "exchange_rate") : 1m,
+            LegislationRef = AmlText(fields, "journal_type"),
+        };
+
+        var lines = new List<ErpGlLine>();
+        var dimRows = new List<Dictionary<string, string?>>();
+        var linesText = AmlText(fields, "lines");
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await gl.EnsureSchemaAsync(conn, cancellationToken).ConfigureAwait(false);
+        foreach (var raw in linesText.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var cells = raw.Split('|', StringSplitOptions.TrimEntries);
+            if (cells.Length < 3)
+            {
+                return Results.Ok(new { ok = false, validation_code = "bad_line", message = "Line '" + raw + "' needs account_code|debit|credit.", session = SessionPayload(session) });
+            }
+            var code = cells[0];
+            decimal.TryParse(cells[1], System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var dr);
+            decimal.TryParse(cells[2], System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var cr);
+            var note = cells.Length > 3 ? cells[3] : "";
+            var bu = cells.Length > 4 && long.TryParse(cells[4], out var x) ? x : 0;
+            var cc = cells.Length > 5 && long.TryParse(cells[5], out var y) ? y : 0;
+            var le = cells.Length > 6 && long.TryParse(cells[6], out var z) ? z : 0;
+            var coaId = await ErpDb.LongAsync(conn, null, "SELECT `id` FROM `epc_erp_coa_accounts` WHERE `account_code` = ? LIMIT 1", cancellationToken, code).ConfigureAwait(false);
+            if (coaId <= 0)
+            {
+                return Results.Ok(new { ok = false, validation_code = "account_not_found", message = "COA account '" + code + "' not found.", session = SessionPayload(session) });
+            }
+            lines.Add(new ErpGlLine(coaId, dr, cr, note, bu, le));
+            if (cc > 0) dimRows.Add(new Dictionary<string, string?> { ["cost_centre_id"] = cc.ToString(System.Globalization.CultureInfo.InvariantCulture) });
+            else dimRows.Add(new Dictionary<string, string?>());
+        }
+        if (lines.Count == 0)
+        {
+            return Results.Ok(new { ok = false, validation_code = "no_lines", message = "Pass at least one line in `lines`.", session = SessionPayload(session) });
+        }
+
+        long journalId;
+        try
+        {
+            journalId = await posting.PostJournalAsync(conn, header, lines, session.UserId, cancellationToken).ConfigureAwait(false);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.Ok(new { ok = false, validation_code = "post_failed", message = ex.Message, session = SessionPayload(session) });
+        }
+
+        // Stamp cost-centre dimensions (line order matches insert order).
+        var newLines = await ErpD365DocCycleService.RowsAsync(conn, "SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? ORDER BY `id`", cancellationToken, journalId).ConfigureAwait(false);
+        for (var i = 0; i < newLines.Count && i < dimRows.Count; i++)
+        {
+            if (dimRows[i].Count > 0 && long.TryParse(newLines[i].GetValueOrDefault("id"), out var lid))
+            {
+                await gl.SaveJournalLineDimsAsync(conn, lid, dimRows[i], session.UserId, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        var res = ErpSimpleWriteResult.Ok("Journal posted (" + AmlText(fields, "journal_type") + ", " + lines.Count + " lines).", journalId);
+        return LiveWriteFormBinder.Complete(context, "/erp/d365-studio", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, journal_id = journalId, message = res.Message, session = SessionPayload(session) });
     }
 
     /// <summary>SHAM §8b: upsert an effective-dated tax rule (entity or tenant-wide scope).</summary>
