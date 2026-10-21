@@ -12,6 +12,8 @@ public sealed record ClientErpTenantRecord(
     string DatabaseName,
     string? DbUser,
     string? DbPassword,
+    string? DbUatUser,
+    string? DbUatPassword,
     bool DedicatedDb,
     bool IsActive,
     bool IsDemo);
@@ -50,6 +52,8 @@ public sealed class DbClientErpTenantLookup : IClientErpTenantLookup
             IFNULL(`db_name`, '') AS db_name,
             IFNULL(`db_user`, '') AS db_user,
             IFNULL(`db_password`, '') AS db_password,
+            IFNULL(`db_uat_user`, '') AS db_uat_user,
+            IFNULL(`db_uat_pass`, '') AS db_uat_pass,
             `is_demo`,
             `erp_only_shared`,
             `is_active`
@@ -84,6 +88,8 @@ public sealed class DbClientErpTenantLookup : IClientErpTenantLookup
             IFNULL(`db_name`, '') AS db_name,
             IFNULL(`db_user`, '') AS db_user,
             IFNULL(`db_password`, '') AS db_password,
+            IFNULL(`db_uat_user`, '') AS db_uat_user,
+            IFNULL(`db_uat_pass`, '') AS db_uat_pass,
             `is_demo`,
             `erp_only_shared`,
             `is_active`
@@ -187,6 +193,8 @@ public sealed class DbClientErpTenantLookup : IClientErpTenantLookup
             Text(reader, "db_name"),
             EmptyToNull(Text(reader, "db_user")),
             EmptyToNull(Text(reader, "db_password")),
+            EmptyToNull(Text(reader, "db_uat_user")),
+            EmptyToNull(Text(reader, "db_uat_pass")),
             dedicated,
             isActive && usableType,
             isDemo);

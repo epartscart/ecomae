@@ -214,7 +214,14 @@ public sealed class RouteTenantResolver : ITenantResolver
 
         var dedicatedUser = erpOnly.DbUser;
         var dedicatedPassword = erpOnly.DbPassword;
-        if (!TenantContext.UsableDedicatedCredentials(dedicatedUser, dedicatedPassword))
+        if (sandbox && TenantContext.UsableDedicatedCredentials(erpOnly.DbUatUser, erpOnly.DbUatPassword))
+        {
+            // UAT tier binds a dedicated {user}_uat MySQL account scoped to {db}_sandbox —
+            // a leaked sandbox session can never reach the live tenant schema.
+            dedicatedUser = erpOnly.DbUatUser;
+            dedicatedPassword = erpOnly.DbUatPassword;
+        }
+        else if (!TenantContext.UsableDedicatedCredentials(dedicatedUser, dedicatedPassword))
         {
             dedicatedUser = null;
             dedicatedPassword = null;

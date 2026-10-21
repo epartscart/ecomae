@@ -51,6 +51,15 @@ mysql -N -e "SELECT DISTINCT host FROM mysql.user WHERE user='$DB_USER'" \
   | while read -r h; do
       mysql -e "GRANT ALL PRIVILEGES ON \`$SANDBOX_DB\`.* TO \`$DB_USER\`@'$h'"
     done
+# Dedicated UAT account ({db_user}_uat) gets its sandbox grant rebuilt too —
+# a fresh {db}_sandbox otherwise drops the grant and sandbox hosts lose auth.
+UAT_USER="${DB_USER}_uat"
+if mysql -N -e "SELECT 1 FROM mysql.user WHERE user='$UAT_USER'" | grep -q 1; then
+  mysql -N -e "SELECT DISTINCT host FROM mysql.user WHERE user='$UAT_USER'" \
+    | while read -r h; do
+        mysql -e "GRANT ALL PRIVILEGES ON \`$SANDBOX_DB\`.* TO \`$UAT_USER\`@'$h'"
+      done
+fi
 # Shared platform account (ecomae) also reads every tenant DB.
 if mysql -N -e "SELECT 1 FROM mysql.user WHERE user='ecomae'" | grep -q 1; then
   mysql -e "GRANT ALL PRIVILEGES ON \`$SANDBOX_DB\`.* TO 'ecomae'@'%'"
