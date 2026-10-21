@@ -34,6 +34,7 @@ public sealed record CpTenantControlRow(
     string CpUrl,
     string ErpLoginUrl,
     string ErpOperationsUrl,
+    string ErpSandboxUrl,
     bool InRegistry,
     bool IsActive,
     bool DemoExpired,
@@ -309,6 +310,9 @@ public sealed class CpTenantControlCenterService : ICpTenantControlCenterService
             var operationsUrl = type == "erp_only" && siteKey.Length > 0
                 ? ErpOperationsHost.CanonicalUrl(siteKey, null, "/")
                 : string.Empty;
+            var sandboxUrl = type == "erp_only" && siteKey.Length > 0
+                ? ErpOperationsHost.SandboxCanonicalUrl(siteKey, null, "/")
+                : string.Empty;
 
             rows.Add(new CpTenantControlRow(
                 siteKey,
@@ -326,6 +330,7 @@ public sealed class CpTenantControlCenterService : ICpTenantControlCenterService
                 cp,
                 erp,
                 operationsUrl,
+                sandboxUrl,
                 true,
                 isActive,
                 demoExpired,

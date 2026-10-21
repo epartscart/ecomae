@@ -298,6 +298,10 @@
                                     {
                                         <a class="small" href="@t.ErpOperationsUrl" target="_blank" rel="noopener" title="Dedicated operations host (D365-style)">@t.ErpOperationsUrl</a>
                                     }
+                                    @if (!string.IsNullOrWhiteSpace(t.ErpSandboxUrl))
+                                    {
+                                        <a class="small" href="@t.ErpSandboxUrl" target="_blank" rel="noopener" title="Sandbox / UAT host (D365-style; bound to the _sandbox database)">@t.ErpSandboxUrl</a>
+                                    }
                                     @if (string.IsNullOrWhiteSpace(t.ErpLoginUrl) && string.IsNullOrWhiteSpace(t.ErpOperationsUrl))
                                     {
                                         <span class="text-muted">—</span>
@@ -349,6 +353,10 @@
                                     @if (!string.IsNullOrWhiteSpace(t.ErpOperationsUrl))
                                     {
                                         <a class="btn btn-xs btn-info" target="_blank" rel="noopener" href="@t.ErpOperationsUrl" title="Dedicated operations host">Ops host</a>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(t.ErpSandboxUrl))
+                                    {
+                                        <a class="btn btn-xs btn-warning" target="_blank" rel="noopener" href="@t.ErpSandboxUrl" title="Sandbox / UAT host">UAT</a>
                                     }
                                 </td>
                                 <td>

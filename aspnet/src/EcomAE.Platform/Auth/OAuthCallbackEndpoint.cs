@@ -217,12 +217,35 @@ public static class OAuthCallbackEndpoint
             return null;
         }
 
+        // Dedicated tenant hosts ({key}-operations-{ccc} / {key}-sandbox-{ccc})
+        // are not registry hostnames — resolve them by site_key so sign-in
+        // binds the same tenant DB the host serves.
+        string? siteKey = null;
+        var sandboxReturn = false;
+        if (ErpOperationsHost.TryParse(host, out var opsKey, out _))
+        {
+            siteKey = opsKey;
+        }
+        else if (ErpOperationsHost.TryParseSandbox(host, out var sbKey, out _))
+        {
+            siteKey = sbKey;
+            sandboxReturn = true;
+        }
+
         var alias = host.StartsWith("www.", StringComparison.Ordinal) ? host[4..] : "www." + host;
         await using var registry = await connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
         await using var command = registry.CreateCommand();
-        command.CommandText = PortalTenantSql.SelectActiveTenantByHosts;
-        Add(command, "@h0", host);
-        Add(command, "@h1", alias);
+        if (siteKey is not null)
+        {
+            command.CommandText = PortalTenantSql.SelectTenantBySiteKey;
+            Add(command, "@siteKey", siteKey);
+        }
+        else
+        {
+            command.CommandText = PortalTenantSql.SelectActiveTenantByHosts;
+            Add(command, "@h0", host);
+            Add(command, "@h1", alias);
+        }
         try
         {
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -238,7 +261,7 @@ public static class OAuthCallbackEndpoint
             }
 
             return new TenantDbTarget(
-                database,
+                sandboxReturn ? ErpOperationsHost.SandboxDatabaseName(database) : database,
                 reader.IsDBNull(3) ? "" : reader.GetString(3),
                 reader.IsDBNull(4) ? "" : reader.GetString(4),
                 IsDemo(reader));
@@ -264,7 +287,7 @@ public static class OAuthCallbackEndpoint
                 }
 
                 return new TenantDbTarget(
-                    database,
+                    sandboxReturn ? ErpOperationsHost.SandboxDatabaseName(database) : database,
                     reader.IsDBNull(3) ? "" : reader.GetString(3),
                     reader.IsDBNull(4) ? "" : reader.GetString(4),
                     IsDemo(reader));

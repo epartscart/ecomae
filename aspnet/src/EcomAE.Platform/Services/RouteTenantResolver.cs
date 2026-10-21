@@ -58,6 +58,17 @@ public sealed class RouteTenantResolver : ITenantResolver
             // Unknown slug: fall through to the normal host/registry resolution.
         }
 
+        // UAT tier (D365 sandbox): {site_key}-sandbox-{country3}.ecomae.com binds the
+        // same registry row but opens {database}_sandbox instead of the live DB.
+        if (ErpOperationsHost.TryParseSandbox(host, out var sandboxKey, out _))
+        {
+            var bound = await TryResolveErpOnlyAsync(host, path, sandboxKey, cancellationToken, sandbox: true);
+            if (bound is not null)
+            {
+                return bound;
+            }
+        }
+
         // SUPER-CP ISOLATION: platform hosts (www.ecomae.com / ecomae.com / cp.ecomae.com)
         // are ALWAYS Platform mode with the platform database. PHP registers erp-only
         // shared tenants under the www hostname in epc_portal_tenants — a live registry
@@ -181,7 +192,8 @@ public sealed class RouteTenantResolver : ITenantResolver
         string host,
         string path,
         string siteKey,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool sandbox = false)
     {
         ClientErpTenantRecord? erpOnly = null;
         try
@@ -208,18 +220,27 @@ public sealed class RouteTenantResolver : ITenantResolver
             dedicatedPassword = null;
         }
 
+        var databaseName = sandbox
+            ? ErpOperationsHost.SandboxDatabaseName(erpOnly.DatabaseName)
+            : erpOnly.DatabaseName;
+        if (databaseName.Length == 0)
+        {
+            return null;
+        }
+
         return new TenantContext(
             host,
             path,
             TenantSurface.Erp,
             TenantMode.ErpOnlyTenant,
             erpOnly.SiteKey,
-            erpOnly.DatabaseName,
+            databaseName,
             dedicatedUser,
             dedicatedPassword,
             erpOnly.DedicatedDb,
             ResolveIndustryCode(erpOnly.SiteKey, erpOnly.IndustryCode, host),
-            DisplayName: TradeNameFor(erpOnly));
+            DisplayName: TradeNameFor(erpOnly),
+            IsSandbox: sandbox);
     }
 
     private static string? TradeNameFor(ClientErpTenantRecord row)

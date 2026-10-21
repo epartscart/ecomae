@@ -25,7 +25,8 @@ public sealed class ClientErpPathRewriteMiddleware
         // before AdminSurfaceAuthGate — gives "/" exactly the same auth gate a
         // typed "/erp" gets (guests are sent to /erp/login).
         if ((path is null or "" or "/")
-            && ErpOperationsHost.TryParse(context.Request.Host.Host, out var operationsKey, out _))
+            && (ErpOperationsHost.TryParse(context.Request.Host.Host, out var operationsKey, out _)
+                || ErpOperationsHost.TryParseSandbox(context.Request.Host.Host, out operationsKey, out _)))
         {
             context.Request.Path = "/erp";
             context.Response.Headers["X-EcomAE-Operations-Host"] = operationsKey;
