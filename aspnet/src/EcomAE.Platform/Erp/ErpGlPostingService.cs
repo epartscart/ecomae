@@ -18,7 +18,23 @@ public sealed record ErpGlSalesInvoicePosting(
     decimal TotalVat,
     decimal TotalIncl,
     long IssueDate,
-    string LegislationRef = "");
+    string LegislationRef = "")
+{
+    /// <summary>Posting legal entity. Zero resolves the tenant default (single-entity callers).</summary>
+    public long CompanyId { get; init; }
+
+    /// <summary>Operational BU (epc_erp_pm_business_units id) stamped on journal + lines.</summary>
+    public long BusinessUnitId { get; init; }
+
+    /// <summary>Line-level legal entity dimension (epc_erp_pm_legal_entities id).</summary>
+    public long LegalEntityId { get; init; }
+
+    /// <summary>Transaction currency. Blank means the accounting currency.</summary>
+    public string CurrencyCode { get; init; } = string.Empty;
+
+    /// <summary>Units of accounting currency per 1 transaction currency.</summary>
+    public decimal ExchangeRate { get; init; } = 1m;
+}
 
 public sealed record ErpGlJournalHeader
 {
@@ -505,9 +521,15 @@ public sealed class ErpGlPostingService : IErpGlPostingService
                 Description = "Sales invoice " + invoice.InvoiceNumber,
                 SourceType = "sales_invoice",
                 SourceId = invoice.InvoiceId,
+                CompanyId = invoice.CompanyId,
+                BusinessUnitId = invoice.BusinessUnitId,
+                CurrencyCode = invoice.CurrencyCode,
+                ExchangeRate = invoice.ExchangeRate,
                 LegislationRef = invoice.LegislationRef,
             },
-            lines,
+            invoice.CompanyId != 0 || invoice.BusinessUnitId != 0 || invoice.LegalEntityId != 0
+                ? lines.ConvertAll(l => l with { BusinessUnitId = invoice.BusinessUnitId, LegalEntityId = invoice.LegalEntityId })
+                : lines,
             adminId,
             cancellationToken).ConfigureAwait(false);
     }

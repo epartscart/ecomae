@@ -392,6 +392,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpShamFoundationSeed, HandleShamFoundationSeedAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamJournalPost, HandleShamJournalPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamStockReserve, HandleShamStockReserveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpShamInvoicePost, HandleShamInvoicePostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
@@ -26916,6 +26917,89 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, validation_code = res.Code, message = res.Message, reservationId = res.ReservationId, sku = res.Sku, qty = res.Qty, available = res.Available, session = SessionPayload(session) });
     }
 
+    /// <summary>SHAM Phase-4: entity×BU-scoped sales-invoice GL post; consumeSourceId closes the order's holds in the same transaction.</summary>
+    private static async Task<IResult> HandleShamInvoicePostAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamInvoicePostService posts,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for SHAM invoice posting.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to post a SHAM sales invoice. Fields: entity|cmp, bu, invoiceId, number, subtotal, vat, total, date, currency, rate, consumeSourceType (default sales_order), consumeSourceId (order whose holds are consumed atomically). Scope checks: access matrix 'invoice-post' grant + per-entity COA activation.", session = SessionPayload(session) });
+        }
+
+        var entity = context.Request.Form["entity"].ToString();
+        if (entity.Length == 0)
+        {
+            entity = context.Request.Query["cmp"].ToString();
+        }
+
+        var bu = context.Request.Form["bu"].ToString();
+        if (bu.Length == 0)
+        {
+            bu = context.Request.Query["bu"].ToString();
+        }
+
+        long.TryParse(context.Request.Form["invoiceId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var invoiceId);
+        var number = context.Request.Form["number"].ToString();
+        decimal.TryParse(context.Request.Form["subtotal"].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var subtotal);
+        decimal.TryParse(context.Request.Form["vat"].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var vat);
+        decimal.TryParse(context.Request.Form["total"].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var total);
+        long.TryParse(context.Request.Form["consumeSourceId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var consumeSourceId);
+        var consumeSourceType = context.Request.Form["consumeSourceType"].ToString();
+        var legislationRef = context.Request.Form["legislationRef"].ToString();
+        var currency = context.Request.Form["currency"].ToString();
+        decimal.TryParse(context.Request.Form["rate"].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var rate);
+        if (rate <= 0m)
+        {
+            rate = 1m;
+        }
+
+        var dateText = context.Request.Form["date"].ToString();
+        long issueDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        if (dateText.Length > 0)
+        {
+            if (!long.TryParse(dateText, NumberStyles.Integer, CultureInfo.InvariantCulture, out issueDate))
+            {
+                if (DateTimeOffset.TryParse(dateText, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var parsed))
+                {
+                    issueDate = parsed.ToUnixTimeSeconds();
+                }
+                else
+                {
+                    return Results.Ok(new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "invalid_date", message = "date must be YYYY-MM-DD or unix seconds.", session = SessionPayload(session) });
+                }
+            }
+        }
+
+        var res = await posts.PostAsync(
+            entity,
+            bu.Length > 0 ? bu : null,
+            new ErpGlSalesInvoicePosting(invoiceId, number, subtotal, vat, total, issueDate, legislationRef)
+            {
+                CurrencyCode = currency,
+                ExchangeRate = rate,
+            },
+            consumeSourceType,
+            consumeSourceId,
+            session.Email ?? string.Empty,
+            session.UserId,
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/organization-admin-app?tab=org_entities",
+            res.Ok,
+            res.Message,
+            new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, journalId = res.JournalId, session = SessionPayload(session) });
+    }
     /// <summary>Auto-parts workspace demo seed: inserts DEMO-tagged rows only.</summary>
     private static async Task<IResult> HandleAutoPartsDemoSeedAsync(
         HttpContext context,
