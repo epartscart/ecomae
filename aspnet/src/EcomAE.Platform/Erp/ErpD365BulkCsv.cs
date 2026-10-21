@@ -165,7 +165,7 @@ public static class ErpD365BulkCsv
         "stock" => "SELECT s.`warehouse_id` AS warehouse, i.`sku`, s.`qty_on_hand`, s.`avg_unit_cost`, s.`batch_no`, s.`variant_label` FROM `epc_erp_inv_stock` s JOIN `epc_erp_inv_items` i ON i.`id` = s.`item_id` ORDER BY i.`sku`",
         "customers" => "SELECT * FROM `epc_erp_contacts` WHERE `party_type` = 'customer' OR `party_type` IS NULL ORDER BY `id`",
         "vendors" => "SELECT * FROM `epc_erp_suppliers` ORDER BY `id`",
-        "coa" => "SELECT * FROM `epc_erp_coa_accounts` ORDER BY `code`",
+        "coa" => "SELECT `code` AS account_code, `name` AS account_name, `account_type`, `active` FROM `epc_erp_coa_accounts` ORDER BY `code`",
         "sales_orders" => "SELECT o.`so_no`, o.`status`, l.`item_code` AS item_number, l.`description` AS item_name, l.`qty`, l.`unit_price_ex_vat` AS unit_price FROM `epc_erp_sales_orders` o LEFT JOIN `epc_erp_sales_order_lines` l ON l.`sales_order_id` = o.`id` ORDER BY o.`so_no`, l.`id`",
         "purchase_orders" => "SELECT o.`po_no`, o.`status`, l.`item_code` AS item_number, l.`description` AS item_name, l.`qty`, l.`unit_cost_ex_vat` AS unit_price FROM `epc_erp_purchase_orders` o LEFT JOIN `epc_erp_po_lines` l ON l.`po_id` = o.`id` ORDER BY o.`po_no`, l.`id`",
         "quotations" => "SELECT q.`quote_no`, q.`status`, q.`customer_name`, q.`currency_code`, l.`item_number`, l.`product_name` AS item_name, l.`qty`, l.`unit_price` FROM `epc_erp_sales_quotations` q LEFT JOIN `epc_erp_sales_quotation_lines` l ON l.`quotation_id` = q.`id` ORDER BY q.`quote_no`, l.`line_no`",
@@ -434,8 +434,8 @@ public static class ErpD365BulkCsv
             else
             {
                 await ErpDb.ExecuteAsync(c, null,
-                    "INSERT INTO `" + lineTable + "` (`" + orderFk + "`, `item_code`, `description`, `qty`, `" + (lineTable == "epc_erp_po_lines" ? "unit_cost_ex_vat" : "unit_price_ex_vat") + "`) VALUES (?,?,?,?,?)",
-                    ct, oid, item, itemName, qty, price).ConfigureAwait(false);
+                    "INSERT INTO `" + lineTable + "` (`" + orderFk + "`, `item_code`, `description`, `qty`, `" + (lineTable == "epc_erp_po_lines" ? "unit_cost_ex_vat" : "unit_price_ex_vat") + "`, `line_ex_vat`) VALUES (?,?,?,?,?,?)",
+                    ct, oid, item, itemName, qty, price, qty * price).ConfigureAwait(false);
             }
         }
         return (upd == 0 ? 1 : 0, 0);

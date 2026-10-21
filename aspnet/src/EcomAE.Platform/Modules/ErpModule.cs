@@ -27790,6 +27790,10 @@ public sealed class ErpModule : ISurfaceModule
         var entityCode = header.CompanyId > 0
             ? (await ErpDb.StringAsync(conn, null, ErpDb.Positional("SELECT `code` FROM `epc_erp_pm_legal_entities` WHERE `id`=? LIMIT 1"), cancellationToken, header.CompanyId).ConfigureAwait(false)) ?? ""
             : "";
+        if (header.CompanyId > 0 && entityCode.Length == 0)
+        {
+            return Results.Ok(new { ok = false, writes = 0, validation_code = "unknown_entity", message = "Entity id " + header.CompanyId + " does not resolve to a legal entity — posting refused.", session = SessionPayload(session) });
+        }
         var buCode = header.BusinessUnitId > 0
             ? (await ErpDb.StringAsync(conn, null, ErpDb.Positional("SELECT `code` FROM `epc_erp_org_business_units` WHERE `id`=? LIMIT 1"), cancellationToken, header.BusinessUnitId).ConfigureAwait(false)) ?? ""
             : "";
@@ -27822,10 +27826,27 @@ public sealed class ErpModule : ISurfaceModule
             if (le > 0)
             {
                 var leCode = (await ErpDb.StringAsync(conn, null, ErpDb.Positional("SELECT `code` FROM `epc_erp_pm_legal_entities` WHERE `id`=? LIMIT 1"), cancellationToken, le).ConfigureAwait(false)) ?? "";
-                var lineGranted = await foundation.AccessAllowedAsync(session.Email ?? string.Empty, leCode.Length > 0 ? leCode : null, null, "journal-post", cancellationToken).ConfigureAwait(false);
+                if (leCode.Length == 0)
+                {
+                    return Results.Ok(new { ok = false, writes = 0, validation_code = "unknown_entity", message = "Line entity id " + le + " does not resolve to a legal entity.", session = SessionPayload(session) });
+                }
+                var lineGranted = await foundation.AccessAllowedAsync(session.Email ?? string.Empty, leCode, null, "journal-post", cancellationToken).ConfigureAwait(false);
                 if (!lineGranted)
                 {
                     return Results.Ok(new { ok = false, writes = 0, validation_code = "grant_denied", message = "No 'journal-post' grant for line entity '" + leCode + "'.", session = SessionPayload(session) });
+                }
+            }
+            if (bu > 0)
+            {
+                var lineBuCode = (await ErpDb.StringAsync(conn, null, ErpDb.Positional("SELECT `code` FROM `epc_erp_org_business_units` WHERE `id`=? LIMIT 1"), cancellationToken, bu).ConfigureAwait(false)) ?? "";
+                if (lineBuCode.Length == 0)
+                {
+                    return Results.Ok(new { ok = false, writes = 0, validation_code = "unknown_bu", message = "Line business-unit id " + bu + " does not resolve.", session = SessionPayload(session) });
+                }
+                var buGranted = await foundation.AccessAllowedAsync(session.Email ?? string.Empty, entityCode.Length > 0 ? entityCode : null, lineBuCode, "journal-post", cancellationToken).ConfigureAwait(false);
+                if (!buGranted)
+                {
+                    return Results.Ok(new { ok = false, writes = 0, validation_code = "grant_denied", message = "No 'journal-post' grant for line BU '" + lineBuCode + "'.", session = SessionPayload(session) });
                 }
             }
             var coaId = await ErpDb.LongAsync(conn, null, "SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = ? LIMIT 1", cancellationToken, code).ConfigureAwait(false);

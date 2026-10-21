@@ -739,7 +739,7 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
     {
         var rows = new List<Dictionary<string, string?>>();
         await using var command = connection.CreateCommand();
-        command.CommandText = sql;
+        command.CommandText = ErpDb.Positional(sql);
         ErpDb.AddParameters(command, args);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
