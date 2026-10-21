@@ -232,17 +232,36 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             }
         }
 
+        var nciMemos = new List<ErpFinancialStatementLine>();
         if (query.Level == ErpFinancialStatementLevel.Consolidation && headOffice is not { Applied: true } && !rateMissing)
         {
             var ledger = await LoadIcLedgerEliminationsAsync(connection, cancellationToken).ConfigureAwait(false);
             var useLedger = Math.Abs(ledger.Income) + Math.Abs(ledger.Expense) + Math.Abs(ledger.Asset) + Math.Abs(ledger.Liability) >= 0.005m;
-            var (elimIncome, elimExpense, elimAsset, elimLiability) = useLedger
+            var (elimIncome, elimExpense, elimAsset, elimLiability, _) = useLedger
                 ? ledger
                 : await LoadEliminationsAsync(connection, cancellationToken).ConfigureAwait(false);
             AddElim(built, "ELIM-REV", "Intercompany revenue eliminated", "revenue", -elimIncome, ref income);
             AddElim(built, "ELIM-EXP", "Intercompany expense eliminated", "expense", -elimExpense, ref expense);
             AddElim(built, "ELIM-ASSET", "Intercompany asset eliminated", "asset", -elimAsset, ref assets);
             AddElim(built, "ELIM-LIAB", "Intercompany liability eliminated", "liability", -elimLiability, ref liabilities);
+            if (Math.Abs(ledger.UnrealizedProfit) >= 0.005m)
+            {
+                AddElim(built, "ELIM-UP-EXP", "Unrealized intercompany profit (cost of sales)", "expense", ledger.UnrealizedProfit, ref expense);
+                AddElim(built, "ELIM-UP-INV", "Unrealized intercompany profit (inventory)", "asset", -ledger.UnrealizedProfit, ref assets);
+            }
+
+            foreach (var nci in await LoadNciAsync(connection, query, cancellationToken).ConfigureAwait(false))
+            {
+                if (query.Kind == ErpFinancialStatementKind.BalanceSheet)
+                {
+                    // Memo within equity — the consolidated total already carries the member's full equity.
+                    built.Add(("NCI-" + nci.Code, "of which non-controlling interest — " + nci.Name, "equity", nci.EquityShare));
+                }
+                else
+                {
+                    nciMemos.Add(new("NCI-" + nci.Code, "of which attributable to non-controlling interest — " + nci.Name, "total", nci.ProfitShare, Round2(nci.ProfitShare * rate)));
+                }
+            }
         }
 
         if (built.Count == 0 && query.Level == ErpFinancialStatementLevel.Consolidation && headOffice is not { Applied: true } && !rateMissing)
@@ -284,6 +303,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         if (query.Kind == ErpFinancialStatementKind.ProfitAndLoss)
         {
             lines.Add(new("", "Net profit / (loss)", "total", profit, Round2(profit * rate)));
+            lines.AddRange(nciMemos);
         }
         else
         {
@@ -404,7 +424,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
     /// members exist but none is 'full' — consolidated views then exclude every
     /// entity-stamped journal rather than silently re-including 'excluded' members.
     /// </summary>
-    private static async Task<List<long>?> FullMemberEntityIdsAsync(DbConnection connection, CancellationToken cancellationToken)
+    internal static async Task<List<long>?> FullMemberEntityIdsAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         var ids = new List<long>();
         var anyMembers = 0L;
@@ -542,24 +562,42 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         return rows;
     }
 
-    private static async Task<(decimal Income, decimal Expense, decimal Asset, decimal Liability)> LoadIcLedgerEliminationsAsync(
+    private static async Task<(decimal Income, decimal Expense, decimal Asset, decimal Liability, decimal UnrealizedProfit)> LoadIcLedgerEliminationsAsync(
         DbConnection connection,
         CancellationToken cancellationToken)
     {
         try
         {
             var purposes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var pctRules = new List<(string DebitPurpose, decimal Rate)>();
             await using (var rules = connection.CreateCommand())
             {
                 rules.CommandText = """
                     SELECT IFNULL(`debit_purpose`, '') AS debit_purpose,
-                           IFNULL(`credit_purpose`, '') AS credit_purpose
+                           IFNULL(`credit_purpose`, '') AS credit_purpose,
+                           IFNULL(`method`, 'full') AS method,
+                           IFNULL(`rate_pct`, 0) AS rate_pct
                     FROM `epc_erp_ic_elim_rules`
-                    WHERE `active` = 1 AND `method` = 'full'
+                    WHERE `active` = 1
                     """;
                 await using var reader = await rules.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
+                    var method = reader.GetString(2).Trim().ToLowerInvariant();
+                    var rate = reader.GetDecimal(3);
+                    if (method == "pct" && rate > 0)
+                    {
+                        var basePurpose = reader.GetString(0).Trim().ToLowerInvariant();
+                        pctRules.Add((basePurpose, rate));
+                        AddPurpose(purposes, basePurpose);
+                        continue;
+                    }
+
+                    if (method != "full")
+                    {
+                        continue;
+                    }
+
                     AddPurpose(purposes, reader.GetString(0));
                     AddPurpose(purposes, reader.GetString(1));
                 }
@@ -567,7 +605,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
 
             if (purposes.Count == 0)
             {
-                return (0, 0, 0, 0);
+                return (0, 0, 0, 0, 0);
             }
 
             var codesByPurpose = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
@@ -601,7 +639,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             var codes = codesByPurpose.SelectMany(pair => pair.Value).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             if (codes.Count == 0)
             {
-                return (0, 0, 0, 0);
+                return (0, 0, 0, 0, 0);
             }
 
             var balances = new Dictionary<string, (string Side, decimal Opening, decimal Debit, decimal Credit)>(StringComparer.OrdinalIgnoreCase);
@@ -647,7 +685,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
                 }
             }
 
-            decimal income = 0, expense = 0, asset = 0, liability = 0;
+            decimal income = 0, expense = 0, asset = 0, liability = 0, unrealized = 0;
             foreach (var purpose in purposes)
             {
                 if (!codesByPurpose.TryGetValue(purpose, out var set))
@@ -668,6 +706,16 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
                         : row.Opening + row.Debit - row.Credit;
                 }
 
+                foreach (var (basePurpose, rate) in pctRules)
+                {
+                    if (basePurpose.Equals(purpose, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // method='pct' rules eliminate rate_pct % of the mapped
+                        // intercompany balance — unrealized profit in inventory.
+                        unrealized += signed * rate / 100m;
+                    }
+                }
+
                 switch (purpose)
                 {
                     case "sales":
@@ -685,11 +733,11 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
                 }
             }
 
-            return (income, expense, asset, liability);
+            return (income, expense, asset, liability, unrealized);
         }
         catch (DbException)
         {
-            return (0, 0, 0, 0);
+            return (0, 0, 0, 0, 0);
         }
     }
 
@@ -720,7 +768,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         }
     }
 
-    private static async Task<(decimal Income, decimal Expense, decimal Asset, decimal Liability)> LoadEliminationsAsync(
+    private static async Task<(decimal Income, decimal Expense, decimal Asset, decimal Liability, decimal UnrealizedProfit)> LoadEliminationsAsync(
         DbConnection connection,
         CancellationToken cancellationToken)
     {
@@ -749,11 +797,106 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
                 }
             }
 
-            return (income, expense, asset, liability);
+            return (income, expense, asset, liability, 0m);
         }
         catch (DbException)
         {
-            return (0, 0, 0, 0);
+            return (0, 0, 0, 0, 0);
+        }
+    }
+
+    private sealed record NciSlice(string Code, string Name, decimal EquityShare, decimal ProfitShare);
+
+    /// <summary>
+    /// Non-controlling interest for 'full' members held at &lt; 100%: the outside
+    /// share of each member's net assets (equity + period result) and profit.
+    /// Per-entity books come from posted movements — company-level opening
+    /// balances are not entity-stamped.
+    /// </summary>
+    private static async Task<IReadOnlyList<NciSlice>> LoadNciAsync(
+        DbConnection connection,
+        ErpFinancialStatementQuery query,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var members = new List<(long EntityId, string Code, string Name, decimal Pct)>();
+            await using (var memberCommand = connection.CreateCommand())
+            {
+                memberCommand.CommandText = """
+                    SELECT e.`id`, m.`site_key`, IFNULL(m.`entity_name`, ''), m.`ownership_pct`
+                    FROM `epc_entity_members` m
+                    JOIN `epc_erp_pm_legal_entities` e ON e.`code` = m.`site_key` AND e.`active` = 1
+                    WHERE m.`consolidation` = 'full' AND m.`ownership_pct` < 100
+                    """;
+                await using var memberReader = await memberCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await memberReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    members.Add((memberReader.GetInt64(0), memberReader.GetString(1), memberReader.GetString(2), memberReader.GetDecimal(3)));
+                }
+            }
+
+            if (members.Count == 0)
+            {
+                return [];
+            }
+
+            var ids = string.Join(',', members.Select(m => m.EntityId.ToString(CultureInfo.InvariantCulture)));
+            var posted = "(@fromUnix = 0 OR " + JournalUnix + " >= @fromUnix)"
+                + " AND (@toUnix = 0 OR " + JournalUnix + " <= @toUnix)";
+            await using var command = connection.CreateCommand();
+            command.CommandText =
+                "SELECT COALESCE(NULLIF(l.`legal_entity_id`, 0), NULLIF(j.`company_id`, 0), 0) AS ent,"
+                + " a.`account_type`, a.`normal_side`,"
+                + " IFNULL(SUM(CASE WHEN " + posted + " THEN l.`debit` ELSE 0 END), 0) AS debits,"
+                + " IFNULL(SUM(CASE WHEN " + posted + " THEN l.`credit` ELSE 0 END), 0) AS credits"
+                + " FROM `epc_erp_coa_accounts` a"
+                + " JOIN `epc_erp_gl_lines` l ON l.`coa_id` = a.`id`"
+                + " JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1"
+                + " WHERE a.`active` = 1"
+                + " AND COALESCE(NULLIF(l.`legal_entity_id`, 0), NULLIF(j.`company_id`, 0), 0) IN (" + ids + ")"
+                + " GROUP BY ent, a.`account_type`, a.`normal_side`";
+            Add(command, "@fromUnix", query.Kind == ErpFinancialStatementKind.ProfitAndLoss ? query.FromUnix : 0L);
+            Add(command, "@toUnix", query.ToUnix);
+
+            var totals = new Dictionary<long, (decimal Equity, decimal Profit)>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var ent = reader.GetInt64(0);
+                var type = ErpAccountClass.Normalize(reader.GetString(1), "");
+                var side = reader.GetString(2);
+                var signed = string.Equals(side, "credit", StringComparison.OrdinalIgnoreCase)
+                    ? reader.GetDecimal(4) - reader.GetDecimal(3)
+                    : reader.GetDecimal(3) - reader.GetDecimal(4);
+                totals.TryGetValue(ent, out var acc);
+                var profitDelta = type is "revenue" or "income" ? signed : type == "expense" ? -signed : 0m;
+                var equityDelta = type is "liability" or "equity" ? signed : 0m;
+                totals[ent] = (acc.Equity + equityDelta + profitDelta, acc.Profit + profitDelta);
+            }
+
+            var slices = new List<NciSlice>(members.Count);
+            foreach (var (entityId, code, name, pct) in members)
+            {
+                totals.TryGetValue(entityId, out var acc);
+                // Equity base = equity + result (net assets under balanced books);
+                // expense rows are debit-normal so signed equity already nets them.
+                var outside = (100m - pct) / 100m;
+                var equity = Round2(acc.Equity * outside);
+                var profitShare = Round2(acc.Profit * outside);
+                if (Math.Abs(equity) < 0.005m && Math.Abs(profitShare) < 0.005m)
+                {
+                    continue;
+                }
+
+                slices.Add(new NciSlice(code, name, equity, profitShare));
+            }
+
+            return slices;
+        }
+        catch (DbException)
+        {
+            return [];
         }
     }
 
@@ -806,6 +949,8 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
                 AddSlice(slices, "ELIM-EXP", "Intercompany expense eliminated", "expense", currency, -elim.Expense);
                 AddSlice(slices, "ELIM-ASSET", "Intercompany asset eliminated", "asset", currency, -elim.Asset);
                 AddSlice(slices, "ELIM-LIAB", "Intercompany liability eliminated", "liability", currency, -elim.Liability);
+                AddSlice(slices, "ELIM-UP-EXP", "Unrealized intercompany profit (cost of sales)", "expense", currency, ledger.UnrealizedProfit);
+                AddSlice(slices, "ELIM-UP-INV", "Unrealized intercompany profit (inventory)", "asset", currency, -ledger.UnrealizedProfit);
             }
 
             var rates = await LoadRatesAsync(connection, cancellationToken).ConfigureAwait(false);

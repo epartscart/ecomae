@@ -44,7 +44,9 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
         var debit = lines.Sum(l => l.Debit);
         var credit = lines.Sum(l => l.Credit);
         var closing = lines.Sum(l => l.Closing);
-        var message = ErpTrialBalanceParameters.UsesUnitLedger(parameters.DimensionSet, parameters.BusinessUnitId)
+        var message = parameters.Consolidated
+            ? "Consolidated trial balance — only 'full' consolidation group members contribute. Unscoped journals count as group-level. "
+            : ErpTrialBalanceParameters.UsesUnitLedger(parameters.DimensionSet, parameters.BusinessUnitId)
             ? "Business unit ledger uses posted journals only. Company opening balances stay on the company trial balance. A journal across units keeps each unit in balance with the intercompany receivable and payable."
             : string.Empty;
         const string profitNote = "Income, expenses, and gross profit use this date range. The year-end close stays on retained earnings.";
@@ -72,6 +74,9 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
         ErpTrialBalanceParameters parameters,
         CancellationToken cancellationToken)
     {
+        var fullMembers = parameters.Consolidated
+            ? await ErpFinancialStatementReadService.FullMemberEntityIdsAsync(connection, cancellationToken).ConfigureAwait(false)
+            : null;
         await using var command = connection.CreateCommand();
         command.CommandText = """
             SELECT IFNULL(a.`code`, '') AS code,
@@ -125,6 +130,11 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
                 {
                     continue;
                 }
+            }
+            else if (parameters.Consolidated && fullMembers is not null
+                     && !InConsolidatedPerimeter(journalCompany, lineEntity, fullMembers))
+            {
+                continue;
             }
             else if (!ErpAccountClass.InCompany(journalCompany, lineEntity, parameters.CompanyId))
             {
@@ -335,6 +345,13 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
         var ordinal = reader.GetOrdinal(name);
         return reader.IsDBNull(ordinal) ? "" : Convert.ToString(reader.GetValue(ordinal), CultureInfo.InvariantCulture) ?? "";
     }
+
+    /// <summary>Same perimeter the consolidated statement uses: unscoped rows count,
+    /// entity-stamped rows only when the entity is a 'full' group member.</summary>
+    private static bool InConsolidatedPerimeter(long journalCompany, long lineEntity, IReadOnlyCollection<long> fullMembers)
+        => fullMembers.Count == 0
+            ? journalCompany == 0 && lineEntity == 0
+            : (journalCompany == 0 && lineEntity == 0) || fullMembers.Contains(journalCompany) || fullMembers.Contains(lineEntity);
 
     private static long ReadLong(DbDataReader reader, string name)
     {
