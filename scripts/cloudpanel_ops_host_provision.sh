@@ -95,7 +95,7 @@ server {
     proxy_set_header Cookie \$http_cookie;
     proxy_set_header X-EcomAE-Route-Cutover $KEY-$TIER-host;
   }
-  location ~ ^/(erp|css|assets|_framework|_blazor|_content)(/|$) {
+  location ~ ^/(erp|css|assets|content|platform-assets|api|_framework|_blazor|_content)(/|$)|^/epc-static\.php$ {
     proxy_pass http://127.0.0.1:5100;
     proxy_http_version 1.1;
     proxy_set_header Upgrade \$http_upgrade;
