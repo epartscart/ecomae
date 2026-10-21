@@ -246,10 +246,11 @@ public static class ErpHostContext
     /// <summary>
     /// Entity + BU switch link carrying BOTH the numeric id and the readable
     /// code: <c>company=&lt;id&gt;&amp;cmp=&lt;code&gt;</c> (and
-    /// <c>bu=&lt;id&gt;&amp;buc=&lt;code&gt;</c> for a BU). Id consumers
-    /// (ActiveCompanyIdFromQuery, trial-balance BU filters) keep resolving
-    /// numerics while the URL still shows the entity code. Other query
-    /// params are preserved; stale scope keys are dropped.
+    /// <c>bu=&lt;code&gt;</c> for a BU — the code resolves through
+    /// ActiveBusinessUnitFromQuery's numeric-then-code path and is what
+    /// code-based consumers read; falls back to the numeric id only when
+    /// no code was given). Other query params are preserved; stale scope
+    /// keys are dropped.
     /// </summary>
     public static string SwitchEntityHref(HttpRequest request, long entityId, string entityCode, int? buId = null, string? buCode = null)
     {
@@ -278,6 +279,8 @@ public static class ErpHostContext
         {
             query.Add($"cmp={Uri.EscapeDataString(entityCode)}");
         }
+        // bu=<id> keeps numeric report filters working; buc=<code> feeds
+        // code consumers via BuCodeFromQuery (buc → non-numeric bu).
         if (buId is > 0)
         {
             query.Add($"bu={buId.Value}");
@@ -287,6 +290,22 @@ public static class ErpHostContext
             query.Add($"buc={Uri.EscapeDataString(buCode)}");
         }
         return path + "?" + string.Join('&', query);
+    }
+
+    /// <summary>
+    /// BU code for code-based consumers: prefers the explicit <c>buc</c>
+    /// code param, then <c>bu</c> when it is non-numeric (a numeric bu is
+    /// an id for ActiveBusinessUnitFromQuery, not a code).
+    /// </summary>
+    public static string BuCodeFromQuery(HttpRequest request)
+    {
+        var buc = request.Query["buc"].ToString().Trim();
+        if (buc.Length > 0)
+        {
+            return buc;
+        }
+        var bu = request.Query["bu"].ToString().Trim();
+        return bu.Length > 0 && !long.TryParse(bu, out _) ? bu : string.Empty;
     }
 
     private static string BrandLabelFor(string normalized, bool isShowcase, bool isProduct)

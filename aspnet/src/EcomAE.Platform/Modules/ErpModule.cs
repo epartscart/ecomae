@@ -26795,7 +26795,7 @@ public sealed class ErpModule : ISurfaceModule
         var bu = AmlText(fields, "bu");
         if (bu.Length == 0)
         {
-            bu = context.Request.Query["bu"].ToString();
+            bu = ErpHostContext.BuCodeFromQuery(context.Request);
         }
 
         var dateText = AmlText(fields, "date");
@@ -26890,7 +26890,7 @@ public sealed class ErpModule : ISurfaceModule
         var bu = AmlText(fields, "bu");
         if (bu.Length == 0)
         {
-            bu = context.Request.Query["bu"].ToString();
+            bu = ErpHostContext.BuCodeFromQuery(context.Request);
         }
 
         var op = AmlText(fields, "op").Trim().ToLowerInvariant();
@@ -26957,7 +26957,7 @@ public sealed class ErpModule : ISurfaceModule
         var bu = AmlText(fields, "bu");
         if (bu.Length == 0)
         {
-            bu = context.Request.Query["bu"].ToString();
+            bu = ErpHostContext.BuCodeFromQuery(context.Request);
         }
 
         var invoiceId = AmlLong(fields, "invoiceId");
@@ -27106,7 +27106,7 @@ public sealed class ErpModule : ISurfaceModule
         var bu = AmlText(fields, "bu");
         if (bu.Length == 0)
         {
-            bu = context.Request.Query["bu"].ToString();
+            bu = ErpHostContext.BuCodeFromQuery(context.Request);
         }
 
         var res = await posts.IssueAsync(
@@ -27150,7 +27150,7 @@ public sealed class ErpModule : ISurfaceModule
         var bu = AmlText(fields, "bu");
         if (bu.Length == 0)
         {
-            bu = context.Request.Query["bu"].ToString();
+            bu = ErpHostContext.BuCodeFromQuery(context.Request);
         }
 
         var res = await receives.ReceiveAsync(
@@ -27181,7 +27181,7 @@ public sealed class ErpModule : ISurfaceModule
         long.TryParse(context.Request.Query["from"], out var fromTs);
         long.TryParse(context.Request.Query["to"], out var toTs);
         var res = await summaries.LoadAsync(
-            context.Request.Query["cmp"].ToString(), context.Request.Query["bu"].ToString(), fromTs, toTs, session.Email ?? string.Empty, cancellationToken);
+            context.Request.Query["cmp"].ToString(), ErpHostContext.BuCodeFromQuery(context.Request), fromTs, toTs, session.Email ?? string.Empty, cancellationToken);
         return Results.Ok(new { ok = res.Ok, message = res.Message, entity = res.Entity, bu = res.Bu, from = res.FromTs, to = res.ToTs, outputVat = res.OutputVat, inputVat = res.InputVat, netPayable = res.NetPayable, journals = res.JournalCount });
     }
 
@@ -27246,7 +27246,7 @@ public sealed class ErpModule : ISurfaceModule
         var bu = AmlText(fields, "bu");
         if (bu.Length == 0)
         {
-            bu = context.Request.Query["bu"].ToString();
+            bu = ErpHostContext.BuCodeFromQuery(context.Request);
         }
 
         var res = await msp.SetAsync(
@@ -27270,7 +27270,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var res = await msp.CheckAsync(
-            context.Request.Query["cmp"].ToString(), context.Request.Query["bu"].ToString(),
+            context.Request.Query["cmp"].ToString(), ErpHostContext.BuCodeFromQuery(context.Request),
             session.Email ?? string.Empty, cancellationToken);
         return Results.Ok(new { ok = res.Ok, message = res.Message, entity = res.Entity, bu = res.Bu, version = res.Version, unit = res.Unit, offer = res.Offer, actual = res.Actual, msp = res.Msp, history = res.History });
     }
@@ -27297,7 +27297,7 @@ public sealed class ErpModule : ISurfaceModule
         var entity = AmlText(fields, "entity");
         if (entity.Length == 0) entity = context.Request.Query["cmp"].ToString();
         var bu = AmlText(fields, "bu");
-        if (bu.Length == 0) bu = context.Request.Query["bu"].ToString();
+        if (bu.Length == 0) bu = ErpHostContext.BuCodeFromQuery(context.Request);
         var receipt = AmlText(fields, "receiptRef", "ref", "receipt");
         if (receipt.Length == 0) receipt = context.Request.Query["ref"].ToString();
         var linesJson = AmlText(fields, "lines");
@@ -27325,7 +27325,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var res = await landedCosts.ViewAsync(
-            context.Request.Query["cmp"].ToString(), context.Request.Query["bu"].ToString(),
+            context.Request.Query["cmp"].ToString(), ErpHostContext.BuCodeFromQuery(context.Request),
             context.Request.Query["ref"].ToString(),
             session.Email ?? string.Empty, cancellationToken);
         return Results.Ok(new { ok = res.Ok, message = res.Message, entity = res.Entity, bu = res.Bu, receipt = res.ReceiptRef, method = res.Method, totalCharges = res.TotalCharges, lines = res.Lines });
