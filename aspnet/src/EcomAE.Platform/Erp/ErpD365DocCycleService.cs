@@ -411,7 +411,7 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
     public Task<ErpSimpleWriteResult> SaveVendorFieldsAsync(DbConnection c, long id, IReadOnlyDictionary<string, string?> f, int a, CancellationToken t = default)
         => SaveFieldsAsync(c, "epc_erp_suppliers", "id", id, VendorColumns, f, a, "Vendor details saved.", t);
 
-    private async Task<ErpSimpleWriteResult> SaveFieldsAsync(
+    internal async Task<ErpSimpleWriteResult> SaveFieldsAsync(
         DbConnection connection,
         string table,
         string idColumn,

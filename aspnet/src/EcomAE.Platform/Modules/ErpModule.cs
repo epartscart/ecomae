@@ -1,3 +1,4 @@
+using System.Text;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -401,6 +402,13 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpShamMspSet, HandleShamMspSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamMspApprove, HandleShamMspApproveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamMspCheck, HandleShamMspCheckAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpD365DocProfileSet, HandleD365DocProfileSetAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365FieldsSave, HandleD365FieldsSaveAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpD365InvoicePdf, HandleD365InvoicePdfAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpD365DeliveryPdf, HandleD365DeliveryPdfAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpD365CsvTemplate, HandleD365CsvTemplateAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpD365CsvImport, HandleD365CsvImportAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpD365CsvExport, HandleD365CsvExportAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamTaxRuleSet, HandleShamTaxRuleSetAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamTaxRules, HandleShamTaxRulesAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamLandedCost, HandleShamLandedCostAsync).DisableAntiforgery();
@@ -22151,7 +22159,7 @@ public sealed class ErpModule : ISurfaceModule
 
         var csv = reports.Csv(reportKey, cost, duty, reexport, expiry, search);
         return Results.File(
-            System.Text.Encoding.UTF8.GetBytes(csv),
+            Encoding.UTF8.GetBytes(csv),
             "text/csv",
             "cs_report_" + reportKey + ".csv");
     }
@@ -25634,7 +25642,7 @@ public sealed class ErpModule : ISurfaceModule
             .Append(result.ClosingTotal.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
             .AppendLine();
         return Results.File(
-            System.Text.Encoding.UTF8.GetBytes(csv.ToString()),
+            Encoding.UTF8.GetBytes(csv.ToString()),
             "text/csv",
             "trial-balance-" + parameters.FromDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture)
                 + "-" + parameters.ToDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + ".csv");
@@ -27314,6 +27322,178 @@ public sealed class ErpModule : ISurfaceModule
         return Results.Ok(new { ok = res.Ok, message = res.Message, entity = res.Entity, bu = res.Bu, item = res.Item, version = res.Version, unit = res.Unit, offer = res.Offer, actual = res.Actual, msp = res.Msp, pending = res.Pending, history = res.History });
     }
 
+    /// <summary>D365 doc-cycle: upsert a legal entity's document header/footer profile.</summary>
+    private static async Task<IResult> HandleD365DocProfileSetAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365DocCycleService d365,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the document profile.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save the legal entity document profile. Fields: entity_id|entity|cmp plus legal_name, trade_name, trn, address_line1/2, city, emirate, country_code, phone, fax, email, bank_name, bank_iban, legal_footer, doc_header_note, doc_footer_note, logo_url.", session = SessionPayload(session) });
+        }
+
+        var entityId = AmlLong(fields, "entity_id");
+        if (entityId == 0 && long.TryParse(AmlText(fields, "entity"), out var parsedEntity)) entityId = parsedEntity;
+        var profile = fields.ToDictionary(kv => kv.Key, kv => (string?)kv.Value, StringComparer.Ordinal);
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var res = await d365.SaveEntityDocProfileAsync(conn, entityId, profile, session.UserId, cancellationToken).ConfigureAwait(false);
+        return LiveWriteFormBinder.Complete(context, "/erp/documents-app", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 doc-cycle: save D365 fields on an existing so|po|dn|customer|vendor|product row.</summary>
+    private static async Task<IResult> HandleD365FieldsSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365DocCycleService d365,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/sales-orders", "Admin ERP capability required to save D365 fields.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save D365 fields. Fields: kind=so|po|dn|customer|vendor|product, id, then any D365 field names for that kind (unknown fields are ignored).", session = SessionPayload(session) });
+        }
+
+        var kind = AmlText(fields, "kind");
+        var id = AmlLong(fields, "id");
+        var data = fields.Where(kv => kv.Key is not ("kind" or "id" or "confirmWrites" or "confirm_writes")).ToDictionary(kv => kv.Key, kv => (string?)kv.Value, StringComparer.Ordinal);
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        ErpSimpleWriteResult res = kind switch
+        {
+            "so" => await d365.SaveSalesOrderHeaderAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "po" => await d365.SavePurchaseOrderHeaderAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "dn" => await d365.SaveDeliveryNoteFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "customer" => await d365.SaveCustomerFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "vendor" => await d365.SaveVendorFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "product" => await d365.SaveProductFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            _ => ErpSimpleWriteResult.Fail("invalid", "kind must be so|po|dn|customer|vendor|product."),
+        };
+        return LiveWriteFormBinder.Complete(context, "/erp/sales-orders", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 doc-cycle: sales-invoice PDF (wholesale layout + entity chrome). ?id=invoice id.</summary>
+    private static async Task<IResult> HandleD365InvoicePdfAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365DocCycleService d365,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Redirect("/erp/login?returnUrl=/erp/invoices");
+        }
+
+        if (!long.TryParse(context.Request.Query["id"], out var id) || id <= 0)
+        {
+            return Results.BadRequest("Pass ?id=<invoice id>.");
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var model = await ErpD365DocPdf.LoadInvoiceModelAsync(conn, d365, id, cancellationToken).ConfigureAwait(false);
+        if (model is null) return Results.NotFound("Invoice not found.");
+        var pdf = ErpD365DocPdf.InvoicePdf(model);
+        return Results.File(pdf, "application/pdf", "invoice-" + model.InvoiceNumber + ".pdf");
+    }
+
+    /// <summary>D365 doc-cycle: delivery-note PDF. ?id=note id.</summary>
+    private static async Task<IResult> HandleD365DeliveryPdfAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365DocCycleService d365,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Redirect("/erp/login?returnUrl=/erp/delivery-notes");
+        }
+
+        if (!long.TryParse(context.Request.Query["id"], out var id) || id <= 0)
+        {
+            return Results.BadRequest("Pass ?id=<delivery note id>.");
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var model = await ErpD365DocPdf.LoadDeliveryModelAsync(conn, d365, id, cancellationToken).ConfigureAwait(false);
+        if (model is null) return Results.NotFound("Delivery note not found.");
+        var pdf = ErpD365DocPdf.DeliveryNotePdf(model);
+        return Results.File(pdf, "application/pdf", "delivery-note-" + model.DocumentNo + ".pdf");
+    }
+
+    /// <summary>D365 bulk: CSV template for an area. ?area=items|stock|customers|vendors|coa|sales_orders|purchase_orders|quotations|gl_opening</summary>
+    private static IResult HandleD365CsvTemplateAsync(HttpContext context)
+    {
+        var area = context.Request.Query["area"].ToString();
+        var csv = ErpD365BulkCsv.Template(area);
+        if (csv.Length == 0) return Results.BadRequest("Unknown area. Use: " + string.Join(", ", ErpD365BulkCsv.Areas.Keys));
+        return Results.File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv", area + "-template.csv");
+    }
+
+    /// <summary>D365 bulk: CSV upload → validate → commit (form fields 'area' + 'csv').</summary>
+    private static async Task<IResult> HandleD365CsvImportAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/settings", "Admin ERP capability required for CSV import.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var area = AmlText(fields, "area");
+        var csv = AmlText(fields, "csv");
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true with area=<" + string.Join("|", ErpD365BulkCsv.Areas.Keys) + "> and csv=<file text>. Natural-key upsert; header row must match the template columns (GET /erp/d365/csv-template?area=...).", session = SessionPayload(session) });
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var res = await ErpD365BulkCsv.ImportAsync(conn, area, csv, session.UserId, cancellationToken).ConfigureAwait(false);
+        return LiveWriteFormBinder.Complete(context, "/erp/settings", res.Ok, res.Message, new { ok = res.Ok, inserted = res.Inserted, updated = res.Updated, skipped = res.Skipped, errors = res.Errors, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 bulk: CSV export of an area's current rows. ?area=...</summary>
+    private static async Task<IResult> HandleD365CsvExportAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Redirect("/erp/login?returnUrl=/erp/settings");
+        }
+
+        var area = context.Request.Query["area"].ToString();
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var res = await ErpD365BulkCsv.ExportAsync(conn, area, cancellationToken).ConfigureAwait(false);
+        if (!res.Ok) return Results.BadRequest(res.Message);
+        return Results.File(System.Text.Encoding.UTF8.GetBytes(res.Csv), "text/csv", res.FileName);
+    }
+
     /// <summary>SHAM §8b: upsert an effective-dated tax rule (entity or tenant-wide scope).</summary>
     private static async Task<IResult> HandleShamTaxRuleSetAsync(
         HttpContext context,
@@ -28123,7 +28303,7 @@ public sealed class ErpModule : ISurfaceModule
 
         var csv = await book.CsvAsync(year, propertyId, unitId, cancellationToken);
         var name = "Landlord-" + (year <= 0 ? "all-years" : year.ToString(CultureInfo.InvariantCulture)) + ".csv";
-        return Results.File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv", name);
+        return Results.File(Encoding.UTF8.GetBytes(csv), "text/csv", name);
     }
 
     private static async Task<IResult> HandleLandlordDocumentAsync(

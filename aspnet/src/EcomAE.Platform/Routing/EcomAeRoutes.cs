@@ -3039,6 +3039,20 @@ public static class EcomAeRoutes
     public const string ErpShamTreasury = "/erp/sham/treasury";
     /// <summary>SHAM §13: list an entity's treasury instruments + open exposure.</summary>
     public const string ErpShamTreasuryView = "/erp/sham/treasury-view";
+    /// <summary>D365 doc-cycle: upsert a legal entity's document header/footer profile.</summary>
+    public const string ErpD365DocProfileSet = "/erp/d365/doc-profile-set";
+    /// <summary>D365 doc-cycle: sales-invoice PDF (wholesale layout, per-entity chrome).</summary>
+    public const string ErpD365InvoicePdf = "/erp/d365/invoice-pdf";
+    /// <summary>D365 doc-cycle: delivery-note PDF (per-entity chrome).</summary>
+    public const string ErpD365DeliveryPdf = "/erp/d365/delivery-pdf";
+    /// <summary>D365 doc-cycle: save D365 fields on an existing document (so|po|dn|customer|vendor|product).</summary>
+    public const string ErpD365FieldsSave = "/erp/d365/fields-save";
+    /// <summary>D365 bulk: CSV template download for an opening-data area.</summary>
+    public const string ErpD365CsvTemplate = "/erp/d365/csv-template";
+    /// <summary>D365 bulk: CSV upload → validate → commit for an opening-data area.</summary>
+    public const string ErpD365CsvImport = "/erp/d365/csv-import";
+    /// <summary>D365 bulk: CSV export of a grid/report area.</summary>
+    public const string ErpD365CsvExport = "/erp/d365/csv-export";
     /// <summary>SHAM §14: per-module data-flow coverage matrix (live rows per module table).</summary>
     public const string ErpShamModuleFlows = "/erp/sham/module-flows";
     /// <summary>SHAM §10: append an effective-dated transfer price rule between two legal entities.</summary>
