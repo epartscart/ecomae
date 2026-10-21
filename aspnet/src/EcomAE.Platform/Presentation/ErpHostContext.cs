@@ -243,6 +243,52 @@ public static class ErpHostContext
         return path + "?" + string.Join('&', query);
     }
 
+    /// <summary>
+    /// Entity + BU switch link carrying BOTH the numeric id and the readable
+    /// code: <c>company=&lt;id&gt;&amp;cmp=&lt;code&gt;</c> (and
+    /// <c>bu=&lt;id&gt;&amp;buc=&lt;code&gt;</c> for a BU). Id consumers
+    /// (ActiveCompanyIdFromQuery, trial-balance BU filters) keep resolving
+    /// numerics while the URL still shows the entity code. Other query
+    /// params are preserved; stale scope keys are dropped.
+    /// </summary>
+    public static string SwitchEntityHref(HttpRequest request, long entityId, string entityCode, int? buId = null, string? buCode = null)
+    {
+        var path = request.Path.HasValue ? request.Path.Value! : "/erp";
+        var query = new List<string>();
+        foreach (var pair in request.Query)
+        {
+            if (pair.Key.Equals("company", StringComparison.OrdinalIgnoreCase)
+                || pair.Key.Equals("companyId", StringComparison.OrdinalIgnoreCase)
+                || pair.Key.Equals("cmp", StringComparison.OrdinalIgnoreCase)
+                || pair.Key.Equals("bu", StringComparison.OrdinalIgnoreCase)
+                || pair.Key.Equals("buc", StringComparison.OrdinalIgnoreCase)
+                || pair.Key.Equals("businessUnit", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            foreach (var value in pair.Value)
+            {
+                query.Add($"{Uri.EscapeDataString(pair.Key)}={Uri.EscapeDataString(value ?? string.Empty)}");
+            }
+        }
+
+        query.Add($"company={entityId}");
+        if (!string.IsNullOrWhiteSpace(entityCode))
+        {
+            query.Add($"cmp={Uri.EscapeDataString(entityCode)}");
+        }
+        if (buId is > 0)
+        {
+            query.Add($"bu={buId.Value}");
+        }
+        if (!string.IsNullOrWhiteSpace(buCode))
+        {
+            query.Add($"buc={Uri.EscapeDataString(buCode)}");
+        }
+        return path + "?" + string.Join('&', query);
+    }
+
     private static string BrandLabelFor(string normalized, bool isShowcase, bool isProduct)
     {
         if (isShowcase)

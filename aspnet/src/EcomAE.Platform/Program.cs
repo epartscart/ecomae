@@ -758,6 +758,12 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamVatSummaryReadService, Ec
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamIntercompanyPostService, EcomAE.Platform.Erp.ErpShamIntercompanyPostService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpConsolidatedTrialBalanceReadService, EcomAE.Platform.Erp.ErpConsolidatedTrialBalanceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTenantGuideReadService, EcomAE.Platform.Erp.ErpTenantGuideReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamMspService, EcomAE.Platform.Erp.ErpShamMspService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamLandedCostService, EcomAE.Platform.Erp.ErpShamLandedCostService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamEliminationService, EcomAE.Platform.Erp.ErpShamEliminationService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamEinvoiceService, EcomAE.Platform.Erp.ErpShamEinvoiceService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamTreasuryService, EcomAE.Platform.Erp.ErpShamTreasuryService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamModuleFlowsService, EcomAE.Platform.Erp.ErpShamModuleFlowsService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMultiCurrencyGlWriteService, EcomAE.Platform.Erp.ErpMultiCurrencyGlWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkspaceFavoritesWriteService, EcomAE.Platform.Erp.ErpWorkspaceFavoritesWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryReorderWriteService, EcomAE.Platform.Erp.ErpInventoryReorderWriteService>();

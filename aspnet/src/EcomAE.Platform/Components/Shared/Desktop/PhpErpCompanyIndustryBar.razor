@@ -2,8 +2,10 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IHttpContextAccessor Http
+@inject IErpTenantGuideReadService OrgGuide
 @*
   PHP parity: epc_erp_company_picker_html in epc-erp-content-actions (toolbar top-right).
   Company switch uses ?company= — MAIN ↔ Jewellery (company=1 / company=2) on Super CP.
@@ -124,7 +126,7 @@
                     var selected = company.Id == _activeCompanyId;
                     var jw = ErpIndustryNav.IsJewelleryCompany(company);
                     <li class="@(selected ? "active" : null)" role="none">
-                        <a role="menuitem" href="@ErpHostContext.SwitchCompanyHref(_request, (int)company.Id)">
+                        <a role="menuitem" href="@ErpHostContext.SwitchEntityHref(_request, company.Id, company.Code)">
                             <i class="fa @(selected ? "fa-check" : "fa-building-o")" aria-hidden="true"></i>
                             <strong>@LegalOrganizationLabel.Display(company.Code, company.Name)</strong>
                             <span class="text-muted epc-erp-company-meta">
@@ -137,6 +139,17 @@
                             </span>
                         </a>
                     </li>
+                    @foreach (var bu in BusFor((int)company.Id))
+                    {
+                        var buSelected = selected && bu.Code.Equals(_activeBuCode, StringComparison.OrdinalIgnoreCase);
+                        <li class="@(buSelected ? "active" : null)" role="none">
+                            <a role="menuitem" href="@ErpHostContext.SwitchEntityHref(_request, company.Id, company.Code, bu.Id, bu.Code)" style="padding-left:32px">
+                                <i class="fa @(buSelected ? "fa-check" : "fa-circle-o")" aria-hidden="true"></i>
+                                <strong>@bu.Code</strong>
+                                <span class="text-muted epc-erp-company-meta">@bu.Name</span>
+                            </a>
+                        </li>
+                    }
                 }
             </ul>
         </details>
@@ -208,13 +221,27 @@
     private bool _realEstate;
     private bool _showFleet;
     private string _message = "";
+    private IReadOnlyList<ErpTenantGuideBu> _bus = [];
+    private string _activeBuCode = "";
+
+    private IReadOnlyList<ErpTenantGuideBu> BusFor(int entityId)
+        => _bus.Where(b => b.EntityId == entityId).ToArray();
 
     protected override async Task OnInitializedAsync()
     {
         _request = Http.HttpContext?.Request;
         _ctx = ErpHostContext.Resolve(_request?.Host.Host);
-        var active = ErpHostContext.ActiveCompanyIdFromQuery(_request);
         var digest = await Dashboards.BuildErpCompaniesDigestAsync(50, Http.HttpContext?.RequestAborted ?? default);
+        try
+        {
+            _bus = (await OrgGuide.ReadAsync(Http.HttpContext?.RequestAborted ?? default)).BusinessUnits;
+        }
+        catch { _bus = []; }
+        _activeBuCode = (_request?.Query.TryGetValue("buc", out var bucQ) == true ? bucQ.ToString() : "").Trim();
+        if (_activeBuCode.Length == 0)
+        {
+            _activeBuCode = (_request?.Query.TryGetValue("bu", out var buQ) == true ? buQ.ToString() : "").Trim();
+        }
         var isSuper = SuperCpHostGate.IsAllowed(Http.HttpContext);
         _showFleet = isSuper;
         _companies = ErpIndustryNav.EnsureSwitchableCompanies(digest.Companies, isSuper, _ctx.BrandLabel);
@@ -228,11 +255,17 @@
             return;
         }
 
-        _activeCompanyId = active is > 0 && _companies.Any(c => c.Id == active)
-            ? active.Value
-            : _companies[0].Id;
+        // cmp= (entity code) and company= (numeric id) resolve the same way
+        // everywhere else in the shell — honour both in the picker highlight.
+        var active = ErpHostContext.ActiveCompanyFromQuery(_companies, _request);
+        _activeCompanyId = active?.Id ?? _companies[0].Id;
         var current = _companies.FirstOrDefault(c => c.Id == _activeCompanyId) ?? _companies[0];
         _activeLabel = LegalOrganizationLabel.Display(current.Code, current.Name, null, _ctx.BrandLabel);
+        var activeBu = _bus.FirstOrDefault(b => b.EntityId == (int)current.Id && b.Code.Equals(_activeBuCode, StringComparison.OrdinalIgnoreCase));
+        if (activeBu is not null)
+        {
+            _activeLabel += " · " + activeBu.Code;
+        }
         _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, current, TenantContext.IndustryFrom(Http.HttpContext));
         _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, current, TenantContext.IndustryFrom(Http.HttpContext));
         _realEstate = ErpIndustryNav.ShowRealEstateModules(_ctx.IndustryCode, current, TenantContext.IndustryFrom(Http.HttpContext));

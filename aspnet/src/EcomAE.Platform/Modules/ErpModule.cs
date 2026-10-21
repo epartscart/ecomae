@@ -398,6 +398,15 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpShamPoReceive, HandleShamPoReceiveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamVatSummary, HandleShamVatSummaryAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamPeriodLock, HandleShamPeriodLockAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpShamMspSet, HandleShamMspSetAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpShamMspCheck, HandleShamMspCheckAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpShamLandedCost, HandleShamLandedCostAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpShamLandedCostView, HandleShamLandedCostViewAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpShamElimRun, HandleShamElimRunAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpShamEinvoice, HandleShamEinvoiceAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpShamTreasury, HandleShamTreasuryAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpShamTreasuryView, HandleShamTreasuryViewAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpShamModuleFlows, HandleShamModuleFlowsAsync);
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
@@ -27208,6 +27217,245 @@ public sealed class ErpModule : ISurfaceModule
             res.Ok,
             res.Message,
             new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM §8: append a new MSP margin-structure version for entity×BU.</summary>
+    private static async Task<IResult> HandleShamMspSetAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamMspService msp,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM MSP set.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to append an MSP version. Fields: entity|cmp, bu, unit, offer, actual, msp (percentages 0-100). Scope check: 'msp-set' grant.", session = SessionPayload(session) });
+        }
+
+        var entity = AmlText(fields, "entity");
+        if (entity.Length == 0)
+        {
+            entity = context.Request.Query["cmp"].ToString();
+        }
+        var bu = AmlText(fields, "bu");
+        if (bu.Length == 0)
+        {
+            bu = context.Request.Query["bu"].ToString();
+        }
+
+        var res = await msp.SetAsync(
+            entity, bu,
+            AmlDec(fields, "unit"), AmlDec(fields, "offer"), AmlDec(fields, "actual"), AmlDec(fields, "msp"),
+            session.Email ?? string.Empty, cancellationToken);
+        return Results.Ok(new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, entity = res.Entity, bu = res.Bu, version = res.Version, unit = res.Unit, offer = res.Offer, actual = res.Actual, msp = res.Msp, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM §8: effective MSP version + history for entity×BU.</summary>
+    private static async Task<IResult> HandleShamMspCheckAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamMspService msp,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM MSP check.");
+        }
+
+        var res = await msp.CheckAsync(
+            context.Request.Query["cmp"].ToString(), context.Request.Query["bu"].ToString(),
+            session.Email ?? string.Empty, cancellationToken);
+        return Results.Ok(new { ok = res.Ok, message = res.Message, entity = res.Entity, bu = res.Bu, version = res.Version, unit = res.Unit, offer = res.Offer, actual = res.Actual, msp = res.Msp, history = res.History });
+    }
+
+    /// <summary>SHAM §9: allocate receipt charges across lines; lines come as JSON 'lines' field or ?lines=.</summary>
+    private static async Task<IResult> HandleShamLandedCostAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamLandedCostService landedCosts,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM landed-cost allocation.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to allocate landed cost. Fields: entity|cmp, bu, receiptRef|ref, method=value|qty|weight, freight, duty, insurance, other, lines=JSON[{itemCode,qty,weight,baseAmount}]. Scope check: 'landed-cost' grant.", session = SessionPayload(session) });
+        }
+
+        var entity = AmlText(fields, "entity");
+        if (entity.Length == 0) entity = context.Request.Query["cmp"].ToString();
+        var bu = AmlText(fields, "bu");
+        if (bu.Length == 0) bu = context.Request.Query["bu"].ToString();
+        var receipt = AmlText(fields, "receiptRef", "ref", "receipt");
+        if (receipt.Length == 0) receipt = context.Request.Query["ref"].ToString();
+        var linesJson = AmlText(fields, "lines");
+        if (linesJson.Length == 0) linesJson = context.Request.Query["lines"].ToString();
+        var lines = ErpShamLandedCostService.ParseLinesJson(linesJson);
+
+        var res = await landedCosts.AllocateAsync(
+            entity, bu, receipt, AmlText(fields, "method"),
+            AmlDec(fields, "freight"), AmlDec(fields, "duty"), AmlDec(fields, "insurance"), AmlDec(fields, "other"),
+            lines, session.Email ?? string.Empty, cancellationToken);
+        return Results.Ok(new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, entity = res.Entity, bu = res.Bu, receipt = res.ReceiptRef, method = res.Method, totalCharges = res.TotalCharges, lines = res.Lines, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM §9: read the landed-cost allocation for a receipt.</summary>
+    private static async Task<IResult> HandleShamLandedCostViewAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamLandedCostService landedCosts,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM landed-cost view.");
+        }
+
+        var res = await landedCosts.ViewAsync(
+            context.Request.Query["cmp"].ToString(), context.Request.Query["bu"].ToString(),
+            context.Request.Query["ref"].ToString(),
+            session.Email ?? string.Empty, cancellationToken);
+        return Results.Ok(new { ok = res.Ok, message = res.Message, entity = res.Entity, bu = res.Bu, receipt = res.ReceiptRef, method = res.Method, totalCharges = res.TotalCharges, lines = res.Lines });
+    }
+
+    /// <summary>SHAM §10/§12: run the consolidation elimination for a period.</summary>
+    private static async Task<IResult> HandleShamElimRunAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamEliminationService eliminations,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM consolidation elimination.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to post the elimination journal. Fields: entity|cmp (group parent, default MAIN), period (YYYYMM). Scope check: 'elim-run' grant.", session = SessionPayload(session) });
+        }
+
+        var entity = AmlText(fields, "entity");
+        if (entity.Length == 0) entity = context.Request.Query["cmp"].ToString();
+        var period = (int)AmlLong(fields, "period");
+        if (period == 0) int.TryParse(context.Request.Query["period"], out period);
+
+        var res = await eliminations.RunAsync(entity, period, session.Email ?? string.Empty, cancellationToken);
+        return Results.Ok(new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, journal = res.JournalId, lines = res.Lines, amount = res.Amount, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM §11: FTA-aligned UBL 2.1 XML for an issued invoice.</summary>
+    private static async Task<IResult> HandleShamEinvoiceAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamEinvoiceService einvoices,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM e-invoice.");
+        }
+
+        var res = await einvoices.RenderAsync(
+            context.Request.Query["cmp"].ToString(), context.Request.Query["ref"].ToString(),
+            session.Email ?? string.Empty, cancellationToken);
+        if (!res.Ok)
+        {
+            return Results.Ok(new { ok = false, message = res.Message });
+        }
+        return Results.Content(res.Xml, "application/xml; charset=utf-8");
+    }
+
+    /// <summary>SHAM §13: register (default) or transition (action=settle|expire|cancel) a treasury instrument.</summary>
+    private static async Task<IResult> HandleShamTreasuryAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamTreasuryService treasury,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for SHAM treasury.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. Register: entity|cmp, kind=lc|cad|fx, ref|reference, counterparty, amount, currency, expiry(unix). Transition: action=settle|expire|cancel + ref. Scope check: 'treasury-set' grant.", session = SessionPayload(session) });
+        }
+
+        var entity = AmlText(fields, "entity");
+        if (entity.Length == 0) entity = context.Request.Query["cmp"].ToString();
+        var reference = AmlText(fields, "ref", "reference");
+        var action = AmlText(fields, "action");
+
+        ErpShamTreasuryResult res;
+        if (action.Length > 0)
+        {
+            res = await treasury.TransitionAsync(entity, reference, action, session.Email ?? string.Empty, cancellationToken);
+        }
+        else
+        {
+            var expiry = AmlLong(fields, "expiry", "expiryDate");
+            res = await treasury.RegisterAsync(
+                entity, AmlText(fields, "kind"), reference, AmlText(fields, "counterparty"),
+                AmlDec(fields, "amount"), AmlText(fields, "currency"),
+                expiry > 0 ? expiry : (long?)null, session.Email ?? string.Empty, cancellationToken);
+        }
+        return Results.Ok(new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, reference = res.Reference, status = res.Status, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM §13: list an entity's treasury instruments + open exposure.</summary>
+    private static async Task<IResult> HandleShamTreasuryViewAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamTreasuryService treasury,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM treasury view.");
+        }
+
+        var res = await treasury.ListAsync(
+            context.Request.Query["cmp"].ToString(), context.Request.Query["status"].ToString(),
+            session.Email ?? string.Empty, cancellationToken);
+        return Results.Ok(new { ok = res.Ok, message = res.Message, exposure = res.Exposure, instruments = res.Instruments });
+    }
+
+    /// <summary>SHAM §14: module data-flow coverage matrix.</summary>
+    private static async Task<IResult> HandleShamModuleFlowsAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamModuleFlowsService flows,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM module-flow matrix.");
+        }
+
+        var res = await flows.LoadAsync(session.Email ?? string.Empty, cancellationToken);
+        return Results.Ok(new { ok = res.Ok, live = res.Live, total = res.Total, modules = res.Modules });
     }
 
     /// <summary>Auto-parts workspace demo seed: inserts DEMO-tagged rows only.</summary>
