@@ -195,10 +195,11 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
                         + "SELECT ?,?,?,?,1,?,? FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `epc_erp_pm_business_units` WHERE `code`=? AND `legal_entity_id`=?)"),
                     cancellationToken, buCode, buName, entityId, costCentre, now, now, buCode, entityId).ConfigureAwait(false);
 
-                // Phase-3 hook: one default warehouse per BU (WH-<short>) — stock and
-                // reservations stay entity-scoped via owner_company_id, the BU picks up
-                // its warehouse here so allocations can fall through to it.
-                var whCode = "WH-" + (buCode.Contains('-', StringComparison.Ordinal) ? buCode[(buCode.IndexOf('-') + 1)..] : buCode);
+                // Phase-3 hook: one default warehouse per BU — codes are SHAM-<short>
+                // so an unrelated tenant's WH-*/existing row can never be renamed,
+                // reactivated, or adopted as a SHAM default. Stock and reservations
+                // stay entity-scoped via owner_company_id.
+                var whCode = "SHAM-" + (buCode.Contains('-', StringComparison.Ordinal) ? buCode[(buCode.IndexOf('-') + 1)..] : buCode);
                 await ErpDb.ExecuteAsync(connection, null,
                     ErpDb.Positional(
                         "INSERT INTO `epc_erp_inv_warehouses` (`code`,`name`,`active`,`time_created`) "
