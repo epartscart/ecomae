@@ -109,6 +109,11 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
             "CREATE TABLE IF NOT EXISTS `epc_erp_org_business_units` (`id` int(11) NOT NULL AUTO_INCREMENT, `entity_id` int(11) NOT NULL DEFAULT 0, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(160) NOT NULL DEFAULT '', `activity` varchar(80) NOT NULL DEFAULT '', `branch` varchar(80) NOT NULL DEFAULT '', `parent_bu_id` int(11) NOT NULL DEFAULT 0, `manager_name` varchar(120) NOT NULL DEFAULT '', `default_warehouse_id` int(11) NOT NULL DEFAULT 0, `cost_centre` varchar(40) NOT NULL DEFAULT '', `profit_centre` varchar(40) NOT NULL DEFAULT '', `price_group` varchar(40) NOT NULL DEFAULT '', `status` varchar(12) NOT NULL DEFAULT 'active', `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_entity_bu` (`entity_id`,`code`), KEY `x_status` (`status`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Business units per legal entity (SHAM §3)'",
             "CREATE TABLE IF NOT EXISTS `epc_erp_org_user_access` (`id` int(11) NOT NULL AUTO_INCREMENT, `user_email` varchar(190) NOT NULL DEFAULT '', `entity_id` int(11) NOT NULL DEFAULT 0, `bu_id` int(11) NOT NULL DEFAULT 0, `role` varchar(40) NOT NULL DEFAULT 'staff', `actions_csv` varchar(500) NOT NULL DEFAULT '', `status` varchar(12) NOT NULL DEFAULT 'active', `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_access` (`user_email`,`entity_id`,`bu_id`,`role`), KEY `x_entity` (`entity_id`), KEY `x_bu` (`bu_id`), KEY `x_status` (`status`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User x entity x BU x role x action grants (SHAM §3)'",
             "CREATE TABLE IF NOT EXISTS `epc_erp_org_entity_accounts` (`id` int(11) NOT NULL AUTO_INCREMENT, `entity_id` int(11) NOT NULL DEFAULT 0, `coa_id` int(11) NOT NULL DEFAULT 0, `coa_code` varchar(16) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `suspense_only` tinyint(1) NOT NULL DEFAULT 0, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_entity_coa` (`entity_id`,`coa_id`), KEY `x_code` (`coa_code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Shared COA taxonomy, per-entity activation (SHAM §6)'",
+            // Phase-7 hook: one operating bank account per legal entity.
+            "CREATE TABLE IF NOT EXISTS `epc_erp_cash_bank_accounts` (`id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `account_type` varchar(8) NOT NULL DEFAULT 'cash', `bank_name` varchar(255) DEFAULT NULL, `account_number` varchar(64) DEFAULT NULL, `currency_code` varchar(8) NOT NULL DEFAULT 'AED', `opening_balance` decimal(14,2) NOT NULL DEFAULT 0.00, `office_id` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ERP cash and bank accounts'",
+            "ALTER TABLE `epc_erp_cash_bank_accounts` ADD `legal_entity_id` int(11) NOT NULL DEFAULT 0",
+            "ALTER TABLE `epc_erp_cash_bank_accounts` ADD `business_unit_id` int(11) NOT NULL DEFAULT 0",
+            "ALTER TABLE `epc_erp_cash_bank_accounts` ADD UNIQUE KEY `ux_sham_entity_bank` (`legal_entity_id`,`account_number`)",
         })
         {
             await ErpDb.TryExecuteAsync(connection, sql, cancellationToken).ConfigureAwait(false);
@@ -146,6 +151,25 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
                     cancellationToken, code).ConfigureAwait(false);
                 entityIds[code] = id;
                 entities++;
+            }
+
+            // Phase-7 hook: one operating bank account per legal entity, tagged with
+            // legal_entity_id — namespaced SHAM-<entity>-MAIN so no other account is
+            // adopted, and idempotent on the entity+account-number pair.
+            foreach (var (code, name, _) in Entities)
+            {
+                var entityId = entityIds.TryGetValue(code, out var bankEntityId) ? bankEntityId : 0;
+                if (entityId == 0)
+                {
+                    continue;
+                }
+
+                var accountNumber = "SHAM-" + code + "-MAIN";
+                await ErpDb.ExecuteAsync(connection, null,
+                    ErpDb.Positional(
+                        "INSERT INTO `epc_erp_cash_bank_accounts` (`name`,`account_type`,`bank_name`,`account_number`,`currency_code`,`opening_balance`,`legal_entity_id`,`active`,`time_created`) "
+                        + "SELECT ?,'bank','Al Shamali Group Treasury',?,'AED',0,?,1,? FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `epc_erp_cash_bank_accounts` WHERE `account_number`=?)"),
+                    cancellationToken, name + " — Operating Account", accountNumber, entityId, now, accountNumber).ConfigureAwait(false);
             }
 
             var groupId = (int)await ErpDb.LongAsync(connection, null,
