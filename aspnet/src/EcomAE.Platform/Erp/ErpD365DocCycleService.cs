@@ -78,6 +78,14 @@ public interface IErpD365DocCycleService
         int adminId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Save InventLocations fields onto an epc_erp_inv_warehouses row (or create it).</summary>
+    Task<ErpSimpleWriteResult> SaveWarehouseFieldsAsync(
+        DbConnection connection,
+        long warehouseId,
+        IReadOnlyDictionary<string, string?> fields,
+        int adminId,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Create or update a D365 sales-quotation header (epc_erp_sales_quotations).</summary>
     Task<ErpSimpleWriteResult> SaveQuotationHeaderAsync(
         DbConnection connection,
@@ -199,6 +207,18 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
         "account_code", "fax", "area", "payment_terms", "credit_limit", "sales_tax_group",
         "delivery_terms", "mode_of_delivery", "warehouse", "salesman", "buyer_name",
         "buyer_address", "buyer_country", "buyer_phone", "registration_no",
+    ];
+
+    /// <summary>InventLocations fields (epc_erp_inv_warehouses).</summary>
+    public static readonly string[] WarehouseColumns =
+    [
+        "code", "name", "entity_id", "legal_entity_code", "site", "type",
+        "default_issue_location", "default_receipt_location", "location_name",
+        "cost_centre_id", "business_unit_id", "manual_input", "location_status",
+        "allow_negative_inventory", "cycle_counting", "check_digits",
+        "reservation_hierarchy", "labor_standards", "hazardous_goods",
+        "retail_enabled", "address", "city", "country_code", "phone",
+        "store_area", "pick_locations", "dock",
     ];
 
     /// <summary>SalesQuotationListPage + SalesQuotationDetails fields (epc_erp_sales_quotations).</summary>
@@ -416,6 +436,16 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
             await Add(connection, "epc_erp_sales_quotation_lines", col, def, cancellationToken).ConfigureAwait(false);
         }
 
+        foreach (var col in WarehouseColumns)
+        {
+            var def = col is "entity_id" or "cost_centre_id" or "business_unit_id"
+                ? "int(11) NOT NULL DEFAULT 0"
+                : col is "allow_negative_inventory" or "cycle_counting" or "check_digits" or "retail_enabled" or "manual_input"
+                ? "tinyint(1) NOT NULL DEFAULT 0"
+                : "varchar(255) NOT NULL DEFAULT ''";
+            await Add(connection, "epc_erp_inv_warehouses", col, def, cancellationToken).ConfigureAwait(false);
+        }
+
         foreach (var col in CustomerColumns)
         {
             var def = col is "credit_limit" ? "decimal(14,2) NOT NULL DEFAULT 0.00"
@@ -589,6 +619,9 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
         var lines = await RowsAsync(c, "SELECT * FROM `epc_erp_sales_quotation_lines` WHERE `quotation_id` = ? ORDER BY `line_no`, `id`", t, quotationId).ConfigureAwait(false);
         return (header, lines);
     }
+
+    public Task<ErpSimpleWriteResult> SaveWarehouseFieldsAsync(DbConnection c, long id, IReadOnlyDictionary<string, string?> f, int a, CancellationToken t = default)
+        => SaveFieldsAsync(c, "epc_erp_inv_warehouses", "id", id, WarehouseColumns, f, a, "Warehouse saved.", t);
 
     internal async Task<ErpSimpleWriteResult> SaveFieldsAsync(
         DbConnection connection,

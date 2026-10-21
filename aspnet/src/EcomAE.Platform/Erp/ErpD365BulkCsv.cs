@@ -41,6 +41,21 @@ public static class ErpD365BulkCsv
             ["quotations"] = new("quotations", "Sales quotations with lines",
                 ["quote_no", "quote_name", "quote_type", "quote_order_type", "prospect", "customer_account", "customer_name", "status", "currency_code", "requested_receipt_date", "requested_ship_date", "customer_reference", "customer_requisition", "total_discount_pct", "price_locked", "item_number", "item_name", "variant", "sales_category", "qty", "unit", "unit_price", "discount_pct", "vat_pct"],
                 ["quote_no", "item_number"]),
+            ["warehouses"] = new("warehouses", "Warehouses (InventLocations)",
+                ["code", "name", "entity_id", "site", "type", "cost_centre_id", "business_unit_id", "address", "city", "country_code"],
+                ["code", "name"]),
+            ["customer_invoice_journal"] = new("customer_invoice_journal", "Customer invoice journal (CustInvoiceJournal)",
+                ["invoice_number", "issue_date", "order_id", "payment_terms", "currency_code", "subtotal_ex_vat", "total_vat", "total_incl_vat", "paid_amount"],
+                []),
+            ["vendor_invoice_journal"] = new("vendor_invoice_journal", "Vendor invoice journal (VendInvoiceJournal)",
+                ["invoice_number", "vendor_account", "vendor_name", "status", "currency_code", "total_incl_vat"],
+                []),
+            ["customer_statement"] = new("customer_statement", "Customer account statement — entity wise",
+                ["account_code", "name", "trn", "balance"],
+                []),
+            ["sales_analysis_by_invoice"] = new("sales_analysis_by_invoice", "Sales analysis by invoice (margin)",
+                ["invoice_number", "issue_date", "currency_code", "subtotal_ex_vat", "total_vat", "total_incl_vat", "revenue", "cost"],
+                []),
             ["gl_opening"] = new("gl_opening", "GL opening balances",
                 ["account_code", "business_unit", "cost_centre", "debit", "credit", "currency", "reference", "date"],
                 ["account_code"]),
@@ -153,7 +168,12 @@ public static class ErpD365BulkCsv
         "coa" => "SELECT * FROM `epc_erp_coa_accounts` ORDER BY `account_code`",
         "sales_orders" => "SELECT o.`so_no`, o.`customer_account`, o.`customer_name`, o.`status`, o.`currency_code`, l.`item_number`, l.`product_name` AS item_name, l.`qty`, l.`unit_price` FROM `epc_erp_sales_orders` o LEFT JOIN `epc_erp_sales_order_lines` l ON l.`order_id` = o.`id` ORDER BY o.`so_no`, l.`id`",
         "purchase_orders" => "SELECT o.`po_no`, o.`vendor_account`, o.`status`, l.`item_number`, l.`product_name` AS item_name, l.`qty`, l.`unit_price` FROM `epc_erp_purchase_orders` o LEFT JOIN `epc_erp_purchase_order_lines` l ON l.`order_id` = o.`id` ORDER BY o.`po_no`, l.`id`",
-        "quotations" => "SELECT q.`quote_number` AS quote_no, q.`status`, q.`subtotal`, l.`item_number`, l.`description` AS item_name, l.`qty`, l.`unit_price` FROM `epc_crm_quotes` q LEFT JOIN `epc_crm_quote_lines` l ON l.`quote_id` = q.`id` ORDER BY q.`quote_number`, l.`id`",
+        "quotations" => "SELECT q.`quote_no`, q.`status`, q.`customer_name`, q.`currency_code`, l.`item_number`, l.`product_name` AS item_name, l.`qty`, l.`unit_price` FROM `epc_erp_sales_quotations` q LEFT JOIN `epc_erp_sales_quotation_lines` l ON l.`quotation_id` = q.`id` ORDER BY q.`quote_no`, l.`line_no`",
+        "warehouses" => "SELECT `code`, `name`, `entity_id`, `site`, `cost_centre_id`, `business_unit_id` FROM `epc_erp_inv_warehouses` ORDER BY `code`",
+        "customer_invoice_journal" => "SELECT `invoice_number`, `issue_date`, `order_id`, `payment_terms`, `currency_code`, `subtotal_ex_vat`, `total_vat`, `total_incl_vat`, `paid_amount` FROM `epc_einvoice_documents` ORDER BY `id` DESC",
+        "vendor_invoice_journal" => "SELECT o.`po_no` AS invoice_number, o.`vendor_account`, o.`vendor_name`, o.`status`, o.`currency_code`, IFNULL(o.`total_amount`,0) AS total_incl_vat FROM `epc_erp_purchase_orders` o ORDER BY o.`id` DESC",
+        "customer_statement" => "SELECT c.`name`, c.`account_code`, IFNULL(c.`trn`,'') AS trn, IFNULL(SUM(l.`debit`),0)-IFNULL(SUM(l.`credit`),0) AS balance FROM `epc_erp_contacts` c LEFT JOIN `epc_erp_gl_lines` l ON l.`coa_id` IN (SELECT `id` FROM `epc_erp_coa_accounts` WHERE `account_code` = c.`account_code`) GROUP BY c.`id` ORDER BY c.`name`",
+        "sales_analysis_by_invoice" => "SELECT d.`invoice_number`, d.`issue_date`, d.`currency_code`, d.`subtotal_ex_vat`, d.`total_vat`, d.`total_incl_vat`, IFNULL((SELECT SUM(l.`quantity`*l.`unit_price`) FROM `epc_einvoice_lines` l WHERE l.`document_id` = d.`id`),0) AS revenue, IFNULL((SELECT SUM(l.`quantity`*IFNULL(i.`cost_price`,0)) FROM `epc_einvoice_lines` l JOIN `epc_erp_inv_items` i ON i.`sku` = l.`item_name` WHERE l.`document_id` = d.`id`),0) AS cost FROM `epc_einvoice_documents` d ORDER BY d.`id` DESC",
         "gl_opening" => "SELECT a.`account_code`, j.`journal_date` AS `date`, l.`debit`, l.`credit` FROM `epc_erp_gl_lines` l JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` JOIN `epc_erp_coa_accounts` a ON a.`id` = l.`coa_id` WHERE j.`source_type` = 'opening' ORDER BY a.`account_code`",
         _ => "",
     };
@@ -169,6 +189,7 @@ public static class ErpD365BulkCsv
             "vendors" => await CommitVendorAsync(c, m, now, ct).ConfigureAwait(false),
             "coa" => await CommitCoaAsync(c, m, now, ct).ConfigureAwait(false),
             "gl_opening" => await CommitGlOpeningAsync(c, m, adminId, now, ct).ConfigureAwait(false),
+            "warehouses" => await CommitWarehouseAsync(c, m, now, ct).ConfigureAwait(false),
             "sales_orders" or "purchase_orders" or "quotations" => await CommitDocLineAsync(c, area, m, now, ct).ConfigureAwait(false),
             _ => (0, 0),
         };
@@ -220,7 +241,7 @@ public static class ErpD365BulkCsv
         if (sku.Length == 0 || wh.Length == 0) return (0, 0);
         var itemId = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_inv_items` WHERE `sku` = @s LIMIT 1", ct, sku).ConfigureAwait(false);
         if (itemId == 0) return (0, 0);
-        var whId = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_warehouses` WHERE `code` = @w OR `name` = @w LIMIT 1", ct, wh).ConfigureAwait(false);
+        var whId = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `code` = @w OR `name` = @w LIMIT 1", ct, wh).ConfigureAwait(false);
         if (whId == 0) whId = ToLong(wh);
         var qty = ToDec(m, "qty_on_hand"); var cost = ToDec(m, "avg_unit_cost");
         var batch = M(m, "batch_no"); var variant = M(m, "variant_label");
@@ -321,28 +342,44 @@ public static class ErpD365BulkCsv
     }
 
     /// <summary>Document CSV rows carry both header fields and one line each — a doc_no repeating across rows means multiple lines.</summary>
+    private static async Task<(int, int)> CommitWarehouseAsync(DbConnection c, Dictionary<string, string> m, long now, CancellationToken ct)
+    {
+        var code = M(m, "code"); var name = M(m, "name");
+        if (code.Length == 0 || name.Length == 0) return (0, 0);
+        var id = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `code` = @w LIMIT 1", ct, code).ConfigureAwait(false);
+        var fields = m.Where(kv => kv.Value.Length > 0).ToDictionary(kv => kv.Key, kv => (string?)kv.Value, StringComparer.Ordinal);
+        if (id == 0)
+        {
+            await ErpDb.ExecuteAsync(c, null, "INSERT INTO `epc_erp_inv_warehouses` (`code`, `name`, `time_created`) VALUES (@c, @n, @t)", ct, code, name, now).ConfigureAwait(false);
+            id = await ErpDb.LastInsertIdAsync(c, null, ct).ConfigureAwait(false);
+        }
+        await new ErpD365DocCycleService().SaveWarehouseFieldsAsync(c, id, fields, 0, ct).ConfigureAwait(false);
+        return (id > 0 ? 1 : 0, 0);
+    }
+
     private static async Task<(int, int)> CommitDocLineAsync(DbConnection c, string area, Dictionary<string, string> m, long now, CancellationToken ct)
     {
         var (table, lineTable, noCol, orderFk) = area switch
         {
             "sales_orders" => ("epc_erp_sales_orders", "epc_erp_sales_order_lines", "so_no", "order_id"),
             "purchase_orders" => ("epc_erp_purchase_orders", "epc_erp_purchase_order_lines", "po_no", "order_id"),
-            _ => ("epc_crm_quotes", "epc_crm_quote_lines", "quote_no", "quote_id"),
+            "quotations" => ("epc_erp_sales_quotations", "epc_erp_sales_quotation_lines", "quote_no", "quotation_id"),
+            _ => ("", "", "", ""),
         };
         var no = M(m, noCol);
         if (no.Length == 0) return (0, 0);
 
         var oid = await ErpDb.LongAsync(c, null,
-            "SELECT `id` FROM `" + table + "` WHERE `" + (table == "epc_crm_quotes" ? "quote_number" : noCol) + "` = @n LIMIT 1",
+            "SELECT `id` FROM `" + table + "` WHERE `" + noCol + "` = @n LIMIT 1",
             ct, no).ConfigureAwait(false);
         var upd = 0;
         if (oid == 0)
         {
-            if (table == "epc_crm_quotes")
+            if (table == "epc_erp_sales_quotations")
             {
                 await ErpDb.ExecuteAsync(c, null,
-                    "INSERT INTO `epc_crm_quotes` (`quote_number`, `status`, `subtotal`, `notes`, `time_created`, `time_updated`) VALUES (@n, 'draft', 0, @no, @t, @t)",
-                    ct, no, "CSV import " + M(m, "quote_name"), now).ConfigureAwait(false);
+                    "INSERT INTO `epc_erp_sales_quotations` (`quote_no`, `quote_name`, `customer_name`, `status`, `currency_code`, `time_created`, `time_updated`) VALUES (@n, @qn, @cn, 'created', @cur, @t, @t)",
+                    ct, no, M(m, "quote_name"), M(m, "customer_name"), M(m, "currency_code"), now).ConfigureAwait(false);
             }
             else
             {
@@ -366,11 +403,18 @@ public static class ErpD365BulkCsv
         var qty = ToDec(m, "qty"); var price = ToDec(m, "unit_price");
         if (item.Length > 0 || itemName.Length > 0)
         {
-            if (lineTable == "epc_crm_quote_lines")
+            if (lineTable == "epc_erp_sales_quotation_lines")
             {
-                await ErpDb.ExecuteAsync(c, null,
-                    "INSERT INTO `epc_crm_quote_lines` (`quote_id`, `item_number`, `description`, `qty`, `unit_price`) VALUES (@q, @i, @n, @qty, @p)",
-                    ct, oid, item, itemName, qty, price).ConfigureAwait(false);
+                await new ErpD365DocCycleService().SaveQuotationLineAsync(c, oid,
+                    new Dictionary<string, string?>
+                    {
+                        ["item_number"] = item, ["product_name"] = itemName,
+                        ["qty"] = qty.ToString(CultureInfo.InvariantCulture),
+                        ["unit_price"] = price.ToString(CultureInfo.InvariantCulture),
+                        ["unit"] = M(m, "unit"), ["sales_category"] = M(m, "sales_category"),
+                        ["discount_pct"] = M(m, "discount_pct"), ["vat_pct"] = M(m, "vat_pct"),
+                        ["variant_number"] = M(m, "variant"),
+                    }, 0, ct).ConfigureAwait(false);
             }
             else
             {

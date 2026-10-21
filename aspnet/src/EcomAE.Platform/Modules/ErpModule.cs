@@ -27401,9 +27401,10 @@ public sealed class ErpModule : ISurfaceModule
             "customer" => await d365.SaveCustomerFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
             "vendor" => await d365.SaveVendorFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
             "product" => await d365.SaveProductFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "warehouse" => await d365.SaveWarehouseFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
             "quote" => await d365.SaveQuotationHeaderAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
             "quote_line" => await d365.SaveQuotationLineAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
-            _ => ErpSimpleWriteResult.Fail("invalid", "kind must be so|po|dn|customer|vendor|product|quote|quote_line."),
+            _ => ErpSimpleWriteResult.Fail("invalid", "kind must be so|po|dn|customer|vendor|product|warehouse|quote|quote_line."),
         };
         return LiveWriteFormBinder.Complete(context, "/erp/sales-orders", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
     }
