@@ -105,12 +105,22 @@ public sealed class ErpShamJournalPostService : IErpShamJournalPostService
             var buId = 0L;
             if (bu.Length > 0)
             {
-                buId = await ErpDb.LongAsync(connection, null,
+                var orgBuId = await ErpDb.LongAsync(connection, null,
                     ErpDb.Positional("SELECT `id` FROM `epc_erp_org_business_units` WHERE `code`=? AND `entity_id`=? AND `status`='active' LIMIT 1"),
+                    cancellationToken, bu, entityId).ConfigureAwait(false);
+                if (orgBuId == 0)
+                {
+                    return new(false, "Business unit '" + bu + "' does not exist under entity " + entity + " (or is disabled).", 0);
+                }
+
+                // GL dimensions use the operational pm BU id, not the org BU id —
+                // the two tables number rows independently.
+                buId = await ErpDb.LongAsync(connection, null,
+                    ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_business_units` WHERE `code`=? AND `legal_entity_id`=? AND `active`=1 LIMIT 1"),
                     cancellationToken, bu, entityId).ConfigureAwait(false);
                 if (buId == 0)
                 {
-                    return new(false, "Business unit '" + bu + "' does not exist under entity " + entity + " (or is disabled).", 0);
+                    return new(false, "Business unit '" + bu + "' has no active operational record (epc_erp_pm_business_units) — re-run the foundation seed.", 0);
                 }
             }
 
@@ -128,11 +138,11 @@ public sealed class ErpShamJournalPostService : IErpShamJournalPostService
             {
                 var account = (line.Account ?? string.Empty).Trim();
                 var coaId = await ErpDb.LongAsync(connection, null,
-                    ErpDb.Positional("SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code`=? LIMIT 1"),
+                    ErpDb.Positional("SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code`=? AND `active`=1 LIMIT 1"),
                     cancellationToken, account).ConfigureAwait(false);
                 if (coaId == 0)
                 {
-                    return new(false, "Account '" + account + "' is not in the chart of accounts.", 0);
+                    return new(false, "Account '" + account + "' is not in the chart of accounts (or is disabled).", 0);
                 }
 
                 var active = await _foundation.AccountActiveForEntityAsync(entity, account, cancellationToken).ConfigureAwait(false);
@@ -149,7 +159,7 @@ public sealed class ErpShamJournalPostService : IErpShamJournalPostService
                 JournalDate = journalDate,
                 Reference = reference ?? string.Empty,
                 Description = description ?? string.Empty,
-                SourceType = "sham_manual",
+                SourceType = "manual",
                 CompanyId = entityId,
                 BusinessUnitId = buId,
                 CurrencyCode = currencyCode ?? string.Empty,
