@@ -190,6 +190,10 @@ public sealed class ErpShamTransferPriceService : IErpShamTransferPriceService
             }
             return codes;
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch
         {
             return Array.Empty<string>();
