@@ -3033,6 +3033,8 @@ public static class EcomAeRoutes
     public const string ErpShamTreasury = "/erp/sham/treasury";
     /// <summary>SHAM §13: list an entity's treasury instruments + open exposure.</summary>
     public const string ErpShamTreasuryView = "/erp/sham/treasury-view";
+    /// <summary>SHAM §14: per-module data-flow coverage matrix (live rows per module table).</summary>
+    public const string ErpShamModuleFlows = "/erp/sham/module-flows";
     /// <summary>Auto-parts workspace demo clear: deletes only DEMO-tagged rows.</summary>
     public const string ErpAutoPartsDemoClear = "/erp/autoparts/demo-clear";
     /// <summary>Auto-parts month-end bridge: posts trading journals into the GL.</summary>

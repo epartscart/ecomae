@@ -763,6 +763,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamLandedCostService, EcomAE
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamEliminationService, EcomAE.Platform.Erp.ErpShamEliminationService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamEinvoiceService, EcomAE.Platform.Erp.ErpShamEinvoiceService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamTreasuryService, EcomAE.Platform.Erp.ErpShamTreasuryService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamModuleFlowsService, EcomAE.Platform.Erp.ErpShamModuleFlowsService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMultiCurrencyGlWriteService, EcomAE.Platform.Erp.ErpMultiCurrencyGlWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkspaceFavoritesWriteService, EcomAE.Platform.Erp.ErpWorkspaceFavoritesWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryReorderWriteService, EcomAE.Platform.Erp.ErpInventoryReorderWriteService>();

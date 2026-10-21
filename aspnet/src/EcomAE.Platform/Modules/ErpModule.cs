@@ -406,6 +406,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpShamEinvoice, HandleShamEinvoiceAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamTreasury, HandleShamTreasuryAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamTreasuryView, HandleShamTreasuryViewAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpShamModuleFlows, HandleShamModuleFlowsAsync);
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
@@ -27438,6 +27439,23 @@ public sealed class ErpModule : ISurfaceModule
             context.Request.Query["cmp"].ToString(), context.Request.Query["status"].ToString(),
             session.Email ?? string.Empty, cancellationToken);
         return Results.Ok(new { ok = res.Ok, message = res.Message, exposure = res.Exposure, instruments = res.Instruments });
+    }
+
+    /// <summary>SHAM §14: module data-flow coverage matrix.</summary>
+    private static async Task<IResult> HandleShamModuleFlowsAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamModuleFlowsService flows,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM module-flow matrix.");
+        }
+
+        var res = await flows.LoadAsync(session.Email ?? string.Empty, cancellationToken);
+        return Results.Ok(new { ok = res.Ok, live = res.Live, total = res.Total, modules = res.Modules });
     }
 
     /// <summary>Auto-parts workspace demo seed: inserts DEMO-tagged rows only.</summary>
