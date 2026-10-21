@@ -271,7 +271,7 @@
                     break;
                 case "customers":
                     _rows = await ErpD365DocCycleService.RowsAsync(conn,
-                        "SELECT `id`, `name`, `account_code`, `trn`, `entity_id`, `active` FROM `epc_erp_contacts` WHERE `party_type` = 'customer' OR `party_type` IS NULL ORDER BY `id` DESC LIMIT 500", ct).ConfigureAwait(false);
+                        "SELECT `id`, `name`, `account_code`, `trn`, `entity_id`, `active` FROM `epc_erp_contacts` WHERE `party_type` IN ('customer','both') OR `party_type` IS NULL ORDER BY `id` DESC LIMIT 500", ct).ConfigureAwait(false);
                     break;
                 case "vendors":
                     _rows = await ErpD365DocCycleService.RowsAsync(conn,
