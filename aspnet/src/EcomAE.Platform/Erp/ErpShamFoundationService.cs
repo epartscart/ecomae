@@ -18,9 +18,11 @@ namespace EcomAE.Platform.Erp;
 /// - Access: <c>epc_erp_org_user_access</c> — user × entity × BU × role × action,
 ///   checked by <see cref="AccessAllowedAsync"/> on the backend (never UI-only).
 ///
-/// ASAU: confirmed as a business unit with its own cost centre — seeded as a BU
-/// under ASAPL only. It stays out of the legal-entity register until its legal
-/// classification is settled (blueprint marks it unverified).
+/// ASAU: a business unit under ASAPL with its own cost centre CC-ASAU (owner
+/// confirmed — it is not a legal entity).
+///
+/// Deployment: SHAM is a hybrid tenant (cloud + on-premises) — the seed is
+/// idempotent and connection-scoped so it can run against each shard.
 ///
 /// Phase-2 hook: shared COA taxonomy via `epc_erp_org_entity_accounts` — one
 /// chart, activation is what differs per entity. Posting paths should call
@@ -70,9 +72,8 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
     ];
 
     /// <summary>
-    /// ASAPL business units per blueprint §3. ASAU confirmed as a BU (with its own
-    /// cost centre) — registered as a BU under ASAPL only; it stays OUT of the
-    /// legal-entity register until its legal classification is settled.
+    /// Business units per blueprint §3. ASAU is a BU under ASAPL with its own cost
+    /// centre CC-ASAU (confirmed by owner) — it is not a legal entity.
     /// </summary>
     public static readonly (string Entity, string Code, string Name, string CostCentre)[] BusinessUnits =
     [
@@ -94,6 +95,7 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
         // Tenant login store (PHP-compatible users/groups/bind, same DDL as
         // ErpOnlyShopBootstrap) so the SHAM admin credential can be seeded here.
         await ErpDb.TryExecuteAsync(connection, EcomAE.Platform.Cp.ErpOnlyShopBootstrap.CreateUsersSql, cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(connection, EcomAE.Platform.Cp.ErpOnlyShopBootstrap.CreateSessionsSql, cancellationToken).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(connection, EcomAE.Platform.Cp.ErpOnlyShopBootstrap.CreateGroupsSql, cancellationToken).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(connection, EcomAE.Platform.Cp.ErpOnlyShopBootstrap.CreateGroupBindSql, cancellationToken).ConfigureAwait(false);
 
@@ -102,6 +104,7 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
             "ALTER TABLE `epc_erp_pm_legal_entities` ADD COLUMN `consolidated` tinyint(1) NOT NULL DEFAULT 0",
             "ALTER TABLE `epc_erp_pm_legal_entities` ADD COLUMN `legal_reg_no` varchar(60) NOT NULL DEFAULT ''",
             "ALTER TABLE `epc_erp_pm_legal_entities` ADD COLUMN `entity_kind` varchar(24) NOT NULL DEFAULT 'llc'",
+            "ALTER TABLE `epc_erp_pm_business_units` ADD UNIQUE KEY `ux_pm_bu_entity` (`legal_entity_id`,`code`)",
             "CREATE TABLE IF NOT EXISTS `epc_erp_org_business_units` (`id` int(11) NOT NULL AUTO_INCREMENT, `entity_id` int(11) NOT NULL DEFAULT 0, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(160) NOT NULL DEFAULT '', `activity` varchar(80) NOT NULL DEFAULT '', `branch` varchar(80) NOT NULL DEFAULT '', `parent_bu_id` int(11) NOT NULL DEFAULT 0, `manager_name` varchar(120) NOT NULL DEFAULT '', `default_warehouse_id` int(11) NOT NULL DEFAULT 0, `cost_centre` varchar(40) NOT NULL DEFAULT '', `profit_centre` varchar(40) NOT NULL DEFAULT '', `price_group` varchar(40) NOT NULL DEFAULT '', `status` varchar(12) NOT NULL DEFAULT 'active', `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_entity_bu` (`entity_id`,`code`), KEY `x_status` (`status`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Business units per legal entity (SHAM §3)'",
             "CREATE TABLE IF NOT EXISTS `epc_erp_org_user_access` (`id` int(11) NOT NULL AUTO_INCREMENT, `user_email` varchar(190) NOT NULL DEFAULT '', `entity_id` int(11) NOT NULL DEFAULT 0, `bu_id` int(11) NOT NULL DEFAULT 0, `role` varchar(40) NOT NULL DEFAULT 'staff', `actions_csv` varchar(500) NOT NULL DEFAULT '', `status` varchar(12) NOT NULL DEFAULT 'active', `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_access` (`user_email`,`entity_id`,`bu_id`,`role`), KEY `x_entity` (`entity_id`), KEY `x_bu` (`bu_id`), KEY `x_status` (`status`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User x entity x BU x role x action grants (SHAM §3)'",
             "CREATE TABLE IF NOT EXISTS `epc_erp_org_entity_accounts` (`id` int(11) NOT NULL AUTO_INCREMENT, `entity_id` int(11) NOT NULL DEFAULT 0, `coa_id` int(11) NOT NULL DEFAULT 0, `coa_code` varchar(16) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `suspense_only` tinyint(1) NOT NULL DEFAULT 0, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_entity_coa` (`entity_id`,`coa_id`), KEY `x_code` (`coa_code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Shared COA taxonomy, per-entity activation (SHAM §6)'",
@@ -195,22 +198,19 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
 
             // Phase-2 foundation: shared COA taxonomy with per-entity activation.
             // EnsureAsync only seeds the chart when EMPTY — a tenant with custom-only
-            // accounts still needs the system codes before activation, so upsert them here.
+            // accounts still needs the system codes before activation, so insert them here.
+            // Activate every system account for every registered entity (blueprint §6:
+            // one taxonomy, activation is what differs per entity). System codes are
+            // INSERT-ed only when missing — an existing account keeps its operator-set
+            // name/type/side (reseed never reclasifies a customized account).
+            var activations = 0;
             foreach (var account in ErpGlChartOfAccountsSeeder.SystemAccounts)
             {
                 await ErpDb.ExecuteAsync(connection, null,
                     ErpDb.Positional(
-                        "INSERT INTO `epc_erp_coa_accounts` (`code`,`name`,`account_type`,`normal_side`,`description`,`system_flag`,`time_created`) "
-                        + "VALUES (?,?,?,?,?,1,?) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), `account_type`=VALUES(`account_type`), `normal_side`=VALUES(`normal_side`)"),
+                        "INSERT IGNORE INTO `epc_erp_coa_accounts` (`code`,`name`,`account_type`,`normal_side`,`description`,`system_flag`,`time_created`) "
+                        + "VALUES (?,?,?,?,?,1,?)"),
                     cancellationToken, account.Code, account.Name, account.Type, account.Side, account.Description, now).ConfigureAwait(false);
-            }
-
-            // Activate every system account for every registered entity (blueprint §6:
-            // one taxonomy, activation is what differs per entity). Operator-disabled
-            // activations are NOT reactivated — reseeding must respect the restriction.
-            var activations = 0;
-            foreach (var account in ErpGlChartOfAccountsSeeder.SystemAccounts)
-            {
                 var coaId = (int)await ErpDb.LongAsync(connection, null,
                     ErpDb.Positional("SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code`=? LIMIT 1"),
                     cancellationToken, account.Code).ConfigureAwait(false);
@@ -238,11 +238,10 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
 
             return new(true,
                 "SHAM foundation seeded: " + entities + " legal entities (6 consolidated), "
-                + bus + " business units (incl. ASAU as a BU with its own cost centre), group SHAM with "
+                + bus + " business units (incl. ASAU under ASAPL with cost centre CC-ASAU), group SHAM with "
                 + members + " members, " + activations + " entity×account activations, "
                 + (adminSeeded ? "admin created" : "admin already present (password untouched)") + " — "
-                + "(shared COA taxonomy activated per entity per blueprint §6). "
-                + "ASAU is a BU only — still out of the entity register pending legal classification.",
+                + "(shared COA taxonomy activated per entity per blueprint §6; hybrid-ready, idempotent per shard).",
                 entities, bus, members);
         }
         catch (DbException ex)

@@ -20,9 +20,9 @@ public sealed class ErpShamFoundationTests
         var managed = entities.Where(e => !e.Consolidated).Select(e => e.Code).OrderBy(c => c, StringComparer.Ordinal);
         Assert.Equal(["AAAR", "AAPF", "ALTC", "PTAP", "RVAS"], managed.ToArray());
 
-        // ASAU intentionally absent: blueprint marks its legal status unverified.
+        // ASAU is a BU under ASAPL with its own cost centre — not a legal entity
+        // (owner confirmed).
         Assert.DoesNotContain(entities, e => e.Code == "ASAU");
-        // ...but ASAU exists as a BU (with cost centre), not an entity.
         Assert.Contains(ErpShamFoundationService.BusinessUnits, u => u.Code == "ASAU");
     }
 
@@ -35,7 +35,6 @@ public sealed class ErpShamFoundationTests
         Assert.Equal(
             ["ASAPL-BOOK", "ASAPL-CLP", "ASAPL-CLS", "ASAPL-RTL", "ASAPL-WSL", "ASAU"],
             units.Select(u => u.Code).OrderBy(c => c, StringComparer.Ordinal).ToArray());
-        // ASAU is a BU with its own cost centre — not a legal entity.
         var asau = units.Single(u => u.Code == "ASAU");
         Assert.Equal("CC-ASAU", asau.CostCentre);
         Assert.All(units, u => Assert.False(string.IsNullOrWhiteSpace(u.CostCentre)));
