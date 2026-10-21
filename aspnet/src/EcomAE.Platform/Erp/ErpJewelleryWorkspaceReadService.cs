@@ -52,6 +52,9 @@ public sealed class ErpJewelleryWorkspaceReadService : IErpJewelleryWorkspaceRea
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpJewelleryWorkspaceSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+        // Ledger list reads epc_erp_gl_journals — create the GL schema on tenants
+        // that have never posted (fresh tenants otherwise hit a missing-table 500).
+        await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
         var met = string.IsNullOrWhiteSpace(metal) ? "" : metal.Trim();
         snapshot.Metals = await LoadMetalsAsync(connection, cancellationToken).ConfigureAwait(false);

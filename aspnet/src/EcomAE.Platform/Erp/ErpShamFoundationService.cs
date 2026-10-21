@@ -91,6 +91,9 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
         await ErpLazySchema.EnsureCompanyContextAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpLazySchema.EnsureMultiEntityAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpGlChartOfAccountsSeeder.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+        // Base GL journal tables too — workspaces/statements read epc_erp_gl_journals
+        // and would 500 on a fresh tenant that has not posted anything yet.
+        await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpLazySchema.EnsurePmMastersAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
 

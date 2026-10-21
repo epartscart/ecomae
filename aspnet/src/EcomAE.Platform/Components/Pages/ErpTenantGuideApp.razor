@@ -1,0 +1,162 @@
+@page "/erp/guide"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using System.Text
+@using System.Web
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IErpTenantGuideReadService Guide
+
+<PageTitle>Tenant guide · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<style>
+    .tg-card { background:#fff; border:1px solid #dde6ee; border-radius:10px; padding:16px 18px; margin:0 0 16px; box-shadow:0 1px 2px rgba(16,42,66,.05); }
+    .tg-card h3 { margin:0 0 8px; font-size:15px; color:#12324f; }
+    .tg-card p, .tg-card li { font-size:12.5px; color:#40566c; line-height:1.55; }
+    .tg-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+    .tg-num { display:inline-block; min-width:22px; height:22px; line-height:22px; border-radius:11px; background:#12324f; color:#fff; text-align:center; font-size:12px; margin-right:6px; }
+</style>
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Tenant guide" BreadcrumbArea="Organization" BreadcrumbTab="Guide">
+    <PhpErpModulePageHeader
+        Title="Your organisation, visually"
+        Subtitle="A live map of this tenant's legal entities, business units and warehouses — plus how the main flows connect. This page reads the real org data, not a static document."
+        PhpTabHref="/erp/guide" />
+
+    @if (!_loaded)
+    {
+        <div class="tg-card"><p>Loading the organisation map…</p></div>
+    }
+    else if (!_model.HasOrgData)
+    {
+        <div class="tg-card">
+            <h3>No organisation data yet</h3>
+            <p>This tenant has no legal entities seeded. For ERP-only tenants, run the foundation seed from the control centre — the guide draws the full structure here automatically afterwards.</p>
+        </div>
+    }
+    else
+    {
+        <div class="tg-card" style="overflow-x:auto">
+            <h3>Organisation structure</h3>
+            @((MarkupString)BuildSvg())
+            <p style="color:#4a627a;font-size:12px;margin:6px 0 0">
+                @_model.Entities.Count legal entit@(_model.Entities.Count == 1 ? "y" : "ies") ·
+                @_model.BusinessUnits.Count business unit@(_model.BusinessUnits.Count == 1 ? "" : "s") ·
+                @_model.WarehouseCount warehouse@(_model.WarehouseCount == 1 ? "" : "s")
+            </p>
+        </div>
+
+        <div class="tg-grid">
+            <div class="tg-card">
+                <h3><span class="tg-num">1</span>Work in a legal entity</h3>
+                <p>The top bar carries a <strong>company switcher</strong> — it sets which legal entity your screens post to. In the URL it is <code>?company=N</code> (entity id) or <code>?cmp=CODE</code> (e.g. <code>?cmp=ASAPL</code>). Add <code>&amp;bu=CODE</code> to pin a business unit. Posting endpoints and workspaces honour the same selection and enforce access per entity × BU × role × action.</p>
+            </div>
+            <div class="tg-card">
+                <h3><span class="tg-num">2</span>Users &amp; access</h3>
+                <p>Create users in <strong>/erp/users-app</strong>, then grant entity + BU + action rights in the organization admin workspace (<strong>org_user_access</strong> tab). Grants are checked server-side — UI hiding is never the only control.</p>
+            </div>
+            <div class="tg-card">
+                <h3><span class="tg-num">3</span>Intercompany</h3>
+                <p>Trade between your entities via the intercompany workspace (<strong>/erp/intercompany-app</strong>). The paired journal (<code>POST /erp/sham/ic-post</code>) posts both legs in one transaction with an <code>IC-&lt;ref&gt;</code> trace, granted per entity.</p>
+            </div>
+            <div class="tg-card">
+                <h3><span class="tg-num">4</span>Order-to-cash</h3>
+                <p>Reserve stock with <code>stock-reserve</code>, issue the invoice with <code>sales-invoice-issue</code>, then post to GL with <code>invoice-post</code> — posted amounts come from the issued document and the order's holds are consumed in the same transaction.</p>
+            </div>
+            <div class="tg-card">
+                <h3><span class="tg-num">5</span>Procure-to-pay</h3>
+                <p>Receipts land in the BU's default warehouse via <code>po-receive</code> (movement + weighted-average stock). VAT posts to 1150/2100 and <code>GET /erp/sham/vat-summary</code> gives the per-entity FTA return input.</p>
+            </div>
+            <div class="tg-card">
+                <h3><span class="tg-num">6</span>Close &amp; consolidate</h3>
+                <p>Lock a month per entity with <code>period-lock</code> — posting engines refuse locked periods. Consolidated statements include only the solid-green entities above; dashed ones stay off group reports.</p>
+            </div>
+        </div>
+    }
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private bool _loaded;
+    private ErpTenantGuideModel _model = new();
+
+    private const int EntityWidth = 200;
+    private const int EntityGap = 30;
+    private int SvgWidth => Math.Max(760, _model.Entities.Count * (EntityWidth + EntityGap) + 20);
+    private int SvgHeight
+    {
+        get
+        {
+            var maxBus = _model.Entities.Count == 0 ? 0 : _model.Entities.Max(e => _model.BusinessUnits.Count(b => b.EntityId == e.Id));
+            return 220 + maxBus * 56;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx != null)
+        {
+            var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted).ConfigureAwait(false);
+            _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        }
+        try
+        {
+            _model = await Guide.ReadAsync(CancellationToken.None).ConfigureAwait(false);
+        }
+        catch
+        {
+            _model = new ErpTenantGuideModel();
+        }
+        _loaded = true;
+    }
+
+    private static string Shorten(string value) =>
+        value.Length <= 22 ? value : value[..21] + "…";
+
+    private static string Esc(string value) => HttpUtility.HtmlEncode(value);
+
+    private string BuildSvg()
+    {
+        var w = SvgWidth;
+        var h = SvgHeight;
+        var sb = new StringBuilder();
+        sb.Append($"<svg viewBox=\"0 0 {w} {h}\" width=\"{w}\" style=\"min-width:720px\" role=\"img\" aria-label=\"Organisation chart\">");
+        sb.Append($"<rect x=\"{(w/2)-140}\" y=\"8\" width=\"280\" height=\"44\" rx=\"8\" fill=\"#12324f\"/>");
+        sb.Append($"<text x=\"{w/2}\" y=\"26\" text-anchor=\"middle\" fill=\"#fff\" font-size=\"13\" font-weight=\"600\">Group · Consolidation</text>");
+        sb.Append($"<text x=\"{w/2}\" y=\"42\" text-anchor=\"middle\" fill=\"#9fc3e8\" font-size=\"11\">{_model.Entities.Count(e => e.Consolidated)} of {_model.Entities.Count} entities in group statements</text>");
+        for (var i = 0; i < _model.Entities.Count; i++)
+        {
+            var entity = _model.Entities[i];
+            var x = 20 + i * (EntityWidth + EntityGap);
+            var cx = x + EntityWidth / 2;
+            sb.Append($"<line x1=\"{w/2}\" y1=\"52\" x2=\"{cx}\" y2=\"86\" stroke=\"#7fa6c9\" stroke-width=\"1.5\"/>");
+            sb.Append($"<rect x=\"{x}\" y=\"86\" width=\"{EntityWidth}\" height=\"66\" rx=\"8\" fill=\"{(entity.Consolidated ? "#0f6b3f" : "#5b6570")}\" stroke=\"{(entity.Consolidated ? "#0a4a2b" : "#3f4750")}\"{(entity.Consolidated ? "" : " stroke-dasharray=\"5,4\"")}/>");
+            sb.Append($"<text x=\"{cx}\" y=\"104\" text-anchor=\"middle\" fill=\"#fff\" font-size=\"12\" font-weight=\"700\">{Esc(entity.Code)}</text>");
+            sb.Append($"<text x=\"{cx}\" y=\"120\" text-anchor=\"middle\" fill=\"#d9efe2\" font-size=\"10\">{Esc(Shorten(entity.Name))}</text>");
+            sb.Append($"<text x=\"{cx}\" y=\"135\" text-anchor=\"middle\" fill=\"#bfe0cd\" font-size=\"9\">{Esc(entity.Country)} · {Esc(entity.Currency)}{(entity.Consolidated ? "" : " · not consolidated")}</text>");
+            var bus = _model.BusinessUnits.Where(b => b.EntityId == entity.Id).ToList();
+            var by = 168;
+            foreach (var bu in bus)
+            {
+                sb.Append($"<line x1=\"{cx}\" y1=\"{by - 16}\" x2=\"{cx}\" y2=\"{by}\" stroke=\"#a7bccb\" stroke-width=\"1\"/>");
+                sb.Append($"<rect x=\"{x + 8}\" y=\"{by}\" width=\"{EntityWidth - 16}\" height=\"46\" rx=\"6\" fill=\"#eef4f9\" stroke=\"#c3d3de\"/>");
+                sb.Append($"<text x=\"{cx}\" y=\"{by + 15}\" text-anchor=\"middle\" fill=\"#12324f\" font-size=\"11\" font-weight=\"600\">{Esc(bu.Code)}</text>");
+                sb.Append($"<text x=\"{cx}\" y=\"{by + 29}\" text-anchor=\"middle\" fill=\"#4a627a\" font-size=\"9\">{Esc(Shorten(bu.Name))}</text>");
+                var dims = (bu.CostCentre != "" ? "CC " + bu.CostCentre : "") + (bu.Warehouse != "" ? " · WH " + bu.Warehouse : "");
+                sb.Append($"<text x=\"{cx}\" y=\"{by + 41}\" text-anchor=\"middle\" fill=\"#6b8196\" font-size=\"8\">{Esc(dims)}</text>");
+                by += 56;
+            }
+        }
+        sb.Append($"<rect x=\"20\" y=\"{h - 24}\" width=\"14\" height=\"12\" rx=\"3\" fill=\"#0f6b3f\"/>");
+        sb.Append($"<text x=\"40\" y=\"{h - 14}\" fill=\"#4a627a\" font-size=\"11\">Consolidated entity</text>");
+        sb.Append($"<rect x=\"170\" y=\"{h - 24}\" width=\"14\" height=\"12\" rx=\"3\" fill=\"#5b6570\" stroke=\"#3f4750\" stroke-dasharray=\"5,4\"/>");
+        sb.Append($"<text x=\"190\" y=\"{h - 14}\" fill=\"#4a627a\" font-size=\"11\">Held outside group statements</text>");
+        sb.Append($"<rect x=\"400\" y=\"{h - 24}\" width=\"14\" height=\"12\" rx=\"3\" fill=\"#eef4f9\" stroke=\"#c3d3de\"/>");
+        sb.Append($"<text x=\"420\" y=\"{h - 14}\" fill=\"#4a627a\" font-size=\"11\">Business unit (CC = cost centre, WH = default warehouse)</text>");
+        sb.Append("</svg>");
+        return sb.ToString();
+    }
+}
