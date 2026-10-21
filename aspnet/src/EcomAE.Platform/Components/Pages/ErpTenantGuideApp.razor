@@ -248,8 +248,7 @@
                         @HiddenFields()
                         <label>Legal entity</label><input name="entity" value="@_cmp" required />
                         <label>Business unit</label><input name="bu" value="@_bu" required />
-                        <label>Invoice id</label><input name="invoiceId" type="number" min="0" value="0" />
-                        <label>or invoice number</label><input name="number" placeholder="INV-…" />
+                        <label>Issued invoice document id</label><input name="invoiceId" type="number" min="1" required />
                         <label>Consume holds of order id (optional)</label><input name="consumeSourceId" type="number" min="0" value="0" />
                         <button type="submit">Post to GL</button>
                     </form>
@@ -262,6 +261,7 @@
                         <label>Legal entity</label><input name="entity" value="@_cmp" required />
                         <label>Business unit</label><input name="bu" value="@_bu" required />
                         <label>PO reference</label><input name="po" required />
+                        <label>Item id</label><input name="itemId" type="number" min="1" required />
                         <label>SKU</label><input name="sku" required />
                         <label>Qty</label><input name="qty" type="number" step="0.001" min="0" value="1" />
                         <label>Unit cost</label><input name="cost" type="number" step="0.01" min="0" value="0" />
@@ -279,6 +279,10 @@
                         <label>BU B</label><input name="buB" />
                         <label>Reference</label><input name="reference" placeholder="IC-…" required />
                         <label>Description</label><input name="description" />
+                        <label>Debit account (A)</label><input name="drA" required />
+                        <label>Credit account (A)</label><input name="crA" required />
+                        <label>Debit account (B)</label><input name="drB" required />
+                        <label>Credit account (B)</label><input name="crB" required />
                         <label>Amount</label><input name="amount" type="number" step="0.01" min="0" value="0" />
                         <label>Currency</label><input name="currency" value="AED" />
                         <button type="submit">Post paired journal</button>

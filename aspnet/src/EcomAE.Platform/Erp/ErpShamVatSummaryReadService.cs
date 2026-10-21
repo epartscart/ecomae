@@ -74,14 +74,18 @@ public sealed class ErpShamVatSummaryReadService : IErpShamVatSummaryReadService
                 return new(false, "Unknown or inactive legal entity '" + entity + "'.", entity, bu, fromTs, toTs, 0m, 0m, 0m, 0);
             }
 
+            // Resolve numeric selectors through the ORG BU table (id->code) so
+            // the scoped totals and the access grant evaluate the same BU —
+            // pm and org ids differ and matching pm.id directly could expose a
+            // different BU than the one the grant was checked against.
+            bu = await _foundation.NormalizeBuCodeAsync(entityId, bu, cancellationToken).ConfigureAwait(false);
+            bu = bu.ToUpperInvariant();
             var buId = 0L;
             if (bu.Length > 0)
             {
-                // Numeric selectors (?bu=<id>) match by id; codes match by code.
-                var buNumeric = long.TryParse(bu, out var buNum) ? buNum : -1L;
                 buId = await ErpDb.LongAsync(connection, null,
-                    ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_business_units` WHERE (`code`=? OR `id`=?) AND `legal_entity_id`=? AND `active`=1 LIMIT 1"),
-                    cancellationToken, bu, buNumeric, entityId).ConfigureAwait(false);
+                    ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_business_units` WHERE `code`=? AND `legal_entity_id`=? AND `active`=1 LIMIT 1"),
+                    cancellationToken, bu, entityId).ConfigureAwait(false);
                 if (buId == 0)
                 {
                     return new(false, "Business unit '" + bu + "' does not exist under entity " + entity + ".", entity, bu, fromTs, toTs, 0m, 0m, 0m, 0);
