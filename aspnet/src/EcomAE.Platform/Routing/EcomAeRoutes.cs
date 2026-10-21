@@ -3035,6 +3035,10 @@ public static class EcomAeRoutes
     public const string ErpShamTreasuryView = "/erp/sham/treasury-view";
     /// <summary>SHAM §14: per-module data-flow coverage matrix (live rows per module table).</summary>
     public const string ErpShamModuleFlows = "/erp/sham/module-flows";
+    /// <summary>SHAM §10: append an effective-dated transfer price rule between two legal entities.</summary>
+    public const string ErpShamTransferPriceSet = "/erp/sham/transfer-price-set";
+    /// <summary>SHAM §10: resolve the effective transfer price rule for a pair+SKU (list=all rules).</summary>
+    public const string ErpShamTransferPriceView = "/erp/sham/transfer-price-view";
     /// <summary>Auto-parts workspace demo clear: deletes only DEMO-tagged rows.</summary>
     public const string ErpAutoPartsDemoClear = "/erp/autoparts/demo-clear";
     /// <summary>Auto-parts month-end bridge: posts trading journals into the GL.</summary>

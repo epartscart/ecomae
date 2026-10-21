@@ -36,6 +36,7 @@ public sealed class ErpShamModuleFlowsService : IErpShamModuleFlowsService
         ("treasury",        "epc_erp_org_treasury_instruments", "LC/CAD/FX exposure per entity"),
         ("pricing",         "epc_erp_org_msp_versions",         "margin policy per entity×BU"),
         ("landed-cost",     "epc_erp_org_landed_costs",         "receipt charges → item landed cost"),
+        ("transfer-price",  "epc_erp_org_transfer_price_rules", "entity→entity IC pricing rules"),
         ("warehouses",      "epc_erp_inv_warehouses",           "BU default warehouse, stock"),
         ("bank-accounts",   "epc_erp_org_entity_bank_accounts", "treasury + payments per entity"),
     };

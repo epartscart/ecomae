@@ -99,6 +99,7 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
         await ErpShamMspService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpShamLandedCostService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpShamTreasuryService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpShamTransferPriceService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpLazySchema.EnsurePmMastersAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
 
@@ -114,6 +115,13 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
             // D365 F&O: a warehouse carries a financial cost centre; the BU's default
             // warehouse inherits the BU cost centre on link.
             "ALTER TABLE `epc_erp_inv_warehouses` ADD COLUMN `cost_centre` varchar(40) NOT NULL DEFAULT ''",
+            // §2 GroupMembership register: control basis, accounting method,
+            // effective dates and approval status per member.
+            "ALTER TABLE `epc_entity_members` ADD COLUMN `control_basis` varchar(40) NOT NULL DEFAULT ''",
+            "ALTER TABLE `epc_entity_members` ADD COLUMN `accounting_method` varchar(24) NOT NULL DEFAULT ''",
+            "ALTER TABLE `epc_entity_members` ADD COLUMN `effective_from` int(11) NOT NULL DEFAULT 0",
+            "ALTER TABLE `epc_entity_members` ADD COLUMN `effective_to` int(11) NOT NULL DEFAULT 0",
+            "ALTER TABLE `epc_entity_members` ADD COLUMN `approval_status` varchar(16) NOT NULL DEFAULT ''",
             "UPDATE `epc_erp_inv_warehouses` `w` JOIN `epc_erp_org_business_units` `bu` ON `bu`.`default_warehouse_id`=`w`.`id` SET `w`.`cost_centre`=`bu`.`cost_centre` WHERE `w`.`cost_centre`='' AND `bu`.`cost_centre`<>''",
             "ALTER TABLE `epc_erp_pm_legal_entities` ADD COLUMN `consolidated` tinyint(1) NOT NULL DEFAULT 0",
             "ALTER TABLE `epc_erp_pm_legal_entities` ADD COLUMN `legal_reg_no` varchar(60) NOT NULL DEFAULT ''",
@@ -208,11 +216,13 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
             foreach (var (code, name, consolidated) in Entities)
             {
                 var method = consolidated ? "full" : "excluded";
+                var controlBasis = consolidated ? "control" : "management";
+                var acctMethod = consolidated ? "full" : "cost";
                 await ErpDb.ExecuteAsync(connection, null,
                     ErpDb.Positional(
-                        "INSERT INTO `epc_entity_members` (`group_id`,`site_key`,`entity_name`,`ownership_pct`,`local_currency`,`consolidation`) "
-                        + "VALUES (?,?,?,100.00,'AED',?) ON DUPLICATE KEY UPDATE `entity_name`=VALUES(`entity_name`), `consolidation`=VALUES(`consolidation`)"),
-                    cancellationToken, groupId, code, name, method).ConfigureAwait(false);
+                        "INSERT INTO `epc_entity_members` (`group_id`,`site_key`,`entity_name`,`ownership_pct`,`local_currency`,`consolidation`,`control_basis`,`accounting_method`,`approval_status`) "
+                        + "VALUES (?,?,?,100.00,'AED',?,?,?,'approved') ON DUPLICATE KEY UPDATE `entity_name`=VALUES(`entity_name`), `consolidation`=VALUES(`consolidation`), `control_basis`=VALUES(`control_basis`), `accounting_method`=VALUES(`accounting_method`), `approval_status`=IF(`approval_status`='','approved',`approval_status`)"),
+                    cancellationToken, groupId, code, name, method, controlBasis, acctMethod).ConfigureAwait(false);
                 members++;
             }
 

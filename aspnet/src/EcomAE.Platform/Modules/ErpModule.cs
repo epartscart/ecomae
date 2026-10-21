@@ -407,6 +407,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpShamTreasury, HandleShamTreasuryAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamTreasuryView, HandleShamTreasuryViewAsync);
         endpoints.MapGet(EcomAeRoutes.ErpShamModuleFlows, HandleShamModuleFlowsAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpShamTransferPriceSet, HandleShamTransferPriceSetAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpShamTransferPriceView, HandleShamTransferPriceViewAsync);
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
@@ -27439,6 +27441,59 @@ public sealed class ErpModule : ISurfaceModule
             context.Request.Query["cmp"].ToString(), context.Request.Query["status"].ToString(),
             session.Email ?? string.Empty, cancellationToken);
         return Results.Ok(new { ok = res.Ok, message = res.Message, exposure = res.Exposure, instruments = res.Instruments });
+    }
+
+    /// <summary>SHAM §10: append an effective-dated transfer price rule (entity → entity, optional SKU).</summary>
+    private static async Task<IResult> HandleShamTransferPriceSetAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamTransferPriceService prices,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM transfer price set.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to append a transfer price rule. Fields: from|entity|cmp (selling entity), to (buying entity), sku (blank=pair default), kind=fixed_price|markup_pct|margin_floor_pct, value, currency, agreement_ref, effective_from, effective_to (unix). Scope check: 'transfer-price-set' grant.", session = SessionPayload(session) });
+        }
+
+        var from = AmlText(fields, "from", "fromEntity", "entity");
+        if (from.Length == 0) from = context.Request.Query["cmp"].ToString();
+        var res = await prices.SetAsync(
+            from, AmlText(fields, "to", "toEntity"), AmlText(fields, "sku"), AmlText(fields, "kind"),
+            AmlDec(fields, "value"), AmlText(fields, "currency"), AmlText(fields, "agreement_ref", "agreement"),
+            AmlLong(fields, "effective_from"), AmlLong(fields, "effective_to"),
+            session.Email ?? string.Empty, cancellationToken);
+        return LiveWriteFormBinder.Complete(context, "/erp/tenant-guide", res.Ok, res.Message, new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, rule = res.Rule, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM §10: resolve the effective rule for from/to/sku, or list all rules (no params).</summary>
+    private static async Task<IResult> HandleShamTransferPriceViewAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamTransferPriceService prices,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM transfer price view.");
+        }
+
+        var from = context.Request.Query["from"].ToString();
+        var to = context.Request.Query["to"].ToString();
+        if (from.Length == 0 || to.Length == 0)
+        {
+            var rules = await prices.ListAsync(session.Email ?? string.Empty, cancellationToken);
+            return Results.Ok(new { ok = true, count = rules.Count, rules });
+        }
+        var res = await prices.ResolveAsync(from, to, context.Request.Query["sku"].ToString(), session.Email ?? string.Empty, cancellationToken);
+        return Results.Ok(new { ok = res.Ok, message = res.Message, rule = res.Rule });
     }
 
     /// <summary>SHAM §14: module data-flow coverage matrix.</summary>
