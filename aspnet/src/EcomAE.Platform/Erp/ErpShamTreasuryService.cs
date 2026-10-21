@@ -137,6 +137,7 @@ public sealed class ErpShamTreasuryService : IErpShamTreasuryService
         }
         var (fromStatus, newStatus) = Steps[action];
         await using var conn = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureSchemaAsync(conn, cancellationToken).ConfigureAwait(false);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         long instrumentId = 0; string kind = "";
@@ -160,8 +161,17 @@ public sealed class ErpShamTreasuryService : IErpShamTreasuryService
         {
             return new(false, "Action " + action + " is not valid for a " + kind.ToUpperInvariant() + " instrument.", reference ?? "", "");
         }
+        if (action == "settle" && kind == "lc")
+        {
+            // An LC can only settle after receive + negotiate — every lifecycle
+            // stage must land in the event log.
+            fromStatus = "negotiated";
+        }
 
-        var n = await ErpDb.ExecuteAsync(conn, null,
+        // Status move + audit event commit atomically — a failed insert must
+        // not leave the instrument moved without its lifecycle entry.
+        await using var tx = await conn.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        var n = await ErpDb.ExecuteAsync(conn, tx,
             "UPDATE `epc_erp_org_treasury_instruments` SET `status`=?, `settled`=CASE WHEN ?='settled' THEN ? ELSE `settled` END WHERE `id`=? AND `status`=?",
             cancellationToken, newStatus, newStatus, now, instrumentId, fromStatus).ConfigureAwait(false);
         if (n == 0)
@@ -169,19 +179,21 @@ public sealed class ErpShamTreasuryService : IErpShamTreasuryService
             // CAD 'pay' jumps open straight to settled.
             if (kind == "cad" && action == "pay")
             {
-                n = await ErpDb.ExecuteAsync(conn, null,
+                n = await ErpDb.ExecuteAsync(conn, tx,
                     "UPDATE `epc_erp_org_treasury_instruments` SET `status`='settled', `settled`=? WHERE `id`=? AND `status`='open'",
                     cancellationToken, now, instrumentId).ConfigureAwait(false);
                 fromStatus = "open";
             }
             if (n == 0)
             {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
                 return new(false, "Instrument " + reference + " is not in state " + fromStatus + " — cannot " + action + ".", reference ?? "", "");
             }
         }
-        await ErpDb.ExecuteAsync(conn, null,
+        await ErpDb.ExecuteAsync(conn, tx,
             "INSERT INTO `epc_erp_org_treasury_events` (`instrument_id`,`action`,`from_status`,`to_status`,`actor`,`note`,`time_created`) VALUES (?,?,?,?,?,?,?)",
             cancellationToken, instrumentId, action, fromStatus, newStatus, userEmail, string.Empty, now).ConfigureAwait(false);
+        await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
         return new(true, "Instrument " + reference + " → " + newStatus + ".", reference ?? "", newStatus);
     }
 

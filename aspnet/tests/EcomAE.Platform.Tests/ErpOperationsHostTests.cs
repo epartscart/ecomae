@@ -91,6 +91,8 @@ public sealed class ErpOperationsHostTests
             DatabaseName: "indj_shop",
             DbUser: null,
             DbPassword: null,
+            DbUatUser: null,
+            DbUatPassword: null,
             DedicatedDb: false,
             IsActive: true,
             IsDemo: false));
@@ -119,6 +121,8 @@ public sealed class ErpOperationsHostTests
             DatabaseName: "asap_shop",
             DbUser: null,
             DbPassword: null,
+            DbUatUser: null,
+            DbUatPassword: null,
             DedicatedDb: false,
             IsActive: true,
             IsDemo: false));

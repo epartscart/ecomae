@@ -27390,10 +27390,15 @@ public sealed class ErpModule : ISurfaceModule
         {
             return unix;
         }
-        return DateTimeOffset.TryParse(raw, CultureInfo.InvariantCulture,
-            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var parsed)
-            ? parsed.ToUnixTimeSeconds() + (endOfDay ? 86399 : 0)
-            : 0;
+        // +86399 (end of day) applies only to date-only input — a full
+        // timestamp means exactly what it says.
+        if (DateTimeOffset.TryParse(raw, CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var parsed))
+        {
+            var parsedUnix = parsed.ToUnixTimeSeconds();
+            return endOfDay && raw.Length == 10 ? parsedUnix + 86399 : parsedUnix;
+        }
+        return 0;
     }
 
     /// <summary>SHAM §9: allocate receipt charges across lines; lines come as JSON 'lines' field or ?lines=.</summary>

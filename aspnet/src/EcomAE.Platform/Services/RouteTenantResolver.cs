@@ -214,10 +214,15 @@ public sealed class RouteTenantResolver : ITenantResolver
 
         var dedicatedUser = erpOnly.DbUser;
         var dedicatedPassword = erpOnly.DbPassword;
-        if (sandbox && TenantContext.UsableDedicatedCredentials(erpOnly.DbUatUser, erpOnly.DbUatPassword))
+        if (sandbox)
         {
-            // UAT tier binds a dedicated {user}_uat MySQL account scoped to {db}_sandbox —
-            // a leaked sandbox session can never reach the live tenant schema.
+            if (!TenantContext.UsableDedicatedCredentials(erpOnly.DbUatUser, erpOnly.DbUatPassword))
+            {
+                // Fail closed: a sandbox host must NEVER authenticate with the
+                // production account — provision {user}_uat first
+                // (scripts/cloudpanel_sandbox_uat_user.sh).
+                return null;
+            }
             dedicatedUser = erpOnly.DbUatUser;
             dedicatedPassword = erpOnly.DbUatPassword;
         }
