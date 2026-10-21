@@ -46,7 +46,7 @@ public sealed class ErpConsolidatedTrialBalanceReadService : IErpConsolidatedTri
             var entities = await ErpDb.LongAsync(
                 connection,
                 null,
-                ErpDb.Positional("SELECT COUNT(*) FROM `epc_entity_members` WHERE `group_id` = ?"),
+                ErpDb.Positional("SELECT COUNT(*) FROM `epc_entity_members` WHERE `group_id` = ? AND `consolidation` = 'full'"),
                 cancellationToken,
                 groupId).ConfigureAwait(false);
 

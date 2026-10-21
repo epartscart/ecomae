@@ -397,6 +397,34 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
     private static decimal Round2(decimal value)
         => Math.Round(value, 2, MidpointRounding.AwayFromZero);
 
+    /// <summary>
+    /// Entity ids of 'full' consolidation members (member site_key = pm legal-entity
+    /// code). Empty when the member register is missing or has no full members.
+    /// </summary>
+    private static async Task<List<long>> FullMemberEntityIdsAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        var ids = new List<long>();
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = ErpDb.Positional(
+                "SELECT DISTINCT e.`id` FROM `epc_entity_members` m"
+                + " JOIN `epc_erp_pm_legal_entities` e ON e.`code` = m.`site_key` AND e.`active` = 1"
+                + " WHERE m.`consolidation` = 'full'");
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                ids.Add(reader.GetInt64(0));
+            }
+        }
+        catch (DbException)
+        {
+            // Table absent on single-entity tenants — consolidation falls back to all journals.
+        }
+
+        return ids;
+    }
+
     private async Task<List<RawLine>> LoadAccountsAsync(
         DbConnection connection,
         ErpFinancialStatementQuery query,
@@ -409,6 +437,21 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             ErpFinancialStatementLevel.Company when query.CompanyId > 0 => " AND (IFNULL(j.`company_id`, 0) = @companyId OR IFNULL(l.`legal_entity_id`, 0) = @companyId)",
             _ => string.Empty,
         };
+        if (query.Level == ErpFinancialStatementLevel.Consolidation)
+        {
+            // Sum only 'full' group members — 'excluded'/'proportional'/'equity'
+            // entities (managed-but-not-consolidated) stay off consolidated
+            // statements. When the tenant has no member register at all the
+            // prior all-journals behaviour is preserved.
+            var fullMembers = await FullMemberEntityIdsAsync(connection, cancellationToken).ConfigureAwait(false);
+            if (fullMembers.Count > 0)
+            {
+                var ids = string.Join(',', fullMembers);
+                filter = " AND (IFNULL(j.`company_id`, 0) = 0"
+                    + " OR IFNULL(j.`company_id`, 0) IN (" + ids + ")"
+                    + " OR IFNULL(l.`legal_entity_id`, 0) IN (" + ids + "))";
+            }
+        }
         var fromUnix = query.Kind == ErpFinancialStatementKind.ProfitAndLoss ? query.FromUnix : 0L;
         var toUnix = query.ToUnix;
         var excludeClose = query.Kind == ErpFinancialStatementKind.ProfitAndLoss ? 1 : 0;
@@ -796,23 +839,35 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         return rows;
     }
 
+    /// <summary>
+    /// Per-currency operating slices for consolidation. When the tenant has a
+    /// member register, only 'full' members (plus unscoped journals) are summed —
+    /// 'excluded' entities stay off the consolidated statements.
+    /// </summary>
     private static async Task<List<ErpHeadOfficeMoney.Slice>> LoadCurrencySlicesAsync(
         DbConnection connection,
         CancellationToken cancellationToken)
     {
+        var fullMembers = await FullMemberEntityIdsAsync(connection, cancellationToken).ConfigureAwait(false);
+        var memberClause = fullMembers.Count > 0
+            ? " AND (IFNULL(j.`company_id`, 0) = 0"
+                + " OR IFNULL(j.`company_id`, 0) IN (" + string.Join(',', fullMembers) + ")"
+                + " OR IFNULL(l.`legal_entity_id`, 0) IN (" + string.Join(',', fullMembers) + "))"
+            : string.Empty;
         try
         {
-            return await ReadCurrencySlicesAsync(connection, true, cancellationToken).ConfigureAwait(false);
+            return await ReadCurrencySlicesAsync(connection, true, memberClause, cancellationToken).ConfigureAwait(false);
         }
         catch (DbException)
         {
-            return await ReadCurrencySlicesAsync(connection, false, cancellationToken).ConfigureAwait(false);
+            return await ReadCurrencySlicesAsync(connection, false, memberClause, cancellationToken).ConfigureAwait(false);
         }
     }
 
     private static async Task<List<ErpHeadOfficeMoney.Slice>> ReadCurrencySlicesAsync(
         DbConnection connection,
         bool withEntity,
+        string memberClause,
         CancellationToken cancellationToken)
     {
         var currency = withEntity
@@ -838,7 +893,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             + " INNER JOIN `epc_erp_gl_lines` l ON l.`coa_id` = a.`id`"
             + " INNER JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1"
             + entity
-            + " WHERE a.`active` = 1"
+            + " WHERE a.`active` = 1" + memberClause
             + " GROUP BY a.`id`, a.`code`, a.`name`, a.`account_type`, a.`normal_side`, " + currency;
         var rows = new List<ErpHeadOfficeMoney.Slice>();
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);

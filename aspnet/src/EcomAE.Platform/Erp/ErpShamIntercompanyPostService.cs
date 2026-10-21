@@ -59,6 +59,7 @@ public sealed class ErpShamIntercompanyPostService : IErpShamIntercompanyPostSer
         _vouchers = vouchers;
     }
 
+
     public async Task<ErpShamIcPostResult> PostAsync(
         string entityACode,
         string? buACode,
@@ -114,6 +115,7 @@ public sealed class ErpShamIntercompanyPostService : IErpShamIntercompanyPostSer
             await _posting.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await _vouchers.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
+
             var entityAId = await ErpDb.LongAsync(connection, null,
                 ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `code`=? AND `active`=1 LIMIT 1"),
                 cancellationToken, entityA).ConfigureAwait(false);
@@ -145,12 +147,22 @@ public sealed class ErpShamIntercompanyPostService : IErpShamIntercompanyPostSer
                 return new(false, "An account is missing from the chart or not activated for its entity.", 0, 0);
             }
 
-            var sourceId = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var icRef = "IC-" + (reference ?? string.Empty).Trim();
 
             await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
             try
             {
+                // Idempotent on the pair reference: a retried request finds the
+                // already-posted journals instead of double-booking both entities.
+                var existing = await ErpDb.LongAsync(connection, transaction,
+                    ErpDb.Positional("SELECT MIN(`id`) FROM `epc_erp_gl_journals` WHERE `source_type`='manual' AND `reference`=? AND `company_id` IN (?,?) AND `active`=1"),
+                    cancellationToken, icRef, entityAId, entityBId).ConfigureAwait(false);
+                if (existing > 0)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return new(false, "Intercompany pair " + icRef + " is already posted (journal " + existing + ") — use a different reference.", 0, 0);
+                }
+
                 var journalA = await _posting.PostJournalAsync(
                     connection,
                     transaction,
@@ -160,7 +172,7 @@ public sealed class ErpShamIntercompanyPostService : IErpShamIntercompanyPostSer
                         Reference = icRef,
                         Description = (description ?? string.Empty) + " [IC " + entityA + "->" + entityB + "]",
                         SourceType = "manual",
-                        SourceId = sourceId,
+                        SourceId = 0,
                         CompanyId = entityAId,
                         BusinessUnitId = buAId,
                         CurrencyCode = currencyCode ?? string.Empty,
@@ -174,6 +186,12 @@ public sealed class ErpShamIntercompanyPostService : IErpShamIntercompanyPostSer
                     adminId,
                     cancellationToken).ConfigureAwait(false);
 
+                // Pair id = journal A's id — unique across calls, and both rows carry it
+                // (A self-references) so the two sides trace as one document.
+                await ErpDb.ExecuteAsync(connection, transaction,
+                    ErpDb.Positional("UPDATE `epc_erp_gl_journals` SET `source_id`=? WHERE `id`=?"),
+                    cancellationToken, journalA, journalA).ConfigureAwait(false);
+
                 var journalB = await _posting.PostJournalAsync(
                     connection,
                     transaction,
@@ -183,7 +201,7 @@ public sealed class ErpShamIntercompanyPostService : IErpShamIntercompanyPostSer
                         Reference = icRef,
                         Description = (description ?? string.Empty) + " [IC " + entityB + "<-" + entityA + "]",
                         SourceType = "manual",
-                        SourceId = sourceId,
+                        SourceId = journalA,
                         CompanyId = entityBId,
                         BusinessUnitId = buBId,
                         CurrencyCode = currencyCode ?? string.Empty,

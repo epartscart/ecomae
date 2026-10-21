@@ -144,13 +144,16 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
             {
                 if (consumeSourceId > 0)
                 {
-                    var consumeType = string.IsNullOrWhiteSpace(consumeSourceType)
-                        ? ErpInventoryReservationWriteService.SourceSalesOrder
-                        : consumeSourceType.Trim();
+                    // Normalize the source type exactly like the engine: anything that is
+                    // not 'quote' is 'sales_order', so the guard and the scoped consume
+                    // can never disagree on which holds they inspect.
+                    var consumeType = string.Equals(consumeSourceType?.Trim(), ErpInventoryReservationWriteService.SourceQuote, StringComparison.OrdinalIgnoreCase)
+                        ? ErpInventoryReservationWriteService.SourceQuote
+                        : ErpInventoryReservationWriteService.SourceSalesOrder;
 
                     // Scope check: refuse to consume when another legal entity holds
-                    // reservations on this document — ConsumeBySourceAsync is
-                    // unscoped, so the caller's grant must never clear foreign holds.
+                    // reservations on this document — the caller's grant must never
+                    // clear foreign holds.
                     var foreign = await ErpDb.LongAsync(connection, transaction,
                         ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_inv_reservations` WHERE `source_type`=? AND `source_id`=? AND `status` IN ('held','confirmed') AND `owner_company_id`<>?"),
                         cancellationToken, consumeType, consumeSourceId, entityId).ConfigureAwait(false);
@@ -159,13 +162,12 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
                         return new(false, "Source document " + consumeSourceId + " has open holds owned by another legal entity — cannot consume across scopes.", 0);
                     }
 
-                    await _reservations.ConsumeBySourceAsync(
-                        connection,
-                        transaction,
-                        consumeType,
-                        consumeSourceId,
-                        adminId,
-                        cancellationToken).ConfigureAwait(false);
+                    // Owner-scoped consume inside the transaction: only this entity's
+                    // holds are marked consumed — a foreign hold inserted after the
+                    // check cannot be swept up.
+                    await ErpDb.ExecuteAsync(connection, transaction,
+                        ErpDb.Positional("UPDATE `epc_erp_inv_reservations` SET `status`='consumed', `consumed_at`=?, `expires_at`=0, `time_updated`=? WHERE `source_type`=? AND `source_id`=? AND `status` IN ('held','confirmed') AND `owner_company_id`=?"),
+                        cancellationToken, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), DateTimeOffset.UtcNow.ToUnixTimeSeconds(), consumeType, consumeSourceId, entityId).ConfigureAwait(false);
                 }
 
                 var journalId = await _posting.PostSalesInvoiceAsync(
