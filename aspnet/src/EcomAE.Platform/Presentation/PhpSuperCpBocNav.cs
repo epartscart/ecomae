@@ -41,7 +41,7 @@ public static class PhpSuperCpBocNav
         new("command_center", "Command Center", "command", "fa-tachometer", "control/portal/epc_boc_command_center", "Live fleet health"),
         new("fleet_cp", "CP fleet dashboard", "command", "fa-th", "control/portal/epc_super_cp_fleet_dashboard", "Cross-tenant CP KPIs"),
         new("fleet_erp", "ERP fleet dashboard", "command", "fa-university", "control/portal/epc_super_erp_fleet_dashboard", "Cross-tenant ERP KPIs"),
-        new("insights_erp", "Insights hub", "command", "fa-lightbulb-o", "shop/finance/erp?epc_erp_shell=1&area=overview&tab=dashboard", "Financial / business / CP insights"),
+        new("insights_erp", "ERP insights hub", "command", "fa-lightbulb-o", "shop/finance/epc_insights_suite", "Financial / business / CP insights (opens ERP)"),
 
         // Tenants
         new("tenant_hub", "Tenant hub / onboard", "lifecycle", "fa-sitemap", "shop/tenant_hub/tenant_hub", "Provision tenants"),
