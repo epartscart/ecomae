@@ -140,7 +140,8 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
             {
                 continue;
             }
-            else if (parameters.BusinessUnitId > 0 && businessUnitId != parameters.BusinessUnitId)
+
+            if (parameters.BusinessUnitId > 0 && businessUnitId != parameters.BusinessUnitId)
             {
                 continue;
             }
@@ -217,8 +218,28 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
         ErpTrialBalanceParameters parameters,
         CancellationToken cancellationToken)
     {
+        // Consolidated drills must apply the same member perimeter as the balance rows.
+        var fullMembers = parameters.Consolidated
+            ? await ErpFinancialStatementReadService.FullMemberEntityIdsAsync(connection, cancellationToken).ConfigureAwait(false)
+            : null;
+        string perimeter;
+        if (fullMembers is null)
+        {
+            perimeter = "AND (@company = 0 OR IFNULL(j.`company_id`, 0) = @company OR IFNULL(l.`legal_entity_id`, 0) = @company)";
+        }
+        else if (fullMembers.Count == 0)
+        {
+            // No 'full' members: group-level only (unscoped journals).
+            perimeter = "AND IFNULL(j.`company_id`, 0) = 0 AND IFNULL(l.`legal_entity_id`, 0) = 0";
+        }
+        else
+        {
+            var ids = string.Join(',', fullMembers);
+            perimeter = $"AND (IFNULL(j.`company_id`, 0) IN ({ids}) OR IFNULL(l.`legal_entity_id`, 0) IN ({ids})"
+                + " OR (IFNULL(j.`company_id`, 0) = 0 AND IFNULL(l.`legal_entity_id`, 0) = 0))";
+        }
         await using var command = connection.CreateCommand();
-        command.CommandText = """
+        command.CommandText = $"""
             SELECT j.`id`,
                    IFNULL(j.`journal_no`, '') AS journal_no,
                    CASE WHEN j.`journal_date` < 100000000 THEN UNIX_TIMESTAMP(STR_TO_DATE(CAST(j.`journal_date` AS CHAR), '%Y%m%d'))
@@ -234,7 +255,7 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
             INNER JOIN `epc_erp_coa_accounts` a ON a.`id` = l.`coa_id`
             WHERE a.`code` = @code
               AND (@bu = 0 OR IFNULL(NULLIF(l.`business_unit_id`, 0), IFNULL(j.`business_unit_id`, 0)) = @bu)
-              AND (@company = 0 OR IFNULL(j.`company_id`, 0) = @company OR IFNULL(l.`legal_entity_id`, 0) = @company)
+              {perimeter}
             ORDER BY journal_unix DESC, j.`id` DESC
             LIMIT 200
             """;

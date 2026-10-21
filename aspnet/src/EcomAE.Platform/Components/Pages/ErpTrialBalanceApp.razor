@@ -342,9 +342,7 @@
     }
 
     private string ConsolidatedHref()
-        => _parameters.Consolidated
-            ? (_parameters with { Consolidated = false }).AppHref(_parameters.AccountCode)
-            : _parameters.AppHref(_parameters.AccountCode) + "&company=consolidation";
+        => (_parameters with { Consolidated = !_parameters.Consolidated }).AppHref(_parameters.AccountCode);
 
     private static string FormatTime(long unix)
     {
