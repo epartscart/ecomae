@@ -36,6 +36,9 @@ public interface IErpShamInvoicePostService
         long orderId,
         string userEmail,
         int adminId,
+        long issueDate = 0,
+        string? currencyCode = null,
+        decimal exchangeRate = 0m,
         CancellationToken cancellationToken = default);
 
     Task<ErpShamInvoicePostResult> PostAsync(
@@ -160,10 +163,13 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
             string? docStatus = null;
             string? docNumber = null;
             string? docBuCode = null;
+            var docIssueDate = 0L;
+            var docCurrency = string.Empty;
+            var docRate = 0m;
             await using (var docCmd = connection.CreateCommand())
             {
                 docCmd.CommandText = ErpDb.Positional(
-                    "SELECT `invoice_number`,`subtotal`,`vat`,`total`,`order_id`,`status`,`bu_code` FROM `epc_erp_sham_sales_invoices` WHERE `id`=? AND `entity_id`=? LIMIT 1");
+                    "SELECT `invoice_number`,`subtotal`,`vat`,`total`,`order_id`,`status`,`bu_code`,`issue_date`,`currency_code`,`exchange_rate` FROM `epc_erp_sham_sales_invoices` WHERE `id`=? AND `entity_id`=? LIMIT 1");
                 ErpDb.AddParameters(docCmd, invoice.InvoiceId, entityId);
                 await using var docReader = await docCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 if (await docReader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -175,6 +181,9 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
                     docOrderId = docReader.GetInt64(4);
                     docStatus = docReader.GetString(5);
                     docBuCode = docReader.GetString(6);
+                    docIssueDate = docReader.GetInt64(7);
+                    docCurrency = docReader.GetString(8);
+                    docRate = docReader.GetDecimal(9);
                 }
             }
 
@@ -188,9 +197,18 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
                 return new(false, "Invoice " + docNumber + " is '" + docStatus + "' — only issued documents post.", 0);
             }
 
-            // The stored document is authoritative — caller-supplied amounts never
-            // override what the entity issued.
-            invoice = invoice with { InvoiceNumber = docNumber!, Subtotal = docSubtotal, TotalVat = docVat, TotalIncl = docTotal };
+            // The stored document is authoritative — caller-supplied amounts, issue
+            // date, currency and rate never override what the entity issued.
+            invoice = invoice with
+            {
+                InvoiceNumber = docNumber!,
+                Subtotal = docSubtotal,
+                TotalVat = docVat,
+                TotalIncl = docTotal,
+                IssueDate = docIssueDate > 0 ? docIssueDate : invoice.IssueDate,
+                CurrencyCode = docCurrency.Length > 0 ? docCurrency : invoice.CurrencyCode,
+                ExchangeRate = docRate > 0m ? docRate : invoice.ExchangeRate,
+            };
 
             // The document binds its business unit: a caller granted for another BU
             // cannot post it under their own scope.
@@ -310,6 +328,9 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
         long orderId,
         string userEmail,
         int adminId,
+        long issueDate = 0,
+        string? currencyCode = null,
+        decimal exchangeRate = 0m,
         CancellationToken cancellationToken = default)
     {
         var entity = (entityCode ?? string.Empty).Trim().ToUpperInvariant();
@@ -377,8 +398,10 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
 
             await ErpDb.ExecuteAsync(connection, null,
                 ErpDb.Positional(
-                    "INSERT INTO `epc_erp_sham_sales_invoices` (`entity_id`,`bu_code`,`invoice_number`,`customer`,`subtotal`,`vat`,`total`,`order_id`,`status`,`issued_by`,`time_created`) VALUES (?,?,?,?,?,?,?,?,'issued',?,?)"),
-                cancellationToken, entityId, bu, number, (customer ?? string.Empty).Trim(), subtotal, totalVat, totalIncl, orderId, adminId, DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
+                    "INSERT INTO `epc_erp_sham_sales_invoices` (`entity_id`,`bu_code`,`invoice_number`,`customer`,`subtotal`,`vat`,`total`,`order_id`,`issue_date`,`currency_code`,`exchange_rate`,`status`,`issued_by`,`time_created`) VALUES (?,?,?,?,?,?,?,?,?,?,?,'issued',?,?)"),
+                cancellationToken, entityId, bu, number, (customer ?? string.Empty).Trim(), subtotal, totalVat, totalIncl, orderId,
+                issueDate > 0 ? issueDate : DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                (currencyCode ?? string.Empty).Trim().ToUpperInvariant(), exchangeRate, adminId, DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
             var docId = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
             return new(true, "Invoice " + number + " issued in " + entity + (bu.Length > 0 ? "/" + bu : "") + " (document " + docId + ").", docId);
         }
@@ -402,6 +425,9 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
             + " `total` decimal(14,2) NOT NULL DEFAULT 0.00,"
             + " `order_id` int(11) NOT NULL DEFAULT 0,"
             + " `journal_id` int(11) NOT NULL DEFAULT 0,"
+            + " `issue_date` int(11) NOT NULL DEFAULT 0,"
+            + " `currency_code` varchar(8) NOT NULL DEFAULT '',"
+            + " `exchange_rate` decimal(14,6) NOT NULL DEFAULT 0.000000,"
             + " `status` varchar(12) NOT NULL DEFAULT 'issued',"
             + " `issued_by` int(11) NOT NULL DEFAULT 0,"
             + " `time_created` int(11) NOT NULL DEFAULT 0,"
@@ -409,5 +435,14 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
             + " UNIQUE KEY `ux_entity_invoice` (`entity_id`,`invoice_number`),"
             + " KEY `x_status` (`status`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='SHAM issued sales invoices (Phase-4 doc store)'",
             cancellationToken).ConfigureAwait(false);
+        foreach (var alter in new[]
+        {
+            "ALTER TABLE `epc_erp_sham_sales_invoices` ADD `issue_date` int(11) NOT NULL DEFAULT 0",
+            "ALTER TABLE `epc_erp_sham_sales_invoices` ADD `currency_code` varchar(8) NOT NULL DEFAULT ''",
+            "ALTER TABLE `epc_erp_sham_sales_invoices` ADD `exchange_rate` decimal(14,6) NOT NULL DEFAULT 0.000000",
+        })
+        {
+            await ErpDb.TryExecuteAsync(connection, alter, cancellationToken).ConfigureAwait(false);
+        }
     }
 }

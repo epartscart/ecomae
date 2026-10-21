@@ -1,3 +1,5 @@
+using System.Data.Common;
+
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
@@ -35,6 +37,7 @@ public interface IErpShamPoReceiveService
         string movementDate,
         string userEmail,
         int adminId,
+        string? receiptRef = null,
         CancellationToken cancellationToken = default);
 }
 
@@ -66,6 +69,7 @@ public sealed class ErpShamPoReceiveService : IErpShamPoReceiveService
         string movementDate,
         string userEmail,
         int adminId,
+        string? receiptRef = null,
         CancellationToken cancellationToken = default)
     {
         var entity = (entityCode ?? string.Empty).Trim().ToUpperInvariant();
@@ -113,6 +117,13 @@ public sealed class ErpShamPoReceiveService : IErpShamPoReceiveService
             }
 
             var reference = string.IsNullOrWhiteSpace(poNumber) ? null : "PO-" + poNumber.Trim();
+            if (!string.IsNullOrWhiteSpace(receiptRef) && reference is not null)
+            {
+                // A real second delivery carries its own receipt/GRN reference —
+                // identical deliveries without one are indistinguishable from
+                // retries and stay deduplicated by design.
+                reference += "/" + receiptRef.Trim();
+            }
 
             // Idempotency: a retry of the same PO+warehouse receipt must not add
             // stock a second time. Claims are keyed on the movement reference —
@@ -129,15 +140,23 @@ public sealed class ErpShamPoReceiveService : IErpShamPoReceiveService
             }
 
             // The linked purchase must exist — prevents receipts claiming bogus ids
-            // (per-entity ownership is not recorded on purchases yet).
+            // (per-entity ownership is not recorded on purchases yet). Tenants
+            // without the purchasing schema skip the check rather than blocking.
             if (purchaseId > 0)
             {
-                var purchaseExists = await ErpDb.LongAsync(connection, null,
-                    ErpDb.Positional("SELECT EXISTS(SELECT 1 FROM `epc_erp_purchases` WHERE `id`=? AND `active`=1)"),
-                    cancellationToken, purchaseId).ConfigureAwait(false);
-                if (purchaseExists == 0)
+                try
                 {
-                    return new(false, "purchase", "Purchase " + purchaseId + " does not exist.");
+                    var purchaseExists = await ErpDb.LongAsync(connection, null,
+                        ErpDb.Positional("SELECT EXISTS(SELECT 1 FROM `epc_erp_purchases` WHERE `id`=? AND `active`=1)"),
+                        cancellationToken, purchaseId).ConfigureAwait(false);
+                    if (purchaseExists == 0)
+                    {
+                        return new(false, "purchase", "Purchase " + purchaseId + " does not exist.");
+                    }
+                }
+                catch (DbException)
+                {
+                    // Purchasing schema absent on this tenant — receipt proceeds.
                 }
             }
 

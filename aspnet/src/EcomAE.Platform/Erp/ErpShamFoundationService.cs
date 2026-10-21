@@ -114,7 +114,10 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
             "CREATE TABLE IF NOT EXISTS `epc_erp_cash_bank_accounts` (`id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `account_type` varchar(8) NOT NULL DEFAULT 'cash', `bank_name` varchar(255) DEFAULT NULL, `account_number` varchar(64) DEFAULT NULL, `currency_code` varchar(8) NOT NULL DEFAULT 'AED', `opening_balance` decimal(14,2) NOT NULL DEFAULT 0.00, `office_id` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ERP cash and bank accounts'",
             "ALTER TABLE `epc_erp_cash_bank_accounts` ADD `legal_entity_id` int(11) NOT NULL DEFAULT 0",
             "ALTER TABLE `epc_erp_cash_bank_accounts` ADD `business_unit_id` int(11) NOT NULL DEFAULT 0",
-            "ALTER TABLE `epc_erp_cash_bank_accounts` ADD UNIQUE KEY `ux_sham_entity_bank` (`legal_entity_id`,`account_number`)",
+            // Lookup index only — NOT unique: other flows create cash accounts with
+            // blank account_number under entity 0, and a unique key would collide.
+            "ALTER TABLE `epc_erp_cash_bank_accounts` DROP INDEX `ux_sham_entity_bank`",
+            "ALTER TABLE `epc_erp_cash_bank_accounts` ADD KEY `ux_sham_entity_bank` (`legal_entity_id`,`account_number`)",
             // Phase-6 hook: closed accounting periods per entity (YYYYMM).
             "CREATE TABLE IF NOT EXISTS `epc_erp_sham_period_locks` (`id` int(11) NOT NULL AUTO_INCREMENT, `entity_id` int(11) NOT NULL DEFAULT 0, `period_ym` int(6) NOT NULL DEFAULT 0, `locked_by` int(11) NOT NULL DEFAULT 0, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_entity_period` (`entity_id`,`period_ym`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='SHAM closed accounting periods per entity'",
         })
