@@ -61,7 +61,8 @@ public sealed record CpTenantsOnboardErpOnlyRequest(
     string? IndustryCode,
     string? AdminEmail);
 
-public sealed record CpTenantsDeleteStandaloneRequest(string? SiteKey, string? ConfirmSiteKey);
+/// <summary><c>KeepDatabase</c> = offboard: remove the tenant/registry row but retain the dedicated database for backup requests.</summary>
+public sealed record CpTenantsDeleteStandaloneRequest(string? SiteKey, string? ConfirmSiteKey, bool KeepDatabase = false);
 
 public sealed class CpTenantsWriteService : ICpTenantsWriteService
 {
@@ -600,7 +601,9 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
                 return ErpSimpleWriteResult.Fail("demo", "Demo tenants delete from Demo tenants, not this form.");
             }
 
-            var dropped = await DropDatabaseAsync(connection, dbName, dbUser, cancellationToken).ConfigureAwait(false);
+            var dropped = request.KeepDatabase
+                ? false
+                : await DropDatabaseAsync(connection, dbName, dbUser, cancellationToken).ConfigureAwait(false);
             await ErpDb.ExecuteAsync(
                 connection, null,
                 ErpDb.Positional("DELETE FROM `epc_portal_tenants` WHERE `site_key`=?"),
@@ -608,7 +611,9 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
 
             return ErpSimpleWriteResult.Ok(
                 "Standalone ERP tenant " + siteKey + " deleted"
-                + (dropped ? " (database dropped)" : " (registry removed; database drop skipped)") + ".",
+                + (request.KeepDatabase
+                    ? " (database retained for backup requests — drop " + dbName + " manually when the retention period ends)"
+                    : dropped ? " (database dropped)" : " (registry removed; database drop skipped)") + ".",
                 0);
         }
         catch (DbException)

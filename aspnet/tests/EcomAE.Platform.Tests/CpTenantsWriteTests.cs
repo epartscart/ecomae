@@ -91,7 +91,9 @@ public sealed class CpTenantsWriteTests
         Assert.Equal("real@ecomae.com", CpTenantsWriteService.OperatorEmailFor("real"));
         Assert.Equal(4, ErpOnlyLaunchClients.All.Count);
         Assert.Equal("yawer@ecomae.com", ErpOnlyLaunchClients.SuperMailbox);
-        Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "asap" && c.Email == "asap@ecomae.com");
+        // asap offboarded — no longer a launch client; its DB is retained off-catalog.
+        Assert.DoesNotContain(ErpOnlyLaunchClients.All, c => c.SiteKey == "asap");
+        Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "sham" && c.Email == "sham@ecomae.com" && c.IndustryCode == "auto_parts");
         Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "indj");
         Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "fito");
         Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "real");
@@ -117,6 +119,9 @@ public sealed class CpTenantsWriteTests
         Assert.Contains("RepairErpOnlyShopAsync", service, StringComparison.Ordinal);
         Assert.Contains("onboard_erp_only", module, StringComparison.Ordinal);
         Assert.Contains("delete_standalone_erp", module, StringComparison.Ordinal);
+        Assert.Contains("keep_database", module, StringComparison.Ordinal);
+        Assert.Contains("KeepDatabase", service, StringComparison.Ordinal);
+        Assert.Contains("database retained for backup requests", service, StringComparison.Ordinal);
         Assert.Contains("repair_erp_only_shop", module, StringComparison.Ordinal);
         Assert.Contains("repair_four_erp_only", module, StringComparison.Ordinal);
         Assert.Contains("set_operator_password", module, StringComparison.Ordinal);

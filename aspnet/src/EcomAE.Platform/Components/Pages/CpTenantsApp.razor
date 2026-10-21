@@ -72,7 +72,7 @@
             <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1.1rem 1.15rem">
                 <h3 style="margin:0 0 .45rem;font-size:1.05rem">Onboard ERP-only company (no website)</h3>
                 <p class="help-block" style="margin:0 0 .75rem">
-                    Four-letter company key: <code>asap</code>, <code>indj</code>, <code>fito</code>, <code>real</code>.
+                    Four-letter company key: <code>sham</code>, <code>indj</code>, <code>fito</code>, <code>real</code>.
                     Primary admin login is <code>xxxx@@ecomae.com</code> from that key. After that you can add more emails and set your own password below.
                     Staff open <code>/cp/client-erp/xxxx/</code> — no public storefront.
                 </p>
@@ -80,7 +80,7 @@
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
                     <input type="hidden" name="action" value="onboard_four_erp_only" />
-                    <button type="submit" class="btn btn-primary">Create ASAP / INDJ / FITO / REAL now</button>
+                    <button type="submit" class="btn btn-primary">Create SHAM / INDJ / FITO / REAL now</button>
                 </form>
                 <ul style="margin:0 0 1rem;padding-left:1.2rem">
                     @foreach (var client in ErpOnlyLaunchClients.All)
@@ -354,12 +354,13 @@
                                 <td>
                                     @if (_isAdmin && t.TenantType == "erp_only" && !t.IsDemo && !string.IsNullOrWhiteSpace(t.SiteKey))
                                     {
-                                        <form method="post" action="/cp/tenants/write" style="display:flex;flex-wrap:wrap;gap:.3rem;align-items:center" onsubmit="return window.confirm('Permanently delete this ERP-only tenant and its dedicated database?');">
+                                        <form method="post" action="/cp/tenants/write" style="display:flex;flex-wrap:wrap;gap:.3rem;align-items:center" onsubmit="return window.confirm('Remove this ERP-only tenant? Tick keep-database to offboard while retaining its dedicated database for backup requests; unticked drops the database.');">
                                             <input type="hidden" name="confirmWrites" value="true" />
                                             <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
                                             <input type="hidden" name="action" value="delete_standalone_erp" />
                                             <input type="hidden" name="site_key" value="@t.SiteKey" />
                                             <input type="text" name="confirm_site_key" required placeholder="@t.SiteKey" title="Type the site key to confirm" style="width:7.5rem" />
+                                            <label class="form-check" style="font-size:.75rem" title="Offboard: remove the tenant but keep its database for backup requests"><input type="checkbox" name="keep_database" value="1" class="form-check-input" />Keep DB</label>
                                             <button type="submit" class="btn btn-xs btn-danger">Delete</button>
                                         </form>
                                     }

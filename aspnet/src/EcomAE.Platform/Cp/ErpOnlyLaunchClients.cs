@@ -16,9 +16,12 @@ public static class ErpOnlyLaunchClients
         string Email,
         string LoginPath);
 
+    // ASAP Autoparts offboarded Oct 2026 — tenant removed from launch catalog so Super CP,
+    // mail, and repair-onboard no longer surface or recreate it. Its database is retained for
+    // backup requests; drop it manually when the retention period ends.
     public static readonly IReadOnlyList<Client> All =
     [
-        new("asap", "ASAP Autoparts", "auto_parts", "asap@ecomae.com", "/cp/client-erp/asap/"),
+        new("sham", "Al Shamali Auto Parts Group", "auto_parts", "sham@ecomae.com", "/cp/client-erp/sham/"),
         new("indj", "INDJ Jewellery", "jewellery", "indj@ecomae.com", "/cp/client-erp/indj/"),
         new("fito", "FITO Fit-out", "fit_out", "fito@ecomae.com", "/cp/client-erp/fito/"),
         new("real", "REAL Real Estate", "real_estate", "real@ecomae.com", "/cp/client-erp/real/"),
