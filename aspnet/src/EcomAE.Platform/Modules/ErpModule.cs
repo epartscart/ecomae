@@ -27544,7 +27544,8 @@ public sealed class ErpModule : ISurfaceModule
 
         var area = context.Request.Query["area"].ToString();
         await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        var res = await ErpD365BulkCsv.ExportAsync(conn, area, cancellationToken).ConfigureAwait(false);
+        long.TryParse(context.Request.Query["entity"], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var exportEntity);
+        var res = await ErpD365BulkCsv.ExportAsync(conn, area, exportEntity, cancellationToken).ConfigureAwait(false);
         if (!res.Ok) return Results.BadRequest(res.Message);
         return Results.File(System.Text.Encoding.UTF8.GetBytes(res.Csv), "text/csv", res.FileName);
     }
@@ -27824,6 +27825,7 @@ public sealed class ErpModule : ISurfaceModule
             var bu = cells.Length > 4 && long.TryParse(cells[4], out var x) ? x : 0;
             var cc = cells.Length > 5 && long.TryParse(cells[5], out var y) ? y : 0;
             var le = cells.Length > 6 && long.TryParse(cells[6], out var z) ? z : 0;
+            var lineEntityCode = entityCode;
             if (le > 0)
             {
                 var leCode = (await ErpDb.StringAsync(conn, null, ErpDb.Positional("SELECT `code` FROM `epc_erp_pm_legal_entities` WHERE `id`=? LIMIT 1"), cancellationToken, le).ConfigureAwait(false)) ?? "";
@@ -27836,6 +27838,7 @@ public sealed class ErpModule : ISurfaceModule
                 {
                     return Results.Ok(new { ok = false, writes = 0, validation_code = "grant_denied", message = "No 'journal-post' grant for line entity '" + leCode + "'.", session = SessionPayload(session) });
                 }
+                lineEntityCode = leCode;
             }
             if (bu > 0)
             {
@@ -27844,7 +27847,7 @@ public sealed class ErpModule : ISurfaceModule
                 {
                     return Results.Ok(new { ok = false, writes = 0, validation_code = "unknown_bu", message = "Line business-unit id " + bu + " does not resolve.", session = SessionPayload(session) });
                 }
-                var buGranted = await foundation.AccessAllowedAsync(session.Email ?? string.Empty, entityCode.Length > 0 ? entityCode : null, lineBuCode, "journal-post", cancellationToken).ConfigureAwait(false);
+                var buGranted = await foundation.AccessAllowedAsync(session.Email ?? string.Empty, lineEntityCode.Length > 0 ? lineEntityCode : null, lineBuCode, "journal-post", cancellationToken).ConfigureAwait(false);
                 if (!buGranted)
                 {
                     return Results.Ok(new { ok = false, writes = 0, validation_code = "grant_denied", message = "No 'journal-post' grant for line BU '" + lineBuCode + "'.", session = SessionPayload(session) });
