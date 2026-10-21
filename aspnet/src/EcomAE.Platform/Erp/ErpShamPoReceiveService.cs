@@ -114,17 +114,19 @@ public sealed class ErpShamPoReceiveService : IErpShamPoReceiveService
                 return new(false, "access", "No active grant for '" + userEmail + "' to receive stock in " + entity + "/" + bu + ".");
             }
 
-            // Escaped per part: '\' first, then '/' — an injective encoding so
-            // "A/B"+"C", "A"+"B/C" and "A\B" can never collide.
-            static string EscapePart(string s) => s.Replace("\\", "\\\\").Replace("/", "\\/");
+            // Canonical scheme is "PO:<po>[|<ref>]" — every legacy row starts
+            // "PO-", so a canonical key can NEVER equal a legacy key no matter
+            // what characters the identifiers contain. Parts escape '\' and '|'
+            // (injective); '/' needs no escaping since it is not the separator.
+            static string EscapePart(string s) => s.Replace("\\", "\\\\").Replace("|", "\\|");
 
-            var reference = string.IsNullOrWhiteSpace(poNumber) ? null : "PO-" + EscapePart(poNumber.Trim());
+            var reference = string.IsNullOrWhiteSpace(poNumber) ? null : "PO:" + EscapePart(poNumber.Trim());
             if (!string.IsNullOrWhiteSpace(receiptRef) && reference is not null)
             {
                 // A real second delivery carries its own receipt/GRN reference —
                 // identical deliveries without one are indistinguishable from
                 // retries and stay deduplicated by design.
-                reference += "/" + EscapePart(receiptRef.Trim());
+                reference += "|" + EscapePart(receiptRef.Trim());
             }
 
             // The movement `reference` column is 128 chars — an overlong claim must
@@ -138,24 +140,14 @@ public sealed class ErpShamPoReceiveService : IErpShamPoReceiveService
                 canonicalReference = canonicalReference[..109] + "~" + hash;
             }
 
-            // Dedupe keys across every scheme this endpoint has shipped:
-            //   canonical — escaped+truncated (current)
-            //   legacy    — raw "PO-<po>" join; the ONLY shape pre-escape code
-            //               could write (the receipt suffix didn't exist then),
-            //               so it is only checked when this request has no receipt.
-            //   interim   — "PO-<po\>/<ref\>" single-level escape from the first
-            //               fix; only meaningful when a receipt is present.
-            // Restricting legacy to receipt-less requests keeps raw "PO-A/B" from
-            // claiming a row that only "po=A + ref=B" could have written.
-            var dedupeKeys = new List<string> { canonicalReference! };
-            if (string.IsNullOrWhiteSpace(receiptRef))
-            {
-                dedupeKeys.Add("PO-" + poNumber.Trim());
-            }
-            else
-            {
-                dedupeKeys.Add("PO-" + poNumber.Trim().Replace('/', '\\') + "/" + receiptRef.Trim().Replace('/', '\\'));
-            }
+            // Dedupe against the legacy raw key "PO-<po>" as well — the ONLY
+            // shape pre-receipt code could write, so it is only checked for
+            // receipt-less requests (a receipt-suffixed row can only belong to
+            // the '|' scheme). Pair lookups need no second key: '|' keys are
+            // disjoint from every earlier format.
+            var legacyReference = string.IsNullOrWhiteSpace(receiptRef) || string.IsNullOrWhiteSpace(poNumber)
+                ? (string.IsNullOrWhiteSpace(poNumber) ? null : "PO-" + poNumber.Trim())
+                : null;
 
             // Idempotency: a retry of the same PO+warehouse receipt must not add
             // stock a second time. Claims are keyed on the movement reference —
@@ -164,7 +156,7 @@ public sealed class ErpShamPoReceiveService : IErpShamPoReceiveService
             {
                 var prior = await ErpDb.LongAsync(connection, null,
                     ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_movements` WHERE `movement_type`='purchase_in' AND `warehouse_id`=? AND `item_id`=? AND `qty`=? AND `reference` IN (?, ?) LIMIT 1"),
-                    cancellationToken, warehouseId, itemId, qty, dedupeKeys[0], dedupeKeys[1]).ConfigureAwait(false);
+                    cancellationToken, warehouseId, itemId, qty, canonicalReference, legacyReference ?? canonicalReference).ConfigureAwait(false);
                 if (prior > 0)
                 {
                     return new(true, "ok", "Receipt " + canonicalReference + " already recorded for item " + itemId + " in warehouse " + warehouseId + " (movement " + prior + ").");

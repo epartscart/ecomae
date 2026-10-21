@@ -18,11 +18,14 @@ public static class ErpOperationsHost
         @"^(?<slug>[a-z0-9][a-z0-9-]*)\.operations\.(?<country>[a-z]{3})\.ecomae\.com$",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
-    // Flat alias — {key}-{country3}.operations.ecomae.com is a THIRD-level host,
-    // covered by the zone's free Universal SSL (*.ecomae.com) where the deep form
-    // needs paid multi-level certs. Same binding, same semantics; both parse.
+    // Flat alias — {key}-operations-{country3}.ecomae.com is a SINGLE-label host,
+    // covered by the zone's free Universal SSL and the existing *.ecomae.com DNS
+    // record; the deep form needs paid multi-level certs (ACM/Total TLS). A
+    // dotted flat host ({key}-{c}.operations.ecomae.com) is still two labels and
+    // NOT covered — the country must live inside the one label. Slug carries no
+    // hyphen (site keys are [a-z0-9]), so "-operations-{ccc}" is unambiguous.
     private static readonly Regex FlatHostPattern = new(
-        @"^(?<slug>[a-z0-9]+)-(?<country>[a-z]{3})\.operations\.ecomae\.com$",
+        @"^(?<slug>[a-z0-9]+)-operations-(?<country>[a-z]{3})\.ecomae\.com$",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
     public static bool TryParse(string? host, out string siteKey, out string country)
@@ -76,9 +79,9 @@ public static class ErpOperationsHost
 
         var key = ClientErpPath.NormalizeSiteKey(siteKey);
         var shard = string.IsNullOrWhiteSpace(country) ? DefaultCountry : country.Trim().ToLowerInvariant();
-        // Canonical is the flat form: free Universal SSL covers it, the deep
-        // {key}.operations.{country} form still resolves as an alias.
-        return $"{key}-{shard}.operations.ecomae.com";
+        // Canonical is the single-label form: free Universal SSL + *.ecomae.com
+        // DNS cover it; the deep {key}.operations.{country} form still resolves.
+        return $"{key}-operations-{shard}.ecomae.com";
     }
 
     /// <summary>Canonical absolute URL for a tenant path, e.g. https://indj.operations.uae.ecomae.com/erp. Empty when the key is not host-safe.</summary>
