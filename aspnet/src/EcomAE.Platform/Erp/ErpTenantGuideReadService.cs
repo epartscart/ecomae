@@ -56,13 +56,34 @@ public sealed class ErpTenantGuideReadService : IErpTenantGuideReadService
         }
         catch { /* pm legal-entity table absent */ }
 
+        // When the `consolidated` flag column is absent (non-SHAM tenants),
+        // fall back to the same `epc_entity_members` membership the group
+        // statements use — never mark everything consolidated.
+        var fullMembers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (!hasConsolidated)
+        {
+            try
+            {
+                await using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT `site_key` FROM `epc_entity_members` WHERE `consolidation`='full'";
+                    await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                    while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        fullMembers.Add(reader.GetString(0));
+                    }
+                }
+            }
+            catch { /* membership table absent → nothing consolidated */ }
+        }
+
         try
         {
             await using (var cmd = conn.CreateCommand())
             {
                 cmd.CommandText = hasConsolidated
                     ? "SELECT `id`,`code`,`name`,`country_code`,`currency_code`,`consolidated` FROM `epc_erp_pm_legal_entities` WHERE `active`=1 ORDER BY `id`"
-                    : "SELECT `id`,`code`,`name`,`country_code`,`currency_code`,1 FROM `epc_erp_pm_legal_entities` WHERE `active`=1 ORDER BY `id`";
+                    : "SELECT `id`,`code`,`name`,`country_code`,`currency_code`,0 FROM `epc_erp_pm_legal_entities` WHERE `active`=1 ORDER BY `id`";
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -72,7 +93,7 @@ public sealed class ErpTenantGuideReadService : IErpTenantGuideReadService
                         reader.GetString(2),
                         reader.GetString(3),
                         reader.GetString(4),
-                        !reader.IsDBNull(5) && reader.GetInt32(5) == 1));
+                        (!reader.IsDBNull(5) && reader.GetInt32(5) == 1) || (!hasConsolidated && fullMembers.Contains(reader.GetString(1)))));
                 }
             }
         }
@@ -107,6 +128,9 @@ public sealed class ErpTenantGuideReadService : IErpTenantGuideReadService
         // Standard ERP masters BUs (epc_erp_pm_business_units) — older tenants and
         // the operational mirror; no cost-centre/warehouse columns there.
         var known = new HashSet<string>(bus.Select(b => b.EntityId + "|" + b.Code), StringComparer.OrdinalIgnoreCase);
+        // Mirror rows renamed after seeding keep the same name on the org side —
+        // dedupe by name too so a code-edited mirror does not draw a phantom BU.
+        var knownNames = new HashSet<string>(bus.Where(b => b.Name.Length > 0).Select(b => b.EntityId + "|" + b.Name), StringComparer.OrdinalIgnoreCase);
         try
         {
             await using (var cmd = conn.CreateCommand())
@@ -117,9 +141,10 @@ public sealed class ErpTenantGuideReadService : IErpTenantGuideReadService
                 {
                     var entityId = reader.GetInt32(1);
                     var code = reader.GetString(2);
-                    if (known.Add(entityId + "|" + code))
+                    var name = reader.GetString(3);
+                    if (known.Add(entityId + "|" + code) && (name.Length == 0 || knownNames.Add(entityId + "|" + name)))
                     {
-                        bus.Add(new ErpTenantGuideBu(reader.GetInt32(0), entityId, code, reader.GetString(3), "", ""));
+                        bus.Add(new ErpTenantGuideBu(reader.GetInt32(0), entityId, code, name, "", ""));
                     }
                 }
             }
