@@ -394,6 +394,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpShamStockReserve, HandleShamStockReserveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamInvoicePost, HandleShamInvoicePostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamIcPost, HandleShamIcPostAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpShamSalesInvoiceIssue, HandleShamSalesInvoiceIssueAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
@@ -27065,6 +27066,49 @@ public sealed class ErpModule : ISurfaceModule
             res.Ok,
             res.Message,
             new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, journalAId = res.JournalAId, journalBId = res.JournalBId, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM Phase-4: issue an entity-scoped sales-invoice document (required before invoice-post).</summary>
+    private static async Task<IResult> HandleShamSalesInvoiceIssueAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamInvoicePostService posts,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for SHAM invoice issue.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to issue a SHAM sales invoice document. Fields: entity|cmp, bu, number, customer, subtotal, vat, total, orderId. Scope check: 'invoice-issue' grant.", session = SessionPayload(session) });
+        }
+
+        var entity = AmlText(fields, "entity");
+        if (entity.Length == 0)
+        {
+            entity = context.Request.Query["cmp"].ToString();
+        }
+
+        var bu = AmlText(fields, "bu");
+        if (bu.Length == 0)
+        {
+            bu = context.Request.Query["bu"].ToString();
+        }
+
+        var res = await posts.IssueAsync(
+            entity, bu, AmlText(fields, "number"), AmlText(fields, "customer"),
+            AmlDec(fields, "subtotal"), AmlDec(fields, "vat"), AmlDec(fields, "total"),
+            AmlLong(fields, "orderId"), session.Email ?? string.Empty, session.UserId, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/organization-admin-app?tab=org_entities",
+            res.Ok,
+            res.Message,
+            new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, invoiceId = res.InvoiceId, session = SessionPayload(session) });
     }
 
     /// <summary>Auto-parts workspace demo seed: inserts DEMO-tagged rows only.</summary>
