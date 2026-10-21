@@ -26765,25 +26765,25 @@ public sealed class ErpModule : ISurfaceModule
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for SHAM journal posting.");
         }
 
-        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
         if (!confirm)
         {
             return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to post a SHAM journal (entity + BU + linesJson). Scope checks: access matrix 'journal-post' grant + per-entity COA activation.", session = SessionPayload(session) });
         }
 
-        var entity = context.Request.Form["entity"].ToString();
+        var entity = AmlText(fields, "entity");
         if (entity.Length == 0)
         {
             entity = context.Request.Query["cmp"].ToString();
         }
 
-        var bu = context.Request.Form["bu"].ToString();
+        var bu = AmlText(fields, "bu");
         if (bu.Length == 0)
         {
             bu = context.Request.Query["bu"].ToString();
         }
 
-        var dateText = context.Request.Form["date"].ToString();
+        var dateText = AmlText(fields, "date");
         long journalDate = 0;
         if (dateText.Length > 0)
         {
@@ -26800,16 +26800,16 @@ public sealed class ErpModule : ISurfaceModule
             }
         }
 
-        var reference = context.Request.Form["reference"].ToString();
-        var description = context.Request.Form["description"].ToString();
-        var currency = context.Request.Form["currency"].ToString();
-        decimal.TryParse(context.Request.Form["rate"].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var rate);
+        var reference = AmlText(fields, "reference");
+        var description = AmlText(fields, "description");
+        var currency = AmlText(fields, "currency");
+        decimal.TryParse(AmlText(fields, "rate"), NumberStyles.Any, CultureInfo.InvariantCulture, out var rate);
         if (rate <= 0m)
         {
             rate = 1m;
         }
 
-        var linesJson = context.Request.Form["linesJson"].ToString();
+        var linesJson = AmlText(fields, "linesJson");
         var lines = new List<ErpShamJournalLine>();
         if (linesJson.Length > 0)
         {
@@ -26860,45 +26860,43 @@ public sealed class ErpModule : ISurfaceModule
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for SHAM stock reservation.");
         }
 
-        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
         if (!confirm)
         {
             return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to reserve/release SHAM stock. Fields: entity|cmp, bu, op=reserve|release, sku|itemId, qty, sourceId, sourceLineKey, sourceType (sales_order|quote), allowPartial, durable — or reservationId for release. Scope checks: access matrix 'stock-reserve' grant + BU default warehouse.", session = SessionPayload(session) });
         }
 
-        var entity = context.Request.Form["entity"].ToString();
+        var entity = AmlText(fields, "entity");
         if (entity.Length == 0)
         {
             entity = context.Request.Query["cmp"].ToString();
         }
 
-        var bu = context.Request.Form["bu"].ToString();
+        var bu = AmlText(fields, "bu");
         if (bu.Length == 0)
         {
             bu = context.Request.Query["bu"].ToString();
         }
 
-        var op = context.Request.Form["op"].ToString().Trim().ToLowerInvariant();
+        var op = AmlText(fields, "op").Trim().ToLowerInvariant();
         var email = session.Email ?? string.Empty;
 
         ErpShamReserveResult res;
         if (op == "release")
         {
-            long.TryParse(context.Request.Form["reservationId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var reservationId);
+            var reservationId = AmlLong(fields, "reservationId");
             res = await reservations.ReleaseAsync(entity, bu, reservationId, email, session.UserId, cancellationToken);
         }
         else if (op == "reserve" || op.Length == 0)
         {
-            long.TryParse(context.Request.Form["itemId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var itemId);
-            decimal.TryParse(context.Request.Form["qty"].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var qty);
-            long.TryParse(context.Request.Form["sourceId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var sourceId);
-            var sku = context.Request.Form["sku"].ToString();
-            var sourceType = context.Request.Form["sourceType"].ToString();
-            var sourceLineKey = context.Request.Form["sourceLineKey"].ToString();
-            var allowPartial = string.Equals(context.Request.Form["allowPartial"].ToString(), "true", StringComparison.OrdinalIgnoreCase)
-                || context.Request.Form["allowPartial"].ToString() == "1";
-            var durable = string.Equals(context.Request.Form["durable"].ToString(), "true", StringComparison.OrdinalIgnoreCase)
-                || context.Request.Form["durable"].ToString() == "1";
+            var itemId = AmlLong(fields, "itemId");
+            var qty = AmlDec(fields, "qty");
+            var sourceId = AmlLong(fields, "sourceId");
+            var sku = AmlText(fields, "sku");
+            var sourceType = AmlText(fields, "sourceType");
+            var sourceLineKey = AmlText(fields, "sourceLineKey");
+            var allowPartial = AmlFlag(fields, "allowPartial");
+            var durable = AmlFlag(fields, "durable");
             res = await reservations.ReserveAsync(
                 entity, bu, itemId, sku, qty, sourceType, sourceId, sourceLineKey,
                 allowPartial, durable, email, session.UserId, cancellationToken);

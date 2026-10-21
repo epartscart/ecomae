@@ -145,6 +145,29 @@ public sealed class ErpShamStockReserveService : IErpShamStockReserveService
             return new(false, "invalid", "A reservation id is required.", 0, string.Empty, 0m, 0m);
         }
 
+        // Scope check: the hold must belong to the resolved entity — a grant in one
+        // BU must not release another entity's reservation.
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var ownerId = await ErpDb.LongAsync(connection, null,
+                ErpDb.Positional("SELECT `owner_company_id` FROM `epc_erp_inv_reservations` WHERE `id`=? LIMIT 1"),
+                cancellationToken, reservationId).ConfigureAwait(false);
+            if (ownerId == 0)
+            {
+                return new(false, "not_found", "Reservation " + reservationId + " does not exist.", 0, string.Empty, 0m, 0m);
+            }
+
+            if (ownerId != scope.EntityId)
+            {
+                return new(false, "scope", "Reservation " + reservationId + " belongs to a different legal entity — the grant cannot release it.", 0, string.Empty, 0m, 0m);
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return new(false, "error", ex.Message, 0, string.Empty, 0m, 0m);
+        }
+
         var result = await _reservations.ReleaseAsync(reservationId, adminId, cancellationToken).ConfigureAwait(false);
         return new(result.Succeeded, result.Code, result.Message, result.ReservationId, result.Sku, result.Qty, result.Available);
     }

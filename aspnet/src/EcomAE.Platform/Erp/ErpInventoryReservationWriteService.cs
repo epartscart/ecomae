@@ -295,6 +295,7 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
                 input.SourceId,
                 lineKey,
                 input.AdminId,
+                input.OwnerCompanyId,
                 cancellationToken).ConfigureAwait(false);
             var already = existing?.Qty ?? 0m;
             var atp = await LoadAtpAsync(connection, transaction, item.Value.Id, input.WarehouseId, input.OwnerCompanyId, cancellationToken).ConfigureAwait(false);
@@ -865,8 +866,12 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
         long sourceId,
         string lineKey,
         int adminId,
+        int ownerCompanyId,
         CancellationToken cancellationToken)
     {
+        // Owner scope: a hold another legal entity placed on the same document/item
+        // must never be reused or overwritten — it belongs to that entity's books.
+        var ownerClause = ownerCompanyId > 0 ? " AND `owner_company_id`=?" : string.Empty;
         await using var command = connection.CreateCommand();
         command.Transaction = transaction;
         if (sourceId > 0)
@@ -874,16 +879,32 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
             command.CommandText = ErpDb.Positional(
                 "SELECT `id`,`qty`,`status`,`expires_at` FROM `epc_erp_inv_reservations`"
                 + " WHERE `item_id`=? AND `source_type`=? AND `source_id`=? AND `status` IN ('held','confirmed')"
+                + ownerClause
                 + " ORDER BY `id` ASC LIMIT 1");
-            ErpDb.AddParameters(command, itemId, sourceType, sourceId);
+            if (ownerCompanyId > 0)
+            {
+                ErpDb.AddParameters(command, itemId, sourceType, sourceId, ownerCompanyId);
+            }
+            else
+            {
+                ErpDb.AddParameters(command, itemId, sourceType, sourceId);
+            }
         }
         else if (lineKey.Length > 0)
         {
             command.CommandText = ErpDb.Positional(
                 "SELECT `id`,`qty`,`status`,`expires_at` FROM `epc_erp_inv_reservations`"
                 + " WHERE `item_id`=? AND `source_type`=? AND `source_id`=0 AND `source_line_key`=? AND `reserved_by`=? AND `status` IN ('held','confirmed')"
+                + ownerClause
                 + " ORDER BY `id` ASC LIMIT 1");
-            ErpDb.AddParameters(command, itemId, sourceType, lineKey, adminId);
+            if (ownerCompanyId > 0)
+            {
+                ErpDb.AddParameters(command, itemId, sourceType, lineKey, adminId, ownerCompanyId);
+            }
+            else
+            {
+                ErpDb.AddParameters(command, itemId, sourceType, lineKey, adminId);
+            }
         }
         else
         {

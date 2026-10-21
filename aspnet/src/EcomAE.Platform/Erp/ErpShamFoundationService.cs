@@ -199,7 +199,9 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
                 // so an unrelated tenant's WH-*/existing row can never be renamed,
                 // reactivated, or adopted as a SHAM default. Stock and reservations
                 // stay entity-scoped via owner_company_id.
-                var whCode = "SHAM-" + (buCode.Contains('-', StringComparison.Ordinal) ? buCode[(buCode.IndexOf('-') + 1)..] : buCode);
+                var whSuffix = buCode.Contains('-', StringComparison.Ordinal) ? buCode[(buCode.IndexOf('-') + 1)..] : buCode;
+                var whCode = "SHAM-" + whSuffix;
+                var legacyWhCode = "WH-" + whSuffix;
                 await ErpDb.ExecuteAsync(connection, null,
                     ErpDb.Positional(
                         "INSERT INTO `epc_erp_inv_warehouses` (`code`,`name`,`active`,`time_created`) "
@@ -212,8 +214,12 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
                 {
                     await ErpDb.ExecuteAsync(connection, null,
                         ErpDb.Positional(
-                            "UPDATE `epc_erp_org_business_units` SET `default_warehouse_id`=? WHERE `entity_id`=? AND `code`=? AND `default_warehouse_id`=0"),
-                        cancellationToken, whId, entityId, buCode).ConfigureAwait(false);
+                            "UPDATE `epc_erp_org_business_units` `bu`"
+                            + " LEFT JOIN `epc_erp_inv_warehouses` `w` ON `bu`.`default_warehouse_id` = `w`.`id`"
+                            + " SET `bu`.`default_warehouse_id`=?"
+                            + " WHERE `bu`.`entity_id`=? AND `bu`.`code`=?"
+                            + " AND (`bu`.`default_warehouse_id`=0 OR `w`.`code`=?)"),
+                        cancellationToken, whId, entityId, buCode, legacyWhCode).ConfigureAwait(false);
                 }
 
                 bus++;
