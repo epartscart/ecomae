@@ -22,17 +22,23 @@ public sealed class ErpShamFoundationTests
 
         // ASAU intentionally absent: blueprint marks its legal status unverified.
         Assert.DoesNotContain(entities, e => e.Code == "ASAU");
+        // ...but ASAU exists as a BU (with cost centre), not an entity.
+        Assert.Contains(ErpShamFoundationService.BusinessUnits, u => u.Code == "ASAU");
     }
 
     [Fact]
-    public void Business_units_belong_to_asapl_and_cover_all_five()
+    public void Business_units_belong_to_asapl_and_cover_all_six_including_asau()
     {
         var units = ErpShamFoundationService.BusinessUnits;
-        Assert.Equal(5, units.Length);
+        Assert.Equal(6, units.Length);
         Assert.All(units, u => Assert.Equal("ASAPL", u.Entity));
         Assert.Equal(
-            ["ASAPL-BOOK", "ASAPL-CLP", "ASAPL-CLS", "ASAPL-RTL", "ASAPL-WSL"],
+            ["ASAPL-BOOK", "ASAPL-CLP", "ASAPL-CLS", "ASAPL-RTL", "ASAPL-WSL", "ASAU"],
             units.Select(u => u.Code).OrderBy(c => c, StringComparer.Ordinal).ToArray());
+        // ASAU is a BU with its own cost centre — not a legal entity.
+        var asau = units.Single(u => u.Code == "ASAU");
+        Assert.Equal("CC-ASAU", asau.CostCentre);
+        Assert.All(units, u => Assert.False(string.IsNullOrWhiteSpace(u.CostCentre)));
     }
 
     [Fact]
@@ -45,6 +51,9 @@ public sealed class ErpShamFoundationTests
         Assert.Contains("UNIQUE KEY `ux_access`", file, StringComparison.Ordinal);
         Assert.Contains("epc_entity_groups", file, StringComparison.Ordinal);
         Assert.Contains("epc_entity_members", file, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_org_entity_accounts", file, StringComparison.Ordinal);
+        Assert.Contains("AccountActiveForEntityAsync", file, StringComparison.Ordinal);
+        Assert.Contains("cost_centre", file, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -61,7 +70,7 @@ public sealed class ErpShamFoundationTests
     [Fact]
     public void Org_tabs_registered_in_catalog_and_workspace_specs()
     {
-        foreach (var tab in new[] { "org_entities", "org_business_units", "org_group_members", "org_user_access" })
+        foreach (var tab in new[] { "org_entities", "org_business_units", "org_group_members", "org_user_access", "org_entity_accounts" })
         {
             Assert.True(ErpD365WorkspaceCatalog.TryGet(tab, out var page), tab);
             Assert.Equal("enterprise", page.Area);
@@ -80,6 +89,9 @@ public sealed class ErpShamFoundationTests
         Assert.Contains("epc_erp_org_user_access", access.Sql, StringComparison.Ordinal);
         var members = ErpOrgWorkspaceSpecs.Tabs["org_group_members"];
         Assert.Contains("epc_entity_members", members.Sql, StringComparison.Ordinal);
+        var accounts = ErpOrgWorkspaceSpecs.Tabs["org_entity_accounts"];
+        Assert.Contains("epc_erp_org_entity_accounts", accounts.Sql, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_coa_accounts", accounts.Sql, StringComparison.Ordinal);
     }
 
     [Fact]
