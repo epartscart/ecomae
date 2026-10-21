@@ -4828,15 +4828,6 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         // instead — index seeks instead of a 15-REPLACE full-table scan per batch.
         var useIndexedMatch = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false)
             && await ProbePriceArticleShowSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
-        // The indexed clause is complete only while the table is fully backfilled. Rows
-        // imported after the last backfill have empty/NULL search columns and are invisible to
-        // it — so when any unbackfilled row exists, re-check every batch with the REPLACE
-        // expression. A norm-level exclusion is NOT safe: an indexed hit for a norm doesn't
-        // prove an unbackfilled offer for the same norm doesn't exist. The probe runs fresh
-        // per call (never cached) so imports between calls are always detected.
-        var replaceFallback = useIndexedMatch
-            && await ProbePriceTableUnbackfilledOffersAsync(connection, cancellationToken).ConfigureAwait(false);
-
         var best = new Dictionary<string, StorefrontCrossStockDigest>(StringComparer.OrdinalIgnoreCase);
         for (var offset = 0; offset < norms.Count && best.Count < stockMax; offset += batchSize)
         {
@@ -4849,6 +4840,14 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var command = connection.CreateCommand();
             command.CommandTimeout = 8;
             ErpFirstPaint.ApplyIfErp(command);
+            // The indexed clause is complete only while the table is fully backfilled. Rows
+            // imported after the last backfill have empty/NULL search columns and are invisible
+            // to it — so when any unbackfilled row exists, re-check the batch with the REPLACE
+            // expression. A norm-level exclusion is NOT safe: an indexed hit for a norm doesn't
+            // prove an unbackfilled offer for the same norm doesn't exist. Probed per batch
+            // (indexed EXISTS, never cached) so mid-search imports are caught too.
+            var replaceFallback = useIndexedMatch
+                && await ProbePriceTableUnbackfilledOffersAsync(connection, cancellationToken).ConfigureAwait(false);
             var articleMatch = useIndexedMatch
                 ? LegacySurfaceDashboardSql.StorefrontPriceArticleIndexedShowSearchInSql(batch.Count)
                 : LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(batch.Count);
@@ -5114,15 +5113,16 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     /// </summary>
     private async Task<bool> ProbePriceTableUnbackfilledOffersAsync(DbConnection connection, CancellationToken cancellationToken)
     {
-        // Deliberately uncached: imports between calls must be seen. One indexed EXISTS
-        // per cross-stock load is negligible next to the batch queries it protects.
+        // Deliberately uncached and re-probed per batch: imports must be seen. The
+        // IS NULL OR ='' form keeps the search-column index usable — a wrapped IFNULL
+        // would force a full scan of the price table.
         try
         {
             await using var command = connection.CreateCommand();
             command.CommandText = """
                 SELECT EXISTS(SELECT 1 FROM `shop_docpart_prices_data` d
-                              WHERE (IFNULL(d.`article_search`, '') = '' AND IFNULL(d.`article`, '') <> '')
-                                 OR (IFNULL(d.`article_show_search`, '') = '' AND IFNULL(d.`article_show`, '') <> ''))
+                              WHERE ((d.`article_search` IS NULL OR d.`article_search` = '') AND IFNULL(d.`article`, '') <> '')
+                                 OR ((d.`article_show_search` IS NULL OR d.`article_show_search` = '') AND IFNULL(d.`article_show`, '') <> ''))
                 """;
             var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
             return Convert.ToInt32(value is DBNull ? 0 : value, CultureInfo.InvariantCulture) is 1;
