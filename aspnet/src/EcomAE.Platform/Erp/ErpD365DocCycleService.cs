@@ -821,8 +821,11 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
         catch
         {
             // Release the claim so a retry can convert this prospect.
-            // Release the claim (CancellationToken.None — the caller's token may be the reason we're here).
-            await ErpDb.TryExecuteAsync(c, "UPDATE `epc_crm_leads` SET `status` = '" + (priorStatus.Length > 0 && priorStatus != "converted" ? priorStatus : "qualified") + "' WHERE `id` = " + leadId.ToString(CultureInfo.InvariantCulture) + " AND `converted_party_id` = 0", CancellationToken.None).ConfigureAwait(false);
+            // Release the claim — only when the lead is still in the state our claim left
+            // (another editor may have moved it since), never carrying a raw value into SQL,
+            // and with CancellationToken.None since the caller's token may be the reason we're here.
+            var restore = priorStatus is "new" or "contacted" or "qualified" or "unqualified" ? priorStatus : "qualified";
+            await ErpDb.TryExecuteAsync(c, "UPDATE `epc_crm_leads` SET `status` = '" + restore + "' WHERE `id` = " + leadId.ToString(CultureInfo.InvariantCulture) + " AND `status` = 'converted' AND `converted_party_id` = 0", CancellationToken.None).ConfigureAwait(false);
             throw;
         }
         await ErpDb.ExecuteAsync(c, null,
