@@ -97,9 +97,10 @@ public sealed class ErpShamTransferPriceService : IErpShamTransferPriceService
                     agreementRef?.Trim() ?? string.Empty, (int)Math.Max(0, effectiveFrom), (int)Math.Max(0, effectiveTo), version, userEmail, now).ConfigureAwait(false);
                 inserted = true;
             }
-            catch (MySqlException ex) when (ex.Number == 1062 && attempt < 2)
+            catch (MySqlException ex) when (ex.Number == 1062)
             {
-                // Concurrent insert took the same version — recompute and retry.
+                // Concurrent insert took the same version — recompute and retry;
+                // after the last attempt `inserted` stays false → contention error.
             }
         }
         if (!inserted)
@@ -139,18 +140,60 @@ public sealed class ErpShamTransferPriceService : IErpShamTransferPriceService
     public async Task<IReadOnlyList<ErpShamTransferPriceRule>> ListAsync(string userEmail, CancellationToken cancellationToken = default)
     {
         await using var conn = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        var rules = await ReadRulesAsync(conn, "ORDER BY r.`from_entity_id`, r.`to_entity_id`, r.`sku`, r.`version` DESC LIMIT 200", cancellationToken).ConfigureAwait(false);
-        // Transfer prices are commercially sensitive: only rules whose selling
-        // entity the caller has transfer-price-view on are returned.
-        var visible = new List<ErpShamTransferPriceRule>(rules.Count);
-        foreach (var rule in rules)
+        // Filter by grant IN SQL — a post-LIMIT filter would hide later
+        // entities' authorized prices, and per-row AccessAllowedAsync opens a
+        // connection + reruns schema ensure for every rule.
+        var visibleCodes = await ViewableEntityCodesAsync(conn, userEmail, cancellationToken).ConfigureAwait(false);
+        if (visibleCodes is not null && visibleCodes.Count == 0)
         {
-            if (await _foundation.AccessAllowedAsync(userEmail, rule.FromEntity, null, "transfer-price-view", cancellationToken).ConfigureAwait(false))
-            {
-                visible.Add(rule);
-            }
+            return Array.Empty<ErpShamTransferPriceRule>();
         }
-        return visible;
+        var args = new List<object>();
+        var tail = string.Empty;
+        if (visibleCodes is not null)
+        {
+            tail = "WHERE fe.`code` IN (" + string.Join(',', visibleCodes.Select(_ => "?")) + ") ";
+            args.AddRange(visibleCodes);
+        }
+        tail += "ORDER BY r.`from_entity_id`, r.`to_entity_id`, r.`sku`, r.`version` DESC LIMIT 200";
+        return await ReadRulesAsync(conn, tail, cancellationToken, args.ToArray()).ConfigureAwait(false);
+    }
+
+    /// <summary>Entity codes where the user holds an entity-or-wider (bu_id=0)
+    /// transfer-price-view grant — mirrors AccessAllowedAsync(email, code, null, …).
+    /// Null = group-wide grant (all entities); empty list = none (fail-closed).</summary>
+    private static async Task<IReadOnlyList<string>?> ViewableEntityCodesAsync(System.Data.Common.DbConnection conn, string userEmail, CancellationToken ct)
+    {
+        try
+        {
+            var codes = new List<string>();
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT DISTINCT IF(a.`entity_id`=0,'*',e.`code`) FROM `epc_erp_org_user_access` a "
+                + "LEFT JOIN `epc_erp_pm_legal_entities` e ON e.`id`=a.`entity_id` "
+                + "WHERE a.`user_email`=? AND a.`status`='active' AND a.`bu_id`=0 "
+                + "AND (a.`actions_csv`='*' OR FIND_IN_SET('transfer-price-view', a.`actions_csv`))";
+            var p = cmd.CreateParameter();
+            p.Value = (userEmail ?? string.Empty).Trim().ToLowerInvariant();
+            cmd.Parameters.Add(p);
+            await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                var code = reader.IsDBNull(0) ? string.Empty : reader.GetString(0);
+                if (code == "*")
+                {
+                    return null;
+                }
+                if (code.Length > 0)
+                {
+                    codes.Add(code);
+                }
+            }
+            return codes;
+        }
+        catch
+        {
+            return Array.Empty<string>();
+        }
     }
 
     private static async Task<IReadOnlyList<ErpShamTransferPriceRule>> ReadRulesAsync(System.Data.Common.DbConnection conn, string tail, CancellationToken ct, params object[] args)
