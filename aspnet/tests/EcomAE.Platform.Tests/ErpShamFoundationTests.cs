@@ -90,6 +90,25 @@ public sealed class ErpShamFoundationTests
     }
 
     [Fact]
+    public void Sham_stock_reserve_route_is_gated_and_scoped()
+    {
+        var routes = Find("aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs");
+        Assert.Contains("ErpShamStockReserve = \"/erp/sham/stock-reserve\"", routes, StringComparison.Ordinal);
+
+        var module = Find("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs");
+        Assert.Contains("ErpShamStockReserve, HandleShamStockReserveAsync", module, StringComparison.Ordinal);
+
+        var service = Find("aspnet/src/EcomAE.Platform/Erp/ErpShamStockReserveService.cs");
+        // Gate order pins: entity → BU-in-entity + default warehouse → access grant.
+        Assert.Contains("AccessAllowedAsync", service, StringComparison.Ordinal);
+        Assert.Contains("stock-reserve", service, StringComparison.Ordinal);
+        Assert.Contains("default_warehouse_id", service, StringComparison.Ordinal);
+        Assert.Contains("OwnerCompanyId = scope.EntityId", service, StringComparison.Ordinal);
+        Assert.Contains("WarehouseId = scope.WarehouseId", service, StringComparison.Ordinal);
+        Assert.Contains("ErpInventoryReservationWriteService", service, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Foundation_seed_route_is_gated_and_registered()
     {
         Assert.Equal("/erp/sham/foundation-seed", EcomAeRoutes.ErpShamFoundationSeed);
