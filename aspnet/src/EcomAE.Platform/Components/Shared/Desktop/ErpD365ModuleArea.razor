@@ -183,7 +183,7 @@
     {
         "invoices" => ["id", "invoice_number", "issue_date", "currency_code", "subtotal_ex_vat", "total_vat", "total_incl_vat", "paid_amount"],
         "warehouses" => ["id", "code", "name", "entity_id", "site", "type", "cost_centre_id", "business_unit_id"],
-        "coa" => ["id", "code", "name", "type", "category", "active"],
+        "coa" => ["id", "code", "name", "account_type", "normal_side", "active"],
         "gl" => ["area", "code", "detail"],
         "banks" => ["bank_account", "name", "bank_group"],
         "fx" => ["from_currency", "to_currency", "rate", "rate_date"],
@@ -234,7 +234,7 @@
         _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted).ConfigureAwait(false);
         try
         {
-            if (!Connections.IsConfigured || !ShowGrid) return;
+            if (!Connections.IsConfigured || !ShowGrid || !_isAdmin) return;
             await using var conn = await Connections.OpenAsync(ctx.RequestAborted).ConfigureAwait(false);
             var ct = ctx.RequestAborted;
             switch (Kind)
@@ -252,7 +252,7 @@
                     break;
                 case "coa":
                     _rows = await ErpD365DocCycleService.RowsAsync(conn,
-                        "SELECT `id`, `code`, `name`, `type`, `category`, `active` FROM `epc_erp_coa_accounts` ORDER BY `code` LIMIT 500", ct).ConfigureAwait(false);
+                        "SELECT `id`, `code`, `name`, `account_type`, `normal_side`, `active` FROM `epc_erp_coa_accounts` ORDER BY `code` LIMIT 500", ct).ConfigureAwait(false);
                     break;
                 case "gl":
                     _rows = (await Gl.DimensionTypesAsync(conn, ct).ConfigureAwait(false)).Select(t => new Dictionary<string, string?> { ["area"] = "dim type", ["code"] = t.GetValueOrDefault("code"), ["detail"] = t.GetValueOrDefault("name") }).ToList();
@@ -271,7 +271,7 @@
                     break;
                 case "customers":
                     _rows = await ErpD365DocCycleService.RowsAsync(conn,
-                        "SELECT `id`, `name`, `account_code`, `trn`, `entity_id`, `active` FROM `epc_erp_contacts` ORDER BY `id` DESC LIMIT 500", ct).ConfigureAwait(false);
+                        "SELECT `id`, `name`, `account_code`, `trn`, `entity_id`, `active` FROM `epc_erp_contacts` WHERE `party_type` = 'customer' OR `party_type` IS NULL ORDER BY `id` DESC LIMIT 500", ct).ConfigureAwait(false);
                     break;
                 case "vendors":
                     _rows = await ErpD365DocCycleService.RowsAsync(conn,

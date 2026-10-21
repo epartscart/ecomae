@@ -86,7 +86,7 @@
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px">
                 @foreach (var col in HeaderCols)
                 {
-                    <label style="font-size:11px">@col <input name="f_@col" style="width:100%" /></label>
+                    <label style="font-size:11px">@col <input name="@col" style="width:100%" /></label>
                 }
             </div>
             <button type="submit" class="btn btn-primary btn-sm" style="margin-top:8px">Save fields</button>
@@ -101,8 +101,8 @@
 
     private string Title => Kind == "so" ? "Sales orders (SalesTableDetails)" : "Purchase orders (PurchTableListPage)";
     private string Table => Kind == "so" ? "epc_erp_sales_orders" : "epc_erp_purchase_orders";
-    private string LineTable => Kind == "so" ? "epc_erp_sales_order_lines" : "epc_erp_purchase_order_lines";
-    private string LineFk => Kind == "so" ? "sales_order_id" : "purchase_order_id";
+    private string LineTable => Kind == "so" ? "epc_erp_sales_order_lines" : "epc_erp_po_lines";
+    private string LineFk => Kind == "so" ? "sales_order_id" : "po_id";
     private string CsvArea => Kind == "so" ? "sales_orders" : "purchase_orders";
     private string[] HeaderCols => Kind == "so" ? ErpD365DocCycleService.SalesOrderHeaderColumns : ErpD365DocCycleService.PurchaseOrderHeaderColumns;
     private string[] LineCols => Kind == "so" ? ErpD365DocCycleService.SalesOrderLineColumns : ErpD365DocCycleService.PurchaseOrderLineColumns;
@@ -130,7 +130,7 @@
         _openId = long.TryParse(ctx.Request.Query["d365_" + Kind], out var oid) ? oid : 0;
         try
         {
-            if (Connections.IsConfigured)
+            if (Connections.IsConfigured && _isAdmin)
             {
                 await using var conn = await Connections.OpenAsync(ctx.RequestAborted).ConfigureAwait(false);
                 var cols = string.Join("`,`", ListCols);

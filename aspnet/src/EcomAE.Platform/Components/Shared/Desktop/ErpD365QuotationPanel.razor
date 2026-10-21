@@ -125,7 +125,7 @@
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px">
                 @foreach (var col in ErpD365DocCycleService.QuotationHeaderColumns)
                 {
-                    <label style="font-size:11px">@col <input name="f_@col" style="width:100%" /></label>
+                    <label style="font-size:11px">@col <input name="@col" style="width:100%" /></label>
                 }
             </div>
             <p class="help-block" style="margin:.5rem 0">Every SalesQuotationDetails header field — blank fields are skipped.</p>
@@ -156,7 +156,7 @@
         _openId = long.TryParse(ctx.Request.Query["d365_quote"], out var qid) ? qid : 0;
         try
         {
-            if (Connections.IsConfigured)
+            if (Connections.IsConfigured && _isAdmin)
             {
                 await using var conn = await Connections.OpenAsync(ctx.RequestAborted).ConfigureAwait(false);
                 _list = await D365.QuotationsListAsync(conn, 500, ctx.RequestAborted).ConfigureAwait(false);
