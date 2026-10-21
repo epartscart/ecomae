@@ -80,6 +80,7 @@ public static class ErpGlobalSearchCatalog
         }
 
         rows.Add(new("Tenant guide — organisation structure & how it works", "/erp/tenant-guide", "administration", "fa-map-signs"));
+        rows.Add(new("D365 studio — document profiles, fields, CSV import/export", "/erp/d365-studio", "administration", "fa-magic"));
         rows.Add(new("Master lookup (customers, suppliers, items, projects)", "/erp/lookups?kind=customer", "masters", "fa-search"));
         rows.Add(new("Users & credentials (department users, login logs, audit)", "/erp/users-app", "administration", "fa-users"));
 

@@ -760,6 +760,8 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpConsolidatedTrialBalanceReadS
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTenantGuideReadService, EcomAE.Platform.Erp.ErpTenantGuideReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamMspService, EcomAE.Platform.Erp.ErpShamMspService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTaxRuleService, EcomAE.Platform.Erp.ErpTaxRuleService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365DocCycleService, EcomAE.Platform.Erp.ErpD365DocCycleService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365GlService, EcomAE.Platform.Erp.ErpD365GlService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamLandedCostService, EcomAE.Platform.Erp.ErpShamLandedCostService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamEliminationService, EcomAE.Platform.Erp.ErpShamEliminationService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamEinvoiceService, EcomAE.Platform.Erp.ErpShamEinvoiceService>();

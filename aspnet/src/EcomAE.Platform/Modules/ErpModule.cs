@@ -1,3 +1,4 @@
+using System.Text;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -401,6 +402,19 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpShamMspSet, HandleShamMspSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamMspApprove, HandleShamMspApproveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamMspCheck, HandleShamMspCheckAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpD365DocProfileSet, HandleD365DocProfileSetAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365FieldsSave, HandleD365FieldsSaveAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpD365InvoicePdf, HandleD365InvoicePdfAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpD365DeliveryPdf, HandleD365DeliveryPdfAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpD365CsvTemplate, HandleD365CsvTemplateAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpD365CsvImport, HandleD365CsvImportAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpD365CsvExport, HandleD365CsvExportAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpD365QuoteStatus, HandleD365QuoteStatusAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpD365QuotePdf, HandleD365QuotePdfAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpD365GlSave, HandleD365GlSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365BankRecon, HandleD365BankReconAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpD365TbSet, HandleD365TbSetAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpD365JournalPost, HandleD365JournalPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamTaxRuleSet, HandleShamTaxRuleSetAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamTaxRules, HandleShamTaxRulesAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamLandedCost, HandleShamLandedCostAsync).DisableAntiforgery();
@@ -22151,7 +22165,7 @@ public sealed class ErpModule : ISurfaceModule
 
         var csv = reports.Csv(reportKey, cost, duty, reexport, expiry, search);
         return Results.File(
-            System.Text.Encoding.UTF8.GetBytes(csv),
+            Encoding.UTF8.GetBytes(csv),
             "text/csv",
             "cs_report_" + reportKey + ".csv");
     }
@@ -25634,7 +25648,7 @@ public sealed class ErpModule : ISurfaceModule
             .Append(result.ClosingTotal.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
             .AppendLine();
         return Results.File(
-            System.Text.Encoding.UTF8.GetBytes(csv.ToString()),
+            Encoding.UTF8.GetBytes(csv.ToString()),
             "text/csv",
             "trial-balance-" + parameters.FromDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture)
                 + "-" + parameters.ToDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + ".csv");
@@ -27314,6 +27328,444 @@ public sealed class ErpModule : ISurfaceModule
         return Results.Ok(new { ok = res.Ok, message = res.Message, entity = res.Entity, bu = res.Bu, item = res.Item, version = res.Version, unit = res.Unit, offer = res.Offer, actual = res.Actual, msp = res.Msp, pending = res.Pending, history = res.History });
     }
 
+    /// <summary>D365 doc-cycle: upsert a legal entity's document header/footer profile.</summary>
+    private static async Task<IResult> HandleD365DocProfileSetAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365DocCycleService d365,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the document profile.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save the legal entity document profile. Fields: entity_id|entity|cmp plus legal_name, trade_name, trn, address_line1/2, city, emirate, country_code, phone, fax, email, bank_name, bank_iban, legal_footer, doc_header_note, doc_footer_note, logo_url.", session = SessionPayload(session) });
+        }
+
+        var entityId = AmlLong(fields, "entity_id");
+        if (entityId == 0 && long.TryParse(AmlText(fields, "entity"), out var parsedEntity)) entityId = parsedEntity;
+        var profile = fields.ToDictionary(kv => kv.Key, kv => (string?)kv.Value, StringComparer.Ordinal);
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var res = await d365.SaveEntityDocProfileAsync(conn, entityId, profile, session.UserId, cancellationToken).ConfigureAwait(false);
+        return LiveWriteFormBinder.Complete(context, "/erp/documents-app", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 doc-cycle: save D365 fields on an existing so|po|dn|customer|vendor|product row.</summary>
+    private static async Task<IResult> HandleD365FieldsSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365DocCycleService d365,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/sales-orders", "Admin ERP capability required to save D365 fields.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save D365 fields. Fields: kind=so|po|dn|customer|vendor|product|quote|quote_line, id, then any D365 field names for that kind (unknown fields are ignored).", session = SessionPayload(session) });
+        }
+
+        var kind = AmlText(fields, "kind");
+        var id = AmlLong(fields, "id");
+        var data = fields.Where(kv => kv.Key is not ("kind" or "id" or "confirmWrites" or "confirm_writes" or "fields_kv" or "returnUrl" or "csrf_guard_key")).ToDictionary(kv => kv.Key, kv => (string?)kv.Value, StringComparer.Ordinal);
+        // The studio form passes one name=value per line in fields_kv; merge those over the literal fields.
+        var kvBlob = AmlText(fields, "fields_kv");
+        if (kvBlob.Length > 0)
+        {
+            foreach (var line in kvBlob.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var eq = line.IndexOf('=');
+                if (eq > 0)
+                {
+                    data[line[..eq].Trim()] = line[(eq + 1)..].Trim();
+                }
+            }
+        }
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        ErpSimpleWriteResult res = kind switch
+        {
+            "so" => await d365.SaveSalesOrderHeaderAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "po" => await d365.SavePurchaseOrderHeaderAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "dn" => await d365.SaveDeliveryNoteFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "customer" => await d365.SaveCustomerFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "vendor" => await d365.SaveVendorFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "product" => await d365.SaveProductFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "warehouse" => await d365.SaveWarehouseFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "quote" => await d365.SaveQuotationHeaderAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "quote_line" => await d365.SaveQuotationLineAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            _ => ErpSimpleWriteResult.Fail("invalid", "kind must be so|po|dn|customer|vendor|product|warehouse|quote|quote_line."),
+        };
+        return LiveWriteFormBinder.Complete(context, "/erp/sales-orders", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 doc-cycle: sales-invoice PDF (wholesale layout + entity chrome). ?id=invoice id.</summary>
+    private static async Task<IResult> HandleD365InvoicePdfAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365DocCycleService d365,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Redirect("/erp/login?returnUrl=/erp/invoices");
+        }
+
+        if (!long.TryParse(context.Request.Query["id"], out var id) || id <= 0)
+        {
+            return Results.BadRequest("Pass ?id=<invoice id>.");
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var model = await ErpD365DocPdf.LoadInvoiceModelAsync(conn, d365, id, cancellationToken).ConfigureAwait(false);
+        if (model is null) return Results.NotFound("Invoice not found.");
+        var pdf = ErpD365DocPdf.InvoicePdf(model);
+        return Results.File(pdf, "application/pdf", "invoice-" + model.InvoiceNumber + ".pdf");
+    }
+
+    /// <summary>D365 doc-cycle: delivery-note PDF. ?id=note id.</summary>
+    private static async Task<IResult> HandleD365DeliveryPdfAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365DocCycleService d365,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Redirect("/erp/login?returnUrl=/erp/delivery-notes");
+        }
+
+        if (!long.TryParse(context.Request.Query["id"], out var id) || id <= 0)
+        {
+            return Results.BadRequest("Pass ?id=<delivery note id>.");
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var model = await ErpD365DocPdf.LoadDeliveryModelAsync(conn, d365, id, cancellationToken).ConfigureAwait(false);
+        if (model is null) return Results.NotFound("Delivery note not found.");
+        var pdf = ErpD365DocPdf.DeliveryNotePdf(model);
+        return Results.File(pdf, "application/pdf", "delivery-note-" + model.DocumentNo + ".pdf");
+    }
+
+    /// <summary>D365 bulk: CSV template for an area. ?area=items|stock|customers|vendors|coa|sales_orders|purchase_orders|quotations|gl_opening</summary>
+    private static IResult HandleD365CsvTemplateAsync(HttpContext context)
+    {
+        var area = context.Request.Query["area"].ToString();
+        var csv = ErpD365BulkCsv.Template(area);
+        if (csv.Length == 0) return Results.BadRequest("Unknown area. Use: " + string.Join(", ", ErpD365BulkCsv.Areas.Keys));
+        return Results.File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv", area + "-template.csv");
+    }
+
+    /// <summary>D365 bulk: CSV upload → validate → commit (form fields 'area' + 'csv').</summary>
+    private static async Task<IResult> HandleD365CsvImportAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/settings", "Admin ERP capability required for CSV import.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var area = AmlText(fields, "area");
+        var csv = AmlText(fields, "csv");
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true with area=<" + string.Join("|", ErpD365BulkCsv.Areas.Keys) + "> and csv=<file text>. Natural-key upsert; header row must match the template columns (GET /erp/d365/csv-template?area=...).", session = SessionPayload(session) });
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var res = await ErpD365BulkCsv.ImportAsync(conn, area, csv, session.UserId, cancellationToken).ConfigureAwait(false);
+        return LiveWriteFormBinder.Complete(context, "/erp/settings", res.Ok, res.Message, new { ok = res.Ok, inserted = res.Inserted, updated = res.Updated, skipped = res.Skipped, errors = res.Errors, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 bulk: CSV export of an area's current rows. ?area=...</summary>
+    private static async Task<IResult> HandleD365CsvExportAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Redirect("/erp/login?returnUrl=/erp/settings");
+        }
+
+        var area = context.Request.Query["area"].ToString();
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var res = await ErpD365BulkCsv.ExportAsync(conn, area, cancellationToken).ConfigureAwait(false);
+        if (!res.Ok) return Results.BadRequest(res.Message);
+        return Results.File(System.Text.Encoding.UTF8.GetBytes(res.Csv), "text/csv", res.FileName);
+    }
+
+    /// <summary>D365 quotation lifecycle: ?id=&amp;status= sent|confirmed|rejected|expired.</summary>
+    private static async Task<IResult> HandleD365QuoteStatusAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365DocCycleService d365,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-studio", "Admin ERP capability required for quotation status.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. Fields: id, status = sent|confirmed|rejected|expired|cancelled.", session = SessionPayload(session) });
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var res = await d365.SetQuotationStatusAsync(conn, AmlLong(fields, "id"), AmlText(fields, "status"), session.UserId, cancellationToken).ConfigureAwait(false);
+        return LiveWriteFormBinder.Complete(context, "/erp/d365-studio", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 quotation print view → SALES QUOTATION PDF. ?id=quotation id.</summary>
+    private static async Task<IResult> HandleD365QuotePdfAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365DocCycleService d365,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Redirect("/erp/login?returnUrl=/erp/d365-studio");
+        }
+
+        if (!long.TryParse(context.Request.Query["id"], out var id) || id <= 0)
+        {
+            return Results.BadRequest("Pass ?id=<quotation id>.");
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var model = await ErpD365DocPdf.LoadQuotationModelAsync(conn, d365, id, cancellationToken).ConfigureAwait(false);
+        if (model is null) return Results.NotFound("Quotation not found.");
+        return Results.File(ErpD365DocPdf.QuotationPdf(model), "application/pdf", "quotation-" + model.InvoiceNumber + ".pdf");
+    }
+
+    /// <summary>D365 GL foundation: generic save. kind=dim_type|dim_value|dim_set|fiscal_calendar|fx_rate|bank|journal_dims|coa.</summary>
+    private static async Task<IResult> HandleD365GlSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365GlService gl,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-studio", "Admin ERP capability required for GL setup.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. kind=dim_type (code,name,description) | dim_value (type_id,value_code,value_name,parent_value) | dim_set (code,name,composition like main_account>business_unit>cost_centre) | fiscal_calendar (code,name,year,period_type,start_date,end_date,status) | fx_rate (from_currency,to_currency,rate,rate_date,rate_type) | bank (any bank account fields) | journal_dims (line id + dimension columns) | coa (id + MainAccountDetails fields).", session = SessionPayload(session) });
+        }
+
+        var kind = AmlText(fields, "kind");
+        var id = AmlLong(fields, "id");
+        var data = fields.Where(kv => kv.Key is not ("kind" or "id" or "confirmWrites" or "confirm_writes" or "fields_kv" or "returnUrl" or "csrf_guard_key")).ToDictionary(kv => kv.Key, kv => (string?)kv.Value, StringComparer.Ordinal);
+        var kvBlob = AmlText(fields, "fields_kv");
+        if (kvBlob.Length > 0)
+        {
+            foreach (var line in kvBlob.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var eq = line.IndexOf('=');
+                if (eq > 0) data[line[..eq].Trim()] = line[(eq + 1)..].Trim();
+            }
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        ErpSimpleWriteResult res = kind switch
+        {
+            "dim_type" => await gl.SaveDimensionTypeAsync(conn, id, AmlText(fields, "code"), AmlText(fields, "name"), AmlText(fields, "description"), session.UserId, cancellationToken).ConfigureAwait(false),
+            "dim_value" => await gl.SaveDimensionValueAsync(conn, AmlLong(fields, "type_id"), AmlText(fields, "value_code"), AmlText(fields, "value_name"), AmlText(fields, "parent_value"), session.UserId, cancellationToken).ConfigureAwait(false),
+            "dim_set" => await gl.SaveDimensionSetAsync(conn, id, AmlText(fields, "code"), AmlText(fields, "name"), AmlText(fields, "composition"), session.UserId, cancellationToken).ConfigureAwait(false),
+            "fiscal_calendar" => await gl.SaveFiscalCalendarAsync(conn, id, AmlText(fields, "code"), AmlText(fields, "name"), (int)AmlLong(fields, "year"), AmlText(fields, "period_type"), AmlText(fields, "start_date"), AmlText(fields, "end_date"), AmlText(fields, "status"), session.UserId, cancellationToken).ConfigureAwait(false),
+            "fx_rate" => await gl.SaveExchangeRateAsync(conn, AmlText(fields, "from_currency"), AmlText(fields, "to_currency"), AmlDec(fields, "rate"), AmlText(fields, "rate_date"), AmlText(fields, "rate_type"), session.UserId, cancellationToken).ConfigureAwait(false),
+            "bank" => await gl.SaveBankAccountAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "journal_dims" => await gl.SaveJournalLineDimsAsync(conn, AmlLong(fields, "line_id"), data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "coa" => await gl.SaveCoaFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            _ => ErpSimpleWriteResult.Fail("invalid", "kind must be dim_type|dim_value|dim_set|fiscal_calendar|fx_rate|bank|journal_dims|coa."),
+        };
+        return LiveWriteFormBinder.Complete(context, "/erp/d365-studio", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 bank reconciliation: mark/unmark a cash-bank entry. Fields: entry_id, reconciled=1|0.</summary>
+    private static async Task<IResult> HandleD365BankReconAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365GlService gl,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-studio", "Admin ERP capability required for bank reconciliation.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. Fields: entry_id, reconciled=1|0.", session = SessionPayload(session) });
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var res = await gl.SetBankReconciledAsync(conn, AmlLong(fields, "entry_id"), AmlText(fields, "reconciled") is "1" or "true" or "yes", session.UserId, cancellationToken).ConfigureAwait(false);
+        return LiveWriteFormBinder.Complete(context, "/erp/d365-studio", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 trial balance pivoted by a financial dimension set. ?set=&lt;dim set id&gt;.</summary>
+    private static async Task<IResult> HandleD365TbSetAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365GlService gl,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Redirect("/erp/login?returnUrl=/erp/d365-studio");
+        }
+
+        if (!long.TryParse(context.Request.Query["set"], out var setId) || setId <= 0)
+        {
+            return Results.BadRequest("Pass ?set=<dimension set id>.");
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var rows = await gl.TrialBalanceBySetAsync(conn, setId, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new { ok = true, count = rows.Count, rows });
+    }
+
+    /// <summary>
+    /// D365 journals (LedgerJournalTable3 / _CustPaym / Table5): post a journal with
+    /// dimensioned lines. Header fields: journal_type=general|customer_payment|vendor_payment,
+    /// description, reference, currency_code, entity/company_id, business_unit_id.
+    /// Lines textarea `lines`: one per row "account_code|debit|credit|note|bu_id|cc_id|le_id".
+    /// </summary>
+    private static async Task<IResult> HandleD365JournalPostAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpGlPostingService posting,
+        IErpD365GlService gl,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-studio", "Admin ERP capability required for journal posting.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. journal_type=general|customer_payment|vendor_payment, description, reference, currency_code, entity, business_unit_id; lines textarea: account_code|debit|credit|note|bu|cc|le per line.", session = SessionPayload(session) });
+        }
+
+        var sourceType = AmlText(fields, "journal_type") switch
+        {
+            "customer_payment" => "payment",
+            "vendor_payment" => "payment",
+            _ => "manual",
+        };
+        var header = new ErpGlJournalHeader
+        {
+            JournalDate = AmlUnix(fields, "journal_date", false),
+            Reference = AmlText(fields, "reference"),
+            Description = AmlText(fields, "description"),
+            SourceType = sourceType,
+            CompanyId = AmlLong(fields, "entity") > 0 ? AmlLong(fields, "entity") : AmlLong(fields, "company_id"),
+            BusinessUnitId = AmlLong(fields, "business_unit_id"),
+            CurrencyCode = AmlText(fields, "currency_code"),
+            ExchangeRate = AmlDec(fields, "exchange_rate") > 0 ? AmlDec(fields, "exchange_rate") : 1m,
+            LegislationRef = AmlText(fields, "journal_type"),
+        };
+
+        var lines = new List<ErpGlLine>();
+        var dimRows = new List<Dictionary<string, string?>>();
+        var linesText = AmlText(fields, "lines");
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await gl.EnsureSchemaAsync(conn, cancellationToken).ConfigureAwait(false);
+        foreach (var raw in linesText.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var cells = raw.Split('|', StringSplitOptions.TrimEntries);
+            if (cells.Length < 3)
+            {
+                return Results.Ok(new { ok = false, validation_code = "bad_line", message = "Line '" + raw + "' needs account_code|debit|credit.", session = SessionPayload(session) });
+            }
+            var code = cells[0];
+            decimal.TryParse(cells[1], System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var dr);
+            decimal.TryParse(cells[2], System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var cr);
+            var note = cells.Length > 3 ? cells[3] : "";
+            var bu = cells.Length > 4 && long.TryParse(cells[4], out var x) ? x : 0;
+            var cc = cells.Length > 5 && long.TryParse(cells[5], out var y) ? y : 0;
+            var le = cells.Length > 6 && long.TryParse(cells[6], out var z) ? z : 0;
+            var coaId = await ErpDb.LongAsync(conn, null, "SELECT `id` FROM `epc_erp_coa_accounts` WHERE `account_code` = ? LIMIT 1", cancellationToken, code).ConfigureAwait(false);
+            if (coaId <= 0)
+            {
+                return Results.Ok(new { ok = false, validation_code = "account_not_found", message = "COA account '" + code + "' not found.", session = SessionPayload(session) });
+            }
+            lines.Add(new ErpGlLine(coaId, dr, cr, note, bu, le));
+            if (cc > 0) dimRows.Add(new Dictionary<string, string?> { ["cost_centre_id"] = cc.ToString(System.Globalization.CultureInfo.InvariantCulture) });
+            else dimRows.Add(new Dictionary<string, string?>());
+        }
+        if (lines.Count == 0)
+        {
+            return Results.Ok(new { ok = false, validation_code = "no_lines", message = "Pass at least one line in `lines`.", session = SessionPayload(session) });
+        }
+
+        long journalId;
+        try
+        {
+            journalId = await posting.PostJournalAsync(conn, header, lines, session.UserId, cancellationToken).ConfigureAwait(false);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.Ok(new { ok = false, validation_code = "post_failed", message = ex.Message, session = SessionPayload(session) });
+        }
+
+        // Stamp cost-centre dimensions (line order matches insert order).
+        var newLines = await ErpD365DocCycleService.RowsAsync(conn, "SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? ORDER BY `id`", cancellationToken, journalId).ConfigureAwait(false);
+        for (var i = 0; i < newLines.Count && i < dimRows.Count; i++)
+        {
+            if (dimRows[i].Count > 0 && long.TryParse(newLines[i].GetValueOrDefault("id"), out var lid))
+            {
+                await gl.SaveJournalLineDimsAsync(conn, lid, dimRows[i], session.UserId, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        var res = ErpSimpleWriteResult.Ok("Journal posted (" + AmlText(fields, "journal_type") + ", " + lines.Count + " lines).", journalId);
+        return LiveWriteFormBinder.Complete(context, "/erp/d365-studio", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, journal_id = journalId, message = res.Message, session = SessionPayload(session) });
+    }
+
     /// <summary>SHAM §8b: upsert an effective-dated tax rule (entity or tenant-wide scope).</summary>
     private static async Task<IResult> HandleShamTaxRuleSetAsync(
         HttpContext context,
@@ -28123,7 +28575,7 @@ public sealed class ErpModule : ISurfaceModule
 
         var csv = await book.CsvAsync(year, propertyId, unitId, cancellationToken);
         var name = "Landlord-" + (year <= 0 ? "all-years" : year.ToString(CultureInfo.InvariantCulture)) + ".csv";
-        return Results.File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv", name);
+        return Results.File(Encoding.UTF8.GetBytes(csv), "text/csv", name);
     }
 
     private static async Task<IResult> HandleLandlordDocumentAsync(
