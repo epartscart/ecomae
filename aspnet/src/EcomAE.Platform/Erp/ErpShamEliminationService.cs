@@ -36,17 +36,26 @@ public sealed class ErpShamEliminationService : IErpShamEliminationService
             return new(false, "period must be YYYYMM.", 0, 0, 0m);
         }
         var parentCode = (groupEntityCode ?? string.Empty).Trim();
+
+        await using var conn = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpShamFoundationService.EnsureSchemaAsync(conn, cancellationToken).ConfigureAwait(false);
+
+        // Default parent = the consolidation group's own parent_entity
+        // (epc_entity_groups), not a hardcoded code.
         if (parentCode.Length == 0)
         {
-            parentCode = "MAIN";
+            await using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "SELECT `parent_entity` FROM `epc_entity_groups` WHERE `status`='active' ORDER BY `id` LIMIT 1";
+                var v = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                if (v is string s && s.Length > 0) parentCode = s;
+            }
+            if (parentCode.Length == 0) parentCode = "MAIN";
         }
         if (!await _foundation.AccessAllowedAsync(userEmail, parentCode, null, "elim-run", cancellationToken).ConfigureAwait(false))
         {
             return new(false, "elim-run grant required for " + parentCode + ".", 0, 0, 0m);
         }
-
-        await using var conn = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await ErpShamFoundationService.EnsureSchemaAsync(conn, cancellationToken).ConfigureAwait(false);
 
         var parentId = (int)await ErpDb.LongAsync(conn, null,
             "SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `code`=? AND `active`=1 LIMIT 1",
@@ -56,13 +65,16 @@ public sealed class ErpShamEliminationService : IErpShamEliminationService
             return new(false, "Unknown parent entity " + parentCode + ".", 0, 0, 0m);
         }
 
+        // Only the group(s) this entity parents — never every group's members.
         var memberIds = new List<int>();
         await using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = ErpDb.Positional(
                 "SELECT DISTINCT e.`id` FROM `epc_entity_members` m"
                 + " JOIN `epc_erp_pm_legal_entities` e ON e.`code` = m.`site_key` AND e.`active` = 1"
-                + " WHERE m.`consolidation` = 'full'");
+                + " JOIN `epc_entity_groups` g ON g.`id` = m.`group_id` AND g.`status` = 'active'"
+                + " WHERE m.`consolidation` = 'full' AND g.`parent_entity` = ?");
+            ErpDb.AddParameters(cmd, parentCode);
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -79,8 +91,8 @@ public sealed class ErpShamEliminationService : IErpShamEliminationService
 
         var elimRef = "ELIM-" + period;
         var existing = await ErpDb.LongAsync(conn, null,
-            "SELECT `id` FROM `epc_erp_gl_journals` WHERE `source_type`='manual' AND `reference`=? AND `active`=1 LIMIT 1",
-            cancellationToken, elimRef).ConfigureAwait(false);
+            "SELECT `id` FROM `epc_erp_gl_journals` WHERE `source_type`='manual' AND `reference`=? AND `company_id`=? AND `active`=1 LIMIT 1",
+            cancellationToken, elimRef, parentId).ConfigureAwait(false);
         if (existing > 0)
         {
             return new(false, $"Elimination {elimRef} already posted (journal {existing}) — reverse it manually to re-run.", 0, 0, 0m);
@@ -95,12 +107,12 @@ public sealed class ErpShamEliminationService : IErpShamEliminationService
         await using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = ErpDb.Positional(
-                "SELECT l.`account_id`, SUM(l.`debit`), SUM(l.`credit`) FROM `epc_erp_gl_journal_lines` l"
+                "SELECT l.`coa_id`, SUM(l.`debit`), SUM(l.`credit`) FROM `epc_erp_gl_lines` l"
                 + " JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id`"
                 + " WHERE j.`active`=1 AND j.`reference` LIKE 'IC-%'"
                 + " AND j.`company_id` IN (" + inClause + ")"
                 + " AND j.`journal_date` BETWEEN ? AND ?"
-                + " GROUP BY l.`account_id` HAVING SUM(l.`debit`) <> SUM(l.`credit`) OR SUM(l.`debit`) > 0");
+                + " GROUP BY l.`coa_id` HAVING SUM(l.`debit`) <> SUM(l.`credit`) OR SUM(l.`debit`) > 0");
             ErpDb.AddParameters(cmd, fromTs, toTs);
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -113,6 +125,9 @@ public sealed class ErpShamEliminationService : IErpShamEliminationService
             return new(false, $"No intercompany postings in period {period} across full members.", 0, 0, 0m);
         }
 
+        // Voucher sequence schema must exist BEFORE the ambient transaction
+        // (PostJournalAsync skips its own ensure when a tx is supplied).
+        await ErpGlPostingService.EnsureSchemaAsync(conn, cancellationToken).ConfigureAwait(false);
         await using var tx = await conn.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         var lines = new List<ErpGlLine>();
         decimal total = 0m;

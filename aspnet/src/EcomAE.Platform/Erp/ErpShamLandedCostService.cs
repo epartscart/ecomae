@@ -71,6 +71,10 @@ public sealed class ErpShamLandedCostService : IErpShamLandedCostService
         {
             return Fail(entityCode, buCode, receiptRef, method, "Charges cannot be negative.");
         }
+        if (lines.Any(l => l.Qty < 0 || l.Weight < 0 || l.BaseAmount < 0))
+        {
+            return Fail(entityCode, buCode, receiptRef, method, "Line qty, weight and amounts cannot be negative.");
+        }
         if (!await _foundation.AccessAllowedAsync(userEmail, entityCode, buCode, "landed-cost", cancellationToken).ConfigureAwait(false))
         {
             return Fail(entityCode, buCode, receiptRef, method, "landed-cost grant required for this entity×BU scope.");

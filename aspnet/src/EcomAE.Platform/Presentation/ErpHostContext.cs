@@ -246,10 +246,11 @@ public static class ErpHostContext
     /// <summary>
     /// Entity + BU switch link carrying BOTH the numeric id and the readable
     /// code: <c>company=&lt;id&gt;&amp;cmp=&lt;code&gt;</c> (and
-    /// <c>bu=&lt;id&gt;&amp;buc=&lt;code&gt;</c> for a BU). Id consumers
-    /// (ActiveCompanyIdFromQuery, trial-balance BU filters) keep resolving
-    /// numerics while the URL still shows the entity code. Other query
-    /// params are preserved; stale scope keys are dropped.
+    /// <c>bu=&lt;code&gt;</c> for a BU — the code resolves through
+    /// ActiveBusinessUnitFromQuery's numeric-then-code path and is what
+    /// code-based consumers read; falls back to the numeric id only when
+    /// no code was given). Other query params are preserved; stale scope
+    /// keys are dropped.
     /// </summary>
     public static string SwitchEntityHref(HttpRequest request, long entityId, string entityCode, int? buId = null, string? buCode = null)
     {
@@ -278,13 +279,16 @@ public static class ErpHostContext
         {
             query.Add($"cmp={Uri.EscapeDataString(entityCode)}");
         }
-        if (buId is > 0)
-        {
-            query.Add($"bu={buId.Value}");
-        }
+        // bu carries the CODE (not the id): ActiveBusinessUnitFromQuery
+        // falls through to code resolution on non-numerics while every
+        // code-based consumer (SHAM ops) reads it directly.
         if (!string.IsNullOrWhiteSpace(buCode))
         {
-            query.Add($"buc={Uri.EscapeDataString(buCode)}");
+            query.Add($"bu={Uri.EscapeDataString(buCode)}");
+        }
+        else if (buId is > 0)
+        {
+            query.Add($"bu={buId.Value}");
         }
         return path + "?" + string.Join('&', query);
     }
