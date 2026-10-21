@@ -415,6 +415,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpD365BankRecon, HandleD365BankReconAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpD365TbSet, HandleD365TbSetAsync);
         endpoints.MapPost(EcomAeRoutes.ErpD365JournalPost, HandleD365JournalPostAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365ProspectConvert, HandleD365ProspectConvertAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamTaxRuleSet, HandleShamTaxRuleSetAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamTaxRules, HandleShamTaxRulesAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamLandedCost, HandleShamLandedCostAsync).DisableAntiforgery();
@@ -27764,6 +27765,31 @@ public sealed class ErpModule : ISurfaceModule
 
         var res = ErpSimpleWriteResult.Ok("Journal posted (" + AmlText(fields, "journal_type") + ", " + lines.Count + " lines).", journalId);
         return LiveWriteFormBinder.Complete(context, "/erp/d365-studio", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, journal_id = journalId, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 prospect conversion (smmBusinessRelations): lead → customer or vendor master.</summary>
+    private static async Task<IResult> HandleD365ProspectConvertAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365DocCycleService d365,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-studio", "Admin ERP capability required for prospect conversion.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. Fields: lead_id, party=customer|vendor.", session = SessionPayload(session) });
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var res = await d365.ConvertProspectAsync(conn, AmlLong(fields, "lead_id"), AmlText(fields, "party"), session.UserId, cancellationToken).ConfigureAwait(false);
+        return LiveWriteFormBinder.Complete(context, "/erp/d365-studio", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
     }
 
     /// <summary>SHAM §8b: upsert an effective-dated tax rule (entity or tenant-wide scope).</summary>

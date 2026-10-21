@@ -86,6 +86,14 @@ public interface IErpD365DocCycleService
         int adminId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Prospect → customer/vendor conversion (smmBusinessRelations): copy a lead into epc_erp_contacts / epc_erp_suppliers and mark it converted.</summary>
+    Task<ErpSimpleWriteResult> ConvertProspectAsync(
+        DbConnection connection,
+        long leadId,
+        string partyType,
+        int adminId,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Create or update a D365 sales-quotation header (epc_erp_sales_quotations).</summary>
     Task<ErpSimpleWriteResult> SaveQuotationHeaderAsync(
         DbConnection connection,
@@ -446,6 +454,9 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
             await Add(connection, "epc_erp_inv_warehouses", col, def, cancellationToken).ConfigureAwait(false);
         }
 
+        await Add(connection, "epc_erp_contacts", "source_lead_id", "int(11) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
+        await Add(connection, "epc_erp_suppliers", "source_lead_id", "int(11) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
+
         foreach (var col in CustomerColumns)
         {
             var def = col is "credit_limit" ? "decimal(14,2) NOT NULL DEFAULT 0.00"
@@ -622,6 +633,38 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
 
     public Task<ErpSimpleWriteResult> SaveWarehouseFieldsAsync(DbConnection c, long id, IReadOnlyDictionary<string, string?> f, int a, CancellationToken t = default)
         => SaveFieldsAsync(c, "epc_erp_inv_warehouses", "id", id, WarehouseColumns, f, a, "Warehouse saved.", t);
+
+    public async Task<ErpSimpleWriteResult> ConvertProspectAsync(DbConnection c, long leadId, string partyType, int a, CancellationToken t = default)
+    {
+        await EnsureSchemaAsync(c, t).ConfigureAwait(false);
+        var lead = await FirstRowAsync(c, "SELECT * FROM `epc_crm_leads` WHERE `id` = ? LIMIT 1", t, leadId).ConfigureAwait(false);
+        if (lead is null) return ErpSimpleWriteResult.Fail("not_found", "Prospect " + leadId + " not found.");
+        string Lg(string k) => lead.TryGetValue(k, out var v) ? v ?? "" : "";
+        var isVendor = string.Equals(partyType, "vendor", StringComparison.OrdinalIgnoreCase);
+        var table = isVendor ? "epc_erp_suppliers" : "epc_erp_contacts";
+        var name = Lg("company").Length > 0 ? Lg("company") : Lg("contact_name");
+        if (name.Length == 0) return ErpSimpleWriteResult.Fail("invalid", "Prospect has no company/contact name.");
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        long id;
+        if (isVendor)
+        {
+            await ErpDb.ExecuteAsync(c, null,
+                "INSERT INTO `epc_erp_suppliers` (`name`, `contact_email`, `contact_phone`, `address`, `source_lead_id`, `time_created`) VALUES (?,?,?,?,?,?)",
+                t, name, Lg("email"), Lg("phone"), Lg("notes"), leadId, now).ConfigureAwait(false);
+        }
+        else
+        {
+            await ErpDb.ExecuteAsync(c, null,
+                "INSERT INTO `epc_erp_contacts` (`name`, `email`, `phone`, `address`, `party_type`, `source_lead_id`, `time_created`) VALUES (?,?,?,?, 'customer', ?, ?)",
+                t, name, Lg("email"), Lg("phone"), Lg("notes"), leadId, now).ConfigureAwait(false);
+        }
+        id = await ErpDb.LastInsertIdAsync(c, null, t).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_crm_leads` ADD `converted_party_id` int(11) NOT NULL DEFAULT 0", t).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_crm_leads` ADD `converted_party_type` varchar(16) NOT NULL DEFAULT ''", t).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(c, null, "UPDATE `epc_crm_leads` SET `status` = 'converted', `converted_party_id` = ?, `converted_party_type` = ?, `time_updated` = ? WHERE `id` = ?",
+            t, id, isVendor ? "vendor" : "customer", now, leadId).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Prospect converted to " + (isVendor ? "vendor" : "customer") + " #" + id + ".", id);
+    }
 
     internal async Task<ErpSimpleWriteResult> SaveFieldsAsync(
         DbConnection connection,

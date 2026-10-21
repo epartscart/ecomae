@@ -3065,6 +3065,8 @@ public static class EcomAeRoutes
     public const string ErpD365TbSet = "/erp/d365/tb-set";
     /// <summary>D365 journals: post a journal (general|customer_payment|vendor_payment) with dimensioned lines.</summary>
     public const string ErpD365JournalPost = "/erp/d365/journal-post";
+    /// <summary>D365 prospect → customer/vendor conversion. Fields: lead_id, party=customer|vendor.</summary>
+    public const string ErpD365ProspectConvert = "/erp/d365/prospect-convert";
     /// <summary>SHAM §14: per-module data-flow coverage matrix (live rows per module table).</summary>
     public const string ErpShamModuleFlows = "/erp/sham/module-flows";
     /// <summary>SHAM §10: append an effective-dated transfer price rule between two legal entities.</summary>

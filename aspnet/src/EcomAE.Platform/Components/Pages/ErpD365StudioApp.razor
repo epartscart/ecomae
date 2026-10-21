@@ -219,6 +219,17 @@
     </div>
 
     <div class="tg-card tg-form">
+        <h3>Prospect → customer / vendor</h3>
+        <p>smmBusinessRelations-style conversion: takes a CRM lead id and creates the customer or vendor master record, marking the lead converted.</p>
+        <form method="post" action="@Post("/erp/d365/prospect-convert")" style="display:flex;gap:8px;align-items:end">
+            @HiddenFields()
+            <label style="flex:1">Lead id<input name="lead_id" type="number" min="1" required /></label>
+            <label>Convert to<select name="party"><option value="customer">Customer</option><option value="vendor">Vendor</option></select></label>
+            <button type="submit">Convert</button>
+        </form>
+    </div>
+
+    <div class="tg-card tg-form">
         <h3>Sales quotation — create, lifecycle, print</h3>
         <p>New quotation: pick kind <code>quote</code> in the fields form above and leave id blank (include <code>quote_no</code>, <code>customer_name</code>…). Add lines with kind <code>quote_line</code> and id = quotation id.</p>
         <form method="post" action="@Post("/erp/d365/quote-status")">
