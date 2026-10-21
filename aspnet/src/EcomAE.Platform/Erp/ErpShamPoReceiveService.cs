@@ -140,14 +140,18 @@ public sealed class ErpShamPoReceiveService : IErpShamPoReceiveService
                 canonicalReference = canonicalReference[..109] + "~" + hash;
             }
 
-            // Dedupe against the legacy raw key "PO-<po>" as well — the ONLY
-            // shape pre-receipt code could write, so it is only checked for
+            // Dedupe against prior single-PO key shapes as well — all of them
+            // only ever encode the po number, so they are only checked for
             // receipt-less requests (a receipt-suffixed row can only belong to
-            // the '|' scheme). Pair lookups need no second key: '|' keys are
-            // disjoint from every earlier format.
-            var legacyReference = string.IsNullOrWhiteSpace(receiptRef) || string.IsNullOrWhiteSpace(poNumber)
-                ? (string.IsNullOrWhiteSpace(poNumber) ? null : "PO-" + poNumber.Trim())
-                : null;
+            // the '|' scheme, which needs no second key):
+            //   legacy  "PO-<po>" verbatim
+            //   interim "PO-<po with /→\>" from the first escape fix
+            // Between the two, "PO-A\B" is ambiguous (legacy po="A\B" or interim
+            // po="A/B") — matching it is still the safer failure: the row is a
+            // receipt for a key this PO could have written.
+            var legacyKeys = string.IsNullOrWhiteSpace(receiptRef) && !string.IsNullOrWhiteSpace(poNumber)
+                ? new[] { "PO-" + poNumber.Trim(), "PO-" + poNumber.Trim().Replace('/', '\\') }
+                : [];
 
             // Idempotency: a retry of the same PO+warehouse receipt must not add
             // stock a second time. Claims are keyed on the movement reference —
@@ -155,8 +159,11 @@ public sealed class ErpShamPoReceiveService : IErpShamPoReceiveService
             if (canonicalReference is not null)
             {
                 var prior = await ErpDb.LongAsync(connection, null,
-                    ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_movements` WHERE `movement_type`='purchase_in' AND `warehouse_id`=? AND `item_id`=? AND `qty`=? AND `reference` IN (?, ?) LIMIT 1"),
-                    cancellationToken, warehouseId, itemId, qty, canonicalReference, legacyReference ?? canonicalReference).ConfigureAwait(false);
+                    ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_movements` WHERE `movement_type`='purchase_in' AND `warehouse_id`=? AND `item_id`=? AND `qty`=? AND `reference` IN (?, ?, ?) LIMIT 1"),
+                    cancellationToken, warehouseId, itemId, qty,
+                    canonicalReference,
+                    legacyKeys.Length > 0 ? legacyKeys[0] : canonicalReference,
+                    legacyKeys.Length > 1 ? legacyKeys[1] : canonicalReference).ConfigureAwait(false);
                 if (prior > 0)
                 {
                     return new(true, "ok", "Receipt " + canonicalReference + " already recorded for item " + itemId + " in warehouse " + warehouseId + " (movement " + prior + ").");
