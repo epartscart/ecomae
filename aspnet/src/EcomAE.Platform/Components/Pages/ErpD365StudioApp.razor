@@ -240,6 +240,35 @@
     </div>
 
     <div class="tg-card">
+        <h3>Prospects → customer / vendor (smmBusinessRelations)</h3>
+        <p>Convert a qualified prospect into a customer or vendor master — the D365 prospect conversion flow. Already-converted prospects show their party id.</p>
+        <table class="tg-table">
+            <thead><tr><th>#</th><th>Company</th><th>Contact</th><th>Email</th><th>Phone</th><th>Status</th><th>Convert</th></tr></thead>
+            <tbody>
+                @foreach (var r in _prospects)
+                {
+                    <tr>
+                        <td>@R(r,"id")</td><td>@R(r,"company")</td><td>@R(r,"contact_name")</td>
+                        <td>@R(r,"email")</td><td>@R(r,"phone")</td>
+                        <td>@R(r,"status")@(R(r,"converted_party_id") is { Length: >0 } cp && cp != "0" ? " → " + R(r,"converted_party_type") + " #" + cp : "")</td>
+                        <td>
+                            @if (R(r,"status") != "converted")
+                            {
+                                <form method="post" action="@Post("/erp/d365/prospect-convert")" style="display:flex;gap:6px">
+                                    @HiddenFields()
+                                    <input type="hidden" name="lead_id" value="@R(r,"id")" />
+                                    <button type="submit" name="party" value="customer" style="padding:2px 8px;font-size:11px">→ Customer</button>
+                                    <button type="submit" name="party" value="vendor" style="padding:2px 8px;font-size:11px">→ Vendor</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="tg-card">
         <h3>Invoice journals (CustInvoiceJournal / VendInvoiceJournal)</h3>
         <div class="tg-grid">
             <div>
@@ -333,6 +362,7 @@
     private List<Dictionary<string, string?>> _stmtRows = [];
     private List<Dictionary<string, string?>> _analysis = [];
     private string _stmtEntity = "";
+    private List<Dictionary<string, string?>> _prospects = [];
 
     private string P(string key) => _profile.TryGetValue(key, out var v) ? v ?? "" : "";
     private static string R(Dictionary<string, string?> row, string key) => row.TryGetValue(key, out var v) ? v ?? "" : "";
@@ -375,6 +405,7 @@
                 }
                 stmtSql += " GROUP BY c.`id` ORDER BY c.`name` LIMIT 200";
                 _stmtRows = await ErpD365DocCycleService.RowsAsync(conn, stmtSql, ctx.RequestAborted).ConfigureAwait(false);
+                _prospects = (await D365.ProspectsAsync(conn, ctx.RequestAborted).ConfigureAwait(false)).Select(r => new Dictionary<string, string?>(r, StringComparer.Ordinal)).ToList();
                 _analysis = await ErpD365DocCycleService.RowsAsync(conn,
                     "SELECT d.`invoice_number`, d.`issue_date`, d.`currency_code`, d.`total_incl_vat` AS revenue,"
                     + " IFNULL((SELECT SUM(l.`quantity`*IFNULL(i.`cost_price`,0)) FROM `epc_einvoice_lines` l JOIN `epc_erp_inv_items` i ON i.`sku` = l.`item_name` WHERE l.`document_id` = d.`id`),0) AS cost,"

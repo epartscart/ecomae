@@ -415,6 +415,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpD365BankRecon, HandleD365BankReconAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpD365TbSet, HandleD365TbSetAsync);
         endpoints.MapPost(EcomAeRoutes.ErpD365JournalPost, HandleD365JournalPostAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365ProspectConvert, HandleD365ProspectConvertAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamTaxRuleSet, HandleShamTaxRuleSetAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamTaxRules, HandleShamTaxRulesAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamLandedCost, HandleShamLandedCostAsync).DisableAntiforgery();
@@ -27952,6 +27953,39 @@ public sealed class ErpModule : ISurfaceModule
 
     /// <summary>valid_from/valid_to accept a unix number or YYYY-MM-DD
     /// (from = start of day UTC, to = end of day UTC).</summary>
+
+    /// <summary>D365 prospect→customer/vendor conversion (smmBusinessRelations → CustTable/VendTable). Fields: lead_id, party=customer|vendor.</summary>
+    private static async Task<IResult> HandleD365ProspectConvertAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365DocCycleService d365,
+        EcomAE.Platform.Cp.ICpCsrfGuard csrf,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-studio", "Admin ERP capability required for prospect conversion.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. Fields: lead_id, party=customer|vendor.", session = SessionPayload(session) });
+        }
+
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var res = await d365.ConvertProspectAsync(conn, AmlLong(fields, "lead_id"), AmlText(fields, "party"), session.UserId, cancellationToken).ConfigureAwait(false);
+        return LiveWriteFormBinder.Complete(context, "/erp/d365-studio", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, id = res.Id, message = res.Message, session = SessionPayload(session) });
+    }
+
     /// <summary>CSRF guard for the D365 write endpoints (DisableAntiforgery + confirmWrites flow).</summary>
     private static async Task<IResult?> D365CsrfAsync(
         HttpContext context,
