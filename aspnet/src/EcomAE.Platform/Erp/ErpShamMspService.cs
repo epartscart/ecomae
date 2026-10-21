@@ -64,6 +64,10 @@ public sealed class ErpShamMspService : IErpShamMspService
             "ALTER TABLE `epc_erp_org_msp_versions` ADD COLUMN `approved_by` varchar(190) NOT NULL DEFAULT '' AFTER `set_by`",
             "ALTER TABLE `epc_erp_org_msp_versions` ADD COLUMN `note` varchar(255) NOT NULL DEFAULT '' AFTER `approved_by`",
             "ALTER TABLE `epc_erp_org_msp_versions` ADD COLUMN `time_approved` int(11) NOT NULL DEFAULT 0 AFTER `time_created`",
+            // The original (entity_id,bu_code,version) unique key reserves v1 for
+            // the whole BU — per-item versioning needs the item in the key.
+            "ALTER TABLE `epc_erp_org_msp_versions` DROP INDEX `ux_entity_bu_ver`",
+            "ALTER TABLE `epc_erp_org_msp_versions` ADD UNIQUE KEY `ux_entity_bu_item_ver` (`entity_id`,`bu_code`,`item_code`,`version`)",
         })
         {
             await ErpDb.TryExecuteAsync(connection, ddl, cancellationToken).ConfigureAwait(false);
@@ -191,8 +195,8 @@ public sealed class ErpShamMspService : IErpShamMspService
             cmd.CommandText = ErpDb.Positional(
                 "SELECT `version`,`item_code`,`unit_margin`,`offer_margin`,`actual_margin`,`msp_margin`,`status`,`set_by`,`approved_by`,`time_created`,`time_approved`"
                 + " FROM `epc_erp_org_msp_versions` WHERE `entity_id`=? AND `bu_code`=? AND (`item_code`=? OR `item_code`='')"
-                + " ORDER BY `version` DESC LIMIT 50");
-            ErpDb.AddParameters(cmd, entityId, bu, item);
+                + " ORDER BY (`item_code` = ?) DESC, `version` DESC LIMIT 50");
+            ErpDb.AddParameters(cmd, entityId, bu, item, item);
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {

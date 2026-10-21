@@ -24,7 +24,10 @@ public interface IErpTaxRuleService
 {
     Task<ErpTaxRuleResult> SetAsync(string entityCode, string scopeCode, string supplyKind, string fromLocation, string toLocation, string treatment, decimal vatRate, string docClass, long validFromUnix, long validToUnix, string? note, string userEmail, CancellationToken cancellationToken = default);
     Task<ErpTaxRuleView?> ResolveAsync(string entityCode, string? buCode, string scopeCode, string supplyKind, string fromLocation, string toLocation, long atUnix, string userEmail, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<ErpTaxRuleView>> ListAsync(string userEmail, CancellationToken cancellationToken = default);
+    /// <summary>Rules for one entity (plus tenant-wide) or all rules when
+    /// <paramref name="entityCode"/> is empty — the empty scope needs a
+    /// tenant-wide grant, an entity scope needs that entity's grant.</summary>
+    Task<IReadOnlyList<ErpTaxRuleView>> ListAsync(string userEmail, string? entityCode = null, CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpTaxRuleView(long Id, string EntityCode, string ScopeCode, string SupplyKind, string FromLocation, string ToLocation, string Treatment, decimal VatRate, string DocClass, long ValidFrom, long ValidTo, string Note);
@@ -89,6 +92,12 @@ public sealed class ErpTaxRuleService : IErpTaxRuleService
         if (vatRate is < 0 or > 100)
         {
             return new ErpTaxRuleResult(false, "vat_rate must be 0–100.", 0);
+        }
+        // Non-standard treatments carry no output VAT — normalize so a
+        // zero_rated rule never resolves a stray positive rate.
+        if (treatment != "standard")
+        {
+            vatRate = 0m;
         }
         if (validFromUnix > 0 && validToUnix > 0 && validToUnix <= validFromUnix)
         {
@@ -162,9 +171,17 @@ public sealed class ErpTaxRuleService : IErpTaxRuleService
         return MapRow(reader);
     }
 
-    public async Task<IReadOnlyList<ErpTaxRuleView>> ListAsync(string userEmail, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ErpTaxRuleView>> ListAsync(string userEmail, string? entityCode = null, CancellationToken cancellationToken = default)
     {
-        if (!await _foundation.AccessAllowedAsync(userEmail, null, null, "tax-rule-view", cancellationToken).ConfigureAwait(false))
+        var entity = (entityCode ?? string.Empty).Trim();
+        if (!await _foundation.AccessAllowedAsync(userEmail, entity.Length > 0 ? entity : null, null, "tax-rule-view", cancellationToken).ConfigureAwait(false))
+        {
+            return [];
+        }
+        var entityId = entity.Length > 0
+            ? await EntityIdAsync(entity, cancellationToken).ConfigureAwait(false)
+            : 0;
+        if (entity.Length > 0 && entityId <= 0)
         {
             return [];
         }
@@ -176,7 +193,9 @@ public sealed class ErpTaxRuleService : IErpTaxRuleService
         command.CommandText =
             "SELECT r.`id`, r.`entity_id`, IFNULL(e.`code`, '') AS entity_code, r.`scope_code`, r.`supply_kind`, r.`from_location`, r.`to_location`, r.`treatment`, r.`vat_rate`, r.`doc_class`, r.`valid_from`, r.`valid_to`, r.`note`"
             + " FROM `epc_erp_tax_rules` r LEFT JOIN `epc_erp_pm_legal_entities` e ON e.`id` = r.`entity_id`"
-            + " WHERE r.`active` = 1 ORDER BY r.`entity_id`, r.`supply_kind`, r.`valid_from` DESC, r.`id` DESC LIMIT 500";
+            + " WHERE r.`active` = 1"
+            + (entityId > 0 ? " AND (r.`entity_id` = " + entityId.ToString(System.Globalization.CultureInfo.InvariantCulture) + " OR r.`entity_id` = 0)" : "")
+            + " ORDER BY r.`entity_id`, r.`supply_kind`, r.`valid_from` DESC, r.`id` DESC LIMIT 500";
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {

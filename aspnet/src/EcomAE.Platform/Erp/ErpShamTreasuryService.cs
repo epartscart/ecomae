@@ -22,7 +22,27 @@ public sealed record ErpShamTreasuryListResult(bool Ok, string Message, decimal 
 public sealed class ErpShamTreasuryService : IErpShamTreasuryService
 {
     private static readonly HashSet<string> Kinds = new(StringComparer.OrdinalIgnoreCase) { "lc", "cad", "fx" };
-    private static readonly HashSet<string> Transitions = new(StringComparer.OrdinalIgnoreCase) { "settle", "expire", "cancel" };
+    private static readonly HashSet<string> Transitions = new(StringComparer.OrdinalIgnoreCase) { "receive", "negotiate", "pay", "settle", "expire", "cancel" };
+
+    /// <summary>D365-style lifecycle: an LC moves open → received (docs) →
+    /// negotiated → settled (paid). CAD goes open → paid. FX goes open →
+    /// settled/expired. Every hop lands in the events log.</summary>
+    private static readonly Dictionary<string, (string From, string To)> Steps = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["receive"] = ("open", "received"),
+        ["negotiate"] = ("received", "negotiated"),
+        ["pay"] = ("negotiated", "settled"),
+        ["settle"] = ("open", "settled"),
+        ["expire"] = ("open", "expired"),
+        ["cancel"] = ("open", "cancelled"),
+    };
+
+    private static bool StepAllowed(string kind, string action)
+        => action switch
+        {
+            "receive" or "negotiate" or "pay" => kind == "lc" || (kind == "cad" && action == "pay"),
+            _ => true,
+        };
 
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IErpShamFoundationService _foundation;
@@ -34,7 +54,8 @@ public sealed class ErpShamTreasuryService : IErpShamTreasuryService
     }
 
     public static async Task EnsureSchemaAsync(System.Data.Common.DbConnection connection, CancellationToken cancellationToken)
-        => await ErpDb.TryExecuteAsync(connection,
+    {
+        await ErpDb.TryExecuteAsync(connection,
             "CREATE TABLE IF NOT EXISTS `epc_erp_org_treasury_instruments` (`id` int(11) NOT NULL AUTO_INCREMENT,"
             + " `entity_id` int(11) NOT NULL DEFAULT 0, `kind` varchar(10) NOT NULL DEFAULT 'lc',"
             + " `reference` varchar(80) NOT NULL DEFAULT '', `counterparty` varchar(190) NOT NULL DEFAULT '',"
@@ -45,6 +66,15 @@ public sealed class ErpShamTreasuryService : IErpShamTreasuryService
             + " PRIMARY KEY (`id`), UNIQUE KEY `ux_entity_ref` (`entity_id`,`reference`), KEY `x_status` (`entity_id`,`status`))"
             + " ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Treasury instruments LC/CAD/FX per entity (§13)'",
             cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(connection,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_org_treasury_events` (`id` int(11) NOT NULL AUTO_INCREMENT,"
+            + " `instrument_id` int(11) NOT NULL DEFAULT 0, `action` varchar(16) NOT NULL DEFAULT '',"
+            + " `from_status` varchar(12) NOT NULL DEFAULT '', `to_status` varchar(12) NOT NULL DEFAULT '',"
+            + " `actor` varchar(190) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '',"
+            + " `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_instrument` (`instrument_id`))"
+            + " ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Treasury lifecycle event log (§13)'",
+            cancellationToken).ConfigureAwait(false);
+    }
 
     public async Task<ErpShamTreasuryResult> RegisterAsync(string entityCode, string kind, string reference, string counterparty, decimal amount, string currency, long? expiryDate, string userEmail, CancellationToken cancellationToken = default)
     {
@@ -94,7 +124,7 @@ public sealed class ErpShamTreasuryService : IErpShamTreasuryService
         action = (action ?? string.Empty).Trim().ToLowerInvariant();
         if (!Transitions.Contains(action))
         {
-            return new(false, "action must be settle, expire, or cancel.", reference ?? "", "");
+            return new(false, "action must be receive, negotiate, pay, settle, expire, or cancel.", reference ?? "", "");
         }
         if (!await _foundation.AccessAllowedAsync(userEmail, entityCode, null, "treasury-set", cancellationToken).ConfigureAwait(false))
         {
@@ -105,15 +135,54 @@ public sealed class ErpShamTreasuryService : IErpShamTreasuryService
         {
             return new(false, "Unknown entity code.", reference ?? "", "");
         }
-        var newStatus = action == "settle" ? "settled" : action == "expire" ? "expired" : "cancelled";
+        var (fromStatus, newStatus) = Steps[action];
         await using var conn = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+        long instrumentId = 0; string kind = "";
+        await using (var find = conn.CreateCommand())
+        {
+            find.CommandText = ErpDb.Positional(
+                "SELECT `id`,`kind` FROM `epc_erp_org_treasury_instruments` WHERE `entity_id`=? AND `reference`=? LIMIT 1");
+            ErpDb.AddParameters(find, entityId, (reference ?? string.Empty).Trim());
+            await using var reader = await find.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                instrumentId = reader.GetInt64(0);
+                kind = reader.GetString(1);
+            }
+        }
+        if (instrumentId <= 0)
+        {
+            return new(false, "No instrument " + reference + " on " + entityCode + ".", reference ?? "", "");
+        }
+        if (!StepAllowed(kind, action))
+        {
+            return new(false, "Action " + action + " is not valid for a " + kind.ToUpperInvariant() + " instrument.", reference ?? "", "");
+        }
+
         var n = await ErpDb.ExecuteAsync(conn, null,
-            "UPDATE `epc_erp_org_treasury_instruments` SET `status`=?, `settled`=? WHERE `entity_id`=? AND `reference`=? AND `status`='open'",
-            cancellationToken, newStatus, now, entityId, (reference ?? string.Empty).Trim()).ConfigureAwait(false);
-        return n > 0
-            ? new(true, "Instrument " + reference + " → " + newStatus + ".", reference ?? "", newStatus)
-            : new(false, "No open instrument " + reference + " on " + entityCode + ".", reference ?? "", "");
+            "UPDATE `epc_erp_org_treasury_instruments` SET `status`=?, `settled`=CASE WHEN ?='settled' THEN ? ELSE `settled` END WHERE `id`=? AND `status`=?",
+            cancellationToken, newStatus, newStatus, now, instrumentId, fromStatus).ConfigureAwait(false);
+        if (n == 0)
+        {
+            // CAD 'pay' jumps open straight to settled.
+            if (kind == "cad" && action == "pay")
+            {
+                n = await ErpDb.ExecuteAsync(conn, null,
+                    "UPDATE `epc_erp_org_treasury_instruments` SET `status`='settled', `settled`=? WHERE `id`=? AND `status`='open'",
+                    cancellationToken, now, instrumentId).ConfigureAwait(false);
+                fromStatus = "open";
+            }
+            if (n == 0)
+            {
+                return new(false, "Instrument " + reference + " is not in state " + fromStatus + " — cannot " + action + ".", reference ?? "", "");
+            }
+        }
+        await ErpDb.ExecuteAsync(conn, null,
+            "INSERT INTO `epc_erp_org_treasury_events` (`instrument_id`,`action`,`from_status`,`to_status`,`actor`,`note`,`time_created`) VALUES (?,?,?,?,?,?,?)",
+            cancellationToken, instrumentId, action, fromStatus, newStatus, userEmail, string.Empty, now).ConfigureAwait(false);
+        return new(true, "Instrument " + reference + " → " + newStatus + ".", reference ?? "", newStatus);
     }
 
     public async Task<ErpShamTreasuryListResult> ListAsync(string entityCode, string? status, string userEmail, CancellationToken cancellationToken = default)

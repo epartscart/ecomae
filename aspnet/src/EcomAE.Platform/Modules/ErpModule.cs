@@ -27343,7 +27343,7 @@ public sealed class ErpModule : ISurfaceModule
             entity, AmlText(fields, "scope"), AmlText(fields, "supply"),
             AmlText(fields, "from"), AmlText(fields, "to"), AmlText(fields, "treatment"),
             AmlDec(fields, "vat"), AmlText(fields, "doc"),
-            AmlLong(fields, "valid_from"), AmlLong(fields, "valid_to"),
+            AmlUnix(fields, "valid_from", false), AmlUnix(fields, "valid_to", true),
             AmlText(fields, "note"), session.Email ?? string.Empty, cancellationToken);
         return LiveWriteFormBinder.Complete(context, "/erp/tenant-guide", res.Ok, res.Message, new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, rule = res.RuleId, session = SessionPayload(session) });
     }
@@ -27373,8 +27373,27 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(new { ok = true, resolved = rule is not null, rule, session = SessionPayload(session) });
         }
 
-        var rules = await taxRules.ListAsync(session.Email ?? string.Empty, cancellationToken);
+        var rules = await taxRules.ListAsync(session.Email ?? string.Empty, query["cmp"].ToString(), cancellationToken);
         return Results.Ok(new { ok = true, count = rules.Count, rules, session = SessionPayload(session) });
+    }
+
+    /// <summary>valid_from/valid_to accept a unix number or YYYY-MM-DD
+    /// (from = start of day UTC, to = end of day UTC).</summary>
+    private static long AmlUnix(IReadOnlyDictionary<string, string> fields, string key, bool endOfDay)
+    {
+        var raw = fields.TryGetValue(key, out var v) ? (v ?? string.Empty).Trim() : string.Empty;
+        if (raw.Length == 0)
+        {
+            return 0;
+        }
+        if (long.TryParse(raw, out var unix))
+        {
+            return unix;
+        }
+        return DateTimeOffset.TryParse(raw, CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var parsed)
+            ? parsed.ToUnixTimeSeconds() + (endOfDay ? 86399 : 0)
+            : 0;
     }
 
     /// <summary>SHAM §9: allocate receipt charges across lines; lines come as JSON 'lines' field or ?lines=.</summary>
