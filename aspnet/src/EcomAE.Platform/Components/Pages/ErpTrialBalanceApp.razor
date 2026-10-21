@@ -30,6 +30,7 @@
                             <a class="epc-d365-ap-btn" href="/erp/period-close-app"><i class="fa fa-calendar" aria-hidden="true"></i><span>Fiscal year transactions</span></a>
                             <a class="epc-d365-ap-btn" href="/erp/multi-currency-gl-app"><i class="fa fa-money" aria-hidden="true"></i><span>By currency</span></a>
                             <a class="epc-d365-ap-btn" href="/erp/intercompany-app"><i class="fa fa-exchange" aria-hidden="true"></i><span>Intercompany setup</span></a>
+                            <a class="epc-d365-ap-btn @(_parameters.Consolidated ? "is-primary" : "")" href="@ConsolidatedHref()"><i class="fa fa-object-group" aria-hidden="true"></i><span>Consolidation</span></a>
                             <a class="epc-d365-ap-btn" href="/erp/period-close-app"><i class="fa fa-clock-o" aria-hidden="true"></i><span>Period</span></a>
                             <a class="epc-d365-ap-btn" href="/erp/cash-accounts-app?tab=cash_forecast"><i class="fa fa-line-chart" aria-hidden="true"></i><span>Cash flow forecasts</span></a>
                         </div>
@@ -339,6 +340,9 @@
 
         _result = await TrialBalance.ReadAsync(_parameters, ctx.RequestAborted);
     }
+
+    private string ConsolidatedHref()
+        => (_parameters with { Consolidated = !_parameters.Consolidated }).AppHref(_parameters.AccountCode);
 
     private static string FormatTime(long unix)
     {

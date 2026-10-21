@@ -759,6 +759,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamIntercompanyPostService, 
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpConsolidatedTrialBalanceReadService, EcomAE.Platform.Erp.ErpConsolidatedTrialBalanceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTenantGuideReadService, EcomAE.Platform.Erp.ErpTenantGuideReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamMspService, EcomAE.Platform.Erp.ErpShamMspService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTaxRuleService, EcomAE.Platform.Erp.ErpTaxRuleService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamLandedCostService, EcomAE.Platform.Erp.ErpShamLandedCostService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamEliminationService, EcomAE.Platform.Erp.ErpShamEliminationService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamEinvoiceService, EcomAE.Platform.Erp.ErpShamEinvoiceService>();
@@ -886,6 +887,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSuperCustomerBoardService, Ecom
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpIntegrationsHubService, EcomAE.Platform.Cp.CpIntegrationsHubService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantsWriteService, EcomAE.Platform.Cp.CpTenantsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantControlCenterService, EcomAE.Platform.Cp.CpTenantControlCenterService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpReleaseHistoryService, EcomAE.Platform.Cp.CpReleaseHistoryService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantAdminDirectoryService, EcomAE.Platform.Cp.CpTenantAdminDirectoryService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.IHybridSyncService, EcomAE.Platform.Cp.HybridSyncService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSocialHubWriteService, EcomAE.Platform.Cp.CpSocialHubWriteService>();

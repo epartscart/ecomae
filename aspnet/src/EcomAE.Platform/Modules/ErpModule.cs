@@ -399,7 +399,10 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpShamVatSummary, HandleShamVatSummaryAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamPeriodLock, HandleShamPeriodLockAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamMspSet, HandleShamMspSetAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpShamMspApprove, HandleShamMspApproveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamMspCheck, HandleShamMspCheckAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpShamTaxRuleSet, HandleShamTaxRuleSetAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpShamTaxRules, HandleShamTaxRulesAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamLandedCost, HandleShamLandedCostAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamLandedCostView, HandleShamLandedCostViewAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamElimRun, HandleShamElimRunAsync).DisableAntiforgery();
@@ -27237,7 +27240,7 @@ public sealed class ErpModule : ISurfaceModule
         var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
         if (!confirm)
         {
-            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to append an MSP version. Fields: entity|cmp, bu, unit, offer, actual, msp (percentages 0-100). Scope check: 'msp-set' grant.", session = SessionPayload(session) });
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to append an MSP version (lands pending; 'msp-approve' activates it). Fields: entity|cmp, bu, item (optional per-item), unit, offer, actual, msp (percentages 0-100), note. Scope check: 'msp-set' grant.", session = SessionPayload(session) });
         }
 
         var entity = AmlText(fields, "entity");
@@ -27254,8 +27257,42 @@ public sealed class ErpModule : ISurfaceModule
         var res = await msp.SetAsync(
             entity, bu,
             AmlDec(fields, "unit"), AmlDec(fields, "offer"), AmlDec(fields, "actual"), AmlDec(fields, "msp"),
-            session.Email ?? string.Empty, cancellationToken);
-        return LiveWriteFormBinder.Complete(context, "/erp/tenant-guide", res.Ok, res.Message, new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, entity = res.Entity, bu = res.Bu, version = res.Version, unit = res.Unit, offer = res.Offer, actual = res.Actual, msp = res.Msp, session = SessionPayload(session) });
+            session.Email ?? string.Empty, AmlText(fields, "item"), AmlText(fields, "note"), cancellationToken);
+        return LiveWriteFormBinder.Complete(context, "/erp/tenant-guide", res.Ok, res.Message, new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, entity = res.Entity, bu = res.Bu, item = res.Item, version = res.Version, unit = res.Unit, offer = res.Offer, actual = res.Actual, msp = res.Msp, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM §8: approve/reject a pending MSP version ('msp-approve' grant).</summary>
+    private static async Task<IResult> HandleShamMspApproveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamMspService msp,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM MSP approval.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to decide a pending MSP version. Fields: entity|cmp, bu, item (optional), version, approve=1|0, note. Scope check: 'msp-approve' grant.", session = SessionPayload(session) });
+        }
+
+        var entity = AmlText(fields, "entity");
+        if (entity.Length == 0)
+        {
+            entity = context.Request.Query["cmp"].ToString();
+        }
+        var bu = AmlText(fields, "bu");
+        if (bu.Length == 0)
+        {
+            bu = ErpHostContext.BuCodeFromQuery(context.Request);
+        }
+        var approve = AmlText(fields, "approve") is "1" or "true" or "yes";
+        var res = await msp.ApproveAsync(entity, bu, AmlText(fields, "item"), (int)AmlLong(fields, "version"), approve, AmlText(fields, "note"), session.Email ?? string.Empty, cancellationToken);
+        return LiveWriteFormBinder.Complete(context, "/erp/tenant-guide", res.Ok, res.Message, new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, entity = res.Entity, bu = res.Bu, item = res.Item, version = res.Version, session = SessionPayload(session) });
     }
 
     /// <summary>SHAM §8: effective MSP version + history for entity×BU.</summary>
@@ -27273,8 +27310,90 @@ public sealed class ErpModule : ISurfaceModule
 
         var res = await msp.CheckAsync(
             context.Request.Query["cmp"].ToString(), ErpHostContext.BuCodeFromQuery(context.Request),
-            session.Email ?? string.Empty, cancellationToken);
-        return Results.Ok(new { ok = res.Ok, message = res.Message, entity = res.Entity, bu = res.Bu, version = res.Version, unit = res.Unit, offer = res.Offer, actual = res.Actual, msp = res.Msp, history = res.History });
+            session.Email ?? string.Empty, context.Request.Query["item"].ToString(), cancellationToken);
+        return Results.Ok(new { ok = res.Ok, message = res.Message, entity = res.Entity, bu = res.Bu, item = res.Item, version = res.Version, unit = res.Unit, offer = res.Offer, actual = res.Actual, msp = res.Msp, pending = res.Pending, history = res.History });
+    }
+
+    /// <summary>SHAM §8b: upsert an effective-dated tax rule (entity or tenant-wide scope).</summary>
+    private static async Task<IResult> HandleShamTaxRuleSetAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTaxRuleService taxRules,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for tax rules.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save a tax rule. Fields: entity|cmp (blank = tenant-wide), scope (item/item-group code, blank = generic), supply=goods|services|real_estate|vat_group, from=mainland|designated_zone|export|any, to=..., treatment=standard|zero_rated|outside_scope|exempt, vat (0-100), doc=tax_invoice|commercial|..., valid_from/valid_to (unix or YYYY-MM-DD), note. Scope check: 'tax-rule-set' grant.", session = SessionPayload(session) });
+        }
+
+        var entity = AmlText(fields, "entity");
+        if (entity.Length == 0)
+        {
+            entity = context.Request.Query["cmp"].ToString();
+        }
+
+        var res = await taxRules.SetAsync(
+            entity, AmlText(fields, "scope"), AmlText(fields, "supply"),
+            AmlText(fields, "from"), AmlText(fields, "to"), AmlText(fields, "treatment"),
+            AmlDec(fields, "vat"), AmlText(fields, "doc"),
+            AmlUnix(fields, "valid_from", false), AmlUnix(fields, "valid_to", true),
+            AmlText(fields, "note"), session.Email ?? string.Empty, cancellationToken);
+        return LiveWriteFormBinder.Complete(context, "/erp/tenant-guide", res.Ok, res.Message, new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, rule = res.RuleId, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM §8b: list active rules, or with ?resolve=1 resolve the effective rule for a scenario.</summary>
+    private static async Task<IResult> HandleShamTaxRulesAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTaxRuleService taxRules,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for tax rules.");
+        }
+
+        var query = context.Request.Query;
+        if (query["resolve"] == "1")
+        {
+            long.TryParse(query["at"].ToString(), out var at);
+            var rule = await taxRules.ResolveAsync(
+                query["cmp"].ToString(), ErpHostContext.BuCodeFromQuery(context.Request),
+                query["scope"].ToString(), query["supply"].ToString(),
+                query["from"].ToString(), query["to"].ToString(), at,
+                session.Email ?? string.Empty, cancellationToken);
+            return Results.Ok(new { ok = true, resolved = rule is not null, rule, session = SessionPayload(session) });
+        }
+
+        var rules = await taxRules.ListAsync(session.Email ?? string.Empty, query["cmp"].ToString(), cancellationToken);
+        return Results.Ok(new { ok = true, count = rules.Count, rules, session = SessionPayload(session) });
+    }
+
+    /// <summary>valid_from/valid_to accept a unix number or YYYY-MM-DD
+    /// (from = start of day UTC, to = end of day UTC).</summary>
+    private static long AmlUnix(IReadOnlyDictionary<string, string> fields, string key, bool endOfDay)
+    {
+        var raw = fields.TryGetValue(key, out var v) ? (v ?? string.Empty).Trim() : string.Empty;
+        if (raw.Length == 0)
+        {
+            return 0;
+        }
+        if (long.TryParse(raw, out var unix))
+        {
+            return unix;
+        }
+        return DateTimeOffset.TryParse(raw, CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var parsed)
+            ? parsed.ToUnixTimeSeconds() + (endOfDay ? 86399 : 0)
+            : 0;
     }
 
     /// <summary>SHAM §9: allocate receipt charges across lines; lines come as JSON 'lines' field or ?lines=.</summary>

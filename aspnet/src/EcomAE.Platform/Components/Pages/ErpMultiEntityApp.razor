@@ -20,7 +20,7 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Multi-entity consolidation" Subtitle="Open a group for created time and members. Open an inter-company row for the note. Group, member, inter-company, and eliminate write here. Consolidated trial balance is not available on this page." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Multi-entity consolidation" Subtitle="Open a group for created time and members. Open an inter-company row for the note. Group, member, inter-company, and eliminate write here. Consolidated trial balance lives at /erp/trial-balance-app?company=consolidation." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     @if (!string.IsNullOrWhiteSpace(_flash))
@@ -159,7 +159,7 @@
                 <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_openedGroup.Status) ? "—" : _openedGroup.Status)</dd>
                 <dt>Created</dt><dd>@(string.IsNullOrWhiteSpace(_openedGroup.CreatedAt) ? "—" : _openedGroup.CreatedAt)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Group, member, inter-company, and eliminate write here. Consolidated trial balance is not available on this page.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Group, member, inter-company, and eliminate write here. Consolidated trial balance: <a href="/erp/trial-balance-app?company=consolidation">/erp/trial-balance-app?company=consolidation</a>.</p>
             @if (_openedMembers.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Members</p>
@@ -230,7 +230,7 @@
                 <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_openedIc.Status) ? "—" : _openedIc.Status)</dd>
                 <dt>When</dt><dd>@(string.IsNullOrWhiteSpace(_openedIc.CreatedAt) ? "—" : _openedIc.CreatedAt)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Group, member, inter-company, and eliminate write here. Consolidated trial balance is not available on this page.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Group, member, inter-company, and eliminate write here. Consolidated trial balance: <a href="/erp/trial-balance-app?company=consolidation">/erp/trial-balance-app?company=consolidation</a>.</p>
             @if (!string.IsNullOrWhiteSpace(_openedIc.DescriptionExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">note excerpt</p>
@@ -342,7 +342,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Distinct from CP consolidations (<code>epc_cons_*</code>). Digest: <code>/erp/multi-entity</code>. Consolidated trial balance is not available on this page.
+        Source: @_source. Distinct from CP consolidations (<code>epc_cons_*</code>). Digest: <code>/erp/multi-entity</code>. Consolidated trial balance: <a href="/erp/trial-balance-app?company=consolidation">/erp/trial-balance-app?company=consolidation</a>.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

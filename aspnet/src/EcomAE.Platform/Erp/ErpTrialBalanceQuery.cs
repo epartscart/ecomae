@@ -44,6 +44,13 @@ public sealed record ErpTrialBalanceParameters(
     long BusinessUnitId = 0,
     int CompanyId = 0)
 {
+    /// <summary>
+    /// Consolidated trial balance: only 'full' consolidation group members
+    /// (<c>epc_entity_members</c> site_key → pm legal-entity code) contribute.
+    /// Init-only so existing positional constructions stay valid.
+    /// </summary>
+    public bool Consolidated { get; init; }
+
     public const string AppPath = "/erp/trial-balance-app";
     public const string SnapshotPath = "/erp/trial-balance/snapshot";
     public const string ExportPath = "/erp/trial-balance/export";
@@ -105,7 +112,16 @@ public sealed record ErpTrialBalanceParameters(
             intervalKey,
             string.IsNullOrWhiteSpace(filter) ? null : filter.Trim(),
             ParseId(businessUnit),
-            ParseCompany(company));
+            ParseCompany(company))
+        {
+            Consolidated = ParseConsolidated(company),
+        };
+    }
+
+    private static bool ParseConsolidated(string? company)
+    {
+        var text = (company ?? string.Empty).Trim().ToLowerInvariant();
+        return text is "consolidation" or "consolidated" or "group";
     }
 
     public long FromUnix => new DateTimeOffset(FromDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero).ToUnixTimeSeconds();
@@ -146,7 +162,11 @@ public sealed record ErpTrialBalanceParameters(
             parts.Add("bu=" + BusinessUnitId.ToString(CultureInfo.InvariantCulture));
         }
 
-        if (CompanyId > 0)
+        if (Consolidated)
+        {
+            parts.Add("company=consolidation");
+        }
+        else if (CompanyId > 0)
         {
             parts.Add("company=" + CompanyId.ToString(CultureInfo.InvariantCulture));
         }

@@ -108,13 +108,49 @@
                         @HiddenFields()
                         <label>Legal entity</label><input name="entity" value="@_cmp" required />
                         <label>Business unit</label><input name="bu" value="@_bu" required />
+                        <label>Item code (blank = scope default)</label><input name="item" value="" placeholder="optional" />
                         <label>Unit margin %</label><input name="unit" type="number" step="0.01" min="0" max="100" value="0" />
                         <label>Offer margin %</label><input name="offer" type="number" step="0.01" min="0" max="100" value="0" />
                         <label>Actual margin %</label><input name="actual" type="number" step="0.01" min="0" max="100" value="0" />
                         <label>MSP margin %</label><input name="msp" type="number" step="0.01" min="0" max="100" value="0" />
-                        <button type="submit">Append MSP version</button>
+                        <label>Note</label><input name="note" value="" placeholder="optional" />
+                        <button type="submit">Submit MSP version (pending approval)</button>
                     </form>
-                    <p style="margin-top:8px"><a href="@Get("/erp/sham/msp-check")?cmp=@Uri.EscapeDataString(_cmp)&amp;buc=@Uri.EscapeDataString(_bu)">View version history</a></p>
+                    <form method="post" action="@Post("/erp/sham/msp-approve")" style="margin-top:8px">
+                        @HiddenFields()
+                        <label>Approve/reject version</label>
+                        <input name="entity" type="hidden" value="@_cmp" />
+                        <input name="bu" type="hidden" value="@_bu" />
+                        <label>Item code</label><input name="item" value="" placeholder="blank = scope default" />
+                        <label>Version</label><input name="version" type="number" min="1" required />
+                        <label>Decision</label>
+                        <select name="approve"><option value="1">approve</option><option value="0">reject</option></select>
+                        <button type="submit">Apply decision ('msp-approve' grant)</button>
+                    </form>
+                    <p style="margin-top:8px"><a href="@Get("/erp/sham/msp-check")?cmp=@Uri.EscapeDataString(_cmp)&amp;buc=@Uri.EscapeDataString(_bu)">View version + approval history</a></p>
+                </div>
+
+                <div class="tg-card tg-form">
+                    <h3>Tax rules (§8b — effective-dated)</h3>
+                    <form method="post" action="@Post("/erp/sham/tax-rule-set")">
+                        @HiddenFields()
+                        <label>Legal entity (blank = tenant-wide)</label><input name="entity" value="@_cmp" />
+                        <label>Scope code (item/item-group, blank = generic)</label><input name="scope" value="" />
+                        <label>Supply kind</label>
+                        <select name="supply"><option value="goods">goods</option><option value="services">services</option><option value="real_estate">real estate</option><option value="vat_group">VAT group supply</option></select>
+                        <label>From → to location</label>
+                        <select name="from"><option value="any">any</option><option value="mainland">mainland</option><option value="designated_zone">designated zone</option><option value="export">export</option></select>
+                        <select name="to"><option value="any">any</option><option value="mainland">mainland</option><option value="designated_zone">designated zone</option><option value="export">export</option></select>
+                        <label>Treatment / VAT %</label>
+                        <select name="treatment"><option value="standard">standard</option><option value="zero_rated">zero-rated</option><option value="outside_scope">outside scope</option><option value="exempt">exempt</option></select>
+                        <input name="vat" type="number" step="0.001" min="0" max="100" value="5" />
+                        <label>Doc class / valid window (unix, 0 = open)</label>
+                        <select name="doc"><option value="tax_invoice">tax invoice</option><option value="commercial">commercial invoice</option></select>
+                        <input name="valid_from" type="number" min="0" value="0" />
+                        <input name="valid_to" type="number" min="0" value="0" />
+                        <button type="submit">Save tax rule ('tax-rule-set' grant)</button>
+                    </form>
+                    <p style="margin-top:8px"><a href="@Get("/erp/sham/tax-rules")">List rules</a> · resolve: <code>/erp/sham/tax-rules?resolve=1&amp;supply=goods&amp;from=designated_zone&amp;to=designated_zone</code></p>
                 </div>
 
                 <div class="tg-card tg-form">

@@ -90,17 +90,20 @@ case "$CMD" in
     [[ -n "$INCOMING" ]] || die "write requires incoming full SHA"
     BRANCH="${REPO_OR_BRANCH:-${ECOMAE_BRANCH:-unknown}}"
     mkdir -p "$(dirname "$LOCK_FILE")"
-    python3 - "$LOCK_FILE" "$INCOMING" "$BRANCH" <<'PY'
+    HISTORY_FILE="${ECOMAE_RELEASE_HISTORY_FILE:-$(dirname "$LOCK_FILE")/release-history.jsonl}"
+    python3 - "$LOCK_FILE" "$INCOMING" "$BRANCH" "$HISTORY_FILE" <<'PY'
 import json, sys
 from datetime import datetime, timezone
 from pathlib import Path
 path, sha, branch = Path(sys.argv[1]), sys.argv[2].strip(), sys.argv[3].strip()
+history_path = Path(sys.argv[4])
+at_utc = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 doc = {
     "role": "production-lock",
     "lockedSha": sha,
     "lockedShort": sha[:9],
     "lockedBranch": branch,
-    "lockedAtUtc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    "lockedAtUtc": at_utc,
     "rollbackBlocked": True,
     "phpPrimaryBlocked": True,
     "phpSourceDeletionBlocked": True,
@@ -110,6 +113,9 @@ doc = {
     "note": "After gated PASS, production cannot move to an older SHA or switch CP/ERP/BOS/storefront back to PHP-primary. PHP files stay on disk as fallback/reference until ReadyToRemovePhp=true and human APPROVED_TO_REMOVE_PHP_FALLBACK. Never invent that approval.",
 }
 path.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+# Append to the deploy history the Super CP release table reads.
+with history_path.open("a", encoding="utf-8") as history:
+    history.write(json.dumps({"sha": sha, "branch": branch, "at": at_utc}) + "\n")
 print(f"PRODUCTION_LOCK=ON wrote {path} sha={sha} branch={branch}")
 PY
     exit 0

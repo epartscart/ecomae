@@ -162,10 +162,15 @@ public sealed class ErpIntercompanySetupService : IErpIntercompanySetupService
               `debit_purpose` varchar(32) NOT NULL DEFAULT '',
               `credit_purpose` varchar(32) NOT NULL DEFAULT '',
               `method` varchar(16) NOT NULL DEFAULT 'full',
+              `rate_pct` decimal(9,4) NOT NULL DEFAULT 0,
               `active` tinyint(1) NOT NULL DEFAULT 1,
               PRIMARY KEY (`id`),
               UNIQUE KEY `u_code` (`code`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+            """, cancellationToken).ConfigureAwait(false);
+        // Older tenants: add the unrealized-profit rate column.
+        await ErpDb.TryExecuteAsync(connection, """
+            ALTER TABLE `epc_erp_ic_elim_rules` ADD COLUMN `rate_pct` decimal(9,4) NOT NULL DEFAULT 0 AFTER `method`
             """, cancellationToken).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(connection, """
             CREATE TABLE IF NOT EXISTS `epc_erp_ic_policy` (

@@ -38,6 +38,12 @@ mysql -N -e "SELECT table_name FROM information_schema.tables WHERE table_schema
     done
 mysql -e "DROP DATABASE \`$STAGING_DB\`;"
 
+# 2b. Stamp the refresh — Super CP reads this to show each tenant's last UAT refresh.
+mysql -e "CREATE TABLE IF NOT EXISTS \`$SANDBOX_DB\`.\`epc_sandbox_meta\` (\`meta_key\` VARCHAR(64) NOT NULL PRIMARY KEY, \`meta_value\` VARCHAR(255) NOT NULL) ENGINE=InnoDB; \
+  INSERT INTO \`$SANDBOX_DB\`.\`epc_sandbox_meta\`(\`meta_key\`, \`meta_value\`) VALUES \
+    ('refreshed_from', '$LIVE_DB'), ('refreshed_at_utc', UTC_TIMESTAMP()), ('refresh_tool', 'cloudpanel_sandbox_db_refresh.sh') \
+  ON DUPLICATE KEY UPDATE \`meta_value\` = VALUES(\`meta_value\`);"
+
 # 3. Grant the tenant account on the rebuilt sandbox — on the host records
 # that actually exist for it (a GRANT for a missing user@host errors on
 # MySQL 8: "not allowed to create a user with GRANT").
@@ -45,6 +51,15 @@ mysql -N -e "SELECT DISTINCT host FROM mysql.user WHERE user='$DB_USER'" \
   | while read -r h; do
       mysql -e "GRANT ALL PRIVILEGES ON \`$SANDBOX_DB\`.* TO \`$DB_USER\`@'$h'"
     done
+# Dedicated UAT account ({db_user}_uat) gets its sandbox grant rebuilt too —
+# a fresh {db}_sandbox otherwise drops the grant and sandbox hosts lose auth.
+UAT_USER="${DB_USER}_uat"
+if mysql -N -e "SELECT 1 FROM mysql.user WHERE user='$UAT_USER'" | grep -q 1; then
+  mysql -N -e "SELECT DISTINCT host FROM mysql.user WHERE user='$UAT_USER'" \
+    | while read -r h; do
+        mysql -e "GRANT ALL PRIVILEGES ON \`$SANDBOX_DB\`.* TO \`$UAT_USER\`@'$h'"
+      done
+fi
 # Shared platform account (ecomae) also reads every tenant DB.
 if mysql -N -e "SELECT 1 FROM mysql.user WHERE user='ecomae'" | grep -q 1; then
   mysql -e "GRANT ALL PRIVILEGES ON \`$SANDBOX_DB\`.* TO 'ecomae'@'%'"
