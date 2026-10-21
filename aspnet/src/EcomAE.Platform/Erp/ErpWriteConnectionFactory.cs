@@ -38,6 +38,13 @@ public sealed class ErpWriteConnectionFactory : IErpWriteConnectionFactory
     private bool IsEpartsCartRequest()
     {
         var tenant = _httpContextAccessor?.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        // Sandbox hosts bind {db}_sandbox explicitly — never fall back to live `docpart`,
+        // or a sandbox write would hit production while the banner says test data.
+        if (tenant?.IsSandbox == true)
+        {
+            return false;
+        }
+
         if (tenant is not null && RouteTenantResolver.IsEpartsCartHost(tenant.Host, tenant.SiteKey))
         {
             return true;

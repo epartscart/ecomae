@@ -155,6 +155,20 @@
             </table>
         </div>
 
+        <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1.1rem 1.15rem">
+            <h3 style="margin:0 0 .5rem;font-size:1.05rem"><i class="fa fa-flask" aria-hidden="true"></i> Sandbox / UAT tier (D365 F&amp;O model)</h3>
+            <p class="text-muted" style="margin:0;line-height:1.55">
+                Every ERP-only tenant has two environments on one codebase, exactly like D365 F&amp;O production + sandbox:
+            </p>
+            <ul class="text-muted" style="margin:.4rem 0 .2rem;line-height:1.6">
+                <li><strong>Production</strong> — <code>{key}-operations-{ccc}.ecomae.com</code> bound to the live tenant database.</li>
+                <li><strong>Sandbox / UAT</strong> — <code>{key}-sandbox-{ccc}.ecomae.com</code> bound to <code>{db}_sandbox</code>, a separate copy. Same build, host-scoped sessions, amber UAT banner inside the ERP.</li>
+                <li><strong>Refresh</strong> is prod → sandbox only (D365 "copy production to sandbox"): <code>bash scripts/cloudpanel_sandbox_db_refresh.sh &lt;live_db&gt; &lt;db_user&gt;</code> — staged swap, live stays readable, interrupted refresh never leaves a half-copied sandbox. Never copy sandbox data up to production.</li>
+                <li><strong>Provision a new tenant's tier:</strong> <code>bash scripts/cloudpanel_ops_host_provision.sh &lt;key&gt; &lt;ccc&gt; --sandbox</code>, then run the refresh once to seed UAT.</li>
+                <li><strong>Security:</strong> the sandbox host proxies only ERP routes (CP/BOS/storefront 404), cookies are host-scoped (a UAT session can never reach live data), and writes resolve <code>{db}_sandbox</code> end-to-end — ePartsCart shared-docpart fallbacks are disabled on sandbox hosts.</li>
+            </ul>
+        </div>
+
         <div class="epc-scp-table-card">
             <table class="epc-scp-data-table table table-epc-pro">
                 <thead>
@@ -164,6 +178,7 @@
                         <th>Type</th>
                         <th>Model</th>
                         <th>ERP login</th>
+                        <th>UAT</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -193,6 +208,16 @@
                                     else if (!string.IsNullOrWhiteSpace(t.ErpLoginUrl))
                                     {
                                         <a href="@t.ErpLoginUrl">@t.ErpLoginUrl</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(t.ErpSandboxUrl))
+                                    {
+                                        <a href="@t.ErpSandboxUrl" class="text-warning" title="Sandbox / UAT host — bound to the _sandbox database">@t.ErpSandboxUrl</a>
                                     }
                                     else
                                     {
