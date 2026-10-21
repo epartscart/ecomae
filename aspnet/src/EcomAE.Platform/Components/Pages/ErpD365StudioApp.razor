@@ -238,6 +238,125 @@
             </div>
         </form>
     </div>
+
+    <div class="tg-card">
+        <h3>Warehouses (InventLocations)</h3>
+        <p>Fields saved via the D365 field form above (kind=warehouse): site, type, entity, cost centre (SHAM links warehouses to cost centres), business unit, allow-negative, cycle counting, retail flags.</p>
+        <table class="tg-table">
+            <thead><tr><th>Id</th><th>Code</th><th>Name</th><th>Entity</th><th>Site</th><th>Type</th><th>Cost centre</th><th>BU</th></tr></thead>
+            <tbody>
+                @foreach (var r in _warehouses)
+                {
+                    <tr><td>@R(r,"id")</td><td>@R(r,"code")</td><td>@R(r,"name")</td><td>@R(r,"entity_id")</td><td>@R(r,"site")</td><td>@R(r,"type")</td><td>@R(r,"cost_centre_id")</td><td>@R(r,"business_unit_id")</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="tg-card">
+        <h3>Prospects → customer / vendor (smmBusinessRelations)</h3>
+        <p>Convert a qualified prospect into a customer or vendor master — the D365 prospect conversion flow. Already-converted prospects show their party id.</p>
+        <table class="tg-table">
+            <thead><tr><th>#</th><th>Company</th><th>Contact</th><th>Email</th><th>Phone</th><th>Status</th><th>Convert</th></tr></thead>
+            <tbody>
+                @foreach (var r in _prospects)
+                {
+                    <tr>
+                        <td>@R(r,"id")</td><td>@R(r,"company")</td><td>@R(r,"contact_name")</td>
+                        <td>@R(r,"email")</td><td>@R(r,"phone")</td>
+                        <td>@R(r,"status")@(R(r,"converted_party_id") is { Length: >0 } cp && cp != "0" ? " → " + R(r,"converted_party_type") + " #" + cp : "")</td>
+                        <td>
+                            @if (R(r,"status") != "converted")
+                            {
+                                <form method="post" action="@Post("/erp/d365/prospect-convert")" style="display:flex;gap:6px">
+                                    @HiddenFields()
+                                    <input type="hidden" name="lead_id" value="@R(r,"id")" />
+                                    <button type="submit" name="party" value="customer" style="padding:2px 8px;font-size:11px">→ Customer</button>
+                                    <button type="submit" name="party" value="vendor" style="padding:2px 8px;font-size:11px">→ Vendor</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="tg-card">
+        <h3>Invoice journals (CustInvoiceJournal / VendInvoiceJournal)</h3>
+        <div class="tg-grid">
+            <div>
+                <p><strong>Customer invoices</strong> <a href="@Get("/erp/d365/csv-export")?area=customer_invoice_journal">export CSV</a></p>
+                <table class="tg-table">
+                    <thead><tr><th>Invoice</th><th>Date</th><th>Cur</th><th>Net</th><th>VAT</th><th>Total</th><th>Paid</th></tr></thead>
+                    <tbody>
+                        @foreach (var r in _custInvoices)
+                        {
+                            <tr>
+                                <td>@R(r,"invoice_number")</td><td>@R(r,"issue_date")</td><td>@R(r,"currency_code")</td>
+                                <td>@R(r,"subtotal_ex_vat")</td><td>@R(r,"total_vat")</td><td>@R(r,"total_incl_vat")</td><td>@R(r,"paid_amount")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <p><strong>Vendor invoices (PO journal)</strong> <a href="@Get("/erp/d365/csv-export")?area=vendor_invoice_journal">export CSV</a></p>
+                <table class="tg-table">
+                    <thead><tr><th>PO</th><th>Status</th><th>Total</th><th>Created</th></tr></thead>
+                    <tbody>
+                        @foreach (var r in _vendInvoices)
+                        {
+                            <tr><td>@R(r,"po_no")</td><td>@R(r,"status")</td><td>@R(r,"total_amount")</td><td>@R(r,"time_created")</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="tg-card">
+        <h3>Customer account statement — entity wise</h3>
+        <form method="get" action="@Get("/erp/d365-studio")" style="display:flex;gap:8px;align-items:end;margin-bottom:10px">
+            <label style="flex:1">Legal entity
+                <select name="stmt_entity">
+                    <option value="">All entities</option>
+                    @foreach (var e in _entities)
+                    {
+                        <option value="@R(e,"id")" selected="@(R(e,"id") == _stmtEntity)">@R(e,"code") — @R(e,"name")</option>
+                    }
+                </select>
+            </label>
+            <button type="submit">Run</button>
+            <a href="@Get("/erp/d365/csv-export")?area=customer_statement" style="font-size:12px">print / export CSV</a>
+        </form>
+        <table class="tg-table">
+            <thead><tr><th>Customer</th><th>Account</th><th>TRN</th><th class="text-right">Balance</th></tr></thead>
+            <tbody>
+                @foreach (var r in _stmtRows)
+                {
+                    <tr><td>@R(r,"name")</td><td>@R(r,"account_code")</td><td>@R(r,"trn")</td><td class="text-right">@R(r,"balance")</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="tg-card">
+        <h3>Sales analysis by invoice (margin)</h3>
+        <p><a href="@Get("/erp/d365/csv-export")?area=sales_analysis_by_invoice">export CSV</a> — customizable columns: pick any listed field into the report.</p>
+        <table class="tg-table">
+            <thead><tr><th>Invoice</th><th>Date</th><th>Cur</th><th class="text-right">Revenue</th><th class="text-right">Cost</th><th class="text-right">Margin</th></tr></thead>
+            <tbody>
+                @foreach (var r in _analysis)
+                {
+                    <tr>
+                        <td>@R(r,"invoice_number")</td><td>@R(r,"issue_date")</td><td>@R(r,"currency_code")</td>
+                        <td class="text-right">@R(r,"revenue")</td><td class="text-right">@R(r,"cost")</td><td class="text-right">@R(r,"margin")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </PhpErpDesktopChrome>
 
 @code {
@@ -251,8 +370,17 @@
     private List<Dictionary<string, string?>> _dimSets = [];
     private List<Dictionary<string, string?>> _fiscal = [];
     private List<Dictionary<string, string?>> _banks = [];
+    private List<Dictionary<string, string?>> _custInvoices = [];
+    private List<Dictionary<string, string?>> _vendInvoices = [];
+    private List<Dictionary<string, string?>> _entities = [];
+    private List<Dictionary<string, string?>> _stmtRows = [];
+    private List<Dictionary<string, string?>> _analysis = [];
+    private string _stmtEntity = "";
+    private List<Dictionary<string, string?>> _prospects = [];
+    private List<Dictionary<string, string?>> _warehouses = [];
 
     private string P(string key) => _profile.TryGetValue(key, out var v) ? v ?? "" : "";
+    private static string R(Dictionary<string, string?> row, string key) => row.TryGetValue(key, out var v) ? v ?? "" : "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -275,6 +403,33 @@
                 _dimSets = await Gl.DimensionSetsAsync(conn, ctx.RequestAborted).ConfigureAwait(false);
                 _fiscal = await Gl.FiscalCalendarsAsync(conn, ctx.RequestAborted).ConfigureAwait(false);
                 _banks = await Gl.BankAccountsAsync(conn, ctx.RequestAborted).ConfigureAwait(false);
+                _entities = await ErpD365DocCycleService.RowsAsync(conn, "SELECT `id`, `code`, `name` FROM `epc_erp_pm_legal_entities` WHERE `active` = 1 ORDER BY `code`", ctx.RequestAborted).ConfigureAwait(false);
+                _custInvoices = await ErpD365DocCycleService.RowsAsync(conn,
+                    "SELECT `id`, `invoice_number`, `issue_date`, `currency_code`, `subtotal_ex_vat`, `total_vat`, `total_incl_vat`, `paid_amount` FROM `epc_einvoice_documents` ORDER BY `id` DESC LIMIT 50",
+                    ctx.RequestAborted).ConfigureAwait(false);
+                _vendInvoices = await ErpD365DocCycleService.RowsAsync(conn,
+                    "SELECT `id`, `po_no`, `status`, `total_amount`, `time_created` FROM `epc_erp_purchase_orders` ORDER BY `id` DESC LIMIT 50",
+                    ctx.RequestAborted).ConfigureAwait(false);
+                _stmtEntity = ctx.Request.Query["stmt_entity"].ToString();
+                var stmtSql = "SELECT c.`name`, c.`account_code`, IFNULL(c.`trn`,'') AS trn, IFNULL(SUM(l.`debit`),0)-IFNULL(SUM(l.`credit`),0) AS balance"
+                    + " FROM `epc_erp_contacts` c"
+                    + " LEFT JOIN `epc_erp_gl_lines` l ON l.`coa_id` IN (SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = c.`account_code`)";
+                if (long.TryParse(_stmtEntity, out var se) && se > 0)
+                {
+                    stmtSql += " WHERE c.`entity_id` = " + se.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                }
+                stmtSql += " GROUP BY c.`id` ORDER BY c.`name` LIMIT 200";
+                _stmtRows = await ErpD365DocCycleService.RowsAsync(conn, stmtSql, ctx.RequestAborted).ConfigureAwait(false);
+                _warehouses = await ErpD365DocCycleService.RowsAsync(conn,
+                    "SELECT `id`, `code`, `name`, `entity_id`, `site`, `type`, `cost_centre_id`, `business_unit_id` FROM `epc_erp_inv_warehouses` ORDER BY `code` LIMIT 200",
+                    ctx.RequestAborted).ConfigureAwait(false);
+                _prospects = (await D365.ProspectsAsync(conn, ctx.RequestAborted).ConfigureAwait(false)).Select(r => new Dictionary<string, string?>(r, StringComparer.Ordinal)).ToList();
+                _analysis = await ErpD365DocCycleService.RowsAsync(conn,
+                    "SELECT d.`invoice_number`, d.`issue_date`, d.`currency_code`, d.`total_incl_vat` AS revenue,"
+                    + " IFNULL((SELECT SUM(l.`quantity`*IFNULL(i.`cost_price`,0)) FROM `epc_einvoice_lines` l JOIN `epc_erp_inv_items` i ON i.`sku` = l.`item_name` WHERE l.`document_id` = d.`id`),0) AS cost,"
+                    + " d.`total_incl_vat` - IFNULL((SELECT SUM(l.`quantity`*IFNULL(i.`cost_price`,0)) FROM `epc_einvoice_lines` l JOIN `epc_erp_inv_items` i ON i.`sku` = l.`item_name` WHERE l.`document_id` = d.`id`),0) AS margin"
+                    + " FROM `epc_einvoice_documents` d ORDER BY d.`id` DESC LIMIT 100",
+                    ctx.RequestAborted).ConfigureAwait(false);
             }
         }
         catch

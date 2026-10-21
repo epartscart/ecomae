@@ -38,6 +38,18 @@ public interface IErpD365DocCycleService
         int adminId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Convert a prospect (epc_crm_leads) into a customer (epc_erp_contacts) or vendor (epc_erp_suppliers).</summary>
+    Task<ErpSimpleWriteResult> ConvertProspectAsync(DbConnection connection, long leadId, string party, int adminId, CancellationToken cancellationToken = default);
+
+    /// <summary>List prospects with their conversion state.</summary>
+    Task<IReadOnlyList<IReadOnlyDictionary<string, string?>>> ProspectsAsync(DbConnection connection, CancellationToken cancellationToken = default);
+
+    /// <summary>Read the D365 header field values currently stored on an so|po row (allowlisted columns only).</summary>
+    Task<IReadOnlyDictionary<string, string?>> DocumentHeaderAsync(DbConnection connection, string kind, long id, CancellationToken cancellationToken = default);
+
+    /// <summary>Read the D365 line field values for an so|po (allowlisted columns only).</summary>
+    Task<IReadOnlyList<IReadOnlyDictionary<string, string?>>> DocumentD365LinesAsync(DbConnection connection, string kind, long id, CancellationToken cancellationToken = default);
+
     /// <summary>Save D365 header fields onto an existing purchase order row.</summary>
     Task<ErpSimpleWriteResult> SavePurchaseOrderHeaderAsync(
         DbConnection connection,
@@ -436,6 +448,17 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
             await Add(connection, "epc_erp_sales_quotation_lines", col, def, cancellationToken).ConfigureAwait(false);
         }
 
+        foreach (var (col, def) in new Dictionary<string, string>
+        {
+            ["converted_party_id"] = "int(11) NOT NULL DEFAULT 0",
+            ["converted_party_type"] = "varchar(16) NOT NULL DEFAULT ''",
+        })
+        {
+            await Add(connection, "epc_crm_leads", col, def, cancellationToken).ConfigureAwait(false);
+        }
+        await Add(connection, "epc_erp_contacts", "source_lead_id", "int(11) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
+        await Add(connection, "epc_erp_suppliers", "source_lead_id", "int(11) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
+
         foreach (var col in WarehouseColumns)
         {
             var def = col is "entity_id" or "cost_centre_id" or "business_unit_id"
@@ -735,11 +758,125 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
         return rows.Count == 0 ? null : rows[0];
     }
 
+
+
+    /// <inheritdoc />
+    public async Task<ErpSimpleWriteResult> ConvertProspectAsync(DbConnection c, long leadId, string party, int adminId, CancellationToken t = default)
+    {
+        if (party is not ("customer" or "vendor"))
+        {
+            return ErpSimpleWriteResult.Fail("invalid_party", "party must be customer|vendor.");
+        }
+        await EnsureSchemaAsync(c, t).ConfigureAwait(false);
+        var lead = (await RowsAsync(c, "SELECT * FROM `epc_crm_leads` WHERE `id` = ? AND `active` = 1 LIMIT 1", t, leadId).ConfigureAwait(false)).FirstOrDefault();
+        if (lead is null)
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Prospect " + leadId + " not found.");
+        }
+        if (string.Equals(G(lead, "status"), "converted", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErpSimpleWriteResult.Fail("already_converted", "Prospect already converted (party id " + G(lead, "converted_party_id") + ").");
+        }
+
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var name = G(lead, "company").Length > 0 ? G(lead, "company") : G(lead, "contact_name");
+        if (name.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("no_name", "Prospect has no company or contact name.");
+        }
+        long partyId;
+        if (party == "customer")
+        {
+            await ErpDb.ExecuteAsync(c, null,
+                "INSERT INTO `epc_erp_contacts` (`party_type`, `name`, `company`, `email`, `phone`, `active`, `time_created`, `time_updated`) VALUES ('customer', ?, ?, ?, ?, 1, ?, ?)",
+                t, name, G(lead, "company"), G(lead, "email"), G(lead, "phone"), now, now).ConfigureAwait(false);
+            partyId = await ErpDb.LastInsertIdAsync(c, null, t).ConfigureAwait(false);
+        }
+        else
+        {
+            await ErpDb.ExecuteAsync(c, null,
+                "INSERT INTO `epc_erp_suppliers` (`name`, `contact_email`, `contact_phone`, `active`, `time_created`) VALUES (?, ?, ?, 1, ?)",
+                t, name, G(lead, "email"), G(lead, "phone"), now).ConfigureAwait(false);
+            partyId = await ErpDb.LastInsertIdAsync(c, null, t).ConfigureAwait(false);
+        }
+        await ErpDb.ExecuteAsync(c, null,
+            "UPDATE `epc_crm_leads` SET `status` = 'converted', `converted_party_id` = ?, `converted_party_type` = ?, `time_updated` = ? WHERE `id` = ?",
+            t, partyId, party, now, leadId).ConfigureAwait(false);
+        return new ErpSimpleWriteResult(true, "ok", "Prospect converted to " + party + " #" + partyId + ".", partyId, 2);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<IReadOnlyDictionary<string, string?>>> ProspectsAsync(DbConnection c, CancellationToken t = default)
+    {
+        await EnsureSchemaAsync(c, t).ConfigureAwait(false);
+        var rows = await RowsAsync(c,
+            "SELECT `id`, `company`, `contact_name`, `email`, `phone`, `source`, `status`, `converted_party_id`, `converted_party_type`, `time_created` FROM `epc_crm_leads` WHERE `active` = 1 ORDER BY `id` DESC LIMIT 200",
+            t).ConfigureAwait(false);
+        var result = new List<IReadOnlyDictionary<string, string?>>();
+        foreach (var r in rows) result.Add(r);
+        return result;
+    }
+
+    private static string G(IReadOnlyDictionary<string, string?> row, string key)
+        => row.TryGetValue(key, out var v) ? v ?? string.Empty : string.Empty;
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyDictionary<string, string?>> DocumentHeaderAsync(DbConnection c, string kind, long id, CancellationToken t = default)
+    {
+        var (table, cols) = kind switch
+        {
+            "so" => ("epc_erp_sales_orders", SalesOrderHeaderColumns),
+            "po" => ("epc_erp_purchase_orders", PurchaseOrderHeaderColumns),
+            _ => ("", Array.Empty<string>()),
+        };
+        if (table.Length == 0) return new Dictionary<string, string?>();
+        await EnsureSchemaAsync(c, t).ConfigureAwait(false);
+        var row = (await RowsAsync(c, "SELECT * FROM `" + table + "` WHERE `id` = ? LIMIT 1", t, id).ConfigureAwait(false)).FirstOrDefault();
+        var result = new Dictionary<string, string?>(StringComparer.Ordinal);
+        if (row is null) return result;
+        foreach (var col in cols)
+        {
+            if (row.TryGetValue(col, out var v) && !string.IsNullOrEmpty(v))
+            {
+                result[col] = v;
+            }
+        }
+        return result;
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<IReadOnlyDictionary<string, string?>>> DocumentD365LinesAsync(DbConnection c, string kind, long id, CancellationToken t = default)
+    {
+        var (table, fk, cols) = kind switch
+        {
+            "so" => ("epc_erp_sales_order_lines", "sales_order_id", SalesOrderLineColumns),
+            "po" => ("epc_erp_po_lines", "po_id", PurchaseOrderLineColumns),
+            _ => ("", "", Array.Empty<string>()),
+        };
+        var result = new List<IReadOnlyDictionary<string, string?>>();
+        if (table.Length == 0) return result;
+        await EnsureSchemaAsync(c, t).ConfigureAwait(false);
+        var present = new List<string>();
+        foreach (var col in cols)
+        {
+            if (await ErpDb.ColumnKnownAsync(c, table, col, t).ConfigureAwait(false))
+            {
+                present.Add(col);
+            }
+        }
+        if (present.Count == 0) return result;
+        var rows = await RowsAsync(c,
+            "SELECT `" + string.Join("`,`", present) + "` FROM `" + table + "` WHERE `" + fk + "` = ? ORDER BY `id`",
+            t, id).ConfigureAwait(false);
+        foreach (var r in rows) result.Add(r);
+        return result;
+    }
+
     internal static async Task<List<Dictionary<string, string?>>> RowsAsync(DbConnection connection, string sql, CancellationToken cancellationToken, params object?[] args)
     {
         var rows = new List<Dictionary<string, string?>>();
         await using var command = connection.CreateCommand();
-        command.CommandText = sql;
+        command.CommandText = ErpDb.Positional(sql);
         ErpDb.AddParameters(command, args);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
