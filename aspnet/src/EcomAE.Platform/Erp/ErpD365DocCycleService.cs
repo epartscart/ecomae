@@ -127,6 +127,12 @@ public interface IErpD365DocCycleService
         DbConnection connection,
         long quotationId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>D365 quotation list (epc_erp_sales_quotations, newest first) for module-page grids.</summary>
+    Task<List<Dictionary<string, string?>>> QuotationsListAsync(
+        DbConnection connection,
+        int limit,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class ErpD365DocCycleService : IErpD365DocCycleService
@@ -648,6 +654,13 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
         var header = await FirstRowAsync(c, "SELECT * FROM `epc_erp_sales_quotations` WHERE `id` = ? LIMIT 1", t, quotationId).ConfigureAwait(false);
         var lines = await RowsAsync(c, "SELECT * FROM `epc_erp_sales_quotation_lines` WHERE `quotation_id` = ? ORDER BY `line_no`, `id`", t, quotationId).ConfigureAwait(false);
         return (header, lines);
+    }
+
+    public async Task<List<Dictionary<string, string?>>> QuotationsListAsync(DbConnection c, int limit, CancellationToken t = default)
+    {
+        await EnsureSchemaAsync(c, t).ConfigureAwait(false);
+        var cap = Math.Clamp(limit, 1, 2000);
+        return await RowsAsync(c, "SELECT * FROM `epc_erp_sales_quotations` ORDER BY `id` DESC LIMIT " + cap.ToString(CultureInfo.InvariantCulture), t).ConfigureAwait(false);
     }
 
     public Task<ErpSimpleWriteResult> SaveWarehouseFieldsAsync(DbConnection c, long id, IReadOnlyDictionary<string, string?> f, int a, CancellationToken t = default)
