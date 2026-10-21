@@ -128,6 +128,66 @@ public static class ErpHostContext
     }
 
     /// <summary>
+    /// Business-unit selector on operations hosts: <c>?bu=ASAPL-WSL</c> (or a BU id).
+    /// Mirrors <see cref="ActiveCompanyFromQuery"/> — numeric matches the BU id,
+    /// anything else matches the BU code or name. null when the entity has no BUs.
+    /// </summary>
+    public sealed record ErpBusinessUnitDigest(int Id, string Code, string Name, int EntityId);
+
+    public static int? ActiveBusinessUnitIdFromQuery(HttpRequest? request)
+    {
+        if (request is null)
+        {
+            return null;
+        }
+
+        if (request.Query.TryGetValue("bu", out var buVals)
+            && int.TryParse(buVals.FirstOrDefault(), out var bu)
+            && bu > 0)
+        {
+            return bu;
+        }
+
+        if (request.Query.TryGetValue("businessUnit", out var buIdVals)
+            && int.TryParse(buIdVals.FirstOrDefault(), out var buId)
+            && buId > 0)
+        {
+            return buId;
+        }
+
+        return null;
+    }
+
+    public static ErpBusinessUnitDigest? ActiveBusinessUnitFromQuery(
+        IReadOnlyList<ErpBusinessUnitDigest>? units,
+        HttpRequest? request)
+    {
+        if (units is null || units.Count == 0)
+        {
+            return null;
+        }
+
+        var id = ActiveBusinessUnitIdFromQuery(request);
+        if (id is > 0)
+        {
+            return units.FirstOrDefault(u => u.Id == id.Value) ?? units[0];
+        }
+
+        var bu = request?.Query.TryGetValue("bu", out var buVals) == true
+            ? buVals.ToString().Trim()
+            : null;
+        if (!string.IsNullOrWhiteSpace(bu))
+        {
+            return units.FirstOrDefault(u =>
+                       string.Equals(u.Code, bu, StringComparison.OrdinalIgnoreCase)
+                       || string.Equals(u.Name, bu, StringComparison.OrdinalIgnoreCase))
+                   ?? units[0];
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// PHP <c>epc_erp_gl_resolve_company_id</c>: requested <c>?company=</c> when it
     /// belongs to the tenant list, otherwise the lowest-id legal entity.
     /// Returns 0 when the tenant has no companies (unscoped / consolidated).

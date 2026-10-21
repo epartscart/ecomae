@@ -122,6 +122,11 @@ public sealed class ErpWorkspaceReadService : IErpWorkspaceReadService
                 spec.Ensure ?? ErpSalesWorkspaceSpecs.EnsureSalesAsync);
         }
 
+        foreach (var (tab, spec) in ErpOrgWorkspaceSpecs.Tabs)
+        {
+            map[tab] = spec;
+        }
+
         foreach (var (tab, spec) in ErpCoverageSweepSpecs.Tabs)
         {
             if (!map.ContainsKey(tab))
