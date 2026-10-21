@@ -12,6 +12,8 @@
 @inject NavigationManager Nav
 @inject IErpDimensionLinkReadService DimensionLinks
 @inject IErpInventoryReservationWriteService Reservations
+@inject IErpWriteConnectionFactory Connections
+@inject IErpD365DocCycleService D365
 
 <PageTitle>Sales Orders · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -246,6 +248,17 @@
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
                 <dt>Updated</dt><dd>@FormatTime(_openedDetail.TimeUpdated)</dd>
             </dl>
+            @if (_d365Header.Count > 0)
+            {
+                <p class="text-muted" style="margin:.6rem 0 .3rem">D365 header</p>
+                <dl class="epc-erp-facts">
+                    @foreach (var kv in _d365Header)
+                    {
+                        <dt>@kv.Key.Replace('_', ' ')</dt>
+                        <dd>@kv.Value</dd>
+                    }
+                </dl>
+            }
             <ErpDocumentWorkspace
                 DocumentKind="Sales order"
                 Title="@_openedDetail.Title"
@@ -295,6 +308,20 @@
                                 <td class="text-right">@line.UnitPriceExVat.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td class="text-right">@line.LineExVat.ToString("N2", CultureInfo.InvariantCulture)</td>
                             </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            @if (_d365Lines.Count > 0)
+            {
+                var d365Cols = _d365Lines.SelectMany(r => r.Keys).Distinct().ToList();
+                <p class="text-muted" style="margin:1rem 0 .4rem">D365 lines view</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr>@foreach (var col in d365Cols) { <th>@col.Replace('_', ' ')</th> }</tr></thead>
+                    <tbody>
+                        @foreach (var row in _d365Lines)
+                        {
+                            <tr>@foreach (var col in d365Cols) { <td>@(row.TryGetValue(col, out var v) ? v : "")</td> }</tr>
                         }
                     </tbody>
                 </table>
@@ -668,6 +695,8 @@
     private IReadOnlyList<ErpAuditTrailRow> _openedAuditTrail = [];
     private IReadOnlyList<ErpDocumentAttachmentRow> _openedAttachments = [];
     private IReadOnlyList<ErpDocumentLineDigest> _openedLines = [];
+    private IReadOnlyDictionary<string, string?> _d365Header = new Dictionary<string, string?>();
+    private IReadOnlyList<IReadOnlyDictionary<string, string?>> _d365Lines = [];
 
     private bool OpenedFound => _openedDetail is not null || _openedOrder is not null;
 
@@ -735,6 +764,16 @@
             _openedAuditTrail = detail.AuditTrail;
             _openedAttachments = detail.Attachments;
             _openedLines = detail.Lines;
+            try
+            {
+                if (Connections.IsConfigured)
+                {
+                    await using var conn = await Connections.OpenAsync(ctx.RequestAborted).ConfigureAwait(false);
+                    _d365Header = await D365.DocumentHeaderAsync(conn, "so", _openedId, ctx.RequestAborted).ConfigureAwait(false);
+                    _d365Lines = await D365.DocumentD365LinesAsync(conn, "so", _openedId, ctx.RequestAborted).ConfigureAwait(false);
+                }
+            }
+            catch { /* D365 overlay is best-effort */ }
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {
                 _message = detail.Message;

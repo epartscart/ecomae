@@ -38,6 +38,12 @@ public interface IErpD365DocCycleService
         int adminId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Read the D365 header field values currently stored on an so|po row (allowlisted columns only).</summary>
+    Task<IReadOnlyDictionary<string, string?>> DocumentHeaderAsync(DbConnection connection, string kind, long id, CancellationToken cancellationToken = default);
+
+    /// <summary>Read the D365 line field values for an so|po (allowlisted columns only).</summary>
+    Task<IReadOnlyList<IReadOnlyDictionary<string, string?>>> DocumentD365LinesAsync(DbConnection connection, string kind, long id, CancellationToken cancellationToken = default);
+
     /// <summary>Save D365 header fields onto an existing purchase order row.</summary>
     Task<ErpSimpleWriteResult> SavePurchaseOrderHeaderAsync(
         DbConnection connection,
@@ -733,6 +739,59 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
     {
         var rows = await RowsAsync(connection, sql, cancellationToken, args).ConfigureAwait(false);
         return rows.Count == 0 ? null : rows[0];
+    }
+
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyDictionary<string, string?>> DocumentHeaderAsync(DbConnection c, string kind, long id, CancellationToken t = default)
+    {
+        var (table, cols) = kind switch
+        {
+            "so" => ("epc_erp_sales_orders", SalesOrderHeaderColumns),
+            "po" => ("epc_erp_purchase_orders", PurchaseOrderHeaderColumns),
+            _ => ("", Array.Empty<string>()),
+        };
+        if (table.Length == 0) return new Dictionary<string, string?>();
+        await EnsureSchemaAsync(c, t).ConfigureAwait(false);
+        var row = (await RowsAsync(c, "SELECT * FROM `" + table + "` WHERE `id` = ? LIMIT 1", t, id).ConfigureAwait(false)).FirstOrDefault();
+        var result = new Dictionary<string, string?>(StringComparer.Ordinal);
+        if (row is null) return result;
+        foreach (var col in cols)
+        {
+            if (row.TryGetValue(col, out var v) && !string.IsNullOrEmpty(v))
+            {
+                result[col] = v;
+            }
+        }
+        return result;
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<IReadOnlyDictionary<string, string?>>> DocumentD365LinesAsync(DbConnection c, string kind, long id, CancellationToken t = default)
+    {
+        var (table, fk, cols) = kind switch
+        {
+            "so" => ("epc_erp_sales_order_lines", "sales_order_id", SalesOrderLineColumns),
+            "po" => ("epc_erp_po_lines", "po_id", PurchaseOrderLineColumns),
+            _ => ("", "", Array.Empty<string>()),
+        };
+        var result = new List<IReadOnlyDictionary<string, string?>>();
+        if (table.Length == 0) return result;
+        await EnsureSchemaAsync(c, t).ConfigureAwait(false);
+        var present = new List<string>();
+        foreach (var col in cols)
+        {
+            if (await ErpDb.ColumnKnownAsync(c, table, col, t).ConfigureAwait(false))
+            {
+                present.Add(col);
+            }
+        }
+        if (present.Count == 0) return result;
+        var rows = await RowsAsync(c,
+            "SELECT `" + string.Join("`,`", present) + "` FROM `" + table + "` WHERE `" + fk + "` = ? ORDER BY `id`",
+            t, id).ConfigureAwait(false);
+        foreach (var r in rows) result.Add(r);
+        return result;
     }
 
     internal static async Task<List<Dictionary<string, string?>>> RowsAsync(DbConnection connection, string sql, CancellationToken cancellationToken, params object?[] args)
