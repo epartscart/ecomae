@@ -480,7 +480,7 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var ownerClause = ownerCompanyId > 0 ? " AND `owner_company_id`=?" : string.Empty;
-        var confirmCmd = connection.CreateCommand();
+        await using var confirmCmd = connection.CreateCommand();
         confirmCmd.Transaction = transaction;
         confirmCmd.CommandText = ErpDb.Positional(
             "UPDATE `epc_erp_inv_reservations` SET `status`=?, `expires_at`=0, `time_updated`=? WHERE `source_type`=? AND `source_id`=? AND `status`='held'" + ownerClause);
@@ -494,7 +494,6 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
         }
 
         await confirmCmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-        await confirmCmd.DisposeAsync().ConfigureAwait(false);
     }
 
     public async Task ConsumeBySourceAsync(
@@ -513,7 +512,7 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var ownerClause = ownerCompanyId > 0 ? " AND `owner_company_id`=?" : string.Empty;
-        var consumeCmd = connection.CreateCommand();
+        await using var consumeCmd = connection.CreateCommand();
         consumeCmd.Transaction = transaction;
         consumeCmd.CommandText = ErpDb.Positional(
             "UPDATE `epc_erp_inv_reservations` SET `status`=?, `consumed_at`=?, `expires_at`=0, `time_updated`=? WHERE `source_type`=? AND `source_id`=? AND `status` IN ('held','confirmed')" + ownerClause);
@@ -527,7 +526,6 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
         }
 
         await consumeCmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-        await consumeCmd.DisposeAsync().ConfigureAwait(false);
     }
 
     public async Task ReconcileDocumentAsync(

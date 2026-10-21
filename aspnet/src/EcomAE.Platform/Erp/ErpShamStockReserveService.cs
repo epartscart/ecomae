@@ -174,9 +174,18 @@ public sealed class ErpShamStockReserveService : IErpShamStockReserveService
                 return new(false, "scope", "Reservation " + reservationId + " belongs to a different legal entity — the grant cannot release it.", 0, string.Empty, 0m, 0m);
             }
 
+            // Reject only when the hold sits in the CURRENT default warehouse of a
+            // DIFFERENT BU in this entity — holds stranded on a migrated/legacy
+            // warehouse stay releasable under the entity scope check above.
             if (holdWarehouseId != 0 && holdWarehouseId != scope.WarehouseId)
             {
-                return new(false, "scope", "Reservation " + reservationId + " is held in another business unit's warehouse — the grant cannot release it.", 0, string.Empty, 0m, 0m);
+                var otherBu = await ErpDb.LongAsync(connection, null,
+                    ErpDb.Positional("SELECT `id` FROM `epc_erp_org_business_units` WHERE `entity_id`=? AND `default_warehouse_id`=? AND `status`='active' LIMIT 1"),
+                    cancellationToken, scope.EntityId, holdWarehouseId).ConfigureAwait(false);
+                if (otherBu != 0)
+                {
+                    return new(false, "scope", "Reservation " + reservationId + " is held in another business unit's warehouse — the grant cannot release it.", 0, string.Empty, 0m, 0m);
+                }
             }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
