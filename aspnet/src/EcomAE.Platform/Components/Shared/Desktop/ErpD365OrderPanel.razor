@@ -107,8 +107,8 @@
     private string[] HeaderCols => Kind == "so" ? ErpD365DocCycleService.SalesOrderHeaderColumns : ErpD365DocCycleService.PurchaseOrderHeaderColumns;
     private string[] LineCols => Kind == "so" ? ErpD365DocCycleService.SalesOrderLineColumns : ErpD365DocCycleService.PurchaseOrderLineColumns;
     private string[] ListCols => Kind == "so"
-        ? ["id", "so_no", "customer_account", "customer_name", "status", "currency_code", "total_amount", "entity_id", "requested_receipt_date"]
-        : ["id", "po_no", "vendor_account", "vendor_name", "status", "currency_code", "total_amount", "entity_id", "requested_receipt_date"];
+        ? ["id", "so_no", "source", "customer_account", "invoice_account", "customer_name", "order_type", "continuity", "status", "currency_code", "confirmed_receipt_date", "confirmed_ship_date", "mode_of_delivery", "delivery_terms"]
+        : ["id", "po_no", "vendor_account", "vendor_name", "invoice_account", "order_type", "status", "currency_code", "requested_delivery_date", "confirmed_delivery_date", "mode_of_delivery", "delivery_terms"];
     private string CsvPlaceholder => Kind == "so" ? "so_no,customer_account,status,… + line rows" : "po_no,vendor_account,status,… + line rows";
 
     private bool _isAdmin;
