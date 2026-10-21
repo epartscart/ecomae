@@ -26930,40 +26930,40 @@ public sealed class ErpModule : ISurfaceModule
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for SHAM invoice posting.");
         }
 
-        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
         if (!confirm)
         {
             return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to post a SHAM sales invoice. Fields: entity|cmp, bu, invoiceId, number, subtotal, vat, total, date, currency, rate, consumeSourceType (default sales_order), consumeSourceId (order whose holds are consumed atomically). Scope checks: access matrix 'invoice-post' grant + per-entity COA activation.", session = SessionPayload(session) });
         }
 
-        var entity = context.Request.Form["entity"].ToString();
+        var entity = AmlText(fields, "entity");
         if (entity.Length == 0)
         {
             entity = context.Request.Query["cmp"].ToString();
         }
 
-        var bu = context.Request.Form["bu"].ToString();
+        var bu = AmlText(fields, "bu");
         if (bu.Length == 0)
         {
             bu = context.Request.Query["bu"].ToString();
         }
 
-        long.TryParse(context.Request.Form["invoiceId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var invoiceId);
-        var number = context.Request.Form["number"].ToString();
-        decimal.TryParse(context.Request.Form["subtotal"].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var subtotal);
-        decimal.TryParse(context.Request.Form["vat"].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var vat);
-        decimal.TryParse(context.Request.Form["total"].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var total);
-        long.TryParse(context.Request.Form["consumeSourceId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var consumeSourceId);
-        var consumeSourceType = context.Request.Form["consumeSourceType"].ToString();
-        var legislationRef = context.Request.Form["legislationRef"].ToString();
-        var currency = context.Request.Form["currency"].ToString();
-        decimal.TryParse(context.Request.Form["rate"].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var rate);
+        var invoiceId = AmlLong(fields, "invoiceId");
+        var number = AmlText(fields, "number");
+        var subtotal = AmlDec(fields, "subtotal");
+        var vat = AmlDec(fields, "vat");
+        var total = AmlDec(fields, "total");
+        var consumeSourceId = AmlLong(fields, "consumeSourceId");
+        var consumeSourceType = AmlText(fields, "consumeSourceType");
+        var legislationRef = AmlText(fields, "legislationRef");
+        var currency = AmlText(fields, "currency");
+        decimal.TryParse(AmlText(fields, "rate"), NumberStyles.Any, CultureInfo.InvariantCulture, out var rate);
         if (rate <= 0m)
         {
             rate = 1m;
         }
 
-        var dateText = context.Request.Form["date"].ToString();
+        var dateText = AmlText(fields, "date");
         long issueDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         if (dateText.Length > 0)
         {

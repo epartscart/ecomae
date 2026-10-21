@@ -486,13 +486,24 @@ public sealed class ErpGlPostingService : IErpGlPostingService
             await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         }
 
-        var existing = await ErpDb.LongAsync(
-            connection,
-            transaction,
-            ErpDb.Positional(
-                "SELECT `id` FROM `epc_erp_gl_journals` WHERE `source_type` = 'sales_invoice' AND `source_id` = ? AND `active` = 1 LIMIT 1"),
-            cancellationToken,
-            invoice.InvoiceId).ConfigureAwait(false);
+        // Idempotency is per entity: another legal entity may post the same
+        // invoice number/document id — it must get its own journal.
+        var existing = invoice.CompanyId > 0
+            ? await ErpDb.LongAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(
+                    "SELECT `id` FROM `epc_erp_gl_journals` WHERE `source_type` = 'sales_invoice' AND `source_id` = ? AND `company_id` = ? AND `active` = 1 LIMIT 1"),
+                cancellationToken,
+                invoice.InvoiceId,
+                invoice.CompanyId).ConfigureAwait(false)
+            : await ErpDb.LongAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(
+                    "SELECT `id` FROM `epc_erp_gl_journals` WHERE `source_type` = 'sales_invoice' AND `source_id` = ? AND `active` = 1 LIMIT 1"),
+                cancellationToken,
+                invoice.InvoiceId).ConfigureAwait(false);
         if (existing > 0)
         {
             return existing;

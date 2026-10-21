@@ -40,17 +40,20 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
     private readonly IErpShamFoundationService _foundation;
     private readonly IErpGlPostingService _posting;
     private readonly IErpInventoryReservationWriteService _reservations;
+    private readonly IErpVoucherNumberService _vouchers;
 
     public ErpShamInvoicePostService(
         IErpWriteConnectionFactory connections,
         IErpShamFoundationService foundation,
         IErpGlPostingService posting,
-        IErpInventoryReservationWriteService reservations)
+        IErpInventoryReservationWriteService reservations,
+        IErpVoucherNumberService vouchers)
     {
         _connections = connections;
         _foundation = foundation;
         _posting = posting;
         _reservations = reservations;
+        _vouchers = vouchers;
     }
 
     public async Task<ErpShamInvoicePostResult> PostAsync(
@@ -70,6 +73,11 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
             return new(false, "Entity code is required (?cmp= or the entity field).", 0);
         }
 
+        if (invoice is null || invoice.InvoiceId <= 0 || string.IsNullOrWhiteSpace(invoice.InvoiceNumber) || invoice.TotalIncl <= 0m)
+        {
+            return new(false, "An issued invoice is required: invoiceId, number and a positive total.", 0);
+        }
+
         if (!_connections.IsConfigured)
         {
             return new(false, "TenantRegistry DB is not configured.", 0);
@@ -78,8 +86,13 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            // All schema DDL must run before BeginTransactionAsync — DDL implicitly
+            // commits, and the posting/voucher/reservation writers skip EnsureSchema
+            // when an ambient transaction exists.
             await ErpShamFoundationService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await _posting.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            await _vouchers.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            await ErpInventoryReservationWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
             var entityId = await ErpDb.LongAsync(connection, null,
                 ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `code`=? AND `active`=1 LIMIT 1"),
@@ -131,12 +144,25 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
             {
                 if (consumeSourceId > 0)
                 {
+                    var consumeType = string.IsNullOrWhiteSpace(consumeSourceType)
+                        ? ErpInventoryReservationWriteService.SourceSalesOrder
+                        : consumeSourceType.Trim();
+
+                    // Scope check: refuse to consume when another legal entity holds
+                    // reservations on this document — ConsumeBySourceAsync is
+                    // unscoped, so the caller's grant must never clear foreign holds.
+                    var foreign = await ErpDb.LongAsync(connection, transaction,
+                        ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_inv_reservations` WHERE `source_type`=? AND `source_id`=? AND `status` IN ('held','confirmed') AND `owner_company_id`<>?"),
+                        cancellationToken, consumeType, consumeSourceId, entityId).ConfigureAwait(false);
+                    if (foreign > 0)
+                    {
+                        return new(false, "Source document " + consumeSourceId + " has open holds owned by another legal entity — cannot consume across scopes.", 0);
+                    }
+
                     await _reservations.ConsumeBySourceAsync(
                         connection,
                         transaction,
-                        string.IsNullOrWhiteSpace(consumeSourceType)
-                            ? ErpInventoryReservationWriteService.SourceSalesOrder
-                            : consumeSourceType.Trim(),
+                        consumeType,
                         consumeSourceId,
                         adminId,
                         cancellationToken).ConfigureAwait(false);
@@ -158,9 +184,10 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
                 throw;
             }
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception)
         {
-            return new(false, ex.Message, 0);
+            // Never echo DB exception text — it can carry table/SQL detail to callers.
+            return new(false, "Invoice posting failed.", 0);
         }
     }
 }
