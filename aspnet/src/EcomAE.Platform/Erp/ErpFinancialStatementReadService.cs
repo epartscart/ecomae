@@ -478,7 +478,10 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             if (fullMembers is { Count: > 0 })
             {
                 var ids = string.Join(',', fullMembers);
-                filter = " AND (IFNULL(j.`company_id`, 0) = 0"
+                // Unscoped headers (company_id=0) count only when the LINE also
+                // carries no entity — an excluded entity stamped on the line would
+                // otherwise leak through the header's missing scope.
+                filter = " AND ((IFNULL(j.`company_id`, 0) = 0 AND IFNULL(l.`legal_entity_id`, 0) = 0)"
                     + " OR IFNULL(j.`company_id`, 0) IN (" + ids + ")"
                     + " OR IFNULL(l.`legal_entity_id`, 0) IN (" + ids + "))";
             }
@@ -622,7 +625,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
                     ? string.Empty
                     : fullMembers.Count == 0
                         ? " AND IFNULL(j.`company_id`, 0) = 0 AND IFNULL(l.`legal_entity_id`, 0) = 0"
-                        : " AND (IFNULL(j.`company_id`, 0) = 0"
+                        : " AND ((IFNULL(j.`company_id`, 0) = 0 AND IFNULL(l.`legal_entity_id`, 0) = 0)"
                             + " OR IFNULL(j.`company_id`, 0) IN (" + string.Join(',', fullMembers) + ")"
                             + " OR IFNULL(l.`legal_entity_id`, 0) IN (" + string.Join(',', fullMembers) + "))";
 
@@ -902,7 +905,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             ? string.Empty
             : fullMembers.Count == 0
                 ? " AND IFNULL(j.`company_id`, 0) = 0 AND IFNULL(l.`legal_entity_id`, 0) = 0"
-                : " AND (IFNULL(j.`company_id`, 0) = 0"
+                : " AND ((IFNULL(j.`company_id`, 0) = 0 AND IFNULL(l.`legal_entity_id`, 0) = 0)"
                     + " OR IFNULL(j.`company_id`, 0) IN (" + string.Join(',', fullMembers) + ")"
                     + " OR IFNULL(l.`legal_entity_id`, 0) IN (" + string.Join(',', fullMembers) + "))";
         try

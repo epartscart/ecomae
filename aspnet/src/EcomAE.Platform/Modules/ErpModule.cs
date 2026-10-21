@@ -27103,7 +27103,8 @@ public sealed class ErpModule : ISurfaceModule
         var res = await posts.IssueAsync(
             entity, bu, AmlText(fields, "number"), AmlText(fields, "customer"),
             AmlDec(fields, "subtotal"), AmlDec(fields, "vat"), AmlDec(fields, "total"),
-            AmlLong(fields, "orderId"), session.Email ?? string.Empty, session.UserId, cancellationToken);
+            AmlLong(fields, "orderId"), session.Email ?? string.Empty, session.UserId,
+            AmlLong(fields, "issueDate"), AmlText(fields, "currency"), AmlDec(fields, "rate"), cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/organization-admin-app?tab=org_entities",
@@ -27146,7 +27147,7 @@ public sealed class ErpModule : ISurfaceModule
         var res = await receives.ReceiveAsync(
             entity, bu, AmlText(fields, "po"), AmlLong(fields, "itemId"), AmlText(fields, "sku"),
             AmlDec(fields, "qty"), AmlDec(fields, "cost"), AmlLong(fields, "purchaseId"), AmlText(fields, "date"),
-            session.Email ?? string.Empty, session.UserId, cancellationToken);
+            session.Email ?? string.Empty, session.UserId, AmlText(fields, "receipt"), cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/organization-admin-app?tab=org_bus",
