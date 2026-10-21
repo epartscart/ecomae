@@ -391,6 +391,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoSeed, HandleAutoPartsDemoSeedAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamFoundationSeed, HandleShamFoundationSeedAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamJournalPost, HandleShamJournalPostAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpShamStockReserve, HandleShamStockReserveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
@@ -26844,6 +26845,75 @@ public sealed class ErpModule : ISurfaceModule
             res.Ok,
             res.Message,
             new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, journalId = res.JournalId, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM Phase-3: entity×BU-scoped atomic stock reserve/release via the shared reservation engine.</summary>
+    private static async Task<IResult> HandleShamStockReserveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamStockReserveService reservations,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for SHAM stock reservation.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to reserve/release SHAM stock. Fields: entity|cmp, bu, op=reserve|release, sku|itemId, qty, sourceId, sourceLineKey, sourceType (sales_order|quote), allowPartial, durable — or reservationId for release. Scope checks: access matrix 'stock-reserve' grant + BU default warehouse.", session = SessionPayload(session) });
+        }
+
+        var entity = context.Request.Form["entity"].ToString();
+        if (entity.Length == 0)
+        {
+            entity = context.Request.Query["cmp"].ToString();
+        }
+
+        var bu = context.Request.Form["bu"].ToString();
+        if (bu.Length == 0)
+        {
+            bu = context.Request.Query["bu"].ToString();
+        }
+
+        var op = context.Request.Form["op"].ToString().Trim().ToLowerInvariant();
+        var email = session.Email ?? string.Empty;
+
+        ErpShamReserveResult res;
+        if (op == "release")
+        {
+            long.TryParse(context.Request.Form["reservationId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var reservationId);
+            res = await reservations.ReleaseAsync(entity, bu, reservationId, email, session.UserId, cancellationToken);
+        }
+        else if (op == "reserve" || op.Length == 0)
+        {
+            long.TryParse(context.Request.Form["itemId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var itemId);
+            decimal.TryParse(context.Request.Form["qty"].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var qty);
+            long.TryParse(context.Request.Form["sourceId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var sourceId);
+            var sku = context.Request.Form["sku"].ToString();
+            var sourceType = context.Request.Form["sourceType"].ToString();
+            var sourceLineKey = context.Request.Form["sourceLineKey"].ToString();
+            var allowPartial = string.Equals(context.Request.Form["allowPartial"].ToString(), "true", StringComparison.OrdinalIgnoreCase)
+                || context.Request.Form["allowPartial"].ToString() == "1";
+            var durable = string.Equals(context.Request.Form["durable"].ToString(), "true", StringComparison.OrdinalIgnoreCase)
+                || context.Request.Form["durable"].ToString() == "1";
+            res = await reservations.ReserveAsync(
+                entity, bu, itemId, sku, qty, sourceType, sourceId, sourceLineKey,
+                allowPartial, durable, email, session.UserId, cancellationToken);
+        }
+        else
+        {
+            return Results.Ok(new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "invalid_op", message = "op must be 'reserve' or 'release'.", session = SessionPayload(session) });
+        }
+
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/organization-admin-app?tab=org_entities",
+            res.Ok,
+            res.Message,
+            new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, validation_code = res.Code, message = res.Message, reservationId = res.ReservationId, sku = res.Sku, qty = res.Qty, available = res.Available, session = SessionPayload(session) });
     }
 
     /// <summary>Auto-parts workspace demo seed: inserts DEMO-tagged rows only.</summary>

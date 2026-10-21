@@ -3003,6 +3003,8 @@ public static class EcomAeRoutes
     public const string ErpShamFoundationSeed = "/erp/sham/foundation-seed";
     /// <summary>SHAM Phase-2: entity×BU-scoped manual journal post (access matrix + COA activation gated).</summary>
     public const string ErpShamJournalPost = "/erp/sham/journal-post";
+    /// <summary>SHAM Phase-3: entity×BU-scoped atomic stock reserve/release (access matrix 'stock-reserve' + BU default warehouse).</summary>
+    public const string ErpShamStockReserve = "/erp/sham/stock-reserve";
     /// <summary>Auto-parts workspace demo clear: deletes only DEMO-tagged rows.</summary>
     public const string ErpAutoPartsDemoClear = "/erp/autoparts/demo-clear";
     /// <summary>Auto-parts month-end bridge: posts trading journals into the GL.</summary>
