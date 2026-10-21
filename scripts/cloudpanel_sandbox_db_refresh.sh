@@ -38,7 +38,17 @@ mysql -N -e "SELECT table_name FROM information_schema.tables WHERE table_schema
     done
 mysql -e "DROP DATABASE \`$STAGING_DB\`;"
 
-# 3. Grant the tenant account on the rebuilt sandbox.
-mysql -e "GRANT ALL PRIVILEGES ON \`$SANDBOX_DB\`.* TO \`$DB_USER\`@'localhost'; GRANT ALL PRIVILEGES ON \`$SANDBOX_DB\`.* TO \`$DB_USER\`@'127.0.0.1'; GRANT ALL PRIVILEGES ON \`$SANDBOX_DB\`.* TO \`$DB_USER\`@'%'; FLUSH PRIVILEGES;"
+# 3. Grant the tenant account on the rebuilt sandbox — on the host records
+# that actually exist for it (a GRANT for a missing user@host errors on
+# MySQL 8: "not allowed to create a user with GRANT").
+mysql -N -e "SELECT DISTINCT host FROM mysql.user WHERE user='$DB_USER'" \
+  | while read -r h; do
+      mysql -e "GRANT ALL PRIVILEGES ON \`$SANDBOX_DB\`.* TO \`$DB_USER\`@'$h'"
+    done
+# Shared platform account (ecomae) also reads every tenant DB.
+if mysql -N -e "SELECT 1 FROM mysql.user WHERE user='ecomae'" | grep -q 1; then
+  mysql -e "GRANT ALL PRIVILEGES ON \`$SANDBOX_DB\`.* TO 'ecomae'@'%'"
+fi
+mysql -e "FLUSH PRIVILEGES;"
 
 echo "OK — refreshed $SANDBOX_DB from $LIVE_DB (staged swap)"
