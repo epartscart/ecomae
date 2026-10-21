@@ -17,7 +17,7 @@ public sealed class ClientErpPathRewriteMiddleware
         _next = next;
     }
 
-    public Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context)
     {
         var path = context.Request.Path.Value ?? "/";
 
@@ -29,23 +29,48 @@ public sealed class ClientErpPathRewriteMiddleware
         {
             context.Request.Path = "/erp";
             context.Response.Headers["X-EcomAE-Operations-Host"] = operationsKey;
-            return _next(context);
+            await _next(context).ConfigureAwait(false);
+            return;
         }
 
         if (!ClientErpPath.TryParse(path, out var parsed) || parsed.SiteKey.Length == 0)
         {
-            return _next(context);
+            await _next(context).ConfigureAwait(false);
+            return;
+        }
+
+        // Canonical host for ERP-only tenants is {key}-operations-{ccc}.ecomae.com —
+        // GETs through the staff /cp/client-erp/{key}/… form permanently redirect
+        // there. Writes pass through unchanged (then the next GET moves the user).
+        if (HttpMethods.IsGet(context.Request.Method)
+            && !ErpOperationsHost.IsOperationsHost(context.Request.Host.Host)
+            && ErpOperationsHost.IsValidSlug(parsed.SiteKey))
+        {
+            var lookup = context.RequestServices.GetService<IClientErpTenantLookup>();
+            var tenant = lookup is null
+                ? null
+                : await lookup.FindActiveErpOnlyAsync(parsed.SiteKey, context.RequestAborted).ConfigureAwait(false);
+            var target = tenant is null
+                ? string.Empty
+                : ErpOperationsHost.CanonicalUrl(parsed.SiteKey, null, "/" + parsed.Rest);
+            if (target.Length > 0)
+            {
+                var query = context.Request.QueryString.Value ?? string.Empty;
+                context.Response.Redirect(target + query, permanent: true);
+                return;
+            }
         }
 
         context.Items[ClientErpPath.HttpContextItemKey] = parsed.SiteKey;
         if (!parsed.IsErpShell)
         {
-            return _next(context);
+            await _next(context).ConfigureAwait(false);
+            return;
         }
 
         context.Items[OriginalPathItem] = path;
         context.Request.Path = "/" + parsed.Rest;
         context.Response.Headers["X-EcomAE-Client-Erp"] = parsed.SiteKey;
-        return _next(context);
+        await _next(context).ConfigureAwait(false);
     }
 }
