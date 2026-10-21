@@ -411,6 +411,9 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpD365CsvExport, HandleD365CsvExportAsync);
         endpoints.MapPost(EcomAeRoutes.ErpD365QuoteStatus, HandleD365QuoteStatusAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpD365QuotePdf, HandleD365QuotePdfAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpD365GlSave, HandleD365GlSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365BankRecon, HandleD365BankReconAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpD365TbSet, HandleD365TbSetAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamTaxRuleSet, HandleShamTaxRuleSetAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamTaxRules, HandleShamTaxRulesAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamLandedCost, HandleShamLandedCostAsync).DisableAntiforgery();
@@ -27559,6 +27562,104 @@ public sealed class ErpModule : ISurfaceModule
         var model = await ErpD365DocPdf.LoadQuotationModelAsync(conn, d365, id, cancellationToken).ConfigureAwait(false);
         if (model is null) return Results.NotFound("Quotation not found.");
         return Results.File(ErpD365DocPdf.QuotationPdf(model), "application/pdf", "quotation-" + model.InvoiceNumber + ".pdf");
+    }
+
+    /// <summary>D365 GL foundation: generic save. kind=dim_type|dim_value|dim_set|fiscal_calendar|fx_rate|bank|journal_dims|coa.</summary>
+    private static async Task<IResult> HandleD365GlSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365GlService gl,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-studio", "Admin ERP capability required for GL setup.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. kind=dim_type (code,name,description) | dim_value (type_id,value_code,value_name,parent_value) | dim_set (code,name,composition like main_account>business_unit>cost_centre) | fiscal_calendar (code,name,year,period_type,start_date,end_date,status) | fx_rate (from_currency,to_currency,rate,rate_date,rate_type) | bank (any bank account fields) | journal_dims (line id + dimension columns) | coa (id + MainAccountDetails fields).", session = SessionPayload(session) });
+        }
+
+        var kind = AmlText(fields, "kind");
+        var id = AmlLong(fields, "id");
+        var data = fields.Where(kv => kv.Key is not ("kind" or "id" or "confirmWrites" or "confirm_writes" or "fields_kv" or "returnUrl" or "csrf_guard_key")).ToDictionary(kv => kv.Key, kv => (string?)kv.Value, StringComparer.Ordinal);
+        var kvBlob = AmlText(fields, "fields_kv");
+        if (kvBlob.Length > 0)
+        {
+            foreach (var line in kvBlob.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var eq = line.IndexOf('=');
+                if (eq > 0) data[line[..eq].Trim()] = line[(eq + 1)..].Trim();
+            }
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        ErpSimpleWriteResult res = kind switch
+        {
+            "dim_type" => await gl.SaveDimensionTypeAsync(conn, id, AmlText(fields, "code"), AmlText(fields, "name"), AmlText(fields, "description"), session.UserId, cancellationToken).ConfigureAwait(false),
+            "dim_value" => await gl.SaveDimensionValueAsync(conn, AmlLong(fields, "type_id"), AmlText(fields, "value_code"), AmlText(fields, "value_name"), AmlText(fields, "parent_value"), session.UserId, cancellationToken).ConfigureAwait(false),
+            "dim_set" => await gl.SaveDimensionSetAsync(conn, id, AmlText(fields, "code"), AmlText(fields, "name"), AmlText(fields, "composition"), session.UserId, cancellationToken).ConfigureAwait(false),
+            "fiscal_calendar" => await gl.SaveFiscalCalendarAsync(conn, id, AmlText(fields, "code"), AmlText(fields, "name"), (int)AmlLong(fields, "year"), AmlText(fields, "period_type"), AmlText(fields, "start_date"), AmlText(fields, "end_date"), AmlText(fields, "status"), session.UserId, cancellationToken).ConfigureAwait(false),
+            "fx_rate" => await gl.SaveExchangeRateAsync(conn, AmlText(fields, "from_currency"), AmlText(fields, "to_currency"), AmlDec(fields, "rate"), AmlText(fields, "rate_date"), AmlText(fields, "rate_type"), session.UserId, cancellationToken).ConfigureAwait(false),
+            "bank" => await gl.SaveBankAccountAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "journal_dims" => await gl.SaveJournalLineDimsAsync(conn, AmlLong(fields, "line_id"), data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "coa" => await gl.SaveCoaFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            _ => ErpSimpleWriteResult.Fail("invalid", "kind must be dim_type|dim_value|dim_set|fiscal_calendar|fx_rate|bank|journal_dims|coa."),
+        };
+        return LiveWriteFormBinder.Complete(context, "/erp/d365-studio", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 bank reconciliation: mark/unmark a cash-bank entry. Fields: entry_id, reconciled=1|0.</summary>
+    private static async Task<IResult> HandleD365BankReconAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365GlService gl,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-studio", "Admin ERP capability required for bank reconciliation.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. Fields: entry_id, reconciled=1|0.", session = SessionPayload(session) });
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var res = await gl.SetBankReconciledAsync(conn, AmlLong(fields, "entry_id"), AmlText(fields, "reconciled") is "1" or "true" or "yes", session.UserId, cancellationToken).ConfigureAwait(false);
+        return LiveWriteFormBinder.Complete(context, "/erp/d365-studio", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 trial balance pivoted by a financial dimension set. ?set=&lt;dim set id&gt;.</summary>
+    private static async Task<IResult> HandleD365TbSetAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365GlService gl,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Redirect("/erp/login?returnUrl=/erp/d365-studio");
+        }
+
+        if (!long.TryParse(context.Request.Query["set"], out var setId) || setId <= 0)
+        {
+            return Results.BadRequest("Pass ?set=<dimension set id>.");
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var rows = await gl.TrialBalanceBySetAsync(conn, setId, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new { ok = true, count = rows.Count, rows });
     }
 
     /// <summary>SHAM §8b: upsert an effective-dated tax rule (entity or tenant-wide scope).</summary>

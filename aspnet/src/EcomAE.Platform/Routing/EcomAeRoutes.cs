@@ -3057,6 +3057,12 @@ public static class EcomAeRoutes
     public const string ErpD365QuoteStatus = "/erp/d365/quote-status";
     /// <summary>D365 quotation print view (PDF, SALES QUOTATION chrome).</summary>
     public const string ErpD365QuotePdf = "/erp/d365/quote-pdf";
+    /// <summary>D365 GL foundation save: kind=dim_type|dim_value|dim_set|fiscal_calendar|fx_rate|bank|journal_dims|coa.</summary>
+    public const string ErpD365GlSave = "/erp/d365/gl-save";
+    /// <summary>D365 bank reconciliation mark/unmark a cash-bank entry.</summary>
+    public const string ErpD365BankRecon = "/erp/d365/bank-recon";
+    /// <summary>D365 trial balance pivoted by a financial dimension set. ?set=set id.</summary>
+    public const string ErpD365TbSet = "/erp/d365/tb-set";
     /// <summary>SHAM §14: per-module data-flow coverage matrix (live rows per module table).</summary>
     public const string ErpShamModuleFlows = "/erp/sham/module-flows";
     /// <summary>SHAM §10: append an effective-dated transfer price rule between two legal entities.</summary>

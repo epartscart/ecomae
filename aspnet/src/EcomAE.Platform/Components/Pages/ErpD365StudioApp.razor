@@ -12,6 +12,7 @@
 @inject ICpCsrfGuard Csrf
 @inject IErpWriteConnectionFactory Connections
 @inject IErpD365DocCycleService D365
+@inject IErpD365GlService Gl
 
 <PageTitle>D365 studio · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -147,6 +148,52 @@
     </div>
 
     <div class="tg-card tg-form">
+        <h3>GL foundation — dimensions, calendars, FX, banks, COA</h3>
+        <p>Dimension types (legal entity, business unit, cost centre…), dimension sets (<code>main_account&gt;business_unit&gt;cost_centre</code>), fiscal calendars, exchange rates, bank accounts, journal line dimensions, and MainAccountDetails fields on COA.</p>
+        <form method="post" action="@Post("/erp/d365/gl-save")">
+            @HiddenFields()
+            <label>Kind</label>
+            <select name="kind">
+                <option value="dim_type">Dimension type (code,name)</option>
+                <option value="dim_value">Dimension value (type_id,value_code,value_name)</option>
+                <option value="dim_set">Dimension set (code,name,composition)</option>
+                <option value="fiscal_calendar">Fiscal calendar (code,year,period_type,start_date,end_date,status)</option>
+                <option value="fx_rate">Exchange rate (from_currency,to_currency,rate,rate_date)</option>
+                <option value="bank">Bank account</option>
+                <option value="journal_dims">Journal line dimensions (line_id + dim fields)</option>
+                <option value="coa">COA account fields</option>
+            </select>
+            <label>Id (0 = create)</label><input name="id" type="number" min="0" value="0" />
+            <label>Fields (name=value per line)</label><textarea name="fields_kv" placeholder="code=MA-BU-CC&#10;name=Main by BU by CC&#10;composition=main_account>business_unit>cost_centre"></textarea>
+            <button type="submit">Save GL setup</button>
+        </form>
+        <form method="post" action="@Post("/erp/d365/bank-recon")" style="margin-top:10px;display:flex;gap:8px;align-items:end">
+            @HiddenFields()
+            <label style="flex:1">Cash/bank entry id<input name="entry_id" type="number" min="1" required /></label>
+            <label>Reconciled<select name="reconciled"><option value="1">Reconciled</option><option value="0">Unreconciled</option></select></label>
+            <button type="submit">Set</button>
+        </form>
+        @if (_dimTypes.Count > 0 || _dimSets.Count > 0 || _fiscal.Count > 0 || _banks.Count > 0)
+        {
+            <h4 style="margin:12px 0 4px">Current setup</h4>
+            <table class="tg-table">
+                <thead><tr><th>Area</th><th>Code</th><th>Name / detail</th></tr></thead>
+                <tbody>
+                    @foreach (var t in _dimTypes)
+                    {<tr><td>Dimension type</td><td>@t.GetValueOrDefault("code")</td><td>@t.GetValueOrDefault("name")</td></tr>}
+                    @foreach (var s in _dimSets)
+                    {<tr><td>Dimension set</td><td>@s.GetValueOrDefault("code")</td><td>@s.GetValueOrDefault("name") — @s.GetValueOrDefault("composition")</td></tr>}
+                    @foreach (var f in _fiscal)
+                    {<tr><td>Fiscal calendar</td><td>@f.GetValueOrDefault("code") @f.GetValueOrDefault("year")</td><td>@f.GetValueOrDefault("period_type") — @f.GetValueOrDefault("status")</td></tr>}
+                    @foreach (var b in _banks)
+                    {<tr><td>Bank account</td><td>@b.GetValueOrDefault("bank_account")</td><td>@b.GetValueOrDefault("name") — @b.GetValueOrDefault("bank_group")</td></tr>}
+                </tbody>
+            </table>
+        }
+        <p style="margin-top:8px">TB pivot by set: <code>/erp/d365/tb-set?set=&lt;id&gt;</code> returns debit/credit per set member.</p>
+    </div>
+
+    <div class="tg-card tg-form">
         <h3>Sales quotation — create, lifecycle, print</h3>
         <p>New quotation: pick kind <code>quote</code> in the fields form above and leave id blank (include <code>quote_no</code>, <code>customer_name</code>…). Add lines with kind <code>quote_line</code> and id = quotation id.</p>
         <form method="post" action="@Post("/erp/d365/quote-status")">
@@ -175,6 +222,10 @@
     private string _flashErr = string.Empty;
     private string _entityId = "0";
     private IReadOnlyDictionary<string, string?> _profile = new Dictionary<string, string?>();
+    private List<Dictionary<string, string?>> _dimTypes = [];
+    private List<Dictionary<string, string?>> _dimSets = [];
+    private List<Dictionary<string, string?>> _fiscal = [];
+    private List<Dictionary<string, string?>> _banks = [];
 
     private string P(string key) => _profile.TryGetValue(key, out var v) ? v ?? "" : "";
 
@@ -195,6 +246,10 @@
             {
                 await using var conn = await Connections.OpenAsync(ctx.RequestAborted).ConfigureAwait(false);
                 _profile = await D365.EntityDocProfileAsync(conn, eid, ctx.RequestAborted).ConfigureAwait(false);
+                _dimTypes = await Gl.DimensionTypesAsync(conn, ctx.RequestAborted).ConfigureAwait(false);
+                _dimSets = await Gl.DimensionSetsAsync(conn, ctx.RequestAborted).ConfigureAwait(false);
+                _fiscal = await Gl.FiscalCalendarsAsync(conn, ctx.RequestAborted).ConfigureAwait(false);
+                _banks = await Gl.BankAccountsAsync(conn, ctx.RequestAborted).ConfigureAwait(false);
             }
         }
         catch
