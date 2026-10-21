@@ -27253,7 +27253,7 @@ public sealed class ErpModule : ISurfaceModule
             entity, bu,
             AmlDec(fields, "unit"), AmlDec(fields, "offer"), AmlDec(fields, "actual"), AmlDec(fields, "msp"),
             session.Email ?? string.Empty, cancellationToken);
-        return Results.Ok(new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, entity = res.Entity, bu = res.Bu, version = res.Version, unit = res.Unit, offer = res.Offer, actual = res.Actual, msp = res.Msp, session = SessionPayload(session) });
+        return LiveWriteFormBinder.Complete(context, "/erp/tenant-guide", res.Ok, res.Message, new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, entity = res.Entity, bu = res.Bu, version = res.Version, unit = res.Unit, offer = res.Offer, actual = res.Actual, msp = res.Msp, session = SessionPayload(session) });
     }
 
     /// <summary>SHAM §8: effective MSP version + history for entity×BU.</summary>
@@ -27308,7 +27308,7 @@ public sealed class ErpModule : ISurfaceModule
             entity, bu, receipt, AmlText(fields, "method"),
             AmlDec(fields, "freight"), AmlDec(fields, "duty"), AmlDec(fields, "insurance"), AmlDec(fields, "other"),
             lines, session.Email ?? string.Empty, cancellationToken);
-        return Results.Ok(new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, entity = res.Entity, bu = res.Bu, receipt = res.ReceiptRef, method = res.Method, totalCharges = res.TotalCharges, lines = res.Lines, session = SessionPayload(session) });
+        return LiveWriteFormBinder.Complete(context, "/erp/tenant-guide", res.Ok, res.Message, new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, entity = res.Entity, bu = res.Bu, receipt = res.ReceiptRef, method = res.Method, totalCharges = res.TotalCharges, lines = res.Lines, session = SessionPayload(session) });
     }
 
     /// <summary>SHAM §9: read the landed-cost allocation for a receipt.</summary>
@@ -27356,7 +27356,7 @@ public sealed class ErpModule : ISurfaceModule
         if (period == 0) int.TryParse(context.Request.Query["period"], out period);
 
         var res = await eliminations.RunAsync(entity, period, session.Email ?? string.Empty, cancellationToken);
-        return Results.Ok(new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, journal = res.JournalId, lines = res.Lines, amount = res.Amount, session = SessionPayload(session) });
+        return LiveWriteFormBinder.Complete(context, "/erp/tenant-guide", res.Ok, res.Message, new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, journal = res.JournalId, lines = res.Lines, amount = res.Amount, session = SessionPayload(session) });
     }
 
     /// <summary>SHAM §11: FTA-aligned UBL 2.1 XML for an issued invoice.</summary>
@@ -27419,7 +27419,7 @@ public sealed class ErpModule : ISurfaceModule
                 AmlDec(fields, "amount"), AmlText(fields, "currency"),
                 expiry > 0 ? expiry : (long?)null, session.Email ?? string.Empty, cancellationToken);
         }
-        return Results.Ok(new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, reference = res.Reference, status = res.Status, session = SessionPayload(session) });
+        return LiveWriteFormBinder.Complete(context, "/erp/tenant-guide", res.Ok, res.Message, new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, reference = res.Reference, status = res.Status, session = SessionPayload(session) });
     }
 
     /// <summary>SHAM §13: list an entity's treasury instruments + open exposure.</summary>

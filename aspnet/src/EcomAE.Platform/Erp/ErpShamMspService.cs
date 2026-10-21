@@ -61,7 +61,7 @@ public sealed class ErpShamMspService : IErpShamMspService
         {
             return new ErpShamMspResult(false, "Unknown entity code.", entityCode, buCode ?? "", 0, 0, 0, 0, 0, null);
         }
-        var bu = (buCode ?? string.Empty).Trim();
+        var bu = await _foundation.NormalizeBuCodeAsync(entityId, buCode ?? string.Empty, cancellationToken).ConfigureAwait(false);
 
         await using var conn = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(conn, cancellationToken).ConfigureAwait(false);
@@ -88,7 +88,7 @@ public sealed class ErpShamMspService : IErpShamMspService
         {
             return new ErpShamMspResult(false, "Unknown entity code.", entityCode, buCode ?? "", 0, 0, 0, 0, 0, null);
         }
-        var bu = (buCode ?? string.Empty).Trim();
+        var bu = await _foundation.NormalizeBuCodeAsync(entityId, buCode ?? string.Empty, cancellationToken).ConfigureAwait(false);
 
         await using var conn = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(conn, cancellationToken).ConfigureAwait(false);

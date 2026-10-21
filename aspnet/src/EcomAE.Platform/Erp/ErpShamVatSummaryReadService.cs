@@ -74,6 +74,12 @@ public sealed class ErpShamVatSummaryReadService : IErpShamVatSummaryReadService
                 return new(false, "Unknown or inactive legal entity '" + entity + "'.", entity, bu, fromTs, toTs, 0m, 0m, 0m, 0);
             }
 
+            // Resolve numeric selectors through the ORG BU table (id->code) so
+            // the scoped totals and the access grant evaluate the same BU —
+            // pm and org ids differ and matching pm.id directly could expose a
+            // different BU than the one the grant was checked against.
+            bu = await _foundation.NormalizeBuCodeAsync(entityId, bu, cancellationToken).ConfigureAwait(false);
+            bu = bu.ToUpperInvariant();
             var buId = 0L;
             if (bu.Length > 0)
             {

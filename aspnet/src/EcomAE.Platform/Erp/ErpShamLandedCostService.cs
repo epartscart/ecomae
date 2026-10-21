@@ -84,7 +84,7 @@ public sealed class ErpShamLandedCostService : IErpShamLandedCostService
         {
             return Fail(entityCode, buCode, receiptRef, method, "Unknown entity code.");
         }
-        var bu = (buCode ?? string.Empty).Trim();
+        var bu = await _foundation.NormalizeBuCodeAsync(entityId, buCode ?? string.Empty, cancellationToken).ConfigureAwait(false);
         var refx = (receiptRef ?? string.Empty).Trim();
         if (refx.Length == 0)
         {
@@ -153,7 +153,7 @@ public sealed class ErpShamLandedCostService : IErpShamLandedCostService
         {
             return Fail(entityCode, buCode, receiptRef, "", "Unknown entity code.");
         }
-        var bu = (buCode ?? string.Empty).Trim();
+        var bu = await _foundation.NormalizeBuCodeAsync(entityId, buCode ?? string.Empty, cancellationToken).ConfigureAwait(false);
         var refx = (receiptRef ?? string.Empty).Trim();
         await using var conn = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(conn, cancellationToken).ConfigureAwait(false);
