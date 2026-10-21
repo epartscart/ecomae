@@ -81,7 +81,12 @@ public static class ErpOperationsHost
         var shard = string.IsNullOrWhiteSpace(country) ? DefaultCountry : country.Trim().ToLowerInvariant();
         // Canonical is the single-label form: free Universal SSL + *.ecomae.com
         // DNS cover it; the deep {key}.operations.{country} form still resolves.
-        return $"{key}-operations-{shard}.ecomae.com";
+        // A DNS label caps at 63 chars — keys over 48 fall back to the deep
+        // host, whose labels stay legal for any valid slug.
+        var flatLabel = $"{key}-operations-{shard}";
+        return flatLabel.Length <= 63
+            ? flatLabel + ".ecomae.com"
+            : $"{key}.operations.{shard}.ecomae.com";
     }
 
     /// <summary>Canonical absolute URL for a tenant path, e.g. https://indj.operations.uae.ecomae.com/erp. Empty when the key is not host-safe.</summary>
