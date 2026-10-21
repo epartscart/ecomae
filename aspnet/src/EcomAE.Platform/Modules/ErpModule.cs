@@ -393,6 +393,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpShamJournalPost, HandleShamJournalPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamStockReserve, HandleShamStockReserveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamInvoicePost, HandleShamInvoicePostAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpShamIcPost, HandleShamIcPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
@@ -27000,6 +27001,72 @@ public sealed class ErpModule : ISurfaceModule
             res.Message,
             new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, journalId = res.JournalId, session = SessionPayload(session) });
     }
+    /// <summary>SHAM Phase-5: paired intercompany journal — two entities' journals in one transaction.</summary>
+    private static async Task<IResult> HandleShamIcPostAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamIntercompanyPostService posts,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for SHAM intercompany posting.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to post a paired SHAM intercompany journal. Fields: entityA, entityB, buA, buB, date, reference, description, drA, crA, drB, crB, amount, currency, rate. Scope checks: 'ic-post' grant in BOTH entities + per-entity COA activation.", session = SessionPayload(session) });
+        }
+
+        var entityA = AmlText(fields, "entityA");
+        var entityB = AmlText(fields, "entityB");
+        var buA = AmlText(fields, "buA");
+        var buB = AmlText(fields, "buB");
+        var reference = AmlText(fields, "reference");
+        var description = AmlText(fields, "description");
+        var drA = AmlText(fields, "drA");
+        var crA = AmlText(fields, "crA");
+        var drB = AmlText(fields, "drB");
+        var crB = AmlText(fields, "crB");
+        var amount = AmlDec(fields, "amount");
+        var currency = AmlText(fields, "currency");
+        var rate = AmlDec(fields, "rate");
+        if (rate <= 0m)
+        {
+            rate = 1m;
+        }
+
+        var dateText = AmlText(fields, "date");
+        long journalDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        if (dateText.Length > 0)
+        {
+            if (!long.TryParse(dateText, NumberStyles.Integer, CultureInfo.InvariantCulture, out journalDate))
+            {
+                if (DateTimeOffset.TryParse(dateText, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var parsed))
+                {
+                    journalDate = parsed.ToUnixTimeSeconds();
+                }
+                else
+                {
+                    return Results.Ok(new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "invalid_date", message = "date must be YYYY-MM-DD or unix seconds.", session = SessionPayload(session) });
+                }
+            }
+        }
+
+        var res = await posts.PostAsync(
+            entityA, buA, entityB, buB, journalDate, reference, description,
+            drA, crA, drB, crB, amount, currency, rate,
+            session.Email ?? string.Empty, session.UserId, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/organization-admin-app?tab=org_entities",
+            res.Ok,
+            res.Message,
+            new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, journalAId = res.JournalAId, journalBId = res.JournalBId, session = SessionPayload(session) });
+    }
+
     /// <summary>Auto-parts workspace demo seed: inserts DEMO-tagged rows only.</summary>
     private static async Task<IResult> HandleAutoPartsDemoSeedAsync(
         HttpContext context,

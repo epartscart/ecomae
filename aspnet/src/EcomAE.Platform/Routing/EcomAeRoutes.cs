@@ -3007,6 +3007,8 @@ public static class EcomAeRoutes
     public const string ErpShamStockReserve = "/erp/sham/stock-reserve";
     /// <summary>SHAM Phase-4: entity×BU-scoped sales-invoice GL post; optionally consumes the order's holds in the same transaction.</summary>
     public const string ErpShamInvoicePost = "/erp/sham/invoice-post";
+    /// <summary>SHAM Phase-5: paired intercompany journal across two legal entities, one transaction.</summary>
+    public const string ErpShamIcPost = "/erp/sham/ic-post";
     /// <summary>Auto-parts workspace demo clear: deletes only DEMO-tagged rows.</summary>
     public const string ErpAutoPartsDemoClear = "/erp/autoparts/demo-clear";
     /// <summary>Auto-parts month-end bridge: posts trading journals into the GL.</summary>
