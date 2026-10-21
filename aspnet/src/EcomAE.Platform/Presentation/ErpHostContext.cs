@@ -304,8 +304,10 @@ public static class ErpHostContext
         {
             return buc;
         }
+        // Numeric bu (legacy links / hand-typed) is still a scope — pass it
+        // through; resolvers match BU by code OR id, never drop it.
         var bu = request.Query["bu"].ToString().Trim();
-        return bu.Length > 0 && !long.TryParse(bu, out _) ? bu : string.Empty;
+        return bu;
     }
 
     private static string BrandLabelFor(string normalized, bool isShowcase, bool isProduct)
