@@ -31,6 +31,8 @@ public sealed class SuperCpTenantIsolationTests
                 "ecomae_asap",
                 "asap_user",
                 "secret",
+                null,
+                null,
                 DedicatedDb: true,
                 IsActive: true,
                 IsDemo: false));
@@ -154,6 +156,8 @@ public sealed class SuperCpTenantIsolationTests
                 "indj",
                 "indj",
                 "",
+                null,
+                null,
                 DedicatedDb: true,
                 IsActive: true,
                 IsDemo: false));

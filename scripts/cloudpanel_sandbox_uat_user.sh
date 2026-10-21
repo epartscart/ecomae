@@ -32,13 +32,22 @@ done
 # Many tenant DBs carry their own epc_portal_tenants stub — the real registry is
 # the schema whose row holds this site_key (usually `ecomae`). Pick it or fail.
 REG_SCHEMA=""
+MATCHES=0
 for s in $($MYSQL_BIN -N -e "SELECT table_schema FROM information_schema.tables WHERE table_name='epc_portal_tenants'"); do
   if [[ "$($MYSQL_BIN -N -e "SELECT COUNT(*) FROM \`$s\`.epc_portal_tenants WHERE site_key='$SITE_KEY'" 2>/dev/null)" == "1" ]]; then
-    REG_SCHEMA="$s"; break
+    MATCHES=$((MATCHES + 1))
+    # The platform registry lives in `ecomae` — prefer it when several
+    # schemas carry the same site_key (tenant DB stubs can echo the row).
+    if [[ "$s" == "ecomae" || -z "$REG_SCHEMA" ]]; then
+      REG_SCHEMA="$s"
+    fi
   fi
 done
 if [[ -z "$REG_SCHEMA" ]]; then
   echo "no epc_portal_tenants schema holds site_key '$SITE_KEY'" >&2; exit 3
+fi
+if [[ "$MATCHES" -gt 1 ]]; then
+  echo "WARN: $MATCHES schemas hold site_key '$SITE_KEY' — updating '$REG_SCHEMA'" >&2
 fi
 REG_DB="\`${REG_SCHEMA}\`.\`epc_portal_tenants\`"
 for col in "db_uat_user VARCHAR(64) NULL" "db_uat_pass VARCHAR(128) NULL"; do

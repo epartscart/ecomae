@@ -193,10 +193,13 @@ public sealed class ErpShamMspService : IErpShamMspService
         await using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = ErpDb.Positional(
-                "SELECT `version`,`item_code`,`unit_margin`,`offer_margin`,`actual_margin`,`msp_margin`,`status`,`set_by`,`approved_by`,`time_created`,`time_approved`"
-                + " FROM `epc_erp_org_msp_versions` WHERE `entity_id`=? AND `bu_code`=? AND (`item_code`=? OR `item_code`='')"
-                + " ORDER BY (`item_code` = ?) DESC, `version` DESC LIMIT 50");
-            ErpDb.AddParameters(cmd, entityId, bu, item, item);
+                "(SELECT `version`,`item_code`,`unit_margin`,`offer_margin`,`actual_margin`,`msp_margin`,`status`,`set_by`,`approved_by`,`time_created`,`time_approved`"
+                + " FROM `epc_erp_org_msp_versions` WHERE `entity_id`=? AND `bu_code`=? AND `item_code`=? ORDER BY `version` DESC LIMIT 50)"
+                + " UNION ALL"
+                + " (SELECT `version`,`item_code`,`unit_margin`,`offer_margin`,`actual_margin`,`msp_margin`,`status`,`set_by`,`approved_by`,`time_created`,`time_approved`"
+                + " FROM `epc_erp_org_msp_versions` WHERE `entity_id`=? AND `bu_code`=? AND `item_code`='' ORDER BY `version` DESC LIMIT 5)"
+                + " ORDER BY (`item_code` = ?) DESC, `version` DESC");
+            ErpDb.AddParameters(cmd, entityId, bu, item, entityId, bu, item);
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
