@@ -3019,6 +3019,8 @@ public static class EcomAeRoutes
     public const string ErpShamPeriodLock = "/erp/sham/period-lock";
     /// <summary>SHAM §8: set a new MSP margin-structure version for an entity×BU scope (append-only).</summary>
     public const string ErpShamMspSet = "/erp/sham/msp-set";
+    /// <summary>SHAM §8: approve/reject a pending MSP version (approval log).</summary>
+    public const string ErpShamMspApprove = "/erp/sham/msp-approve";
     /// <summary>SHAM §8: effective MSP version + history for an entity×BU scope.</summary>
     public const string ErpShamMspCheck = "/erp/sham/msp-check";
     /// <summary>SHAM §9: allocate receipt charges (freight/duty/insurance/other) across lines by value|qty|weight.</summary>

@@ -108,13 +108,26 @@
                         @HiddenFields()
                         <label>Legal entity</label><input name="entity" value="@_cmp" required />
                         <label>Business unit</label><input name="bu" value="@_bu" required />
+                        <label>Item code (blank = scope default)</label><input name="item" value="" placeholder="optional" />
                         <label>Unit margin %</label><input name="unit" type="number" step="0.01" min="0" max="100" value="0" />
                         <label>Offer margin %</label><input name="offer" type="number" step="0.01" min="0" max="100" value="0" />
                         <label>Actual margin %</label><input name="actual" type="number" step="0.01" min="0" max="100" value="0" />
                         <label>MSP margin %</label><input name="msp" type="number" step="0.01" min="0" max="100" value="0" />
-                        <button type="submit">Append MSP version</button>
+                        <label>Note</label><input name="note" value="" placeholder="optional" />
+                        <button type="submit">Submit MSP version (pending approval)</button>
                     </form>
-                    <p style="margin-top:8px"><a href="@Get("/erp/sham/msp-check")?cmp=@Uri.EscapeDataString(_cmp)&amp;buc=@Uri.EscapeDataString(_bu)">View version history</a></p>
+                    <form method="post" action="@Post("/erp/sham/msp-approve")" style="margin-top:8px">
+                        @HiddenFields()
+                        <label>Approve/reject version</label>
+                        <input name="entity" type="hidden" value="@_cmp" />
+                        <input name="bu" type="hidden" value="@_bu" />
+                        <label>Item code</label><input name="item" value="" placeholder="blank = scope default" />
+                        <label>Version</label><input name="version" type="number" min="1" required />
+                        <label>Decision</label>
+                        <select name="approve"><option value="1">approve</option><option value="0">reject</option></select>
+                        <button type="submit">Apply decision ('msp-approve' grant)</button>
+                    </form>
+                    <p style="margin-top:8px"><a href="@Get("/erp/sham/msp-check")?cmp=@Uri.EscapeDataString(_cmp)&amp;buc=@Uri.EscapeDataString(_bu)">View version + approval history</a></p>
                 </div>
 
                 <div class="tg-card tg-form">
