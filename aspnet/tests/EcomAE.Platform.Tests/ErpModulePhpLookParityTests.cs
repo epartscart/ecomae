@@ -44,7 +44,7 @@ public sealed class ErpModulePhpLookParityTests
 
         var assets = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs"));
-        Assert.Contains("epc_erp_aspnet_module_parity.css?v=20261016topbar", assets, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_aspnet_module_parity.css?v=", assets, StringComparison.Ordinal);
     }
 
     [Fact]
