@@ -176,6 +176,14 @@ public sealed class ErpGlPostingService : IErpGlPostingService
 
         var journalDate = header.JournalDate > 0 ? header.JournalDate : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         await AssertPostingPeriodOpenAsync(connection, ambient, journalDate, cancellationToken).ConfigureAwait(false);
+        // SHAM per-entity close (opt-in — only entities with rows in
+        // epc_erp_sham_period_locks are affected; other tenants see no table).
+        if (header.CompanyId > 0
+            && await ErpShamFoundationService.PeriodLockedAsync(connection, header.CompanyId, journalDate, cancellationToken, ambient).ConfigureAwait(false))
+        {
+            throw new InvalidOperationException(
+                "Accounting period is locked for entity " + header.CompanyId + " — posting into closed months is refused.");
+        }
 
         var transaction = ambient ?? await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         var owned = ambient is null;

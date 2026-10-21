@@ -399,27 +399,58 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
 
     /// <summary>
     /// Entity ids of 'full' consolidation members (member site_key = pm legal-entity
-    /// code). Empty when the member register is missing or has no full members.
+    /// code). Returns <see langword="null"/> when the member register is absent or
+    /// has no member rows at all — the all-journals fallback; an empty list when
+    /// members exist but none is 'full' — consolidated views then exclude every
+    /// entity-stamped journal rather than silently re-including 'excluded' members.
     /// </summary>
-    private static async Task<List<long>> FullMemberEntityIdsAsync(DbConnection connection, CancellationToken cancellationToken)
+    private static async Task<List<long>?> FullMemberEntityIdsAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         var ids = new List<long>();
+        var anyMembers = 0L;
         try
         {
             await using var cmd = connection.CreateCommand();
             cmd.CommandText = ErpDb.Positional(
-                "SELECT DISTINCT e.`id` FROM `epc_entity_members` m"
-                + " JOIN `epc_erp_pm_legal_entities` e ON e.`code` = m.`site_key` AND e.`active` = 1"
-                + " WHERE m.`consolidation` = 'full'");
+                "SELECT COUNT(DISTINCT e.`id`),"
+                + " COUNT(DISTINCT CASE WHEN m.`consolidation`='full' THEN e.`id` END)"
+                + " FROM `epc_entity_members` m"
+                + " JOIN `epc_erp_pm_legal_entities` e ON e.`code` = m.`site_key` AND e.`active` = 1");
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                ids.Add(reader.GetInt64(0));
+                return null;
+            }
+
+            anyMembers = reader.GetInt64(0);
+            if (anyMembers == 0)
+            {
+                return null;
+            }
+
+            var fullCount = reader.GetInt64(1);
+            if (fullCount == 0)
+            {
+                return ids;
             }
         }
         catch (DbException)
         {
             // Table absent on single-entity tenants — consolidation falls back to all journals.
+            return null;
+        }
+
+        await using (var full = connection.CreateCommand())
+        {
+            full.CommandText = ErpDb.Positional(
+                "SELECT DISTINCT e.`id` FROM `epc_entity_members` m"
+                + " JOIN `epc_erp_pm_legal_entities` e ON e.`code` = m.`site_key` AND e.`active` = 1"
+                + " WHERE m.`consolidation` = 'full'");
+            await using var fullReader = await full.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await fullReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                ids.Add(fullReader.GetInt64(0));
+            }
         }
 
         return ids;
@@ -444,12 +475,17 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             // statements. When the tenant has no member register at all the
             // prior all-journals behaviour is preserved.
             var fullMembers = await FullMemberEntityIdsAsync(connection, cancellationToken).ConfigureAwait(false);
-            if (fullMembers.Count > 0)
+            if (fullMembers is { Count: > 0 })
             {
                 var ids = string.Join(',', fullMembers);
                 filter = " AND (IFNULL(j.`company_id`, 0) = 0"
                     + " OR IFNULL(j.`company_id`, 0) IN (" + ids + ")"
                     + " OR IFNULL(l.`legal_entity_id`, 0) IN (" + ids + "))";
+            }
+            else if (fullMembers is not null)
+            {
+                // Members exist but none consolidates — only entity-less journals count.
+                filter = " AND IFNULL(j.`company_id`, 0) = 0 AND IFNULL(l.`legal_entity_id`, 0) = 0";
             }
         }
         var fromUnix = query.Kind == ErpFinancialStatementKind.ProfitAndLoss ? query.FromUnix : 0L;
@@ -578,6 +614,18 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
                     balancesCommand.Parameters.Add(parameter);
                 }
 
+                // Eliminations follow the same member perimeter as the accounts
+                // themselves — a non-full member's intercompany balance must not
+                // be subtracted from the consolidated group.
+                var fullMembers = await FullMemberEntityIdsAsync(connection, cancellationToken).ConfigureAwait(false);
+                var memberFilter = fullMembers is null
+                    ? string.Empty
+                    : fullMembers.Count == 0
+                        ? " AND IFNULL(j.`company_id`, 0) = 0 AND IFNULL(l.`legal_entity_id`, 0) = 0"
+                        : " AND (IFNULL(j.`company_id`, 0) = 0"
+                            + " OR IFNULL(j.`company_id`, 0) IN (" + string.Join(',', fullMembers) + ")"
+                            + " OR IFNULL(l.`legal_entity_id`, 0) IN (" + string.Join(',', fullMembers) + "))";
+
                 balancesCommand.CommandText =
                     "SELECT IFNULL(a.`code`, '') AS code, IFNULL(a.`normal_side`, 'debit') AS normal_side,"
                     + " IFNULL(a.`opening_balance`, 0) AS opening_balance,"
@@ -586,6 +634,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
                     + " FROM `epc_erp_coa_accounts` a"
                     + " LEFT JOIN `epc_erp_gl_lines` l ON l.`coa_id` = a.`id`"
                     + " LEFT JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1"
+                    + memberFilter
                     + " WHERE a.`code` IN (" + string.Join(",", names) + ")"
                     + " GROUP BY a.`id`, a.`code`, a.`normal_side`, a.`opening_balance`";
                 await using var reader = await balancesCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -849,11 +898,13 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         CancellationToken cancellationToken)
     {
         var fullMembers = await FullMemberEntityIdsAsync(connection, cancellationToken).ConfigureAwait(false);
-        var memberClause = fullMembers.Count > 0
-            ? " AND (IFNULL(j.`company_id`, 0) = 0"
-                + " OR IFNULL(j.`company_id`, 0) IN (" + string.Join(',', fullMembers) + ")"
-                + " OR IFNULL(l.`legal_entity_id`, 0) IN (" + string.Join(',', fullMembers) + "))"
-            : string.Empty;
+        var memberClause = fullMembers is null
+            ? string.Empty
+            : fullMembers.Count == 0
+                ? " AND IFNULL(j.`company_id`, 0) = 0 AND IFNULL(l.`legal_entity_id`, 0) = 0"
+                : " AND (IFNULL(j.`company_id`, 0) = 0"
+                    + " OR IFNULL(j.`company_id`, 0) IN (" + string.Join(',', fullMembers) + ")"
+                    + " OR IFNULL(l.`legal_entity_id`, 0) IN (" + string.Join(',', fullMembers) + "))";
         try
         {
             return await ReadCurrencySlicesAsync(connection, true, memberClause, cancellationToken).ConfigureAwait(false);

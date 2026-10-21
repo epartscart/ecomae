@@ -124,6 +124,12 @@ public sealed class ErpShamJournalPostService : IErpShamJournalPostService
                 }
             }
 
+            // Phase-6 close: postings into a locked period are refused.
+            if (await ErpShamFoundationService.PeriodLockedAsync(connection, entityId, journalDate, cancellationToken).ConfigureAwait(false))
+            {
+                return new(false, "Period is locked for entity " + entity + " (epc_erp_sham_period_locks) — no postings into closed months.", 0);
+            }
+
             // Access matrix: user × entity × BU × action 'journal-post'. Fail-closed.
             var allowed = await _foundation.AccessAllowedAsync(
                 userEmail, entity, bu.Length > 0 ? bu : null, "journal-post", cancellationToken).ConfigureAwait(false);
