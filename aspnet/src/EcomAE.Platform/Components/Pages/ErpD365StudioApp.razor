@@ -266,7 +266,7 @@
                         <td>@R(r,"email")</td><td>@R(r,"phone")</td>
                         <td>@R(r,"status")@(R(r,"converted_party_id") is { Length: >0 } cp && cp != "0" ? (cp == "-1" ? " (converting…)" : " → " + R(r,"converted_party_type") + " #" + cp) : "")</td>
                         <td>
-                            @if (R(r,"status") != "converted")
+                            @if (R(r,"status") != "converted" && R(r,"converted_party_id") != "-1")
                             {
                                 <form method="post" action="@Post("/erp/d365/prospect-convert")" style="display:flex;gap:6px">
                                     @HiddenFields()
