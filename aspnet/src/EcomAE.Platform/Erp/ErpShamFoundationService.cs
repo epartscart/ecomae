@@ -96,6 +96,7 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
         await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpShamMspService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpShamLandedCostService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpShamTreasuryService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpLazySchema.EnsurePmMastersAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
 

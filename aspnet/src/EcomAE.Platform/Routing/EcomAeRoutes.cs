@@ -3027,6 +3027,12 @@ public static class EcomAeRoutes
     public const string ErpShamLandedCostView = "/erp/sham/landed-cost-view";
     /// <summary>SHAM §10/§12: post the consolidation elimination journal for a period over IC postings on full members.</summary>
     public const string ErpShamElimRun = "/erp/sham/elim-run";
+    /// <summary>SHAM §11: render an issued sales invoice as FTA-aligned UBL 2.1 XML.</summary>
+    public const string ErpShamEinvoice = "/erp/sham/einvoice";
+    /// <summary>SHAM §13: register or transition a treasury instrument (lc|cad|fx) on an entity.</summary>
+    public const string ErpShamTreasury = "/erp/sham/treasury";
+    /// <summary>SHAM §13: list an entity's treasury instruments + open exposure.</summary>
+    public const string ErpShamTreasuryView = "/erp/sham/treasury-view";
     /// <summary>Auto-parts workspace demo clear: deletes only DEMO-tagged rows.</summary>
     public const string ErpAutoPartsDemoClear = "/erp/autoparts/demo-clear";
     /// <summary>Auto-parts month-end bridge: posts trading journals into the GL.</summary>

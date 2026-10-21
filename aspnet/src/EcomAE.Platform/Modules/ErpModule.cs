@@ -403,6 +403,9 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpShamLandedCost, HandleShamLandedCostAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamLandedCostView, HandleShamLandedCostViewAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamElimRun, HandleShamElimRunAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpShamEinvoice, HandleShamEinvoiceAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpShamTreasury, HandleShamTreasuryAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpShamTreasuryView, HandleShamTreasuryViewAsync);
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
@@ -27353,6 +27356,88 @@ public sealed class ErpModule : ISurfaceModule
 
         var res = await eliminations.RunAsync(entity, period, session.Email ?? string.Empty, cancellationToken);
         return Results.Ok(new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, journal = res.JournalId, lines = res.Lines, amount = res.Amount, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM §11: FTA-aligned UBL 2.1 XML for an issued invoice.</summary>
+    private static async Task<IResult> HandleShamEinvoiceAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamEinvoiceService einvoices,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM e-invoice.");
+        }
+
+        var res = await einvoices.RenderAsync(
+            context.Request.Query["cmp"].ToString(), context.Request.Query["ref"].ToString(),
+            session.Email ?? string.Empty, cancellationToken);
+        if (!res.Ok)
+        {
+            return Results.Ok(new { ok = false, message = res.Message });
+        }
+        return Results.Content(res.Xml, "application/xml; charset=utf-8");
+    }
+
+    /// <summary>SHAM §13: register (default) or transition (action=settle|expire|cancel) a treasury instrument.</summary>
+    private static async Task<IResult> HandleShamTreasuryAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamTreasuryService treasury,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for SHAM treasury.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. Register: entity|cmp, kind=lc|cad|fx, ref|reference, counterparty, amount, currency, expiry(unix). Transition: action=settle|expire|cancel + ref. Scope check: 'treasury-set' grant.", session = SessionPayload(session) });
+        }
+
+        var entity = AmlText(fields, "entity");
+        if (entity.Length == 0) entity = context.Request.Query["cmp"].ToString();
+        var reference = AmlText(fields, "ref", "reference");
+        var action = AmlText(fields, "action");
+
+        ErpShamTreasuryResult res;
+        if (action.Length > 0)
+        {
+            res = await treasury.TransitionAsync(entity, reference, action, session.Email ?? string.Empty, cancellationToken);
+        }
+        else
+        {
+            var expiry = AmlLong(fields, "expiry", "expiryDate");
+            res = await treasury.RegisterAsync(
+                entity, AmlText(fields, "kind"), reference, AmlText(fields, "counterparty"),
+                AmlDec(fields, "amount"), AmlText(fields, "currency"),
+                expiry > 0 ? expiry : (long?)null, session.Email ?? string.Empty, cancellationToken);
+        }
+        return Results.Ok(new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, reference = res.Reference, status = res.Status, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM §13: list an entity's treasury instruments + open exposure.</summary>
+    private static async Task<IResult> HandleShamTreasuryViewAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamTreasuryService treasury,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM treasury view.");
+        }
+
+        var res = await treasury.ListAsync(
+            context.Request.Query["cmp"].ToString(), context.Request.Query["status"].ToString(),
+            session.Email ?? string.Empty, cancellationToken);
+        return Results.Ok(new { ok = res.Ok, message = res.Message, exposure = res.Exposure, instruments = res.Instruments });
     }
 
     /// <summary>Auto-parts workspace demo seed: inserts DEMO-tagged rows only.</summary>
