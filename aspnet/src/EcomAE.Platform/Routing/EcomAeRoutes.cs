@@ -3053,6 +3053,10 @@ public static class EcomAeRoutes
     public const string ErpD365CsvImport = "/erp/d365/csv-import";
     /// <summary>D365 bulk: CSV export of a grid/report area.</summary>
     public const string ErpD365CsvExport = "/erp/d365/csv-export";
+    /// <summary>D365 quotation lifecycle: set status (sent|confirmed|rejected|expired).</summary>
+    public const string ErpD365QuoteStatus = "/erp/d365/quote-status";
+    /// <summary>D365 quotation print view (PDF, SALES QUOTATION chrome).</summary>
+    public const string ErpD365QuotePdf = "/erp/d365/quote-pdf";
     /// <summary>SHAM §14: per-module data-flow coverage matrix (live rows per module table).</summary>
     public const string ErpShamModuleFlows = "/erp/sham/module-flows";
     /// <summary>SHAM §10: append an effective-dated transfer price rule between two legal entities.</summary>

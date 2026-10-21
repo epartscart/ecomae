@@ -409,6 +409,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpD365CsvTemplate, HandleD365CsvTemplateAsync);
         endpoints.MapPost(EcomAeRoutes.ErpD365CsvImport, HandleD365CsvImportAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpD365CsvExport, HandleD365CsvExportAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpD365QuoteStatus, HandleD365QuoteStatusAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpD365QuotePdf, HandleD365QuotePdfAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamTaxRuleSet, HandleShamTaxRuleSetAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamTaxRules, HandleShamTaxRulesAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamLandedCost, HandleShamLandedCostAsync).DisableAntiforgery();
@@ -27367,7 +27369,7 @@ public sealed class ErpModule : ISurfaceModule
         var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
         if (!confirm)
         {
-            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save D365 fields. Fields: kind=so|po|dn|customer|vendor|product, id, then any D365 field names for that kind (unknown fields are ignored).", session = SessionPayload(session) });
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save D365 fields. Fields: kind=so|po|dn|customer|vendor|product|quote|quote_line, id, then any D365 field names for that kind (unknown fields are ignored).", session = SessionPayload(session) });
         }
 
         var kind = AmlText(fields, "kind");
@@ -27395,7 +27397,9 @@ public sealed class ErpModule : ISurfaceModule
             "customer" => await d365.SaveCustomerFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
             "vendor" => await d365.SaveVendorFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
             "product" => await d365.SaveProductFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
-            _ => ErpSimpleWriteResult.Fail("invalid", "kind must be so|po|dn|customer|vendor|product."),
+            "quote" => await d365.SaveQuotationHeaderAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "quote_line" => await d365.SaveQuotationLineAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
+            _ => ErpSimpleWriteResult.Fail("invalid", "kind must be so|po|dn|customer|vendor|product|quote|quote_line."),
         };
         return LiveWriteFormBinder.Complete(context, "/erp/sales-orders", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
     }
@@ -27505,6 +27509,56 @@ public sealed class ErpModule : ISurfaceModule
         var res = await ErpD365BulkCsv.ExportAsync(conn, area, cancellationToken).ConfigureAwait(false);
         if (!res.Ok) return Results.BadRequest(res.Message);
         return Results.File(System.Text.Encoding.UTF8.GetBytes(res.Csv), "text/csv", res.FileName);
+    }
+
+    /// <summary>D365 quotation lifecycle: ?id=&amp;status= sent|confirmed|rejected|expired.</summary>
+    private static async Task<IResult> HandleD365QuoteStatusAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365DocCycleService d365,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-studio", "Admin ERP capability required for quotation status.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. Fields: id, status = sent|confirmed|rejected|expired|cancelled.", session = SessionPayload(session) });
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var res = await d365.SetQuotationStatusAsync(conn, AmlLong(fields, "id"), AmlText(fields, "status"), session.UserId, cancellationToken).ConfigureAwait(false);
+        return LiveWriteFormBinder.Complete(context, "/erp/d365-studio", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 quotation print view → SALES QUOTATION PDF. ?id=quotation id.</summary>
+    private static async Task<IResult> HandleD365QuotePdfAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        IErpD365DocCycleService d365,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Redirect("/erp/login?returnUrl=/erp/d365-studio");
+        }
+
+        if (!long.TryParse(context.Request.Query["id"], out var id) || id <= 0)
+        {
+            return Results.BadRequest("Pass ?id=<quotation id>.");
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var model = await ErpD365DocPdf.LoadQuotationModelAsync(conn, d365, id, cancellationToken).ConfigureAwait(false);
+        if (model is null) return Results.NotFound("Quotation not found.");
+        return Results.File(ErpD365DocPdf.QuotationPdf(model), "application/pdf", "quotation-" + model.InvoiceNumber + ".pdf");
     }
 
     /// <summary>SHAM §8b: upsert an effective-dated tax rule (entity or tenant-wide scope).</summary>

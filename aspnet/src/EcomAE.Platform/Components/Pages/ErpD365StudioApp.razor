@@ -82,8 +82,10 @@
                     <option value="customer">Customer</option>
                     <option value="vendor">Vendor</option>
                     <option value="product">Released product attributes</option>
+                    <option value="quote">Sales quotation header</option>
+                    <option value="quote_line">Sales quotation line (id = quotation id)</option>
                 </select>
-                <label>Record id</label><input name="id" type="number" min="1" required />
+                <label>Record id (blank = create new, quotation only)</label><input name="id" type="number" min="0" value="0" />
                 <label>Fields (one per line: name=value)</label><textarea name="fields_kv" placeholder="warehouse=ASAP-WSL&#10;mode_of_delivery=Sea&#10;delivery_terms=CIF"></textarea>
                 <button type="submit">Save fields</button>
             </form>
@@ -137,6 +139,31 @@
         <form method="get" action="@Get("/erp/d365/delivery-pdf")" target="_blank" style="display:flex;gap:8px;align-items:end;margin-top:8px">
             <label style="flex:1">Delivery note id<input name="id" type="number" min="1" required /></label>
             <button type="submit">Delivery note PDF</button>
+        </form>
+        <form method="get" action="@Get("/erp/d365/quote-pdf")" target="_blank" style="display:flex;gap:8px;align-items:end;margin-top:8px">
+            <label style="flex:1">Quotation id<input name="id" type="number" min="1" required /></label>
+            <button type="submit">Quotation PDF</button>
+        </form>
+    </div>
+
+    <div class="tg-card tg-form">
+        <h3>Sales quotation — create, lifecycle, print</h3>
+        <p>New quotation: pick kind <code>quote</code> in the fields form above and leave id blank (include <code>quote_no</code>, <code>customer_name</code>…). Add lines with kind <code>quote_line</code> and id = quotation id.</p>
+        <form method="post" action="@Post("/erp/d365/quote-status")">
+            @HiddenFields()
+            <div style="display:flex;gap:8px;align-items:end">
+                <label style="flex:1">Quotation id<input name="id" type="number" min="1" required /></label>
+                <label style="flex:1">Status
+                    <select name="status">
+                        <option value="sent">Sent</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="expired">Expired</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </label>
+                <button type="submit">Set status</button>
+            </div>
         </form>
     </div>
 </PhpErpDesktopChrome>

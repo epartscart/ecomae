@@ -77,12 +77,17 @@ public static class ErpD365DocPdf
         string ReceiverName, string ReceiverPhone, string HelperName, string VehicleNumber,
         IReadOnlyList<(string Item, string Name, decimal Qty, string Unit)> Items);
 
-    public static byte[] InvoicePdf(InvoiceModel m)
+    /// <param name="docTitle">Printed document title ("TAX INVOICE", "SALES QUOTATION", ...).</param>
+    /// <param name="numLabel">Label before the document number (default "Invoice Number").</param>
+    public static byte[] InvoicePdf(InvoiceModel m, string docTitle = "TAX INVOICE", string numLabel = "Invoice Number")
     {
         ArgumentNullException.ThrowIfNull(m);
-        var jpegs = RenderPaged(m, PageH);
+        var jpegs = RenderPaged(m, PageH, docTitle, numLabel);
         return ErpRealEstateReportVisual.ToPdf(jpegs);
     }
+
+    /// <summary>Quotation print = invoice layout with quotation chrome (D365 print view).</summary>
+    public static byte[] QuotationPdf(InvoiceModel m) => InvoicePdf(m, "SALES QUOTATION", "Quotation Number");
 
     public static byte[] DeliveryNotePdf(DeliveryModel m)
     {
@@ -91,7 +96,7 @@ public static class ErpD365DocPdf
         return ErpRealEstateReportVisual.ToPdf(jpegs);
     }
 
-    private static IReadOnlyList<byte[]> RenderPaged(InvoiceModel m, int pageH)
+    private static IReadOnlyList<byte[]> RenderPaged(InvoiceModel m, int pageH, string docTitle = "TAX INVOICE", string numLabel = "Invoice Number")
     {
         const float contentTop = Margin + 118;   // below letterhead + two meta columns
         const float gridHeadH = 26;
@@ -107,14 +112,14 @@ public static class ErpD365DocPdf
         for (var p = 0; p < pageCount; p++)
         {
             var slice = m.Lines.Skip(p * rowsPerPage).Take(rowsPerPage).ToList();
-            using var bmp = RenderInvoicePage(m, slice, p, pageCount, p == pageCount - 1);
+            using var bmp = RenderInvoicePage(m, slice, p, pageCount, p == pageCount - 1, docTitle, numLabel);
             pages.Add(Encode(bmp));
         }
 
         return pages;
     }
 
-    private static SKBitmap RenderInvoicePage(InvoiceModel m, List<Line> lines, int page, int pageCount, bool last)
+    private static SKBitmap RenderInvoicePage(InvoiceModel m, List<Line> lines, int page, int pageCount, bool last, string docTitle, string numLabel)
     {
         var bmp = new SKBitmap(new SKImageInfo((int)(PageW * Scale), (int)(PageH * Scale), SKColorType.Rgba8888, SKAlphaType.Premul));
         using var canvas = new SKCanvas(bmp);
@@ -126,7 +131,7 @@ public static class ErpD365DocPdf
         var y = Margin;
 
         // ----- letterhead -----
-        y = Letterhead(canvas, m.Profile, "TAX INVOICE", x0, x1, y);
+        y = Letterhead(canvas, m.Profile, docTitle, x0, x1, y);
 
         // ----- meta block: customer (left) / invoice (right) -----
         var midX = x0 + (x1 - x0) * 0.52f;
@@ -142,7 +147,7 @@ public static class ErpD365DocPdf
         var ry = metaTop;
         var rx = midX;
         ry = MetaRow(canvas, rx, ry, "Invoice Date", m.InvoiceDate, false);
-        ry = MetaRow(canvas, rx, ry, "Invoice Number", m.InvoiceNumber, false);
+        ry = MetaRow(canvas, rx, ry, numLabel, m.InvoiceNumber, false);
         ry = MetaRow(canvas, rx, ry, "LPO NO", m.LpoNo, false);
         ry = MetaRow(canvas, rx, ry, "Payment", m.PaymentTerms, false);
         ry = MetaRow(canvas, rx, ry, "User ID", m.UserId, false);
@@ -593,5 +598,75 @@ public static class ErpD365DocPdf
             G(note, "delivery_by"), G(note, "delivery_phone"), G(note, "delivery_date"),
             G(note, "receiver_name"), G(note, "receiver_phone"), G(note, "helper_name"), G(note, "vehicle_number"),
             items);
+    }
+
+
+    /// <summary>
+    /// Load a sales-quotation model from epc_erp_sales_quotations(+lines) for the print view.
+    /// Same wholesale chrome as the tax invoice; title = SALES QUOTATION.
+    /// </summary>
+    public static async Task<InvoiceModel?> LoadQuotationModelAsync(
+        DbConnection connection,
+        IErpD365DocCycleService d365,
+        long quotationId,
+        CancellationToken cancellationToken = default)
+    {
+        await d365.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+
+        var doc = await ErpD365DocCycleService.FirstRowAsync(
+            connection,
+            "SELECT * FROM `epc_erp_sales_quotations` WHERE `id` = @id LIMIT 1",
+            cancellationToken,
+            quotationId).ConfigureAwait(false);
+        if (doc is null) return null;
+
+        static string G(IReadOnlyDictionary<string, string?> r, string k)
+            => r.TryGetValue(k, out var v) && v is not null ? v : "";
+        static decimal GD(IReadOnlyDictionary<string, string?> r, string k)
+            => r.TryGetValue(k, out var v) && decimal.TryParse(v, NumberStyles.Number, CultureInfo.InvariantCulture, out var n) ? n : 0m;
+        static long Gun(IReadOnlyDictionary<string, string?> r, string k)
+            => r.TryGetValue(k, out var v) && long.TryParse(v, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? n : 0;
+
+        var profile = await d365.EntityDocProfileAsync(connection, Gun(doc, "entity_id"), cancellationToken).ConfigureAwait(false);
+
+        var rows = await ErpD365DocCycleService.RowsAsync(
+            connection,
+            "SELECT * FROM `epc_erp_sales_quotation_lines` WHERE `quotation_id` = @id ORDER BY `line_no`, `id`",
+            cancellationToken,
+            quotationId).ConfigureAwait(false);
+        var lines = new List<Line>();
+        decimal net = 0m, vat = 0m;
+        foreach (var r in rows)
+        {
+            var lineNet = GD(r, "net_amount");
+            var lineVat = lineNet * GD(r, "vat_pct") / 100m;
+            net += lineNet; vat += lineVat;
+            lines.Add(new Line(
+                G(r, "item_number"),
+                G(r, "product_name"),
+                "", G(r, "size_stock_no").Length > 0 ? G(r, "size_stock_no") : "",
+                GD(r, "qty"), GD(r, "unit_price"), lineNet, lineVat, lineNet + lineVat));
+        }
+
+        var total = net + vat - GD(doc, "total_discount_amount");
+        var currency = G(doc, "currency_code");
+        return new InvoiceModel(
+            profile,
+            G(doc, "quote_no"), "",
+            G(doc, "customer_account").Length > 0 ? G(doc, "customer_account") : G(doc, "prospect_account"),
+            G(doc, "customer_name").Length > 0 ? G(doc, "customer_name") : G(doc, "prospect_name"),
+            G(doc, "delivery_address"), "", "", "",
+            LpoNo: G(doc, "customer_requisition"),
+            PaymentTerms: G(doc, "payment_terms"),
+            UserId: G(doc, "salesman"),
+            RefNo: G(doc, "sales_quotation_ref"),
+            Currency: currency,
+            Lines: lines,
+            Discount: GD(doc, "total_discount_amount"),
+            Total: net,
+            Vat: vat,
+            Net: total,
+            AmountWords: ErpDocumentControlRender.AmountWordsEn(total) + (currency.Length > 0 ? " " + currency : ""),
+            Salesman: G(doc, "salesman"));
     }
 }
