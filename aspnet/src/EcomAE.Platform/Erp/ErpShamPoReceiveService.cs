@@ -113,6 +113,34 @@ public sealed class ErpShamPoReceiveService : IErpShamPoReceiveService
             }
 
             var reference = string.IsNullOrWhiteSpace(poNumber) ? null : "PO-" + poNumber.Trim();
+
+            // Idempotency: a retry of the same PO+warehouse receipt must not add
+            // stock a second time. Claims are keyed on the movement reference —
+            // the shared writer has no unique constraint to lean on.
+            if (reference is not null)
+            {
+                var prior = await ErpDb.LongAsync(connection, null,
+                    ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_movements` WHERE `movement_type`='purchase_in' AND `warehouse_id`=? AND `item_id`=? AND `qty`=? AND `reference`=? LIMIT 1"),
+                    cancellationToken, warehouseId, itemId, qty, reference).ConfigureAwait(false);
+                if (prior > 0)
+                {
+                    return new(true, "ok", "Receipt " + reference + " already recorded for item " + itemId + " in warehouse " + warehouseId + " (movement " + prior + ").");
+                }
+            }
+
+            // The linked purchase must exist — prevents receipts claiming bogus ids
+            // (per-entity ownership is not recorded on purchases yet).
+            if (purchaseId > 0)
+            {
+                var purchaseExists = await ErpDb.LongAsync(connection, null,
+                    ErpDb.Positional("SELECT EXISTS(SELECT 1 FROM `epc_erp_purchases` WHERE `id`=? AND `active`=1)"),
+                    cancellationToken, purchaseId).ConfigureAwait(false);
+                if (purchaseExists == 0)
+                {
+                    return new(false, "purchase", "Purchase " + purchaseId + " does not exist.");
+                }
+            }
+
             var result = await _movements.RecordMovementAsync(
                 new ErpInventoryMovementWriteRequest(
                     AdminUserId: adminId,

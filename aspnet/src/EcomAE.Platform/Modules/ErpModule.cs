@@ -27173,7 +27173,7 @@ public sealed class ErpModule : ISurfaceModule
         long.TryParse(context.Request.Query["from"], out var fromTs);
         long.TryParse(context.Request.Query["to"], out var toTs);
         var res = await summaries.LoadAsync(
-            context.Request.Query["cmp"].ToString(), context.Request.Query["bu"].ToString(), fromTs, toTs, cancellationToken);
+            context.Request.Query["cmp"].ToString(), context.Request.Query["bu"].ToString(), fromTs, toTs, session.Email ?? string.Empty, cancellationToken);
         return Results.Ok(new { ok = res.Ok, message = res.Message, entity = res.Entity, bu = res.Bu, from = res.FromTs, to = res.ToTs, outputVat = res.OutputVat, inputVat = res.InputVat, netPayable = res.NetPayable, journals = res.JournalCount });
     }
 

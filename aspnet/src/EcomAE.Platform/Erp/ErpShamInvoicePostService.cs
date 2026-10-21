@@ -159,10 +159,11 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
             var docOrderId = 0L;
             string? docStatus = null;
             string? docNumber = null;
+            string? docBuCode = null;
             await using (var docCmd = connection.CreateCommand())
             {
                 docCmd.CommandText = ErpDb.Positional(
-                    "SELECT `invoice_number`,`subtotal`,`vat`,`total`,`order_id`,`status` FROM `epc_erp_sham_sales_invoices` WHERE `id`=? AND `entity_id`=? LIMIT 1");
+                    "SELECT `invoice_number`,`subtotal`,`vat`,`total`,`order_id`,`status`,`bu_code` FROM `epc_erp_sham_sales_invoices` WHERE `id`=? AND `entity_id`=? LIMIT 1");
                 ErpDb.AddParameters(docCmd, invoice.InvoiceId, entityId);
                 await using var docReader = await docCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 if (await docReader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -173,6 +174,7 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
                     docTotal = docReader.GetDecimal(3);
                     docOrderId = docReader.GetInt64(4);
                     docStatus = docReader.GetString(5);
+                    docBuCode = docReader.GetString(6);
                 }
             }
 
@@ -189,6 +191,36 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
             // The stored document is authoritative — caller-supplied amounts never
             // override what the entity issued.
             invoice = invoice with { InvoiceNumber = docNumber!, Subtotal = docSubtotal, TotalVat = docVat, TotalIncl = docTotal };
+
+            // The document binds its business unit: a caller granted for another BU
+            // cannot post it under their own scope.
+            if (!string.IsNullOrEmpty(docBuCode))
+            {
+                if (bu.Length > 0 && !string.Equals(bu, docBuCode, StringComparison.Ordinal))
+                {
+                    return new(false, "Invoice " + docNumber + " was issued to BU " + docBuCode + " — post it under that business unit.", 0);
+                }
+
+                bu = docBuCode!;
+                if (buId == 0)
+                {
+                    buId = await ErpDb.LongAsync(connection, null,
+                        ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_business_units` WHERE `code`=? AND `legal_entity_id`=? AND `active`=1 LIMIT 1"),
+                        cancellationToken, bu, entityId).ConfigureAwait(false);
+                    if (buId == 0)
+                    {
+                        return new(false, "Business unit '" + bu + "' has no active operational record (epc_erp_pm_business_units) — re-run the foundation seed.", 0);
+                    }
+                }
+            }
+
+            // Hold consumption follows the document's own order — a caller may not
+            // point the post at a different order's holds.
+            if (consumeSourceId > 0 && docOrderId > 0 && consumeSourceId != docOrderId)
+            {
+                return new(false, "consumeSourceId " + consumeSourceId + " does not match the invoice's order " + docOrderId + ".", 0);
+            }
+
             if (consumeSourceId <= 0 && docOrderId > 0)
             {
                 consumeSourceId = docOrderId;
@@ -291,6 +323,13 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
         if (subtotal < 0m || totalVat < 0m || totalIncl <= 0m)
         {
             return new(false, "Amounts must be non-negative and total positive.", 0);
+        }
+
+        // Revenue is booked as total minus VAT downstream — an issued document
+        // whose parts do not add up would distort revenue, so reconcile at issue.
+        if (Math.Abs(totalIncl - (subtotal + totalVat)) > 0.005m)
+        {
+            return new(false, "Total must equal subtotal + VAT (got total " + totalIncl.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) + " vs " + (subtotal + totalVat).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) + ").", 0);
         }
 
         if (!_connections.IsConfigured)

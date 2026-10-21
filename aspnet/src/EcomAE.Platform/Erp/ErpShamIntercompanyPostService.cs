@@ -147,7 +147,25 @@ public sealed class ErpShamIntercompanyPostService : IErpShamIntercompanyPostSer
                 return new(false, "An account is missing from the chart or not activated for its entity.", 0, 0);
             }
 
+            // Phase-6 close: neither entity may post the trade into a locked month.
+            if (await ErpShamFoundationService.PeriodLockedAsync(connection, entityAId, journalDate, cancellationToken).ConfigureAwait(false)
+                || await ErpShamFoundationService.PeriodLockedAsync(connection, entityBId, journalDate, cancellationToken).ConfigureAwait(false))
+            {
+                return new(false, "Period is locked for " + entityA + " or " + entityB + " — no postings into closed months.", 0, 0);
+            }
+
             var icRef = "IC-" + (reference ?? string.Empty).Trim();
+
+            // Serialize concurrent claims on this pair reference: a named lock makes
+            // the check-then-post below atomic across connections (released when the
+            // connection closes; held for the transaction's duration).
+            var lockHeld = await ErpDb.LongAsync(connection, null,
+                ErpDb.Positional("SELECT COALESCE(GET_LOCK(?, 10), 0)"),
+                cancellationToken, "sham_ic_" + icRef).ConfigureAwait(false);
+            if (lockHeld != 1)
+            {
+                return new(false, "Another request is posting intercompany pair " + icRef + " — retry in a moment.", 0, 0);
+            }
 
             await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
             try

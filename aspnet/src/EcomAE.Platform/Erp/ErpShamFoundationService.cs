@@ -558,7 +558,8 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
         DbConnection connection,
         long entityId,
         long journalDateTs,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        DbTransaction? transaction = null)
     {
         if (entityId <= 0 || journalDateTs <= 0)
         {
@@ -571,7 +572,7 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
         var periodYm = dt.Year * 100 + dt.Month;
         try
         {
-            var locked = await ErpDb.LongAsync(connection, null,
+            var locked = await ErpDb.LongAsync(connection, transaction,
                 ErpDb.Positional("SELECT EXISTS(SELECT 1 FROM `epc_erp_sham_period_locks` WHERE `entity_id`=? AND `period_ym`>=?)"),
                 cancellationToken, entityId, periodYm).ConfigureAwait(false);
             return locked == 1;

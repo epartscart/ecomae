@@ -28,16 +28,19 @@ public interface IErpShamVatSummaryReadService
         string? buCode,
         long fromTs,
         long toTs,
+        string userEmail,
         CancellationToken cancellationToken = default);
 }
 
 public sealed class ErpShamVatSummaryReadService : IErpShamVatSummaryReadService
 {
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpShamFoundationService _foundation;
 
-    public ErpShamVatSummaryReadService(IErpWriteConnectionFactory connections)
+    public ErpShamVatSummaryReadService(IErpWriteConnectionFactory connections, IErpShamFoundationService foundation)
     {
         _connections = connections;
+        _foundation = foundation;
     }
 
     public async Task<ErpShamVatSummary> LoadAsync(
@@ -45,6 +48,7 @@ public sealed class ErpShamVatSummaryReadService : IErpShamVatSummaryReadService
         string? buCode,
         long fromTs,
         long toTs,
+        string userEmail,
         CancellationToken cancellationToken = default)
     {
         var entity = (entityCode ?? string.Empty).Trim().ToUpperInvariant();
@@ -82,14 +86,21 @@ public sealed class ErpShamVatSummaryReadService : IErpShamVatSummaryReadService
                 }
             }
 
+            // Reads are scoped like writes — a 'vat-view' grant in the entity (and
+            // BU when supplied) is required before tax totals are returned.
+            if (!await _foundation.AccessAllowedAsync(userEmail, entity, bu.Length > 0 ? bu : null, "vat-view", cancellationToken).ConfigureAwait(false))
+            {
+                return new(false, "No active grant for '" + userEmail + "' to view VAT totals in " + entity + (bu.Length > 0 ? "/" + bu : "") + ".", entity, bu, fromTs, toTs, 0m, 0m, 0m, 0);
+            }
+
             var output = 0m;
             var input = 0m;
             var journals = 0;
             await using (var cmd = connection.CreateCommand())
             {
                 cmd.CommandText = ErpDb.Positional(
-                    "SELECT COALESCE(SUM(CASE WHEN a.`code`='2100' THEN l.`credit` ELSE 0 END),0),"
-                    + " COALESCE(SUM(CASE WHEN a.`code`='1150' THEN l.`debit` ELSE 0 END),0),"
+                    "SELECT COALESCE(SUM(CASE WHEN a.`code`='2100' THEN l.`credit`-l.`debit` ELSE 0 END),0),"
+                    + " COALESCE(SUM(CASE WHEN a.`code`='1150' THEN l.`debit`-l.`credit` ELSE 0 END),0),"
                     + " COUNT(DISTINCT j.`id`)"
                     + " FROM `epc_erp_gl_lines` l"
                     + " JOIN `epc_erp_gl_journals` j ON j.`id`=l.`journal_id` AND j.`active`=1 AND j.`company_id`=?"
