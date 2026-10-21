@@ -171,7 +171,9 @@ internal static class ErpDb
     private static DbCommand CreateCommand(DbConnection connection, DbTransaction? transaction, string sql, object?[] parameters)
     {
         var command = connection.CreateCommand();
-        command.CommandText = sql;
+        // Positional is idempotent: SQL already in @pN form has no '?' left to rewrite,
+        // and raw '?' SQL gets converted so callers never have to remember the helper.
+        command.CommandText = Positional(sql);
         command.Transaction = transaction;
         AddParameters(command, parameters);
         return command;

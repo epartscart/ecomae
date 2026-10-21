@@ -27334,6 +27334,7 @@ public sealed class ErpModule : ISurfaceModule
         ILegacySessionValidator validator,
         IErpWriteConnectionFactory connections,
         IErpD365DocCycleService d365,
+                EcomAE.Platform.Cp.ICpCsrfGuard csrf,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -27347,6 +27348,13 @@ public sealed class ErpModule : ISurfaceModule
         {
             return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save the legal entity document profile. Fields: entity_id|entity|cmp plus legal_name, trade_name, trn, address_line1/2, city, emirate, country_code, phone, fax, email, bank_name, bank_iban, legal_footer, doc_header_note, doc_footer_note, logo_url.", session = SessionPayload(session) });
         }
+
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
+        }
+
 
         var entityId = AmlLong(fields, "entity_id");
         if (entityId == 0 && long.TryParse(AmlText(fields, "entity"), out var parsedEntity)) entityId = parsedEntity;
@@ -27362,6 +27370,7 @@ public sealed class ErpModule : ISurfaceModule
         ILegacySessionValidator validator,
         IErpWriteConnectionFactory connections,
         IErpD365DocCycleService d365,
+                EcomAE.Platform.Cp.ICpCsrfGuard csrf,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -27375,6 +27384,13 @@ public sealed class ErpModule : ISurfaceModule
         {
             return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save D365 fields. Fields: kind=so|po|dn|customer|vendor|product|quote|quote_line, id, then any D365 field names for that kind (unknown fields are ignored).", session = SessionPayload(session) });
         }
+
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
+        }
+
 
         var kind = AmlText(fields, "kind");
         var id = AmlLong(fields, "id");
@@ -27462,8 +27478,17 @@ public sealed class ErpModule : ISurfaceModule
     }
 
     /// <summary>D365 bulk: CSV template for an area. ?area=items|stock|customers|vendors|coa|sales_orders|purchase_orders|quotations|gl_opening</summary>
-    private static IResult HandleD365CsvTemplateAsync(HttpContext context)
+    private static async Task<IResult> HandleD365CsvTemplateAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        CancellationToken cancellationToken)
     {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Redirect("/erp/login?returnUrl=/erp/d365-studio");
+        }
+
         var area = context.Request.Query["area"].ToString();
         var csv = ErpD365BulkCsv.Template(area);
         if (csv.Length == 0) return Results.BadRequest("Unknown area. Use: " + string.Join(", ", ErpD365BulkCsv.Areas.Keys));
@@ -27475,6 +27500,7 @@ public sealed class ErpModule : ISurfaceModule
         HttpContext context,
         ILegacySessionValidator validator,
         IErpWriteConnectionFactory connections,
+                EcomAE.Platform.Cp.ICpCsrfGuard csrf,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -27486,6 +27512,12 @@ public sealed class ErpModule : ISurfaceModule
         var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
         var area = AmlText(fields, "area");
         var csv = AmlText(fields, "csv");
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
+        }
+
         if (!confirm)
         {
             return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true with area=<" + string.Join("|", ErpD365BulkCsv.Areas.Keys) + "> and csv=<file text>. Natural-key upsert; header row must match the template columns (GET /erp/d365/csv-template?area=...).", session = SessionPayload(session) });
@@ -27522,6 +27554,7 @@ public sealed class ErpModule : ISurfaceModule
         ILegacySessionValidator validator,
         IErpWriteConnectionFactory connections,
         IErpD365DocCycleService d365,
+                EcomAE.Platform.Cp.ICpCsrfGuard csrf,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -27534,6 +27567,13 @@ public sealed class ErpModule : ISurfaceModule
         if (!confirm)
         {
             return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. Fields: id, status = sent|confirmed|rejected|expired|cancelled.", session = SessionPayload(session) });
+        }
+
+
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
         }
 
         await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -27572,6 +27612,7 @@ public sealed class ErpModule : ISurfaceModule
         ILegacySessionValidator validator,
         IErpWriteConnectionFactory connections,
         IErpD365GlService gl,
+                EcomAE.Platform.Cp.ICpCsrfGuard csrf,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -27584,6 +27625,13 @@ public sealed class ErpModule : ISurfaceModule
         if (!confirm)
         {
             return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. kind=dim_type (code,name,description) | dim_value (type_id,value_code,value_name,parent_value) | dim_set (code,name,composition like main_account>business_unit>cost_centre) | fiscal_calendar (code,name,year,period_type,start_date,end_date,status) | fx_rate (from_currency,to_currency,rate,rate_date,rate_type) | bank (any bank account fields) | journal_dims (line id + dimension columns) | coa (id + MainAccountDetails fields).", session = SessionPayload(session) });
+        }
+
+
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
         }
 
         var kind = AmlText(fields, "kind");
@@ -27599,16 +27647,21 @@ public sealed class ErpModule : ISurfaceModule
             }
         }
 
+        // Scalars read from the merged dictionary so pasted fields_kv values win over literal fields.
+        string Dv(string k) => data.TryGetValue(k, out var v) ? v ?? string.Empty : string.Empty;
+        long Dl(string k) => long.TryParse(Dv(k), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : 0;
+        decimal Dd(string k) => decimal.TryParse(Dv(k), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : 0;
+
         await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         ErpSimpleWriteResult res = kind switch
         {
-            "dim_type" => await gl.SaveDimensionTypeAsync(conn, id, AmlText(fields, "code"), AmlText(fields, "name"), AmlText(fields, "description"), session.UserId, cancellationToken).ConfigureAwait(false),
-            "dim_value" => await gl.SaveDimensionValueAsync(conn, AmlLong(fields, "type_id"), AmlText(fields, "value_code"), AmlText(fields, "value_name"), AmlText(fields, "parent_value"), session.UserId, cancellationToken).ConfigureAwait(false),
-            "dim_set" => await gl.SaveDimensionSetAsync(conn, id, AmlText(fields, "code"), AmlText(fields, "name"), AmlText(fields, "composition"), session.UserId, cancellationToken).ConfigureAwait(false),
-            "fiscal_calendar" => await gl.SaveFiscalCalendarAsync(conn, id, AmlText(fields, "code"), AmlText(fields, "name"), (int)AmlLong(fields, "year"), AmlText(fields, "period_type"), AmlText(fields, "start_date"), AmlText(fields, "end_date"), AmlText(fields, "status"), session.UserId, cancellationToken).ConfigureAwait(false),
-            "fx_rate" => await gl.SaveExchangeRateAsync(conn, AmlText(fields, "from_currency"), AmlText(fields, "to_currency"), AmlDec(fields, "rate"), AmlText(fields, "rate_date"), AmlText(fields, "rate_type"), session.UserId, cancellationToken).ConfigureAwait(false),
+            "dim_type" => await gl.SaveDimensionTypeAsync(conn, id, Dv("code"), Dv("name"), Dv("description"), session.UserId, cancellationToken).ConfigureAwait(false),
+            "dim_value" => await gl.SaveDimensionValueAsync(conn, Dl("type_id"), Dv("value_code"), Dv("value_name"), Dv("parent_value"), session.UserId, cancellationToken).ConfigureAwait(false),
+            "dim_set" => await gl.SaveDimensionSetAsync(conn, id, Dv("code"), Dv("name"), Dv("composition"), session.UserId, cancellationToken).ConfigureAwait(false),
+            "fiscal_calendar" => await gl.SaveFiscalCalendarAsync(conn, id, Dv("code"), Dv("name"), (int)Dl("year"), Dv("period_type"), Dv("start_date"), Dv("end_date"), Dv("status"), session.UserId, cancellationToken).ConfigureAwait(false),
+            "fx_rate" => await gl.SaveExchangeRateAsync(conn, Dv("from_currency"), Dv("to_currency"), Dd("rate"), Dv("rate_date"), Dv("rate_type"), session.UserId, cancellationToken).ConfigureAwait(false),
             "bank" => await gl.SaveBankAccountAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
-            "journal_dims" => await gl.SaveJournalLineDimsAsync(conn, AmlLong(fields, "line_id"), data, session.UserId, cancellationToken).ConfigureAwait(false),
+            "journal_dims" => await gl.SaveJournalLineDimsAsync(conn, Dl("line_id"), data, session.UserId, cancellationToken).ConfigureAwait(false),
             "coa" => await gl.SaveCoaFieldsAsync(conn, id, data, session.UserId, cancellationToken).ConfigureAwait(false),
             _ => ErpSimpleWriteResult.Fail("invalid", "kind must be dim_type|dim_value|dim_set|fiscal_calendar|fx_rate|bank|journal_dims|coa."),
         };
@@ -27621,6 +27674,7 @@ public sealed class ErpModule : ISurfaceModule
         ILegacySessionValidator validator,
         IErpWriteConnectionFactory connections,
         IErpD365GlService gl,
+                EcomAE.Platform.Cp.ICpCsrfGuard csrf,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -27633,6 +27687,13 @@ public sealed class ErpModule : ISurfaceModule
         if (!confirm)
         {
             return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. Fields: entry_id, reconciled=1|0.", session = SessionPayload(session) });
+        }
+
+
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
         }
 
         await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -27676,6 +27737,8 @@ public sealed class ErpModule : ISurfaceModule
         IErpWriteConnectionFactory connections,
         IErpGlPostingService posting,
         IErpD365GlService gl,
+                EcomAE.Platform.Cp.ICpCsrfGuard csrf,
+        IErpShamFoundationService foundation,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -27688,6 +27751,13 @@ public sealed class ErpModule : ISurfaceModule
         if (!confirm)
         {
             return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true. journal_type=general|customer_payment|vendor_payment, description, reference, currency_code, entity, business_unit_id; lines textarea: account_code|debit|credit|note|bu|cc|le per line.", session = SessionPayload(session) });
+        }
+
+
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
         }
 
         var sourceType = AmlText(fields, "journal_type") switch
@@ -27714,6 +27784,27 @@ public sealed class ErpModule : ISurfaceModule
         var linesText = AmlText(fields, "lines");
         await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await gl.EnsureSchemaAsync(conn, cancellationToken).ConfigureAwait(false);
+
+        // Access matrix: the poster needs a 'journal-post' grant for the entity/BU being posted to
+        // (fail-closed — a blank entity still needs a grant somewhere).
+        var entityCode = header.CompanyId > 0
+            ? (await ErpDb.StringAsync(conn, null, ErpDb.Positional("SELECT `code` FROM `epc_erp_pm_legal_entities` WHERE `id`=? LIMIT 1"), cancellationToken, header.CompanyId).ConfigureAwait(false)) ?? ""
+            : "";
+        var buCode = header.BusinessUnitId > 0
+            ? (await ErpDb.StringAsync(conn, null, ErpDb.Positional("SELECT `code` FROM `epc_erp_org_business_units` WHERE `id`=? LIMIT 1"), cancellationToken, header.BusinessUnitId).ConfigureAwait(false)) ?? ""
+            : "";
+        var granted = await foundation.AccessAllowedAsync(
+            session.Email ?? string.Empty,
+            entityCode.Length > 0 ? entityCode : null,
+            buCode.Length > 0 ? buCode : null,
+            "journal-post",
+            cancellationToken).ConfigureAwait(false);
+        if (!granted)
+        {
+            return Results.Ok(new { ok = false, writes = 0, validation_code = "grant_denied", message = "No active grant for '" + (session.Email ?? "") + "' to post journals in " + (entityCode.Length > 0 ? entityCode : "the group") + (buCode.Length > 0 ? "/" + buCode : "") + ".", session = SessionPayload(session) });
+        }
+        // Per-line entity ids get the same grant check (no cross-entity leakage via line dims).
+
         foreach (var raw in linesText.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
             var cells = raw.Split('|', StringSplitOptions.TrimEntries);
@@ -27728,7 +27819,16 @@ public sealed class ErpModule : ISurfaceModule
             var bu = cells.Length > 4 && long.TryParse(cells[4], out var x) ? x : 0;
             var cc = cells.Length > 5 && long.TryParse(cells[5], out var y) ? y : 0;
             var le = cells.Length > 6 && long.TryParse(cells[6], out var z) ? z : 0;
-            var coaId = await ErpDb.LongAsync(conn, null, "SELECT `id` FROM `epc_erp_coa_accounts` WHERE `account_code` = ? LIMIT 1", cancellationToken, code).ConfigureAwait(false);
+            if (le > 0)
+            {
+                var leCode = (await ErpDb.StringAsync(conn, null, ErpDb.Positional("SELECT `code` FROM `epc_erp_pm_legal_entities` WHERE `id`=? LIMIT 1"), cancellationToken, le).ConfigureAwait(false)) ?? "";
+                var lineGranted = await foundation.AccessAllowedAsync(session.Email ?? string.Empty, leCode.Length > 0 ? leCode : null, null, "journal-post", cancellationToken).ConfigureAwait(false);
+                if (!lineGranted)
+                {
+                    return Results.Ok(new { ok = false, writes = 0, validation_code = "grant_denied", message = "No 'journal-post' grant for line entity '" + leCode + "'.", session = SessionPayload(session) });
+                }
+            }
+            var coaId = await ErpDb.LongAsync(conn, null, "SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = ? LIMIT 1", cancellationToken, code).ConfigureAwait(false);
             if (coaId <= 0)
             {
                 return Results.Ok(new { ok = false, validation_code = "account_not_found", message = "COA account '" + code + "' not found.", session = SessionPayload(session) });
@@ -27831,6 +27931,22 @@ public sealed class ErpModule : ISurfaceModule
 
     /// <summary>valid_from/valid_to accept a unix number or YYYY-MM-DD
     /// (from = start of day UTC, to = end of day UTC).</summary>
+    /// <summary>CSRF guard for the D365 write endpoints (DisableAntiforgery + confirmWrites flow).</summary>
+    private static async Task<IResult?> D365CsrfAsync(
+        HttpContext context,
+        EcomAE.Platform.Cp.ICpCsrfGuard csrf,
+        LegacySessionContext session,
+        Dictionary<string, string> fields,
+        CancellationToken cancellationToken)
+    {
+        var verdict = await csrf.VerifyAsync(context, session, AmlText(fields, EcomAE.Platform.Cp.CpCsrfGuard.FieldName), cancellationToken).ConfigureAwait(false);
+        if (verdict.Ok)
+        {
+            return null;
+        }
+        return Results.Ok(new { ok = false, writes = 0, validation_code = verdict.Code, message = verdict.Message, session = SessionPayload(session) });
+    }
+
     private static long AmlUnix(IReadOnlyDictionary<string, string> fields, string key, bool endOfDay)
     {
         var raw = fields.TryGetValue(key, out var v) ? (v ?? string.Empty).Trim() : string.Empty;

@@ -469,7 +469,7 @@ public static class ErpD365DocPdf
             connection,
             "SELECT `id`, `invoice_number`, `order_id`, `user_id`, `issue_date`, `payment_terms`, `currency_code`,"
             + " `subtotal_ex_vat`, `total_vat`, `total_incl_vat`, `paid_amount`"
-            + " FROM `epc_einvoice_documents` WHERE `id` = @id LIMIT 1",
+            + " FROM `epc_einvoice_documents` WHERE `id` = ? LIMIT 1",
             cancellationToken,
             invoiceId).ConfigureAwait(false);
         if (doc is null) return null;
@@ -484,7 +484,7 @@ public static class ErpD365DocPdf
         var buyer = await ErpD365DocCycleService.FirstRowAsync(
             connection,
             "SELECT `buyer_name`, `trn`, `legal_reg_no`, `address_line1`, `city`, `emirate`, `country_code`, `phone`, `email`"
-            + " FROM `epc_einvoice_buyer_profiles` WHERE `user_id` = @uid LIMIT 1",
+            + " FROM `epc_einvoice_buyer_profiles` WHERE `user_id` = ? LIMIT 1",
             cancellationToken,
             GL(doc, "user_id")).ConfigureAwait(false) ?? new Dictionary<string, string?>();
 
@@ -492,7 +492,7 @@ public static class ErpD365DocPdf
         var order = await ErpD365DocCycleService.FirstRowAsync(
             connection,
             "SELECT `entity_id`, `lpo_no`, `ref_no`, `user_id_text`, `salesman`, `customer_account`"
-            + " FROM `epc_erp_sales_orders` WHERE `id` = @oid LIMIT 1",
+            + " FROM `epc_erp_sales_orders` WHERE `id` = ? LIMIT 1",
             cancellationToken,
             GL(doc, "order_id")).ConfigureAwait(false) ?? new Dictionary<string, string?>();
 
@@ -501,9 +501,14 @@ public static class ErpD365DocPdf
         var lines = new List<Line>();
         var rows = await ErpD365DocCycleService.RowsAsync(
             connection,
-            "SELECT `item_name`, `item_description`, `quantity`, `unit_price`, `line_net`, `tax_rate`, `tax_amount`,"
-            + " `brand`, `oem_part_no`, `stock_no_size`"
-            + " FROM `epc_einvoice_lines` WHERE `document_id` = @doc ORDER BY `line_no`, `id`",
+            "SELECT l.`item_name`, l.`item_description`, l.`quantity`, l.`unit_price`, l.`line_net`, l.`tax_rate`, l.`tax_amount`,"
+            + " fb.`value` AS brand, fo.`value` AS oem_part_no, fs.`value` AS stock_no_size"
+            + " FROM `epc_einvoice_lines` l"
+            + " LEFT JOIN `epc_erp_inv_items` i ON i.`sku` = l.`item_name` OR i.`name` = l.`item_name`"
+            + " LEFT JOIN `epc_erp_inv_item_fields` fb ON fb.`item_id` = i.`id` AND fb.`field_key` = 'brand'"
+            + " LEFT JOIN `epc_erp_inv_item_fields` fo ON fo.`item_id` = i.`id` AND fo.`field_key` = 'oem_part_no'"
+            + " LEFT JOIN `epc_erp_inv_item_fields` fs ON fs.`item_id` = i.`id` AND fs.`field_key` IN ('stock_no_size','size_stock')"
+            + " WHERE l.`document_id` = ? ORDER BY l.`line_no`, l.`id`",
             cancellationToken,
             GL(doc, "id")).ConfigureAwait(false);
         foreach (var r in rows)
@@ -555,7 +560,7 @@ public static class ErpD365DocPdf
 
         var note = await ErpD365DocCycleService.FirstRowAsync(
             connection,
-            "SELECT * FROM `epc_erp_delivery_notes` WHERE `id` = @id LIMIT 1",
+            "SELECT * FROM `epc_erp_delivery_notes` WHERE `id` = ? LIMIT 1",
             cancellationToken,
             noteId).ConfigureAwait(false);
         if (note is null) return null;
@@ -567,7 +572,7 @@ public static class ErpD365DocPdf
 
         var order = await ErpD365DocCycleService.FirstRowAsync(
             connection,
-            "SELECT `entity_id`, `so_no`, `customer_account`, `customer_name` FROM `epc_erp_sales_orders` WHERE `id` = @oid LIMIT 1",
+            "SELECT `entity_id`, `so_no`, `customer_account`, `customer_name` FROM `epc_erp_sales_orders` WHERE `id` = ? LIMIT 1",
             cancellationToken,
             GL(note, "order_id")).ConfigureAwait(false) ?? new Dictionary<string, string?>();
 
@@ -576,7 +581,7 @@ public static class ErpD365DocPdf
         var items = new List<(string, string, decimal, string)>();
         var lines = await ErpD365DocCycleService.RowsAsync(
             connection,
-            "SELECT `item_number`, `product_name`, `qty`, `unit` FROM `epc_erp_sales_order_lines` WHERE `order_id` = @oid ORDER BY `id`",
+            "SELECT `item_code` AS item_number, `description` AS product_name, `qty`, `unit` FROM `epc_erp_sales_order_lines` WHERE `sales_order_id` = ? ORDER BY `id`",
             cancellationToken,
             GL(note, "order_id")).ConfigureAwait(false);
         foreach (var l in lines)
@@ -615,7 +620,7 @@ public static class ErpD365DocPdf
 
         var doc = await ErpD365DocCycleService.FirstRowAsync(
             connection,
-            "SELECT * FROM `epc_erp_sales_quotations` WHERE `id` = @id LIMIT 1",
+            "SELECT * FROM `epc_erp_sales_quotations` WHERE `id` = ? LIMIT 1",
             cancellationToken,
             quotationId).ConfigureAwait(false);
         if (doc is null) return null;
@@ -631,7 +636,7 @@ public static class ErpD365DocPdf
 
         var rows = await ErpD365DocCycleService.RowsAsync(
             connection,
-            "SELECT * FROM `epc_erp_sales_quotation_lines` WHERE `quotation_id` = @id ORDER BY `line_no`, `id`",
+            "SELECT * FROM `epc_erp_sales_quotation_lines` WHERE `quotation_id` = ? ORDER BY `line_no`, `id`",
             cancellationToken,
             quotationId).ConfigureAwait(false);
         var lines = new List<Line>();

@@ -165,16 +165,16 @@ public static class ErpD365BulkCsv
         "stock" => "SELECT s.`warehouse_id` AS warehouse, i.`sku`, s.`qty_on_hand`, s.`avg_unit_cost`, s.`batch_no`, s.`variant_label` FROM `epc_erp_inv_stock` s JOIN `epc_erp_inv_items` i ON i.`id` = s.`item_id` ORDER BY i.`sku`",
         "customers" => "SELECT * FROM `epc_erp_contacts` WHERE `party_type` = 'customer' OR `party_type` IS NULL ORDER BY `id`",
         "vendors" => "SELECT * FROM `epc_erp_suppliers` ORDER BY `id`",
-        "coa" => "SELECT * FROM `epc_erp_coa_accounts` ORDER BY `account_code`",
-        "sales_orders" => "SELECT o.`so_no`, o.`customer_account`, o.`customer_name`, o.`status`, o.`currency_code`, l.`item_number`, l.`product_name` AS item_name, l.`qty`, l.`unit_price` FROM `epc_erp_sales_orders` o LEFT JOIN `epc_erp_sales_order_lines` l ON l.`order_id` = o.`id` ORDER BY o.`so_no`, l.`id`",
-        "purchase_orders" => "SELECT o.`po_no`, o.`vendor_account`, o.`status`, l.`item_number`, l.`product_name` AS item_name, l.`qty`, l.`unit_price` FROM `epc_erp_purchase_orders` o LEFT JOIN `epc_erp_purchase_order_lines` l ON l.`order_id` = o.`id` ORDER BY o.`po_no`, l.`id`",
+        "coa" => "SELECT * FROM `epc_erp_coa_accounts` ORDER BY `code`",
+        "sales_orders" => "SELECT o.`so_no`, o.`status`, l.`item_code` AS item_number, l.`description` AS item_name, l.`qty`, l.`unit_price_ex_vat` AS unit_price FROM `epc_erp_sales_orders` o LEFT JOIN `epc_erp_sales_order_lines` l ON l.`sales_order_id` = o.`id` ORDER BY o.`so_no`, l.`id`",
+        "purchase_orders" => "SELECT o.`po_no`, o.`status`, l.`item_code` AS item_number, l.`description` AS item_name, l.`qty`, l.`unit_cost_ex_vat` AS unit_price FROM `epc_erp_purchase_orders` o LEFT JOIN `epc_erp_po_lines` l ON l.`po_id` = o.`id` ORDER BY o.`po_no`, l.`id`",
         "quotations" => "SELECT q.`quote_no`, q.`status`, q.`customer_name`, q.`currency_code`, l.`item_number`, l.`product_name` AS item_name, l.`qty`, l.`unit_price` FROM `epc_erp_sales_quotations` q LEFT JOIN `epc_erp_sales_quotation_lines` l ON l.`quotation_id` = q.`id` ORDER BY q.`quote_no`, l.`line_no`",
         "warehouses" => "SELECT `code`, `name`, `entity_id`, `site`, `cost_centre_id`, `business_unit_id` FROM `epc_erp_inv_warehouses` ORDER BY `code`",
         "customer_invoice_journal" => "SELECT `invoice_number`, `issue_date`, `order_id`, `payment_terms`, `currency_code`, `subtotal_ex_vat`, `total_vat`, `total_incl_vat`, `paid_amount` FROM `epc_einvoice_documents` ORDER BY `id` DESC",
         "vendor_invoice_journal" => "SELECT o.`po_no` AS invoice_number, o.`vendor_account`, o.`vendor_name`, o.`status`, o.`currency_code`, IFNULL(o.`total_amount`,0) AS total_incl_vat FROM `epc_erp_purchase_orders` o ORDER BY o.`id` DESC",
-        "customer_statement" => "SELECT c.`name`, c.`account_code`, IFNULL(c.`trn`,'') AS trn, IFNULL(SUM(l.`debit`),0)-IFNULL(SUM(l.`credit`),0) AS balance FROM `epc_erp_contacts` c LEFT JOIN `epc_erp_gl_lines` l ON l.`coa_id` IN (SELECT `id` FROM `epc_erp_coa_accounts` WHERE `account_code` = c.`account_code`) GROUP BY c.`id` ORDER BY c.`name`",
+        "customer_statement" => "SELECT c.`name`, c.`account_code`, IFNULL(c.`trn`,'') AS trn, IFNULL(SUM(l.`debit`),0)-IFNULL(SUM(l.`credit`),0) AS balance FROM `epc_erp_contacts` c LEFT JOIN `epc_erp_gl_lines` l ON l.`coa_id` IN (SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = c.`account_code`) GROUP BY c.`id` ORDER BY c.`name`",
         "sales_analysis_by_invoice" => "SELECT d.`invoice_number`, d.`issue_date`, d.`currency_code`, d.`subtotal_ex_vat`, d.`total_vat`, d.`total_incl_vat`, IFNULL((SELECT SUM(l.`quantity`*l.`unit_price`) FROM `epc_einvoice_lines` l WHERE l.`document_id` = d.`id`),0) AS revenue, IFNULL((SELECT SUM(l.`quantity`*IFNULL(i.`cost_price`,0)) FROM `epc_einvoice_lines` l JOIN `epc_erp_inv_items` i ON i.`sku` = l.`item_name` WHERE l.`document_id` = d.`id`),0) AS cost FROM `epc_einvoice_documents` d ORDER BY d.`id` DESC",
-        "gl_opening" => "SELECT a.`account_code`, j.`journal_date` AS `date`, l.`debit`, l.`credit` FROM `epc_erp_gl_lines` l JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` JOIN `epc_erp_coa_accounts` a ON a.`id` = l.`coa_id` WHERE j.`source_type` = 'opening' ORDER BY a.`account_code`",
+        "gl_opening" => "SELECT a.`code` AS account_code, j.`journal_date` AS `date`, l.`debit`, l.`credit` FROM `epc_erp_gl_lines` l JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` JOIN `epc_erp_coa_accounts` a ON a.`id` = l.`coa_id` WHERE j.`source_type` = 'opening' ORDER BY a.`code`",
         _ => "",
     };
 
@@ -199,14 +199,14 @@ public static class ErpD365BulkCsv
     {
         var sku = M(m, "sku"); var name = M(m, "name");
         if (sku.Length == 0 || name.Length == 0) return (0, 0);
-        var id = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_inv_items` WHERE `sku` = @s LIMIT 1", ct, sku).ConfigureAwait(false);
+        var id = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_inv_items` WHERE `sku` = ? LIMIT 1", ct, sku).ConfigureAwait(false);
         var unit = M(m, "unit");
         var itype = M(m, "item_type");
         var upd = 0;
         if (id == 0)
         {
             await ErpDb.ExecuteAsync(c, null,
-                "INSERT INTO `epc_erp_inv_items` (`sku`, `name`, `item_type`, `unit`, `active`, `time_created`) VALUES (@s, @n, @t, @u, @a, @tc)",
+                "INSERT INTO `epc_erp_inv_items` (`sku`, `name`, `item_type`, `unit`, `active`, `time_created`) VALUES (?,?,?,?,?,?)",
                 ct, sku, name, itype is "standard" or "perishable" or "serialized" ? itype : "standard",
                 unit.Length > 0 ? unit : "pcs", M(m, "active") is "0" or "no" ? 0 : 1, now).ConfigureAwait(false);
             id = await ErpDb.LastInsertIdAsync(c, null, ct).ConfigureAwait(false);
@@ -214,7 +214,7 @@ public static class ErpD365BulkCsv
         else
         {
             await ErpDb.ExecuteAsync(c, null,
-                "UPDATE `epc_erp_inv_items` SET `name` = @n, `unit` = @u, `active` = @a WHERE `id` = @i",
+                "UPDATE `epc_erp_inv_items` SET `name` = ?, `unit` = ?, `active` = ? WHERE `id` = ?",
                 ct, name, unit.Length > 0 ? unit : "pcs", M(m, "active") is "0" or "no" ? 0 : 1, id).ConfigureAwait(false);
             upd = 1;
         }
@@ -239,24 +239,29 @@ public static class ErpD365BulkCsv
     {
         var sku = M(m, "sku"); var wh = M(m, "warehouse");
         if (sku.Length == 0 || wh.Length == 0) return (0, 0);
-        var itemId = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_inv_items` WHERE `sku` = @s LIMIT 1", ct, sku).ConfigureAwait(false);
+        var itemId = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_inv_items` WHERE `sku` = ? LIMIT 1", ct, sku).ConfigureAwait(false);
         if (itemId == 0) return (0, 0);
-        var whId = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `code` = @w OR `name` = @w LIMIT 1", ct, wh).ConfigureAwait(false);
+        var whId = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `code` = ? OR `name` = ? LIMIT 1", ct, wh, wh).ConfigureAwait(false);
         if (whId == 0) whId = ToLong(wh);
-        var qty = ToDec(m, "qty_on_hand"); var cost = ToDec(m, "avg_unit_cost");
+        if (whId == 0) throw new InvalidOperationException("Unknown warehouse '" + wh + "'.");
+        if (!decimal.TryParse(M(m, "qty_on_hand"), NumberStyles.Number, CultureInfo.InvariantCulture, out var qty))
+        {
+            throw new InvalidOperationException("qty_on_hand '" + M(m, "qty_on_hand") + "' is not a number.");
+        }
+        var cost = ToDec(m, "avg_unit_cost");
         var batch = M(m, "batch_no"); var variant = M(m, "variant_label");
         var exists = await ErpDb.LongAsync(c, null,
-            "SELECT `id` FROM `epc_erp_inv_stock` WHERE `warehouse_id` = @w AND `item_id` = @i AND IFNULL(`batch_no`,'') = @b AND IFNULL(`variant_label`,'') = @v LIMIT 1",
+            "SELECT `id` FROM `epc_erp_inv_stock` WHERE `warehouse_id` = ? AND `item_id` = ? AND IFNULL(`batch_no`,'') = ? AND IFNULL(`variant_label`,'') = ? LIMIT 1",
             ct, whId, itemId, batch, variant).ConfigureAwait(false);
         if (exists == 0)
         {
             await ErpDb.ExecuteAsync(c, null,
-                "INSERT INTO `epc_erp_inv_stock` (`warehouse_id`, `item_id`, `qty_on_hand`, `avg_unit_cost`, `batch_no`, `variant_label`, `time_updated`) VALUES (@w, @i, @q, @c, @b, @v, @t)",
+                "INSERT INTO `epc_erp_inv_stock` (`warehouse_id`, `item_id`, `qty_on_hand`, `avg_unit_cost`, `batch_no`, `variant_label`, `time_updated`) VALUES (?,?,?,?,?,?,?)",
                 ct, whId, itemId, qty, cost, batch, variant, now).ConfigureAwait(false);
             return (1, 0);
         }
         await ErpDb.ExecuteAsync(c, null,
-            "UPDATE `epc_erp_inv_stock` SET `qty_on_hand` = @q, `avg_unit_cost` = @c, `time_updated` = @t WHERE `id` = @i",
+            "UPDATE `epc_erp_inv_stock` SET `qty_on_hand` = ?, `avg_unit_cost` = ?, `time_updated` = ? WHERE `id` = ?",
             ct, qty, cost, now, exists).ConfigureAwait(false);
         return (0, 1);
     }
@@ -268,8 +273,8 @@ public static class ErpD365BulkCsv
         if (name.Length == 0) return (0, 0);
         var acct = M(m, acctCol);
         var id = acct.Length > 0
-            ? await ErpDb.LongAsync(c, null, "SELECT `id` FROM `" + table + "` WHERE `" + acctCol + "` = @a LIMIT 1", ct, acct).ConfigureAwait(false)
-            : await ErpDb.LongAsync(c, null, "SELECT `id` FROM `" + table + "` WHERE `name` = @n LIMIT 1", ct, name).ConfigureAwait(false);
+            ? await ErpDb.LongAsync(c, null, "SELECT `id` FROM `" + table + "` WHERE `" + acctCol + "` = ? LIMIT 1", ct, acct).ConfigureAwait(false)
+            : await ErpDb.LongAsync(c, null, "SELECT `id` FROM `" + table + "` WHERE `name` = ? LIMIT 1", ct, name).ConfigureAwait(false);
         if (id == 0)
         {
             var cols = new List<string> { "name" }; var vals = new List<object?> { name };
@@ -302,17 +307,17 @@ public static class ErpD365BulkCsv
     {
         var code = M(m, "account_code"); var name = M(m, "account_name");
         if (code.Length == 0 || name.Length == 0) return (0, 0);
-        var id = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_coa_accounts` WHERE `account_code` = @a LIMIT 1", ct, code).ConfigureAwait(false);
+        var id = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = ? LIMIT 1", ct, code).ConfigureAwait(false);
         var type = M(m, "account_type");
         if (id == 0)
         {
             await ErpDb.ExecuteAsync(c, null,
-                "INSERT INTO `epc_erp_coa_accounts` (`account_code`, `name`, `account_type`, `active`, `time_created`) VALUES (@c, @n, @t, 1, @tc)",
-                ct, code, name, type.Length > 0 ? type : "ledger", now).ConfigureAwait(false);
+                "INSERT INTO `epc_erp_coa_accounts` (`code`, `name`, `account_type`, `active`, `time_created`) VALUES (?,?,?,1,?)",
+                ct, code, name, type is "asset" or "liability" or "equity" or "revenue" or "expense" ? type : "expense", now).ConfigureAwait(false);
             return (1, 0);
         }
         await ErpDb.ExecuteAsync(c, null,
-            "UPDATE `epc_erp_coa_accounts` SET `name` = @n WHERE `id` = @i", ct, name, id).ConfigureAwait(false);
+            "UPDATE `epc_erp_coa_accounts` SET `name` = ? WHERE `id` = ?", ct, name, id).ConfigureAwait(false);
         return (0, 1);
     }
 
@@ -320,23 +325,33 @@ public static class ErpD365BulkCsv
     {
         var code = M(m, "account_code");
         if (code.Length == 0) return (0, 0);
-        var coaId = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_coa_accounts` WHERE `account_code` = @a LIMIT 1", ct, code).ConfigureAwait(false);
+        var coaId = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = ? LIMIT 1", ct, code).ConfigureAwait(false);
         if (coaId == 0) return (0, 0);
         var debit = ToDec(m, "debit"); var credit = ToDec(m, "credit");
         if (debit == 0 && credit == 0) return (0, 0);
         var jdate = ToUnix(m, "date");
         var jref = M(m, "reference");
         var jno = "OPEN-" + DateTimeOffset.FromUnixTimeSeconds(now).ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-" + code;
-        var jid = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_gl_journals` WHERE `journal_no` = @j LIMIT 1", ct, jno).ConfigureAwait(false);
+        var jid = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_gl_journals` WHERE `journal_no` = ? LIMIT 1", ct, jno).ConfigureAwait(false);
         if (jid == 0)
         {
             await ErpDb.ExecuteAsync(c, null,
-                "INSERT INTO `epc_erp_gl_journals` (`journal_no`, `journal_date`, `reference`, `description`, `source_type`, `admin_id`, `time_created`) VALUES (@j, @d, @r, 'Opening balance CSV', 'opening', @a, @t)",
+                "INSERT INTO `epc_erp_gl_journals` (`journal_no`, `journal_date`, `reference`, `description`, `source_type`, `admin_id`, `time_created`) VALUES (?,?,?,'Opening balance CSV','opening',?,?)",
                 ct, jno, jdate > 0 ? jdate : now, jref, adminId, now).ConfigureAwait(false);
             jid = await ErpDb.LastInsertIdAsync(c, null, ct).ConfigureAwait(false);
         }
+        var lineId = await ErpDb.LongAsync(c, null,
+            "SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `coa_id` = ? LIMIT 1",
+            ct, jid, coaId).ConfigureAwait(false);
+        if (lineId > 0)
+        {
+            await ErpDb.ExecuteAsync(c, null,
+                "UPDATE `epc_erp_gl_lines` SET `debit` = ?, `credit` = ?, `line_note` = ? WHERE `id` = ?",
+                ct, debit, credit, "CSV opening" + (jref.Length > 0 ? " " + jref : ""), lineId).ConfigureAwait(false);
+            return (0, 1);
+        }
         await ErpDb.ExecuteAsync(c, null,
-            "INSERT INTO `epc_erp_gl_lines` (`journal_id`, `coa_id`, `debit`, `credit`, `line_note`) VALUES (@j, @c, @d, @cr, @n)",
+            "INSERT INTO `epc_erp_gl_lines` (`journal_id`, `coa_id`, `debit`, `credit`, `line_note`) VALUES (?,?,?,?,?)",
             ct, jid, coaId, debit, credit, "CSV opening" + (jref.Length > 0 ? " " + jref : "")).ConfigureAwait(false);
         return (1, 0);
     }
@@ -346,11 +361,11 @@ public static class ErpD365BulkCsv
     {
         var code = M(m, "code"); var name = M(m, "name");
         if (code.Length == 0 || name.Length == 0) return (0, 0);
-        var id = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `code` = @w LIMIT 1", ct, code).ConfigureAwait(false);
+        var id = await ErpDb.LongAsync(c, null, "SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `code` = ? LIMIT 1", ct, code).ConfigureAwait(false);
         var fields = m.Where(kv => kv.Value.Length > 0).ToDictionary(kv => kv.Key, kv => (string?)kv.Value, StringComparer.Ordinal);
         if (id == 0)
         {
-            await ErpDb.ExecuteAsync(c, null, "INSERT INTO `epc_erp_inv_warehouses` (`code`, `name`, `time_created`) VALUES (@c, @n, @t)", ct, code, name, now).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(c, null, "INSERT INTO `epc_erp_inv_warehouses` (`code`, `name`, `time_created`) VALUES (?,?,?)", ct, code, name, now).ConfigureAwait(false);
             id = await ErpDb.LastInsertIdAsync(c, null, ct).ConfigureAwait(false);
         }
         await new ErpD365DocCycleService().SaveWarehouseFieldsAsync(c, id, fields, 0, ct).ConfigureAwait(false);
@@ -361,8 +376,8 @@ public static class ErpD365BulkCsv
     {
         var (table, lineTable, noCol, orderFk) = area switch
         {
-            "sales_orders" => ("epc_erp_sales_orders", "epc_erp_sales_order_lines", "so_no", "order_id"),
-            "purchase_orders" => ("epc_erp_purchase_orders", "epc_erp_purchase_order_lines", "po_no", "order_id"),
+            "sales_orders" => ("epc_erp_sales_orders", "epc_erp_sales_order_lines", "so_no", "sales_order_id"),
+            "purchase_orders" => ("epc_erp_purchase_orders", "epc_erp_po_lines", "po_no", "po_id"),
             "quotations" => ("epc_erp_sales_quotations", "epc_erp_sales_quotation_lines", "quote_no", "quotation_id"),
             _ => ("", "", "", ""),
         };
@@ -370,7 +385,7 @@ public static class ErpD365BulkCsv
         if (no.Length == 0) return (0, 0);
 
         var oid = await ErpDb.LongAsync(c, null,
-            "SELECT `id` FROM `" + table + "` WHERE `" + noCol + "` = @n LIMIT 1",
+            "SELECT `id` FROM `" + table + "` WHERE `" + noCol + "` = ? LIMIT 1",
             ct, no).ConfigureAwait(false);
         var upd = 0;
         if (oid == 0)
@@ -378,13 +393,13 @@ public static class ErpD365BulkCsv
             if (table == "epc_erp_sales_quotations")
             {
                 await ErpDb.ExecuteAsync(c, null,
-                    "INSERT INTO `epc_erp_sales_quotations` (`quote_no`, `quote_name`, `customer_name`, `status`, `currency_code`, `time_created`, `time_updated`) VALUES (@n, @qn, @cn, 'created', @cur, @t, @t)",
-                    ct, no, M(m, "quote_name"), M(m, "customer_name"), M(m, "currency_code"), now).ConfigureAwait(false);
+                    "INSERT INTO `epc_erp_sales_quotations` (`quote_no`, `quote_name`, `customer_name`, `status`, `currency_code`, `time_created`, `time_updated`) VALUES (?,?,?,'created',?,?,?)",
+                    ct, no, M(m, "quote_name"), M(m, "customer_name"), M(m, "currency_code"), now, now).ConfigureAwait(false);
             }
             else
             {
                 await ErpDb.ExecuteAsync(c, null,
-                    "INSERT INTO `" + table + "` (`" + noCol + "`, `status`, `time_created`) VALUES (@n, 'open', @t)",
+                    "INSERT INTO `" + table + "` (`" + noCol + "`, `status`, `time_created`) VALUES (?, 'draft', ?)",
                     ct, no, now).ConfigureAwait(false);
             }
             oid = await ErpDb.LastInsertIdAsync(c, null, ct).ConfigureAwait(false);
@@ -419,7 +434,7 @@ public static class ErpD365BulkCsv
             else
             {
                 await ErpDb.ExecuteAsync(c, null,
-                    "INSERT INTO `" + lineTable + "` (`" + orderFk + "`, `item_number`, `product_name`, `qty`, `unit_price`) VALUES (@o, @i, @n, @qty, @p)",
+                    "INSERT INTO `" + lineTable + "` (`" + orderFk + "`, `item_code`, `description`, `qty`, `" + (lineTable == "epc_erp_po_lines" ? "unit_cost_ex_vat" : "unit_price_ex_vat") + "`) VALUES (?,?,?,?,?)",
                     ct, oid, item, itemName, qty, price).ConfigureAwait(false);
             }
         }
