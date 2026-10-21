@@ -151,6 +151,7 @@ public static class LegacyChromeNavCatalog
         new("Bank reconciliation", "/erp/bank-reconciliation-app"),
         new("Stock transfers", "/erp/stock-transfers-app"),
         new("Sales quotations", "/erp/sales-quotations-app"),
+        new("D365 studio", "/erp/d365-studio"),
         new("Workspace favorites", "/erp/workspace-favorites-app"),
         new("Fixed assets", "/erp/fixed-assets-app"),
         new("Suppliers list", "/erp/suppliers-app"),
