@@ -181,10 +181,10 @@ public sealed class ErpAutoPartsWorkspaceReadService : IErpAutoPartsWorkspaceRea
     private static readonly Func<DbConnection, CancellationToken, Task> _glEnsure =
         async (connection, ct) =>
         {
-            // GL journal list reads epc_erp_gl_journals — ensure the ledger schema
-            // exists on tenants that have never posted before the workspace opens.
-            await ErpDb.TryExecuteAsync(connection,
-                "SELECT 1 FROM `epc_erp_gl_journals` LIMIT 0", ct).ConfigureAwait(false);
+            // GL journal list reads epc_erp_gl_journals — actually create the ledger
+            // schema on tenants that have never posted before the workspace opens
+            // (a bare SELECT probe left fresh tenants with a missing-table 500).
+            await ErpGlPostingService.EnsureSchemaAsync(connection, ct).ConfigureAwait(false);
         };
 }
 
