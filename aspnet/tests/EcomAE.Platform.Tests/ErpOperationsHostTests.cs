@@ -24,6 +24,10 @@ public sealed class ErpOperationsHostTests
     [InlineData("real.operations.ksa.ecomae.com", "real", "ksa")]
     [InlineData("xyz.operations.gbr.ecomae.com", "xyz", "gbr")]
     [InlineData("INDJ.OPERATIONS.UAE.ECOMAE.COM", "indj", "uae")]
+    // Flat alias (free Universal SSL covers 3rd-level hosts): {key}-{country}.operations.ecomae.com
+    [InlineData("sham-uae.operations.ecomae.com", "sham", "uae")]
+    [InlineData("abcd-usa.operations.ecomae.com", "abcd", "usa")]
+    [InlineData("SHAM-UAE.OPERATIONS.ECOMAE.COM", "sham", "uae")]
     public void TryParse_OperationsHost(string host, string siteKey, string country)
     {
         Assert.True(ErpOperationsHost.TryParse(host, out var key, out var shard));
@@ -38,6 +42,10 @@ public sealed class ErpOperationsHostTests
     [InlineData("operations.ecomae.com")]
     [InlineData("indj.ecomae.com")]
     [InlineData("indj.operations.ecomae.com")]
+    [InlineData("indjuae.operations.ecomae.com")]
+    [InlineData("indj-uae-extra.operations.ecomae.com")]
+    [InlineData("indj-ae.operations.ecomae.com")]
+    [InlineData("indj-uae.operations.ecomae.com.evil.test")]
     [InlineData("indj.operations.uae.ecomae.com.evil.test")]
     [InlineData("indj.ops.uae.ecomae.com")]
     [InlineData("indj.operations.ae.ecomae.com")]
@@ -53,19 +61,20 @@ public sealed class ErpOperationsHostTests
     [Fact]
     public void HostFor_BuildsCanonicalHost()
     {
-        Assert.Equal("indj.operations.uae.ecomae.com", ErpOperationsHost.HostFor("indj"));
-        Assert.Equal("asap.operations.ksa.ecomae.com", ErpOperationsHost.HostFor("asap", "ksa"));
-        Assert.Equal("indj.operations.uae.ecomae.com", ErpOperationsHost.HostFor("INDJ", null));
+        // Canonical emits the flat (free-TLS) form; the deep form stays a valid alias.
+        Assert.Equal("indj-uae.operations.ecomae.com", ErpOperationsHost.HostFor("indj"));
+        Assert.Equal("asap-ksa.operations.ecomae.com", ErpOperationsHost.HostFor("asap", "ksa"));
+        Assert.Equal("indj-uae.operations.ecomae.com", ErpOperationsHost.HostFor("INDJ", null));
     }
 
     [Fact]
     public void CanonicalUrl_MapsRootToErp()
     {
         Assert.Equal(
-            "https://indj.operations.uae.ecomae.com/erp",
+            "https://indj-uae.operations.ecomae.com/erp",
             ErpOperationsHost.CanonicalUrl("indj", null, "/"));
         Assert.Equal(
-            "https://asap.operations.uae.ecomae.com/erp/finance-app",
+            "https://asap-uae.operations.ecomae.com/erp/finance-app",
             ErpOperationsHost.CanonicalUrl("asap", "uae", "/erp/finance-app"));
     }
 
