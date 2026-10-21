@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ONBOARD_FOUR_ERP_ONLY — create asap / indj / fito / real on live Super CP registry.
+# ONBOARD_FOUR_ERP_ONLY — create sham / indj / fito / real on live Super CP registry.
 # No storefront. Operator emails xxxx@ecomae.com. Prints temp passwords once.
 # Does not invent a send. Does not delete PHP. Does not touch commerce keys.
 #
@@ -150,7 +150,7 @@ def esc(value):
     return str(value).replace("\\", "\\\\").replace("'", "\\'")
 
 clients = [
-    ("asap", "ASAP Autoparts", "auto_parts"),
+    ("sham", "Al Shamali Auto Parts Group", "auto_parts"),
     ("indj", "INDJ Jewellery", "jewellery"),
     ("fito", "FITO Fit-out", "fit_out"),
     ("real", "REAL Real Estate", "real_estate"),
@@ -201,5 +201,5 @@ PY
 if [[ -f scripts/cloudpanel_grant_erp_only_shop_dbs.sh ]]; then
   printf 'GRANT_ERP_ONLY_SHOP_DBS after onboard (CREATE + registry GRANT)...\n'
   ECOMAE_CONFIRM_GRANT_ERP_ONLY=YES bash scripts/cloudpanel_grant_erp_only_shop_dbs.sh \
-    || printf 'WARN grant_erp_only_shop_dbs failed — Super CP password reset needs CloudPanel CREATE/GRANT on asap/indj/fito/real\n'
+    || printf 'WARN grant_erp_only_shop_dbs failed — Super CP password reset needs CloudPanel CREATE/GRANT on sham/indj/fito/real\n'
 fi

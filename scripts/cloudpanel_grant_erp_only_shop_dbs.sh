@@ -41,7 +41,7 @@ if reg_host.strip().lower() in ("localhost", "localhost.localdomain", "::1"):
     reg_host = "127.0.0.1"
 
 protected = {"docpart", "ecomae", "epartscart", "mysql", "information_schema", "performance_schema", "sys"}
-keys = [k.strip().lower() for k in os.environ.get("ECOMAE_ERP_ONLY_KEYS", "asap,indj,fito,real").split(",") if k.strip()]
+keys = [k.strip().lower() for k in os.environ.get("ECOMAE_ERP_ONLY_KEYS", "sham,indj,fito,real").split(",") if k.strip()]
 for key in keys:
     if not re.fullmatch(r"[a-z0-9_]{1,64}", key) or key in protected:
         print("RESULT=FAIL refused_protected_or_invalid_key " + key)
