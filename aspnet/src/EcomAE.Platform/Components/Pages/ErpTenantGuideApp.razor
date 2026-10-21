@@ -205,6 +205,97 @@
                     }
                 </div>
             </div>
+
+            <h3 style="margin:18px 0 10px;color:#12324f">Core flows (phases 1–7)</h3>
+            <div class="tg-grid">
+                <div class="tg-card tg-form">
+                    <h3>Stock reservation</h3>
+                    <form method="post" action="@Post("/erp/sham/stock-reserve")">
+                        @HiddenFields()
+                        <label>Legal entity</label><input name="entity" value="@_cmp" required />
+                        <label>Business unit</label><input name="bu" value="@_bu" required />
+                        <label>Operation</label>
+                        <select name="op"><option value="reserve">reserve</option><option value="release">release</option></select>
+                        <label>SKU</label><input name="sku" required />
+                        <label>Qty</label><input name="qty" type="number" step="0.001" min="0" value="1" />
+                        <label>Source type</label>
+                        <select name="sourceType"><option value="sales_order">sales_order</option><option value="quote">quote</option></select>
+                        <label>Source id</label><input name="sourceId" type="number" min="0" value="0" />
+                        <label>Reservation id (release)</label><input name="reservationId" type="number" min="0" value="0" />
+                        <button type="submit">Reserve / release</button>
+                    </form>
+                </div>
+
+                <div class="tg-card tg-form">
+                    <h3>Issue sales invoice</h3>
+                    <form method="post" action="@Post("/erp/sham/sales-invoice-issue")">
+                        @HiddenFields()
+                        <label>Legal entity</label><input name="entity" value="@_cmp" required />
+                        <label>Business unit</label><input name="bu" value="@_bu" required />
+                        <label>Invoice number</label><input name="number" placeholder="INV-…" required />
+                        <label>Customer</label><input name="customer" required />
+                        <label>Subtotal</label><input name="subtotal" type="number" step="0.01" min="0" value="0" />
+                        <label>VAT</label><input name="vat" type="number" step="0.01" min="0" value="0" />
+                        <label>Total</label><input name="total" type="number" step="0.01" min="0" value="0" />
+                        <label>Order id (optional)</label><input name="orderId" type="number" min="0" value="0" />
+                        <button type="submit">Issue document</button>
+                    </form>
+                </div>
+
+                <div class="tg-card tg-form">
+                    <h3>Post invoice to GL</h3>
+                    <form method="post" action="@Post("/erp/sham/invoice-post")">
+                        @HiddenFields()
+                        <label>Legal entity</label><input name="entity" value="@_cmp" required />
+                        <label>Business unit</label><input name="bu" value="@_bu" required />
+                        <label>Invoice id</label><input name="invoiceId" type="number" min="0" value="0" />
+                        <label>or invoice number</label><input name="number" placeholder="INV-…" />
+                        <label>Consume holds of order id (optional)</label><input name="consumeSourceId" type="number" min="0" value="0" />
+                        <button type="submit">Post to GL</button>
+                    </form>
+                </div>
+
+                <div class="tg-card tg-form">
+                    <h3>Purchase receipt</h3>
+                    <form method="post" action="@Post("/erp/sham/po-receive")">
+                        @HiddenFields()
+                        <label>Legal entity</label><input name="entity" value="@_cmp" required />
+                        <label>Business unit</label><input name="bu" value="@_bu" required />
+                        <label>PO reference</label><input name="po" required />
+                        <label>SKU</label><input name="sku" required />
+                        <label>Qty</label><input name="qty" type="number" step="0.001" min="0" value="1" />
+                        <label>Unit cost</label><input name="cost" type="number" step="0.01" min="0" value="0" />
+                        <button type="submit">Receive into default WH</button>
+                    </form>
+                </div>
+
+                <div class="tg-card tg-form">
+                    <h3>Intercompany journal</h3>
+                    <form method="post" action="@Post("/erp/sham/ic-post")">
+                        @HiddenFields()
+                        <label>Entity A</label><input name="entityA" value="@_cmp" required />
+                        <label>BU A</label><input name="buA" value="@_bu" />
+                        <label>Entity B</label><input name="entityB" required />
+                        <label>BU B</label><input name="buB" />
+                        <label>Reference</label><input name="reference" placeholder="IC-…" required />
+                        <label>Description</label><input name="description" />
+                        <label>Amount</label><input name="amount" type="number" step="0.01" min="0" value="0" />
+                        <label>Currency</label><input name="currency" value="AED" />
+                        <button type="submit">Post paired journal</button>
+                    </form>
+                </div>
+
+                <div class="tg-card tg-form">
+                    <h3>Period lock &amp; VAT</h3>
+                    <form method="post" action="@Post("/erp/sham/period-lock")">
+                        @HiddenFields()
+                        <label>Legal entity</label><input name="entity" value="@_cmp" required />
+                        <label>Period (YYYYMM)</label><input name="period" required />
+                        <button type="submit">Lock period</button>
+                    </form>
+                    <p style="margin-top:8px"><a href="@Get("/erp/sham/vat-summary")?cmp=@Uri.EscapeDataString(_cmp)&amp;buc=@Uri.EscapeDataString(_bu)">VAT summary for this entity</a></p>
+                </div>
+            </div>
         }
     }
 </PhpErpDesktopChrome>
