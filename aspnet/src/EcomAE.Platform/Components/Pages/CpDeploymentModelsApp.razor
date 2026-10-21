@@ -182,7 +182,11 @@
                                 <td>@t.TypeLabel</td>
                                 <td><span class="label @(model == "cloud" ? "label-success" : model == "hybrid" ? "label-info" : "label-warning")">@model</span></td>
                                 <td>
-                                    @if (!string.IsNullOrWhiteSpace(t.ErpLoginUrl))
+                                    @if (!string.IsNullOrWhiteSpace(t.ErpOperationsUrl))
+                                    {
+                                        <a href="@t.ErpOperationsUrl">@t.ErpOperationsUrl</a>
+                                    }
+                                    else if (!string.IsNullOrWhiteSpace(t.ErpLoginUrl))
                                     {
                                         <a href="@t.ErpLoginUrl">@t.ErpLoginUrl</a>
                                     }
