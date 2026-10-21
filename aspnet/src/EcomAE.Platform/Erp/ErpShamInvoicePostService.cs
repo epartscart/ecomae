@@ -148,12 +148,6 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
                 return new(false, "No active grant for '" + userEmail + "' to post invoices in " + entity + (bu.Length > 0 ? "/" + bu : "") + ".", 0);
             }
 
-            // Phase-6 close: invoices dated into a locked period are refused.
-            if (invoice.IssueDate > 0 && await ErpShamFoundationService.PeriodLockedAsync(connection, entityId, invoice.IssueDate, cancellationToken).ConfigureAwait(false))
-            {
-                return new(false, "Period is locked for entity " + entity + " — no postings into closed months.", 0);
-            }
-
             // The invoice must exist as an ISSUED document in this entity's store —
             // a grant alone cannot fabricate receivable/revenue entries.
             var docVat = 0m;
@@ -206,9 +200,18 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
                 TotalVat = docVat,
                 TotalIncl = docTotal,
                 IssueDate = docIssueDate > 0 ? docIssueDate : invoice.IssueDate,
-                CurrencyCode = docCurrency.Length > 0 ? docCurrency : invoice.CurrencyCode,
-                ExchangeRate = docRate > 0m ? docRate : invoice.ExchangeRate,
+                // Currency/rate bind to the ISSUED values even when those are blank —
+                // a poster must not inject FX the issuer never recorded.
+                CurrencyCode = docCurrency,
+                ExchangeRate = docRate > 0m ? docRate : 1m,
             };
+
+            // Phase-6 close: the document's own issue date decides, not a
+            // caller-supplied one (checked after the doc override above).
+            if (invoice.IssueDate > 0 && await ErpShamFoundationService.PeriodLockedAsync(connection, entityId, invoice.IssueDate, cancellationToken).ConfigureAwait(false))
+            {
+                return new(false, "Period is locked for entity " + entity + " — no postings into closed months.", 0);
+            }
 
             // The document binds its business unit: a caller granted for another BU
             // cannot post it under their own scope.

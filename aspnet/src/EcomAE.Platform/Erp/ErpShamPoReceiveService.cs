@@ -1,5 +1,3 @@
-using System.Data.Common;
-
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
@@ -116,13 +114,24 @@ public sealed class ErpShamPoReceiveService : IErpShamPoReceiveService
                 return new(false, "access", "No active grant for '" + userEmail + "' to receive stock in " + entity + "/" + bu + ".");
             }
 
-            var reference = string.IsNullOrWhiteSpace(poNumber) ? null : "PO-" + poNumber.Trim();
+            var reference = string.IsNullOrWhiteSpace(poNumber) ? null : "PO-" + poNumber.Trim().Replace('/', '\\');
             if (!string.IsNullOrWhiteSpace(receiptRef) && reference is not null)
             {
                 // A real second delivery carries its own receipt/GRN reference —
                 // identical deliveries without one are indistinguishable from
-                // retries and stay deduplicated by design.
-                reference += "/" + receiptRef.Trim();
+                // retries and stay deduplicated by design. '/' inside each part is
+                // escaped so PO "A/B"+"C" and PO "A"+"B/C" can't collide.
+                reference += "/" + receiptRef.Trim().Replace('/', '\\');
+            }
+
+            // The movement `reference` column is 128 chars — an overlong claim must
+            // truncate DETERMINISTICALLY (with a hash tail) so idempotency still
+            // works and the writer never fails after stock already moved.
+            if (reference is not null && reference.Length > 120)
+            {
+                var hash = Convert.ToHexString(
+                    System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(reference)))[..10];
+                reference = reference[..109] + "~" + hash;
             }
 
             // Idempotency: a retry of the same PO+warehouse receipt must not add
@@ -140,11 +149,14 @@ public sealed class ErpShamPoReceiveService : IErpShamPoReceiveService
             }
 
             // The linked purchase must exist — prevents receipts claiming bogus ids
-            // (per-entity ownership is not recorded on purchases yet). Tenants
-            // without the purchasing schema skip the check rather than blocking.
+            // (per-entity ownership is not recorded on purchases yet). Only tenants
+            // without the purchasing TABLE skip the check; any real DB error fails.
             if (purchaseId > 0)
             {
-                try
+                var purchasesTable = await ErpDb.LongAsync(connection, null,
+                    ErpDb.Positional("SELECT COUNT(*) FROM `information_schema`.`TABLES` WHERE `TABLE_SCHEMA`=DATABASE() AND `TABLE_NAME`='epc_erp_purchases'"),
+                    cancellationToken).ConfigureAwait(false);
+                if (purchasesTable > 0)
                 {
                     var purchaseExists = await ErpDb.LongAsync(connection, null,
                         ErpDb.Positional("SELECT EXISTS(SELECT 1 FROM `epc_erp_purchases` WHERE `id`=? AND `active`=1)"),
@@ -153,10 +165,6 @@ public sealed class ErpShamPoReceiveService : IErpShamPoReceiveService
                     {
                         return new(false, "purchase", "Purchase " + purchaseId + " does not exist.");
                     }
-                }
-                catch (DbException)
-                {
-                    // Purchasing schema absent on this tenant — receipt proceeds.
                 }
             }
 
