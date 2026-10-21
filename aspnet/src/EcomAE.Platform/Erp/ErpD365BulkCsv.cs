@@ -165,7 +165,7 @@ public static class ErpD365BulkCsv
     {
         "items" => "SELECT `sku`, `name`, `item_type`, `unit`, `active` FROM `epc_erp_inv_items` ORDER BY `sku`",
         "stock" => "SELECT s.`warehouse_id` AS warehouse, i.`sku`, s.`qty_on_hand`, s.`avg_unit_cost`, s.`batch_no`, s.`variant_label` FROM `epc_erp_inv_stock` s JOIN `epc_erp_inv_items` i ON i.`id` = s.`item_id` ORDER BY i.`sku`",
-        "customers" => "SELECT * FROM `epc_erp_contacts` WHERE `party_type` = 'customer' OR `party_type` IS NULL ORDER BY `id`",
+        "customers" => "SELECT * FROM `epc_erp_contacts` WHERE `party_type` IN ('customer','both') OR `party_type` IS NULL ORDER BY `id`",
         "vendors" => "SELECT * FROM `epc_erp_suppliers` ORDER BY `id`",
         "coa" => "SELECT `code` AS account_code, `name` AS account_name, `account_type`, `active` FROM `epc_erp_coa_accounts` ORDER BY `code`",
         "sales_orders" => "SELECT o.`so_no`, o.`status`, l.`item_code` AS item_number, l.`description` AS item_name, l.`qty`, l.`unit_price_ex_vat` AS unit_price FROM `epc_erp_sales_orders` o LEFT JOIN `epc_erp_sales_order_lines` l ON l.`sales_order_id` = o.`id` ORDER BY o.`so_no`, l.`id`",
