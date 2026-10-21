@@ -207,16 +207,20 @@ public static class ErpD365BulkCsv
         var upd = 0;
         if (id == 0)
         {
+            decimal.TryParse(M(m, "cost_price"), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var cost);
             await ErpDb.ExecuteAsync(c, null,
-                "INSERT INTO `epc_erp_inv_items` (`sku`, `name`, `item_type`, `unit`, `active`, `time_created`) VALUES (?,?,?,?,?,?)",
+                "INSERT INTO `epc_erp_inv_items` (`sku`, `name`, `item_type`, `unit`, `cost_price`, `active`, `time_created`) VALUES (?,?,?,?,?,?,?)",
                 ct, sku, name, itype is "standard" or "perishable" or "serialized" ? itype : "standard",
-                unit.Length > 0 ? unit : "pcs", M(m, "active") is "0" or "no" ? 0 : 1, now).ConfigureAwait(false);
+                unit.Length > 0 ? unit : "pcs", cost, M(m, "active") is "0" or "no" ? 0 : 1, now).ConfigureAwait(false);
             id = await ErpDb.LastInsertIdAsync(c, null, ct).ConfigureAwait(false);
         }
         else
         {
+            var costSet = M(m, "cost_price").Length > 0
+                ? ", `cost_price` = " + (decimal.TryParse(M(m, "cost_price"), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var uc) ? uc.ToString(System.Globalization.CultureInfo.InvariantCulture) : "0")
+                : "";
             await ErpDb.ExecuteAsync(c, null,
-                "UPDATE `epc_erp_inv_items` SET `name` = ?, `unit` = ?, `active` = ? WHERE `id` = ?",
+                "UPDATE `epc_erp_inv_items` SET `name` = ?, `unit` = ?" + costSet + ", `active` = ? WHERE `id` = ?",
                 ct, name, unit.Length > 0 ? unit : "pcs", M(m, "active") is "0" or "no" ? 0 : 1, id).ConfigureAwait(false);
             upd = 1;
         }
@@ -225,7 +229,7 @@ public static class ErpD365BulkCsv
         var attrs = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
         foreach (var kv in m)
         {
-            if (kv.Key is not ("sku" or "name" or "unit" or "item_type" or "active") && kv.Value.Length > 0)
+            if (kv.Key is not ("sku" or "name" or "unit" or "item_type" or "active" or "cost_price" or "sell_price") && kv.Value.Length > 0)
             {
                 attrs[kv.Key] = kv.Value;
             }
