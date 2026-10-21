@@ -223,6 +223,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var loginEmail = body.LoginEmail;
             var operatorPassword = body.Password;
             var confirmPassword = body.ConfirmPassword;
+            var keepDatabase = body.KeepDatabase;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -237,6 +238,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 loginEmail = LiveWriteFormBinder.Text(form, "login_email", "loginEmail");
                 operatorPassword = LiveWriteFormBinder.Text(form, "password");
                 confirmPassword = LiveWriteFormBinder.Text(form, "confirm_password", "confirmPassword");
+                keepDatabase = LiveWriteFormBinder.Flag(form, "keep_database", "keepDatabase");
             }
 
             var key = (action ?? string.Empty).Trim();
@@ -260,7 +262,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                         new CpTenantsOnboardErpOnlyRequest(siteKey, tradeName, industryCode, adminEmail),
                         cancellationToken),
                     "delete_standalone_erp" => await writes.DeleteStandaloneErpAsync(
-                        new CpTenantsDeleteStandaloneRequest(siteKey, confirmSiteKey),
+                        new CpTenantsDeleteStandaloneRequest(siteKey, confirmSiteKey, keepDatabase),
                         cancellationToken),
                     "reset_operator_password" => await writes.ResetOperatorPasswordAsync(siteKey, cancellationToken),
                     "repair_erp_only_shop" => await writes.RepairErpOnlyShopAsync(siteKey, cancellationToken),
@@ -17533,7 +17535,8 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? ConfirmSiteKey = null,
         string? LoginEmail = null,
         string? Password = null,
-        string? ConfirmPassword = null);
+        string? ConfirmPassword = null,
+        bool KeepDatabase = false);
     private sealed record CpTenantFeaturesWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

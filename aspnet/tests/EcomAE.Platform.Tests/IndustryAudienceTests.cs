@@ -93,7 +93,8 @@ public sealed class IndustryAudienceTests
     {
         Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "indj" && c.IndustryCode == "jewellery");
         Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "fito" && c.IndustryCode == "fit_out");
-        Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "asap" && c.IndustryCode == "auto_parts");
+        Assert.DoesNotContain(ErpOnlyLaunchClients.All, c => c.SiteKey == "asap");
+        Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "sham" && c.IndustryCode == "auto_parts");
         Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "real" && c.IndustryCode == "real_estate");
     }
 }
