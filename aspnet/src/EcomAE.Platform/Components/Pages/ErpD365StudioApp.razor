@@ -1,0 +1,191 @@
+@page "/erp/d365-studio"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@using System.Text
+@using System.Web
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@using EcomAE.Platform.Cp
+@inject ICpCsrfGuard Csrf
+@inject IErpWriteConnectionFactory Connections
+@inject IErpD365DocCycleService D365
+
+<PageTitle>D365 studio · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<style>
+    .tg-card { background:#fff; border:1px solid #dde6ee; border-radius:10px; padding:16px 18px; margin:0 0 16px; box-shadow:0 1px 2px rgba(16,42,66,.05); }
+    .tg-card h3 { margin:0 0 8px; font-size:15px; color:#12324f; }
+    .tg-card p, .tg-card li { font-size:12.5px; color:#40566c; line-height:1.55; }
+    .tg-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+    .tg-form label { display:block; font-size:11px; color:#4a627a; margin:8px 0 2px; }
+    .tg-form input, .tg-form select, .tg-form textarea { width:100%; box-sizing:border-box; border:1px solid #c3d3de; border-radius:6px; padding:6px 8px; font-size:12.5px; }
+    .tg-form button { margin-top:10px; background:#12324f; color:#fff; border:0; border-radius:6px; padding:7px 14px; font-size:12.5px; cursor:pointer; }
+    .tg-form textarea { min-height:110px; font-family:ui-monospace,monospace; font-size:11px; }
+    .tg-flash { border-radius:8px; padding:10px 14px; margin:0 0 16px; font-size:13px; }
+    .tg-flash-ok { background:#e8f6ee; border:1px solid #9fd8b6; color:#0f6b3f; }
+    .tg-flash-err { background:#fdeaea; border:1px solid #f0b4b4; color:#9c1c1c; }
+    .tg-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .tg-table th, .tg-table td { border-bottom:1px solid #e4ecf2; padding:6px 8px; text-align:left; }
+    .tg-table th { color:#12324f; background:#f4f8fb; }
+    .tg-links a { margin-right:12px; font-size:12px; }
+</style>
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="D365 studio" BreadcrumbArea="Organization" BreadcrumbTab="D365 studio">
+    <PhpErpModulePageHeader
+        Title="D365 studio"
+        Subtitle="Per-legal-entity document header/footer (used by every PDF), D365 field saves on documents and masters, and CSV bulk load/export for opening data — the same shapes as Finance and Operations."
+        PhpTabHref="/erp/d365-studio" />
+
+    @if (_flashOk.Length > 0)
+    {
+        <div class="tg-flash tg-flash-ok">@_flashOk</div>
+    }
+    @if (_flashErr.Length > 0)
+    {
+        <div class="tg-flash tg-flash-err">@_flashErr</div>
+    }
+
+    <div class="tg-grid">
+        <div class="tg-card tg-form">
+            <h3>Legal entity document profile (header / footer)</h3>
+            <p>Saved per legal entity — drives the TAX INVOICE and DELIVERY NOTE letterhead, TRN, bank and footer. Entity id 0 = tenant-wide fallback.</p>
+            <form method="post" action="@Post("/erp/d365/doc-profile-set")">
+                @HiddenFields()
+                <label>Legal entity id</label><input name="entity_id" value="@_entityId" required />
+                <label>Legal name</label><input name="legal_name" value="@P("legal_name")" required />
+                <label>Trade name</label><input name="trade_name" value="@P("trade_name")" />
+                <label>TRN</label><input name="trn" value="@P("trn")" />
+                <label>Address line 1 / 2</label><input name="address_line1" value="@P("address_line1")" /><input name="address_line2" value="@P("address_line2")" />
+                <label>City / Emirate / Country</label><input name="city" value="@P("city")" /><input name="emirate" value="@P("emirate")" /><input name="country_code" value="@P("country_code")" />
+                <label>Phone / Fax / Email</label><input name="phone" value="@P("phone")" /><input name="fax" value="@P("fax")" /><input name="email" value="@P("email")" />
+                <label>Bank name / IBAN</label><input name="bank_name" value="@P("bank_name")" /><input name="bank_iban" value="@P("bank_iban")" />
+                <label>Legal footer</label><input name="legal_footer" value="@P("legal_footer")" />
+                <label>Header note / Footer note</label><input name="doc_header_note" value="@P("doc_header_note")" /><input name="doc_footer_note" value="@P("doc_footer_note")" />
+                <label>Logo URL</label><input name="logo_url" value="@P("logo_url")" />
+                <button type="submit">Save document profile</button>
+            </form>
+        </div>
+
+        <div class="tg-card tg-form">
+            <h3>Save D365 fields on a record</h3>
+            <p>Writes any captured F&O fields onto an existing row — unknown names are ignored, so paste field=value pairs straight from the study list.</p>
+            <form method="post" action="@Post("/erp/d365/fields-save")">
+                @HiddenFields()
+                <label>Record kind</label>
+                <select name="kind">
+                    <option value="so">Sales order header</option>
+                    <option value="po">Purchase order header</option>
+                    <option value="dn">Delivery note</option>
+                    <option value="customer">Customer</option>
+                    <option value="vendor">Vendor</option>
+                    <option value="product">Released product attributes</option>
+                </select>
+                <label>Record id</label><input name="id" type="number" min="1" required />
+                <label>Fields (one per line: name=value)</label><textarea name="fields_kv" placeholder="warehouse=ASAP-WSL&#10;mode_of_delivery=Sea&#10;delivery_terms=CIF"></textarea>
+                <button type="submit">Save fields</button>
+            </form>
+        </div>
+    </div>
+
+    <h3 style="margin:18px 0 10px;color:#12324f">Opening data — CSV import &amp; export</h3>
+    <div class="tg-card">
+        <p>Download the template, fill it, paste back into the box, commit. Natural-key upsert (sku / account / voucher no), so re-running is safe. Order CSVs carry header fields plus one line per row — repeat the document number for multiple lines.</p>
+        <table class="tg-table">
+            <thead><tr><th>Area</th><th>Required</th><th>Actions</th></tr></thead>
+            <tbody>
+                @foreach (var a in ErpD365BulkCsv.Areas.Values)
+                {
+                    <tr>
+                        <td><strong>@a.Label</strong> <code>@a.Key</code></td>
+                        <td>@string.Join(", ", a.Required)</td>
+                        <td class="tg-links">
+                            <a href="@Get("/erp/d365/csv-template")?area=@a.Key">template</a>
+                            <a href="@Get("/erp/d365/csv-export")?area=@a.Key">export CSV</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="tg-card tg-form">
+        <h3>Import CSV</h3>
+        <form method="post" action="@Post("/erp/d365/csv-import")">
+            @HiddenFields()
+            <label>Area</label>
+            <select name="area">
+                @foreach (var a in ErpD365BulkCsv.Areas.Values)
+                {
+                    <option value="@a.Key">@a.Label</option>
+                }
+            </select>
+            <label>CSV content (header row + data rows)</label><textarea name="csv" placeholder="sku,name,unit&#10;ABC-001,Brake pad,pcs" required></textarea>
+            <button type="submit">Validate + commit import</button>
+        </form>
+    </div>
+
+    <div class="tg-card tg-form">
+        <h3>Document PDFs</h3>
+        <p>Sales invoice uses the wholesale TAX INVOICE layout with the entity's letterhead; delivery note renders the consignment/packing/delivery sections.</p>
+        <form method="get" action="@Get("/erp/d365/invoice-pdf")" target="_blank" style="display:flex;gap:8px;align-items:end">
+            <label style="flex:1">Invoice id<input name="id" type="number" min="1" required /></label>
+            <button type="submit">Invoice PDF</button>
+        </form>
+        <form method="get" action="@Get("/erp/d365/delivery-pdf")" target="_blank" style="display:flex;gap:8px;align-items:end;margin-top:8px">
+            <label style="flex:1">Delivery note id<input name="id" type="number" min="1" required /></label>
+            <button type="submit">Delivery note PDF</button>
+        </form>
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private string _csrf = string.Empty;
+    private string _flashOk = string.Empty;
+    private string _flashErr = string.Empty;
+    private string _entityId = "0";
+    private IReadOnlyDictionary<string, string?> _profile = new Dictionary<string, string?>();
+
+    private string P(string key) => _profile.TryGetValue(key, out var v) ? v ?? "" : "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted).ConfigureAwait(false);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted).ConfigureAwait(false);
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
+        _entityId = ctx.Request.Query["entity_id"].ToString() is { Length: > 0 } e ? e : "0";
+
+        try
+        {
+            if (Connections.IsConfigured && long.TryParse(_entityId, out var eid))
+            {
+                await using var conn = await Connections.OpenAsync(ctx.RequestAborted).ConfigureAwait(false);
+                _profile = await D365.EntityDocProfileAsync(conn, eid, ctx.RequestAborted).ConfigureAwait(false);
+            }
+        }
+        catch
+        {
+            // Profile load is best-effort; the form still posts.
+        }
+    }
+
+    private string Post(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext!, path);
+    private string Get(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext!, path);
+
+    private MarkupString HiddenFields()
+    {
+        var returnUrl = HttpUtility.HtmlAttributeEncode(
+            (Http.HttpContext?.Request.Path.Value ?? "/erp/d365-studio") + Http.HttpContext?.Request.QueryString.Value);
+        return (MarkupString)(
+            $"<input type=\"hidden\" name=\"confirmWrites\" value=\"true\" />"
+            + $"<input type=\"hidden\" name=\"returnUrl\" value=\"{returnUrl}\" />"
+            + $"<input type=\"hidden\" name=\"csrf_guard_key\" value=\"{HttpUtility.HtmlAttributeEncode(_csrf)}\" />");
+    }
+}

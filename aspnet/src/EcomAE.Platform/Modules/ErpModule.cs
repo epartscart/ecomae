@@ -27372,7 +27372,20 @@ public sealed class ErpModule : ISurfaceModule
 
         var kind = AmlText(fields, "kind");
         var id = AmlLong(fields, "id");
-        var data = fields.Where(kv => kv.Key is not ("kind" or "id" or "confirmWrites" or "confirm_writes")).ToDictionary(kv => kv.Key, kv => (string?)kv.Value, StringComparer.Ordinal);
+        var data = fields.Where(kv => kv.Key is not ("kind" or "id" or "confirmWrites" or "confirm_writes" or "fields_kv" or "returnUrl" or "csrf_guard_key")).ToDictionary(kv => kv.Key, kv => (string?)kv.Value, StringComparer.Ordinal);
+        // The studio form passes one name=value per line in fields_kv; merge those over the literal fields.
+        var kvBlob = AmlText(fields, "fields_kv");
+        if (kvBlob.Length > 0)
+        {
+            foreach (var line in kvBlob.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var eq = line.IndexOf('=');
+                if (eq > 0)
+                {
+                    data[line[..eq].Trim()] = line[(eq + 1)..].Trim();
+                }
+            }
+        }
         await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         ErpSimpleWriteResult res = kind switch
         {
