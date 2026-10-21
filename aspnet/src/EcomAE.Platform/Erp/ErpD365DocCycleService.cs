@@ -461,6 +461,10 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
         await Add(connection, "epc_erp_contacts", "entity_id", "int(11) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
         await Add(connection, "epc_erp_inv_items", "cost_price", "decimal(14,4) NOT NULL DEFAULT 0.0000", cancellationToken).ConfigureAwait(false);
 
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_warehouses` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(64) NOT NULL, `name` varchar(255) NOT NULL, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_code` (`code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            cancellationToken).ConfigureAwait(false);
         foreach (var col in WarehouseColumns)
         {
             var def = col is "entity_id" or "cost_centre_id" or "business_unit_id"
