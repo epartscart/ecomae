@@ -1,3 +1,5 @@
+using MySqlConnector;
+
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
@@ -57,9 +59,13 @@ public sealed class ErpShamTransferPriceService : IErpShamTransferPriceService
         {
             return new ErpShamTransferPriceResult(false, "value must be non-negative (pct rules ≤ 1000).", null, null);
         }
-        if (!await _foundation.AccessAllowedAsync(userEmail, fromEntityCode, null, "transfer-price-set", cancellationToken).ConfigureAwait(false))
+        // Pricing affects BOTH sides of the pair: the grant must cover the
+        // selling entity AND the buying entity, else a seller-scoped admin
+        // could rewrite a buyer's inbound prices.
+        if (!await _foundation.AccessAllowedAsync(userEmail, fromEntityCode, null, "transfer-price-set", cancellationToken).ConfigureAwait(false)
+            || !await _foundation.AccessAllowedAsync(userEmail, toEntityCode, null, "transfer-price-set", cancellationToken).ConfigureAwait(false))
         {
-            return new ErpShamTransferPriceResult(false, "transfer-price-set grant required for the selling entity.", null, null);
+            return new ErpShamTransferPriceResult(false, "transfer-price-set grant required on BOTH the selling and the buying entity.", null, null);
         }
 
         await using var conn = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -72,14 +78,34 @@ public sealed class ErpShamTransferPriceService : IErpShamTransferPriceService
 
         sku = (sku ?? string.Empty).Trim().ToUpperInvariant();
         var now = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        var version = (int)await ErpDb.LongAsync(conn, null,
-            ErpDb.Positional("SELECT COALESCE(MAX(`version`),0)+1 FROM `epc_erp_org_transfer_price_rules` WHERE `from_entity_id`=? AND `to_entity_id`=? AND `sku`=? AND `kind`=?"),
-            cancellationToken, fromId, toId, sku, kind).ConfigureAwait(false);
-        await ErpDb.ExecuteAsync(conn, null,
-            ErpDb.Positional("INSERT INTO `epc_erp_org_transfer_price_rules` (`from_entity_id`,`to_entity_id`,`sku`,`kind`,`rule_value`,`currency`,`agreement_ref`,`effective_from`,`effective_to`,`version`,`set_by`,`time_created`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"),
-            cancellationToken, fromId, toId, sku, kind.ToLowerInvariant(), value,
-            string.IsNullOrWhiteSpace(currency) ? "AED" : currency.Trim().ToUpperInvariant(),
-            agreementRef?.Trim() ?? string.Empty, (int)Math.Max(0, effectiveFrom), (int)Math.Max(0, effectiveTo), version, userEmail, now).ConfigureAwait(false);
+        // MAX+1 then insert is racy: two concurrent sets for the same key can
+        // compute the same version → unique-key rejection. Retry the pair a
+        // bounded number of times so a losing admin's rule still lands.
+        var version = 0;
+        var inserted = false;
+        for (var attempt = 0; attempt < 3 && !inserted; attempt++)
+        {
+            version = (int)await ErpDb.LongAsync(conn, null,
+                ErpDb.Positional("SELECT COALESCE(MAX(`version`),0)+1 FROM `epc_erp_org_transfer_price_rules` WHERE `from_entity_id`=? AND `to_entity_id`=? AND `sku`=? AND `kind`=?"),
+                cancellationToken, fromId, toId, sku, kind).ConfigureAwait(false);
+            try
+            {
+                await ErpDb.ExecuteAsync(conn, null,
+                    ErpDb.Positional("INSERT INTO `epc_erp_org_transfer_price_rules` (`from_entity_id`,`to_entity_id`,`sku`,`kind`,`rule_value`,`currency`,`agreement_ref`,`effective_from`,`effective_to`,`version`,`set_by`,`time_created`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"),
+                    cancellationToken, fromId, toId, sku, kind.ToLowerInvariant(), value,
+                    string.IsNullOrWhiteSpace(currency) ? "AED" : currency.Trim().ToUpperInvariant(),
+                    agreementRef?.Trim() ?? string.Empty, (int)Math.Max(0, effectiveFrom), (int)Math.Max(0, effectiveTo), version, userEmail, now).ConfigureAwait(false);
+                inserted = true;
+            }
+            catch (MySqlException ex) when (ex.Number == 1062 && attempt < 2)
+            {
+                // Concurrent insert took the same version — recompute and retry.
+            }
+        }
+        if (!inserted)
+        {
+            return new ErpShamTransferPriceResult(false, "Version contention — retry the set.", null, null);
+        }
         var rule = new ErpShamTransferPriceRule(version, fromEntityCode, toEntityCode, sku, kind, value, currency, agreementRef ?? "", effectiveFrom, effectiveTo, userEmail, now);
         return new ErpShamTransferPriceResult(true, $"Transfer price rule v{version} set: {fromEntityCode} → {toEntityCode}" + (sku.Length > 0 ? $" SKU {sku}" : "") + $" {kind}={value}.", rule, null);
     }
@@ -113,7 +139,18 @@ public sealed class ErpShamTransferPriceService : IErpShamTransferPriceService
     public async Task<IReadOnlyList<ErpShamTransferPriceRule>> ListAsync(string userEmail, CancellationToken cancellationToken = default)
     {
         await using var conn = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        return await ReadRulesAsync(conn, "ORDER BY r.`from_entity_id`, r.`to_entity_id`, r.`sku`, r.`version` DESC LIMIT 200", cancellationToken).ConfigureAwait(false);
+        var rules = await ReadRulesAsync(conn, "ORDER BY r.`from_entity_id`, r.`to_entity_id`, r.`sku`, r.`version` DESC LIMIT 200", cancellationToken).ConfigureAwait(false);
+        // Transfer prices are commercially sensitive: only rules whose selling
+        // entity the caller has transfer-price-view on are returned.
+        var visible = new List<ErpShamTransferPriceRule>(rules.Count);
+        foreach (var rule in rules)
+        {
+            if (await _foundation.AccessAllowedAsync(userEmail, rule.FromEntity, null, "transfer-price-view", cancellationToken).ConfigureAwait(false))
+            {
+                visible.Add(rule);
+            }
+        }
+        return visible;
     }
 
     private static async Task<IReadOnlyList<ErpShamTransferPriceRule>> ReadRulesAsync(System.Data.Common.DbConnection conn, string tail, CancellationToken ct, params object[] args)
