@@ -21,12 +21,14 @@ public sealed class ErpShamEliminationService : IErpShamEliminationService
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IErpShamFoundationService _foundation;
     private readonly IErpGlPostingService _posting;
+    private readonly IErpVoucherNumberService _vouchers;
 
-    public ErpShamEliminationService(IErpWriteConnectionFactory connections, IErpShamFoundationService foundation, IErpGlPostingService posting)
+    public ErpShamEliminationService(IErpWriteConnectionFactory connections, IErpShamFoundationService foundation, IErpGlPostingService posting, IErpVoucherNumberService vouchers)
     {
         _connections = connections;
         _foundation = foundation;
         _posting = posting;
+        _vouchers = vouchers;
     }
 
     public async Task<ErpShamElimResult> RunAsync(string groupEntityCode, int period, string userEmail, CancellationToken cancellationToken = default)
@@ -44,12 +46,28 @@ public sealed class ErpShamEliminationService : IErpShamEliminationService
         // (epc_entity_groups), not a hardcoded code.
         if (parentCode.Length == 0)
         {
+            // Default = the first group whose parent the caller actually has
+            // elim-run on — never blindly the oldest group.
+            var candidates = new List<string>();
             await using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = "SELECT `parent_entity` FROM `epc_entity_groups` WHERE `status`='active' ORDER BY `id` LIMIT 1";
-                var v = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-                if (v is string s && s.Length > 0) parentCode = s;
+                cmd.CommandText = "SELECT `parent_entity` FROM `epc_entity_groups` WHERE `status`='active' ORDER BY `id`";
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var s = reader.GetString(0);
+                    if (s.Length > 0) candidates.Add(s);
+                }
             }
+            foreach (var candidate in candidates)
+            {
+                if (await _foundation.AccessAllowedAsync(userEmail, candidate, null, "elim-run", cancellationToken).ConfigureAwait(false))
+                {
+                    parentCode = candidate;
+                    break;
+                }
+            }
+            if (parentCode.Length == 0 && candidates.Count > 0) parentCode = candidates[0];
             if (parentCode.Length == 0) parentCode = "MAIN";
         }
         if (!await _foundation.AccessAllowedAsync(userEmail, parentCode, null, "elim-run", cancellationToken).ConfigureAwait(false))
@@ -128,6 +146,7 @@ public sealed class ErpShamEliminationService : IErpShamEliminationService
         // Voucher sequence schema must exist BEFORE the ambient transaction
         // (PostJournalAsync skips its own ensure when a tx is supplied).
         await ErpGlPostingService.EnsureSchemaAsync(conn, cancellationToken).ConfigureAwait(false);
+        await _vouchers.EnsureSchemaAsync(conn, cancellationToken).ConfigureAwait(false);
         await using var tx = await conn.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         var lines = new List<ErpGlLine>();
         decimal total = 0m;

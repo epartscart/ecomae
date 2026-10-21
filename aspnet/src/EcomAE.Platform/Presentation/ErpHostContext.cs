@@ -279,18 +279,33 @@ public static class ErpHostContext
         {
             query.Add($"cmp={Uri.EscapeDataString(entityCode)}");
         }
-        // bu carries the CODE (not the id): ActiveBusinessUnitFromQuery
-        // falls through to code resolution on non-numerics while every
-        // code-based consumer (SHAM ops) reads it directly.
-        if (!string.IsNullOrWhiteSpace(buCode))
-        {
-            query.Add($"bu={Uri.EscapeDataString(buCode)}");
-        }
-        else if (buId is > 0)
+        // bu=<id> keeps numeric report filters working; buc=<code> feeds
+        // code consumers via BuCodeFromQuery (buc → non-numeric bu).
+        if (buId is > 0)
         {
             query.Add($"bu={buId.Value}");
         }
+        if (!string.IsNullOrWhiteSpace(buCode))
+        {
+            query.Add($"buc={Uri.EscapeDataString(buCode)}");
+        }
         return path + "?" + string.Join('&', query);
+    }
+
+    /// <summary>
+    /// BU code for code-based consumers: prefers the explicit <c>buc</c>
+    /// code param, then <c>bu</c> when it is non-numeric (a numeric bu is
+    /// an id for ActiveBusinessUnitFromQuery, not a code).
+    /// </summary>
+    public static string BuCodeFromQuery(HttpRequest request)
+    {
+        var buc = request.Query["buc"].ToString().Trim();
+        if (buc.Length > 0)
+        {
+            return buc;
+        }
+        var bu = request.Query["bu"].ToString().Trim();
+        return bu.Length > 0 && !long.TryParse(bu, out _) ? bu : string.Empty;
     }
 
     private static string BrandLabelFor(string normalized, bool isShowcase, bool isProduct)
