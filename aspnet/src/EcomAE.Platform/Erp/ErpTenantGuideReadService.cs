@@ -12,7 +12,7 @@ public interface IErpTenantGuideReadService
 }
 
 public sealed record ErpTenantGuideEntity(int Id, string Code, string Name, string Country, string Currency, bool Consolidated);
-public sealed record ErpTenantGuideBu(int Id, int EntityId, string Code, string Name, string CostCentre, string Warehouse);
+public sealed record ErpTenantGuideBu(int Id, int EntityId, string Code, string Name, string CostCentre, string Warehouse, string WarehouseCostCentre = "");
 
 public sealed class ErpTenantGuideModel
 {
@@ -106,7 +106,7 @@ public sealed class ErpTenantGuideReadService : IErpTenantGuideReadService
         {
             await using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = "SELECT bu.`id`, bu.`entity_id`, bu.`code`, bu.`name`, bu.`cost_centre`, COALESCE(w.`name`,'') "
+                cmd.CommandText = "SELECT bu.`id`, bu.`entity_id`, bu.`code`, bu.`name`, bu.`cost_centre`, COALESCE(w.`name`,''), COALESCE(NULLIF(w.`cost_centre`,''), bu.`cost_centre`) "
                     + "FROM `epc_erp_org_business_units` bu "
                     + "LEFT JOIN `epc_erp_inv_warehouses` w ON w.`id` = bu.`default_warehouse_id` "
                     + "WHERE bu.`status`='active' ORDER BY bu.`entity_id`, bu.`code`";
@@ -119,7 +119,8 @@ public sealed class ErpTenantGuideReadService : IErpTenantGuideReadService
                         reader.GetString(2),
                         reader.GetString(3),
                         reader.GetString(4),
-                        reader.GetString(5)));
+                        reader.GetString(5),
+                        reader.FieldCount > 6 ? reader.GetString(6) : ""));
                 }
             }
         }

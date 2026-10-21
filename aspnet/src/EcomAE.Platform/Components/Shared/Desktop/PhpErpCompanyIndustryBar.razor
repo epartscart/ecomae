@@ -112,8 +112,8 @@
 
     @if (_companies.Count > 0 && _request is not null)
     {
-        <details class="epc-erp-company-picker dropdown" data-epc-company-picker="1">
-            <summary class="btn btn-default btn-xs dropdown-toggle epc-erp-company-btn"
+        <details class="epc-erp-company-picker" data-epc-company-picker="1">
+            <summary class="btn btn-default btn-xs epc-erp-company-btn"
                      title="Active company (legal entity) — change without editing the URL">
                 <i class="fa fa-building" aria-hidden="true"></i>
                 <span class="epc-erp-company-name">@_activeLabel</span>

@@ -157,6 +157,25 @@
                 </div>
 
                 <div class="tg-card tg-form">
+                    <h3>Transfer pricing (§10)</h3>
+                    <form method="post" action="@Post("/erp/sham/transfer-price-set")">
+                        @HiddenFields()
+                        <label>Selling entity</label><input name="from" value="@_cmp" required />
+                        <label>Buying entity</label><input name="to" placeholder="ASAPL" required />
+                        <label>SKU (blank = pair default)</label><input name="sku" />
+                        <label>Rule kind</label>
+                        <select name="kind"><option value="fixed_price">fixed_price</option><option value="markup_pct">markup_pct</option><option value="margin_floor_pct">margin_floor_pct</option></select>
+                        <label>Value</label><input name="value" type="number" step="0.0001" min="0" value="0" required />
+                        <label>Currency</label><input name="currency" value="AED" />
+                        <label>Agreement ref</label><input name="agreement_ref" />
+                        <label>Effective from / to (unix, optional)</label>
+                        <div style="display:flex;gap:6px"><input name="effective_from" type="number" min="0" /><input name="effective_to" type="number" min="0" /></div>
+                        <button type="submit">Append rule version</button>
+                    </form>
+                    <p style="margin-top:8px"><a href="@Get("/erp/sham/transfer-price-view")">All rules</a></p>
+                </div>
+
+                <div class="tg-card tg-form">
                     <h3>Treasury (§13)</h3>
                     <form method="post" action="@Post("/erp/sham/treasury")">
                         @HiddenFields()
@@ -405,7 +424,7 @@
                 sb.Append($"<rect x=\"{x + 8}\" y=\"{by}\" width=\"{EntityWidth - 16}\" height=\"46\" rx=\"6\" fill=\"#eef4f9\" stroke=\"#c3d3de\"/>");
                 sb.Append($"<text x=\"{cx}\" y=\"{by + 15}\" text-anchor=\"middle\" fill=\"#12324f\" font-size=\"11\" font-weight=\"600\">{Esc(bu.Code)}</text>");
                 sb.Append($"<text x=\"{cx}\" y=\"{by + 29}\" text-anchor=\"middle\" fill=\"#4a627a\" font-size=\"9\">{Esc(Shorten(bu.Name))}</text>");
-                var dims = (bu.CostCentre != "" ? "CC " + bu.CostCentre : "") + (bu.Warehouse != "" ? " · WH " + bu.Warehouse : "");
+                var dims = (bu.CostCentre != "" ? "CC " + bu.CostCentre : "") + (bu.Warehouse != "" ? " · WH " + bu.Warehouse + "→CC " + bu.WarehouseCostCentre : "");
                 sb.Append($"<text x=\"{cx}\" y=\"{by + 41}\" text-anchor=\"middle\" fill=\"#6b8196\" font-size=\"8\">{Esc(dims)}</text>");
                 by += 56;
             }
