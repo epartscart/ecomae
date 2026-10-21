@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
@@ -21,6 +22,8 @@
 
 
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
+
+    <ErpD365ModuleArea Kind="vendors" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/suppliers-app" />
 

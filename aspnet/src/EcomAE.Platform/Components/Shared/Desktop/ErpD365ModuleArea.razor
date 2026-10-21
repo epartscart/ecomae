@@ -51,6 +51,40 @@
                 <button type="submit" class="btn btn-primary btn-sm" style="margin-top:8px">Save</button>
             </form>
         }
+        else if (Kind is "customers" or "vendors" or "delivery" or "prospects")
+        {
+            <form method="post" action="@Post("/erp/d365/fields-save")">
+                @Hidden()
+                <input type="hidden" name="kind" value="@(Kind == "prospects" ? "customer" : Kind == "delivery" ? "dn" : Kind)" />
+                <label>Record id</label><input name="id" type="number" min="1" required />
+                <label>Fields (name=value per line — all D365 fields)</label>
+                <textarea name="fields_kv" rows="3" style="width:100%"></textarea>
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-top:8px">Save fields</button>
+            </form>
+            @if (Kind == "prospects")
+            {
+                <form method="post" action="@Post("/erp/d365/prospect-convert")" style="margin-top:10px;display:flex;gap:8px;align-items:end">
+                    @Hidden()
+                    <label style="flex:1">Prospect (lead) id<input name="lead_id" type="number" min="1" required /></label>
+                    <label>Convert to<select name="party_type"><option value="customer">Customer</option><option value="vendor">Vendor</option></select></label>
+                    <button type="submit" class="btn btn-primary btn-sm">Convert prospect</button>
+                </form>
+            }
+        }
+        else if (Kind is "entity")
+        {
+            <form method="post" action="@Post("/erp/d365/doc-profile-set")">
+                @Hidden()
+                <label>Legal entity id</label><input name="entity_id" value="0" required />
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px">
+                    @foreach (var col in ErpD365DocCycleService.EntityDocProfileColumns)
+                    {
+                        <label style="font-size:11px">@col <input name="@col" style="width:100%" /></label>
+                    }
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-top:8px">Save document profile</button>
+            </form>
+        }
         else if (Kind is "products")
         {
             <form method="post" action="@Post("/erp/d365/fields-save")">
@@ -116,6 +150,11 @@
         "tb" => "Trial balance by financial dimension set (D365)",
         "products" => "Released products — EcoResProductDetailsExtendedGrid fields (D365)",
         "reports" => "D365 reports — customer account statement (entity wise) + sales analysis by invoice",
+        "customers" => "Customers — CustTableListPage fields (D365)",
+        "vendors" => "Vendors — VendTableListPage fields (D365)",
+        "prospects" => "Prospects — smmBusinessRelationsListPage + prospect→customer/vendor conversion (D365)",
+        "delivery" => "Delivery notes — D365 consignment/packing/delivery fields",
+        "entity" => "Legal entity document profile — PDF letterhead/TRN/footer (D365)",
         _ => "D365"
     };
     private string SaveTitle => Kind switch
@@ -149,12 +188,18 @@
         "fx" => ["from_currency", "to_currency", "rate", "rate_date"],
         "tb" => ["code", "name", "composition"],
         "products" => ["id", "sku", "name", "unit", "item_type", "sales_price", "cost_price"],
+        "customers" => ["id", "name", "account_code", "trn", "entity_id", "active"],
+        "vendors" => ["id", "name", "account_code", "trn", "entity_id", "active"],
+        "prospects" => ["id", "company", "contact_name", "email", "phone", "source", "status", "converted_party_id", "converted_party_type", "time_created"],
+        "delivery" => ["id", "delivery_note_no", "consignment_no", "packing_type", "delivery_mode", "status", "entity_id", "time_created"],
+        "entity" => ["legal_entity_id", "legal_name", "trn", "bank_name", "invoice_title"],
         "reports" => [],
         _ => []
     };
 
     private List<(string Text, string Href)> Links => Kind switch
     {
+        "delivery" => [(Text: "delivery note PDF", Href: Get("/erp/d365/delivery-pdf"))],
         "invoices" => [(Text: "invoice PDF", Href: Get("/erp/d365/invoice-pdf")), (Text: "delivery note PDF", Href: Get("/erp/d365/delivery-pdf"))],
         "tb" => [(Text: "TB by dimension set", Href: Get("/erp/d365/tb-set"))],
         "reports" => [(Text: "sales analysis export", Href: Get("/erp/d365/csv-export") + "?area=sales_analysis_by_invoice")],
@@ -169,6 +214,8 @@
         "coa" => [new("coa", "Chart of accounts", "code,name,type,category,…")],
         "gl" => [new("gl_opening", "GL opening balances", "account_code,debit,credit,…")],
         "products" => [new("items", "Released products", "sku,name,unit,cost_price,…"), new("stock", "Stock on hand", "sku,warehouse,quantity,…")],
+        "customers" => [new("customers", "Customers", "name,account_code,trn,entity_id,…")],
+        "vendors" => [new("vendors", "Vendors", "name,account_code,trn,entity_id,…")],
         "reports" => [new("customer_statement", "Customer account statement", "entity filter → CSV"), new("sales_analysis_by_invoice", "Sales analysis by invoice", "revenue,cost,margin,…")],
         _ => []
     };
@@ -212,7 +259,7 @@
                     _rows.AddRange((await Gl.FiscalCalendarsAsync(conn, ct).ConfigureAwait(false)).Select(f => new Dictionary<string, string?> { ["area"] = "fiscal", ["code"] = f.GetValueOrDefault("code") + " " + f.GetValueOrDefault("year"), ["detail"] = f.GetValueOrDefault("period_type") + " — " + f.GetValueOrDefault("status") }));
                     break;
                 case "banks":
-                    _rows = await Gl.BankAccountsAsync(conn, ct).ConfigureAwait(false);
+                    _rows = (await Gl.BankAccountsAsync(conn, ct).ConfigureAwait(false)).Select(r => new Dictionary<string, string?>(r, StringComparer.Ordinal)).ToList();
                     break;
                 case "fx":
                     _rows = await ErpD365DocCycleService.RowsAsync(conn,
@@ -220,6 +267,25 @@
                     break;
                 case "tb":
                     _rows = (await Gl.DimensionSetsAsync(conn, ct).ConfigureAwait(false)).Select(s => new Dictionary<string, string?> { ["code"] = s.GetValueOrDefault("code"), ["name"] = s.GetValueOrDefault("name"), ["composition"] = s.GetValueOrDefault("composition") }).ToList();
+                    break;
+                case "customers":
+                    _rows = await ErpD365DocCycleService.RowsAsync(conn,
+                        "SELECT `id`, `name`, `account_code`, `trn`, `entity_id`, `active` FROM `epc_erp_contacts` ORDER BY `id` DESC LIMIT 500", ct).ConfigureAwait(false);
+                    break;
+                case "vendors":
+                    _rows = await ErpD365DocCycleService.RowsAsync(conn,
+                        "SELECT `id`, `name`, `account_code`, `trn`, `entity_id`, `active` FROM `epc_erp_suppliers` ORDER BY `id` DESC LIMIT 500", ct).ConfigureAwait(false);
+                    break;
+                case "prospects":
+                    _rows = (await D365.ProspectsAsync(conn, ct).ConfigureAwait(false)).Select(r => new Dictionary<string, string?>(r, StringComparer.Ordinal)).ToList();
+                    break;
+                case "delivery":
+                    _rows = await ErpD365DocCycleService.RowsAsync(conn,
+                        "SELECT * FROM `epc_erp_delivery_notes` ORDER BY `id` DESC LIMIT 500", ct).ConfigureAwait(false);
+                    _rows.ForEach(r => { foreach (var drop in r.Keys.Where(k => !GridCols.Contains(k)).ToList()) r.Remove(drop); });
+                    break;
+                case "entity":
+                    _rows = (await D365.EntityDocProfilesAsync(conn, ct).ConfigureAwait(false)).Select(r => new Dictionary<string, string?>(r, StringComparer.Ordinal)).ToList();
                     break;
                 case "products":
                     _rows = await ErpD365DocCycleService.RowsAsync(conn,
