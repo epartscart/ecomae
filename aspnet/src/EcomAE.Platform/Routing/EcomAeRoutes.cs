@@ -3001,6 +3001,8 @@ public static class EcomAeRoutes
     public const string ErpAutoPartsDemoSeed = "/erp/autoparts/demo-seed";
     /// <summary>SHAM Phase-1 foundation seed: 11 legal entities, group membership, ASAPL BUs.</summary>
     public const string ErpShamFoundationSeed = "/erp/sham/foundation-seed";
+    /// <summary>SHAM Phase-2: entity×BU-scoped manual journal post (access matrix + COA activation gated).</summary>
+    public const string ErpShamJournalPost = "/erp/sham/journal-post";
     /// <summary>Auto-parts workspace demo clear: deletes only DEMO-tagged rows.</summary>
     public const string ErpAutoPartsDemoClear = "/erp/autoparts/demo-clear";
     /// <summary>Auto-parts month-end bridge: posts trading journals into the GL.</summary>

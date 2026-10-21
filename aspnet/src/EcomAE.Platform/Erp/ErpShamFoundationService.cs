@@ -372,19 +372,35 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
 
             if (!string.IsNullOrWhiteSpace(buCode))
             {
-                var buEntityId = (int)await ErpDb.LongAsync(connection, null,
-                    ErpDb.Positional("SELECT `entity_id` FROM `epc_erp_org_business_units` WHERE `code`=? LIMIT 1"),
-                    cancellationToken, buCode!.Trim().ToUpperInvariant()).ConfigureAwait(false);
-                if (buEntityId == 0)
+                // Resolve the BU row inside the given entity when both codes are
+                // supplied — two entities may share a BU code, and unscoped
+                // lookups could pair id/entity from different rows.
+                var buSql = entityId != 0
+                    ? "SELECT `id`,`entity_id` FROM `epc_erp_org_business_units` WHERE `code`=? AND `entity_id`=? LIMIT 1"
+                    : "SELECT `id`,`entity_id` FROM `epc_erp_org_business_units` WHERE `code`=? LIMIT 1";
+                await using (var command = connection.CreateCommand())
                 {
-                    return false;
+                    command.CommandText = ErpDb.Positional(buSql);
+                    var p0 = command.CreateParameter();
+                    p0.ParameterName = "@p0";
+                    p0.Value = buCode!.Trim().ToUpperInvariant();
+                    command.Parameters.Add(p0);
+                    if (entityId != 0)
+                    {
+                        var p1 = command.CreateParameter();
+                        p1.ParameterName = "@p1";
+                        p1.Value = entityId;
+                        command.Parameters.Add(p1);
+                    }
+
+                    await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                    if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        buId = reader.GetInt32(0);
+                    }
                 }
 
-                buId = (int)await ErpDb.LongAsync(connection, null,
-                    ErpDb.Positional("SELECT `id` FROM `epc_erp_org_business_units` WHERE `code`=? LIMIT 1"),
-                    cancellationToken, buCode!.Trim().ToUpperInvariant()).ConfigureAwait(false);
-                // A BU scoped to a different entity cannot combine with this entity's grants.
-                if (entityId != 0 && buEntityId != entityId)
+                if (buId == 0)
                 {
                     return false;
                 }

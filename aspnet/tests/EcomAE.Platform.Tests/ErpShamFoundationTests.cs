@@ -70,6 +70,26 @@ public sealed class ErpShamFoundationTests
     }
 
     [Fact]
+    public void Sham_journal_post_route_is_gated_and_scoped()
+    {
+        var routes = Find("aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs");
+        Assert.Contains("ErpShamJournalPost = \"/erp/sham/journal-post\"", routes, StringComparison.Ordinal);
+
+        var module = Find("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs");
+        Assert.Contains("ErpShamJournalPost, HandleShamJournalPostAsync", module, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", module, StringComparison.Ordinal);
+
+        var service = Find("aspnet/src/EcomAE.Platform/Erp/ErpShamJournalPostService.cs");
+        // Gate order pins: entity → BU-in-entity → access grant → per-account activation.
+        Assert.Contains("AccessAllowedAsync", service, StringComparison.Ordinal);
+        Assert.Contains("AccountActiveForEntityAsync", service, StringComparison.Ordinal);
+        Assert.Contains("journal-post", service, StringComparison.Ordinal);
+        Assert.Contains("`entity_id`=?", service, StringComparison.Ordinal);
+        Assert.Contains("BusinessUnitId = buId", service, StringComparison.Ordinal);
+        Assert.Contains("LegalEntityId", service, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Foundation_seed_route_is_gated_and_registered()
     {
         Assert.Equal("/erp/sham/foundation-seed", EcomAeRoutes.ErpShamFoundationSeed);
