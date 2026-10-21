@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IErpFinancialStatementReadService Statements
 @inject ILegacySessionValidator Sessions
@@ -19,6 +20,8 @@
 
     
     <PhpErpModulePageHeader Title="@_pageTitle" Subtitle="@_pageSubtitle" PhpTabHref="@_phpTab" />
+
+    <ErpD365ModuleArea Kind="reports" />
     <style>
         .epc-stmt-actions a{display:inline-block;background:#1f4e79;color:#fff !important;text-decoration:none;border-radius:.25rem;padding:.35rem .7rem;margin:0 .35rem .35rem 0}
         form.epc-ui-toolbar button{background:#1f4e79 !important;color:#fff !important;border:0;}

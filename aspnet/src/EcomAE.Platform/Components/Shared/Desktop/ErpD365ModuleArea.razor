@@ -1,0 +1,246 @@
+@* D365 module-area panel: embeds the per-area D365 grid + save forms + CSV inside each module page. *@
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@using System.Globalization
+@using System.Web
+@inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
+@inject EcomAE.Platform.Cp.ICpCsrfGuard Csrf
+@inject IErpWriteConnectionFactory Connections
+@inject IErpD365DocCycleService D365
+@inject IErpD365GlService Gl
+
+<div class="epc-erp-table-wrap" style="margin-bottom:14px">
+    <p style="margin:0 0 .4rem"><strong>@Title</strong>@foreach (var l in Links) { <a class="btn btn-xs btn-default" href="@l.Href" target="_blank">@l.Text</a> }</p>
+    @if (ShowGrid)
+    {
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead><tr>@foreach (var c in GridCols) { <th>@c</th> }</tr></thead>
+            <tbody>
+                @if (_rows.Count == 0)
+                {
+                    <tr><td colspan="@GridCols.Length">No rows yet — save below or import CSV.</td></tr>
+                }
+                @foreach (var r in _rows)
+                {
+                    <tr>@foreach (var c in GridCols) { <td>@V(r, c)</td> }</tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@if (_isAdmin)
+{
+    <div class="epc-erp-table-wrap" style="margin-bottom:14px">
+        <p style="margin:0 0 .4rem"><strong>@SaveTitle</strong></p>
+        @if (Kind is "invoices")
+        {
+            <p class="text-muted" style="font-size:12px">Customer invoice journal (CustInvoiceJournal) and vendor invoice journal (VendInvoiceJournal) are listed above. Print uses the per-entity letterhead.</p>
+        }
+        else if (Kind is "warehouses" or "coa" or "banks" or "fx" or "gl")
+        {
+            <form method="post" action="@Post(Kind == "warehouses" ? "/erp/d365/fields-save" : "/erp/d365/gl-save")">
+                @Hidden()
+                <input type="hidden" name="kind" value="@SaveKind" />
+                <label>Id (0 = create)</label><input name="id" type="number" min="0" value="0" />
+                <label>Fields (name=value per line — all D365 fields)</label>
+                <textarea name="fields_kv" rows="3" style="width:100%" placeholder="@SavePlaceholder"></textarea>
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-top:8px">Save</button>
+            </form>
+        }
+        else if (Kind is "products")
+        {
+            <form method="post" action="@Post("/erp/d365/fields-save")">
+                @Hidden()
+                <input type="hidden" name="kind" value="product" />
+                <label>Item id</label><input name="id" type="number" min="1" required />
+                <label>Attributes (name=value per line — released-product + auto-parts fields)</label>
+                <textarea name="fields_kv" rows="3" style="width:100%" placeholder="brand=Bosch&#10;oem_no=12345&#10;stock_no=ST-9"></textarea>
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-top:8px">Save product fields</button>
+            </form>
+        }
+        @if (Kind is "gl")
+        {
+            <form method="post" action="@Post("/erp/d365/journal-post")" style="margin-top:10px">
+                @Hidden()
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+                    <label>Journal type
+                        <select name="journal_type">
+                            <option value="general">General journal</option>
+                            <option value="customer_payment">Customer payment</option>
+                            <option value="vendor_payment">Vendor payment</option>
+                        </select>
+                    </label>
+                    <label>Reference<input name="reference" /></label>
+                    <label>Currency<input name="currency_code" value="AED" /></label>
+                    <label>Description<input name="description" /></label>
+                    <label>Legal entity id<input name="entity" type="number" min="0" value="0" /></label>
+                    <label>Business unit id<input name="business_unit_id" type="number" min="0" value="0" /></label>
+                </div>
+                <label>Lines — account_code|debit|credit|note|business_unit_id|cost_centre_id|legal_entity_id</label>
+                <textarea name="lines" rows="3" style="width:100%" placeholder="1111001|1000.00|0|Payment received|1|0|1" required></textarea>
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-top:8px">Post journal</button>
+            </form>
+        }
+        @if (Kind is "banks")
+        {
+            <form method="post" action="@Post("/erp/d365/bank-recon")" style="margin-top:10px;display:flex;gap:8px;align-items:end">
+                @Hidden()
+                <label style="flex:1">Cash/bank entry id<input name="entry_id" type="number" min="1" required /></label>
+                <label>Reconciled<select name="reconciled"><option value="1">Reconciled</option><option value="0">Unreconciled</option></select></label>
+                <button type="submit" class="btn btn-primary btn-sm">Set</button>
+            </form>
+        }
+    </div>
+}
+
+@foreach (var a in CsvAreas)
+{
+    <ErpD365CsvArea Area="@a.Key" Title="@a.Label" Placeholder="@a.Ph" />
+}
+
+@code {
+    [Parameter] public string Kind { get; set; } = "";
+
+    private string Title => Kind switch
+    {
+        "invoices" => "Invoice journals — CustInvoiceJournal / VendInvoiceJournal (D365)",
+        "warehouses" => "Warehouses — InventLocations (D365)",
+        "coa" => "Main accounts — MainAccountDetails fields (D365)",
+        "gl" => "GL setup — dimensions, sets, fiscal calendars, journals (D365)",
+        "banks" => "Bank accounts — BankAccountTableListPage + reconciliation (D365)",
+        "fx" => "Exchange rates — ExchangeRate (D365)",
+        "tb" => "Trial balance by financial dimension set (D365)",
+        "products" => "Released products — EcoResProductDetailsExtendedGrid fields (D365)",
+        "reports" => "D365 reports — customer account statement (entity wise) + sales analysis by invoice",
+        _ => "D365"
+    };
+    private string SaveTitle => Kind switch
+    {
+        "warehouses" => "Save warehouse — all InventLocations fields",
+        "coa" => "Save main-account fields",
+        "banks" => "Save bank account",
+        "fx" => "Save exchange rate",
+        "gl" => "Save GL setup (dim type/value/set, fiscal calendar, COA)",
+        _ => "Save"
+    };
+    private string SaveKind => Kind switch { "warehouses" => "warehouse", "coa" => "coa", "banks" => "bank", "fx" => "fx_rate", "gl" => "dim_set", _ => "" };
+    private string SavePlaceholder => Kind switch
+    {
+        "warehouses" => "code=ASAP-WSL\nname=Wholesale\nsite=MAIN\ntype=default\ncost_centre_id=1",
+        "coa" => "code=1111001\nname=Bank\ntype=BalanceSheet\ncategory=Cash",
+        "banks" => "bank_account=AE-001\nname=Main AED\nbank_group=UAE",
+        "fx" => "from_currency=USD\nto_currency=AED\nrate=3.6725\nrate_date=2026-01-01",
+        "gl" => "code=MA-BU-CC\nname=Main by BU by CC\ncomposition=main_account>business_unit>cost_centre",
+        _ => ""
+    };
+
+    private bool ShowGrid => GridCols.Length > 0;
+    private string[] GridCols => Kind switch
+    {
+        "invoices" => ["id", "invoice_number", "issue_date", "currency_code", "subtotal_ex_vat", "total_vat", "total_incl_vat", "paid_amount"],
+        "warehouses" => ["id", "code", "name", "entity_id", "site", "type", "cost_centre_id", "business_unit_id"],
+        "coa" => ["id", "code", "name", "type", "category", "active"],
+        "gl" => ["area", "code", "detail"],
+        "banks" => ["bank_account", "name", "bank_group"],
+        "fx" => ["from_currency", "to_currency", "rate", "rate_date"],
+        "tb" => ["code", "name", "composition"],
+        "products" => ["id", "sku", "name", "unit", "item_type", "sales_price", "cost_price"],
+        "reports" => [],
+        _ => []
+    };
+
+    private List<(string Text, string Href)> Links => Kind switch
+    {
+        "invoices" => [(Text: "invoice PDF", Href: Get("/erp/d365/invoice-pdf")), (Text: "delivery note PDF", Href: Get("/erp/d365/delivery-pdf"))],
+        "tb" => [(Text: "TB by dimension set", Href: Get("/erp/d365/tb-set"))],
+        "reports" => [(Text: "sales analysis export", Href: Get("/erp/d365/csv-export") + "?area=sales_analysis_by_invoice")],
+        _ => []
+    };
+
+    private record CsvSpec(string Key, string Label, string Ph);
+    private List<CsvSpec> CsvAreas => Kind switch
+    {
+        "invoices" => [new("customer_invoice_journal", "Customer invoice journal", "invoice_number,issue_date,total_incl_vat,…"), new("vendor_invoice_journal", "Vendor invoice journal", "po_no,status,total_amount,…")],
+        "warehouses" => [new("warehouses", "Warehouses", "code,name,site,type,entity_id,…")],
+        "coa" => [new("coa", "Chart of accounts", "code,name,type,category,…")],
+        "gl" => [new("gl_opening", "GL opening balances", "account_code,debit,credit,…")],
+        "products" => [new("items", "Released products", "sku,name,unit,cost_price,…"), new("stock", "Stock on hand", "sku,warehouse,quantity,…")],
+        "reports" => [new("customer_statement", "Customer account statement", "entity filter → CSV"), new("sales_analysis_by_invoice", "Sales analysis by invoice", "revenue,cost,margin,…")],
+        _ => []
+    };
+
+    private bool _isAdmin;
+    private string _csrf = "";
+    private List<Dictionary<string, string?>> _rows = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted).ConfigureAwait(false);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted).ConfigureAwait(false);
+        try
+        {
+            if (!Connections.IsConfigured || !ShowGrid) return;
+            await using var conn = await Connections.OpenAsync(ctx.RequestAborted).ConfigureAwait(false);
+            var ct = ctx.RequestAborted;
+            switch (Kind)
+            {
+                case "invoices":
+                    _rows = await ErpD365DocCycleService.RowsAsync(conn,
+                        "SELECT `id`, `invoice_number`, `issue_date`, `currency_code`, `subtotal_ex_vat`, `total_vat`, `total_incl_vat`, `paid_amount` FROM `epc_einvoice_documents` ORDER BY `id` DESC LIMIT 100", ct).ConfigureAwait(false);
+                    var vend = await ErpD365DocCycleService.RowsAsync(conn,
+                        "SELECT `id`, `po_no` AS `invoice_number`, `status` AS `issue_date`, `currency_code`, `total_amount` AS `subtotal_ex_vat`, '' AS `total_vat`, `total_amount` AS `total_incl_vat`, '' AS `paid_amount` FROM `epc_erp_purchase_orders` ORDER BY `id` DESC LIMIT 100", ct).ConfigureAwait(false);
+                    _rows.AddRange(vend);
+                    break;
+                case "warehouses":
+                    _rows = await ErpD365DocCycleService.RowsAsync(conn,
+                        "SELECT `id`, `code`, `name`, `entity_id`, `site`, `type`, `cost_centre_id`, `business_unit_id` FROM `epc_erp_inv_warehouses` ORDER BY `code` LIMIT 500", ct).ConfigureAwait(false);
+                    break;
+                case "coa":
+                    _rows = await ErpD365DocCycleService.RowsAsync(conn,
+                        "SELECT `id`, `code`, `name`, `type`, `category`, `active` FROM `epc_erp_coa_accounts` ORDER BY `code` LIMIT 500", ct).ConfigureAwait(false);
+                    break;
+                case "gl":
+                    _rows = (await Gl.DimensionTypesAsync(conn, ct).ConfigureAwait(false)).Select(t => new Dictionary<string, string?> { ["area"] = "dim type", ["code"] = t.GetValueOrDefault("code"), ["detail"] = t.GetValueOrDefault("name") }).ToList();
+                    _rows.AddRange((await Gl.DimensionSetsAsync(conn, ct).ConfigureAwait(false)).Select(s => new Dictionary<string, string?> { ["area"] = "dim set", ["code"] = s.GetValueOrDefault("code"), ["detail"] = s.GetValueOrDefault("name") + " — " + s.GetValueOrDefault("composition") }));
+                    _rows.AddRange((await Gl.FiscalCalendarsAsync(conn, ct).ConfigureAwait(false)).Select(f => new Dictionary<string, string?> { ["area"] = "fiscal", ["code"] = f.GetValueOrDefault("code") + " " + f.GetValueOrDefault("year"), ["detail"] = f.GetValueOrDefault("period_type") + " — " + f.GetValueOrDefault("status") }));
+                    break;
+                case "banks":
+                    _rows = await Gl.BankAccountsAsync(conn, ct).ConfigureAwait(false);
+                    break;
+                case "fx":
+                    _rows = await ErpD365DocCycleService.RowsAsync(conn,
+                        "SELECT `from_currency`, `to_currency`, `rate`, `rate_date` FROM `epc_erp_fx_rates` ORDER BY `rate_date` DESC LIMIT 500", ct).ConfigureAwait(false);
+                    break;
+                case "tb":
+                    _rows = (await Gl.DimensionSetsAsync(conn, ct).ConfigureAwait(false)).Select(s => new Dictionary<string, string?> { ["code"] = s.GetValueOrDefault("code"), ["name"] = s.GetValueOrDefault("name"), ["composition"] = s.GetValueOrDefault("composition") }).ToList();
+                    break;
+                case "products":
+                    _rows = await ErpD365DocCycleService.RowsAsync(conn,
+                        "SELECT `id`, `sku`, `name`, `unit`, `item_type`, `sales_price`, `cost_price` FROM `epc_erp_inv_items` ORDER BY `id` DESC LIMIT 500", ct).ConfigureAwait(false);
+                    break;
+            }
+        }
+        catch { /* best-effort */ }
+    }
+
+    private static string V(Dictionary<string, string?> row, string key) => row.TryGetValue(key, out var v) && v is { Length: > 0 } ? v : "—";
+    private string Post(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext!, path);
+    private string Get(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext!, path);
+
+    private MarkupString Hidden()
+    {
+        var returnUrl = HttpUtility.HtmlAttributeEncode(
+            (Http.HttpContext?.Request.Path.Value ?? "") + Http.HttpContext?.Request.QueryString.Value);
+        return (MarkupString)(
+            "<input type=\"hidden\" name=\"confirmWrites\" value=\"true\" />"
+            + $"<input type=\"hidden\" name=\"returnUrl\" value=\"{returnUrl}\" />"
+            + $"<input type=\"hidden\" name=\"csrf_guard_key\" value=\"{HttpUtility.HtmlAttributeEncode(_csrf)}\" />");
+    }
+}

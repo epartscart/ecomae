@@ -23,6 +23,8 @@
 
     
     <PhpErpModulePageHeader Title="Invoices" Subtitle="Open an invoice for the payment-terms excerpt, VAT, and amount due. Cancellation and draft deletion are guarded native actions; other lifecycle actions remain pending their acceptance gates." PhpTabHref="@_phpTab" />
+
+    <ErpD365ModuleArea Kind="invoices" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/invoices-app" />
     <p class="text-muted" style="margin:0 0 10px;">
         <a href="/erp/sales-orders-app">Sales orders</a>

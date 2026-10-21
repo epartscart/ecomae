@@ -1,0 +1,162 @@
+@* D365 order parity panel: SalesTableDetails / PurchTableListPage — list grid, header+lines detail, print, CSV. *@
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@using System.Globalization
+@using System.Web
+@inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
+@inject EcomAE.Platform.Cp.ICpCsrfGuard Csrf
+@inject IErpWriteConnectionFactory Connections
+@inject IErpD365DocCycleService D365
+
+<div class="epc-erp-table-wrap" style="margin-bottom:14px">
+    <p style="margin:0 0 .4rem"><strong>@Title — D365</strong>
+        @if (Kind == "so")
+        {
+            <a class="btn btn-xs btn-default" href="@Get("/erp/d365/invoice-pdf")" target="_blank">invoice PDF</a>
+            <a class="btn btn-xs btn-default" href="@Get("/erp/d365/delivery-pdf")" target="_blank">delivery note PDF</a>
+        }
+    </p>
+    <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+        <thead>
+            <tr>
+                @foreach (var c in ListCols) { <th>@c</th> }
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (_list.Count == 0)
+            {
+                <tr><td colspan="@(ListCols.Length + 1)">No D365 rows yet — create below or import the CSV.</td></tr>
+            }
+            @foreach (var r in _list)
+            {
+                <tr>
+                    @foreach (var c in ListCols) { <td>@V(r, c)</td> }
+                    <td><a class="btn btn-xs btn-primary" href="@Href(r)">Open</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (_open is not null)
+{
+    <div class="epc-erp-table-wrap" style="margin-bottom:14px">
+        <p style="margin:0 0 .5rem"><strong>@Title #@V(_open, "id") — header + lines</strong>
+            <a class="btn btn-xs btn-default" href="@ListHref">Close</a>
+        </p>
+        <table class="table table-bordered table-condensed table-epc epc-erp-table">
+            <tbody>
+                @foreach (var col in HeaderCols)
+                {
+                    <tr><th style="width:220px">@col</th><td>@V(_open, col)</td></tr>
+                }
+            </tbody>
+        </table>
+        <p style="margin:.8rem 0 .3rem"><strong>Lines</strong></p>
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead><tr>
+                @foreach (var col in LineCols) { <th>@col</th> }
+            </tr></thead>
+            <tbody>
+                @if (_openLines.Count == 0)
+                {
+                    <tr><td colspan="@LineCols.Length">No lines.</td></tr>
+                }
+                @foreach (var l in _openLines)
+                {
+                    <tr>@foreach (var col in LineCols) { <td>@V(l, col)</td> }</tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (_isAdmin)
+{
+    <div class="epc-erp-table-wrap" style="margin-bottom:14px">
+        <p style="margin:0 0 .4rem"><strong>Save @Title fields — all D365 header fields</strong></p>
+        <form method="post" action="@Post("/erp/d365/fields-save")">
+            @Hidden()
+            <input type="hidden" name="kind" value="@Kind" />
+            <label>Record id<input name="id" type="number" min="0" value="@_openId" /></label>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px">
+                @foreach (var col in HeaderCols)
+                {
+                    <label style="font-size:11px">@col <input name="f_@col" style="width:100%" /></label>
+                }
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm" style="margin-top:8px">Save fields</button>
+        </form>
+    </div>
+}
+
+<ErpD365CsvArea Area="@CsvArea" Title="@Title" Placeholder="@CsvPlaceholder" />
+
+@code {
+    [Parameter] public string Kind { get; set; } = "so";
+
+    private string Title => Kind == "so" ? "Sales orders (SalesTableDetails)" : "Purchase orders (PurchTableListPage)";
+    private string Table => Kind == "so" ? "epc_erp_sales_orders" : "epc_erp_purchase_orders";
+    private string LineTable => Kind == "so" ? "epc_erp_sales_order_lines" : "epc_erp_purchase_order_lines";
+    private string LineFk => Kind == "so" ? "sales_order_id" : "purchase_order_id";
+    private string CsvArea => Kind == "so" ? "sales_orders" : "purchase_orders";
+    private string[] HeaderCols => Kind == "so" ? ErpD365DocCycleService.SalesOrderHeaderColumns : ErpD365DocCycleService.PurchaseOrderHeaderColumns;
+    private string[] LineCols => Kind == "so" ? ErpD365DocCycleService.SalesOrderLineColumns : ErpD365DocCycleService.PurchaseOrderLineColumns;
+    private string[] ListCols => Kind == "so"
+        ? ["id", "so_no", "customer_account", "customer_name", "status", "currency_code", "total_amount", "entity_id", "requested_receipt_date"]
+        : ["id", "po_no", "vendor_account", "vendor_name", "status", "currency_code", "total_amount", "entity_id", "requested_receipt_date"];
+    private string CsvPlaceholder => Kind == "so" ? "so_no,customer_account,status,… + line rows" : "po_no,vendor_account,status,… + line rows";
+
+    private bool _isAdmin;
+    private string _csrf = "";
+    private List<Dictionary<string, string?>> _list = [];
+    private Dictionary<string, string?>? _open;
+    private List<Dictionary<string, string?>> _openLines = [];
+    private long _openId;
+
+    private string ListHref => (Http.HttpContext?.Request.Path.Value ?? "") + "?company=" + (Http.HttpContext?.Request.Query["company"].ToString() ?? "") + "&cmp=" + (Http.HttpContext?.Request.Query["cmp"].ToString() ?? "");
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted).ConfigureAwait(false);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted).ConfigureAwait(false);
+        _openId = long.TryParse(ctx.Request.Query["d365_" + Kind], out var oid) ? oid : 0;
+        try
+        {
+            if (Connections.IsConfigured)
+            {
+                await using var conn = await Connections.OpenAsync(ctx.RequestAborted).ConfigureAwait(false);
+                var cols = string.Join("`,`", ListCols);
+                _list = await ErpD365DocCycleService.RowsAsync(conn, "SELECT `" + cols + "` FROM `" + Table + "` ORDER BY `id` DESC LIMIT 500", ctx.RequestAborted).ConfigureAwait(false);
+                if (_openId > 0)
+                {
+                    _open = await ErpD365DocCycleService.FirstRowAsync(conn, "SELECT * FROM `" + Table + "` WHERE `id` = ? LIMIT 1", ctx.RequestAborted, _openId).ConfigureAwait(false);
+                    _openLines = await ErpD365DocCycleService.RowsAsync(conn, "SELECT * FROM `" + LineTable + "` WHERE `" + LineFk + "` = ? ORDER BY `id`", ctx.RequestAborted, _openId).ConfigureAwait(false);
+                }
+            }
+        }
+        catch { /* best-effort */ }
+    }
+
+    private static string V(Dictionary<string, string?> row, string key) => row.TryGetValue(key, out var v) && v is { Length: > 0 } ? v : "—";
+    private string Href(Dictionary<string, string?> r) => ListHref + "&d365_" + Kind + "=" + V(r, "id");
+    private string Post(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext!, path);
+    private string Get(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext!, path);
+
+    private MarkupString Hidden()
+    {
+        var returnUrl = HttpUtility.HtmlAttributeEncode(
+            (Http.HttpContext?.Request.Path.Value ?? "") + Http.HttpContext?.Request.QueryString.Value);
+        return (MarkupString)(
+            "<input type=\"hidden\" name=\"confirmWrites\" value=\"true\" />"
+            + $"<input type=\"hidden\" name=\"returnUrl\" value=\"{returnUrl}\" />"
+            + $"<input type=\"hidden\" name=\"csrf_guard_key\" value=\"{HttpUtility.HtmlAttributeEncode(_csrf)}\" />");
+    }
+}
