@@ -43,6 +43,8 @@ public interface IErpShamFoundationService
     Task<bool> AccountActiveForEntityAsync(string entityCode, string coaCode, CancellationToken cancellationToken = default);
     Task<bool> RotatePasswordAsync(string userEmail, string newPassword, CancellationToken cancellationToken = default);
     Task<(bool Ok, string Message)> LockPeriodAsync(string entityCode, int periodYm, string userEmail, int adminId, CancellationToken cancellationToken = default);
+    /// <summary>Resolves a BU selector that may be a code or a numeric id to its canonical code.</summary>
+    Task<string> NormalizeBuCodeAsync(long entityId, string bu, CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpShamFoundationResult(bool Ok, string Message, int Entities, int BusinessUnits, int Members);
@@ -408,6 +410,27 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
     /// tenants that have adopted the matrix; when the table is empty for the user we
     /// fail closed — operators grant explicitly.
     /// </summary>
+    public async Task<string> NormalizeBuCodeAsync(long entityId, string bu, CancellationToken cancellationToken = default)
+    {
+        var value = (bu ?? string.Empty).Trim();
+        if (value.Length == 0 || !long.TryParse(value, out var numericId))
+        {
+            return value;
+        }
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var code = await ErpDb.StringAsync(connection, null,
+                ErpDb.Positional("SELECT `code` FROM `epc_erp_org_business_units` WHERE `id`=? AND `entity_id`=? LIMIT 1"),
+                cancellationToken, numericId, entityId).ConfigureAwait(false);
+            return string.IsNullOrWhiteSpace(code) ? value : code.Trim();
+        }
+        catch
+        {
+            return value;
+        }
+    }
+
     public async Task<bool> AccessAllowedAsync(string userEmail, string? entityCode, string? buCode, string? action, CancellationToken cancellationToken = default)
     {
         var email = (userEmail ?? string.Empty).Trim().ToLowerInvariant();
