@@ -219,6 +219,85 @@ public sealed class ErpFinancialStatementTests
         }
     }
 
+    [Fact]
+    public async Task Consolidation_ExcludesNonFullMembers()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_fs_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var cs = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using (var adminConn = new MySqlConnection(admin))
+        {
+            await adminConn.OpenAsync();
+            await using var create = new MySqlCommand("CREATE DATABASE `" + database + "`", adminConn);
+            await create.ExecuteNonQueryAsync();
+        }
+
+        try
+        {
+            var connections = new Connections(cs);
+            IErpGlPostingService posting = new ErpGlPostingService(new ErpVoucherNumberService());
+            await using (var connection = await connections.OpenAsync())
+            {
+                await posting.EnsureSchemaAsync(connection);
+                var coa = await CoaIdsAsync(connection);
+                var today = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                await posting.PostJournalAsync(connection, new ErpGlJournalHeader
+                {
+                    JournalDate = today,
+                    Reference = "F1",
+                    Description = "Full member sale",
+                    SourceType = "manual",
+                    CompanyId = 1,
+                    CurrencyCode = "AED",
+                    ExchangeRate = 1m,
+                }, [
+                    new ErpGlLine(coa["1000"], 100m, 0m, ""),
+                    new ErpGlLine(coa["4000"], 0m, 100m, ""),
+                ], 1);
+                await posting.PostJournalAsync(connection, new ErpGlJournalHeader
+                {
+                    JournalDate = today,
+                    Reference = "X1",
+                    Description = "Excluded member sale",
+                    SourceType = "manual",
+                    CompanyId = 2,
+                    CurrencyCode = "AED",
+                    ExchangeRate = 1m,
+                }, [
+                    new ErpGlLine(coa["1000"], 70m, 0m, ""),
+                    new ErpGlLine(coa["4000"], 0m, 70m, ""),
+                ], 1);
+
+                await using var memberSchema = connection.CreateCommand();
+                memberSchema.CommandText =
+                    "CREATE TABLE `epc_erp_pm_legal_entities` (`id` int NOT NULL AUTO_INCREMENT, `code` varchar(32) NOT NULL, `name` varchar(128) NOT NULL DEFAULT '', `active` tinyint NOT NULL DEFAULT 1, PRIMARY KEY (`id`));"
+                    + "CREATE TABLE `epc_entity_members` (`id` int NOT NULL AUTO_INCREMENT, `group_id` int NOT NULL, `site_key` varchar(64) NOT NULL, `consolidation` varchar(20) NOT NULL DEFAULT 'full', PRIMARY KEY (`id`));"
+                    + "INSERT INTO `epc_erp_pm_legal_entities` (`id`,`code`,`name`,`active`) VALUES (1,'ASAPL','Al Shamali Auto Parts',1),(2,'PTAP','Parts Trading',1);"
+                    + "INSERT INTO `epc_entity_members` (`group_id`,`site_key`,`consolidation`) VALUES (1,'ASAPL','full'),(1,'PTAP','excluded');";
+                await memberSchema.ExecuteNonQueryAsync();
+            }
+
+            var read = new ErpFinancialStatementReadService(connections);
+            var group = await read.ReadAsync(ErpFinancialStatementQuery.FromQuery("pl", "consolidation", "0", "0", "AED"));
+            Assert.Equal(100m, group.IncomeAccounting);
+            var companyTwo = await read.ReadAsync(ErpFinancialStatementQuery.FromQuery("pl", "company", "2", "0", "AED"));
+            Assert.Equal(70m, companyTwo.IncomeAccounting);
+        }
+        finally
+        {
+            await using var adminConn = new MySqlConnection(admin);
+            await adminConn.OpenAsync();
+            await using var drop = new MySqlCommand("DROP DATABASE IF EXISTS `" + database + "`", adminConn);
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
     private static decimal Round(decimal value)
         => Math.Round(value, 2, MidpointRounding.AwayFromZero);
 
