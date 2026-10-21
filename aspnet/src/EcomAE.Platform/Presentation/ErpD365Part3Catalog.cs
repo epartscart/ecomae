@@ -259,6 +259,7 @@ public static class ErpD365Part3Catalog
         yield return P(a, "org_business_units", "Business units", "Organizations", "Entity x BU units (ASAPL-WSL/RTL/CLS/CLP/BOOK) with branch and cost centre.", FormKind.Master, app, icon: "fa-th");
         yield return P(a, "org_group_members", "Consolidation group", "Organizations", "Group membership, ownership and consolidation method per entity.", FormKind.Master, app, icon: "fa-object-group");
         yield return P(a, "org_user_access", "User access matrix", "Organizations", "User x legal entity x BU x role x action grants (backend enforced).", FormKind.Master, app, icon: "fa-lock");
+        yield return P(a, "org_entity_accounts", "Entity account activation", "Organizations", "Shared COA taxonomy with per-entity activation (posting gate).", FormKind.Master, app, icon: "fa-check-square-o");
         yield return P(a, "org_operating_units", "Operating units", "Organizations", "Departments, cost centres, and value streams.", FormKind.Master, app, icon: "fa-sitemap");
         yield return P(a, "org_position_hierarchy", "Position hierarchy", "Organizations", "Reporting hierarchy of positions.", FormKind.Master, app, icon: "fa-users");
         yield return P(a, "org_hierarchy_purposes", "Organizational hierarchy purposes", "Organizations", "Why a hierarchy exists (security, budget, or reporting).", FormKind.Master, app, icon: "fa-flag");

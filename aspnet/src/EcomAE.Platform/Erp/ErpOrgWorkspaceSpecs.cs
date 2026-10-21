@@ -39,6 +39,18 @@ public static class ErpOrgWorkspaceSpecs
                 Companies,
                 ErpShamFoundationService.EnsureSchemaAsync),
 
+            ["org_entity_accounts"] = new(
+                ["Entity", "Account", "Name", "Type", "Active", "Suspense only"],
+                "SELECT IFNULL(e.`code`,'?'), a.`coa_code`, c.`name`, c.`account_type`," +
+                " IF(a.`active`=1,'yes','no'), IF(a.`suspense_only`=1,'yes','-')" +
+                " FROM `epc_erp_org_entity_accounts` a" +
+                " LEFT JOIN `epc_erp_pm_legal_entities` e ON e.`id` = a.`entity_id`" +
+                " LEFT JOIN `epc_erp_coa_accounts` c ON c.`id` = a.`coa_id`" +
+                " ORDER BY e.`code`, a.`coa_code` LIMIT 500",
+                "No entity account activations yet.",
+                Companies,
+                ErpShamFoundationService.EnsureSchemaAsync),
+
             ["org_user_access"] = new(
                 ["User", "Entity", "BU", "Role", "Actions", "Status"],
                 "SELECT u.`user_email`, IFNULL(e.`code`,'(group-wide)'), IFNULL(b.`code`,'(entity-wide)'), u.`role`, u.`actions_csv`, u.`status`" +
