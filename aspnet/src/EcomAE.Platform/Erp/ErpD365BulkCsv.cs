@@ -135,6 +135,7 @@ public static class ErpD365BulkCsv
     public static async Task<ExportResult> ExportAsync(
         DbConnection connection,
         string area,
+        long entityId = 0,
         CancellationToken cancellationToken = default)
     {
         if (!Areas.TryGetValue(area, out var spec))
@@ -142,7 +143,8 @@ public static class ErpD365BulkCsv
             return new ExportResult(false, "", "", 0, "Unknown CSV area '" + area + "'.");
         }
 
-        var sql = ExportSql(area);
+        var sql = ExportSql(area).Replace("__ENTITY_WHERE__",
+            entityId > 0 ? " WHERE c.`entity_id` = " + entityId.ToString(CultureInfo.InvariantCulture) : "");
         if (sql.Length == 0)
         {
             return new ExportResult(false, "", "", 0, "No export source for '" + area + "'.");
@@ -172,7 +174,7 @@ public static class ErpD365BulkCsv
         "warehouses" => "SELECT `code`, `name`, `entity_id`, `site`, `cost_centre_id`, `business_unit_id` FROM `epc_erp_inv_warehouses` ORDER BY `code`",
         "customer_invoice_journal" => "SELECT `invoice_number`, `issue_date`, `order_id`, `payment_terms`, `currency_code`, `subtotal_ex_vat`, `total_vat`, `total_incl_vat`, `paid_amount` FROM `epc_einvoice_documents` ORDER BY `id` DESC",
         "vendor_invoice_journal" => "SELECT o.`po_no` AS invoice_number, o.`vendor_account`, o.`vendor_name`, o.`status`, o.`currency_code`, IFNULL(o.`total_amount`,0) AS total_incl_vat FROM `epc_erp_purchase_orders` o ORDER BY o.`id` DESC",
-        "customer_statement" => "SELECT c.`name`, c.`account_code`, IFNULL(c.`trn`,'') AS trn, IFNULL(SUM(l.`debit`),0)-IFNULL(SUM(l.`credit`),0) AS balance FROM `epc_erp_contacts` c LEFT JOIN `epc_erp_gl_lines` l ON l.`coa_id` IN (SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = c.`account_code`) GROUP BY c.`id` ORDER BY c.`name`",
+        "customer_statement" => "SELECT c.`name`, c.`account_code`, IFNULL(c.`trn`,'') AS trn, IFNULL(SUM(l.`debit`),0)-IFNULL(SUM(l.`credit`),0) AS balance FROM `epc_erp_contacts` c LEFT JOIN `epc_erp_gl_lines` l ON l.`coa_id` IN (SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = c.`account_code`)__ENTITY_WHERE__ GROUP BY c.`id` ORDER BY c.`name`",
         "sales_analysis_by_invoice" => "SELECT d.`invoice_number`, d.`issue_date`, d.`currency_code`, d.`subtotal_ex_vat`, d.`total_vat`, d.`total_incl_vat`, IFNULL((SELECT SUM(l.`quantity`*l.`unit_price`) FROM `epc_einvoice_lines` l WHERE l.`document_id` = d.`id`),0) AS revenue, IFNULL((SELECT SUM(l.`quantity`*IFNULL(i.`cost_price`,0)) FROM `epc_einvoice_lines` l JOIN `epc_erp_inv_items` i ON i.`sku` = l.`item_name` WHERE l.`document_id` = d.`id`),0) AS cost FROM `epc_einvoice_documents` d ORDER BY d.`id` DESC",
         "gl_opening" => "SELECT a.`code` AS account_code, j.`journal_date` AS `date`, l.`debit`, l.`credit` FROM `epc_erp_gl_lines` l JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` JOIN `epc_erp_coa_accounts` a ON a.`id` = l.`coa_id` WHERE j.`source_type` = 'opening' ORDER BY a.`code`",
         _ => "",

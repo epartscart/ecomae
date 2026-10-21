@@ -328,7 +328,7 @@
                 </select>
             </label>
             <button type="submit">Run</button>
-            <a href="@Get("/erp/d365/csv-export")?area=customer_statement" style="font-size:12px">print / export CSV</a>
+            <a href="@Get("/erp/d365/csv-export")?area=customer_statement&entity=@_stmtEntity" style="font-size:12px">print / export CSV</a>
         </form>
         <table class="tg-table">
             <thead><tr><th>Customer</th><th>Account</th><th>TRN</th><th class="text-right">Balance</th></tr></thead>

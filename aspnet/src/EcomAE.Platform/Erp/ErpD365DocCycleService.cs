@@ -458,7 +458,13 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
         }
         await Add(connection, "epc_erp_contacts", "source_lead_id", "int(11) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
         await Add(connection, "epc_erp_suppliers", "source_lead_id", "int(11) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
+        await Add(connection, "epc_erp_contacts", "entity_id", "int(11) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
+        await Add(connection, "epc_erp_inv_items", "cost_price", "decimal(14,4) NOT NULL DEFAULT 0.0000", cancellationToken).ConfigureAwait(false);
 
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_warehouses` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(64) NOT NULL, `name` varchar(255) NOT NULL, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_code` (`code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            cancellationToken).ConfigureAwait(false);
         foreach (var col in WarehouseColumns)
         {
             var def = col is "entity_id" or "cost_centre_id" or "business_unit_id"
@@ -777,6 +783,14 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
         {
             return ErpSimpleWriteResult.Fail("already_converted", "Prospect already converted (party id " + G(lead, "converted_party_id") + ").");
         }
+        // Claim the lead before inserting the party so a concurrent conversion cannot duplicate it.
+        var claimed = await ErpDb.ExecuteAsync(c, null,
+            "UPDATE `epc_crm_leads` SET `status` = 'converted' WHERE `id` = ? AND `status` <> 'converted'",
+            t, leadId).ConfigureAwait(false);
+        if (claimed <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("already_converted", "Prospect already converted by another request.");
+        }
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var name = G(lead, "company").Length > 0 ? G(lead, "company") : G(lead, "contact_name");
@@ -800,7 +814,7 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
             partyId = await ErpDb.LastInsertIdAsync(c, null, t).ConfigureAwait(false);
         }
         await ErpDb.ExecuteAsync(c, null,
-            "UPDATE `epc_crm_leads` SET `status` = 'converted', `converted_party_id` = ?, `converted_party_type` = ?, `time_updated` = ? WHERE `id` = ?",
+            "UPDATE `epc_crm_leads` SET `converted_party_id` = ?, `converted_party_type` = ?, `time_updated` = ? WHERE `id` = ?",
             t, partyId, party, now, leadId).ConfigureAwait(false);
         return new ErpSimpleWriteResult(true, "ok", "Prospect converted to " + party + " #" + partyId + ".", partyId, 2);
     }
