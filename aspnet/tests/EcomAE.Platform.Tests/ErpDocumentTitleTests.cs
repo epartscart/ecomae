@@ -48,7 +48,7 @@ public sealed class ErpDocumentTitleTests
     }
 
     [Theory]
-    [InlineData("asap", "ASAP Autoparts")]
+    [InlineData("sham", "Al Shamali Auto Parts Group")]
     [InlineData("indj", "INDJ Jewellery")]
     [InlineData("fito", "FITO Fit-out")]
     [InlineData("real", "REAL Real Estate")]

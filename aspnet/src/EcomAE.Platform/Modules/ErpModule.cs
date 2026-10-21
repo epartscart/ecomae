@@ -389,6 +389,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutGlPost, HandleFitOutGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutClaimInvoice, HandleFitOutClaimInvoiceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoSeed, HandleAutoPartsDemoSeedAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpShamFoundationSeed, HandleShamFoundationSeedAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
@@ -26714,6 +26715,34 @@ public sealed class ErpModule : ISurfaceModule
             ok,
             message,
             new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM Phase-1 foundation: seeds the entity register, group and ASAPL BUs (idempotent).</summary>
+    private static async Task<IResult> HandleShamFoundationSeedAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamFoundationService foundation,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM foundation seed.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to seed the SHAM foundation (11 entities, group membership, ASAPL business units). Idempotent.", session = SessionPayload(session) });
+        }
+
+        var res = await foundation.SeedFoundationAsync(cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/organization-admin-app?tab=org_entities",
+            res.Ok,
+            res.Message,
+            new { ok = res.Ok, writes = res.Ok ? res.Entities + res.BusinessUnits + res.Members : 0, phpAuthoritative = false, message = res.Message, res = new { res.Entities, res.BusinessUnits, res.Members }, session = SessionPayload(session) });
     }
 
     /// <summary>Auto-parts workspace demo seed: inserts DEMO-tagged rows only.</summary>
