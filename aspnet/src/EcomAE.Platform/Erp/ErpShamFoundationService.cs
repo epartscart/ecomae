@@ -91,6 +91,7 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
         await ErpLazySchema.EnsureMultiEntityAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpGlChartOfAccountsSeeder.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpLazySchema.EnsurePmMastersAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
 
         // Tenant login store (PHP-compatible users/groups/bind, same DDL as
         // ErpOnlyShopBootstrap) so the SHAM admin credential can be seeded here.
@@ -193,6 +194,27 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
                         "INSERT INTO `epc_erp_pm_business_units` (`code`,`name`,`legal_entity_id`,`note`,`active`,`time_created`,`time_updated`) "
                         + "SELECT ?,?,?,?,1,?,? FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `epc_erp_pm_business_units` WHERE `code`=? AND `legal_entity_id`=?)"),
                     cancellationToken, buCode, buName, entityId, costCentre, now, now, buCode, entityId).ConfigureAwait(false);
+
+                // Phase-3 hook: one default warehouse per BU (WH-<short>) — stock and
+                // reservations stay entity-scoped via owner_company_id, the BU picks up
+                // its warehouse here so allocations can fall through to it.
+                var whCode = "WH-" + (buCode.Contains('-', StringComparison.Ordinal) ? buCode[(buCode.IndexOf('-') + 1)..] : buCode);
+                await ErpDb.ExecuteAsync(connection, null,
+                    ErpDb.Positional(
+                        "INSERT INTO `epc_erp_inv_warehouses` (`code`,`name`,`active`,`time_created`) "
+                        + "VALUES (?,?,1,?) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), `active`=1"),
+                    cancellationToken, whCode, "Al Shamali " + buName, now).ConfigureAwait(false);
+                var whId = (int)await ErpDb.LongAsync(connection, null,
+                    ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `code`=? LIMIT 1"),
+                    cancellationToken, whCode).ConfigureAwait(false);
+                if (whId > 0)
+                {
+                    await ErpDb.ExecuteAsync(connection, null,
+                        ErpDb.Positional(
+                            "UPDATE `epc_erp_org_business_units` SET `default_warehouse_id`=? WHERE `entity_id`=? AND `code`=? AND `default_warehouse_id`=0"),
+                        cancellationToken, whId, entityId, buCode).ConfigureAwait(false);
+                }
+
                 bus++;
             }
 
