@@ -1712,7 +1712,7 @@ check 'find-and-redeploy honors production lock' contains "$ROOT/scripts/cloudpa
 check 'production lock offline refuses rollback and php delete' production_lock_offline_ok
 check 'onboard four ERP-only script exists' test -x "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh"
 check 'onboard four ERP-only requires confirm' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" 'ECOMAE_CONFIRM_ONBOARD_ERP_ONLY'
-check 'onboard four ERP-only creates asap indj fito real' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" '("asap", "ASAP Autoparts", "auto_parts")'
+check 'onboard four ERP-only creates sham indj fito real' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" '("sham", "Al Shamali Auto Parts Group", "auto_parts")'
 check 'onboard four ERP-only uses MYSQL_PWD not -p' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" 'MYSQL_PWD'
 check 'onboard four ERP-only falls back to clpctl master' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" 'clpctl'
 check 'super mail app lists yawer mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'ErpOnlyLaunchClients.SuperMailbox'
