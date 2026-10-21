@@ -185,6 +185,10 @@
                                     @if (!string.IsNullOrWhiteSpace(t.ErpOperationsUrl))
                                     {
                                         <a href="@t.ErpOperationsUrl">@t.ErpOperationsUrl</a>
+                                        @if (!string.IsNullOrWhiteSpace(t.ErpLoginUrl))
+                                        {
+                                            <br /><small><a href="@t.ErpLoginUrl" class="text-muted">@t.ErpLoginUrl</a></small>
+                                        }
                                     }
                                     else if (!string.IsNullOrWhiteSpace(t.ErpLoginUrl))
                                     {

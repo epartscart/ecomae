@@ -44,6 +44,7 @@ public sealed class ClientErpPathRewriteMiddleware
         // there. Writes pass through unchanged (then the next GET moves the user).
         if (HttpMethods.IsGet(context.Request.Method)
             && !ErpOperationsHost.IsOperationsHost(context.Request.Host.Host)
+            && !parsed.Rest.Equals("erp/logout", StringComparison.OrdinalIgnoreCase)
             && ErpOperationsHost.IsValidSlug(parsed.SiteKey))
         {
             var lookup = context.RequestServices.GetService<IClientErpTenantLookup>();
