@@ -263,12 +263,16 @@
                                     }
                                 </td>
                                 <td>
-                                    @if (_releases.Count > 0)
+                                    @if (model != "cloud")
                                     {
-                                        <code>@_releases[0].ShortSha</code> <small class="text-muted">@_releases[0].AtUtc</small>
-                                        @if (_releases.Count > 1)
+                                        <span class="text-muted" title="On-premises/hybrid sites deploy independently of the platform release">site-managed</span>
+                                    }
+                                    else if (_currentRelease is not null)
+                                    {
+                                        <code>@_currentRelease.ShortSha</code> <small class="text-muted">@_currentRelease.AtUtc</small>
+                                        @if (_previousRelease is not null)
                                         {
-                                            <br /><small class="text-muted" title="Previous production version">prev <code>@_releases[1].ShortSha</code> @_releases[1].AtUtc</small>
+                                            <br /><small class="text-muted" title="Previous production version">prev <code>@_previousRelease.ShortSha</code> @_previousRelease.AtUtc</small>
                                         }
                                     }
                                     else
@@ -343,6 +347,8 @@ else
     private IReadOnlyList<CpTenantControlRow> _tenants = [];
     private IReadOnlyList<CpReleaseEntry> _releases = [];
     private readonly Dictionary<string, string> _sandboxRefreshed = new(StringComparer.Ordinal);
+    private CpReleaseEntry? _currentRelease;
+    private CpReleaseEntry? _previousRelease;
     private IReadOnlyList<HybridSyncInstallationRow> _installations = [];
     private IReadOnlyList<HybridSyncCursorRow> _cursors = [];
     private IReadOnlyList<HybridSyncConflictRow> _conflicts = [];
@@ -383,6 +389,9 @@ else
                 _sandboxRefreshed[tenant.SiteKey] = refreshedAt;
             }
         }
+
+        _currentRelease = _releases.FirstOrDefault();
+        _previousRelease = _releases.FirstOrDefault(r => !r.Sha.Equals(_currentRelease?.Sha, StringComparison.OrdinalIgnoreCase));
         try
         {
             var sync = await HybridSync.StatusAsync(null, ctx.RequestAborted);

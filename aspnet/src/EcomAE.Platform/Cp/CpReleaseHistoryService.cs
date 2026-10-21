@@ -39,9 +39,17 @@ public sealed class CpReleaseHistoryService : ICpReleaseHistoryService
     public async Task<IReadOnlyList<CpReleaseEntry>> RecentAsync(int take, CancellationToken cancellationToken = default)
     {
         var path = Environment.GetEnvironmentVariable("ECOMAE_RELEASE_HISTORY_FILE");
-        if (string.IsNullOrWhiteSpace(path))
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
         {
-            path = File.Exists(DefaultHistoryPath) ? DefaultHistoryPath : null;
+            // The writer places history beside the lock file — honor a custom
+            // ECOMAE_PRODUCTION_LOCK_FILE location before the default.
+            var lockPath = Environment.GetEnvironmentVariable("ECOMAE_PRODUCTION_LOCK_FILE");
+            var besideLock = string.IsNullOrWhiteSpace(lockPath)
+                ? null
+                : Path.Combine(Path.GetDirectoryName(lockPath) ?? string.Empty, "release-history.jsonl");
+            path = besideLock is not null && File.Exists(besideLock)
+                ? besideLock
+                : File.Exists(DefaultHistoryPath) ? DefaultHistoryPath : null;
         }
 
         if (path is null)
