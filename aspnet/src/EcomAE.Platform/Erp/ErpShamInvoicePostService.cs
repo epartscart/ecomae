@@ -145,6 +145,12 @@ public sealed class ErpShamInvoicePostService : IErpShamInvoicePostService
                 return new(false, "No active grant for '" + userEmail + "' to post invoices in " + entity + (bu.Length > 0 ? "/" + bu : "") + ".", 0);
             }
 
+            // Phase-6 close: invoices dated into a locked period are refused.
+            if (invoice.IssueDate > 0 && await ErpShamFoundationService.PeriodLockedAsync(connection, entityId, invoice.IssueDate, cancellationToken).ConfigureAwait(false))
+            {
+                return new(false, "Period is locked for entity " + entity + " — no postings into closed months.", 0);
+            }
+
             // The invoice must exist as an ISSUED document in this entity's store —
             // a grant alone cannot fabricate receivable/revenue entries.
             var docVat = 0m;

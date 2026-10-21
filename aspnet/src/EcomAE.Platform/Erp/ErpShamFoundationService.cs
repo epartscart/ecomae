@@ -42,6 +42,7 @@ public interface IErpShamFoundationService
     Task<bool> AccessAllowedAsync(string userEmail, string? entityCode, string? buCode, string? action, CancellationToken cancellationToken = default);
     Task<bool> AccountActiveForEntityAsync(string entityCode, string coaCode, CancellationToken cancellationToken = default);
     Task<bool> RotatePasswordAsync(string userEmail, string newPassword, CancellationToken cancellationToken = default);
+    Task<(bool Ok, string Message)> LockPeriodAsync(string entityCode, int periodYm, string userEmail, int adminId, CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpShamFoundationResult(bool Ok, string Message, int Entities, int BusinessUnits, int Members);
@@ -114,6 +115,8 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
             "ALTER TABLE `epc_erp_cash_bank_accounts` ADD `legal_entity_id` int(11) NOT NULL DEFAULT 0",
             "ALTER TABLE `epc_erp_cash_bank_accounts` ADD `business_unit_id` int(11) NOT NULL DEFAULT 0",
             "ALTER TABLE `epc_erp_cash_bank_accounts` ADD UNIQUE KEY `ux_sham_entity_bank` (`legal_entity_id`,`account_number`)",
+            // Phase-6 hook: closed accounting periods per entity (YYYYMM).
+            "CREATE TABLE IF NOT EXISTS `epc_erp_sham_period_locks` (`id` int(11) NOT NULL AUTO_INCREMENT, `entity_id` int(11) NOT NULL DEFAULT 0, `period_ym` int(6) NOT NULL DEFAULT 0, `locked_by` int(11) NOT NULL DEFAULT 0, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_entity_period` (`entity_id`,`period_ym`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='SHAM closed accounting periods per entity'",
         })
         {
             await ErpDb.TryExecuteAsync(connection, sql, cancellationToken).ConfigureAwait(false);
@@ -493,6 +496,85 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
                     + "WHERE e.`code`=? AND e.`active`=1 AND a.`coa_code`=? AND a.`active`=1)"),
                 cancellationToken, code, coa).ConfigureAwait(false);
             return allowed == 1;
+        }
+        catch (DbException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Phase-6 close: locks a period (YYYYMM) for an entity — all postings dated
+    /// in that month or earlier are refused. Grant: 'period-lock'. Idempotent.
+    /// </summary>
+    public async Task<(bool Ok, string Message)> LockPeriodAsync(
+        string entityCode, int periodYm, string userEmail, int adminId, CancellationToken cancellationToken = default)
+    {
+        var entity = (entityCode ?? string.Empty).Trim().ToUpperInvariant();
+        if (entity.Length == 0 || periodYm is < 200001 or > 210012 || periodYm % 100 is < 1 or > 12)
+        {
+            return (false, "Entity code and a valid period (YYYYMM) are required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return (false, "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            var entityId = await ErpDb.LongAsync(connection, null,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `code`=? AND `active`=1 LIMIT 1"),
+                cancellationToken, entity).ConfigureAwait(false);
+            if (entityId == 0)
+            {
+                return (false, "Unknown or inactive legal entity '" + entity + "'.");
+            }
+
+            if (!await AccessAllowedAsync(userEmail, entity, null, "period-lock", cancellationToken).ConfigureAwait(false))
+            {
+                return (false, "No active grant for '" + userEmail + "' to lock periods in " + entity + ".");
+            }
+
+            await ErpDb.ExecuteAsync(connection, null,
+                ErpDb.Positional("INSERT IGNORE INTO `epc_erp_sham_period_locks` (`entity_id`,`period_ym`,`locked_by`,`time_created`) VALUES (?,?,?,?)"),
+                cancellationToken, entityId, periodYm, adminId, DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
+            return (true, "Period " + periodYm + " locked for " + entity + " — postings dated on/before it are refused.");
+        }
+        catch (DbException)
+        {
+            return (false, "Period lock failed.");
+        }
+    }
+
+    /// <summary>
+    /// Phase-6 close: true when <paramref name="journalDateTs"/> (unix seconds or
+    /// YYYYMMDD) falls inside a locked period for the entity. Table-absent
+    /// (pre-migration tenants) means open — the lock is opt-in per entity.
+    /// </summary>
+    public static async Task<bool> PeriodLockedAsync(
+        DbConnection connection,
+        long entityId,
+        long journalDateTs,
+        CancellationToken cancellationToken)
+    {
+        if (entityId <= 0 || journalDateTs <= 0)
+        {
+            return false;
+        }
+
+        var dt = journalDateTs >= 100000000
+            ? DateTimeOffset.FromUnixTimeSeconds(journalDateTs).UtcDateTime
+            : new DateTime((int)(journalDateTs / 10000), (int)(journalDateTs / 100 % 100), (int)(journalDateTs % 100), 0, 0, 0, DateTimeKind.Utc);
+        var periodYm = dt.Year * 100 + dt.Month;
+        try
+        {
+            var locked = await ErpDb.LongAsync(connection, null,
+                ErpDb.Positional("SELECT EXISTS(SELECT 1 FROM `epc_erp_sham_period_locks` WHERE `entity_id`=? AND `period_ym`>=?)"),
+                cancellationToken, entityId, periodYm).ConfigureAwait(false);
+            return locked == 1;
         }
         catch (DbException)
         {

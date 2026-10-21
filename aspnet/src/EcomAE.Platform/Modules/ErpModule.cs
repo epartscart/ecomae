@@ -397,6 +397,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpShamSalesInvoiceIssue, HandleShamSalesInvoiceIssueAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamPoReceive, HandleShamPoReceiveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamVatSummary, HandleShamVatSummaryAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpShamPeriodLock, HandleShamPeriodLockAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
@@ -27174,6 +27175,40 @@ public sealed class ErpModule : ISurfaceModule
         var res = await summaries.LoadAsync(
             context.Request.Query["cmp"].ToString(), context.Request.Query["bu"].ToString(), fromTs, toTs, cancellationToken);
         return Results.Ok(new { ok = res.Ok, message = res.Message, entity = res.Entity, bu = res.Bu, from = res.FromTs, to = res.ToTs, outputVat = res.OutputVat, inputVat = res.InputVat, netPayable = res.NetPayable, journals = res.JournalCount });
+    }
+
+    /// <summary>SHAM Phase-6: lock an accounting period (YYYYMM) for an entity.</summary>
+    private static async Task<IResult> HandleShamPeriodLockAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamFoundationService foundation,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for SHAM period lock.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to lock an accounting period. Fields: entity|cmp, period (YYYYMM). Scope check: 'period-lock' grant.", session = SessionPayload(session) });
+        }
+
+        var entity = AmlText(fields, "entity");
+        if (entity.Length == 0)
+        {
+            entity = context.Request.Query["cmp"].ToString();
+        }
+
+        var res = await foundation.LockPeriodAsync(entity, (int)AmlLong(fields, "period"), session.Email ?? string.Empty, session.UserId, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/organization-admin-app?tab=org_entities",
+            res.Ok,
+            res.Message,
+            new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, session = SessionPayload(session) });
     }
 
     /// <summary>Auto-parts workspace demo seed: inserts DEMO-tagged rows only.</summary>
