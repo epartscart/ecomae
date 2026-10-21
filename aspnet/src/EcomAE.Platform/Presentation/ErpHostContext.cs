@@ -243,6 +243,39 @@ public static class ErpHostContext
         return path + "?" + string.Join('&', query);
     }
 
+    /// <summary>
+    /// Entity + BU switch link by code (D365-style readable URLs): carries
+    /// <c>cmp=&lt;entity code&gt;</c> and optional <c>bu=&lt;BU code&gt;</c>
+    /// instead of the numeric <c>company=</c>. Other query params are preserved.
+    /// </summary>
+    public static string SwitchEntityHref(HttpRequest request, string entityCode, string? buCode = null)
+    {
+        var path = request.Path.HasValue ? request.Path.Value! : "/erp";
+        var query = new List<string>();
+        foreach (var pair in request.Query)
+        {
+            if (pair.Key.Equals("company", StringComparison.OrdinalIgnoreCase)
+                || pair.Key.Equals("companyId", StringComparison.OrdinalIgnoreCase)
+                || pair.Key.Equals("cmp", StringComparison.OrdinalIgnoreCase)
+                || pair.Key.Equals("bu", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            foreach (var value in pair.Value)
+            {
+                query.Add($"{Uri.EscapeDataString(pair.Key)}={Uri.EscapeDataString(value ?? string.Empty)}");
+            }
+        }
+
+        query.Add($"cmp={Uri.EscapeDataString(entityCode)}");
+        if (!string.IsNullOrWhiteSpace(buCode))
+        {
+            query.Add($"bu={Uri.EscapeDataString(buCode)}");
+        }
+        return path + "?" + string.Join('&', query);
+    }
+
     private static string BrandLabelFor(string normalized, bool isShowcase, bool isProduct)
     {
         if (isShowcase)
