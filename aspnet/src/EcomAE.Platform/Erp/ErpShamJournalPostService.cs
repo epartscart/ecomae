@@ -118,6 +118,10 @@ public sealed class ErpShamJournalPostService : IErpShamJournalPostService
                 buId = await ErpDb.LongAsync(connection, null,
                     ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_business_units` WHERE `code`=? AND `legal_entity_id`=? AND `active`=1 LIMIT 1"),
                     cancellationToken, bu, entityId).ConfigureAwait(false);
+                if (buId == 0)
+                {
+                    return new(false, "Business unit '" + bu + "' has no active operational record (epc_erp_pm_business_units) — re-run the foundation seed.", 0);
+                }
             }
 
             // Access matrix: user × entity × BU × action 'journal-post'. Fail-closed.
