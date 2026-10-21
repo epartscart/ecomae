@@ -1716,7 +1716,7 @@ check 'onboard four ERP-only creates asap indj fito real' contains "$ROOT/script
 check 'onboard four ERP-only uses MYSQL_PWD not -p' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" 'MYSQL_PWD'
 check 'onboard four ERP-only falls back to clpctl master' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" 'clpctl'
 check 'super mail app lists yawer mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'ErpOnlyLaunchClients.SuperMailbox'
-check 'launch clients catalog has asap' contains "$ROOT/aspnet/src/EcomAE.Platform/Cp/ErpOnlyLaunchClients.cs" '"asap"'
+check 'launch clients catalog has sham' contains "$ROOT/aspnet/src/EcomAE.Platform/Cp/ErpOnlyLaunchClients.cs" '"sham"'
 check 'launch clients catalog has yawer mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Cp/ErpOnlyLaunchClients.cs" 'yawer@ecomae.com'
 check 'super CP home shows launch clients' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpCommandCentre.razor" 'onboard_four_erp_only'
 check 'super CP home links mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpCommandCentre.razor" '/cp/super-mail-app'
