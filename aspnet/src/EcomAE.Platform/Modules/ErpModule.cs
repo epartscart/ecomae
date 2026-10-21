@@ -401,6 +401,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpShamMspSet, HandleShamMspSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamMspApprove, HandleShamMspApproveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamMspCheck, HandleShamMspCheckAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpShamTaxRuleSet, HandleShamTaxRuleSetAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpShamTaxRules, HandleShamTaxRulesAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamLandedCost, HandleShamLandedCostAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpShamLandedCostView, HandleShamLandedCostViewAsync);
         endpoints.MapPost(EcomAeRoutes.ErpShamElimRun, HandleShamElimRunAsync).DisableAntiforgery();
@@ -27310,6 +27312,69 @@ public sealed class ErpModule : ISurfaceModule
             context.Request.Query["cmp"].ToString(), ErpHostContext.BuCodeFromQuery(context.Request),
             session.Email ?? string.Empty, context.Request.Query["item"].ToString(), cancellationToken);
         return Results.Ok(new { ok = res.Ok, message = res.Message, entity = res.Entity, bu = res.Bu, item = res.Item, version = res.Version, unit = res.Unit, offer = res.Offer, actual = res.Actual, msp = res.Msp, pending = res.Pending, history = res.History });
+    }
+
+    /// <summary>SHAM §8b: upsert an effective-dated tax rule (entity or tenant-wide scope).</summary>
+    private static async Task<IResult> HandleShamTaxRuleSetAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTaxRuleService taxRules,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for tax rules.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save a tax rule. Fields: entity|cmp (blank = tenant-wide), scope (item/item-group code, blank = generic), supply=goods|services|real_estate|vat_group, from=mainland|designated_zone|export|any, to=..., treatment=standard|zero_rated|outside_scope|exempt, vat (0-100), doc=tax_invoice|commercial|..., valid_from/valid_to (unix or YYYY-MM-DD), note. Scope check: 'tax-rule-set' grant.", session = SessionPayload(session) });
+        }
+
+        var entity = AmlText(fields, "entity");
+        if (entity.Length == 0)
+        {
+            entity = context.Request.Query["cmp"].ToString();
+        }
+
+        var res = await taxRules.SetAsync(
+            entity, AmlText(fields, "scope"), AmlText(fields, "supply"),
+            AmlText(fields, "from"), AmlText(fields, "to"), AmlText(fields, "treatment"),
+            AmlDec(fields, "vat"), AmlText(fields, "doc"),
+            AmlLong(fields, "valid_from"), AmlLong(fields, "valid_to"),
+            AmlText(fields, "note"), session.Email ?? string.Empty, cancellationToken);
+        return LiveWriteFormBinder.Complete(context, "/erp/tenant-guide", res.Ok, res.Message, new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, message = res.Message, rule = res.RuleId, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM §8b: list active rules, or with ?resolve=1 resolve the effective rule for a scenario.</summary>
+    private static async Task<IResult> HandleShamTaxRulesAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTaxRuleService taxRules,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for tax rules.");
+        }
+
+        var query = context.Request.Query;
+        if (query["resolve"] == "1")
+        {
+            long.TryParse(query["at"].ToString(), out var at);
+            var rule = await taxRules.ResolveAsync(
+                query["cmp"].ToString(), ErpHostContext.BuCodeFromQuery(context.Request),
+                query["scope"].ToString(), query["supply"].ToString(),
+                query["from"].ToString(), query["to"].ToString(), at,
+                session.Email ?? string.Empty, cancellationToken);
+            return Results.Ok(new { ok = true, resolved = rule is not null, rule, session = SessionPayload(session) });
+        }
+
+        var rules = await taxRules.ListAsync(session.Email ?? string.Empty, cancellationToken);
+        return Results.Ok(new { ok = true, count = rules.Count, rules, session = SessionPayload(session) });
     }
 
     /// <summary>SHAM §9: allocate receipt charges across lines; lines come as JSON 'lines' field or ?lines=.</summary>

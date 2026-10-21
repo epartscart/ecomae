@@ -3023,6 +3023,10 @@ public static class EcomAeRoutes
     public const string ErpShamMspApprove = "/erp/sham/msp-approve";
     /// <summary>SHAM §8: effective MSP version + history for an entity×BU scope.</summary>
     public const string ErpShamMspCheck = "/erp/sham/msp-check";
+    /// <summary>SHAM §8b: effective-dated tax rule upsert (entity or tenant scope).</summary>
+    public const string ErpShamTaxRuleSet = "/erp/sham/tax-rule-set";
+    /// <summary>SHAM §8b: list rules, or resolve the effective rule for a supply scenario + date.</summary>
+    public const string ErpShamTaxRules = "/erp/sham/tax-rules";
     /// <summary>SHAM §9: allocate receipt charges (freight/duty/insurance/other) across lines by value|qty|weight.</summary>
     public const string ErpShamLandedCost = "/erp/sham/landed-cost";
     /// <summary>SHAM §9: read the landed-cost allocation stored for a receipt.</summary>

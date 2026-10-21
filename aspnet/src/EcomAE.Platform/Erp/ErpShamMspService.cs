@@ -104,9 +104,10 @@ public sealed class ErpShamMspService : IErpShamMspService
         var version = Convert.ToInt32(await ErpDb.LongAsync(conn, tx,
             "SELECT COALESCE(MAX(`version`),0)+1 FROM `epc_erp_org_msp_versions` WHERE `entity_id`=? AND `bu_code`=? AND `item_code`=?",
             cancellationToken, entityId, bu, item).ConfigureAwait(false));
-        var versionId = await ErpDb.ExecuteAsync(conn, tx,
+        await ErpDb.ExecuteAsync(conn, tx,
             "INSERT INTO `epc_erp_org_msp_versions` (`entity_id`,`bu_code`,`item_code`,`version`,`unit_margin`,`offer_margin`,`actual_margin`,`msp_margin`,`status`,`set_by`,`note`,`time_created`) VALUES (?,?,?,?,?,?,?,?,'pending',?,?,?)",
             cancellationToken, entityId, bu, item, version, unit, offer, actual, msp, userEmail, note ?? string.Empty, now).ConfigureAwait(false);
+        var versionId = await ErpDb.LongAsync(conn, tx, "SELECT LAST_INSERT_ID()", cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(conn, tx,
             "INSERT INTO `epc_erp_org_msp_approvals` (`version_id`,`action`,`actor`,`note`,`time_created`) VALUES (?,?,?,?,?)",
             cancellationToken, versionId, "requested", userEmail, note ?? string.Empty, now).ConfigureAwait(false);
