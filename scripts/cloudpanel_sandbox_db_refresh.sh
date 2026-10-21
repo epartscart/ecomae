@@ -38,6 +38,12 @@ mysql -N -e "SELECT table_name FROM information_schema.tables WHERE table_schema
     done
 mysql -e "DROP DATABASE \`$STAGING_DB\`;"
 
+# 2b. Stamp the refresh — Super CP reads this to show each tenant's last UAT refresh.
+mysql -e "CREATE TABLE IF NOT EXISTS \`$SANDBOX_DB\`.\`epc_sandbox_meta\` (\`meta_key\` VARCHAR(64) NOT NULL PRIMARY KEY, \`meta_value\` VARCHAR(255) NOT NULL) ENGINE=InnoDB; \
+  INSERT INTO \`$SANDBOX_DB\`.\`epc_sandbox_meta\`(\`meta_key\`, \`meta_value\`) VALUES \
+    ('refreshed_from', '$LIVE_DB'), ('refreshed_at_utc', UTC_TIMESTAMP()), ('refresh_tool', 'cloudpanel_sandbox_db_refresh.sh') \
+  ON DUPLICATE KEY UPDATE \`meta_value\` = VALUES(\`meta_value\`);"
+
 # 3. Grant the tenant account on the rebuilt sandbox — on the host records
 # that actually exist for it (a GRANT for a missing user@host errors on
 # MySQL 8: "not allowed to create a user with GRANT").

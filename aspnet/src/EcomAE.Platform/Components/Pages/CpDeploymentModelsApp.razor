@@ -6,6 +6,7 @@
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
 @inject ICpTenantControlCenterService ControlCenter
+@inject ICpReleaseHistoryService ReleaseHistory
 @inject IHybridSyncService HybridSync
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
@@ -169,6 +170,41 @@
             </ul>
         </div>
 
+        <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1.1rem 1.15rem">
+            <h3 style="margin:0 0 .5rem;font-size:1.05rem"><i class="fa fa-code-fork" aria-hidden="true"></i> Production releases</h3>
+            <p class="text-muted" style="margin:0 0 .55rem;line-height:1.55">
+                Every gated deploy writes one entry here (<code>release-history.jsonl</code>) — the current production version and the one it replaced, D365-style. Promotion order: deploy → verify on <code>-sandbox</code> hosts → confirm on <code>-operations</code> hosts.
+            </p>
+            @if (_releases.Count == 0)
+            {
+                <p class="help-block" style="margin:0">No recorded deploys yet — the next gated publish writes the first entry.</p>
+            }
+            else
+            {
+                <table class="epc-scp-data-table table table-epc-pro">
+                    <thead>
+                        <tr>
+                            <th>Version</th>
+                            <th>Branch</th>
+                            <th>Pushed (UTC)</th>
+                            <th>State</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var (release, index) in _releases.Select((r, i) => (r, i)))
+                        {
+                            <tr>
+                                <td><code>@release.ShortSha</code></td>
+                                <td>@release.Branch</td>
+                                <td>@release.AtUtc</td>
+                                <td><span class="label @(index == 0 ? "label-success" : "label-default")">@(index == 0 ? "current" : "previous")</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
         <div class="epc-scp-table-card">
             <table class="epc-scp-data-table table table-epc-pro">
                 <thead>
@@ -179,12 +215,14 @@
                         <th>Model</th>
                         <th>ERP login</th>
                         <th>UAT</th>
+                        <th>Prod version</th>
+                        <th>UAT refreshed</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (_tenants.Count == 0)
                     {
-                        <tr><td colspan="5">No registry tenants yet. Create ERP-only companies on Tenants.</td></tr>
+                        <tr><td colspan="8">No registry tenants yet. Create ERP-only companies on Tenants.</td></tr>
                     }
                     else
                     {
@@ -218,6 +256,30 @@
                                     @if (!string.IsNullOrWhiteSpace(t.ErpSandboxUrl))
                                     {
                                         <a href="@t.ErpSandboxUrl" class="text-warning" title="Sandbox / UAT host — bound to the _sandbox database">@t.ErpSandboxUrl</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (_releases.Count > 0)
+                                    {
+                                        <code>@_releases[0].ShortSha</code> <small class="text-muted">@_releases[0].AtUtc</small>
+                                        @if (_releases.Count > 1)
+                                        {
+                                            <br /><small class="text-muted" title="Previous production version">prev <code>@_releases[1].ShortSha</code> @_releases[1].AtUtc</small>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(t.ErpSandboxUrl) && _sandboxRefreshed.TryGetValue(t.SiteKey, out var refreshedAt))
+                                    {
+                                        <small>@refreshedAt</small>
                                     }
                                     else
                                     {
@@ -279,6 +341,8 @@ else
     private bool _allowed;
     private bool _isAdmin;
     private IReadOnlyList<CpTenantControlRow> _tenants = [];
+    private IReadOnlyList<CpReleaseEntry> _releases = [];
+    private readonly Dictionary<string, string> _sandboxRefreshed = new(StringComparer.Ordinal);
     private IReadOnlyList<HybridSyncInstallationRow> _installations = [];
     private IReadOnlyList<HybridSyncCursorRow> _cursors = [];
     private IReadOnlyList<HybridSyncConflictRow> _conflicts = [];
@@ -305,6 +369,20 @@ else
 
         var result = await ControlCenter.LoadAsync(ctx.RequestAborted);
         _tenants = result.Tenants;
+        _releases = await ReleaseHistory.RecentAsync(5, ctx.RequestAborted);
+        foreach (var tenant in _tenants)
+        {
+            if (string.IsNullOrWhiteSpace(tenant.ErpSandboxUrl) || string.IsNullOrWhiteSpace(tenant.DbName))
+            {
+                continue;
+            }
+
+            var refreshedAt = await ReleaseHistory.SandboxRefreshedAtUtcAsync(tenant.DbName, ctx.RequestAborted);
+            if (refreshedAt is not null)
+            {
+                _sandboxRefreshed[tenant.SiteKey] = refreshedAt;
+            }
+        }
         try
         {
             var sync = await HybridSync.StatusAsync(null, ctx.RequestAborted);
