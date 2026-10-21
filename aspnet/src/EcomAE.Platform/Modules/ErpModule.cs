@@ -396,6 +396,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpShamIcPost, HandleShamIcPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamSalesInvoiceIssue, HandleShamSalesInvoiceIssueAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamPoReceive, HandleShamPoReceiveAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpShamVatSummary, HandleShamVatSummaryAsync);
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
@@ -27153,6 +27154,26 @@ public sealed class ErpModule : ISurfaceModule
             res.Ok,
             res.Message,
             new { ok = res.Ok, writes = res.Ok ? 1 : 0, phpAuthoritative = false, code = res.Code, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>SHAM Phase-5 tail: per-entity UAE VAT summary over a period.</summary>
+    private static async Task<IResult> HandleShamVatSummaryAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShamVatSummaryReadService summaries,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-admin-app", "Admin ERP capability required for the SHAM VAT summary.");
+        }
+
+        long.TryParse(context.Request.Query["from"], out var fromTs);
+        long.TryParse(context.Request.Query["to"], out var toTs);
+        var res = await summaries.LoadAsync(
+            context.Request.Query["cmp"].ToString(), context.Request.Query["bu"].ToString(), fromTs, toTs, cancellationToken);
+        return Results.Ok(new { ok = res.Ok, message = res.Message, entity = res.Entity, bu = res.Bu, from = res.FromTs, to = res.ToTs, outputVat = res.OutputVat, inputVat = res.InputVat, netPayable = res.NetPayable, journals = res.JournalCount });
     }
 
     /// <summary>Auto-parts workspace demo seed: inserts DEMO-tagged rows only.</summary>

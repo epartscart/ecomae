@@ -754,6 +754,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamJournalPostService, EcomA
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamStockReserveService, EcomAE.Platform.Erp.ErpShamStockReserveService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamInvoicePostService, EcomAE.Platform.Erp.ErpShamInvoicePostService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamPoReceiveService, EcomAE.Platform.Erp.ErpShamPoReceiveService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamVatSummaryReadService, EcomAE.Platform.Erp.ErpShamVatSummaryReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamIntercompanyPostService, EcomAE.Platform.Erp.ErpShamIntercompanyPostService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpConsolidatedTrialBalanceReadService, EcomAE.Platform.Erp.ErpConsolidatedTrialBalanceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMultiCurrencyGlWriteService, EcomAE.Platform.Erp.ErpMultiCurrencyGlWriteService>();

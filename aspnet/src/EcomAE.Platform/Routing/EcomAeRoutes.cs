@@ -3013,6 +3013,8 @@ public static class EcomAeRoutes
     public const string ErpShamSalesInvoiceIssue = "/erp/sham/sales-invoice-issue";
     /// <summary>SHAM Phase-3 tail: entity×BU-scoped purchase receipt into the BU's default warehouse.</summary>
     public const string ErpShamPoReceive = "/erp/sham/po-receive";
+    /// <summary>SHAM Phase-5 tail: per-entity UAE VAT summary (output 2100 vs input 1150) for a period.</summary>
+    public const string ErpShamVatSummary = "/erp/sham/vat-summary";
     /// <summary>Auto-parts workspace demo clear: deletes only DEMO-tagged rows.</summary>
     public const string ErpAutoPartsDemoClear = "/erp/autoparts/demo-clear";
     /// <summary>Auto-parts month-end bridge: posts trading journals into the GL.</summary>
