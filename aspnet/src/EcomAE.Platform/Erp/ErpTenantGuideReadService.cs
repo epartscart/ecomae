@@ -102,13 +102,40 @@ public sealed class ErpTenantGuideReadService : IErpTenantGuideReadService
         var bus = new List<ErpTenantGuideBu>();
         var warehouseCount = 0;
         // ERP-only org BUs (SHAM §3: carries cost centre + default warehouse).
+        // `epc_erp_inv_warehouses.cost_centre` is a SHAM-added column — on
+        // older tenants it is absent, so probe it first instead of letting the
+        // join's failure discard every org BU.
+        var hasWarehouses = false;
+        var hasWarehouseCc = false;
         try
         {
             await using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = "SELECT bu.`id`, bu.`entity_id`, bu.`code`, bu.`name`, bu.`cost_centre`, COALESCE(w.`name`,''), COALESCE(NULLIF(w.`cost_centre`,''), bu.`cost_centre`) "
+                cmd.CommandText = "SELECT 1 FROM `epc_erp_inv_warehouses` LIMIT 0";
+                await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            }
+            hasWarehouses = true;
+            try
+            {
+                await using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT `cost_centre` FROM `epc_erp_inv_warehouses` LIMIT 0";
+                    await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                }
+                hasWarehouseCc = true;
+            }
+            catch { /* cost_centre column absent on this tenant */ }
+        }
+        catch { /* warehouses table absent on this tenant */ }
+        try
+        {
+            await using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "SELECT bu.`id`, bu.`entity_id`, bu.`code`, bu.`name`, bu.`cost_centre`, "
+                    + (hasWarehouses ? "COALESCE(w.`name`,''), " : "'', ")
+                    + (hasWarehouseCc ? "COALESCE(NULLIF(w.`cost_centre`,''), bu.`cost_centre`) " : "bu.`cost_centre` ")
                     + "FROM `epc_erp_org_business_units` bu "
-                    + "LEFT JOIN `epc_erp_inv_warehouses` w ON w.`id` = bu.`default_warehouse_id` "
+                    + (hasWarehouses ? "LEFT JOIN `epc_erp_inv_warehouses` w ON w.`id` = bu.`default_warehouse_id` " : string.Empty)
                     + "WHERE bu.`status`='active' ORDER BY bu.`entity_id`, bu.`code`";
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
