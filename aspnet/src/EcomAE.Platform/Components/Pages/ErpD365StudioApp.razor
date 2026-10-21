@@ -264,7 +264,7 @@
                     <tr>
                         <td>@R(r,"id")</td><td>@R(r,"company")</td><td>@R(r,"contact_name")</td>
                         <td>@R(r,"email")</td><td>@R(r,"phone")</td>
-                        <td>@R(r,"status")@(R(r,"converted_party_id") is { Length: >0 } cp && cp != "0" ? " → " + R(r,"converted_party_type") + " #" + cp : "")</td>
+                        <td>@R(r,"status")@(R(r,"converted_party_id") is { Length: >0 } cp && cp != "0" ? (cp == "-1" ? " (converting…)" : " → " + R(r,"converted_party_type") + " #" + cp) : "")</td>
                         <td>
                             @if (R(r,"status") != "converted")
                             {

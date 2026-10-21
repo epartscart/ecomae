@@ -790,11 +790,10 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
         {
             return ErpSimpleWriteResult.Fail("no_name", "Prospect has no company or contact name.");
         }
-        var priorStatus = G(lead, "status");
-        // Claim the lead with a -1 marker on converted_party_id — a concurrent converter
-        // or editor cannot reclaim or satisfy the claim while it is held.
+        // Claim the lead with a -1 marker on converted_party_id only — status is left
+        // untouched so concurrent CRM edits never collide with the claim or its rollback.
         var claimed = await ErpDb.ExecuteAsync(c, null,
-            "UPDATE `epc_crm_leads` SET `converted_party_id` = -1, `status` = 'converted' WHERE `id` = ? AND `status` <> 'converted' AND `converted_party_id` = 0",
+            "UPDATE `epc_crm_leads` SET `converted_party_id` = -1 WHERE `id` = ? AND `status` <> 'converted' AND `converted_party_id` = 0",
             t, leadId).ConfigureAwait(false);
         if (claimed <= 0)
         {
@@ -822,16 +821,12 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
         catch
         {
             // Release the claim so a retry can convert this prospect.
-            // Release the claim — only when the lead is still in the state our claim left
-            // (another editor may have moved it since), never carrying a raw value into SQL,
-            // and with CancellationToken.None since the caller's token may be the reason we're here.
-            var restore = priorStatus is "new" or "contacted" or "qualified" or "unqualified" ? priorStatus : "qualified";
-            // Only OUR claim (-1) rolls back — a different conversion's claim or party is untouched.
-            await ErpDb.TryExecuteAsync(c, "UPDATE `epc_crm_leads` SET `status` = '" + restore + "', `converted_party_id` = 0 WHERE `id` = " + leadId.ToString(CultureInfo.InvariantCulture) + " AND `converted_party_id` = -1", CancellationToken.None).ConfigureAwait(false);
+            // Release OUR claim marker only (status was never touched).
+            await ErpDb.TryExecuteAsync(c, "UPDATE `epc_crm_leads` SET `converted_party_id` = 0 WHERE `id` = " + leadId.ToString(CultureInfo.InvariantCulture) + " AND `converted_party_id` = -1", CancellationToken.None).ConfigureAwait(false);
             throw;
         }
         await ErpDb.ExecuteAsync(c, null,
-            "UPDATE `epc_crm_leads` SET `converted_party_id` = ?, `converted_party_type` = ?, `time_updated` = ? WHERE `id` = ? AND `converted_party_id` = -1",
+            "UPDATE `epc_crm_leads` SET `status` = 'converted', `converted_party_id` = ?, `converted_party_type` = ?, `time_updated` = ? WHERE `id` = ? AND `converted_party_id` = -1",
             t, partyId, party, now, leadId).ConfigureAwait(false);
         return new ErpSimpleWriteResult(true, "ok", "Prospect converted to " + party + " #" + partyId + ".", partyId, 2);
     }
