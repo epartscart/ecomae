@@ -363,13 +363,31 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
                 entityId = (int)await ErpDb.LongAsync(connection, null,
                     ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `code`=? LIMIT 1"),
                     cancellationToken, entityCode!.Trim().ToUpperInvariant()).ConfigureAwait(false);
+                if (entityId == 0)
+                {
+                    // Unknown entity code must not fall back to a group-wide grant match.
+                    return false;
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(buCode))
             {
+                var buEntityId = (int)await ErpDb.LongAsync(connection, null,
+                    ErpDb.Positional("SELECT `entity_id` FROM `epc_erp_org_business_units` WHERE `code`=? LIMIT 1"),
+                    cancellationToken, buCode!.Trim().ToUpperInvariant()).ConfigureAwait(false);
+                if (buEntityId == 0)
+                {
+                    return false;
+                }
+
                 buId = (int)await ErpDb.LongAsync(connection, null,
                     ErpDb.Positional("SELECT `id` FROM `epc_erp_org_business_units` WHERE `code`=? LIMIT 1"),
                     cancellationToken, buCode!.Trim().ToUpperInvariant()).ConfigureAwait(false);
+                // A BU scoped to a different entity cannot combine with this entity's grants.
+                if (entityId != 0 && buEntityId != entityId)
+                {
+                    return false;
+                }
             }
 
             var wanted = (action ?? string.Empty).Trim().ToLowerInvariant();
