@@ -791,13 +791,14 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
             return ErpSimpleWriteResult.Fail("no_name", "Prospect has no company or contact name.");
         }
         var priorStatus = G(lead, "status");
-        // Claim the lead before inserting the party so a concurrent conversion cannot duplicate it.
+        // Claim the lead with a -1 marker on converted_party_id — a concurrent converter
+        // or editor cannot reclaim or satisfy the claim while it is held.
         var claimed = await ErpDb.ExecuteAsync(c, null,
-            "UPDATE `epc_crm_leads` SET `status` = 'converted' WHERE `id` = ? AND `status` <> 'converted'",
+            "UPDATE `epc_crm_leads` SET `converted_party_id` = -1, `status` = 'converted' WHERE `id` = ? AND `status` <> 'converted' AND `converted_party_id` = 0",
             t, leadId).ConfigureAwait(false);
         if (claimed <= 0)
         {
-            return ErpSimpleWriteResult.Fail("already_converted", "Prospect already converted by another request.");
+            return ErpSimpleWriteResult.Fail("already_converted", "Prospect already converted (or being converted) by another request.");
         }
 
         long partyId;
@@ -825,11 +826,12 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
             // (another editor may have moved it since), never carrying a raw value into SQL,
             // and with CancellationToken.None since the caller's token may be the reason we're here.
             var restore = priorStatus is "new" or "contacted" or "qualified" or "unqualified" ? priorStatus : "qualified";
-            await ErpDb.TryExecuteAsync(c, "UPDATE `epc_crm_leads` SET `status` = '" + restore + "' WHERE `id` = " + leadId.ToString(CultureInfo.InvariantCulture) + " AND `status` = 'converted' AND `converted_party_id` = 0", CancellationToken.None).ConfigureAwait(false);
+            // Only OUR claim (-1) rolls back — a different conversion's claim or party is untouched.
+            await ErpDb.TryExecuteAsync(c, "UPDATE `epc_crm_leads` SET `status` = '" + restore + "', `converted_party_id` = 0 WHERE `id` = " + leadId.ToString(CultureInfo.InvariantCulture) + " AND `converted_party_id` = -1", CancellationToken.None).ConfigureAwait(false);
             throw;
         }
         await ErpDb.ExecuteAsync(c, null,
-            "UPDATE `epc_crm_leads` SET `converted_party_id` = ?, `converted_party_type` = ?, `time_updated` = ? WHERE `id` = ?",
+            "UPDATE `epc_crm_leads` SET `converted_party_id` = ?, `converted_party_type` = ?, `time_updated` = ? WHERE `id` = ? AND `converted_party_id` = -1",
             t, partyId, party, now, leadId).ConfigureAwait(false);
         return new ErpSimpleWriteResult(true, "ok", "Prospect converted to " + party + " #" + partyId + ".", partyId, 2);
     }
