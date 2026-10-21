@@ -114,37 +114,50 @@ public sealed class ErpShamPoReceiveService : IErpShamPoReceiveService
                 return new(false, "access", "No active grant for '" + userEmail + "' to receive stock in " + entity + "/" + bu + ".");
             }
 
-            var reference = string.IsNullOrWhiteSpace(poNumber) ? null : "PO-" + poNumber.Trim().Replace('/', '\\');
+            // Escaped per part: '\' first, then '/' — an injective encoding so
+            // "A/B"+"C", "A"+"B/C" and "A\B" can never collide.
+            static string EscapePart(string s) => s.Replace("\\", "\\\\").Replace("/", "\\/");
+
+            var reference = string.IsNullOrWhiteSpace(poNumber) ? null : "PO-" + EscapePart(poNumber.Trim());
             if (!string.IsNullOrWhiteSpace(receiptRef) && reference is not null)
             {
                 // A real second delivery carries its own receipt/GRN reference —
                 // identical deliveries without one are indistinguishable from
-                // retries and stay deduplicated by design. '/' inside each part is
-                // escaped so PO "A/B"+"C" and PO "A"+"B/C" can't collide.
-                reference += "/" + receiptRef.Trim().Replace('/', '\\');
+                // retries and stay deduplicated by design.
+                reference += "/" + EscapePart(receiptRef.Trim());
             }
 
             // The movement `reference` column is 128 chars — an overlong claim must
             // truncate DETERMINISTICALLY (with a hash tail) so idempotency still
             // works and the writer never fails after stock already moved.
-            if (reference is not null && reference.Length > 120)
+            var canonicalReference = reference;
+            if (canonicalReference is not null && canonicalReference.Length > 120)
             {
                 var hash = Convert.ToHexString(
-                    System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(reference)))[..10];
-                reference = reference[..109] + "~" + hash;
+                    System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(canonicalReference)))[..10];
+                canonicalReference = canonicalReference[..109] + "~" + hash;
+            }
+
+            // Legacy pre-escape keys: movements written before this scheme used the
+            // raw "PO-<po>/<ref>" join (unescaped, untruncated). A retry of such a
+            // receipt must still dedupe against the OLD key, not only the new one.
+            var legacyReference = string.IsNullOrWhiteSpace(poNumber) ? null : "PO-" + poNumber.Trim();
+            if (!string.IsNullOrWhiteSpace(receiptRef) && legacyReference is not null)
+            {
+                legacyReference += "/" + receiptRef.Trim();
             }
 
             // Idempotency: a retry of the same PO+warehouse receipt must not add
             // stock a second time. Claims are keyed on the movement reference —
             // the shared writer has no unique constraint to lean on.
-            if (reference is not null)
+            if (canonicalReference is not null)
             {
                 var prior = await ErpDb.LongAsync(connection, null,
-                    ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_movements` WHERE `movement_type`='purchase_in' AND `warehouse_id`=? AND `item_id`=? AND `qty`=? AND `reference`=? LIMIT 1"),
-                    cancellationToken, warehouseId, itemId, qty, reference).ConfigureAwait(false);
+                    ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_movements` WHERE `movement_type`='purchase_in' AND `warehouse_id`=? AND `item_id`=? AND `qty`=? AND `reference` IN (?, ?) LIMIT 1"),
+                    cancellationToken, warehouseId, itemId, qty, canonicalReference, legacyReference ?? canonicalReference).ConfigureAwait(false);
                 if (prior > 0)
                 {
-                    return new(true, "ok", "Receipt " + reference + " already recorded for item " + itemId + " in warehouse " + warehouseId + " (movement " + prior + ").");
+                    return new(true, "ok", "Receipt " + canonicalReference + " already recorded for item " + itemId + " in warehouse " + warehouseId + " (movement " + prior + ").");
                 }
             }
 
@@ -176,14 +189,14 @@ public sealed class ErpShamPoReceiveService : IErpShamPoReceiveService
                     ItemId: itemId,
                     Qty: qty,
                     UnitCost: unitCost,
-                    Reference: reference,
+                    Reference: canonicalReference,
                     Note: "SHAM " + entity + "/" + bu + " receipt" + (string.IsNullOrWhiteSpace(sku) ? string.Empty : " — " + sku.Trim()),
                     MovementDate: movementDate,
                     PurchaseId: purchaseId),
                 cancellationToken).ConfigureAwait(false);
 
             return new(result.Succeeded, result.Succeeded ? "ok" : "movement", result.Succeeded
-                ? "Received " + qty.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + " into " + entity + "/" + bu + " warehouse " + warehouseId + (reference is null ? string.Empty : " against " + reference) + "."
+                ? "Received " + qty.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + " into " + entity + "/" + bu + " warehouse " + warehouseId + (canonicalReference is null ? string.Empty : " against " + canonicalReference) + "."
                 : result.Message);
         }
         catch (Exception)
