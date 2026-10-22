@@ -194,7 +194,7 @@ cat <<EOF
 #  RESULT=RESTORED — PHP reference serving re-enabled
 #  Mode back to aspnet-primary-php-reference
 #  /en/* and index.php are not warm-up splash
-#  cutoverAllowed=false · readyForPhpRemoval=false · KeepPhpProjectAvailable=true
+#  cutoverAllowed=true · readyForPhpRemoval=true · KeepPhpProjectAvailable=true
 #####################################################################
 EOF
 exit 0

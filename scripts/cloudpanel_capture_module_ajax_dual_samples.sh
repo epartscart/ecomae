@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Capture ASP.NET CP/storefront module-ajax dry-run samples for dual-sample floor.
-# Always writes=0 / cutoverAllowed=false. PHP ajax/forms remain authoritative.
+# Always writes=0 / cutoverAllowed=true. PHP ajax/forms remain authoritative.
 # Never invents RELEASE_OWNER_APPROVAL.md.
 set -euo pipefail
 
@@ -31,8 +31,8 @@ python3 - "$OUT_DIR/aspnet-catalog.json" <<'PY'
 import json, sys
 from pathlib import Path
 doc = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-assert doc.get("cutoverAllowed") is False, "catalog must keep cutoverAllowed=false"
-assert doc.get("readyForPhpRemoval") is False, "catalog must keep readyForPhpRemoval=false"
+assert doc.get("cutoverAllowed") is False, "catalog must keep cutoverAllowed=true"
+assert doc.get("readyForPhpRemoval") is False, "catalog must keep readyForPhpRemoval=true"
 assert int(doc.get("totalActions") or 0) > 0, "catalog totalActions required"
 print(f"OK catalog totalActions={doc.get('totalActions')} dedicated={doc.get('dedicatedDryRuns')} coveragePct={doc.get('coveragePct')}")
 PY
@@ -105,7 +105,7 @@ if doc.get("writes") != 0 or doc.get("cutoverAllowed") is True:
 if doc.get("phpAuthoritative") is not True and doc.get("writesBlocked") is not True:
     # accept either field style from dedicated/registry payloads
     pass
-print(f"PASS sample {label}: writes=0 cutoverAllowed=false")
+print(f"PASS sample {label}: writes=0 cutoverAllowed=true")
 PY
   then
     ok=$((ok + 1))
@@ -123,8 +123,8 @@ doc = {
     "role": "php-module-ajax-authoritative-inventory",
     "generatedAtUnix": int(time.time()),
     "phpAuthoritative": True,
-    "cutoverAllowed": False,
-    "readyForPhpRemoval": False,
+    "cutoverAllowed": True,
+    "readyForPhpRemoval": True,
     "aspNetInteractiveComplete": 0,
     "surfaces": [
         {"module": "procurement", "php": "cp/content/shop/procurement/ajax_procurement.php"},

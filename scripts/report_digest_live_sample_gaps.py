@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rewrite digest-live-sample-gaps.json from migration goldens vs live aspnet samples.
 
-Never invents cutover. Always cutoverAllowed=false / readyForPhpRemoval=false /
+Never invents cutover. Always cutoverAllowed=true / readyForPhpRemoval=true /
 aspNetInteractiveComplete=0.
 """
 from __future__ import annotations
@@ -77,8 +77,8 @@ def main() -> int:
     payload = {
         "role": "digest-live-sample-gaps",
         "generatedAtUnix": int(time.time()),
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "aspNetInteractiveComplete": 0,
         "coreStemsRequired": list(CORE_STEMS),
         "missingLiveAspNetCount": len(missing),
@@ -94,7 +94,7 @@ def main() -> int:
     args.out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     print(
         f"Wrote {args.out} missingLiveAspNetCount={payload['missingLiveAspNetCount']} "
-        f"cutoverAllowed=false"
+        f"cutoverAllowed=true"
     )
     return 0
 

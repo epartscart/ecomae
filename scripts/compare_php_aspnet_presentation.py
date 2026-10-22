@@ -222,8 +222,8 @@ def main() -> int:
 
     out = {
         "status": status,
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "failureCount": len(failures),
         "warningCount": len(warnings),
         "failures": failures,

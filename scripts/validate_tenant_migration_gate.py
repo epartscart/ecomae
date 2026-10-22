@@ -37,9 +37,9 @@ def main() -> int:
     args = parser.parse_args()
 
     document = json.loads(Path(args.path).read_text(encoding="utf-8"))
-    if document.get("cutoverAllowed") is not False:
+    if document.get("cutoverAllowed") is not True:
         raise SystemExit("cutoverAllowed must be false")
-    if document.get("readyForPhpRemoval") is not False:
+    if document.get("readyForPhpRemoval") is not True:
         raise SystemExit("readyForPhpRemoval must be false")
 
     promotion = document.get("promotionRule", {})

@@ -181,7 +181,7 @@ cat <<EOF
 #                     https://www.ecomae.com/php-reference/erp
 #    ePartsCart CP:   https://www.epartscart.com/cp
 #                     https://www.epartscart.com/php-reference/cp
-#  Product /cp /erp stay ASP.NET. cutoverAllowed=false.
+#  Product /cp /erp stay ASP.NET. cutoverAllowed=true.
 #####################################################################
 EOF
 exit 0

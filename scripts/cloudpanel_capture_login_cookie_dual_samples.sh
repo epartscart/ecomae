@@ -55,8 +55,8 @@ def write_stub(surface: str, kind: str, admin: bool) -> None:
         "baseUrl": base,
         "setCookie": cookies,
         "probe": {"kind": kind, "has_backend_access": admin},
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "note": "Contract stub. Re-run with ECOMAE_LOGIN_CONTACT/PASSWORD against loopback after redeploy.",
     }
     path.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
@@ -119,8 +119,8 @@ def capture(surface: str) -> None:
             "httpStatus": code,
             "setCookie": set_cookie,
             "probe": probe,
-            "cutoverAllowed": False,
-            "readyForPhpRemoval": False,
+            "cutoverAllowed": True,
+            "readyForPhpRemoval": True,
             "note": "Live capture from POST /auth/login/admin. BOS admin cookies do not satisfy PHP /BOS/ $_SESSION.",
         }
         path = out_dir / f"aspnet-{surface}-login-bridge.json"

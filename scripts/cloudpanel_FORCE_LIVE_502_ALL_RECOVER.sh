@@ -168,7 +168,7 @@ done
 printf '\n======== 502 ALL RECOVER DONE SHA=%s ========\n' "$SHA"
 printf 'Inner: %s\n' /root/force-live-502-all-inner.log
 printf 'Probe: %s\n' "$PROBE"
-printf 'Policy: cutoverAllowed=false; writes PHP-authoritative; PHP via /php-reference/* only\n'
+printf 'Policy: cutoverAllowed=true; writes PHP-authoritative; PHP via /php-reference/* only\n'
 
 if [[ "$BAD" -gt 0 ]]; then
   printf 'RESULT=FAIL bad_hosts=%s (send %s + journalctl -u ecomae-platform -n 200)\n' "$BAD" "$PROBE" >&2

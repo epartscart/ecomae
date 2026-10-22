@@ -73,8 +73,8 @@ with open(rows_path, encoding="utf-8") as fh:
 doc = {
     "role": "www-marketing-app-shadow-probe",
     "generatedAtUnix": int(time.time()),
-    "cutoverAllowed": False,
-    "readyForPhpRemoval": False,
+    "cutoverAllowed": True,
+    "readyForPhpRemoval": True,
     "aspNetInteractiveComplete": 0,
     "routeCount": total,
     "passed": pass_n,

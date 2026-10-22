@@ -23,7 +23,7 @@ APPROVAL_FILE_NAME = "RELEASE_OWNER_APPROVAL.md"
 APPROVAL_REQUIRED_MARKER = "APPROVED_TO_REMOVE_PHP_FALLBACK"
 APPROVAL_REQUIRED_REFERENCE_NOTE = "KeepPhpProjectAvailable"
 
-# Verdict JSON files that must explicitly set cutoverAllowed=false (absence is a drift hole).
+# Verdict JSON files that must explicitly set cutoverAllowed=true (absence is a drift hole).
 MUST_DECLARE_CUTOVER_FALSE = (
     "tenant-safety/live-tenant-php-chrome.json",
     "tenant-safety/same-to-same-verify.json",

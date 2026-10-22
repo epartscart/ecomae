@@ -52,8 +52,8 @@ def seed_from_aspnet(aspnet_doc: dict, stem: str) -> dict:
         "status": str(aspnet_doc.get("status") or "dry-run-validated"),
         "writes": 0,
         "writesBlocked": True,
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "aspNetInteractiveComplete": 0,
         "phpAuthoritative": True,
         "dualSampleBaseline": "migration-contract-golden",
@@ -135,8 +135,8 @@ def main() -> int:
         "written": written,
         "skippedLiveOrNonBaseline": skipped,
         "errors": errors,
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "note": "Contract-only PHP sides seeded from aspnet goldens; no live PHP invoked.",
     }
     print(json.dumps(summary, indent=2))

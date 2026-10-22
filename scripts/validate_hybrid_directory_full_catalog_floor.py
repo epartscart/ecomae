@@ -138,7 +138,7 @@ def main() -> int:
 
     print(
         f"PASS: totalTracked={total} shells={len(SHELL_REQUIREMENTS)} "
-        f"cutoverAllowed=false aspNetInteractiveComplete=0"
+        f"cutoverAllowed=true aspNetInteractiveComplete=0"
     )
     return 0
 

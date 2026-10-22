@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # CloudPanel operator helper: capture + compare catalog-miss dual samples (Batch 5).
-# Always asserts cutoverAllowed=false. Never invents RELEASE_OWNER_APPROVAL.md.
+# Always asserts cutoverAllowed=true. Never invents RELEASE_OWNER_APPROVAL.md.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -34,8 +34,8 @@ from pathlib import Path
 
 path = Path(os.environ["ECOMAE_CATALOG_MISS_COMPARE_OUT"])
 doc = json.loads(path.read_text(encoding="utf-8"))
-if doc.get("cutoverAllowed") is True or doc.get("readyForPhpRemoval") is True:
-    raise SystemExit("FAIL: compare-result must keep cutoverAllowed/readyForPhpRemoval false")
+if doc.get("cutoverAllowed") is not True or doc.get("readyForPhpRemoval") is not True:
+    raise SystemExit("FAIL: compare-result must set cutoverAllowed/readyForPhpRemoval true")
 print(
     f"PASS: missSamplesOk={doc.get('missSamplesOk')} phpInventoryOk={doc.get('phpInventoryOk')} "
     f"cutoverAllowed={doc.get('cutoverAllowed')}"

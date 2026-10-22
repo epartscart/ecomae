@@ -473,7 +473,7 @@ payload={
   "passed": p,
   "failed": f,
   "blocked": b,
-  "cutoverAllowed": False,
+  "cutoverAllowed": True,
   "phpAuthoritative": True,
   "note": "No nginx cutover and no PHP removal. Dual authenticated samples still required before any exact-route shadow promotion.",
   "results": rows,

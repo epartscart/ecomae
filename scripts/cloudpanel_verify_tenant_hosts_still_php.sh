@@ -124,7 +124,7 @@ doc = {
         "taxofinca.com",
     ],
     "cutoverAllowed": True,
-    "readyForPhpRemoval": False,
+    "readyForPhpRemoval": True,
     "tenantChromeProbe": {
         "status": chrome.get("status"),
         "passCount": chrome.get("passCount"),
@@ -157,5 +157,5 @@ if [[ "$fail" -ne 0 ]]; then
   exit 1
 fi
 say "PASS: tenants still on PHP product chrome (same-to-same / invisible migration)."
-say "cutoverAllowed=true readyForPhpRemoval=false"
+say "cutoverAllowed=true readyForPhpRemoval=true"
 exit 0

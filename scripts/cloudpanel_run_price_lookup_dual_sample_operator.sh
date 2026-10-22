@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # CloudPanel/CI operator: compare price-lookup dual samples.
-# Default uses checked-in evidence samples. Always asserts cutoverAllowed=false.
+# Default uses checked-in evidence samples. Always asserts cutoverAllowed=true.
 # Never invents RELEASE_OWNER_APPROVAL.md.
 set -euo pipefail
 

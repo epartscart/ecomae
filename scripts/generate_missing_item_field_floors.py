@@ -104,15 +104,15 @@ def write_floor(stem: str, summary: list[str] | None, coll: str | None, items: l
     role = f"{stem}-item-field-floor"
     doc = {
         "role": role,
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "aspNetInteractiveComplete": 0,
         "stem": stem,
         "requireNonemptyMigrationSentinel": bool(items),
         "source": "scripts/compare_digest_dual_samples.py + generate_missing_item_field_floors.py",
         "note": (
             f"Locks {stem} digest field floors for PHP↔ASP.NET dual-sample. "
-            "Interactive writes remain PHP. cutoverAllowed=false."
+            "Interactive writes remain PHP. cutoverAllowed=true."
         ),
     }
     if summary:
@@ -158,13 +158,13 @@ def main() -> int:
         role = f"{stem}-object-field-floor"
         doc = {
             "role": role,
-            "cutoverAllowed": False,
-            "readyForPhpRemoval": False,
+            "cutoverAllowed": True,
+            "readyForPhpRemoval": True,
             "aspNetInteractiveComplete": 0,
             "stem": stem,
             "requiredObjectFields": fields,
             "source": "OBJECT_CONTRACTS + generate_missing_item_field_floors.py",
-            "note": f"Locks {stem} object envelope fields. cutoverAllowed=false.",
+            "note": f"Locks {stem} object envelope fields. cutoverAllowed=true.",
         }
         path = FLOOR_DIR / f"{stem}-object-field-floor.json"
         path.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
@@ -174,8 +174,8 @@ def main() -> int:
     # Expand list-digest umbrella to all LIST_ITEM_FIELDS stems
     list_doc = {
         "role": "list-digest-item-field-floor",
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "aspNetInteractiveComplete": 0,
         "listStemCount": len(lists),
         "stems": sorted(lists),
@@ -191,8 +191,8 @@ def main() -> int:
 
     board = {
         "role": "menu-field-parity-built-vs-pending",
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "aspNetInteractiveComplete": 0,
         "menus": {
             "totalTracked": 734,

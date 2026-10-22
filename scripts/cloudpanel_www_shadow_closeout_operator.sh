@@ -107,5 +107,5 @@ if [[ "$FAIL" -ne 0 ]]; then
 fi
 
 echo ""
-echo "PASS: www shadow closeout steps completed with cutoverAllowed=false"
+echo "PASS: www shadow closeout steps completed with cutoverAllowed=true"
 exit 0

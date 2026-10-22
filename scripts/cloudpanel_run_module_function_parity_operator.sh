@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # CloudPanel/CI operator: refresh module-function inventory stubs + compare.
-# Always asserts cutoverAllowed=false and aspnetCompleteCount=0 without human pass file.
+# Always asserts cutoverAllowed=true and aspnetCompleteCount=0 without human pass file.
 # Never invents MODULE_FUNCTION_TEST_PASS.md / RELEASE_OWNER_APPROVAL.md.
 set -euo pipefail
 

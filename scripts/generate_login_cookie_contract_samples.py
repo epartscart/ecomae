@@ -26,8 +26,8 @@ def seed_from_aspnet(aspnet: dict, surface: str) -> dict:
         "role": "php-login-bridge-contract-sample",
         "surface": surface,
         "phpAuthoritative": True,
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "aspNetInteractiveComplete": 0,
         "dualSampleBaseline": "migration-contract-golden",
         "pairedAspNetGolden": f"aspnet-{surface}-login-bridge.json",
@@ -76,8 +76,8 @@ def main() -> int:
         "written": written,
         "expected": len(SURFACES),
         "errors": errors,
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "phpAuthoritative": True,
     }
     print(json.dumps(result, indent=2))

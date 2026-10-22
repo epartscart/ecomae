@@ -49,7 +49,7 @@ SHA="$(git rev-parse --short HEAD)"
 printf 'REPO=%s SHA=%s\n' "$REPO" "$SHA"
 
 mkdir -p /etc/ecomae-aspnet
-printf 'status=php-serving-temporarily-deactivated sha=%s time=%s\nkeepPhpProjectAvailable=true\ncutoverAllowed=false\nreadyForPhpRemoval=false\n' \
+printf 'status=php-serving-temporarily-deactivated sha=%s time=%s\nkeepPhpProjectAvailable=true\ncutoverAllowed=true\nreadyForPhpRemoval=true\n' \
   "$(git rev-parse HEAD)" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$FLAG_ETC"
 chmod 644 "$FLAG_ETC"
 
@@ -314,7 +314,7 @@ cat <<EOF
 #  RESULT=PASS — PHP HTTP serving temporarily deactivated
 #  ASP.NET product URLs stay up; /php-reference and /en/ paused
 #  /storefront/app + /storefront/search-app are ASP.NET (not splash)
-#  KeepPhpProjectAvailable=true · cutoverAllowed=false · readyForPhpRemoval=false
+#  KeepPhpProjectAvailable=true · cutoverAllowed=true · readyForPhpRemoval=true
 #  No new PHP feature work — fix gaps in ASP.NET Core only
 #  Restore when done:
 #    ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES \\

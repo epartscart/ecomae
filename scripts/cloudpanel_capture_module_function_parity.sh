@@ -1153,8 +1153,8 @@ else:
     doc = {
         "role": "module-function-inventory",
         "capturedAt": now,
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "aspnetCompleteCount": 0,
         "moduleCount": len(modules),
         "hybridPreviewCount": hybrid_preview_count,

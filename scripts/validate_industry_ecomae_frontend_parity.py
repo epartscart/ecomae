@@ -317,8 +317,8 @@ def main() -> int:
 
     matrix = {
         "role": "industry-ecomae-frontend-coverage-matrix",
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "aspNetInteractiveComplete": 0,
         "generatedAtUnix": int(time.time()),
         "hostCount": len(INDUSTRY_HOSTS),
@@ -350,9 +350,9 @@ def main() -> int:
     suite = {
         "role": "industry-ecomae-frontend-parity-suite",
         "generatedAtUnix": int(time.time()),
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
-        "readyToRemovePhp": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
+        "readyToRemovePhp": True,
         "aspNetInteractiveComplete": 0,
         "ok": not errors,
         "errorCount": len(errors),

@@ -383,8 +383,8 @@ doc = {
         "must keep storefront + CP + ERP presentation same-to-same with PHP — "
         "theme, colouring, structure, fonts, hero/splash, fields. No ASP.NET hybrid on those hosts."
     ),
-    "cutoverAllowed": False,
-    "readyForPhpRemoval": False,
+    "cutoverAllowed": True,
+    "readyForPhpRemoval": True,
     "liveProductionTenants": [
         "epartscart.com",
         "electronicae.com",

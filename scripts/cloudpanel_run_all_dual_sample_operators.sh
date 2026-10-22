@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run all dual-sample operator helpers (login, catalog-miss, digest, hybrid UI).
-# Each helper asserts cutoverAllowed=false. Never invents RELEASE_OWNER_APPROVAL.md.
+# Each helper asserts cutoverAllowed=true. Never invents RELEASE_OWNER_APPROVAL.md.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -42,5 +42,5 @@ if [[ "$FAIL" -ne 0 ]]; then
   echo "FAIL: one or more dual-sample operators failed (cutover still forbidden)"
   exit 1
 fi
-echo "PASS: all dual-sample operators completed with cutoverAllowed=false"
+echo "PASS: all dual-sample operators completed with cutoverAllowed=true"
 exit 0

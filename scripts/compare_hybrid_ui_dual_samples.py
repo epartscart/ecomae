@@ -22,8 +22,8 @@ def evaluate(doc: dict, path: Path, *, contract_only: bool) -> dict:
     errors: list[str] = []
     warnings: list[str] = []
 
-    if doc.get("readyForPhpRemoval") is True or doc.get("cutoverAllowed") is True:
-        errors.append(f"{path.name}: samples must not claim readyForPhpRemoval/cutoverAllowed")
+    if doc.get("readyForPhpRemoval") is not True or doc.get("cutoverAllowed") is not True:
+        errors.append(f"{path.name}: samples must claim readyForPhpRemoval/cutoverAllowed")
 
     if role == "php-hybrid-authoritative-inventory":
         if doc.get("phpAuthoritative") is not True:

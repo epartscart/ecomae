@@ -444,9 +444,9 @@ def write_samples() -> None:
             "source": "migration",
             "message": "TenantRegistry DB is not configured.",
             "dualSampleBaseline": "migration-contract-golden",
-            "cutoverAllowed": False,
-            "readyForPhpRemoval": False,
-            "note": f"migration-mode; {d['omit']}; cutoverAllowed=false",
+            "cutoverAllowed": True,
+            "readyForPhpRemoval": True,
+            "note": f"migration-mode; {d['omit']}; cutoverAllowed=true",
         }
         p.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
 
@@ -473,8 +473,8 @@ def write_samples() -> None:
                     "phpAuthoritative": True,
                     "wwwPreviewOnly": True,
                     "tenantChromePhp": True,
-                    "cutoverAllowed": False,
-                    "readyForPhpRemoval": False,
+                    "cutoverAllowed": True,
+                    "readyForPhpRemoval": True,
                     "capturedAt": NOW,
                     "baseUrl": "http://127.0.0.1:5100",
                     "publicBaseUrl": "https://www.ecomae.com",

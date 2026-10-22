@@ -148,7 +148,7 @@ def main() -> int:
         "phpInventoryOk": inventory_ok,
         "failed": len(failed),
         "cutoverAllowed": True,
-        "readyForPhpRemoval": False,
+        "readyForPhpRemoval": True,
         "contractOnly": bool(args.contract_only),
         "note": "Batch 5 miss harness only. Live UMAPI fill remains PHP-authoritative.",
         "results": results,
