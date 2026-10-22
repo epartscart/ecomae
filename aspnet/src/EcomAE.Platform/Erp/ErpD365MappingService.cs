@@ -165,6 +165,11 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         // dimension tables on top of them, so a fresh tenant needs the base ensure.
         await glPosting.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await glService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        // Stable D365 identity column on GL lines — added here (pre-transaction) because ALTER
+        // implicitly commits any open MySQL transaction.
+        await ErpDb.TryExecuteAsync(connection,
+            "ALTER TABLE `epc_erp_gl_lines` ADD `ext_key` varchar(255) NOT NULL DEFAULT ''",
+            cancellationToken).ConfigureAwait(false);
 
         var staged = new List<(string Key, string Payload)>();
         await using (var command = connection.CreateCommand())
@@ -218,7 +223,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                     "VendorInvoiceHeaders" => await ApplyPurchaseInvoiceAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
                     "VendorInvoiceLines" => await ApplyPurchaseInvoiceLineAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     "CustomerPaymentJournalHeaders" or "VendorPaymentJournalHeaders" or "LedgerJournalHeaders" => await ApplyJournalHeaderAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
-                    "CustomerPaymentJournalLines" or "VendorPaymentJournalLines" or "LedgerJournalLines" => await ApplyJournalLineAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
+                    "CustomerPaymentJournalLines" or "VendorPaymentJournalLines" or "LedgerJournalLines" => await ApplyJournalLineAsync(connection, transaction, doc.RootElement, extKey, cancellationToken).ConfigureAwait(false),
                     "MainAccounts" => await ApplyMainAccountAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     _ => false,
                 };
@@ -900,7 +905,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
     }
 
     /// <summary>LedgerJournalLines → epc_erp_gl_lines (parent via company-scoped journal_no, coa via main account).</summary>
-    private static async Task<bool> ApplyJournalLineAsync(DbConnection connection, DbTransaction tx, JsonElement row, CancellationToken ct)
+    private static async Task<bool> ApplyJournalLineAsync(DbConnection connection, DbTransaction tx, JsonElement row, string extKey, CancellationToken ct)
     {
         var journalNo = ScopedKey(row, Str(row, "JournalNumber", "JournalBatchNumber", "JournalId"), 32);
         var accountCode = Str(row, "MainAccount", "MainAccountId", "AccountDisplayValue", "LedgerDimension");
@@ -935,20 +940,30 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         var hasDimString = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_string", ct).ConfigureAwait(false);
         var hasVoucher = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "voucher", ct).ConfigureAwait(false);
 
-        // Upsert keyed on journal+account+note(+voucher): an amount or note CHANGE on the D365 side
-        // must update the existing line, not append a second one — otherwise balances count both.
+        // The staged staging key is the stable D365 identity of this line (company|doc|line ids) —
+        // matching on it means an edited amount OR note updates the same GL line instead of
+        // appending a duplicate, while two distinct lines can never collapse into one.
+        // (The `ext_key` column is ensured in ApplyAsync before the transaction opens — DDL must not
+        // run here: MySQL ALTER implicitly commits the ambient transaction.)
         var existing = await ErpDb.LongAsync(connection, tx,
-            ErpDb.Positional(hasVoucher && voucher.Length > 0
-                ? "SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `coa_id` = ? AND IFNULL(`line_note`,'') = ? AND `voucher` = ? LIMIT 1"
-                : "SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `coa_id` = ? AND IFNULL(`line_note`,'') = ? LIMIT 1"),
-            ct, hasVoucher && voucher.Length > 0
-                ? new object?[] { journalId, coaId, Clip(note, 255), Clip(voucher, 255) }
-                : new object?[] { journalId, coaId, Clip(note, 255) }).ConfigureAwait(false);
+            ErpDb.Positional("SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_key` = ? LIMIT 1"),
+            ct, journalId, Clip(extKey, 255)).ConfigureAwait(false);
         if (existing <= 0)
         {
-            var cols = new List<string> { "`journal_id`", "`coa_id`", "`debit`", "`credit`", "`line_note`" };
-            var marks = new List<string> { "?", "?", "?", "?", "?" };
-            var vals = new List<object?> { journalId, coaId, debit, credit, Clip(note, 255) };
+            // Legacy rows applied before ext_key existed: claim by the old match and stamp the key.
+            existing = await ErpDb.LongAsync(connection, tx,
+                ErpDb.Positional(hasVoucher && voucher.Length > 0
+                    ? "SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `coa_id` = ? AND IFNULL(`line_note`,'') = ? AND `voucher` = ? AND `ext_key` = '' LIMIT 1"
+                    : "SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `coa_id` = ? AND IFNULL(`line_note`,'') = ? AND `ext_key` = '' LIMIT 1"),
+                ct, hasVoucher && voucher.Length > 0
+                    ? new object?[] { journalId, coaId, Clip(note, 255), Clip(voucher, 255) }
+                    : new object?[] { journalId, coaId, Clip(note, 255) }).ConfigureAwait(false);
+        }
+        if (existing <= 0)
+        {
+            var cols = new List<string> { "`journal_id`", "`coa_id`", "`debit`", "`credit`", "`line_note`", "`ext_key`" };
+            var marks = new List<string> { "?", "?", "?", "?", "?", "?" };
+            var vals = new List<object?> { journalId, coaId, debit, credit, Clip(note, 255), Clip(extKey, 255) };
             if (hasDimString) { cols.Add("`dimension_string`"); marks.Add("?"); vals.Add(Clip(dimensionString, 255)); }
             if (hasVoucher) { cols.Add("`voucher`"); marks.Add("?"); vals.Add(Clip(voucher, 255)); }
             await ErpDb.ExecuteAsync(connection, tx,
@@ -957,8 +972,8 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         }
         else
         {
-            var sets = new List<string> { "`debit` = ?", "`credit` = ?" };
-            var vals = new List<object?> { debit, credit };
+            var sets = new List<string> { "`debit` = ?", "`credit` = ?", "`line_note` = ?", "`ext_key` = ?" };
+            var vals = new List<object?> { debit, credit, Clip(note, 255), Clip(extKey, 255) };
             if (hasDimString && dimensionString.Length > 0) { sets.Add("`dimension_string` = ?"); vals.Add(Clip(dimensionString, 255)); }
             if (hasVoucher && voucher.Length > 0) { sets.Add("`voucher` = ?"); vals.Add(Clip(voucher, 255)); }
             vals.Add(existing);
