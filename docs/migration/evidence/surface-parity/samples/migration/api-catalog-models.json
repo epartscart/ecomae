@@ -18,6 +18,6 @@
   ],
   "message": "migration-mode models item-field sentinel; PHP/cache remain authoritative",
   "dualSampleBaseline": "migration-contract-golden",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true
 }

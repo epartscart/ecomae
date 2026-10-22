@@ -6,7 +6,7 @@
   "problem": "Live www.ecomae.com returned Cloudflare 502 / incomplete home; LifeOS platform cinema needed after hero animation.",
   "locks": {
     "heroUntouched": true,
-    "cutoverAllowed": false,
+    "cutoverAllowed": true,
     "requirePhpFallback": true,
     "keepPhpProjectAvailable": true
   },

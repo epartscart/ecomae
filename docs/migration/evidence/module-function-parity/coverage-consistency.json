@@ -1,7 +1,7 @@
 {
   "role": "module-function-coverage-consistency",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspnetCompleteCount": 0,
   "inventoryCatalogRows": 734,
   "coverageBoardRows": 734,

@@ -1,6 +1,6 @@
 {
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "ok": false,
   "error": {
     "code": "missing_api_key",

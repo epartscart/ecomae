@@ -28,8 +28,8 @@
       "PhpEpartsCartLogoAssets: AnimatedCartMarkSvg + AnimatedCartFragmentHtml"
     ],
     "locksPreserved": {
-      "cutoverAllowed": false,
-      "readyForPhpRemoval": false,
+      "cutoverAllowed": true,
+      "readyForPhpRemoval": true,
       "RequirePhpFallback": true,
       "KeepPhpProjectAvailable": true,
       "TemporarilyDeactivatePhpServing": "operator pause only; product chrome must not depend on PHP HTTP"

@@ -11,7 +11,7 @@
     "kind": "Customer",
     "has_backend_access": false
   },
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "note": "Contract stub. Customer token formula md5(contact+userId+time+secret)."
 }

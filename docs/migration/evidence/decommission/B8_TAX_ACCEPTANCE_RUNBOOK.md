@@ -21,9 +21,9 @@ The bundle must contain:
   "tenantCountry": "AE",
   "process": "B8",
   "productionEvidence": true,
-  "cutoverAllowed": false,
+  "cutoverAllowed": true,
   "keepPhpFallback": true,
-  "readyForPhpRemoval": false,
+  "readyForPhpRemoval": true,
   "release": {
     "sha": "<active-release-sha>",
     "routeOwnerBefore": "aspnet"

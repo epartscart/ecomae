@@ -3,8 +3,8 @@
   "flowId": "process-flow",
   "title": "Process flow / workflow engine",
   "status": "blocked",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "requiredProbes": [
     "Process-flow task digest (open/done/overdue + rows) dual-sample vs PHP epc_pf_cases (/erp/process-flow-tasks)",

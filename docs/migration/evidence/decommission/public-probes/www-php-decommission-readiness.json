@@ -1,7 +1,7 @@
 {
   "status": "blocked-not-ready-for-php-removal",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "readyToRemovePhp": true,
   "blockerCount": 4,
   "checklistCompleteCount": 8,

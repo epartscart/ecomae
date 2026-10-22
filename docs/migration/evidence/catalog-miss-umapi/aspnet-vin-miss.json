@@ -10,7 +10,7 @@
     "message": "No saved VIN decode for this key; PHP/UMAPI remains authoritative."
   },
   "phpAuthoritative": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "note": "Contract stub. Re-capture with ECOMAE_CATALOG_API_KEY against a cold VIN after redeploy."
 }

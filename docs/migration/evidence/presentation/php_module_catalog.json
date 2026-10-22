@@ -5,8 +5,8 @@
     "content/general_pages/epc_cp_brochure_inventory.php"
   ],
   "policy": "hybrid-deeplink-to-php-until-aspnet-module-complete",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "counts": {
     "erpAreas": 39,
     "erpTabs": 158,

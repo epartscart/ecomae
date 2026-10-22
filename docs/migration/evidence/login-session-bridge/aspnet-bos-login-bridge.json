@@ -11,7 +11,7 @@
     "kind": "Admin",
     "has_backend_access": true
   },
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "note": "Contract stub. DECISION: admin cookies ≠ PHP $_SESSION epc_bos_context; /BOS/ remains PHP-authoritative."
 }

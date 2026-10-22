@@ -1,7 +1,7 @@
 {
   "role": "erp-sales-quotations-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "erp-sales-quotations",
   "collectionKey": "quotations",

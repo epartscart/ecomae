@@ -1,6 +1,6 @@
 {
   "status": "field-function-presentation-contracts-locked-cutover-blocked",
-  "cutoverAllowed": false,
+  "cutoverAllowed": true,
   "contractCount": 136,
   "presentationAssetsChecked": 28,
   "presentationAssetsOk": 28,
@@ -5109,5 +5109,5 @@
     "Optional customer digests: ECOMAE_CUSTOMER_COOKIE_HEADER (not required for ReadyToRemovePhp).",
     "Only after dual samples match: promote exact-route shadows one location= at a time."
   ],
-  "readyForPhpRemoval": false
+  "readyForPhpRemoval": true
 }

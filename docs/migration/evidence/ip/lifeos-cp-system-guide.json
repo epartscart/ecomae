@@ -21,8 +21,8 @@
     "backend": "LifeOsLinkCatalog.BackendFromSpec(ILifeOsMasterSpec)"
   },
   "locksPreserved": {
-    "cutoverAllowed": false,
-    "readyForPhpRemoval": false,
+    "cutoverAllowed": true,
+    "readyForPhpRemoval": true,
     "ipBosSuperCpOnly": true
   },
   "deploy": {

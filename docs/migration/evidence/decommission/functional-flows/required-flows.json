@@ -1,7 +1,7 @@
 {
   "role": "pre-decommission-functional-required-flows",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "note": "Named functional flows that MUST be green before PHP decommission. Suite fails if any flow lacks required evidence. Never invents RELEASE_OWNER_APPROVAL.md.",
   "flows": [

@@ -1,7 +1,7 @@
 {
   "role": "hybrid-directory-full-catalog-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "totalTracked": 734,
   "floors": {

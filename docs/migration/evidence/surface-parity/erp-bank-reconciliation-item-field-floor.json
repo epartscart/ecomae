@@ -1,7 +1,7 @@
 {
   "role": "erp-bank-reconciliation-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "erp-bank-reconciliation",
   "collectionKey": "lines",

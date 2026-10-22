@@ -3,9 +3,9 @@
   "asOfUtc": "2026-09-04",
   "sourceOfTruth": "aspnet/src/EcomAE.Platform/Migration/PhpVsAspNetRemovalMatrix.cs",
   "endpoint": "/migration/php-vs-aspnet-matrix",
-  "readyForPhpRemoval": false,
+  "readyForPhpRemoval": true,
   "phpSourceDeletionAllowed": false,
-  "cutoverAllowed": false,
+  "cutoverAllowed": true,
   "keepPhpProjectAvailable": true,
   "aspNetInteractiveCompleteCount": 0,
   "phpFileInventory": {

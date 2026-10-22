@@ -2,8 +2,8 @@
   "role": "php-module-ajax-authoritative-inventory",
   "generatedAtUnix": 1785865238,
   "phpAuthoritative": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "surfaces": [
     {

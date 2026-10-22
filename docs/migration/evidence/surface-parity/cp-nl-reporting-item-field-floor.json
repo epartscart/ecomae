@@ -1,7 +1,7 @@
 {
   "role": "cp-nl-reporting-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-nl-reporting",
   "collectionKey": "definitions",

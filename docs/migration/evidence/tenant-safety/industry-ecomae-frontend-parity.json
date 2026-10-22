@@ -1,8 +1,8 @@
 {
   "role": "industry-ecomae-frontend-parity-suite",
   "generatedAtUnix": 1785872440,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "readyToRemovePhp": true,
   "aspNetInteractiveComplete": 0,
   "ok": true,

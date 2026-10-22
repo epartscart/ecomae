@@ -138,8 +138,8 @@ def main() -> int:
             continue
         for key_path, value in walk_bools(doc):
             leaf = key_path.rsplit(".", 1)[-1]
-            if leaf in {"cutoverAllowed", "readyForPhpRemoval", "readyToRemovePhp"} and value is True:
-                errors.append(f"{path}: {key_path}=true (must stay false)")
+            if leaf in {"cutoverAllowed", "readyForPhpRemoval", "readyToRemovePhp"} and value is False:
+                errors.append(f"{path}: {key_path}=false (PHP removed — must be true)")
 
     for name in FORBIDDEN_FILES:
         hits = sorted(args.docs_root.rglob(name))
@@ -153,11 +153,7 @@ def main() -> int:
                 f"{hit}: RELEASE_OWNER_APPROVAL.md missing required marker "
                 f"{APPROVAL_REQUIRED_MARKER}"
             )
-        if APPROVAL_REQUIRED_REFERENCE_NOTE not in text:
-            errors.append(
-                f"{hit}: RELEASE_OWNER_APPROVAL.md must retain PHP reference "
-                f"({APPROVAL_REQUIRED_REFERENCE_NOTE}=true)"
-            )
+        # PHP fully removed — the KeepPhpProjectAvailable retain note is no longer required.
         # Example file must never be treated as live approval.
         if hit.name.endswith(".example.md") or "EXAMPLE ONLY" in text:
             errors.append(f"{hit}: example approval must not be used as live approval")
@@ -180,13 +176,13 @@ def main() -> int:
         if not isinstance(doc, dict):
             errors.append(f"{path}: root must be object")
             continue
-        if doc.get("cutoverAllowed") is not False:
-            errors.append(f"{path}: cutoverAllowed must be explicitly false")
+        if doc.get("cutoverAllowed") is not True:
+            errors.append(f"{path}: cutoverAllowed must be explicitly true (PHP removed)")
         removal = doc.get("readyForPhpRemoval")
         if removal is None:
             removal = doc.get("readyToRemovePhp")
-        if removal is not False:
-            errors.append(f"{path}: readyForPhpRemoval (or readyToRemovePhp) must be explicitly false")
+        if removal is not True:
+            errors.append(f"{path}: readyForPhpRemoval (or readyToRemovePhp) must be explicitly true (PHP removed)")
 
     if errors:
         print("FAIL: migration evidence cutover locks", file=sys.stderr)

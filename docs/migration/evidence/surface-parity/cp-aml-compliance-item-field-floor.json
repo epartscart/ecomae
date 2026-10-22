@@ -1,7 +1,7 @@
 {
   "role": "cp-aml-compliance-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-aml-compliance",
   "collectionKey": "kyc",

@@ -1,7 +1,7 @@
 {
   "role": "marketing-app-dual-sample-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "phpAuthoritativeHome": "https://www.ecomae.com/",
   "phpHomeMustRemainEpmHub": true,

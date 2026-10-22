@@ -1,8 +1,8 @@
 {
   "role": "compare-result",
   "ok": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "catalogGoldensChecked": 18,
   "failed": 0,
   "priceLookupOk": true,

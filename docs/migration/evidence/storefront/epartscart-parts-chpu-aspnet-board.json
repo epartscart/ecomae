@@ -2,8 +2,8 @@
   "role": "epartscart-parts-chpu-aspnet",
   "generatedAtUnix": 1786432800,
   "ok": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "phpAuthoritativeWrites": true,
   "whyTwoUrlsDifferedLive": {
     "chpu": "https://www.epartscart.com/en/parts/TOYOTA/1310154101 → full PHP nero with live ajax bunches",

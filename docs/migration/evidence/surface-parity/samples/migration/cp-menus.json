@@ -26,6 +26,6 @@
   },
   "note": "migration-mode contract sample; structure summary fields locked; raw structure JSON omitted; PHP remains authoritative",
   "dualSampleBaseline": "migration-contract-golden",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true
 }

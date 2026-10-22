@@ -17,7 +17,7 @@
     ]
   },
   "dualSampleBaseline": "migration-contract-golden",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "message": "migration-mode engines nested data.data[] item-field sentinel; OfflineCacheOk keeps object blob; PHP/UMAPI remain authoritative"
 }

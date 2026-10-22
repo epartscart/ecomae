@@ -1,7 +1,7 @@
 {
   "role": "cp-slider-banners-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-slider-banners",
   "requireNonemptyMigrationSentinel": true,

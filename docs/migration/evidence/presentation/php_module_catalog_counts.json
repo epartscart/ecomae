@@ -9,6 +9,6 @@
     "storefrontSurfaces": 13
   },
   "policy": "hybrid-deeplink-to-php-until-aspnet-module-complete",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true
 }

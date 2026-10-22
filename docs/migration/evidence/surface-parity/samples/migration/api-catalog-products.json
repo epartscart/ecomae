@@ -15,7 +15,7 @@
     ]
   },
   "dualSampleBaseline": "migration-contract-golden",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "message": "migration-mode products nested data.data[] item-field sentinel; OfflineCacheOk object blob"
 }

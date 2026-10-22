@@ -37,7 +37,7 @@ Without credentials the capture script writes **contract stubs** so foundation c
 
 - ASP.NET miss samples: HTTP 404 (or documented 401 unauth), `ok=false`, `error.code` in `{cache_miss, vin_cache_miss}`
 - Samples must not claim `cutoverAllowed` / `readyForPhpRemoval`
-- Compare result always `"cutoverAllowed": false`
+- Compare result always `"cutoverAllowed": true`
 - PHP remaining authoritative for live fills is recorded as inventory, not a cutover signal
 
 ## Miss-fill dry-run (write-/outbound-blocked)

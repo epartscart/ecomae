@@ -10,7 +10,7 @@
     "TITLE": "Migration article"
   },
   "dualSampleBaseline": "migration-contract-golden",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "message": "migration-mode article object item-field sentinel; OfflineCacheOk object blob"
 }

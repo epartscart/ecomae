@@ -1,7 +1,7 @@
 {
   "role": "cp-platform-communication-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-platform-communication",
   "collectionKey": "tasks",

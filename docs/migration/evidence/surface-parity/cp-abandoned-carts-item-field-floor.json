@@ -1,7 +1,7 @@
 {
   "role": "cp-abandoned-carts-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-abandoned-carts",
   "requireNonemptyMigrationSentinel": true,

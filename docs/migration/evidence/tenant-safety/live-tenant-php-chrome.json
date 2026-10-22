@@ -3,8 +3,8 @@
   "status": "pass",
   "policy": "live-tenant-presentation-identical-to-php",
   "mandate": "Named live tenants (epartscart, electronicae, stylenlook, thejewellerytrend, taxofinca) must keep storefront + CP + ERP presentation same-to-same with PHP \u2014 theme, colouring, structure, fonts, hero/splash, fields. No ASP.NET hybrid on those hosts.",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "liveProductionTenants": [
     "epartscart.com",
     "electronicae.com",

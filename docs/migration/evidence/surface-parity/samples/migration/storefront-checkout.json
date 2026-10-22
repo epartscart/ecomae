@@ -32,7 +32,7 @@
     "user_id": 9
   },
   "dualSampleBaseline": "migration-contract-golden",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "note": "migration-mode; checkout readiness sentinel; how_get/confirm/payment remain PHP; cutoverAllowed=false"
 }

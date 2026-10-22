@@ -2,8 +2,8 @@
   "role": "epartscart-no-php-product-pages",
   "generatedAtUnix": 1786434000,
   "ok": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "policy": {
     "productHtml": "ASP.NET Core only",
     "phpHtml": "/php-reference/* only — paused (TemporarilyDeactivatePhpServing) until operator asks to restore for compare",

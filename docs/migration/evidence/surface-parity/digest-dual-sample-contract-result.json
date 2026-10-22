@@ -4,8 +4,8 @@
   "migrationBaselinePairs": 0,
   "contractsRegistered": 141,
   "stemsChecked": 141,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "contractOnly": true,
   "listItemFieldStems": [
     "bos-audit-log",

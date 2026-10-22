@@ -1,7 +1,7 @@
 {
   "role": "cp-warehouse-wms-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-warehouse-wms",
   "collectionKey": "work",

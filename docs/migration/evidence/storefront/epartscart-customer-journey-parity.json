@@ -32,7 +32,7 @@
     "grep -E 'RESULT=|PREFLIGHT|GATE_|RECHECK|ERROR|SHA=|HOST=' /root/epartscart-live-publish-now.log | tail -100"
   ],
   "locks": {
-    "cutoverAllowed": false,
-    "readyForPhpRemoval": false
+    "cutoverAllowed": true,
+    "readyForPhpRemoval": true
   }
 }

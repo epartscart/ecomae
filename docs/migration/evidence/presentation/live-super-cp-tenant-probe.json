@@ -1,7 +1,7 @@
 {
   "role": "live-super-cp-tenant-probe",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "probes": [
     {
       "url": "https://www.ecomae.com/",

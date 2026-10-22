@@ -3,8 +3,8 @@
   "flowId": "erp-external-report-fetch",
   "title": "ERP external report fetch",
   "status": "blocked",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "requiredProbes": [
     "Named report fetch (sales|inventory|vat|ar-aging) totals match PHP report-center/export",

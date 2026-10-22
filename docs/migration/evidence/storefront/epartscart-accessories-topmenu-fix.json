@@ -1,7 +1,7 @@
 {
   "role": "epartscart-accessories-topmenu-fix",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "problem": "Top menu Product → Accessories pointed at /storefront/app#epc-product-family; /en/accessories-spare-parts 302'd to the same hash via ForCatalogBrowse collapse.",
   "phpReference": {
     "path": "/en/accessories-spare-parts",

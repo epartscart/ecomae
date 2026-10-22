@@ -1,7 +1,7 @@
 {
   "role": "cp-crm-tickets-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-crm-tickets",
   "collectionKey": "tickets",

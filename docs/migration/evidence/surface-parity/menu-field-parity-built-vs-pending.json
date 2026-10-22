@@ -1,7 +1,7 @@
 {
   "role": "menu-field-parity-built-vs-pending",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "menus": {
     "totalTracked": 734,

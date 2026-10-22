@@ -1,8 +1,8 @@
 {
   "role": "presentation-scaffold-bytes-estimate",
   "generatedAt": "2026-10-14T01:11:26.056191+00:00",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "catalogCounts": {
     "ErpAreaCount": 39,

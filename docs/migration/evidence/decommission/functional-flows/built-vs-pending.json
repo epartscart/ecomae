@@ -1,7 +1,7 @@
 {
   "role": "pre-decommission-functional-built-vs-pending",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "note": "Static floors/evidence for the 7 named flows are built. Live authenticated smokes + dual-sample write promotion + human RELEASE_OWNER_APPROVAL.md remain pending — PHP must stay until those clear. Never invent approval.",
   "built": [

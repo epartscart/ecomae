@@ -1,7 +1,7 @@
 {
   "role": "cp-communications-test-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-communications-test",
   "requireNonemptyMigrationSentinel": true,

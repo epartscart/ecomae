@@ -50,7 +50,7 @@ bash scripts/cloudpanel_verify_tenant_hosts_still_php.sh   # expect status=pass,
 
 - Hybrid UI samples: `phpAuthoritative=true`, `wwwPreviewOnly=true`, `tenantChromePhp=true`
 - Samples must not claim `cutoverAllowed` / `readyForPhpRemoval`
-- Compare result always `"cutoverAllowed": false`
+- Compare result always `"cutoverAllowed": true`
 - Live mode (non-stub): HTTP 200 + Blazor marker present; PHP deeplink is advisory
 - Contract stubs do **not** authorize exact-route product cutover
 

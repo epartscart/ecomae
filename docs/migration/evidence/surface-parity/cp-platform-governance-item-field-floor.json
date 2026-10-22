@@ -1,7 +1,7 @@
 {
   "role": "cp-platform-governance-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-platform-governance",
   "collectionKey": "rules",

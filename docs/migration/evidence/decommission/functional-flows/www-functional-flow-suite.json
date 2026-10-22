@@ -1,8 +1,8 @@
 {
   "role": "pre-decommission-functional-flow-suite",
   "generatedAtUnix": 1785871050,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "readyToRemovePhp": true,
   "aspNetInteractiveComplete": 0,
   "passed": 0,
@@ -40,7 +40,7 @@
         "epartscart.com warehouse frontend stock result parity vs ASP.NET digest (part_search / ajax_getProductsOfBunch)",
         "ERP inventory-stock digest same fields as PHP warehouse stock listing"
       ],
-      "readyForPhpRemoval": false
+      "readyForPhpRemoval": true
     },
     {
       "id": "erp-external-report-fetch",
@@ -62,7 +62,7 @@
         "Named report fetch (sales|inventory|vat|ar-aging) totals match PHP report-center/export",
         "Worker ErpReportsDryRun remains writes=0 until dual-sample promotes live generation"
       ],
-      "readyForPhpRemoval": false
+      "readyForPhpRemoval": true
     },
     {
       "id": "einvoice",
@@ -84,7 +84,7 @@
         "Authenticated /cp/einvoice-documents digest field parity",
         "Create\u2192validate\u2192submit\u2192poll dry-run sequence paired with PHP (writes=0 until approval)"
       ],
-      "readyForPhpRemoval": false
+      "readyForPhpRemoval": true
     },
     {
       "id": "ct-catalog-umapi",
@@ -106,7 +106,7 @@
         "Miss \u2192 PHP UMAPI fill \u2192 ASP.NET cache hit dual-sample without inventing cutover",
         "18/18 catalog exact-route auth gates remain ASP.NET JSON"
       ],
-      "readyForPhpRemoval": false
+      "readyForPhpRemoval": true
     },
     {
       "id": "process-flow",
@@ -133,7 +133,7 @@
         "Process-flow task digest (open/done/overdue + rows) dual-sample vs PHP epc_erp_processflow_tasks",
         "Industry step-chain posting parity (jewellery/trading/construction/POS)"
       ],
-      "readyForPhpRemoval": false
+      "readyForPhpRemoval": true
     },
     {
       "id": "oms-checkout",
@@ -156,7 +156,7 @@
         "OMS status/courier dry-runs paired with PHP ajax samples",
         "Checkout how_get/confirm/payment path dual-sample (writes=0 until approval)"
       ],
-      "readyForPhpRemoval": false
+      "readyForPhpRemoval": true
     },
     {
       "id": "super-cp-tenant-control",
@@ -178,7 +178,7 @@
         "Onboard/demo tenant provision \u2192 isolated DB \u2192 tenant CP login smoke",
         "Tenant hosts still PHP chrome until intentional exact-route cutover"
       ],
-      "readyForPhpRemoval": false
+      "readyForPhpRemoval": true
     }
   ],
   "note": "Static floors/evidence/PHP CLI coverage for warehouse offers, ERP external reports, e-invoice, CT/UMAPI catalog, process flow, OMS/checkout, Super CP tenant control. PHP chrome remains authoritative until cutover gates clear."

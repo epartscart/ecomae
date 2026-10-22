@@ -2,8 +2,8 @@
   "role": "php-write-dryrun-authoritative-inventory",
   "generatedAtUnix": 1785870349,
   "phpAuthoritative": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "totalActions": 183,
   "actions": [

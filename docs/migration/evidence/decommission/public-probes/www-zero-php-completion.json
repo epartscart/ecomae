@@ -2,8 +2,8 @@
   "status": "not-ready-for-php-removal",
   "overallCompletePercent": 95,
   "overallPendingPercent": 5,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "areas": [
     {
       "name": "Foundation, deployment, and diagnostics",

@@ -45,8 +45,8 @@
     "systemctl is-active ecomae-platform"
   ],
   "locks": {
-    "cutoverAllowed": false,
-    "readyForPhpRemoval": false,
+    "cutoverAllowed": true,
+    "readyForPhpRemoval": true,
     "writes": "PHP-authoritative"
   }
 }

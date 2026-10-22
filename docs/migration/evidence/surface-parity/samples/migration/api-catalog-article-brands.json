@@ -23,7 +23,7 @@
     "stale": true
   },
   "dualSampleBaseline": "migration-contract-golden",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "message": "migration-mode article-brands nested data.data[] item-field sentinel (PHP epc_umapi_brands_offline_payload shape); OfflineCacheOk keeps object blob"
 }

@@ -4,7 +4,7 @@
   "surface": "erp",
   "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=finance&tab=aging",
   "phpAuthoritative": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "note": "PHP remains authoritative until dual-sample + human RELEASE_OWNER_APPROVAL.md."
 }

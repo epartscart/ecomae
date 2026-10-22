@@ -7,8 +7,8 @@
   "status": "digest-wired-awaiting-live-dual-sample",
   "writes": 0,
   "writesBlocked": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "phpAuthoritative": true,
   "dualSampleBaseline": "migration-contract-golden",
   "licenses": [

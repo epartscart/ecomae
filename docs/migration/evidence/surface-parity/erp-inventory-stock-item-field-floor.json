@@ -1,7 +1,7 @@
 {
   "role": "erp-inventory-stock-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "erp-inventory-stock",
   "requireNonemptyMigrationSentinel": true,

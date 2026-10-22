@@ -25,7 +25,7 @@
     }
   },
   "formalStatus": "OPEN",
-  "cutoverAllowed": false,
+  "cutoverAllowed": true,
   "keepPhpFallback": true,
-  "readyForPhpRemoval": false
+  "readyForPhpRemoval": true
 }

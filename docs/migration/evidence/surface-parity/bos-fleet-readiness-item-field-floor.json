@@ -1,7 +1,7 @@
 {
   "role": "bos-fleet-readiness-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "bos-fleet-readiness",
   "requireNonemptyMigrationSentinel": false,

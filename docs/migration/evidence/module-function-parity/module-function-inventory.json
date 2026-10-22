@@ -1,8 +1,8 @@
 {
   "role": "module-function-inventory",
   "capturedAt": "2026-08-04T08:56:13Z",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspnetCompleteCount": 0,
   "moduleCount": 837,
   "hybridPreviewCount": 837,

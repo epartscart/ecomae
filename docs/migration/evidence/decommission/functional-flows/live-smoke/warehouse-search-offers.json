@@ -3,8 +3,8 @@
   "flowId": "warehouse-search-offers",
   "title": "epartscart warehouse frontend \u2014 stock / search offers",
   "status": "blocked",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "requiredProbes": [
     "Authenticated /storefront/search with non-empty offer rows (storage/exist/price)",

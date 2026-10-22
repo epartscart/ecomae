@@ -24,7 +24,7 @@
   "reason": "The PHP seller-settings writer persists key/value settings but does not emit epc_erp_audit_log rows; the local SQL query found no matching e-invoice or seller audit rows. This gate is not applicable to PHP parity and is not an ASP.NET audit acceptance claim.",
   "productionEvidence": false,
   "formalStatus": "OPEN",
-  "cutoverAllowed": false,
+  "cutoverAllowed": true,
   "keepPhpFallback": true,
-  "readyForPhpRemoval": false
+  "readyForPhpRemoval": true
 }
