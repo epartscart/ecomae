@@ -2,6 +2,7 @@ using System.Globalization;
 using System.IO;
 using System.Text.Json.Serialization;
 using EcomAE.Platform.Auth;
+using Microsoft.Extensions.Caching.Memory;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
@@ -381,10 +382,19 @@ public sealed class StorefrontModule : ISurfaceModule
         });
 
         endpoints.MapGet(EcomAeRoutes.StorefrontGenuineBrands, async (
+            HttpContext context,
             ISurfaceDashboardSummaryReporter dashboards,
+            IMemoryCache storefrontAjaxCache,
             CancellationToken cancellationToken) =>
         {
-            var result = await dashboards.ListStorefrontGenuineBrandsAsync(cancellationToken);
+            // Static UMAPI manufacturer list — bots poll this per product page; serve from cache.
+            var result = (await storefrontAjaxCache.GetOrCreateAsync(
+                $"sf-ajax:genuine-brands:{context.Request.Host.Host}",
+                entry =>
+                {
+                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+                    return dashboards.ListStorefrontGenuineBrandsAsync(cancellationToken);
+                }).ConfigureAwait(false))!;
             return Results.Ok(new
             {
                 ok = true,
@@ -398,17 +408,25 @@ public sealed class StorefrontModule : ISurfaceModule
         });
 
         endpoints.MapGet(EcomAeRoutes.StorefrontSearchBunches, async (
+            HttpContext context,
             string? article,
             string? brand,
             string? brend,
             ISurfaceDashboardSummaryReporter dashboards,
+            IMemoryCache storefrontAjaxCache,
             CancellationToken cancellationToken) =>
         {
             var manufacturer = string.IsNullOrWhiteSpace(brand) ? brend : brand;
-            var result = await dashboards.ListStorefrontOfficeStorageBunchesAsync(
-                article ?? string.Empty,
-                manufacturer,
-                cancellationToken);
+            var result = (await storefrontAjaxCache.GetOrCreateAsync(
+                $"sf-ajax:bunches:{context.Request.Host.Host}:{article}:{manufacturer}",
+                entry =>
+                {
+                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+                    return dashboards.ListStorefrontOfficeStorageBunchesAsync(
+                        article ?? string.Empty,
+                        manufacturer,
+                        cancellationToken);
+                }).ConfigureAwait(false))!;
             return Results.Ok(new
             {
                 ok = true,
@@ -553,18 +571,26 @@ public sealed class StorefrontModule : ISurfaceModule
             string? include_crossbase,
             ISurfaceDashboardSummaryReporter dashboards,
             IStorefrontPriceAccess priceAccess,
+            IMemoryCache storefrontAjaxCache,
             CancellationToken cancellationToken) =>
         {
             var manufacturer = string.IsNullOrWhiteSpace(brand) ? brend : brand;
             var wantCrossbase = string.Equals(include_crossbase, "1", StringComparison.Ordinal)
                 || string.Equals(include_crossbase, "true", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(include_crossbase, "yes", StringComparison.OrdinalIgnoreCase);
-            var result = await dashboards.BuildStorefrontCrossSearchAsync(
-                article ?? string.Empty,
-                manufacturer,
-                limit ?? LegacySurfaceDashboardSql.StorefrontCrossSearchMax,
-                cancellationToken,
-                includeCrossbase: wantCrossbase);
+            // Cache the raw DB result; price/stock masking is applied per-request below.
+            var result = (await storefrontAjaxCache.GetOrCreateAsync(
+                $"sf-ajax:cross:{context.Request.Host.Host}:{article}:{manufacturer}:{limit}:{wantCrossbase}",
+                entry =>
+                {
+                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(3);
+                    return dashboards.BuildStorefrontCrossSearchAsync(
+                        article ?? string.Empty,
+                        manufacturer,
+                        limit ?? LegacySurfaceDashboardSql.StorefrontCrossSearchMax,
+                        cancellationToken,
+                        includeCrossbase: wantCrossbase);
+                }).ConfigureAwait(false))!;
             var access = await priceAccess.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
             var references = result.References.Select(r => new
             {
@@ -628,6 +654,7 @@ public sealed class StorefrontModule : ISurfaceModule
             HttpContext context,
             IStorefrontPriceAccess priceAccess,
             ISurfaceDashboardSummaryReporter dashboards,
+            IMemoryCache storefrontAjaxCache,
             CancellationToken cancellationToken) =>
         {
             var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -665,14 +692,22 @@ public sealed class StorefrontModule : ISurfaceModule
             }
 
             var access = await priceAccess.ResolveAsync(context, cancellationToken);
-            var result = await dashboards.PollStorefrontProductsOfBunchAsync(
-                article,
-                brand,
-                officeId,
-                storageId,
-                string.IsNullOrWhiteSpace(queryJson) ? null : queryJson,
-                geoId,
-                cancellationToken);
+            // Scraper floods replay identical poll payloads — cache the raw poll result briefly;
+            // price redaction still runs per-request on the cached payload.
+            var result = (await storefrontAjaxCache.GetOrCreateAsync(
+                $"sf-ajax:bunch:{context.Request.Host.Host}:{article}:{brand}:{officeId}:{storageId}:{geoId}:{queryJson}",
+                entry =>
+                {
+                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(45);
+                    return dashboards.PollStorefrontProductsOfBunchAsync(
+                        article,
+                        brand,
+                        officeId,
+                        storageId,
+                        string.IsNullOrWhiteSpace(queryJson) ? null : queryJson,
+                        geoId,
+                        cancellationToken);
+                }).ConfigureAwait(false))!;
             // ASP.NET session gate wins over native path hardcoding prices_visible=true
             // (PHP twin: epc_storefront_prices_redact_products when not visible).
             var products = access.PricesVisible
