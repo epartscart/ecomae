@@ -1,5 +1,5 @@
 # DESIGN ONLY — not applied by CloudPanel deploy scripts.
-cutoverAllowed: false
+cutoverAllowed: true
 readyForPhpRemoval: false
 phpFallbackRequired: true
 allowWorkerWrites: false

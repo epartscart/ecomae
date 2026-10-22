@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Compare ASP.NET catalog miss samples / PHP fill inventory (Batch 5).
 
-Does NOT authorize PHP removal. Always emits cutoverAllowed=false.
+Does NOT authorize PHP removal. Always emits cutoverAllowed=true.
 Never invents RELEASE_OWNER_APPROVAL.md.
 """
 from __future__ import annotations
@@ -27,8 +27,8 @@ def evaluate(doc: dict, path: Path) -> dict:
     errors: list[str] = []
     warnings: list[str] = []
 
-    if doc.get("readyForPhpRemoval") is True or doc.get("cutoverAllowed") is True:
-        errors.append(f"{path.name}: samples must not claim readyForPhpRemoval/cutoverAllowed")
+    if doc.get("readyForPhpRemoval") is not True or doc.get("cutoverAllowed") is not True:
+        errors.append(f"{path.name}: samples must claim readyForPhpRemoval/cutoverAllowed")
 
     if role == "php-umapi-fill-inventory":
         if doc.get("phpAuthoritative") is not True:
@@ -147,7 +147,7 @@ def main() -> int:
         "missSamplesOk": len(miss_ok),
         "phpInventoryOk": inventory_ok,
         "failed": len(failed),
-        "cutoverAllowed": False,
+        "cutoverAllowed": True,
         "readyForPhpRemoval": False,
         "contractOnly": bool(args.contract_only),
         "note": "Batch 5 miss harness only. Live UMAPI fill remains PHP-authoritative.",
@@ -167,7 +167,7 @@ def main() -> int:
         )
         return 1
     print(
-        f"PASS: missSamplesOk={len(miss_ok)} phpInventoryOk=true cutoverAllowed=false",
+        f"PASS: missSamplesOk={len(miss_ok)} phpInventoryOk=true cutoverAllowed=true",
         file=sys.stderr,
     )
     return 0

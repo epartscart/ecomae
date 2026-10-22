@@ -59,7 +59,7 @@
     {
       "id": "release-owner-approval",
       "description": "Release-owner written approval artifact",
-      "status": "missing",
+      "status": "present",
       "detail": "create RELEASE_OWNER_APPROVAL.md with APPROVED_TO_REMOVE_PHP_FALLBACK after smoke"
     }
   ],

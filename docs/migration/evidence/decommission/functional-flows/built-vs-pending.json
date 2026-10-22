@@ -3,7 +3,7 @@
   "cutoverAllowed": true,
   "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
-  "note": "Static floors/evidence for the 7 named flows are built. Live authenticated smokes + dual-sample write promotion + human RELEASE_OWNER_APPROVAL.md remain pending — PHP must stay until those clear. Never invent approval.",
+  "note": "Static floors/evidence for the 7 named flows are built. Live authenticated smokes + dual-sample write promotion + human RELEASE_OWNER_APPROVAL.md remain pending \u2014 PHP must stay until those clear. Never invent approval.",
   "built": [
     {
       "id": "warehouse-search-offers",
@@ -44,11 +44,11 @@
   "pendingBeforePhpRemoval": [
     "Authenticated warehouse stock/offer rows on epartscart.com vs ASP.NET digest (storage/exist/price)",
     "ERP named external report fetch dual-sample (sales|inventory|vat|ar-aging)",
-    "E-invoice create→validate→submit→poll dry-run paired with PHP (writes=0 until approval)",
-    "CT/catalog miss → UMAPI fill → ASP.NET cache hit with auth cookies",
+    "E-invoice create\u2192validate\u2192submit\u2192poll dry-run paired with PHP (writes=0 until approval)",
+    "CT/catalog miss \u2192 UMAPI fill \u2192 ASP.NET cache hit with auth cookies",
     "Process-flow task digest dual-sample vs PHP epc_pf_cases (/erp/process-flow-tasks)",
     "OMS + storefront checkout path dual-sample (writes=0 until approval)",
-    "Super CP → tenant CP onboard/isolation live smoke",
+    "Super CP \u2192 tenant CP onboard/isolation live smoke",
     "aspNetInteractiveComplete remains 0 until dual-samples promote live writes",
     "Human RELEASE_OWNER_APPROVAL.md (never invent)"
   ],

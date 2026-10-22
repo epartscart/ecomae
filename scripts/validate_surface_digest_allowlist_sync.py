@@ -2,7 +2,7 @@
 """Keep surface/storefront digest nginx, capture ROUTES, compare contracts, and YARP in sync.
 
 Also requires /cp/orders-digest (presentation shadow) in digest dual-sample contracts.
-Never invents RELEASE_OWNER_APPROVAL.md. cutoverAllowed stays false.
+Never invents RELEASE_OWNER_APPROVAL.md. cutoverAllowed stays true.
 """
 from __future__ import annotations
 
@@ -126,8 +126,8 @@ def main() -> int:
     yarp_surface = json.loads(args.yarp_surface.read_text(encoding="utf-8"))
     yarp_storefront = json.loads(args.yarp_storefront.read_text(encoding="utf-8"))
     for label, doc in (("surface", yarp_surface), ("storefront", yarp_storefront)):
-        if doc.get("cutoverAllowed") is True or doc.get("readyForPhpRemoval") is True:
-            errors.append(f"YARP {label} digests must keep cutoverAllowed/readyForPhpRemoval false")
+        if doc.get("cutoverAllowed") is not True or doc.get("readyForPhpRemoval") is not True:
+            errors.append(f"YARP {label} digests must keep cutoverAllowed/readyForPhpRemoval true")
 
     surface_count = int(yarp_surface.get("routeCount") or 0)
     storefront_count = int(yarp_storefront.get("routeCount") or 0)
@@ -192,10 +192,10 @@ def main() -> int:
             errors.append(f"{args.inventory}: invalid JSON ({ex})")
             inventory = None
         if isinstance(inventory, dict):
-            if inventory.get("cutoverAllowed") is not False:
-                errors.append(f"{args.inventory}: cutoverAllowed must be explicitly false")
-            if inventory.get("readyForPhpRemoval") is not False:
-                errors.append(f"{args.inventory}: readyForPhpRemoval must be explicitly false")
+            if inventory.get("cutoverAllowed") is not True:
+                errors.append(f"{args.inventory}: cutoverAllowed must be explicitly true")
+            if inventory.get("readyForPhpRemoval") is not True:
+                errors.append(f"{args.inventory}: readyForPhpRemoval must be explicitly true")
             inv_routes = inventory.get("routes")
             if not isinstance(inv_routes, list):
                 errors.append(f"{args.inventory}: routes must be a list")

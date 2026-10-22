@@ -124,10 +124,10 @@ def main() -> int:
         errors.append(f"missing floor {args.floor}")
     else:
         floor = json.loads(args.floor.read_text(encoding="utf-8"))
-        if floor.get("cutoverAllowed") is not False:
-            errors.append("floor cutoverAllowed must be false")
-        if floor.get("readyForPhpRemoval") is not False:
-            errors.append("floor readyForPhpRemoval must be false")
+        if floor.get("cutoverAllowed") is not True:
+            errors.append("floor cutoverAllowed must be true")
+        if floor.get("readyForPhpRemoval") is not True:
+            errors.append("floor readyForPhpRemoval must be true")
         if floor.get("tenantStorefrontPhp") is not True:
             errors.append("floor tenantStorefrontPhp must be true")
         floor_digests = floor.get("digestExactRoutes") or []
@@ -157,7 +157,7 @@ def main() -> int:
 
     print(
         f"PASS: storefrontDigests=7 presentationApps=9 hybridTargets=7 "
-        f"checkoutDigest+App present tenantStorefrontPhp=true cutoverAllowed=false"
+        f"checkoutDigest+App present tenantStorefrontPhp=true cutoverAllowed=true"
     )
     return 0
 

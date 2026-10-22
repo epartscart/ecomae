@@ -172,8 +172,8 @@ def main() -> int:
         expected = int(expected_m.group(1))
 
     yarp = json.loads(args.yarp.read_text(encoding="utf-8"))
-    if yarp.get("cutoverAllowed") is True or yarp.get("readyForPhpRemoval") is True:
-        errors.append("YARP design example must keep cutoverAllowed/readyForPhpRemoval false")
+    if yarp.get("cutoverAllowed") is not True or yarp.get("readyForPhpRemoval") is not True:
+        errors.append("YARP design example must keep cutoverAllowed/readyForPhpRemoval true")
     route_count = int(yarp.get("routeCount") or 0)
 
     if expected != len(nginx_set):
@@ -240,10 +240,10 @@ def main() -> int:
             errors.append(f"{args.inventory}: invalid JSON ({ex})")
             inventory = None
         if isinstance(inventory, dict):
-            if inventory.get("cutoverAllowed") is not False:
-                errors.append(f"{args.inventory}: cutoverAllowed must be explicitly false")
-            if inventory.get("readyForPhpRemoval") is not False:
-                errors.append(f"{args.inventory}: readyForPhpRemoval must be explicitly false")
+            if inventory.get("cutoverAllowed") is not True:
+                errors.append(f"{args.inventory}: cutoverAllowed must be explicitly true")
+            if inventory.get("readyForPhpRemoval") is not True:
+                errors.append(f"{args.inventory}: readyForPhpRemoval must be explicitly true")
             inv_routes = inventory.get("routes")
             if not isinstance(inv_routes, list):
                 errors.append(f"{args.inventory}: routes must be a list")

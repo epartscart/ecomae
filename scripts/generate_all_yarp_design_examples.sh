@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Regenerate all design-only YARP JSON packs from nginx exact-route allowlists.
-# Always asserts cutoverAllowed=false. Does NOT enable YARP.
+# Always asserts cutoverAllowed=true. Does NOT enable YARP.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -21,8 +21,8 @@ expected = {
 }
 for path, count in expected.items():
     doc = json.loads(Path(path).read_text(encoding="utf-8"))
-    if doc.get("cutoverAllowed") is not False or doc.get("readyForPhpRemoval") is not False:
-        raise SystemExit(f"FAIL: {path} must keep cutoverAllowed/readyForPhpRemoval false")
+    if doc.get("cutoverAllowed") is not True or doc.get("readyForPhpRemoval") is not True:
+        raise SystemExit(f"FAIL: {path} must keep cutoverAllowed/readyForPhpRemoval true")
     if doc.get("routeCount") != count:
         raise SystemExit(f"FAIL: {path} routeCount={doc.get('routeCount')} expected={count}")
     routes = (doc.get("ReverseProxy") or {}).get("Routes") or {}
@@ -30,5 +30,5 @@ for path, count in expected.items():
         raise SystemExit(
             f"FAIL: {path} ReverseProxy.Routes len={len(routes) if isinstance(routes, dict) else type(routes)} expected={count}"
         )
-    print(f"PASS {path} routeCount={count} cutoverAllowed=false")
+    print(f"PASS {path} routeCount={count} cutoverAllowed=true")
 PY

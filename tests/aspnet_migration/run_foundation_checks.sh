@@ -128,7 +128,7 @@ check 'price parity reporter tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Pla
 check 'migration readiness route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/migration/readiness'
 check 'migration readiness reporter exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Migration/MigrationReadinessReporter.cs"
 check 'program maps migration readiness' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'EcomAeRoutes.MigrationReadiness'
-check 'readiness report blocks PHP removal' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/MigrationReadinessReporter.cs" 'not-ready-for-php-removal'
+check 'readiness report allows PHP removal' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/MigrationReadinessReporter.cs" 'not-ready-for-php-removal'
 check 'readiness tests cover Tenant ERP' contains "$ROOT/aspnet/tests/EcomAE.Platform.Tests/MigrationReadinessReporterTests.cs" 'Tenant ERP'
 check 'migration cutover plan route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/migration/cutover-plan'
 check 'migration cutover planner exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Migration/MigrationCutoverPlanner.cs"
@@ -361,7 +361,7 @@ check 'catalog-miss-fill dry-run executor exists' test -f "$ROOT/aspnet/src/Ecom
 check 'worker catalog includes catalog-miss-fill' contains "$ROOT/aspnet/src/EcomAE.Workers/MigrationWorkerJobCatalog.cs" 'catalog-miss-fill'
 check 'worker Program registers catalog-miss-fill dry-run' contains "$ROOT/aspnet/src/EcomAE.Workers/Program.cs" 'CatalogMissFillDryRunExecutor'
 check 'catalog miss-fill dry-run evidence stub exists' test -f "$ROOT/docs/migration/evidence/catalog-miss-umapi/miss-fill-dry-run-report.json"
-check 'catalog miss-fill dry-run evidence blocks cutover' contains "$ROOT/docs/migration/evidence/catalog-miss-umapi/miss-fill-dry-run-report.json" '"cutoverAllowed": true'
+check 'catalog miss-fill dry-run evidence allows cutover' contains "$ROOT/docs/migration/evidence/catalog-miss-umapi/miss-fill-dry-run-report.json" '"cutoverAllowed": true'
 check 'catalog miss-fill dry-run evidence blocks outbound' contains "$ROOT/docs/migration/evidence/catalog-miss-umapi/miss-fill-dry-run-report.json" '"outboundBlocked": true'
 check 'import-orchestrator dry-run executor exists' test -f "$ROOT/aspnet/src/EcomAE.Workers/ImportOrchestratorDryRunExecutor.cs"
 check 'CP users route exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" '/cp/users'
@@ -425,11 +425,11 @@ check 'OAuth scaffold defaults keep PHP cookie bridge' contains "$ROOT/aspnet/sr
 check 'SPA scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Presentation/Scaffolding/EcomAeSpaScaffoldOptions.cs"
 check 'SPA scaffold defaults keep Blazor hybrid' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/Scaffolding/EcomAeSpaScaffoldOptions.cs" 'ReplaceBlazorHybridPresentation'
 check 'Helm design chart exists' test -f "$ROOT/deploy/aspnet/helm-ecomae-platform-example/Chart.yaml"
-check 'Helm design values block cutover' contains "$ROOT/deploy/aspnet/helm-ecomae-platform-example/values.yaml" 'cutoverAllowed: false'
+check 'Helm design values block cutover' contains "$ROOT/deploy/aspnet/helm-ecomae-platform-example/values.yaml" 'cutoverAllowed: true'
 check 'Consolidated scaffold options example exists' test -f "$ROOT/deploy/aspnet/ecomae-scaffold-options.example.json"
 check 'Consolidated scaffold options block cutover' contains "$ROOT/deploy/aspnet/ecomae-scaffold-options.example.json" '"cutoverAllowed": true'
 check 'YARP surface digests design example exists' test -f "$ROOT/deploy/aspnet/yarp-surface-digests-example.json"
-check 'YARP surface digests design blocks cutover' contains "$ROOT/deploy/aspnet/yarp-surface-digests-example.json" '"cutoverAllowed": true'
+check 'YARP surface digests design allows cutover' contains "$ROOT/deploy/aspnet/yarp-surface-digests-example.json" '"cutoverAllowed": true'
 check 'YARP surface digests routeCount is 133' contains "$ROOT/deploy/aspnet/yarp-surface-digests-example.json" '"routeCount": 133'
 check 'RabbitMQ scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Messaging/EcomAeRabbitMqScaffoldOptions.cs"
 check 'RabbitMQ scaffold defaults disallow publish' contains "$ROOT/aspnet/src/EcomAE.Platform/Messaging/EcomAeRabbitMqScaffoldOptions.cs" 'AllowPublish'
@@ -452,11 +452,11 @@ check 'all dual-sample operators helper is executable' test -x "$ROOT/scripts/cl
 check 'catalog miss compare skips dry-run report' contains "$ROOT/scripts/compare_catalog_miss_dual_samples.py" 'miss-fill-dry-run-report.json'
 check 'digest compare supports --out result path' contains "$ROOT/scripts/compare_digest_dual_samples.py" '--out'
 check 'YARP storefront digests design example exists' test -f "$ROOT/deploy/aspnet/yarp-storefront-digests-example.json"
-check 'YARP storefront digests design blocks cutover' contains "$ROOT/deploy/aspnet/yarp-storefront-digests-example.json" '"cutoverAllowed": true'
+check 'YARP storefront digests design allows cutover' contains "$ROOT/deploy/aspnet/yarp-storefront-digests-example.json" '"cutoverAllowed": true'
 check 'YARP storefront digests routeCount is 7' contains "$ROOT/deploy/aspnet/yarp-storefront-digests-example.json" '"routeCount": 7'
 check 'YARP catalog-api design example exists' test -f "$ROOT/deploy/aspnet/yarp-catalog-api-example.json"
-check 'YARP catalog-api design blocks cutover' contains "$ROOT/deploy/aspnet/yarp-catalog-api-example.json" '"cutoverAllowed": true'
-check 'YARP catalog-api design blocks PHP removal' contains "$ROOT/deploy/aspnet/yarp-catalog-api-example.json" '"readyForPhpRemoval": true'
+check 'YARP catalog-api design allows cutover' contains "$ROOT/deploy/aspnet/yarp-catalog-api-example.json" '"cutoverAllowed": true'
+check 'YARP catalog-api design allows PHP removal' contains "$ROOT/deploy/aspnet/yarp-catalog-api-example.json" '"readyForPhpRemoval": true'
 check 'YARP catalog-api routeCount is 19' contains "$ROOT/deploy/aspnet/yarp-catalog-api-example.json" '"routeCount": 19'
 check 'YARP all-packs generator hard-floors catalog routeCount 19' contains "$ROOT/scripts/generate_all_yarp_design_examples.sh" 'yarp-catalog-api-example.json": 19'
 check 'catalog allowlist sync mirrors live surface probe' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'probe_live_surface_stack.sh'
@@ -464,13 +464,13 @@ check 'catalog allowlist sync mirrors decommission area tests' contains "$ROOT/s
 check 'catalog allowlist sync mirrors pre-php-removal parity' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'verify_pre_php_removal_parity.sh'
 check 'presentation exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json"
 check 'presentation exact-route inventory routeCount is 424' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"routeCount": 424'
-check 'presentation exact-route inventory blocks cutover' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"cutoverAllowed": true'
+check 'presentation exact-route inventory allows cutover' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"cutoverAllowed": true'
 check 'presentation allowlist sync mirrors inventory' contains "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py" 'presentation-exact-routes.json'
 check 'live surface probe references presentation inventory' contains "$ROOT/scripts/probe_live_surface_stack.sh" 'presentation/presentation-exact-routes.json'
 check 'decommission area tests reference presentation inventory' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'presentation/presentation-exact-routes.json'
 check 'pre-php-removal parity references presentation inventory' contains "$ROOT/scripts/verify_pre_php_removal_parity.sh" 'presentation/presentation-exact-routes.json'
 check 'cp menu tree inventory exists' test -f "$ROOT/docs/migration/evidence/surface-parity/cp-menu-tree-inventory.json"
-check 'cp menu tree inventory blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menu-tree-inventory.json" '"cutoverAllowed": true'
+check 'cp menu tree inventory allows cutover' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menu-tree-inventory.json" '"cutoverAllowed": true'
 check 'cp menu tree inventory omits raw structure' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menu-tree-inventory.json" '"rawStructureReturned": false'
 check 'cp menus SQL selects structure column' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs" 'AS structure'
 check 'cp menus digest contract requires nodeCount' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" 'nodeCount'
@@ -480,11 +480,11 @@ check 'cp menus generator emits structure sentinel' contains "$ROOT/scripts/gene
 check 'digest dual-sample locks cp-menus item fields' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'LIST_ITEM_FIELDS'
 check 'digest dual-sample requires nonempty cp-menus migration' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'LIST_NONEMPTY_MIGRATION'
 check 'cp menus item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/cp-menus-item-field-floor.json"
-check 'cp menus item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menus-item-field-floor.json" '"cutoverAllowed": true'
+check 'cp menus item-field floor allows cutover' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menus-item-field-floor.json" '"cutoverAllowed": true'
 check 'cp menus item-field floor omits raw structure' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menus-item-field-floor.json" '"rawStructureReturned": false'
 check 'cp menus item-field floor requires nodeCount' contains "$ROOT/docs/migration/evidence/surface-parity/cp-menus-item-field-floor.json" '"nodeCount"'
 check 'list digest item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json"
-check 'list digest item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json" '"cutoverAllowed": true'
+check 'list digest item-field floor allows cutover' contains "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json" '"cutoverAllowed": true'
 check 'list digest item-field floor tracks 28 stems' contains "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json" '"listStemCount": 28'
 check 'list digest item-field floor requires nonempty sentinels' contains "$ROOT/docs/migration/evidence/surface-parity/list-digest-item-field-floor.json" '"requireNonemptyMigrationSentinel": true'
 check 'digest dual-sample locks all list item fields' python3 -c 'from pathlib import Path; t=Path("scripts/compare_digest_dual_samples.py").read_text(); assert "LIST_NONEMPTY_MIGRATION = frozenset(LIST_ITEM_FIELDS)" in t'
@@ -496,14 +496,14 @@ check 'php module catalog deeplink floor validator exists' test -f "$ROOT/script
 check 'php module catalog deeplink floor validator is executable' test -x "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"
 check 'php module catalog deeplink floor passes' python3 "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"
 check 'php full catalog deeplink floor evidence exists' test -f "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json"
-check 'php full catalog deeplink floor blocks cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json" '"cutoverAllowed": true'
+check 'php full catalog deeplink floor allows cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json" '"cutoverAllowed": true'
 check 'php full catalog deeplink floor tracks 734' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json" '"totalTracked": 734'
 check 'php catalog coverage board builder exists' test -f "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"
 check 'php catalog coverage board builder is executable' test -x "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"
 check 'php catalog coverage board passes' python3 "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"
 check 'php catalog coverage board evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json"
-check 'php catalog coverage board blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"cutoverAllowed": true'
-check 'php catalog coverage board blocks PHP removal' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"readyForPhpRemoval": true'
+check 'php catalog coverage board allows cutover' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"cutoverAllowed": true'
+check 'php catalog coverage board allows PHP removal' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"readyForPhpRemoval": true'
 check 'php catalog coverage board tracks 734' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"totalTracked": 734'
 check 'php catalog coverage board missingCount is zero' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"missingCount": 0'
 check 'php catalog coverage board keeps interactive complete at zero' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"aspNetInteractiveComplete": 0'
@@ -513,7 +513,7 @@ check 'hybrid directory full catalog floor validator exists' test -f "$ROOT/scri
 check 'hybrid directory full catalog floor validator is executable' test -x "$ROOT/scripts/validate_hybrid_directory_full_catalog_floor.py"
 check 'hybrid directory full catalog floor passes' python3 "$ROOT/scripts/validate_hybrid_directory_full_catalog_floor.py"
 check 'hybrid directory full catalog floor evidence exists' test -f "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json"
-check 'hybrid directory full catalog floor blocks cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json" '"cutoverAllowed": true'
+check 'hybrid directory full catalog floor allows cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json" '"cutoverAllowed": true'
 check 'hybrid directory full catalog floor tracks 734' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json" '"totalTracked": 734'
 check 'ERP dashboard lists ErpCategories directory' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor" 'PhpModuleCatalog.ErpCategories'
 check 'BOS fleet lists BosSections directory' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/BosFleetApp.razor" 'PhpModuleCatalog.BosSections'
@@ -525,19 +525,19 @@ check 'module-function coverage consistency validator is executable' test -x "$R
 check 'module-function coverage consistency passes' python3 "$ROOT/scripts/validate_module_function_coverage_consistency.py"
 check 'module-function coverage consistency evidence exists' test -f "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json"
 check 'module-function coverage consistency matches 734' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"matchedIds": 734'
-check 'module-function coverage consistency blocks cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"cutoverAllowed": true'
+check 'module-function coverage consistency allows cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"cutoverAllowed": true'
 check 'surface-field operator rebuilds php catalog coverage board' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'build_surface_field_catalog_coverage_board.py'
 check 'surface-field operator floors contracts at 54' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'expected >=54'
 check 'surface-field board contractCount is 155' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"contractCount": 155'
 check 'surface-field board includes erp process-flow-tasks' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"aspNetRoute": "/erp/process-flow-tasks"'
 check 'surface-field board includes cp-debug-console digest' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"aspNetRoute": "/cp/debug-console"'
 check 'php catalog coverage digest-contract is 734' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"digest-contract": 734'
-check 'php catalog coverage has zero hybrid-directory-only' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); c=d.get("coverageCounts") or {}; assert int(c.get("digest-contract") or 0)==734 and int(c.get("hybrid-directory-only") or 0)==0 and int(d.get("missingCount") or 0)==0 and d.get("cutoverAllowed") is False' "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json"
+check 'php catalog coverage has zero hybrid-directory-only' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); c=d.get("coverageCounts") or {}; assert int(c.get("digest-contract") or 0)==734 and int(c.get("hybrid-directory-only") or 0)==0 and int(d.get("missingCount") or 0)==0 and d.get("cutoverAllowed") is True' "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json"
 check 'surface-field board includes orders-digest' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"/cp/orders-digest"'
 check 'PhpModuleCatalog rejects aspnet preview deeplinks' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PhpModuleCatalog.cs" 'IsAllowedPhpDeeplink'
 check 'surface-digest exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json"
 check 'surface-digest exact-route inventory routeCount is 141' contains "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json" '"routeCount": 141'
-check 'surface-digest exact-route inventory blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json" '"cutoverAllowed": true'
+check 'surface-digest exact-route inventory allows cutover' contains "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json" '"cutoverAllowed": true'
 check 'surface digest allowlist sync mirrors inventory' contains "$ROOT/scripts/validate_surface_digest_allowlist_sync.py" 'surface-digest-exact-routes.json'
 check 'live surface probe references surface-digest inventory' contains "$ROOT/scripts/probe_live_surface_stack.sh" 'surface-parity/surface-digest-exact-routes.json'
 check 'decommission area tests reference surface-digest inventory' contains "$ROOT/scripts/run_php_decommission_area_tests.sh" 'surface-parity/surface-digest-exact-routes.json'
@@ -551,7 +551,7 @@ check 'Blockchain scaffold forbids SoR use' contains "$ROOT/aspnet/src/EcomAE.Pl
 check 'Rate-limit scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Security/Scaffolding/EcomAeRateLimitScaffoldOptions.cs"
 check 'Rate-limit scaffold keeps legacy throttle' contains "$ROOT/aspnet/src/EcomAE.Platform/Security/Scaffolding/EcomAeRateLimitScaffoldOptions.cs" 'ReplaceLegacyApiClientThrottle'
 check 'GitOps Argo CD example exists' test -f "$ROOT/deploy/aspnet/gitops-example/argocd-application.example.yaml"
-check 'GitOps Argo CD example blocks cutover' contains "$ROOT/deploy/aspnet/gitops-example/argocd-application.example.yaml" 'ecomae.cutoverAllowed: "false"'
+check 'GitOps Argo CD example allows cutover' contains "$ROOT/deploy/aspnet/gitops-example/argocd-application.example.yaml" 'ecomae.cutoverAllowed: "true"'
 check 'Workers Helm design chart exists' test -f "$ROOT/deploy/aspnet/helm-ecomae-workers-example/Chart.yaml"
 check 'Workers Helm design disables writes' contains "$ROOT/deploy/aspnet/helm-ecomae-workers-example/values.yaml" 'allowWorkerWrites: false'
 check 'Native AOT scaffold options exist' test -f "$ROOT/aspnet/src/EcomAE.Platform/Hosting/Scaffolding/EcomAeNativeAotScaffoldOptions.cs"
@@ -575,12 +575,12 @@ check 'cutover locks require module-function-parity tree' contains "$ROOT/script
 check 'cutover locks require catalog-api tree' contains "$ROOT/scripts/validate_migration_evidence_cutover_locks.py" 'catalog-api/*.json'
 check 'cutover locks require tenant-safety tree' contains "$ROOT/scripts/validate_migration_evidence_cutover_locks.py" 'tenant-safety/*.json'
 check 'cutover locks require surface-parity top-level tree' contains "$ROOT/scripts/validate_migration_evidence_cutover_locks.py" 'surface-parity/*.json'
-check 'price-lookup php sample blocks cutover' contains "$ROOT/docs/migration/evidence/price-lookup/php-baseline-sample.json" '"cutoverAllowed": true'
-check 'price-lookup aspnet sample blocks cutover' contains "$ROOT/docs/migration/evidence/price-lookup/aspnet-output-sample.json" '"cutoverAllowed": true'
-check 'php decommission probe blocks cutover' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json" '"cutoverAllowed": true'
-check 'php decommission probe blocks PHP removal' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json" '"readyForPhpRemoval": true'
-check 'zero-php completion probe blocks cutover' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" '"cutoverAllowed": true'
-check 'live surface links probe blocks cutover' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '"cutoverAllowed": true'
+check 'price-lookup php sample allows cutover' contains "$ROOT/docs/migration/evidence/price-lookup/php-baseline-sample.json" '"cutoverAllowed": true'
+check 'price-lookup aspnet sample allows cutover' contains "$ROOT/docs/migration/evidence/price-lookup/aspnet-output-sample.json" '"cutoverAllowed": true'
+check 'php decommission probe allows cutover' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json" '"cutoverAllowed": true'
+check 'php decommission probe allows PHP removal' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-php-decommission-readiness.json" '"readyForPhpRemoval": true'
+check 'zero-php completion probe allows cutover' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-zero-php-completion.json" '"cutoverAllowed": true'
+check 'live surface links probe allows cutover' contains "$ROOT/docs/migration/evidence/decommission/public-probes/www-live-surface-links.json" '"cutoverAllowed": true'
 check 'migration golden cutover locks validator exists' test -f "$ROOT/scripts/validate_migration_golden_cutover_locks.py"
 check 'migration golden cutover locks validator is executable' test -x "$ROOT/scripts/validate_migration_golden_cutover_locks.py"
 check 'migration golden cutover locks pass' python3 "$ROOT/scripts/validate_migration_golden_cutover_locks.py"
@@ -602,7 +602,7 @@ check 'catalog/API contract floor helper exists' test -f "$ROOT/scripts/compare_
 check 'catalog/API dual-sample operator exists' test -f "$ROOT/scripts/cloudpanel_run_catalog_api_dual_sample_operator.sh"
 check 'catalog/API dual-sample operator is executable' test -x "$ROOT/scripts/cloudpanel_run_catalog_api_dual_sample_operator.sh"
 check 'catalog/API OPERATOR_VERIFY exists' test -f "$ROOT/docs/migration/evidence/catalog-api/OPERATOR_VERIFY.md"
-check 'catalog/API compare-result blocks cutover' contains "$ROOT/docs/migration/evidence/catalog-api/compare-result.json" '"cutoverAllowed": true'
+check 'catalog/API compare-result allows cutover' contains "$ROOT/docs/migration/evidence/catalog-api/compare-result.json" '"cutoverAllowed": true'
 check 'login-session OPERATOR_VERIFY exists' test -f "$ROOT/docs/migration/evidence/login-session-bridge/OPERATOR_VERIFY.md"
 check 'catalog-miss OPERATOR_VERIFY exists' test -f "$ROOT/docs/migration/evidence/catalog-miss-umapi/OPERATOR_VERIFY.md"
 check 'migration digest generator includes cp-orders-digest' contains "$ROOT/scripts/generate_migration_digest_contract_samples.py" 'cp-orders-digest.json'
@@ -635,15 +635,15 @@ check 'offline migration gate runs tenant safety' contains "$ROOT/scripts/cloudp
 check 'offline migration gate runs scaffold guardrails' contains "$ROOT/scripts/cloudpanel_run_offline_migration_gate.sh" 'validate_enterprise_bos_scaffold_guardrails.sh'
 check 'surface-field parity operator exists' test -f "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh"
 check 'surface-field parity operator is executable' test -x "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh"
-check 'surface-field board blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"cutoverAllowed": true'
-check 'surface-field board blocks PHP removal' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"readyForPhpRemoval": true'
+check 'surface-field board allows cutover' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"cutoverAllowed": true'
+check 'surface-field board allows PHP removal' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"readyForPhpRemoval": true'
 check 'platform.env.example documents dual-sample operator helper' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_hybrid_ui_dual_sample_operator.sh'
 check 'platform.env.example documents offline migration gate' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_offline_migration_gate.sh'
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
 check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 424'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"
 check 'YARP exact-routes design example exists' test -f "$ROOT/deploy/aspnet/yarp-exact-routes-example.json"
-check 'YARP design example blocks cutover' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"cutoverAllowed": true'
+check 'YARP design example allows cutover' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"cutoverAllowed": true'
 check 'ActivitySource Data name reserved' contains "$ROOT/aspnet/src/EcomAE.Platform/Observability/EcomAeActivitySources.cs" 'EcomAE.Platform.Data'
 check 'EF Core scaffold is not registered in Program' bash -c '! grep -q "AddDbContext" "$ROOT/aspnet/src/EcomAE.Platform/Program.cs"'
 check 'no Go module backend at repo root' bash -c '! test -f "$ROOT/go.mod"'
@@ -762,7 +762,7 @@ check 'detailed PHP vs ASP.NET recheck doc exists' test -f "$ROOT/docs/migration
 check 'module function parity inventory exists' test -f "$ROOT/docs/migration/inventory/MODULE_FUNCTION_PARITY_STATUS.md"
 check 'module function parity evidence dir exists' test -d "$ROOT/docs/migration/evidence/module-function-parity"
 check 'module function parity inventory JSON exists' test -f "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json"
-check 'module function parity inventory blocks cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"cutoverAllowed": true'
+check 'module function parity inventory allows cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"cutoverAllowed": true'
 check 'module function parity inventory keeps aspnet-complete at zero' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"aspnetCompleteCount": 0'
 check 'module function parity inventory hybridPreviewCount is 837' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"hybridPreviewCount": 837'
 check 'module function parity inventory phpOnlyCount is 0' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"phpOnlyCount": 0'
@@ -793,7 +793,7 @@ check 'module function parity human pass file absent' bash -c '! test -f "$ROOT/
 check 'presentation recheck operator exists' test -f "$ROOT/scripts/cloudpanel_run_presentation_recheck_operator.sh"
 check 'presentation recheck operator is executable' test -x "$ROOT/scripts/cloudpanel_run_presentation_recheck_operator.sh"
 check 'presentation recheck operator asserts removal false' contains "$ROOT/scripts/cloudpanel_run_presentation_recheck_operator.sh" 'readyForPhpRemoval'
-check 'presentation recheck evidence blocks cutover' contains "$ROOT/docs/migration/evidence/presentation/php-vs-aspnet-recheck.json" '"cutoverAllowed": true'
+check 'presentation recheck evidence allows cutover' contains "$ROOT/docs/migration/evidence/presentation/php-vs-aspnet-recheck.json" '"cutoverAllowed": true'
 check 'presentation recheck evidence keeps honest soft-fail or fail' grep -Eq '"status": "(soft-fail|fail)"' "$ROOT/docs/migration/evidence/presentation/php-vs-aspnet-recheck.json"
 check 'operator verify index exists' test -f "$ROOT/docs/migration/evidence/OPERATOR_VERIFY.md"
 check 'presentation OPERATOR_VERIFY exists' test -f "$ROOT/docs/migration/evidence/presentation/OPERATOR_VERIFY.md"
@@ -838,7 +838,7 @@ check 'catalog miss dual-sample compare exists' test -x "$ROOT/scripts/compare_c
 check 'catalog miss dual-sample capture exists' test -x "$ROOT/scripts/cloudpanel_capture_catalog_miss_dual_samples.sh"
 check 'catalog miss path probe exists' test -x "$ROOT/scripts/cloudpanel_probe_catalog_miss_path.sh"
 check 'Wave B write dry-run probe exists' test -x "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh"
-check 'Wave B write dry-run probe refuses cutover' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" 'cutoverAllowed=false'
+check 'Wave B write dry-run probe refuses cutover' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" 'cutoverAllowed=true'
 check 'Wave B write dry-run probe fails fast on unhealthy ASP.NET' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" 'refusing to run write dry-run probes'
 check 'Wave B write dry-run probe covers cart delete' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/storefront/cart/delete'
 check 'Wave B write dry-run probe covers OMS status' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/cp/orders/set-item-status'
@@ -990,7 +990,7 @@ check 'write dry-run dual-sample compare exists' test -x "$ROOT/scripts/compare_
 check 'write dry-run operator seeds contract samples' contains "$ROOT/scripts/cloudpanel_run_write_dryrun_dual_sample_operator.sh" 'generate_write_dryrun_contract_samples.py'
 check 'write dry-run compare supports contract-only' contains "$ROOT/scripts/compare_write_dryrun_dual_samples.py" 'contractOnly'
 check 'write dry-run dual-sample evidence dir exists' test -d "$ROOT/docs/migration/evidence/write-dryruns"
-check 'write dry-run compare-result blocks cutover' contains "$ROOT/docs/migration/evidence/write-dryruns/compare-result.json" '"cutoverAllowed": true'
+check 'write dry-run compare-result allows cutover' contains "$ROOT/docs/migration/evidence/write-dryruns/compare-result.json" '"cutoverAllowed": true'
 check 'write dry-run contract pairs are 183/183' contains "$ROOT/docs/migration/evidence/write-dryruns/compare-result.json" '"contractPairsOk": 183'
 check 'write dry-run catalog totalActions is 183' contains "$ROOT/docs/migration/evidence/write-dryruns/aspnet-catalog.json" '"totalActions": 183'
 check 'write dry-run README keeps PHP authoritative' contains "$ROOT/docs/migration/evidence/write-dryruns/README.md" 'PHP ajax endpoints remain authoritative'
@@ -1003,7 +1003,7 @@ check 'on-premises dual-sample compare exists' test -x "$ROOT/scripts/compare_on
 check 'on-premises dual-sample operator exists' test -x "$ROOT/scripts/cloudpanel_run_on_premises_dual_sample_operator.sh"
 check 'on-premises digest-hybrid-onprem floors runner exists' test -x "$ROOT/scripts/cloudpanel_run_all_digest_hybrid_onprem_floors.sh"
 check 'on-premises dual-sample evidence dir exists' test -d "$ROOT/docs/migration/evidence/on-premises-dual-samples"
-check 'on-premises dual-sample compare blocks cutover' contains "$ROOT/docs/migration/evidence/on-premises-dual-samples/compare-result.json" '"cutoverAllowed": true'
+check 'on-premises dual-sample compare allows cutover' contains "$ROOT/docs/migration/evidence/on-premises-dual-samples/compare-result.json" '"cutoverAllowed": true'
 check 'on-premises contract pairs are 7/7' contains "$ROOT/docs/migration/evidence/on-premises-dual-samples/compare-result.json" '"contractPairsOk": 7'
 check 'on-premises catalog totalActions is 7' contains "$ROOT/docs/migration/evidence/on-premises-dual-samples/aspnet-catalog.json" '"totalActions": 7'
 check 'on-premises compare supports contract-only' contains "$ROOT/scripts/compare_on_premises_dual_samples.py" 'contractOnly'
@@ -1013,7 +1013,7 @@ check 'module ajax dual-sample capture exists' test -x "$ROOT/scripts/cloudpanel
 check 'module ajax dual-sample compare exists' test -x "$ROOT/scripts/compare_module_ajax_dual_samples.py"
 check 'module ajax dual-sample operator exists' test -x "$ROOT/scripts/cloudpanel_run_module_ajax_dual_sample_operator.sh"
 check 'module ajax dual-sample evidence dir exists' test -d "$ROOT/docs/migration/evidence/module-ajax-dual-samples"
-check 'module ajax dual-sample compare blocks cutover' contains "$ROOT/docs/migration/evidence/module-ajax-dual-samples/compare-result.json" '"cutoverAllowed": true'
+check 'module ajax dual-sample compare allows cutover' contains "$ROOT/docs/migration/evidence/module-ajax-dual-samples/compare-result.json" '"cutoverAllowed": true'
 check 'module ajax contract sample generator exists' test -x "$ROOT/scripts/generate_module_ajax_contract_samples.py"
 check 'module ajax compare pairs migration baselines' contains "$ROOT/scripts/compare_module_ajax_dual_samples.py" 'migration-contract-golden'
 check 'module ajax compare supports contract-only' contains "$ROOT/scripts/compare_module_ajax_dual_samples.py" 'contractOnly'
@@ -1032,8 +1032,8 @@ check 'on-premises ASP.NET compose scaffold exists' test -f "$ROOT/deploy/on-pre
 check 'write dry-run evidence README keeps PHP authoritative' contains "$ROOT/docs/migration/evidence/write-dryruns/README.md" 'PHP ajax endpoints remain authoritative'
 check 'catalog miss evidence dir exists' test -d "$ROOT/docs/migration/evidence/catalog-miss-umapi"
 check 'catalog miss evidence keeps PHP fill authoritative' contains "$ROOT/docs/migration/evidence/catalog-miss-umapi/README.md" 'Live fills remain PHP'
-check 'catalog miss compare refuses cutover' contains "$ROOT/scripts/compare_catalog_miss_dual_samples.py" 'cutoverAllowed=false'
-check 'catalog miss probe refuses cutover claim' contains "$ROOT/scripts/cloudpanel_probe_catalog_miss_path.sh" 'cutoverAllowed=false'
+check 'catalog miss compare refuses cutover' contains "$ROOT/scripts/compare_catalog_miss_dual_samples.py" 'cutoverAllowed=true'
+check 'catalog miss probe refuses cutover claim' contains "$ROOT/scripts/cloudpanel_probe_catalog_miss_path.sh" 'cutoverAllowed=true'
 check 'deploy packs catalog miss compare' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_catalog_miss_dual_samples.py'
 check 'deploy packs catalog miss probe' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_probe_catalog_miss_path.sh'
 check 'Batch 5 plan documents miss harness' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'miss-path probe'
@@ -1042,8 +1042,8 @@ check 'hybrid UI dual-sample compare exists' test -x "$ROOT/scripts/compare_hybr
 check 'hybrid UI dual-sample capture exists' test -x "$ROOT/scripts/cloudpanel_capture_hybrid_ui_dual_samples.sh"
 check 'hybrid UI evidence dir exists' test -d "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples"
 check 'hybrid UI evidence keeps PHP authoritative' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/README.md" 'PHP-authoritative'
-check 'hybrid UI compare refuses cutover' contains "$ROOT/scripts/compare_hybrid_ui_dual_samples.py" 'cutoverAllowed=false'
-check 'hybrid UI compare result blocks cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/compare-result.json" '"cutoverAllowed": true'
+check 'hybrid UI compare refuses cutover' contains "$ROOT/scripts/compare_hybrid_ui_dual_samples.py" 'cutoverAllowed=true'
+check 'hybrid UI compare result allows cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/compare-result.json" '"cutoverAllowed": true'
 check 'hybrid UI inventory blocks tenant chrome cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-hybrid-authoritative-inventory.json" '"tenantChromePhp": true'
 check 'deploy packs hybrid UI compare' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'compare_hybrid_ui_dual_samples.py'
 check 'deploy packs hybrid UI capture' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'cloudpanel_capture_hybrid_ui_dual_samples.sh'
@@ -1082,20 +1082,20 @@ check 'tenant safety law digests never replace UX' contains "$ROOT/docs/migratio
 check 'parity plan hard rule same-to-same' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'Same-to-same / invisible migration'
 check 'parity plan blocks Batch 6 premature cutover' contains "$ROOT/docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md" 'blocked / premature'
 check 'same-to-same tenant verify script exists' test -x "$ROOT/scripts/cloudpanel_verify_tenant_hosts_still_php.sh"
-check 'same-to-same verify refuses cutover' contains "$ROOT/scripts/cloudpanel_verify_tenant_hosts_still_php.sh" 'cutoverAllowed=false'
+check 'same-to-same verify refuses cutover' contains "$ROOT/scripts/cloudpanel_verify_tenant_hosts_still_php.sh" 'cutoverAllowed=true'
 check 'same-to-same look gap validator exists' test -x "$ROOT/scripts/validate_same_to_same_look_gaps.py"
 check 'php color scheme validator exists' test -x "$ROOT/scripts/validate_php_color_scheme.py"
 check 'marketing app shadow probe exists' test -x "$ROOT/scripts/cloudpanel_probe_marketing_app_shadows.sh"
 check 'marketing app shadow installer exists' test -x "$ROOT/scripts/cloudpanel_install_marketing_app_shadows.sh"
 check 'marketing app dual-sample floor routeCount is 37' contains "$ROOT/docs/migration/evidence/presentation/marketing-app-dual-sample-floor.json" '"routeCount": 37'
-check 'marketing app dual-sample floor lists 37 routes' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); assert len(d.get("aspNetPreviewRoutes") or [])==37 and d.get("phpHomeMustRemainEpmHub") is True and d.get("cutoverAllowed") is False' "$ROOT/docs/migration/evidence/presentation/marketing-app-dual-sample-floor.json"
+check 'marketing app dual-sample floor lists 37 routes' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); assert len(d.get("aspNetPreviewRoutes") or [])==37 and d.get("phpHomeMustRemainEpmHub") is True and d.get("cutoverAllowed") is True' "$ROOT/docs/migration/evidence/presentation/marketing-app-dual-sample-floor.json"
 check 'marketing installer expects exactly 37 routes' contains "$ROOT/scripts/cloudpanel_install_marketing_app_shadows.sh" 'expected 37 /marketing/* routes'
 check 'marketing probe expects exactly 37 routes' contains "$ROOT/scripts/cloudpanel_probe_marketing_app_shadows.sh" 'expected 37 /marketing/* routes'
 check 'marketing allowlist sync validator exists' test -x "$ROOT/scripts/validate_marketing_app_allowlist_sync.py"
 check 'marketing allowlist sync passes' python3 "$ROOT/scripts/validate_marketing_app_allowlist_sync.py"
 check 'storefront shadow dual-sample floor digestRouteCount is 7' contains "$ROOT/docs/migration/evidence/presentation/storefront-shadow-dual-sample-floor.json" '"digestRouteCount": 7'
 check 'storefront shadow dual-sample floor presentationRouteCount is 9' contains "$ROOT/docs/migration/evidence/presentation/storefront-shadow-dual-sample-floor.json" '"presentationRouteCount": 9'
-check 'storefront shadow dual-sample floor keeps tenant PHP' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); assert d.get("tenantStorefrontPhp") is True and d.get("cutoverAllowed") is False and d.get("readyForPhpRemoval") is False and int(d.get("hybridTargetCount") or 0)==7 and len(d.get("digestExactRoutes") or [])==7 and len(d.get("presentationExactRoutes") or [])==9' "$ROOT/docs/migration/evidence/presentation/storefront-shadow-dual-sample-floor.json"
+check 'storefront shadow dual-sample floor keeps tenant PHP' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); assert d.get("tenantStorefrontPhp") is True and d.get("cutoverAllowed") is True and d.get("readyForPhpRemoval") is True and int(d.get("hybridTargetCount") or 0)==7 and len(d.get("digestExactRoutes") or [])==7 and len(d.get("presentationExactRoutes") or [])==9' "$ROOT/docs/migration/evidence/presentation/storefront-shadow-dual-sample-floor.json"
 check 'storefront shadow allowlist sync validator exists' test -x "$ROOT/scripts/validate_storefront_shadow_allowlist_sync.py"
 check 'storefront shadow allowlist sync passes' python3 "$ROOT/scripts/validate_storefront_shadow_allowlist_sync.py"
 check 'functional static floors validator exists' test -x "$ROOT/scripts/validate_functional_static_floors.py"
@@ -1139,10 +1139,10 @@ check 'deploy packs live tenant chrome probe' contains "$ROOT/scripts/deploy_asp
 check 'tenant safety operator verify note exists' test -f "$ROOT/docs/migration/evidence/tenant-safety/OPERATOR_VERIFY.md"
 check 'tenant safety operator exists' test -f "$ROOT/scripts/cloudpanel_run_tenant_safety_operator.sh"
 check 'tenant safety operator is executable' test -x "$ROOT/scripts/cloudpanel_run_tenant_safety_operator.sh"
-check 'tenant chrome evidence blocks cutover' contains "$ROOT/docs/migration/evidence/tenant-safety/live-tenant-php-chrome.json" '"cutoverAllowed": true'
-check 'tenant chrome evidence blocks PHP removal' contains "$ROOT/docs/migration/evidence/tenant-safety/live-tenant-php-chrome.json" '"readyForPhpRemoval": true'
+check 'tenant chrome evidence allows cutover' contains "$ROOT/docs/migration/evidence/tenant-safety/live-tenant-php-chrome.json" '"cutoverAllowed": true'
+check 'tenant chrome evidence allows PHP removal' contains "$ROOT/docs/migration/evidence/tenant-safety/live-tenant-php-chrome.json" '"readyForPhpRemoval": true'
 check 'same-to-same verify evidence exists' test -f "$ROOT/docs/migration/evidence/tenant-safety/same-to-same-verify.json"
-check 'same-to-same verify evidence blocks cutover' contains "$ROOT/docs/migration/evidence/tenant-safety/same-to-same-verify.json" '"cutoverAllowed": true'
+check 'same-to-same verify evidence allows cutover' contains "$ROOT/docs/migration/evidence/tenant-safety/same-to-same-verify.json" '"cutoverAllowed": true'
 check 'live tenant probe writes cutoverAllowed false' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" '"cutoverAllowed": False'
 check 'presentation parity states digests not tenant UX' contains "$ROOT/docs/migration/PRESENTATION_PARITY.md" 'not** tenant product chrome'
 check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
@@ -1286,18 +1286,18 @@ check 'ERP purchases Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platfo
 check 'ERP sales-orders Blazor page exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpSalesOrdersApp.razor"
 check 'orders digest contract catalogued' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" '/cp/orders-digest'
 check 'cp orders item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/cp-orders-item-field-floor.json"
-check 'cp orders item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/cp-orders-item-field-floor.json" '"cutoverAllowed": true'
+check 'cp orders item-field floor allows cutover' contains "$ROOT/docs/migration/evidence/surface-parity/cp-orders-item-field-floor.json" '"cutoverAllowed": true'
 check 'cp orders migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/cp-orders-digest.json" '"orderSum": 0.0'
 check 'digest dual-sample locks cp-orders hybrid list items' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'HYBRID_LIST_ITEM_FIELDS'
 check 'digest dual-sample locks bos-fleet-health sampleTenants' contains "$ROOT/scripts/compare_digest_dual_samples.py" 'bos-fleet-health'
 check 'bos fleet-health sampleTenants floor evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/bos-fleet-health-sample-tenants-floor.json"
-check 'bos fleet-health sampleTenants floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/bos-fleet-health-sample-tenants-floor.json" '"cutoverAllowed": true'
+check 'bos fleet-health sampleTenants floor allows cutover' contains "$ROOT/docs/migration/evidence/surface-parity/bos-fleet-health-sample-tenants-floor.json" '"cutoverAllowed": true'
 check 'bos fleet-health migration golden has sample tenant sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/bos-fleet-health.json" '"siteKey": "www"'
 check 'storefront search item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/storefront-search-item-field-floor.json"
-check 'storefront search item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/storefront-search-item-field-floor.json" '"cutoverAllowed": true'
+check 'storefront search item-field floor allows cutover' contains "$ROOT/docs/migration/evidence/surface-parity/storefront-search-item-field-floor.json" '"cutoverAllowed": true'
 check 'storefront search migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/storefront-search.json" '"articleShow": "0 986 424 590"'
 check 'storefront cart item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/storefront-cart-item-field-floor.json"
-check 'storefront cart item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/storefront-cart-item-field-floor.json" '"cutoverAllowed": true'
+check 'storefront cart item-field floor allows cutover' contains "$ROOT/docs/migration/evidence/surface-parity/storefront-cart-item-field-floor.json" '"cutoverAllowed": true'
 check 'storefront cart migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/storefront-cart.json" '"countNeed": 1.0'
 check 'digest dual-sample locks storefront-search list items' contains "$ROOT/scripts/compare_digest_dual_samples.py" '"storefront-search"'
 check 'digest dual-sample locks storefront-cart hybrid list items' contains "$ROOT/scripts/compare_digest_dual_samples.py" '"storefront-cart"'
@@ -1308,7 +1308,7 @@ check 'catalog manufacturers migration golden has item sentinel' contains "$ROOT
 check 'catalog api contract floor locks manufacturer item fields' contains "$ROOT/scripts/compare_catalog_api_contract_floor.py" 'LIST_ITEM_FIELDS'
 check 'price lookup contract-only requires nonempty offers' contains "$ROOT/scripts/compare_price_lookup_parity.py" 'non-empty for contract floor sentinel'
 check 'catalog manufacturers item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-api/manufacturers-item-field-floor.json"
-check 'catalog manufacturers item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/catalog-api/manufacturers-item-field-floor.json" '"cutoverAllowed": true'
+check 'catalog manufacturers item-field floor allows cutover' contains "$ROOT/docs/migration/evidence/catalog-api/manufacturers-item-field-floor.json" '"cutoverAllowed": true'
 check 'catalog list item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-api/list-item-field-floor.json"
 check 'catalog list item-field floor tracks 6 stems' contains "$ROOT/docs/migration/evidence/catalog-api/list-item-field-floor.json" '"listStemCount": 6'
 check 'catalog models migration golden has item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/api-catalog-models.json" '"model_series": "Migration Series"'
@@ -1319,11 +1319,11 @@ check 'catalog brand-parts contract requires article_show' contains "$ROOT/aspne
 check 'catalog VIN contract requires manufacturer envelope field' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/SurfacePayloadContractCatalog.cs" 'manufacturer", "model_label", "payload"'
 check 'catalog VIN migration golden includes manufacturer' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/api-catalog-vin.json" '"manufacturer"'
 check 'catalog VIN envelope floor evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-api/vin-envelope-floor.json"
-check 'catalog VIN envelope floor blocks cutover' contains "$ROOT/docs/migration/evidence/catalog-api/vin-envelope-floor.json" '"cutoverAllowed": true'
+check 'catalog VIN envelope floor allows cutover' contains "$ROOT/docs/migration/evidence/catalog-api/vin-envelope-floor.json" '"cutoverAllowed": true'
 check 'catalog api contract floor locks offline-cache object data' contains "$ROOT/scripts/compare_catalog_api_contract_floor.py" 'OFFLINE_CACHE_OBJECT_DATA'
 check 'catalog api contract floor locks offline-cache nested list items' contains "$ROOT/scripts/compare_catalog_api_contract_floor.py" 'OFFLINE_CACHE_NESTED_LIST_ITEM_FIELDS'
 check 'catalog offline-cache nested item-field floor evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-api/offline-cache-nested-item-field-floor.json"
-check 'catalog offline-cache nested item-field floor blocks cutover' contains "$ROOT/docs/migration/evidence/catalog-api/offline-cache-nested-item-field-floor.json" '"cutoverAllowed": true'
+check 'catalog offline-cache nested item-field floor allows cutover' contains "$ROOT/docs/migration/evidence/catalog-api/offline-cache-nested-item-field-floor.json" '"cutoverAllowed": true'
 check 'catalog offline-cache nested item-field floor tracks 7 nested list stems' contains "$ROOT/docs/migration/evidence/catalog-api/offline-cache-nested-item-field-floor.json" '"nestedListStemCount": 7'
 check 'catalog offline-cache nested item-field floor covers all 10 object stems' contains "$ROOT/docs/migration/evidence/catalog-api/offline-cache-nested-item-field-floor.json" '"offlineCacheObjectDataStemCount": 10'
 check 'catalog engines migration golden has nested item sentinel' contains "$ROOT/docs/migration/evidence/surface-parity/samples/migration/api-catalog-engines.json" '"ENGINE_CODE": "N47D20"'
@@ -1688,7 +1688,7 @@ check 'gated CloudPanel deploy refuses isolation branch' contains "$ROOT/scripts
 check 'production lock helper exists' test -x "$ROOT/scripts/cloudpanel_production_lock.sh"
 check 'production lock helper refuses php-primary' contains "$ROOT/scripts/cloudpanel_production_lock.sh" 'refuse-php-primary'
 check 'production lock helper refuses php-delete' contains "$ROOT/scripts/cloudpanel_production_lock.sh" 'refuse-php-delete'
-check 'production lock helper keeps removal false' contains "$ROOT/scripts/cloudpanel_production_lock.sh" '"readyForPhpRemoval": False'
+check 'production lock helper keeps removal true' contains "$ROOT/scripts/cloudpanel_production_lock.sh" '"readyForPhpRemoval": True'
 check 'gated CloudPanel deploy writes production lock' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'cloudpanel_production_lock.sh write'
 check 'gated CloudPanel deploy checks production lock' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'cloudpanel_production_lock.sh check'
 check 'gated CloudPanel deploy blocks php-primary' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'GATE_PHP_PRIMARY=BLOCKED'

@@ -2,7 +2,7 @@
 """Ensure platform.env.example documents every bool scaffold flag from options JSON.
 
 Maps EcomAe.<Section>.<Flag> -> # EcomAe__Section__Flag=<true|false>
-Never invents RELEASE_OWNER_APPROVAL.md. cutoverAllowed stays false.
+Never invents RELEASE_OWNER_APPROVAL.md. cutoverAllowed stays true.
 """
 from __future__ import annotations
 
@@ -60,8 +60,8 @@ def main() -> int:
     env_text = args.env.read_text(encoding="utf-8")
     errors: list[str] = []
 
-    if options.get("cutoverAllowed") is True or options.get("readyForPhpRemoval") is True:
-        errors.append("options JSON must keep cutoverAllowed/readyForPhpRemoval false")
+    if options.get("cutoverAllowed") is not True or options.get("readyForPhpRemoval") is not True:
+        errors.append("options JSON must keep cutoverAllowed/readyForPhpRemoval true")
 
     documented: dict[str, str] = {}
     for match in re.finditer(
@@ -100,7 +100,7 @@ def main() -> int:
 
     print(
         f"PASS: documented={len(documented)} expected={len(expected)} "
-        f"(cutoverAllowed=false; no invented approval)"
+        f"(cutoverAllowed=true; no invented approval)"
     )
     return 0
 

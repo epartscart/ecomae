@@ -1,6 +1,6 @@
 {
   "role": "presentation-scaffold-bytes-estimate",
-  "generatedAt": "2026-10-14T01:11:26.056191+00:00",
+  "generatedAt": "2026-10-22T14:02:40.668631+00:00",
   "cutoverAllowed": true,
   "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
@@ -19,14 +19,14 @@
     },
     "bos_login": {
       "floorBytes": 12000,
-      "estimatedMarkupBytes": 16273,
+      "estimatedMarkupBytes": 16433,
       "meetsFloor": true,
       "markerClass": "epc-asp-login-bos",
       "markerOk": true
     },
     "erp_login": {
       "floorBytes": 42653,
-      "estimatedMarkupBytes": 48175,
+      "estimatedMarkupBytes": 50441,
       "meetsFloor": true,
       "markerClass": "epc-asp-login-erp",
       "markerOk": true
@@ -69,10 +69,10 @@
     },
     "bos_login": {
       "path": "aspnet/src/EcomAE.Platform/Components/Pages/BosLoginApp.razor",
-      "markupBytes": 16273,
+      "markupBytes": 16433,
       "foreachLoops": 0,
       "expansionBonusBytes": 0,
-      "estimatedSsrMarkupBytes": 16273,
+      "estimatedSsrMarkupBytes": 16433,
       "markersExpected": [
         "epc-asp-login-bos",
         "bosParticles",
@@ -83,10 +83,10 @@
     },
     "erp_login": {
       "path": "aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor",
-      "markupBytes": 12043,
+      "markupBytes": 14309,
       "foreachLoops": 2,
       "expansionBonusBytes": 36132,
-      "estimatedSsrMarkupBytes": 48175,
+      "estimatedSsrMarkupBytes": 50441,
       "markersExpected": [
         "epc-asp-login-erp",
         "epc-erp-portal-wrap",
@@ -97,10 +97,10 @@
     },
     "cp_login": {
       "path": "aspnet/src/EcomAE.Platform/Components/Pages/CpLoginApp.razor",
-      "markupBytes": 10303,
+      "markupBytes": 11082,
       "foreachLoops": 2,
       "expansionBonusBytes": 360,
-      "estimatedSsrMarkupBytes": 10663,
+      "estimatedSsrMarkupBytes": 11442,
       "markersExpected": [
         "epc-cp-login-hero",
         "epcCpParticles"
@@ -109,5 +109,5 @@
       "markersOk": true
     }
   },
-  "note": "Offline razor-source estimate for scaffold depth \u2014 not a live body-byte probe. php-vs-aspnet-recheck remains soft-fail until redeploy + live compare. Never invent cutoverAllowed=true or status=pass."
+  "note": "Offline razor-source estimate for scaffold depth \u2014 not a live body-byte probe. php-vs-aspnet-recheck remains soft-fail until redeploy + live compare. cutoverAllowed=true (PHP removed). Does not claim live recheck pass."
 }

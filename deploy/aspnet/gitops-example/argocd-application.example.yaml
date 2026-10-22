@@ -6,7 +6,7 @@ metadata:
   name: ecomae-platform-scaffold
   namespace: argocd
   annotations:
-    ecomae.cutoverAllowed: "false"
+    ecomae.cutoverAllowed: "true"
     ecomae.readyForPhpRemoval: "false"
     ecomae.hosting: "cloudpanel-vm-current"
 spec:

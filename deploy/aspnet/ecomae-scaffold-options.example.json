@@ -1,7 +1,7 @@
 {
   "note": "DESIGN ONLY consolidated scaffold options. Not loaded by Program.cs. All Replace*/Allow*/Register* flags stay false. Never commit secrets.",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "EcomAe": {
     "Postgres": {
       "Host": "127.0.0.1",

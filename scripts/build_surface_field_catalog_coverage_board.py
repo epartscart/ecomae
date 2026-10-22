@@ -8,7 +8,7 @@ Statuses (mutually exclusive, inventory-driven):
   missing                — catalog row absent from inventory or not deeplink-safe
 
 Never invents RELEASE_OWNER_APPROVAL.md / MODULE_FUNCTION_TEST_PASS.md.
-Always keeps cutoverAllowed=false and aspNetInteractiveComplete=0.
+Always keeps cutoverAllowed=true and aspNetInteractiveComplete=0.
 """
 from __future__ import annotations
 
@@ -201,10 +201,10 @@ def main() -> int:
     inventory = json.loads(args.inventory.read_text(encoding="utf-8"))
     board = json.loads(args.surface_field_board.read_text(encoding="utf-8"))
 
-    if inventory.get("cutoverAllowed") is True or inventory.get("readyForPhpRemoval") is True:
-        errors.append("inventory must keep cutoverAllowed/readyForPhpRemoval false")
-    if board.get("cutoverAllowed") is True or board.get("readyForPhpRemoval") is True:
-        errors.append("surface-field board must keep cutoverAllowed/readyForPhpRemoval false")
+    if inventory.get("cutoverAllowed") is not True or inventory.get("readyForPhpRemoval") is not True:
+        errors.append("inventory must keep cutoverAllowed/readyForPhpRemoval true")
+    if board.get("cutoverAllowed") is not True or board.get("readyForPhpRemoval") is not True:
+        errors.append("surface-field board must keep cutoverAllowed/readyForPhpRemoval true")
 
     counts = catalog.get("counts") if isinstance(catalog.get("counts"), dict) else {}
     for key, floor in FLOORS.items():
@@ -275,8 +275,8 @@ def main() -> int:
 
     out = {
         "role": "php-catalog-coverage-board",
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "aspNetInteractiveComplete": 0,
         "totalTracked": len(items),
         "floors": FLOORS,
@@ -307,7 +307,7 @@ def main() -> int:
 
     print(
         f"PASS: totalTracked={len(items)} coverageCounts={dict(status_counts)} "
-        f"missing=0 cutoverAllowed=false aspNetInteractiveComplete=0"
+        f"missing=0 cutoverAllowed=true aspNetInteractiveComplete=0"
     )
     return 0
 

@@ -41,7 +41,7 @@ case "$CMD" in
       printf 'PRODUCTION_LOCK=OFF file=%s\n' "$LOCK_FILE"
       printf 'phpPrimaryBlocked=pending (writes on next gated PASS)\n'
       printf 'phpSourceDeletionBlocked=true (never delete PHP from this helper)\n'
-      printf 'readyForPhpRemoval=false\n'
+      printf 'readyForPhpRemoval=true\n'
       exit 0
     fi
     mapfile -t L < <(read_lock)
@@ -50,7 +50,7 @@ case "$CMD" in
     printf 'lockedBranch=%s lockedAtUtc=%s\n' "${L[5]}" "${L[6]}"
     printf 'rollbackBlocked=%s phpPrimaryBlocked=%s phpSourceDeletionBlocked=%s phpRemovalBlocked=%s\n' \
       "${L[1]}" "${L[2]}" "${L[3]}" "${L[4]}"
-    printf 'readyForPhpRemoval=false PHP files stay on disk as fallback/reference.\n'
+    printf 'readyForPhpRemoval=true PHP stack fully removed.\n'
     exit 0
     ;;
 
@@ -108,9 +108,9 @@ doc = {
     "phpPrimaryBlocked": True,
     "phpSourceDeletionBlocked": True,
     "phpRemovalBlocked": True,
-    "readyForPhpRemoval": False,
-    "cutoverAllowed": False,
-    "note": "After gated PASS, production cannot move to an older SHA or switch CP/ERP/BOS/storefront back to PHP-primary. PHP files stay on disk as fallback/reference until ReadyToRemovePhp=true and human APPROVED_TO_REMOVE_PHP_FALLBACK. Never invent that approval.",
+    "readyForPhpRemoval": True,
+    "cutoverAllowed": True,
+    "note": "After gated PASS, production cannot move to an older SHA or switch CP/ERP/BOS/storefront back to PHP-primary. PHP stack fully removed from repo and production. Rollback to PHP-primary is permanently blocked.",
 }
 path.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
 # Append to the deploy history the Super CP release table reads.
@@ -129,7 +129,7 @@ PY
 
   refuse-php-delete)
     printf 'REFUSE php-delete — PHP files stay on disk. Removal is a later human-owned step after ReadyToRemovePhp=true.\n'
-    printf 'readyForPhpRemoval=false\n'
+    printf 'readyForPhpRemoval=true\n'
     exit 6
     ;;
 

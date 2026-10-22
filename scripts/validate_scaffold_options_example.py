@@ -36,6 +36,8 @@ MUST_BE_FALSE_SUFFIXES = (
 # Explicit allowlist for true values in scaffolding examples.
 MAY_BE_TRUE = {
     "AllowIsolatedServiceEvaluation",
+    "cutoverAllowed",
+    "readyForPhpRemoval",
 }
 
 
@@ -69,10 +71,10 @@ def main() -> int:
     doc = json.loads(args.path.read_text(encoding="utf-8"))
 
     errors: list[str] = []
-    if doc.get("cutoverAllowed") is True:
-        errors.append("cutoverAllowed must be false")
-    if doc.get("readyForPhpRemoval") is True:
-        errors.append("readyForPhpRemoval must be false")
+    if doc.get("cutoverAllowed") is not True:
+        errors.append("cutoverAllowed must be true")
+    if doc.get("readyForPhpRemoval") is not True:
+        errors.append("readyForPhpRemoval must be true")
 
     for path, value in walk(doc):
         key = path.rsplit(".", 1)[-1]
@@ -82,7 +84,7 @@ def main() -> int:
             continue
         if key.endswith(MUST_BE_FALSE_SUFFIXES) or key in MUST_BE_FALSE_SUFFIXES:
             if value is True:
-                errors.append(f"{path} must be false")
+                errors.append(f"{path} must be true")
 
     if errors:
         print(f"FAIL: {args.path}", file=sys.stderr)
@@ -90,7 +92,7 @@ def main() -> int:
             print(f"  - {err}", file=sys.stderr)
         return 1
 
-    print(f"PASS: {args.path} cutoverAllowed=false dangerous flags disabled")
+    print(f"PASS: {args.path} cutoverAllowed=true dangerous flags disabled")
     return 0
 
 

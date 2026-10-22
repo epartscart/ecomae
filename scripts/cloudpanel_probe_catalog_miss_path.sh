@@ -69,7 +69,7 @@ say "== Catalog miss path probe (Batch 5) =="
 say "Loopback: $LOOP"
 say "Public:   $BASE"
 say "Policy:   ASP.NET cache readers only; PHP/UMAPI remains authoritative for fills"
-say "cutoverAllowed=false"
+say "cutoverAllowed=true"
 
 fail=0
 
@@ -154,5 +154,5 @@ if [[ "$fail" -ne 0 ]]; then
   say "FAIL: one or more miss probes unexpected"
   exit 1
 fi
-say "PASS: catalog miss probe (cutoverAllowed=false)"
+say "PASS: catalog miss probe (cutoverAllowed=true)"
 exit 0

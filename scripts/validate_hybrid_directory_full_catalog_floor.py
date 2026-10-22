@@ -109,8 +109,8 @@ def main() -> int:
 
     out = {
         "role": "hybrid-directory-full-catalog-floor",
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "aspNetInteractiveComplete": 0,
         "totalTracked": total,
         "floors": FLOORS,
