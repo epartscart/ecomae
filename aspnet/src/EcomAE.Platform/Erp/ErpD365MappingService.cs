@@ -253,23 +253,56 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             }
         }
         // Journal-line reconcile: a dimension or voucher edit changes the staged key, so a stale
-        // staged row could leave a dead GL line. Delete keyed lines of THIS feed on touched journals
-        // whose line_ref was not applied — scoped by ext_entity so a different feed's lines on the
-        // same journal are never erased. Chunked: one delete binds at most ~400 params.
+        // staged row could leave a dead GL line. Read this feed's keyed refs on each touched journal
+        // and delete the ones this run did not apply (stale), plus any unclaimed legacy rows
+        // (line_ref='' rows can only exist from earlier imports on a D365 journal). Scoped by
+        // ext_entity so a different feed's lines on the same journal are never erased.
         foreach (var (journalId, refs) in appliedJournalLineRefs)
         {
-            if (refs.Count == 0)
+            var stale = new List<string>();
+            var otherFeedKeyed = false;
+            await using (var readCmd = connection.CreateCommand())
             {
-                continue;
+                readCmd.Transaction = transaction;
+                readCmd.CommandText =
+                    "SELECT `line_ref`, `ext_entity` FROM `epc_erp_gl_lines` " +
+                    "WHERE `journal_id` = @a AND `line_ref` <> ''";
+                var p1 = readCmd.CreateParameter(); p1.ParameterName = "@a"; p1.Value = journalId; readCmd.Parameters.Add(p1);
+                await using var reader = await readCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var existing = reader.GetString(0);
+                    var feed = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+                    if (feed.Equals(entity, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (!refs.Contains(existing))
+                        {
+                            stale.Add(existing);
+                        }
+                    }
+                    else
+                    {
+                        otherFeedKeyed = true;
+                    }
+                }
             }
-            foreach (var chunk in refs.Chunk(400))
+            foreach (var chunk in stale.Chunk(400))
             {
                 var marks = string.Join(",", chunk.Select(_ => "?"));
                 var args = new List<object?> { journalId, entity };
                 args.AddRange(chunk.Select(k => (object?)Clip(k, 64)));
                 await ErpDb.ExecuteAsync(connection, transaction,
-                    ErpDb.Positional($"DELETE FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_entity` = ? AND `line_ref` <> '' AND `line_ref` NOT IN ({marks})"),
+                    ErpDb.Positional($"DELETE FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_entity` = ? AND `line_ref` IN ({marks})"),
                     cancellationToken, args.ToArray()).ConfigureAwait(false);
+            }
+            // Blank-ref leftovers belong to SOME feed but can't be attributed — only clear them
+            // when this journal is used by a single feed, so a shared journal doesn't lose the
+            // other feed's unclaimed rows.
+            if (!otherFeedKeyed)
+            {
+                await ErpDb.ExecuteAsync(connection, transaction,
+                    ErpDb.Positional("DELETE FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_entity` = '' AND `line_ref` = ''"),
+                    cancellationToken, journalId).ConfigureAwait(false);
             }
         }
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
@@ -413,12 +446,20 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
     {
         foreach (var name in names)
         {
-            if (row.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String)
+            if (row.TryGetProperty(name, out var value))
             {
-                var text = value.GetString() ?? string.Empty;
-                if (text.Trim().Length > 0)
+                if (value.ValueKind == JsonValueKind.String)
                 {
-                    return text.Trim();
+                    var text = value.GetString() ?? string.Empty;
+                    if (text.Trim().Length > 0)
+                    {
+                        return text.Trim();
+                    }
+                }
+                else if (value.ValueKind == JsonValueKind.Number)
+                {
+                    // F&O sends identifiers like LineNumber as JSON numbers — keep them usable.
+                    return value.GetRawText();
                 }
             }
         }
