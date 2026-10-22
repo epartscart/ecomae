@@ -195,6 +195,9 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         await ErpDb.TryExecuteAsync(connection,
             "ALTER TABLE `epc_erp_pm_legal_entities` ADD UNIQUE KEY `ux_le_code` (`code`)",
             cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(connection,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_cost_centres` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `legal_entity_id` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_cc_code` (`code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            cancellationToken).ConfigureAwait(false);
 
         var staged = new List<(string Key, string Payload)>();
         await using (var command = connection.CreateCommand())
@@ -1082,11 +1085,12 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
     /// mapping. Unmatched segments are kept as dimension values, never force-created as the wrong
     /// kind. Returns (legalEntityId, businessUnitId, dimTypeCode, dimValueCode).
     /// </summary>
-    private static async Task<(long EntityId, long BuId, string TypeCode, string ValueCode)> ResolveDimensionsAsync(
+    private static async Task<(long EntityId, long BuId, long CostCentreId, string TypeCode, string ValueCode)> ResolveDimensionsAsync(
         DbConnection connection, DbTransaction tx, string accountDimensionString, string defaultDimensionString, JsonElement row, CancellationToken ct)
     {
         var entityId = 0L;
         var buId = 0L;
+        var costCentreId = 0L;
         var typeCode = "";
         var valueCode = "";
         // Account-bearing strings (LedgerDimension/AccountDisplayValue) lead with the main account
@@ -1109,8 +1113,13 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         }
         var explicitCostCentre = Str(row, "CostCenter", "CostCentre");
         var explicitDepartment = Str(row, "Department");
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var seg in segments)
         {
+            if (!seen.Add(seg))
+            {
+                continue; // same code in both strings — a repeat is not a new dimension
+            }
             // Classify by what EXISTS in our masters — a D365 code can be a BU here and a legal
             // entity there (or vice versa); whichever table contains it wins.
             if (buId == 0)
@@ -1137,7 +1146,13 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             // 'other' — nothing is dropped and ids never alias master ids.
             try
             {
-                var (_, valType) = await EnsureDimValueAsync(connection, tx, seg, seg == explicitCostCentre ? "cost_centre" : seg == explicitDepartment ? "department" : null, ct).ConfigureAwait(false);
+                var preferred = seg == explicitCostCentre ? "cost_centre" : seg == explicitDepartment ? "department" : null;
+                var (_, valType) = await EnsureDimValueAsync(connection, tx, seg, preferred, ct).ConfigureAwait(false);
+                if (valType.Equals("cost_centre", StringComparison.OrdinalIgnoreCase) && costCentreId == 0)
+                {
+                    costCentreId = await ResolveCostCentreIdAsync(connection, tx, seg, ct).ConfigureAwait(false);
+                    continue;
+                }
                 if (valueCode.Length == 0)
                 {
                     typeCode = valType;
@@ -1153,7 +1168,31 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                 }
             }
         }
-        return (entityId, buId, typeCode, valueCode);
+        return (entityId, buId, costCentreId, typeCode, valueCode);
+    }
+
+    /// <summary>Cost-centre code → epc_erp_pm_cost_centres.id; provisions the master row when missing.</summary>
+    private static async Task<long> ResolveCostCentreIdAsync(DbConnection connection, DbTransaction tx, string code, CancellationToken ct)
+    {
+        try
+        {
+            var existing = await ErpDb.LongAsync(connection, tx,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_cost_centres` WHERE `code` = ? LIMIT 1"), ct, Clip(code, 40)).ConfigureAwait(false);
+            if (existing > 0)
+            {
+                return existing;
+            }
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            await ErpDb.ExecuteAsync(connection, tx,
+                "INSERT INTO `epc_erp_pm_cost_centres` (`code`, `name`, `active`, `time_created`, `time_updated`) VALUES (?, ?, 1, ?, ?)",
+                ct, Clip(code, 40), Clip(code, 190), now, now).ConfigureAwait(false);
+            return await ErpDb.LongAsync(connection, tx,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_cost_centres` WHERE `code` = ? LIMIT 1"), ct, Clip(code, 40)).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            return 0L;
+        }
     }
 
     /// <summary>
@@ -1249,7 +1288,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         var dimensionString = Str(row, "LedgerDimension", "AccountDisplayValue", "DimensionDisplayValue", "DefaultDimensionDisplayValue");
         var accountDimString = Str(row, "LedgerDimension", "AccountDisplayValue");
         var defaultDimString = Str(row, "DimensionDisplayValue", "DefaultDimensionDisplayValue");
-        var (dimEntityId, dimBuId, dimTypeCode, dimValueCode) = await ResolveDimensionsAsync(connection, tx, accountDimString, defaultDimString, row, ct).ConfigureAwait(false);
+        var (dimEntityId, dimBuId, dimCostCentreId, dimTypeCode, dimValueCode) = await ResolveDimensionsAsync(connection, tx, accountDimString, defaultDimString, row, ct).ConfigureAwait(false);
         var legalEntityId = dimEntityId > 0 ? dimEntityId : await ResolveCompanyIdAsync(connection, tx, row, ct).ConfigureAwait(false);
         var hasDimString = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_string", ct).ConfigureAwait(false);
         var hasVoucher = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "voucher", ct).ConfigureAwait(false);
@@ -1284,7 +1323,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             if (hasBu) { cols.Add("`business_unit_id`"); marks.Add("?"); vals.Add(dimBuId); }
             if (hasDimType) { cols.Add("`dimension_type_code`"); marks.Add("?"); vals.Add(Clip(dimTypeCode, 32)); }
             if (hasDimValue) { cols.Add("`dimension_value_code`"); marks.Add("?"); vals.Add(Clip(dimValueCode, 64)); }
-            if (hasCostCentre) { cols.Add("`cost_centre_id`"); marks.Add("?"); vals.Add(0L); }
+            if (hasCostCentre) { cols.Add("`cost_centre_id`"); marks.Add("?"); vals.Add(dimCostCentreId); }
             await ErpDb.ExecuteAsync(connection, tx,
                 ErpDb.Positional("INSERT INTO `epc_erp_gl_lines` (" + string.Join(", ", cols) + ") VALUES (" + string.Join(", ", marks) + ")"),
                 ct, vals.ToArray()).ConfigureAwait(false);
@@ -1301,7 +1340,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             if (hasBu) { sets.Add("`business_unit_id` = ?"); vals.Add(dimBuId); }
             if (hasDimType) { sets.Add("`dimension_type_code` = ?"); vals.Add(Clip(dimTypeCode, 32)); }
             if (hasDimValue) { sets.Add("`dimension_value_code` = ?"); vals.Add(Clip(dimValueCode, 64)); }
-            if (hasCostCentre) { sets.Add("`cost_centre_id` = ?"); vals.Add(0L); }
+            if (hasCostCentre) { sets.Add("`cost_centre_id` = ?"); vals.Add(dimCostCentreId); }
             vals.Add(existing);
             await ErpDb.ExecuteAsync(connection, tx,
                 ErpDb.Positional("UPDATE `epc_erp_gl_lines` SET " + string.Join(", ", sets) + " WHERE `id` = ?"),
