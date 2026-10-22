@@ -203,10 +203,10 @@
 
     <div class="tg-card">
         <h3>Trial balance — EcomAE vs D365 F&amp;O</h3>
-        <p>Live compare per account + dimension. Pull <code>GeneralJournalAccountEntries</code> (posted transactions) to refresh the D365 side; every row must show <em>match</em> for the books to reconcile.</p>
+        <p>Live compare per account + dimension. Pull <code>GeneralLedgerBalanceCDREntities</code> (posted transactions) to refresh the D365 side; every row must show <em>match</em> for the books to reconcile.</p>
         @if (_tb.Count == 0)
         {
-            <p>Nothing to compare yet — pull <code>GeneralJournalAccountEntries</code> and <code>LedgerJournalLines</code>, apply them, then reload.</p>
+            <p>Nothing to compare yet — pull <code>GeneralLedgerBalanceCDREntities</code> and <code>LedgerJournalLines</code>, apply them, then reload.</p>
         }
         else
         {
