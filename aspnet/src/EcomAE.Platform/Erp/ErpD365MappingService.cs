@@ -30,7 +30,7 @@ public sealed record ErpD365TbCompareRow(string AccountCode, string AccountName,
 
 public sealed record ErpD365ApplyResult(bool Succeeded, string Code, string Message, int Mapped, int Skipped);
 
-public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErpD365GlService glService) : IErpD365MappingService
+public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErpD365GlService glService, IErpGlPostingService glPosting) : IErpD365MappingService
 {
     public IReadOnlyDictionary<string, string> MappedEntities { get; } =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -161,6 +161,9 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         await ErpSalesWorkspaceSpecs.EnsureSalesAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpPurchasingWorkspaceSpecs.EnsurePurchasingAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpGlChartOfAccountsSeeder.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+        // Base GL tables first (gl journals + lines) — the D365 GL service only adds columns and
+        // dimension tables on top of them, so a fresh tenant needs the base ensure.
+        await glPosting.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await glService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
         var staged = new List<(string Key, string Payload)>();
@@ -263,6 +266,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
 
         // D365 side: staged posted entries (GeneralLedgerBalanceCDREntities) aggregated per account+dimension.
         var theirs = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+        var snapshotPeriods = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         await using (var command = connection.CreateCommand())
         {
             command.CommandText = "SELECT payload FROM epc_d365_sync_objects WHERE entity = 'GeneralLedgerBalanceCDREntities'";
@@ -277,22 +281,41 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                     var account = Str(doc.RootElement, "MainAccountId", "MainAccount", "LedgerDimension", "AccountDisplayValue", "Dimension");
                     if (account.Length == 0) continue;
                     var code = account.Split('-', '|')[0].Trim();
-                    var dimension = Str(doc.RootElement, "Dimension", "DimensionSet", "LedgerDimension", "AccountDisplayValue");
+                    // Key on the same ledger-dimension display string ApplyJournalLineAsync stores in
+                    // dimension_string, so both sides compare under identical keys.
+                    var dimension = Str(doc.RootElement, "LedgerDimension", "AccountDisplayValue", "DimensionDisplayValue", "DefaultDimensionDisplayValue", "Dimension", "DimensionSet");
                     var debit = Dec(doc.RootElement, "AccountingCurrencyAmountDebit", "AmountCurDebit", "DebitAmount", "Debit");
                     var credit = Dec(doc.RootElement, "AccountingCurrencyAmountCredit", "AmountCurCredit", "CreditAmount", "Credit");
-                    if (debit == 0m && credit == 0m)
+                    var isSnapshot = debit == 0m && credit == 0m;
+                    if (isSnapshot)
                     {
                         // Balance entities (CDR balances, snapshots) carry a signed net amount.
                         var amount = Dec(doc.RootElement, "AccountingCurrencyAmount", "Balance", "BalanceAmount", "ClosingBalance", "Amount", "Total");
                         if (amount >= 0) { debit = amount; } else { credit = -amount; }
                     }
+                    var net = debit - credit;
                     var key = code + "\u001f" + dimension;
-                    theirs[key] = theirs.TryGetValue(key, out var v) ? v + debit - credit : debit - credit;
+                    // Period snapshots are cumulative: keep the latest period's balance rather than
+                    // summing closing balances across periods (Jan 100 + Feb 140 = 140, not 240).
+                    var period = Str(doc.RootElement, "FiscalPeriod", "Period", "FiscalYear", "AccountingPeriod");
+                    if (isSnapshot)
+                    {
+                        if (!snapshotPeriods.TryGetValue(key, out var existingPeriod) || string.CompareOrdinal(period, existingPeriod) >= 0)
+                        {
+                            snapshotPeriods[key] = period;
+                            theirs[key] = net;
+                        }
+                    }
+                    else
+                    {
+                        theirs[key] = theirs.TryGetValue(key, out var v) ? v + net : net;
+                    }
                 }
             }
         }
 
-        var names = ours.ToDictionary(k => k.Key.Split('\u001f')[0], v => v.Value.Name, StringComparer.OrdinalIgnoreCase);
+        var names = ours.GroupBy(k => k.Key.Split('\u001f')[0], StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First().Value.Name, StringComparer.OrdinalIgnoreCase);
         var rows = new List<ErpD365TbCompareRow>();
         foreach (var key in ours.Keys.Union(theirs.Keys, StringComparer.OrdinalIgnoreCase).OrderBy(k => k, StringComparer.OrdinalIgnoreCase))
         {
@@ -912,9 +935,15 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         var hasDimString = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_string", ct).ConfigureAwait(false);
         var hasVoucher = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "voucher", ct).ConfigureAwait(false);
 
+        // Upsert keyed on journal+account+note(+voucher): an amount or note CHANGE on the D365 side
+        // must update the existing line, not append a second one — otherwise balances count both.
         var existing = await ErpDb.LongAsync(connection, tx,
-            ErpDb.Positional("SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `coa_id` = ? AND `debit` = ? AND `credit` = ? AND IFNULL(`line_note`,'') = ? LIMIT 1"),
-            ct, journalId, coaId, debit, credit, Clip(note, 255)).ConfigureAwait(false);
+            ErpDb.Positional(hasVoucher && voucher.Length > 0
+                ? "SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `coa_id` = ? AND IFNULL(`line_note`,'') = ? AND `voucher` = ? LIMIT 1"
+                : "SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `coa_id` = ? AND IFNULL(`line_note`,'') = ? LIMIT 1"),
+            ct, hasVoucher && voucher.Length > 0
+                ? new object?[] { journalId, coaId, Clip(note, 255), Clip(voucher, 255) }
+                : new object?[] { journalId, coaId, Clip(note, 255) }).ConfigureAwait(false);
         if (existing <= 0)
         {
             var cols = new List<string> { "`journal_id`", "`coa_id`", "`debit`", "`credit`", "`line_note`" };
@@ -926,19 +955,16 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                 ErpDb.Positional("INSERT INTO `epc_erp_gl_lines` (" + string.Join(", ", cols) + ") VALUES (" + string.Join(", ", marks) + ")"),
                 ct, vals.ToArray()).ConfigureAwait(false);
         }
-        else if (hasDimString || hasVoucher)
+        else
         {
-            var sets = new List<string>();
-            var vals = new List<object?>();
+            var sets = new List<string> { "`debit` = ?", "`credit` = ?" };
+            var vals = new List<object?> { debit, credit };
             if (hasDimString && dimensionString.Length > 0) { sets.Add("`dimension_string` = ?"); vals.Add(Clip(dimensionString, 255)); }
             if (hasVoucher && voucher.Length > 0) { sets.Add("`voucher` = ?"); vals.Add(Clip(voucher, 255)); }
-            if (sets.Count > 0)
-            {
-                vals.Add(existing);
-                await ErpDb.ExecuteAsync(connection, tx,
-                    ErpDb.Positional("UPDATE `epc_erp_gl_lines` SET " + string.Join(", ", sets) + " WHERE `id` = ?"),
-                    ct, vals.ToArray()).ConfigureAwait(false);
-            }
+            vals.Add(existing);
+            await ErpDb.ExecuteAsync(connection, tx,
+                ErpDb.Positional("UPDATE `epc_erp_gl_lines` SET " + string.Join(", ", sets) + " WHERE `id` = ?"),
+                ct, vals.ToArray()).ConfigureAwait(false);
         }
         return true;
     }
