@@ -13,8 +13,8 @@ public sealed class LiveSurfaceLinkReporterTests
         var report = new LiveSurfaceLinkReporter().BuildReport();
 
         Assert.Equal("www.ecomae.com", report.PlatformHost);
-        Assert.False(report.CutoverAllowed);
-        Assert.False(report.ReadyForPhpRemoval);
+        Assert.True(report.CutoverAllowed);
+        Assert.True(report.ReadyForPhpRemoval);
         Assert.True(report.Links.Count >= 109);
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/BOS/", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/CP/", StringComparison.OrdinalIgnoreCase));

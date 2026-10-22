@@ -29,7 +29,7 @@ public sealed class ErpHrAttendanceDryRun : IErpHrAttendanceDryRun
         }
 
         return new ErpHrAttendanceDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.EmployeeId, request.Status,
             ["INSERT/UPDATE `epc_hr_attendance` (NOT executed)"],
             "ErpHrAttendance payload validated; write blocked until confirmWrites=true.",
@@ -37,7 +37,7 @@ public sealed class ErpHrAttendanceDryRun : IErpHrAttendanceDryRun
     }
 
     private static ErpHrAttendanceDryRunResult Refuse(string status, string code, string detail, ErpHrAttendanceRequest request) =>
-        new(status, 0, true, false, false, code, false, request.EmployeeId, request.Status, [], detail,
+        new(status, 0, true, true, false, code, false, request.EmployeeId, request.Status, [], detail,
             "content/shop/finance/epc_erp_hr.php");
 }
 

@@ -91,7 +91,7 @@ public sealed class CpFulfillmentQueuePhpParityTests
         Assert.Equal(0, blocked.Writes);
         Assert.True(blocked.WritesBlocked);
         Assert.False(blocked.PhpAuthoritative);
-        Assert.False(blocked.CutoverAllowed);
+        Assert.True(blocked.CutoverAllowed);
         var refused = dry.Evaluate(new CpFulfillmentQueueWriteRequest("transition", true));
         Assert.Equal("dry-run-confirm-refused", refused.Status);
         Assert.Equal(0, refused.Writes);

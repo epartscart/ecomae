@@ -9,13 +9,13 @@ public sealed class OnPremisesBackupDryRun : IOnPremisesBackupDryRun
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP backup.php remains authoritative.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Label,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Label,
             ["deploy/on-premises/backup.php (NOT executed)"],
             "On-premises backup payload validated; archive write blocked. See deploy/on-premises-aspnet/ scaffold.",
             "deploy/on-premises/backup.php");
     }
     private static OnPremisesBackupDryRunResult Refuse(string s,string c,string d,OnPremisesBackupRequest r)=>
-        new(s,0,true,false,true,c,false,r.Label,[],d,"deploy/on-premises/backup.php");
+        new(s,0,true,true,false,c,false,r.Label,[],d,"deploy/on-premises/backup.php");
 }
 public sealed record OnPremisesBackupRequest(string? Label = null, bool ConfirmWrites = false);
 public sealed record OnPremisesBackupDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? Label,IReadOnlyList<string> SimulatedSql,string Detail,string PhpPath)

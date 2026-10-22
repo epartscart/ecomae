@@ -29,7 +29,7 @@ public sealed class ErpInsDeleteDryRun : IErpInsDeleteDryRun
         }
 
         return new ErpInsDeleteDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.Id,
             ["DELETE `epc_erp_ins_policies` (NOT executed)"],
             "ErpInsDelete payload validated; write blocked until confirmWrites=true.",
@@ -41,7 +41,7 @@ public sealed class ErpInsDeleteDryRun : IErpInsDeleteDryRun
         string code,
         string detail,
         ErpInsDeleteRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Id, [], detail,
+        new(status, 0, true, true, false, code, false, request.Id, [], detail,
             "content/shop/finance/epc_erp_insurance.php");
 }
 

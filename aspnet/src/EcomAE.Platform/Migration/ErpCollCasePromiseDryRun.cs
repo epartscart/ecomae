@@ -30,14 +30,14 @@ public sealed class ErpCollCasePromiseDryRun : IErpCollCasePromiseDryRun
         }
 
         return new ErpCollCasePromiseDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id,
             ["UPDATE `epc_coll_cases` + INSERT `epc_coll_activity` (NOT executed)"],
             "ErpCollCasePromise payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_collections.php");
     }
 
     private static ErpCollCasePromiseDryRunResult Refuse(string s, string c, string d, ErpCollCasePromiseRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, [], d, "content/shop/finance/epc_erp_collections.php");
+        new(s, 0, true, true, false, c, false, r.Id, [], d, "content/shop/finance/epc_erp_collections.php");
 }
 
 public sealed record ErpCollCasePromiseRequest(

@@ -32,14 +32,14 @@ public sealed class ErpPltFeatureSaveDryRun : IErpPltFeatureSaveDryRun
         }
 
         return new ErpPltFeatureSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.CompanyId, code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.CompanyId, code,
             ["INSERT/UPDATE `epc_plt_feature` (NOT executed)"],
             "ErpPltFeatureSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_platform.php");
     }
 
     private static ErpPltFeatureSaveDryRunResult Refuse(string s, string c, string d, ErpPltFeatureSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.CompanyId, r.Code, [], d, "content/shop/finance/epc_erp_platform.php");
+        new(s, 0, true, true, false, c, false, r.CompanyId, r.Code, [], d, "content/shop/finance/epc_erp_platform.php");
 }
 
 public sealed record ErpPltFeatureSaveRequest(

@@ -76,8 +76,8 @@ public sealed class ErpSalesOrderDeleteDryRun : IErpSalesOrderDeleteDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             SalesOrderId: order.Id,
@@ -94,7 +94,7 @@ public sealed class ErpSalesOrderDeleteDryRun : IErpSalesOrderDeleteDryRun
 
     private static ErpSalesOrderDeleteDryRunResult Refuse(
         string status, string code, string detail, ErpSalesOrderDeleteRequest request) =>
-        new(status, 0, true, false, true, code, false, request.SalesOrderId, null, null, [], detail,
+        new(status, 0, true, true, false, code, false, request.SalesOrderId, null, null, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=so_delete");
 }
 

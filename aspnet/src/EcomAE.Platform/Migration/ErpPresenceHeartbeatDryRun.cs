@@ -9,13 +9,13 @@ public sealed class ErpPresenceHeartbeatDryRun : IErpPresenceHeartbeatDryRun
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused on the dry-run path; POST confirmWrites=true to run on ASP.NET.", request);
-        return new("dry-run-validated",0,true,false,false,"ok",true,request.ResourceKey,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.ResourceKey,
             ["ajax_erp.php?action=presence_heartbeat resource=@resourceKey (NOT executed)"],
             "ERP presence_heartbeat payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=presence_heartbeat");
     }
     private static ErpPresenceHeartbeatDryRunResult Refuse(string s,string c,string d,ErpPresenceHeartbeatRequest r)=>
-        new(s,0,true,false,false,c,false,r.ResourceKey,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=presence_heartbeat");
+        new(s,0,true,true,false,c,false,r.ResourceKey,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=presence_heartbeat");
 }
 public sealed record ErpPresenceHeartbeatRequest(string? ResourceKey = null, bool ConfirmWrites = false);
 public sealed record ErpPresenceHeartbeatDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? ResourceKey,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

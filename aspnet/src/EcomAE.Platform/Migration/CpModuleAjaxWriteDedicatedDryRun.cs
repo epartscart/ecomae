@@ -17,13 +17,13 @@ public sealed class CpModuleAjaxWriteDedicatedDryRun : ICpModuleAjaxWriteDedicat
             return Refuse("dry-run-unknown-action", "unknown_or_non_write_action", $"action '{module}/{action}' is not a dedicated CP module write dry-run. Use registry or GET /cp/module-ajax/writes/catalog.", module, action, entry);
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused", $"confirm_writes refused; PHP remains authoritative for {module}/{action}.", module, action, entry);
-        return new("dry-run-validated", 0, true, false, true, "ok", true, entry.Module, entry.Action, entry.AspNetRouteHint,
+        return new("dry-run-validated", 0, true, true, false, "ok", true, entry.Module, entry.Action, entry.AspNetRouteHint,
             [$"{entry.PhpAjax}?action={entry.Action} (NOT executed)"],
             $"CP module write '{entry.Module}/{entry.Action}' dedicated dry-run; UPDATE blocked.",
             entry.PhpAjax);
     }
     private static CpModuleAjaxWriteDedicatedDryRunResult Refuse(string s, string c, string d, string module, string action, CpModuleAjaxWriteCatalogEntry? entry = null) =>
-        new(s, 0, true, false, true, c, false, module, action, entry?.AspNetRouteHint ?? "/cp/module-ajax/{module}/{action}/dry-run", [], d,
+        new(s, 0, true, true, false, c, false, module, action, entry?.AspNetRouteHint ?? "/cp/module-ajax/{module}/{action}/dry-run", [], d,
             entry?.PhpAjax ?? "cp/content/shop/*/ajax_*.php");
 }
 public sealed record CpModuleAjaxWriteDedicatedRequest(string Module, string Action, bool ConfirmWrites = false);

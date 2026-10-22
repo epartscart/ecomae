@@ -15,7 +15,7 @@ public sealed class ErpGlReverseJournalDryRunTests
             [Journal(9)], new ErpGlReverseJournalRequest(9, "x", true));
         Assert.Equal("dry-run-confirm-refused", r.Status);
         Assert.Equal(0, r.Writes);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]

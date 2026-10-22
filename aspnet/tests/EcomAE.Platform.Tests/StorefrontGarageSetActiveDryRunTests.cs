@@ -15,7 +15,7 @@ public sealed class StorefrontGarageSetActiveDryRunTests
             5, [Car(9)], new StorefrontGarageSetActiveRequest(9, true));
         Assert.Equal("dry-run-confirm-refused", r.Status);
         Assert.Equal(0, r.Writes);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]

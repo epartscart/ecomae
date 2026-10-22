@@ -46,8 +46,8 @@ public sealed class ErpAsRmaCreateDryRun : IErpAsRmaCreateDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             CustomerId: customerId,
@@ -68,7 +68,7 @@ public sealed class ErpAsRmaCreateDryRun : IErpAsRmaCreateDryRun
 
     private static ErpAsRmaCreateDryRunResult Refuse(
         string status, string code, string detail, ErpAsRmaCreateRequest request) =>
-        new(status, 0, true, false, true, code, false,
+        new(status, 0, true, true, false, code, false,
             request.CustomerId, request.SourceId, request.RmaNo, request.Reason, request.Restock,
             request.Lines?.Count ?? 0, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=as_rma_create");

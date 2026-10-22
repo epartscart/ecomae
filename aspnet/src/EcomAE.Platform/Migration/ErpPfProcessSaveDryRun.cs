@@ -32,14 +32,14 @@ public sealed class ErpPfProcessSaveDryRun : IErpPfProcessSaveDryRun
         }
 
         return new ErpPfProcessSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, name,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, name,
             ["INSERT/UPDATE `epc_pf_processes` (NOT executed)"],
             "ErpPfProcessSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_processflow.php");
     }
 
     private static ErpPfProcessSaveDryRunResult Refuse(string s, string c, string d, ErpPfProcessSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Name, [], d, "content/shop/finance/epc_erp_processflow.php");
+        new(s, 0, true, true, false, c, false, r.Id, r.Name, [], d, "content/shop/finance/epc_erp_processflow.php");
 }
 
 public sealed record ErpPfProcessSaveRequest(

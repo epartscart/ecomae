@@ -33,14 +33,14 @@ public sealed class ErpOaCalendarSaveDryRun : IErpOaCalendarSaveDryRun
         }
 
         return new ErpOaCalendarSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.CompanyId, code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.CompanyId, code,
             ["INSERT/UPDATE `epc_oa_calendar` (NOT executed)"],
             "ErpOaCalendarSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_orgadmin.php");
     }
 
     private static ErpOaCalendarSaveDryRunResult Refuse(string s, string c, string d, ErpOaCalendarSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.CompanyId, r.Code, [], d, "content/shop/finance/epc_erp_orgadmin.php");
+        new(s, 0, true, true, false, c, false, r.CompanyId, r.Code, [], d, "content/shop/finance/epc_erp_orgadmin.php");
 }
 
 public sealed record ErpOaCalendarSaveRequest(

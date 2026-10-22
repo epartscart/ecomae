@@ -30,14 +30,14 @@ public sealed class ErpQmNcrUpdateDryRun : IErpQmNcrUpdateDryRun
         }
 
         return new ErpQmNcrUpdateDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Code,
             ["ajax_erp.php?action=qm_ncr_update (NOT executed)"],
             "ErpQmNcrUpdate payload validated; write blocked until confirmWrites=true.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=qm_ncr_update");
     }
 
     private static ErpQmNcrUpdateDryRunResult Refuse(string s, string c, string d, ErpQmNcrUpdateRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=qm_ncr_update");
+        new(s, 0, true, true, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=qm_ncr_update");
 }
 
 public sealed record ErpQmNcrUpdateRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);

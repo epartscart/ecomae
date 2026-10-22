@@ -54,7 +54,7 @@ public sealed class ErpCollectionsHoldSetPhpParityTests
         Assert.Equal(0, ok.Writes);
         Assert.True(ok.WritesBlocked);
         Assert.False(ok.PhpAuthoritative);
-        Assert.False(ok.CutoverAllowed);
+        Assert.True(ok.CutoverAllowed);
         Assert.True(ok.WouldWrite);
 
         var missing = new ErpCollHoldSetDryRun().Evaluate(new ErpCollHoldSetRequest(0));

@@ -29,7 +29,7 @@ public sealed class ErpConsFiguresSaveDryRun : IErpConsFiguresSaveDryRun
         }
 
         return new ErpConsFiguresSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.EntityCode,
             ["INSERT/UPDATE `epc_cons_figures` (NOT executed)"],
             "ErpConsFiguresSave payload validated; write blocked until confirmWrites=true.",
@@ -41,7 +41,7 @@ public sealed class ErpConsFiguresSaveDryRun : IErpConsFiguresSaveDryRun
         string code,
         string detail,
         ErpConsFiguresSaveRequest request) =>
-        new(status, 0, true, false, false, code, false, request.EntityCode, [], detail,
+        new(status, 0, true, true, false, code, false, request.EntityCode, [], detail,
             "content/shop/finance/epc_erp_consolidation.php");
 }
 

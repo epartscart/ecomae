@@ -29,14 +29,14 @@ public sealed class ErpSubGenerateDryRun : IErpSubGenerateDryRun
         }
 
         return new ErpSubGenerateDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id,
             ["INSERT `epc_erp_sub_invoices` + UPDATE `next_bill_date` (NOT executed)"],
             "ErpSubGenerate payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_subscriptions.php");
     }
 
     private static ErpSubGenerateDryRunResult Refuse(string status, string code, string detail, ErpSubGenerateRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Id, [], detail,
+        new(status, 0, true, true, false, code, false, request.Id, [], detail,
             "content/shop/finance/epc_erp_subscriptions.php");
 }
 

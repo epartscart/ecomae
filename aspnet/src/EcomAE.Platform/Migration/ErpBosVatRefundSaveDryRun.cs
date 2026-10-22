@@ -30,7 +30,7 @@ public sealed class ErpBosVatRefundSaveDryRun : IErpBosVatRefundSaveDryRun
         }
 
         return new ErpBosVatRefundSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.Id, request.InvoiceRef, request.SaleAmount,
             [request.Id > 0
                 ? "UPDATE `epc_bos_vat_refunds` (NOT executed)"
@@ -40,7 +40,7 @@ public sealed class ErpBosVatRefundSaveDryRun : IErpBosVatRefundSaveDryRun
     }
 
     private static ErpBosVatRefundSaveDryRunResult Refuse(string status, string code, string detail, ErpBosVatRefundSaveRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Id, request.InvoiceRef, request.SaleAmount, [], detail,
+        new(status, 0, true, true, false, code, false, request.Id, request.InvoiceRef, request.SaleAmount, [], detail,
             "content/shop/finance/epc_bos_vat_refund.php");
 }
 

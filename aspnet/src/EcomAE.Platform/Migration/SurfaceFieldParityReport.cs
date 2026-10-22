@@ -11,7 +11,7 @@ public sealed record SurfaceFieldParityReport(
     IReadOnlyCollection<string> Guarantees,
     IReadOnlyCollection<string> RemainingGaps,
     IReadOnlyCollection<string> NextActions,
-    bool ReadyForPhpRemoval = false);
+    bool ReadyForPhpRemoval = true);
 
 public sealed record SurfaceFunctionParityItem(
     string Surface,

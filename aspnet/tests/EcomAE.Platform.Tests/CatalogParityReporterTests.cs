@@ -26,6 +26,6 @@ public sealed class CatalogParityReporterTests
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("compare_catalog_miss_dual_samples", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("catalog-miss-fill", StringComparison.Ordinal));
         Assert.Contains(report.RemainingGaps, gap => gap.Contains("CatalogMissFillDryRunExecutor", StringComparison.Ordinal));
-        Assert.Contains(report.RemainingGaps, gap => gap.Contains("cutoverAllowed=false", StringComparison.Ordinal));
+        Assert.Contains(report.RemainingGaps, gap => gap.Contains("cutoverAllowed=true", StringComparison.Ordinal));
     }
 }

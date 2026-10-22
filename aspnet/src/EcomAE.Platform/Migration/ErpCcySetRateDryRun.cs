@@ -27,7 +27,7 @@ public sealed class ErpCcySetRateDryRun : IErpCcySetRateDryRun
         }
 
         return new ErpCcySetRateDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true, from, to, request.Rate,
+            "dry-run-validated", 0, true, true, false, "ok", true, from, to, request.Rate,
             [
                 "INSERT INTO `epc_ccy_rates` (…) ON DUPLICATE KEY UPDATE rate (NOT executed)"
             ],
@@ -37,7 +37,7 @@ public sealed class ErpCcySetRateDryRun : IErpCcySetRateDryRun
 
     private static ErpCcySetRateDryRunResult Refuse(
         string status, string code, string detail, ErpCcySetRateRequest request) =>
-        new(status, 0, true, false, true, code, false,
+        new(status, 0, true, true, false, code, false,
             request.From, request.To, request.Rate, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=ccy_set_rate");
 }

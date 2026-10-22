@@ -10,13 +10,13 @@ public sealed class ErpFxRevaluationPreviewDryRun : IErpFxRevaluationPreviewDryR
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live route handler (IErpFxRevaluationWriteService.PreviewAsync); this evaluator never writes.", request);
         
-        return new("dry-run-validated",0,true,false,true,"ok",true,
+        return new("dry-run-validated",0,true,true,false,"ok",true,
             ["ajax_erp.php?action=fx_revaluation_preview (NOT executed)"],
             "ERP fx_revaluation_preview payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=fx_revaluation_preview");
     }
     private static ErpFxRevaluationPreviewDryRunResult Refuse(string s,string c,string d,ErpFxRevaluationPreviewRequest r)=>
-        new(s,0,true,false,true,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=fx_revaluation_preview");
+        new(s,0,true,true,false,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=fx_revaluation_preview");
 }
 public sealed record ErpFxRevaluationPreviewRequest(bool ConfirmWrites = false);
 public sealed record ErpFxRevaluationPreviewDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

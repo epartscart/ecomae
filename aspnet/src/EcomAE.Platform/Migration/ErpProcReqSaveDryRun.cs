@@ -30,14 +30,14 @@ public sealed class ErpProcReqSaveDryRun : IErpProcReqSaveDryRun
         }
 
         return new ErpProcReqSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, requester, request.Id,
+            "dry-run-validated", 0, true, true, false, "ok", true, requester, request.Id,
             ["INSERT/UPDATE `epc_proc_req` (NOT executed)"],
             "ErpProcurementReqSave payload validated; no write was performed.",
             "content/shop/finance/epc_erp_procurement.php");
     }
 
     private static ErpProcReqSaveDryRunResult Refuse(string status, string code, string detail, ErpProcReqSaveRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Requester, request.Id, [], detail,
+        new(status, 0, true, true, false, code, false, request.Requester, request.Id, [], detail,
             "content/shop/finance/epc_erp_procurement.php");
 }
 

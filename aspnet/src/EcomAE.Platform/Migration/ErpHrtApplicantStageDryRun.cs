@@ -30,14 +30,14 @@ public sealed class ErpHrtApplicantStageDryRun : IErpHrtApplicantStageDryRun
         }
 
         return new ErpHrtApplicantStageDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Stage,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Stage,
             ["UPDATE `epc_hrt_applicant` stage (NOT executed)"],
             "ErpHrtApplicantStage payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_hr_talent.php");
     }
 
     private static ErpHrtApplicantStageDryRunResult Refuse(string s, string c, string d, ErpHrtApplicantStageRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Stage, [], d, "content/shop/finance/epc_erp_hr_talent.php");
+        new(s, 0, true, true, false, c, false, r.Id, r.Stage, [], d, "content/shop/finance/epc_erp_hr_talent.php");
 }
 
 public sealed record ErpHrtApplicantStageRequest(long Id = 0, string? Stage = null, bool ConfirmWrites = false);

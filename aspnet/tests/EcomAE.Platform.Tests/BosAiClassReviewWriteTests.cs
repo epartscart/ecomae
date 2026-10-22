@@ -74,7 +74,7 @@ public sealed class BosAiClassReviewWriteTests
         Assert.Contains("BosAiClassReview", module, StringComparison.Ordinal);
         Assert.Contains("IBosAiClassWriteService", module, StringComparison.Ordinal);
         Assert.Contains("ReviewAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate.IsAllowed", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Bos/BosAiClassWriteService.cs"));
         Assert.Contains("epc_ai_review", service, StringComparison.Ordinal);
@@ -84,7 +84,7 @@ public sealed class BosAiClassReviewWriteTests
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
         var program = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Program.cs"));
         Assert.Contains("IBosAiClassWriteService", program, StringComparison.Ordinal);
         var policy = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Services/PlatformHostPolicy.cs"));

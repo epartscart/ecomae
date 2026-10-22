@@ -25,14 +25,14 @@ public sealed class ErpMultiEntitySaveDryRun : IErpMultiEntitySaveDryRun
         }
 
         return new ErpMultiEntitySaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Enabled,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Enabled,
             ["INSERT/UPDATE `epc_erp_platform_settings` multi_entity_enabled (NOT executed)"],
             "ErpMultiEntitySave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_extended.php");
     }
 
     private static ErpMultiEntitySaveDryRunResult Refuse(string s, string c, string d, ErpMultiEntitySaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Enabled, [], d, "content/shop/finance/epc_erp_extended.php");
+        new(s, 0, true, true, false, c, false, r.Enabled, [], d, "content/shop/finance/epc_erp_extended.php");
 }
 
 public sealed record ErpMultiEntitySaveRequest(

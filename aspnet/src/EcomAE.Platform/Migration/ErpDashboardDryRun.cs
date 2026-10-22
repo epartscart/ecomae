@@ -10,13 +10,13 @@ public sealed class ErpDashboardDryRun : IErpDashboardDryRun
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live IErpDashboardReadService; the dry-run never executes.", request);
         
-        return new("dry-run-validated",0,true,false,true,"ok",true,
+        return new("dry-run-validated",0,true,true,false,"ok",true,
             ["ajax_erp.php?action=dashboard (NOT executed)"],
             "ERP dashboard payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=dashboard");
     }
     private static ErpDashboardDryRunResult Refuse(string s,string c,string d,ErpDashboardRequest r)=>
-        new(s,0,true,false,true,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=dashboard");
+        new(s,0,true,true,false,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=dashboard");
 }
 public sealed record ErpDashboardRequest(bool ConfirmWrites = false);
 public sealed record ErpDashboardDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

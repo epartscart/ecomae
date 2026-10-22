@@ -17,13 +17,13 @@ public sealed class CpModuleAjaxWriteRegistryDryRun : ICpModuleAjaxWriteRegistry
             return Refuse("dry-run-unknown-action", "unknown_action", $"action '{module}/{action}' is not in CP module ajax catalog.", module, action);
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused", $"confirm_writes refused; PHP remains authoritative for {module}/{action}.", module, action, entry);
-        return new("dry-run-validated", 0, true, false, true, "ok", true, entry.Module, entry.Action, entry.Coverage, entry.AspNetRouteHint,
+        return new("dry-run-validated", 0, true, true, false, "ok", true, entry.Module, entry.Action, entry.Coverage, entry.AspNetRouteHint,
             [$"{entry.PhpAjax}?action={entry.Action} (NOT executed)"],
             $"CP module ajax '{entry.Module}/{entry.Action}' catalogued; UPDATE blocked.",
             entry.PhpAjax);
     }
     private static CpModuleAjaxWriteRegistryDryRunResult Refuse(string s, string c, string d, string module, string action, CpModuleAjaxWriteCatalogEntry? entry = null) =>
-        new(s, 0, true, false, true, c, false, module, action, entry?.Coverage ?? "unknown",
+        new(s, 0, true, true, false, c, false, module, action, entry?.Coverage ?? "unknown",
             entry?.AspNetRouteHint ?? "/cp/module-ajax/dry-run/{module}/{action}", [], d,
             entry?.PhpAjax ?? "cp/content/shop/*/ajax_*.php");
 }

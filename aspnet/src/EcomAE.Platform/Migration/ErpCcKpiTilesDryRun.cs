@@ -10,13 +10,13 @@ public sealed class ErpCcKpiTilesDryRun : IErpCcKpiTilesDryRun
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes reached the dry-run evaluator; the live ASP.NET cc_kpi_tiles read is selected by the route handler when confirmation is set.", request);
         
-        return new("dry-run-validated",0,true,false,true,"ok",true,
+        return new("dry-run-validated",0,true,true,false,"ok",true,
             ["ajax_erp.php?action=cc_kpi_tiles (NOT executed)"],
             "ERP cc_kpi_tiles payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=cc_kpi_tiles");
     }
     private static ErpCcKpiTilesDryRunResult Refuse(string s,string c,string d,ErpCcKpiTilesRequest r)=>
-        new(s,0,true,false,true,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=cc_kpi_tiles");
+        new(s,0,true,true,false,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=cc_kpi_tiles");
 }
 public sealed record ErpCcKpiTilesRequest(bool ConfirmWrites = false);
 public sealed record ErpCcKpiTilesDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

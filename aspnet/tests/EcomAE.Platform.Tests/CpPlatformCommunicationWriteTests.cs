@@ -97,7 +97,7 @@ public sealed class CpPlatformCommunicationWriteTests
         Assert.Contains("save_task", module, StringComparison.Ordinal);
         Assert.Contains("delete_task", module, StringComparison.Ordinal);
         Assert.Contains("save_comm_settings", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpPlatformCommunicationWriteService.cs"));
         Assert.Contains("epc_scp_task_save", service, StringComparison.Ordinal);
         Assert.Contains("epc_scp_task_delete", service, StringComparison.Ordinal);
@@ -111,7 +111,7 @@ public sealed class CpPlatformCommunicationWriteTests
         Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_platform_comm_settings`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("smtp_password", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

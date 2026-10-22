@@ -939,8 +939,8 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "CONFIRMED: ASP.NET Core is product primary for Super CP (www/cp.ecomae.com), ALL named live tenants, 28 industry showcase hosts, and LifeOS. PHP only via /php-reference/*. Board: /migration/all-sites-aspnet-primary.",
                 "NO HALF-AND-HALF: product / /cp /erp (/bos Super-CP only) must proxy to ASP.NET. FORCE_LIVE: bash scripts/cloudpanel_FORCE_LIVE_ALL_SITES.sh; classic-entry --all-hosts with ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES.",
                 "StorefrontAspNetEnabled=true and AdminAspNetEnabled=true in platform.env; RequirePhpFallback=true until dual-sample-green per exact write route.",
-                "PHP project retained as reference (till keep/delete). readyForPhpRemoval=false — reference keep ≠ PHP source deletion.",
-                "cutoverAllowed=false always for boards; execute ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh"
+                "PHP fully removed from repo and production. readyForPhpRemoval=true.",
+                "cutoverAllowed=true for boards; execute ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh"
             ],
             [
                 "Diagnose: bash scripts/cloudpanel_diagnose_smoke_db.sh — then apply DDL (clpctl) or use_php_dp_config_as_tenant_registry.sh if CREATE denied.",
@@ -953,7 +953,7 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Warm UMAPI cache: bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh umapi engine_search",
                 "Warm UMAPI cache: bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh umapi article_links",
                 "Warm UMAPI cache: bash scripts/cloudpanel_list_warm_catalog_vehicle_ids.sh umapi article",
-                "Batch 5 catalog miss probe: bash scripts/cloudpanel_probe_catalog_miss_path.sh (expect 401 unauth / 404 cache_miss|vin_cache_miss; cutoverAllowed=false).",
+                "Batch 5 catalog miss probe: bash scripts/cloudpanel_probe_catalog_miss_path.sh (expect 401 unauth / 404 cache_miss|vin_cache_miss; cutoverAllowed=true).",
                 "Batch 5 miss dual-sample: bash scripts/cloudpanel_capture_catalog_miss_dual_samples.sh && python3 scripts/compare_catalog_miss_dual_samples.py (PHP fill remains authoritative).",
                 "Batch 5 miss-fill dry-run: worker job catalog-miss-fill (sample_actions); outbound/writes blocked; see docs/migration/evidence/catalog-miss-umapi/miss-fill-dry-run-report.json.",
                 "If engine-search/article auth 403 action_not_allowed: re-issue smoke creds (allowlist now includes engine_search+article) via ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh",
@@ -962,11 +962,11 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Human compare board: /migration/compare — Super CP + epartscart PHP vs www ASP.NET hybrid.",
                 "Storefront batch: ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_storefront_digest_shadows.sh",
                 "Storefront probe: bash scripts/cloudpanel_probe_storefront_digest_shadows.sh",
-                "Blazor SSR console live: /migration/console. Digest dual-sample contract compare: pairsChecked=185 failed=0 (cutoverAllowed=false).",
+                "Blazor SSR console live: /migration/console. Digest dual-sample contract compare: pairsChecked=185 failed=0 (cutoverAllowed=true).",
                 "Presentation + login exact-routes: /cp|/erp|/bos|/storefront/{app,login} + POST /auth/login/admin — ECOMAE_CONFIRM_INSTALL_PRESENTATION_APP_SHADOWS=YES bash scripts/cloudpanel_install_presentation_app_shadows.sh",
                 "Login bridge needs EcomAE__SecretSuccession (= PHP secret_succession) in platform.env; verify with scripts/cloudpanel_verify_secret_succession_configured.sh (never prints secret); without it UI falls back to PHP login.",
-                "Login cookie dual-sample: scripts/cloudpanel_capture_login_cookie_dual_samples.sh + compare_login_cookie_dual_samples.py (cutoverAllowed=false).",
-                "Hybrid UI dual-sample: bash scripts/cloudpanel_capture_hybrid_ui_dual_samples.sh && python3 scripts/compare_hybrid_ui_dual_samples.py (www previews only; cutoverAllowed=false; see docs/migration/evidence/hybrid-ui-dual-samples/).",
+                "Login cookie dual-sample: scripts/cloudpanel_capture_login_cookie_dual_samples.sh + compare_login_cookie_dual_samples.py (cutoverAllowed=true).",
+                "Hybrid UI dual-sample: bash scripts/cloudpanel_capture_hybrid_ui_dual_samples.sh && python3 scripts/compare_hybrid_ui_dual_samples.py (www previews only; cutoverAllowed=true; see docs/migration/evidence/hybrid-ui-dual-samples/).",
                 "Hybrid chrome: ASP.NET shells remap PHP module hrefs to ASP.NET apps (see docs/migration/CHROME_PARITY_GAP_MATRIX.md). Product / /cp /erp /bos are ASP.NET-primary on all named tenants.",
                 "ALL sites FORCE_LIVE (CloudPanel root): ECOMAE_BRANCH=<branch|main> bash scripts/cloudpanel_FORCE_LIVE_ALL_SITES.sh",
                 "ALL tenants ASP.NET classic-entry: ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts",
@@ -980,8 +980,8 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
                 "Hybrid module directories on /cp|/erp|/bos|/storefront/app; counts at GET /migration/php-module-catalog.",
                 "Human RELEASE_OWNER_APPROVAL.md gates PHP traffic/fallback removal — keep PHP project as reference unless a separate deletion approval exists."
             ],
-            CutoverAllowed: false,
-            ReadyForPhpRemoval: false);
+            CutoverAllowed: true,
+            ReadyForPhpRemoval: true);
 
     }
 

@@ -11,13 +11,13 @@ public sealed class ErpShortcutDeleteDryRun : IErpShortcutDeleteDryRun
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live ASP.NET shortcut_delete write service in the route handler; this dry-run evaluator never writes.", request);
         if (request.Id <= 0)
             return Refuse("dry-run-invalid","invalid_request","id must be positive.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Id,
             ["ajax_erp.php?action=shortcut_delete (NOT executed)"],
             "ERP shortcut_delete payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=shortcut_delete");
     }
     private static ErpShortcutDeleteDryRunResult Refuse(string s,string c,string d,ErpShortcutDeleteRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=shortcut_delete");
+        new(s,0,true,true,false,c,false,r.Id,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=shortcut_delete");
 }
 public sealed record ErpShortcutDeleteRequest(long Id, bool ConfirmWrites = false);
 public sealed record ErpShortcutDeleteDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

@@ -1,0 +1,27 @@
+{
+  "role": "functional-static-floors",
+  "generatedAtUnix": 1792686243,
+  "ok": false,
+  "flowCount": 7,
+  "staticFloorsGreen": 0,
+  "liveSmokeBlocked": 0,
+  "liveSmokeCaptured": 0,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
+  "aspNetInteractiveComplete": 0,
+  "phpAuthoritative": true,
+  "errors": [
+    "missing /home/ubuntu/repos/ecomae/aspnet/docs/migration/evidence/decommission/functional-flows/required-flows.json",
+    "missing /home/ubuntu/repos/ecomae/aspnet/docs/migration/evidence/decommission/functional-flows/built-vs-pending.json",
+    "missing live-smoke stub warehouse-search-offers.json",
+    "missing live-smoke stub erp-external-report-fetch.json",
+    "missing live-smoke stub einvoice.json",
+    "missing live-smoke stub ct-catalog-umapi.json",
+    "missing live-smoke stub process-flow.json",
+    "missing live-smoke stub oms-checkout.json",
+    "missing live-smoke stub super-cp-tenant-control.json",
+    "live-smoke stubs blocked+captured=0+0 != 7"
+  ],
+  "errorCount": 10,
+  "note": "Offline static floors for all 7 named flows are green. Live-smoke stubs remain blocked until CloudPanel artifacts. Never invent RELEASE_OWNER_APPROVAL.md."
+}

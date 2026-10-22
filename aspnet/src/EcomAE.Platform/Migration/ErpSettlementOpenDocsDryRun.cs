@@ -10,13 +10,13 @@ public sealed class ErpSettlementOpenDocsDryRun : IErpSettlementOpenDocsDryRun
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live /erp/ajax route; this dry-run remains zero-write.", request);
         
-        return new("dry-run-validated",0,true,false,true,"ok",true,
+        return new("dry-run-validated",0,true,true,false,"ok",true,
             ["ajax_erp.php?action=settlement_open_docs (NOT executed)"],
             "ERP settlement_open_docs payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=settlement_open_docs");
     }
     private static ErpSettlementOpenDocsDryRunResult Refuse(string s,string c,string d,ErpSettlementOpenDocsRequest r)=>
-        new(s,0,true,false,true,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=settlement_open_docs");
+        new(s,0,true,true,false,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=settlement_open_docs");
 }
 public sealed record ErpSettlementOpenDocsRequest(bool ConfirmWrites = false);
 public sealed record ErpSettlementOpenDocsDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

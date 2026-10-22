@@ -80,7 +80,7 @@ public sealed class BosMfaSaveWriteTests
         Assert.Contains("BosMfaSave", module, StringComparison.Ordinal);
         Assert.Contains("IBosMfaWriteService", module, StringComparison.Ordinal);
         Assert.Contains("SavePolicyAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate.IsAllowed", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Bos/BosMfaWriteService.cs"));
         Assert.Contains("epc_mfa_save_policy", service, StringComparison.Ordinal);
@@ -91,7 +91,7 @@ public sealed class BosMfaSaveWriteTests
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
         var program = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Program.cs"));
         Assert.Contains("IBosMfaWriteService", program, StringComparison.Ordinal);
         var policy = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Services/PlatformHostPolicy.cs"));

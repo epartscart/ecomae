@@ -25,14 +25,14 @@ public sealed class ErpTenantConfigSaveDryRun : IErpTenantConfigSaveDryRun
         }
 
         return new ErpTenantConfigSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Code,
             ["UPSERT `epc_price_settings` erp_* keys (NOT executed)"],
             "ErpTenantConfigSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_advanced.php");
     }
 
     private static ErpTenantConfigSaveDryRunResult Refuse(string s, string c, string d, ErpTenantConfigSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Code, [], d, "content/shop/finance/epc_erp_advanced.php");
+        new(s, 0, true, true, false, c, false, r.Id, r.Code, [], d, "content/shop/finance/epc_erp_advanced.php");
 }
 
 public sealed record ErpTenantConfigSaveRequest(

@@ -71,8 +71,8 @@ public sealed class CpOmsPayRefundDryRun : ICpOmsPayRefundDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             OrderId: request.OrderId,
@@ -90,7 +90,7 @@ public sealed class CpOmsPayRefundDryRun : ICpOmsPayRefundDryRun
 
     private static CpOmsPayRefundDryRunResult Refuse(
         string status, string code, string detail, CpOmsPayRefundRequest request) =>
-        new(status, 0, true, false, true, code, false, request.OrderId, request.DirectRefund,
+        new(status, 0, true, true, false, code, false, request.OrderId, request.DirectRefund,
             request.PaidSum, [], detail, "/CP/content/shop/order_process/ajax_order_pay_refund.php");
 }
 

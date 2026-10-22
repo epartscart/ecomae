@@ -25,14 +25,14 @@ public sealed class ErpRbacDutyPrivDryRun : IErpRbacDutyPrivDryRun
         }
 
         return new ErpRbacDutyPrivDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.DutyId, request.PrivilegeId,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.DutyId, request.PrivilegeId,
             ["INSERT IGNORE / DELETE `epc_rbac_duty_priv` (NOT executed)"],
             "ErpRbacDutyPriv payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_rbac.php");
     }
 
     private static ErpRbacDutyPrivDryRunResult Refuse(string s, string c, string d, ErpRbacDutyPrivRequest r) =>
-        new(s, 0, true, false, false, c, false, r.DutyId, r.PrivilegeId, [], d, "content/shop/finance/epc_erp_rbac.php");
+        new(s, 0, true, true, false, c, false, r.DutyId, r.PrivilegeId, [], d, "content/shop/finance/epc_erp_rbac.php");
 }
 
 public sealed record ErpRbacDutyPrivRequest(

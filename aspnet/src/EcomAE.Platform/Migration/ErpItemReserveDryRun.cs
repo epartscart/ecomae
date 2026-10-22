@@ -24,7 +24,7 @@ public sealed class ErpItemReserveDryRun : IErpItemReserveDryRun
             "dry-run-validated",
             0,
             true,
-            false,
+            true,
             false,
             "ok",
             true,
@@ -42,7 +42,7 @@ public sealed class ErpItemReserveDryRun : IErpItemReserveDryRun
         string code,
         string detail,
         ErpItemReserveRequest request)
-        => new(status, 0, true, false, false, code, false, request.ItemId, request.Sku, request.Qty, request.SourceType, request.SourceId, detail, "/erp/ajax/item-reserve");
+        => new(status, 0, true, true, false, code, false, request.ItemId, request.Sku, request.Qty, request.SourceType, request.SourceId, detail, "/erp/ajax/item-reserve");
 }
 
 public sealed record ErpItemReserveRequest(

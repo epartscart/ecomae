@@ -10,13 +10,13 @@ public sealed class BosAjaxSeedDryRun : IBosAjaxSeedDryRun
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP ajax_epc_bos.php remains authoritative.", request);
         
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Id,
             ["ajax_epc_bos.php?action=seed (NOT executed)"],
             "BOS seed payload validated; UPDATE blocked.",
             "/BOS/ajax_epc_bos.php?action=seed");
     }
     private static BosAjaxSeedDryRunResult Refuse(string s,string c,string d,BosAjaxSeedRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id,[],d,"/BOS/ajax_epc_bos.php?action=seed");
+        new(s,0,true,true,false,c,false,r.Id,[],d,"/BOS/ajax_epc_bos.php?action=seed");
 }
 public sealed record BosAjaxSeedRequest(long Id=0, bool ConfirmWrites=false);
 public sealed record BosAjaxSeedDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

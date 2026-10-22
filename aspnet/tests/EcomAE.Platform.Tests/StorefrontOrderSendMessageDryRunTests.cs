@@ -15,7 +15,7 @@ public sealed class StorefrontOrderSendMessageDryRunTests
             5, [Order(55)], new StorefrontOrderSendMessageRequest(55, "hi", true));
         Assert.Equal("dry-run-confirm-refused", r.Status);
         Assert.Equal(0, r.Writes);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]

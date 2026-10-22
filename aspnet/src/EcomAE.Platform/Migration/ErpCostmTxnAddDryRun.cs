@@ -32,14 +32,14 @@ public sealed class ErpCostmTxnAddDryRun : IErpCostmTxnAddDryRun
         }
 
         return new ErpCostmTxnAddDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.ItemId, type,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.ItemId, type,
             ["INSERT `epc_costm_txn` (NOT executed)"],
             "ErpCostmTxnAdd payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_cost_models.php");
     }
 
     private static ErpCostmTxnAddDryRunResult Refuse(string s, string c, string d, ErpCostmTxnAddRequest r) =>
-        new(s, 0, true, false, false, c, false, r.ItemId, r.TxnType, [], d, "content/shop/finance/epc_erp_cost_models.php");
+        new(s, 0, true, true, false, c, false, r.ItemId, r.TxnType, [], d, "content/shop/finance/epc_erp_cost_models.php");
 }
 
 public sealed record ErpCostmTxnAddRequest(

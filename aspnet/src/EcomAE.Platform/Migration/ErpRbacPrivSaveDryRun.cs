@@ -25,14 +25,14 @@ public sealed class ErpRbacPrivSaveDryRun : IErpRbacPrivSaveDryRun
         }
 
         return new ErpRbacPrivSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Code, request.AccessLevel,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Code, request.AccessLevel,
             ["INSERT `epc_rbac_privilege` ON DUPLICATE KEY UPDATE (NOT executed)"],
             "ErpRbacPrivSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_rbac.php");
     }
 
     private static ErpRbacPrivSaveDryRunResult Refuse(string s, string c, string d, ErpRbacPrivSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Code, r.AccessLevel, [], d, "content/shop/finance/epc_erp_rbac.php");
+        new(s, 0, true, true, false, c, false, r.Code, r.AccessLevel, [], d, "content/shop/finance/epc_erp_rbac.php");
 }
 
 public sealed record ErpRbacPrivSaveRequest(

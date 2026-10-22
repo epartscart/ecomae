@@ -32,7 +32,7 @@ public sealed class ErpSupplierSettlementDryRun : IErpSupplierSettlementDryRun
         }
 
         return new ErpSupplierSettlementDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.SupplierId, request.Amount, direction,
             [
                 "INSERT INTO `epc_erp_supplier_accounting` (…) (NOT executed)",
@@ -44,7 +44,7 @@ public sealed class ErpSupplierSettlementDryRun : IErpSupplierSettlementDryRun
 
     private static ErpSupplierSettlementDryRunResult Refuse(
         string status, string code, string detail, ErpSupplierSettlementRequest request) =>
-        new(status, 0, true, false, false, code, false,
+        new(status, 0, true, true, false, code, false,
             request.SupplierId, request.Amount, request.Direction, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=supplier_settlement");
 }

@@ -10,13 +10,13 @@ public sealed class ErpEinvoicePollAspDryRun : IErpEinvoicePollAspDryRun
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET einvoice_poll_asp is not implemented; PHP ajax_erp.php remains authoritative.", request);
         
-        return new("dry-run-validated",0,true,false,true,"ok",true,
+        return new("dry-run-validated",0,true,true,false,"ok",true,
             ["ajax_erp.php?action=einvoice_poll_asp (NOT executed)"],
             "ERP einvoice_poll_asp payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=einvoice_poll_asp");
     }
     private static ErpEinvoicePollAspDryRunResult Refuse(string s,string c,string d,ErpEinvoicePollAspRequest r)=>
-        new(s,0,true,false,true,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=einvoice_poll_asp");
+        new(s,0,true,true,false,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=einvoice_poll_asp");
 }
 public sealed record ErpEinvoicePollAspRequest(bool ConfirmWrites = false);
 public sealed record ErpEinvoicePollAspDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

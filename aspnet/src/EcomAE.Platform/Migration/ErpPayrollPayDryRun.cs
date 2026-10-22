@@ -30,7 +30,7 @@ public sealed class ErpPayrollPayDryRun : IErpPayrollPayDryRun
         }
 
         return new ErpPayrollPayDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.CashAccountId,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.CashAccountId,
             ["INSERT cash payment + UPDATE run/lines to paid (NOT executed)"],
             "ErpPayrollPay payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_payroll.php");
@@ -38,7 +38,7 @@ public sealed class ErpPayrollPayDryRun : IErpPayrollPayDryRun
 
     private static ErpPayrollPayDryRunResult Refuse(
         string status, string code, string detail, ErpPayrollPayRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Id, request.CashAccountId, [], detail,
+        new(status, 0, true, true, false, code, false, request.Id, request.CashAccountId, [], detail,
             "content/shop/finance/epc_erp_payroll.php");
 }
 

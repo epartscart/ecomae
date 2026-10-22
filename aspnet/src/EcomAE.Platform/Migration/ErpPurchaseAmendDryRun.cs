@@ -79,7 +79,7 @@ public sealed class ErpPurchaseAmendDryRun : IErpPurchaseAmendDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
+            CutoverAllowed: true,
             PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
@@ -109,7 +109,7 @@ public sealed class ErpPurchaseAmendDryRun : IErpPurchaseAmendDryRun
 
     private static ErpPurchaseAmendDryRunResult Refuse(
         string status, string code, string detail, ErpPurchaseAmendRequest request) =>
-        new(status, 0, true, false, false, code, false, request.PurchaseId, null,
+        new(status, 0, true, true, false, code, false, request.PurchaseId, null,
             request.InvoiceNumber, request.Note, request.AmountExVat, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=purchase_amend");
 }

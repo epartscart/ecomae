@@ -44,7 +44,7 @@ public sealed class ErpCustomerSettlementDryRun : IErpCustomerSettlementDryRun
         }
 
         return new ErpCustomerSettlementDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.UserId, request.Amount, direction, kind, request.OrderId,
             [
                 "INSERT INTO `shop_users_accounting` (…) (NOT executed)",
@@ -56,7 +56,7 @@ public sealed class ErpCustomerSettlementDryRun : IErpCustomerSettlementDryRun
 
     private static ErpCustomerSettlementDryRunResult Refuse(
         string status, string code, string detail, ErpCustomerSettlementRequest request) =>
-        new(status, 0, true, false, false, code, false,
+        new(status, 0, true, true, false, code, false,
             request.UserId, request.Amount, request.Direction, request.EntryKind, request.OrderId,
             [], detail, "/CP/content/shop/finance/erp/ajax_erp.php?action=customer_settlement");
 }

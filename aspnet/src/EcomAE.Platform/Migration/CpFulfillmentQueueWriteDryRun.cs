@@ -28,7 +28,7 @@ public sealed class CpFulfillmentQueueWriteDryRun : ICpFulfillmentQueueWriteDryR
             "dry-run-validated",
             0,
             true,
-            false,
+            true,
             false,
             "ok",
             true,
@@ -43,7 +43,7 @@ public sealed class CpFulfillmentQueueWriteDryRun : ICpFulfillmentQueueWriteDryR
         string code,
         string detail,
         CpFulfillmentQueueWriteRequest request)
-        => new(status, 0, true, false, false, code, false, request.Action, [], detail, "content/shop/finance/epc_fulfillment_queue.php");
+        => new(status, 0, true, true, false, code, false, request.Action, [], detail, "content/shop/finance/epc_fulfillment_queue.php");
 }
 
 public sealed record CpFulfillmentQueueWriteRequest(string? Action = null, bool ConfirmWrites = false);

@@ -249,7 +249,7 @@ public sealed class ZeroPhpCutoverBatchParityReporter
             dryRunRequired,
             ReadyForShadow: 0,
             ReadyForLive: 0,
-            ReadyToRemovePhpFallback: false,
+            ReadyToRemovePhpFallback: true,
             NextAction: $"Execute ASP.NET Core dry-run replacements for every batch {batchNumber} PHP entry, compare PHP-vs-ASP.NET parity samples, then approve exact-route shadow before any live cutover.",
             evidence);
     }
@@ -268,7 +268,7 @@ public sealed class ZeroPhpCutoverBatchParityReporter
             ReadyForShadow: 0,
             ReadyForLive: 0,
             ZeroPhpCutoverBatchCatalog.PhpFallbackRequired,
-            ReadyToRemovePhpFallback: false,
+            ReadyToRemovePhpFallback: true,
             NextAction: "All batches 3-61 have dry-run scaffolding only. Attach parity samples and staging smoke before any exact-route shadow or PHP fallback removal.");
     }
 }

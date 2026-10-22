@@ -31,8 +31,8 @@ public sealed class ErpExternalReportingFetchDryRun : IErpExternalReportingFetch
             "dry-run-validated",
             0,
             true,
-            false,
             true,
+            false,
             "ok",
             true,
             action,
@@ -47,7 +47,7 @@ public sealed class ErpExternalReportingFetchDryRun : IErpExternalReportingFetch
         string code,
         string detail,
         ErpExternalReportingFetchRequest request) =>
-        new(status, 0, true, false, true, code, false, request.Action, request.ReportKey, [], detail,
+        new(status, 0, true, true, false, code, false, request.Action, request.ReportKey, [], detail,
             "/CP/content/shop/finance/erp/erp_tabs_external_reports.php");
 }
 

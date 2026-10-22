@@ -11,13 +11,13 @@ public sealed class StorefrontCreateOperationDryRun : IStorefrontCreateOperation
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP content/shop/finance/ajax_create_operation.php remains authoritative.", request);
         if (request.Amount <= 0)
             return Refuse("dry-run-invalid","invalid_request","Amount must be positive.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Amount, request.Kind,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Amount, request.Kind,
             ["content/shop/finance/ajax_create_operation.php (NOT executed)"],
             "StorefrontCreateOperation payload validated; UPDATE blocked.",
             "content/shop/finance/ajax_create_operation.php");
     }
     private static StorefrontCreateOperationDryRunResult Refuse(string s,string c,string d,StorefrontCreateOperationRequest r)=>
-        new(s,0,true,false,true,c,false,r.Amount, r.Kind,[],d,"content/shop/finance/ajax_create_operation.php");
+        new(s,0,true,true,false,c,false,r.Amount, r.Kind,[],d,"content/shop/finance/ajax_create_operation.php");
 }
 public sealed record StorefrontCreateOperationRequest(decimal Amount, string? Kind, bool ConfirmWrites = false);
 public sealed record StorefrontCreateOperationDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,decimal Amount, string? Kind,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

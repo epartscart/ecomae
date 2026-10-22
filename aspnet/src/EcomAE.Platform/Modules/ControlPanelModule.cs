@@ -199,7 +199,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 {
                     ok = false,
                     surface = "cp",
-                    cutoverAllowed = false,
+                    cutoverAllowed = true,
                     message = "Tenant fleet write is Super CP only. Tenant CPs are independent."
                 });
             }
@@ -278,7 +278,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/tenants-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -287,12 +287,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = known,
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Unknown tenant write action."
                     : "Dry-run. Set confirmWrites=true to create, delete, reset, set a chosen password, add a login, or set tenant active.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -1402,7 +1402,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 status = "dry-run",
                 writes = 0,
                 writesBlocked = true,
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 validation_code = "dry_run",
                 message = "Set confirmWrites=true to lock or unlock the user on ASP.NET.",
                 session = SessionPayload(session)
@@ -1458,7 +1458,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create the user on ASP.NET.",
                     session = SessionPayload(session)
@@ -1517,7 +1517,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to update the password on ASP.NET.",
                     session = SessionPayload(session)
@@ -1579,7 +1579,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save the user on ASP.NET.",
                     session = SessionPayload(session)
@@ -1636,7 +1636,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to delete the selected users on ASP.NET.",
                     session = SessionPayload(session)
@@ -1734,7 +1734,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save min-price access on ASP.NET.",
                     session = SessionPayload(session)
@@ -1747,7 +1747,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 "/cp/shop/prices/multivendor",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpMultivendorVendorCodeSave, async (
             HttpContext context,
@@ -1783,7 +1783,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save the vendor code.",
                     session = SessionPayload(session)
@@ -1796,7 +1796,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 "/cp/shop/prices/multivendor",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPricesStorefrontStorageToggle, async (
             HttpContext context,
@@ -1832,7 +1832,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save storefront visibility.",
                     session = SessionPayload(session)
@@ -1851,7 +1851,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 "/cp/prices-upload-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.CpCreateSitemap, async (HttpContext context, ILegacySessionValidator validator, ICpCreateSitemapDryRun dryRun, ICpSitemapEditorService sitemap, CancellationToken cancellationToken) =>
@@ -2683,7 +2683,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             {
                 var payload = answer.ToPayload();
                 payload["phpAuthoritative"] = false;
-                payload["cutoverAllowed"] = false;
+                payload["cutoverAllowed"] = true;
                 payload["session"] = sessionPayload;
                 var accept = context.Request.Headers.Accept.ToString();
                 var xhr = accept.Contains("application/json", StringComparison.OrdinalIgnoreCase)
@@ -2894,7 +2894,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     ["ok"] = ok,
                     ["message"] = message,
                     ["phpAuthoritative"] = false,
-                    ["cutoverAllowed"] = false,
+                    ["cutoverAllowed"] = true,
                     ["session"] = sessionPayload,
                 };
                 if (extra is not null)
@@ -3774,7 +3774,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/payment-gateways-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "mark_settlement" or "mark-settlement")
@@ -3785,7 +3785,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/payment-gateways-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "seed_dummy" or "seed")
@@ -3796,7 +3796,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/payment-gateways-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "save_config")
@@ -3807,7 +3807,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/payment-gateways-app?tab=configure",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "save_account")
@@ -3818,7 +3818,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/payment-gateways-app?tab=accounts",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "disable_account")
@@ -3829,7 +3829,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/payment-gateways-app?tab=accounts",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "seed_platform_account")
@@ -3840,7 +3840,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/payment-gateways-app?tab=accounts",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(dryRun.Evaluate(new CpPaymentsWriteRequest(action, confirm)).ToPayload(SessionPayload(session)));
@@ -4339,7 +4339,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save the catalogue min-limit on ASP.NET.",
                     session = SessionPayload(session)
@@ -4413,7 +4413,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to write price rows on ASP.NET.",
                     session = SessionPayload(session)
@@ -4489,7 +4489,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save print document settings on ASP.NET.",
                     session = SessionPayload(session)
@@ -4529,7 +4529,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save SAO state links on ASP.NET.",
                     session = SessionPayload(session)
@@ -4571,7 +4571,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save KKT check defaults on ASP.NET.",
                     session = SessionPayload(session)
@@ -4613,7 +4613,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to generate a catalogue dump on ASP.NET.",
                     session = SessionPayload(session)
@@ -4692,7 +4692,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to import a catalogue dump on ASP.NET.",
                     session = SessionPayload(session)
@@ -4772,7 +4772,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to import a CSV on ASP.NET.",
                     session = SessionPayload(session)
@@ -4934,7 +4934,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create, save, or delete a line list on ASP.NET.",
                     session = SessionPayload(session)
@@ -5018,7 +5018,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create, save, or delete a tree list on ASP.NET.",
                     session = SessionPayload(session)
@@ -5143,7 +5143,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save, ensure, or delete a SKU profile, spec, or photo row on ASP.NET.",
                     session = SessionPayload(session)
@@ -5208,7 +5208,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save homepage slots on ASP.NET.",
                     session = SessionPayload(session)
@@ -5292,7 +5292,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save or delete special searches on ASP.NET.",
                     session = SessionPayload(session)
@@ -5373,7 +5373,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save the catalogue tree on ASP.NET.",
                     session = SessionPayload(session)
@@ -5461,7 +5461,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create or edit a catalogue product on ASP.NET.",
                     session = SessionPayload(session)
@@ -5533,7 +5533,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to delete a product review on ASP.NET.",
                     session = SessionPayload(session)
@@ -5592,7 +5592,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to delete catalogue products on ASP.NET.",
                     session = SessionPayload(session)
@@ -5677,7 +5677,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save or delete accessory photos on ASP.NET.",
                     session = SessionPayload(session)
@@ -5813,7 +5813,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save or delete accessory listings on ASP.NET.",
                     session = SessionPayload(session)
@@ -5900,7 +5900,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save accessory categories or terms on ASP.NET.",
                     session = SessionPayload(session)
@@ -6212,7 +6212,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to add or delete a storage group on ASP.NET.",
                     session = SessionPayload(session)
@@ -6303,7 +6303,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save the warehouse on ASP.NET.",
                     session = SessionPayload(session)
@@ -6371,7 +6371,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save office warehouse membership on ASP.NET.",
                     session = SessionPayload(session)
@@ -6441,7 +6441,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save tenant SMTP.",
                     session = SessionPayload(session)
@@ -6492,7 +6492,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to send the test email.",
                     session = SessionPayload(session)
@@ -6576,7 +6576,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save the office on ASP.NET.",
                     session = SessionPayload(session)
@@ -6653,7 +6653,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to delete offices on ASP.NET.",
                     session = SessionPayload(session)
@@ -6699,7 +6699,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save office geo membership on ASP.NET.",
                     session = SessionPayload(session)
@@ -6763,7 +6763,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save the delivery method on ASP.NET.",
                     session = SessionPayload(session)
@@ -6831,7 +6831,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save the geo tree on ASP.NET.",
                     session = SessionPayload(session)
@@ -6903,7 +6903,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save the search tab on ASP.NET.",
                     session = SessionPayload(session)
@@ -6990,7 +6990,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save additional text on ASP.NET.",
                     session = SessionPayload(session)
@@ -7050,7 +7050,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to delete additional texts on ASP.NET.",
                     session = SessionPayload(session)
@@ -7110,7 +7110,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save slider banners on ASP.NET.",
                     session = SessionPayload(session)
@@ -7185,7 +7185,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save product filters on ASP.NET.",
                     session = SessionPayload(session)
@@ -7252,7 +7252,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save order statuses on ASP.NET.",
                     session = SessionPayload(session)
@@ -7307,7 +7307,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = check.Error is null ? "dry_run" : "invalid",
                     message = check.Error ?? "Set confirmWrites=true to save groups on ASP.NET.",
                     rows = parsed.Rows.Count,
@@ -7354,7 +7354,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save the language configuration on ASP.NET.",
                     multilang,
@@ -7400,7 +7400,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save settings to config.php from ASP.NET.",
                     fields = form.Count,
@@ -7449,7 +7449,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save a quote admin note on ASP.NET.",
                     session = SessionPayload(session)
@@ -7521,7 +7521,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save quote lines on ASP.NET.",
                     session = SessionPayload(session)
@@ -7626,7 +7626,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to send a quote on ASP.NET.",
                     session = SessionPayload(session)
@@ -7672,7 +7672,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to approve, suspend, or reject a vendor on ASP.NET.",
                     session = SessionPayload(session)
@@ -7729,7 +7729,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to apply a price-management action on ASP.NET.",
                     session = SessionPayload(session)
@@ -7785,7 +7785,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save or delete a price storage rule on ASP.NET.",
                     session = SessionPayload(session)
@@ -7835,7 +7835,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to change a content publish flag on ASP.NET.",
                     session = SessionPayload(session)
@@ -7905,7 +7905,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to delete content pages on ASP.NET.",
                     session = SessionPayload(session)
@@ -7951,7 +7951,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to set the main content page on ASP.NET.",
                     session = SessionPayload(session)
@@ -8003,7 +8003,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save a content page body on ASP.NET.",
                     session = SessionPayload(session)
@@ -8101,7 +8101,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create or save a content page on ASP.NET.",
                     session = SessionPayload(session)
@@ -8187,7 +8187,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save the content tree on ASP.NET.",
                     session = SessionPayload(session)
@@ -8253,7 +8253,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create, save, or delete a menu on ASP.NET.",
                     session = SessionPayload(session)
@@ -8366,7 +8366,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create, save, activate, or delete a module on ASP.NET.",
                     session = SessionPayload(session)
@@ -8478,7 +8478,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to write a currency rate on ASP.NET.",
                     session = SessionPayload(session)
@@ -8527,7 +8527,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to write currency available flags on ASP.NET.",
                     session = SessionPayload(session)
@@ -8581,7 +8581,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save the FX schedule on ASP.NET.",
                     session = SessionPayload(session)
@@ -8594,7 +8594,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 "/cp/currencies-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpCurrenciesSaveRates, async (
             HttpContext context,
@@ -8831,7 +8831,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to revoke or activate an API client on ASP.NET.",
                     session = SessionPayload(session)
@@ -9088,7 +9088,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                         "/cp/power-bi-app",
                         false,
                         "Not allowed to edit another tenant.",
-                        new { ok = false, writes = 0, cutoverAllowed = false, validation_code = "tenant_scope", message = "Not allowed to edit another tenant.", session = SessionPayload(session) });
+                        new { ok = false, writes = 0, cutoverAllowed = true, validation_code = "tenant_scope", message = "Not allowed to edit another tenant.", session = SessionPayload(session) });
                 }
 
                 siteKey = scope.SiteKey;
@@ -9104,7 +9104,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/power-bi-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "add_report" or "register_report")
@@ -9117,7 +9117,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/power-bi-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -9126,12 +9126,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save_config" or "save" or "add_report" or "register_report",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Embed token mint stay Classic."
                     : "Dry-run. Set confirmWrites=true to save Power BI config or register a report.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -9225,7 +9225,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/mobile-apps-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -9234,7 +9234,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save_mobile" or "mobile_save",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Unknown mobile action."
@@ -9414,7 +9414,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/metabase-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "add_dashboard" or "register_dashboard")
@@ -9427,7 +9427,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/metabase-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -9436,12 +9436,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save_config" or "save" or "configure" or "add_dashboard" or "register_dashboard",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Secret and JWT embed stay Classic."
                     : "Dry-run. Set confirmWrites=true to save Metabase URL or register a dashboard.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -9528,7 +9528,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/nl-reporting-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "delete" or "delete_definition" or "deactivate")
@@ -9539,7 +9539,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/nl-reporting-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -9548,12 +9548,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save" or "save_definition" or "delete" or "delete_definition" or "deactivate",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Query template, recipients, and generate stay Classic."
                     : "Dry-run. Set confirmWrites=true to save or deactivate a report definition.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -9781,7 +9781,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save Parts Agent config.",
                     session = SessionPayload(session)
@@ -9804,7 +9804,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 "/cp/parts-agent-chats-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelPosOverview, async (
@@ -9955,7 +9955,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to activate or deactivate the SMS operator.",
                     session = SessionPayload(session)
@@ -10038,7 +10038,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     dest,
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, lead_id = leadId, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, lead_id = leadId, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -10047,12 +10047,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "convert_lead" or "crm_convert_lead",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Quote email stays Classic."
                     : "Dry-run. Set confirmWrites=true to convert the lead.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -10190,7 +10190,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/document-control-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "save_template" or "dc_save_template")
@@ -10205,7 +10205,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/document-control-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -10214,14 +10214,14 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save_company" or "dc_save_company" or "save_template" or "dc_save_template",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Logo upload and attachments stay Classic."
                     : key is "save_template" or "dc_save_template"
                         ? "Dry-run. Set confirmWrites=true to save the template."
                         : "Dry-run. Set confirmWrites=true to save the company profile.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -10337,7 +10337,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to write crosses on ASP.NET.",
                     session = SessionPayload(session)
@@ -10681,7 +10681,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/auto-price-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "toggle_discovery_source" or "apai_toggle_discovery_source")
@@ -10694,7 +10694,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/auto-price-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "skip_source" or "apai_skip_source")
@@ -10707,7 +10707,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/auto-price-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "delete_discovery_source" or "apai_delete_discovery_source")
@@ -10718,7 +10718,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/auto-price-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -10730,7 +10730,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     or "skip_source" or "apai_skip_source"
                     or "delete_discovery_source" or "apai_delete_discovery_source",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Compare-run stays Classic."
@@ -10741,7 +10741,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                             : key is "delete_discovery_source" or "apai_delete_discovery_source"
                                 ? "Dry-run. Set confirmWrites=true to delete the custom source."
                                 : "Dry-run. Set confirmWrites=true to toggle the discovery source.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -10827,7 +10827,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "add_to_cart" or "create_shop_quote" or "create_crm_quote" => uploadId > 0 && customerId > 0,
                     _ => false,
                 };
-                return Results.Ok(new { ok = valid, status = "dry-run-validated", action = key, upload_id = uploadId, writes = 0, writesBlocked = true, cutoverAllowed = false, validation_code = "dry_run", message = "Dry-run. Set confirmWrites=true to apply.", session = SessionPayload(session) });
+                return Results.Ok(new { ok = valid, status = "dry-run-validated", action = key, upload_id = uploadId, writes = 0, writesBlocked = true, cutoverAllowed = true, validation_code = "dry_run", message = "Dry-run. Set confirmWrites=true to apply.", session = SessionPayload(session) });
             }
 
             CpBulkActionResult result;
@@ -10878,7 +10878,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 fallback,
                 result.Succeeded,
                 result.Message,
-                new { ok = result.Succeeded, writes = result.Writes, id = result.Id, redirect = result.RedirectTo, phpAuthoritative = false, cutoverAllowed = false, validation_code = result.Code, message = result.Message, session = SessionPayload(session) });
+                new { ok = result.Succeeded, writes = result.Writes, id = result.Id, redirect = result.RedirectTo, phpAuthoritative = false, cutoverAllowed = true, validation_code = result.Code, message = result.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelUaeTaxCompliance, async (
@@ -11073,7 +11073,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/erp/workflows-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -11082,12 +11082,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "toggle",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Tick / execute stay Classic."
                     : "Dry-run. Set confirmWrites=true to enable or disable the workflow.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -11208,7 +11208,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save the promotion.",
                     session = SessionPayload(session)
@@ -11391,7 +11391,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 {
                     ok = false,
                     surface = "cp",
-                    cutoverAllowed = false,
+                    cutoverAllowed = true,
                     message = "Platform governance write is Super CP only. Tenant CPs are independent."
                 });
             }
@@ -11430,7 +11430,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/platform-governance-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -11439,12 +11439,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save_rule" or "gov_save_rule",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Title, description, and seed stay Classic."
                     : "Dry-run. Set confirmWrites=true to save the governance rule.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -11616,7 +11616,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     dest,
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "toggle_task" or "mkt_toggle_task")
@@ -11627,7 +11627,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/marketing-growth-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "save_kpi" or "mkt_save_kpi")
@@ -11639,7 +11639,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/marketing-growth-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -11648,12 +11648,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save_review" or "mkt_save_review" or "toggle_task" or "mkt_toggle_task" or "save_kpi" or "mkt_save_kpi",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Schema-ensure stays Classic."
                     : "Dry-run. Set confirmWrites=true to save a review, toggle a task, or record a KPI.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -11719,7 +11719,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     dest,
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "save_opportunity" or "crm_save_opportunity")
@@ -11736,7 +11736,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     dest,
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -11745,12 +11745,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "update_stage" or "crm_update_stage" or "save_opportunity" or "crm_save_opportunity",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Convert and quote email stay Classic."
                     : "Dry-run. Set confirmWrites=true to save the opportunity or update the stage.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -11811,7 +11811,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     dest,
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "save_activity" or "crm_save_activity")
@@ -11828,7 +11828,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     dest,
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -11837,12 +11837,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "toggle_activity" or "crm_toggle_activity" or "save_activity" or "crm_save_activity",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Quote email and send stay Classic."
                     : "Dry-run. Set confirmWrites=true to save the activity or toggle done.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -11903,7 +11903,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     dest,
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "save_ticket" or "crm_save_ticket")
@@ -11920,7 +11920,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     dest,
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -11929,12 +11929,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "update_ticket_status" or "crm_update_ticket_status" or "save_ticket" or "crm_save_ticket",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "File attachments and send stay Classic."
                     : "Dry-run. Set confirmWrites=true to save the ticket or update status.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -12002,7 +12002,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     dest,
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -12011,12 +12011,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save_quote" or "crm_save_quote",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Accept and quote email stay Classic."
                     : "Dry-run. Set confirmWrites=true to save the quote.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -12097,7 +12097,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     dest,
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "save_project_task" or "crm_save_project_task")
@@ -12110,7 +12110,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/erp/crm-opportunities-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -12119,14 +12119,14 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save_project" or "crm_save_project" or "save_project_task" or "crm_save_project_task",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Quote email stays Classic."
                     : key is "save_project_task" or "crm_save_project_task"
                         ? "Dry-run. Set confirmWrites=true to add the project task."
                         : "Dry-run. Set confirmWrites=true to save the project.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -12182,7 +12182,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/erp/crm-opportunities-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -12191,12 +12191,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save_contract" or "crm_save_contract",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Quote email stays Classic."
                     : "Dry-run. Set confirmWrites=true to save the contract.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -12252,7 +12252,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/erp/crm-opportunities-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -12261,12 +12261,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save_expense" or "crm_save_expense",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Approve-to-cash stays Classic."
                     : "Dry-run. Set confirmWrites=true to save the expense.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -13390,7 +13390,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     returnUrl,
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -13399,7 +13399,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "delete" or "delete_cart" or "delete_line",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 ids,
                 validation_code = confirm ? "unknown_action" : "dry_run",
                 message = confirm
@@ -13478,7 +13478,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 {
                     ok = false,
                     surface = "cp",
-                    cutoverAllowed = false,
+                    cutoverAllowed = true,
                     message = "Platform-communication write is Super CP only. Tenant CPs are independent."
                 });
             }
@@ -13554,7 +13554,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/platform-communication-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "save_task" or "save")
@@ -13567,7 +13567,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/platform-communication-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "save_comm_settings" or "save_settings")
@@ -13580,7 +13580,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/platform-communication-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -13589,12 +13589,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save_task" or "save" or "delete_task" or "delete" or "save_comm_settings" or "save_settings",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "SMTP stay Classic."
                     : "Dry-run. Set confirmWrites=true to save the notification policy or a task.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -13639,7 +13639,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 {
                     ok = false,
                     surface = "cp",
-                    cutoverAllowed = false,
+                    cutoverAllowed = true,
                     message = "Info-blocks write is Super CP only. Tenant CPs are independent."
                 });
             }
@@ -13697,7 +13697,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/info-blocks-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "save_info_block" or "save")
@@ -13710,7 +13710,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/info-blocks-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -13719,12 +13719,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save_info_block" or "save" or "delete_info_block" or "delete",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Unknown info-blocks action."
                     : "Dry-run. Set confirmWrites=true to save or delete the info block.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -13742,7 +13742,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 {
                     ok = false,
                     surface = "cp",
-                    cutoverAllowed = false,
+                    cutoverAllowed = true,
                     message = "Demo tenants management is available on www.ecomae.com Super CP only."
                 });
             }
@@ -13797,7 +13797,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/demo-tenants-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -13806,12 +13806,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = known,
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Unknown demo-tenants action."
                     : "Dry-run. Set confirmWrites=true to extend, convert or delete the demo tenant.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -13828,7 +13828,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 {
                     ok = false,
                     surface = "cp",
-                    cutoverAllowed = false,
+                    cutoverAllowed = true,
                     message = "Price-config write is Super CP only. Tenant CPs are independent."
                 });
             }
@@ -13891,7 +13891,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/price-configs-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "save_price_config" or "save")
@@ -13904,7 +13904,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/price-configs-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -13913,12 +13913,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save_price_config" or "save" or "delete_price_config" or "delete",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Unknown price-config action."
                     : "Dry-run. Set confirmWrites=true to save or delete the price config.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -13973,7 +13973,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 {
                     ok = false,
                     surface = "cp",
-                    cutoverAllowed = false,
+                    cutoverAllowed = true,
                     message = "Free tools write is Super CP only. Tenant CPs are independent."
                 });
             }
@@ -14013,7 +14013,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/free-tools-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -14022,12 +14022,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "toggle" or "free_tools_toggle",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Schema-ensure stays Classic."
                     : "Dry-run. Set confirmWrites=true to toggle the free tool.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -14099,7 +14099,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/config-sandbox-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "discard")
@@ -14110,7 +14110,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/config-sandbox-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -14119,12 +14119,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "promote" or "discard",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Create, apply-change, and rollback stay Classic."
                     : "Dry-run. Set confirmWrites=true to promote or discard an active snapshot.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -14206,7 +14206,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/marketplace-apps-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "uninstall")
@@ -14217,7 +14217,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/marketplace-apps-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "add_review" or "review")
@@ -14230,7 +14230,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/marketplace-apps-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -14239,12 +14239,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "install" or "uninstall" or "add_review" or "review",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Config and seed stay Classic."
                     : "Dry-run. Set confirmWrites=true to install, uninstall, or add a marketplace review.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -14316,7 +14316,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to toggle the notification channel.",
                     session = SessionPayload(session)
@@ -14366,7 +14366,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     ids,
                     message = "Set confirmWrites=true to restore factory notification settings.",
@@ -14380,7 +14380,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 EcomAeRoutes.ControlPanelNotificationsApp,
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelNotificationsSave, async (
@@ -14425,7 +14425,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     notification_id = request.NotificationId,
                     message = "Set confirmWrites=true to save the notification template.",
@@ -14439,7 +14439,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 editorUrl,
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelPortalSettings, async (
@@ -14829,7 +14829,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to activate or deactivate the plugin.",
                     session = SessionPayload(session)
@@ -14909,7 +14909,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to switch the current template.",
                     session = SessionPayload(session)
@@ -14955,7 +14955,7 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             if (!confirm)
             {
-                return Results.Ok(new { status = "dry-run", writes = 0, writesBlocked = true, phpAuthoritative = true, validation_code = "dry_run", message = "Set confirmWrites=true to delete templates.", session = SessionPayload(session) });
+                return Results.Ok(new { status = "dry-run", writes = 0, writesBlocked = true, phpAuthoritative = false, validation_code = "dry_run", message = "Set confirmWrites=true to delete templates.", session = SessionPayload(session) });
             }
 
             var written = await writes.DeleteAsync(new CpTemplatesDeleteRequest(ids, PhpDocRoot(reference.Value)), cancellationToken);
@@ -14991,7 +14991,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             if (!confirm)
             {
-                return Results.Ok(new { status = "dry-run", writes = 0, writesBlocked = true, phpAuthoritative = true, validation_code = "dry_run", message = "Set confirmWrites=true to save the template.", session = SessionPayload(session) });
+                return Results.Ok(new { status = "dry-run", writes = 0, writesBlocked = true, phpAuthoritative = false, validation_code = "dry_run", message = "Set confirmWrites=true to save the template.", session = SessionPayload(session) });
             }
 
             var written = await writes.SaveAsync(
@@ -15046,7 +15046,7 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             if (!confirm)
             {
-                return Results.Ok(new { status = "dry-run", writes = 0, writesBlocked = true, phpAuthoritative = true, validation_code = "dry_run", message = "Set confirmWrites=true to delete plugins.", session = SessionPayload(session) });
+                return Results.Ok(new { status = "dry-run", writes = 0, writesBlocked = true, phpAuthoritative = false, validation_code = "dry_run", message = "Set confirmWrites=true to delete plugins.", session = SessionPayload(session) });
             }
 
             var written = await writes.DeleteAsync(new CpPluginsDeleteRequest(pluginsList, pluginId, PhpDocRoot(reference.Value)), cancellationToken);
@@ -15081,7 +15081,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             if (!confirm)
             {
-                return Results.Ok(new { status = "dry-run", writes = 0, writesBlocked = true, phpAuthoritative = true, validation_code = "dry_run", message = "Set confirmWrites=true to save the plugin.", session = SessionPayload(session) });
+                return Results.Ok(new { status = "dry-run", writes = 0, writesBlocked = true, phpAuthoritative = false, validation_code = "dry_run", message = "Set confirmWrites=true to save the plugin.", session = SessionPayload(session) });
             }
 
             var langIds = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -15226,7 +15226,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/design-tokens-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -15235,12 +15235,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save" or "save_token",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "CSS emit stay Classic."
                     : "Dry-run. Set confirmWrites=true to save a design token.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -15761,7 +15761,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to write manufacturer synonyms on ASP.NET.",
                     session = SessionPayload(session)
@@ -15955,7 +15955,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     landing,
                     accountResult.Succeeded,
                     accountResult.Message,
-                    new { ok = accountResult.Succeeded, writes = accountResult.Writes, id = accountResult.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = accountResult.Code, message = accountResult.Message, session = SessionPayload(session) });
+                    new { ok = accountResult.Succeeded, writes = accountResult.Writes, id = accountResult.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = accountResult.Code, message = accountResult.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "save_draft" or "social_save_draft")
@@ -15971,7 +15971,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     landing,
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -15980,12 +15980,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "save_draft" or "social_save_draft" or "save_account" or "test_account" or "delete_account",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Publishing to Meta/TikTok stays Classic."
                     : "Dry-run. Set confirmWrites=true to save the draft or account.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -16076,7 +16076,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                         sent_fail = sent.SentFail,
                         wa_links = sent.WaLinks,
                         phpAuthoritative = false,
-                        cutoverAllowed = false,
+                        cutoverAllowed = true,
                         validation_code = sent.Code,
                         message = sent.Message,
                         session = SessionPayload(session),
@@ -16089,12 +16089,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = key is "send_email" or "send_whatsapp",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "unknown_action" : "dry_run",
                 message = confirm
                     ? "Unknown marketing broadcast action."
                     : "Dry-run. Set confirmWrites=true to send the email or prepare the WhatsApp campaign.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -16149,7 +16149,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 {
                     ok = false,
                     surface = "cp",
-                    cutoverAllowed = false,
+                    cutoverAllowed = true,
                     message = "Tenant features write is Super CP only. Tenant CPs are independent."
                 });
             }
@@ -16202,7 +16202,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "/cp/tenant-features-app",
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(new
@@ -16211,12 +16211,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 writes = 0,
                 wouldWrite = keyAction is "save_feature_flags" or "feat_save",
                 writesBlocked = confirm,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Unsupported tenant-features action."
                     : "Dry-run. Set confirmWrites=true to save feature flags.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();

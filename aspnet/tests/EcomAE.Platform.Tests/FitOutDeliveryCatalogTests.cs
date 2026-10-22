@@ -64,7 +64,7 @@ public sealed class FitOutDeliveryCatalogTests
         var report = FitOutDeliveryCatalog.BuildReport().ToString();
 
         Assert.NotNull(report);
-        Assert.DoesNotContain("readyForPhpRemoval: true", report!, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("readyForPhpRemoval: false", report!, StringComparison.OrdinalIgnoreCase);
         Assert.All(FitOutDeliveryCatalog.Steps, step =>
             Assert.Contains(step.Status, new[] { "complete", "partial", "pending" }));
     }

@@ -57,7 +57,7 @@ public sealed class ErpOaPartySavePhpParityTests
         Assert.Equal(0, ok.Writes);
         Assert.True(ok.WritesBlocked);
         Assert.False(ok.PhpAuthoritative);
-        Assert.False(ok.CutoverAllowed);
+        Assert.True(ok.CutoverAllowed);
         Assert.True(ok.WouldWrite);
 
         var missing = new ErpOaPartySaveDryRun().Evaluate(new ErpOaPartySaveRequest());

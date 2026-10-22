@@ -11,13 +11,13 @@ public sealed class ErpIntegrityApplyFksDryRun : IErpIntegrityApplyFksDryRun
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET integrity_apply_fks is not implemented; PHP ajax_erp.php remains authoritative.", request);
         if (request.Id < 0)
             return Refuse("dry-run-invalid","invalid_request","id must be >= 0.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Id, request.Code,
             ["ajax_erp.php?action=integrity_apply_fks (NOT executed)"],
             "ERP integrity_apply_fks payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=integrity_apply_fks");
     }
     private static ErpIntegrityApplyFksDryRunResult Refuse(string s,string c,string d,ErpIntegrityApplyFksRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=integrity_apply_fks");
+        new(s,0,true,true,false,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=integrity_apply_fks");
 }
 public sealed record ErpIntegrityApplyFksRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);
 public sealed record ErpIntegrityApplyFksDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id, string? Code,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

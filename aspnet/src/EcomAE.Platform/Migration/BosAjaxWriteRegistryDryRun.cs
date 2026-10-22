@@ -16,13 +16,13 @@ public sealed class BosAjaxWriteRegistryDryRun : IBosAjaxWriteRegistryDryRun
             return Refuse("dry-run-unknown-action","unknown_action",$"action '{action}' is not in ajax_epc_bos.php catalog.", action);
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused",$"confirm_writes refused; PHP ajax_epc_bos.php remains authoritative for {action}.", action, entry);
-        return new("dry-run-validated",0,true,false,true,"ok",true,action,entry.Coverage,entry.AspNetRouteHint,
+        return new("dry-run-validated",0,true,true,false,"ok",true,action,entry.Coverage,entry.AspNetRouteHint,
             [$"ajax_epc_bos.php?action={action} (NOT executed)"],
             $"BOS ajax action '{action}' catalogued; UPDATE blocked.",
             $"/BOS/ajax_epc_bos.php?action={action}");
     }
     private static BosAjaxWriteRegistryDryRunResult Refuse(string s,string c,string d,string action, BosAjaxWriteCatalogEntry? entry=null)=>
-        new(s,0,true,false,true,c,false,action,entry?.Coverage??"unknown",entry?.AspNetRouteHint??"/bos/ajax-writes/dry-run/{action}",[],d,
+        new(s,0,true,true,false,c,false,action,entry?.Coverage??"unknown",entry?.AspNetRouteHint??"/bos/ajax-writes/dry-run/{action}",[],d,
             string.IsNullOrEmpty(action)?"/BOS/ajax_epc_bos.php":$"/BOS/ajax_epc_bos.php?action={action}");
 }
 public sealed record BosAjaxWriteRegistryRequest(string Action, bool ConfirmWrites=false);

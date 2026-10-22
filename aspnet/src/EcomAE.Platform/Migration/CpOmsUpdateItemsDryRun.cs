@@ -67,7 +67,7 @@ public sealed class CpOmsUpdateItemsDryRun : ICpOmsUpdateItemsDryRun
 
         var valid = request.Items.Count(i => i.ItemId > 0);
         return new CpOmsUpdateItemsDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true, request.OrderId, valid,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.OrderId, valid,
             [
                 $"UPDATE `shop_orders_items` for up to {valid} item(s) (NOT executed)",
                 "Warehouse reprice / OMS log (NOT executed)"
@@ -78,7 +78,7 @@ public sealed class CpOmsUpdateItemsDryRun : ICpOmsUpdateItemsDryRun
 
     private static CpOmsUpdateItemsDryRunResult Refuse(
         string status, string code, string detail, CpOmsUpdateItemsRequest request) =>
-        new(status, 0, true, false, true, code, false, request.OrderId, 0, [], detail,
+        new(status, 0, true, true, false, code, false, request.OrderId, 0, [], detail,
             "/CP/content/shop/order_process/ajax_epc_orders_oms.php?action=update_items");
 }
 

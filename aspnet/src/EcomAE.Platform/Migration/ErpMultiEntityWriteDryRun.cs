@@ -27,7 +27,7 @@ public sealed class ErpMultiEntityWriteDryRun : IErpMultiEntityWriteDryRun
             "dry-run-validated",
             0,
             true,
-            false,
+            true,
             false,
             "ok",
             true,
@@ -42,7 +42,7 @@ public sealed class ErpMultiEntityWriteDryRun : IErpMultiEntityWriteDryRun
         string code,
         string detail,
         ErpMultiEntityWriteRequest request)
-        => new(status, 0, true, false, false, code, false, request.Action, [], detail, "content/shop/finance/epc_multi_entity.php");
+        => new(status, 0, true, true, false, code, false, request.Action, [], detail, "content/shop/finance/epc_multi_entity.php");
 }
 
 public sealed record ErpMultiEntityWriteRequest(string? Action = null, bool ConfirmWrites = false);

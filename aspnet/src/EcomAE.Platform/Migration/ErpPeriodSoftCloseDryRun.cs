@@ -32,7 +32,7 @@ public sealed class ErpPeriodSoftCloseDryRun : IErpPeriodSoftCloseDryRun
         }
 
         return new ErpPeriodSoftCloseDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, ym, request.Note,
+            "dry-run-validated", 0, true, true, false, "ok", true, ym, request.Note,
             [
                 "UPDATE `epc_erp_periods` SET status='soft_close' (NOT executed)",
                 "INSERT `epc_erp_period_close_log` (NOT executed)"
@@ -43,7 +43,7 @@ public sealed class ErpPeriodSoftCloseDryRun : IErpPeriodSoftCloseDryRun
 
     private static ErpPeriodSoftCloseDryRunResult Refuse(
         string status, string code, string detail, ErpPeriodSoftCloseRequest request) =>
-        new(status, 0, true, false, false, code, false, request.YearMonth, request.Note, [], detail,
+        new(status, 0, true, true, false, code, false, request.YearMonth, request.Note, [], detail,
             "content/shop/finance/epc_erp_period_close.php");
 }
 

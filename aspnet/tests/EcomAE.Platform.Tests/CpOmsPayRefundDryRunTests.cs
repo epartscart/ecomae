@@ -26,6 +26,6 @@ public sealed class CpOmsPayRefundDryRunTests
             new CpOmsPayRefundRequest(42, true, PaidSum: 50m));
         Assert.Equal("dry-run-validated", r.Status);
         Assert.True(r.WouldWrite);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 }

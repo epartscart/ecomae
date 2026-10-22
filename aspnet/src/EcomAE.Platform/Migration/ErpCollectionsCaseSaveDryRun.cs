@@ -26,7 +26,7 @@ public sealed class ErpCollectionsCaseSaveDryRun : IErpCollectionsCaseSaveDryRun
         }
 
         return new ErpCollectionsCaseSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.CustomerId, request.Id,
             ["INSERT/UPDATE `epc_coll_cases` (NOT executed)"],
             "ErpCollectionsCaseSave payload validated; no write was performed.",
@@ -34,7 +34,7 @@ public sealed class ErpCollectionsCaseSaveDryRun : IErpCollectionsCaseSaveDryRun
     }
 
     private static ErpCollectionsCaseSaveDryRunResult Refuse(string status, string code, string detail, ErpCollectionsCaseSaveRequest request) =>
-        new(status, 0, true, false, false, code, false, request.CustomerId, request.Id, [], detail,
+        new(status, 0, true, true, false, code, false, request.CustomerId, request.Id, [], detail,
             "content/shop/finance/epc_erp_collections.php");
 }
 

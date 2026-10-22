@@ -10,13 +10,13 @@ public sealed class ErpCommandCenterDryRun : IErpCommandCenterDryRun
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes reached the dry-run evaluator; the live ASP.NET command_center read is selected by the route handler when confirmation is set.", request);
         
-        return new("dry-run-validated",0,true,false,true,"ok",true,
+        return new("dry-run-validated",0,true,true,false,"ok",true,
             ["ajax_erp.php?action=command_center (NOT executed)"],
             "ERP command_center payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=command_center");
     }
     private static ErpCommandCenterDryRunResult Refuse(string s,string c,string d,ErpCommandCenterRequest r)=>
-        new(s,0,true,false,true,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=command_center");
+        new(s,0,true,true,false,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=command_center");
 }
 public sealed record ErpCommandCenterRequest(bool ConfirmWrites = false);
 public sealed record ErpCommandCenterDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

@@ -34,14 +34,14 @@ public sealed class ErpCollDunningRunDryRun : IErpCollDunningRunDryRun
         }
 
         return new ErpCollDunningRunDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             ["INSERT `epc_coll_dunning` (NOT executed)"],
             "ErpCollDunningRun payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_collections.php");
     }
 
     private static ErpCollDunningRunDryRunResult Refuse(string s, string c, string d, ErpCollDunningRunRequest r) =>
-        new(s, 0, true, false, false, c, false, [], d, "content/shop/finance/epc_erp_collections.php");
+        new(s, 0, true, true, false, c, false, [], d, "content/shop/finance/epc_erp_collections.php");
 }
 
 public sealed record ErpCollDunningRunRequest(

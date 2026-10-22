@@ -30,14 +30,14 @@ public sealed class ErpWmsLocationSaveDryRun : IErpWmsLocationSaveDryRun
         }
 
         return new ErpWmsLocationSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, code, request.Id,
+            "dry-run-validated", 0, true, true, false, "ok", true, code, request.Id,
             ["INSERT/UPDATE `epc_erp_wms_locations` (NOT executed)"],
             "ErpWmsLocationSave payload validated; no write was performed.",
             "content/shop/finance/epc_erp_wms.php");
     }
 
     private static ErpWmsLocationSaveDryRunResult Refuse(string status, string code, string detail, ErpWmsLocationSaveRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Code, request.Id, [], detail,
+        new(status, 0, true, true, false, code, false, request.Code, request.Id, [], detail,
             "content/shop/finance/epc_erp_wms.php");
 }
 

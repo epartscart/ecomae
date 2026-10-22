@@ -25,14 +25,14 @@ public sealed class ErpRtlDiscountSaveDryRun : IErpRtlDiscountSaveDryRun
         }
 
         return new ErpRtlDiscountSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Code, request.DiscType,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Code, request.DiscType,
             ["INSERT `epc_rtl_discount` (NOT executed)"],
             "ErpRtlDiscountSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_retail.php");
     }
 
     private static ErpRtlDiscountSaveDryRunResult Refuse(string s, string c, string d, ErpRtlDiscountSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Code, r.DiscType, [], d, "content/shop/finance/epc_erp_retail.php");
+        new(s, 0, true, true, false, c, false, r.Code, r.DiscType, [], d, "content/shop/finance/epc_erp_retail.php");
 }
 
 public sealed record ErpRtlDiscountSaveRequest(

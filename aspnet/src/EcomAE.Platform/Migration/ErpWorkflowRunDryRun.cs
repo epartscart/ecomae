@@ -10,13 +10,13 @@ public sealed class ErpWorkflowRunDryRun : IErpWorkflowRunDryRun
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET workflow_run is not implemented; PHP ajax_erp.php remains authoritative.", request);
         
-        return new("dry-run-validated",0,true,false,true,"ok",true,
+        return new("dry-run-validated",0,true,true,false,"ok",true,
             ["ajax_erp.php?action=workflow_run (NOT executed)"],
             "ERP workflow_run payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=workflow_run");
     }
     private static ErpWorkflowRunDryRunResult Refuse(string s,string c,string d,ErpWorkflowRunRequest r)=>
-        new(s,0,true,false,true,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=workflow_run");
+        new(s,0,true,true,false,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=workflow_run");
 }
 public sealed record ErpWorkflowRunRequest(bool ConfirmWrites = false);
 public sealed record ErpWorkflowRunDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

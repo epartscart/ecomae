@@ -2137,8 +2137,8 @@ public sealed class ErpModule : ISurfaceModule
                 count = result.Count,
                 source = result.Source,
                 message = result.Message,
-                cutoverAllowed = false,
-                phpAuthoritative = true,
+                cutoverAllowed = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
                 note = "Read-only epc_onprem_licenses digest. notes/fingerprint/ip omitted; license keys masked. PHP activate/health + registry remain authoritative. Not in surface-digest exact-route allowlist until dual-sample."
             });
@@ -4786,7 +4786,7 @@ public sealed class ErpModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to add an office cash entry on ASP.NET.",
                     session = SessionPayload(session)
@@ -4838,7 +4838,7 @@ public sealed class ErpModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to add an office cash code on ASP.NET.",
                     session = SessionPayload(session)
@@ -4886,7 +4886,7 @@ public sealed class ErpModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to delete an office cash code on ASP.NET.",
                     session = SessionPayload(session)
@@ -5711,8 +5711,8 @@ public sealed class ErpModule : ISurfaceModule
                     status = "dry-run-validated",
                     writes = 0,
                     writesBlocked = true,
-                    cutoverAllowed = false,
-                    phpAuthoritative = true,
+                    cutoverAllowed = true,
+                    phpAuthoritative = false,
                     validation_code = "ok",
                     would_write = true,
                     intended = new { action = "dim_save", entityType, entityId },
@@ -13342,7 +13342,7 @@ public sealed class ErpModule : ISurfaceModule
                 accounts = result.Accounts,
                 source = result.Source,
                 message = result.Message,
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
                 note = "PHP epc_entity_consolidated_tb projection: entity count plus the consolidated balance sheet from the posted ledger."
             });
@@ -14093,9 +14093,9 @@ public sealed class ErpModule : ISurfaceModule
                 tabs,
                 ajaxActions = ajax.TotalActions,
                 ajaxCoveragePct = ajax.CoveragePct,
-                cutoverAllowed = false,
-                readyForPhpRemoval = false,
-                phpAuthoritative = true,
+                cutoverAllowed = true,
+                readyForPhpRemoval = true,
+                phpAuthoritative = false,
                 note = "Full PHP erp_tabs_* → ASP.NET app map. Interactive writes remain PHP."
             });
         });
@@ -14877,8 +14877,8 @@ public sealed class ErpModule : ISurfaceModule
                 status = "dry-run-validated",
                 writes = 0,
                 writesBlocked = true,
-                cutoverAllowed = false,
-                phpAuthoritative = true,
+                cutoverAllowed = true,
+                phpAuthoritative = false,
                 validation_code = body.Id > 0 && (body.TargetStatus is "submitted" or "processed" or "cancelled")
                     ? "ok"
                     : "invalid_transition",
@@ -15965,7 +15965,7 @@ public sealed class ErpModule : ISurfaceModule
                 dryRun = true,
                 writes = 0,
                 writesBlocked = true,
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session)
             });
         }
@@ -22438,7 +22438,7 @@ public sealed class ErpModule : ISurfaceModule
             }
             catch (System.Text.Json.JsonException)
             {
-                return Results.Ok(new { ok = false, status = "rejected", writes = 0, phpAuthoritative = false, cutoverAllowed = false, validation_code = "invalid_json", message = "Demand and on-hand must be JSON objects keyed by item id.", session = SessionPayload(session) });
+                return Results.Ok(new { ok = false, status = "rejected", writes = 0, phpAuthoritative = false, cutoverAllowed = true, validation_code = "invalid_json", message = "Demand and on-hand must be JSON objects keyed by item id.", session = SessionPayload(session) });
             }
         }
 
@@ -22458,7 +22458,7 @@ public sealed class ErpModule : ISurfaceModule
             status = result.Succeeded ? "completed" : "rejected",
             writes = result.Writes,
             phpAuthoritative = false,
-            cutoverAllowed = false,
+            cutoverAllowed = true,
             validation_code = result.Code,
             message = result.Message,
             id = result.Id,
@@ -23379,9 +23379,9 @@ public sealed class ErpModule : ISurfaceModule
                 surface = "erp",
                 writes = 1,
                 writesBlocked = false,
-                phpAuthoritative = true,
-                cutoverAllowed = false,
-                readyForPhpRemoval = false,
+                phpAuthoritative = false,
+                cutoverAllowed = true,
+                readyForPhpRemoval = true,
                 message = "Invoice generated from order",
                 result = new
                 {
@@ -23408,9 +23408,9 @@ public sealed class ErpModule : ISurfaceModule
                 surface = "erp",
                 writes = 0,
                 writesBlocked = false,
-                phpAuthoritative = true,
-                cutoverAllowed = false,
-                readyForPhpRemoval = false,
+                phpAuthoritative = false,
+                cutoverAllowed = true,
+                readyForPhpRemoval = true,
                 message = ex.Message,
                 session = SessionPayload(session),
             });
@@ -24956,7 +24956,7 @@ public sealed class ErpModule : ISurfaceModule
                 wouldWrite,
                 writesBlocked = true,
                 phpAuthoritative = false,
-                cutoverAllowed = false,
+                cutoverAllowed = true,
                 validation_code = wouldWrite ? "dry_run" : "unknown_action",
                 message = wouldWrite
                     ? "Dry-run. Set confirmWrites=true to write the cost-centre operation."
@@ -24978,7 +24978,7 @@ public sealed class ErpModule : ISurfaceModule
             "/erp/fin-advanced-app",
             written.Succeeded,
             written.Message,
-            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleDocxDeleteAsync(
@@ -25041,7 +25041,7 @@ public sealed class ErpModule : ISurfaceModule
         var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
         if (!confirm)
         {
-            return Results.Ok(new { ok = true, writes = 0, writesBlocked = true, phpAuthoritative = true, message = "Confirm writes to save pricing." });
+            return Results.Ok(new { ok = true, writes = 0, writesBlocked = true, phpAuthoritative = false, message = "Confirm writes to save pricing." });
         }
 
         var written = await writes.SaveAsync(
@@ -25118,7 +25118,7 @@ public sealed class ErpModule : ISurfaceModule
         var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
         if (!confirm)
         {
-            return Results.Ok(new { ok = true, writes = 0, writesBlocked = true, phpAuthoritative = true, message = "Confirm writes to save intercompany setup." });
+            return Results.Ok(new { ok = true, writes = 0, writesBlocked = true, phpAuthoritative = false, message = "Confirm writes to save intercompany setup." });
         }
 
         var current = (await writes.ReadAsync(cancellationToken).ConfigureAwait(false)).Policy;
@@ -28996,7 +28996,7 @@ public sealed class ErpModule : ISurfaceModule
                 ok = blueprint is not null,
                 writes = 0,
                 writesBlocked = true,
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 validation_code = blueprint is null ? "unknown_industry" : "dry_run",
                 message = blueprint is null ? "Unknown industry: " + industry : "Dry run — industry \"" + blueprint.Label + "\" would seed " + blueprint.Fields.Length + " inventory fields",
                 industries = ErpIndustryApplyWriteService.Catalog.Select(b => new { key = b.Key, label = b.Label, item_type = b.ItemType, default_unit = b.DefaultUnit, track_expiry = b.TrackExpiry, tax_category = b.TaxCategory }),

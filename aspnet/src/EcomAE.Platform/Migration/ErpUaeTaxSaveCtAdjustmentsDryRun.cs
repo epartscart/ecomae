@@ -25,14 +25,14 @@ public sealed class ErpUaeTaxSaveCtAdjustmentsDryRun : IErpUaeTaxSaveCtAdjustmen
         }
 
         return new ErpUaeTaxSaveCtAdjustmentsDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Code,
             ["ajax_erp.php?action=uae_tax_save_ct_adjustments (NOT executed)"],
             "ErpUaeTaxSaveCtAdjustments payload validated; write blocked until confirmWrites=true.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=uae_tax_save_ct_adjustments");
     }
 
     private static ErpUaeTaxSaveCtAdjustmentsDryRunResult Refuse(string s, string c, string d, ErpUaeTaxSaveCtAdjustmentsRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=uae_tax_save_ct_adjustments");
+        new(s, 0, true, true, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=uae_tax_save_ct_adjustments");
 }
 
 public sealed record ErpUaeTaxSaveCtAdjustmentsRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);

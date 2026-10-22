@@ -30,7 +30,7 @@ public sealed class ErpReceiptVoucherDryRun : IErpReceiptVoucherDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
+            CutoverAllowed: true,
             PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
@@ -49,7 +49,7 @@ public sealed class ErpReceiptVoucherDryRun : IErpReceiptVoucherDryRun
 
     private static ErpReceiptVoucherDryRunResult Refuse(
         string status, string code, string detail, ErpReceiptVoucherRequest request) =>
-        new(status, 0, true, false, false, code, false, request.UserId, request.AccountId, request.Amount,
+        new(status, 0, true, true, false, code, false, request.UserId, request.AccountId, request.Amount,
             [], detail, "/CP/content/shop/finance/erp/ajax_erp.php?action=receipt_voucher");
 }
 

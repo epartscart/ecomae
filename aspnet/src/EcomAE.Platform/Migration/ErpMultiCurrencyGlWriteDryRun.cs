@@ -27,7 +27,7 @@ public sealed class ErpMultiCurrencyGlWriteDryRun : IErpMultiCurrencyGlWriteDryR
             "dry-run-validated",
             0,
             true,
-            false,
+            true,
             false,
             "ok",
             true,
@@ -42,7 +42,7 @@ public sealed class ErpMultiCurrencyGlWriteDryRun : IErpMultiCurrencyGlWriteDryR
         string code,
         string detail,
         ErpMultiCurrencyGlWriteRequest request)
-        => new(status, 0, true, false, false, code, false, request.Action, [], detail, "content/shop/finance/epc_multi_currency_gl.php");
+        => new(status, 0, true, true, false, code, false, request.Action, [], detail, "content/shop/finance/epc_multi_currency_gl.php");
 }
 
 public sealed record ErpMultiCurrencyGlWriteRequest(string? Action = null, bool ConfirmWrites = false);

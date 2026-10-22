@@ -11,13 +11,13 @@ public sealed class ErpFyPeriodStatusDryRun : IErpFyPeriodStatusDryRun
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live ASP.NET fy_period_status write service in the route handler; this dry-run evaluator never writes.", request);
         if (request.Id <= 0)
             return Refuse("dry-run-invalid","invalid_request","id must be positive.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.TargetStatus,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Id, request.TargetStatus,
             ["ajax_erp.php?action=fy_period_status (NOT executed)"],
             "ERP fy_period_status payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=fy_period_status");
     }
     private static ErpFyPeriodStatusDryRunResult Refuse(string s,string c,string d,ErpFyPeriodStatusRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id, r.TargetStatus,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=fy_period_status");
+        new(s,0,true,true,false,c,false,r.Id, r.TargetStatus,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=fy_period_status");
 }
 public sealed record ErpFyPeriodStatusRequest(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
 public sealed record ErpFyPeriodStatusDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id, string? TargetStatus,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

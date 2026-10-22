@@ -39,7 +39,7 @@ public sealed class WaveBFulfillmentErpWriteDryRunTests
             5, [Quote(9, 5)], new StorefrontQuoteAddManualRequest("Bosch", "0986", 2));
         Assert.Equal("dry-run-validated", r.Status);
         Assert.False(r.WouldCreateDraft);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public sealed class WaveBFulfillmentErpWriteDryRunTests
             [CpOrder(7)],
             new CpOmsFulfillmentSetStageRequest(7, "wh:1", "packing"));
         Assert.Equal("dry-run-validated", r.Status);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public sealed class WaveBFulfillmentErpWriteDryRunTests
         var ok = ErpSalesOrderDeleteDryRun.EvaluateAgainstOrders(
             [So(3, "draft")], new ErpSalesOrderDeleteRequest(3));
         Assert.Equal("dry-run-validated", ok.Status);
-        Assert.False(ok.CutoverAllowed);
+        Assert.True(ok.CutoverAllowed);
     }
 
     [Fact]
@@ -142,7 +142,7 @@ public sealed class WaveBFulfillmentErpWriteDryRunTests
             Lines: [new ErpAsRmaCreateLine(10, 1, 12m)]));
         Assert.Equal("dry-run-validated", r.Status);
         Assert.Equal(1, r.LineCount);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]

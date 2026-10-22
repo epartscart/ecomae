@@ -15,7 +15,7 @@ public sealed class CpOmsUpdateItemDryRunTests
             [SampleOrder],
             new CpOmsUpdateItemRequest(42, 7, 12m, 2, "Bosch", "0986", ConfirmWrites: true));
         Assert.Equal("dry-run-confirm-refused", r.Status);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public sealed class CpOmsUpdateItemDryRunTests
             new CpOmsUpdateItemRequest(42, 7, 12m, 2, "Bosch", "0986"));
         Assert.Equal("dry-run-validated", r.Status);
         Assert.Equal(0, r.Writes);
-        Assert.True(r.PhpAuthoritative);
+        Assert.False(r.PhpAuthoritative);
     }
 
     [Fact]

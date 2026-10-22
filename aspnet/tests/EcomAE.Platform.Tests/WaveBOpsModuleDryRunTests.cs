@@ -10,7 +10,7 @@ public sealed class WaveBOpsModuleDryRunTests
         var r = new ErpMarketingCreateDryRun().Evaluate(new ErpMarketingCreateRequest("Spring promo"));
         Assert.Equal("dry-run-validated", r.Status);
         Assert.Equal(0, r.Writes);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact] public void SubscriptionSaveRequiresCodeCustomer()

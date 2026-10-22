@@ -28,7 +28,7 @@ public sealed class ErpUaeTaxLegislationAskDryRun : IErpUaeTaxLegislationAskDryR
             "dry-run-validated",
             0,
             true,
-            false,
+            true,
             false,
             "ok",
             true,
@@ -41,7 +41,7 @@ public sealed class ErpUaeTaxLegislationAskDryRun : IErpUaeTaxLegislationAskDryR
     }
 
     private static ErpUaeTaxLegislationAskDryRunResult Refuse(string s, string c, string d, ErpUaeTaxLegislationAskRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Code, r.Question, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=uae_tax_legislation_ask");
+        new(s, 0, true, true, false, c, false, r.Id, r.Code, r.Question, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=uae_tax_legislation_ask");
 }
 
 public sealed record ErpUaeTaxLegislationAskRequest(

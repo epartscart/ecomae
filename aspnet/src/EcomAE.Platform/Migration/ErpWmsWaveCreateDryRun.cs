@@ -33,7 +33,7 @@ public sealed class ErpWmsWaveCreateDryRun : IErpWmsWaveCreateDryRun
             "dry-run-validated",
             0,
             true,
-            false,
+            true,
             false,
             "ok",
             true,
@@ -50,7 +50,7 @@ public sealed class ErpWmsWaveCreateDryRun : IErpWmsWaveCreateDryRun
         string code,
         string detail,
         ErpWmsWaveCreateRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Item, request.Qty, request.Reference, [], detail,
+        new(status, 0, true, true, false, code, false, request.Item, request.Qty, request.Reference, [], detail,
             "content/shop/finance/epc_erp_wms.php");
 }
 

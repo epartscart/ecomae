@@ -11,13 +11,13 @@ public sealed class ErpConsEntityDeleteDryRun : IErpConsEntityDeleteDryRun
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET cons_entity_delete is not implemented; PHP ajax_erp.php remains authoritative.", request);
         if (request.Id <= 0)
             return Refuse("dry-run-invalid","invalid_request","id must be positive.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Id,
             ["ajax_erp.php?action=cons_entity_delete (NOT executed)"],
             "ERP cons_entity_delete payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=cons_entity_delete");
     }
     private static ErpConsEntityDeleteDryRunResult Refuse(string s,string c,string d,ErpConsEntityDeleteRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=cons_entity_delete");
+        new(s,0,true,true,false,c,false,r.Id,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=cons_entity_delete");
 }
 public sealed record ErpConsEntityDeleteRequest(long Id, bool ConfirmWrites = false);
 public sealed record ErpConsEntityDeleteDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

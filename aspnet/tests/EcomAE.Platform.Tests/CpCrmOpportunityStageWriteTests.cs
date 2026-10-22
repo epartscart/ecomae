@@ -65,7 +65,7 @@ public sealed class CpCrmOpportunityStageWriteTests
         Assert.Contains("ICpCrmOpportunityWriteService", module, StringComparison.Ordinal);
         Assert.Contains("UpdateStageAsync", module, StringComparison.Ordinal);
         Assert.Contains("SaveAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpCrmOpportunityWriteService.cs"));
         Assert.Contains("epc_crm_update_opportunity_stage", service, StringComparison.Ordinal);
         Assert.Contains("epc_crm_save_opportunity", service, StringComparison.Ordinal);
@@ -74,7 +74,7 @@ public sealed class CpCrmOpportunityStageWriteTests
         Assert.Contains("INSERT INTO `epc_crm_opportunities`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

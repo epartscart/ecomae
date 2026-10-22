@@ -78,7 +78,7 @@ public sealed class StorefrontWorkshopWriteTests
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.DoesNotContain("send_notify", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

@@ -31,7 +31,7 @@ public sealed class ErpPrjSaveDryRun : IErpPrjSaveDryRun
         }
 
         return new ErpPrjSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.Id, request.Code,
             ["INSERT/UPDATE `epc_prj_projects` (NOT executed)"],
             "ErpPrjSave payload validated; write blocked until confirmWrites=true.",
@@ -43,7 +43,7 @@ public sealed class ErpPrjSaveDryRun : IErpPrjSaveDryRun
         string code,
         string detail,
         ErpPrjSaveRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Id, request.Code, [], detail,
+        new(status, 0, true, true, false, code, false, request.Id, request.Code, [], detail,
             "content/shop/finance/epc_erp_projects.php");
 }
 

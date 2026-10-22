@@ -35,7 +35,7 @@ public sealed class ErpMfgBomSaveDryRun : IErpMfgBomSaveDryRun
         }
 
         return new ErpMfgBomSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.Id, request.ProductItemId, request.LineCount,
             [request.Id > 0
                 ? "UPDATE `epc_mfg_bom` + replace `epc_mfg_bom_lines` (NOT executed)"
@@ -49,7 +49,7 @@ public sealed class ErpMfgBomSaveDryRun : IErpMfgBomSaveDryRun
         string code,
         string detail,
         ErpMfgBomSaveRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Id, request.ProductItemId, request.LineCount, [], detail,
+        new(status, 0, true, true, false, code, false, request.Id, request.ProductItemId, request.LineCount, [], detail,
             "content/shop/finance/epc_erp_manufacturing.php");
 }
 

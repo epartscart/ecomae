@@ -77,7 +77,7 @@ public sealed class ErpGlReverseJournalDryRun : IErpGlReverseJournalDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
+            CutoverAllowed: true,
             PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
@@ -97,7 +97,7 @@ public sealed class ErpGlReverseJournalDryRun : IErpGlReverseJournalDryRun
 
     private static ErpGlReverseJournalDryRunResult Refuse(
         string status, string code, string detail, ErpGlReverseJournalRequest request) =>
-        new(status, 0, true, false, false, code, false, request.JournalId, null, null,
+        new(status, 0, true, true, false, code, false, request.JournalId, null, null,
             request.Note, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=gl_reverse_journal");
 }

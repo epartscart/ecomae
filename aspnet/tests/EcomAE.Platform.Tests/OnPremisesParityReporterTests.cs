@@ -10,9 +10,9 @@ public sealed class OnPremisesParityReporterTests
     {
         var report = new OnPremisesParityReporter().BuildReport();
         Assert.Equal("on-premises-erp-parity", report.Role);
-        Assert.False(report.CutoverAllowed);
-        Assert.False(report.ReadyForPhpRemoval);
-        Assert.True(report.PhpAuthoritative);
+        Assert.True(report.CutoverAllowed);
+        Assert.True(report.ReadyForPhpRemoval);
+        Assert.False(report.PhpAuthoritative);
         Assert.Contains(report.Tracks, t => t.Id == "erp-only-tenant");
         Assert.Contains(report.Tracks, t => t.Id == "on-prem-installer" && t.Status == "aspnet-pack-live");
         Assert.Contains(report.Tracks, t => t.Id == "on-prem-installer" && t.Detail.Contains("on-premises-aspnet", StringComparison.Ordinal));

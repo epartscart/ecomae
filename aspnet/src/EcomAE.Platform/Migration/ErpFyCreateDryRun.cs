@@ -30,7 +30,7 @@ public sealed class ErpFyCreateDryRun : IErpFyCreateDryRun
         }
 
         return new ErpFyCreateDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.Label, request.StartDate, request.EndDate, request.Monthly,
             ["INSERT `epc_fy_years` + `epc_fy_periods` (NOT executed)"],
             "ErpFyCreate payload validated; write blocked until confirmWrites=true.",
@@ -42,7 +42,7 @@ public sealed class ErpFyCreateDryRun : IErpFyCreateDryRun
         string code,
         string detail,
         ErpFyCreateRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Label, request.StartDate, request.EndDate, request.Monthly, [], detail,
+        new(status, 0, true, true, false, code, false, request.Label, request.StartDate, request.EndDate, request.Monthly, [], detail,
             "content/shop/finance/epc_erp_closing.php");
 }
 

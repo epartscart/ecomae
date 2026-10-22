@@ -49,7 +49,7 @@ public sealed class CpConfigSandboxWriteTests
         Assert.Contains("ICpConfigSandboxWriteService", module, StringComparison.Ordinal);
         Assert.Contains("\"promote\"", module, StringComparison.Ordinal);
         Assert.Contains("\"discard\"", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpConfigSandboxWriteService.cs"));
         Assert.Contains("epc_sandbox_promote", service, StringComparison.Ordinal);
         Assert.Contains("epc_sandbox_discard", service, StringComparison.Ordinal);
@@ -60,7 +60,7 @@ public sealed class CpConfigSandboxWriteTests
         Assert.Contains("schema-ensure stays Classic", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
         Assert.DoesNotContain("config_data", service, StringComparison.Ordinal);
     }
 

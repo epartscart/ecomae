@@ -33,14 +33,14 @@ public sealed class ErpRtlChannelSaveDryRun : IErpRtlChannelSaveDryRun
         }
 
         return new ErpRtlChannelSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Code,
             ["INSERT/UPDATE `epc_rtl_channel` (NOT executed)"],
             "ErpRtlChannelSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_retail.php");
     }
 
     private static ErpRtlChannelSaveDryRunResult Refuse(string s, string c, string d, ErpRtlChannelSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Code, [], d, "content/shop/finance/epc_erp_retail.php");
+        new(s, 0, true, true, false, c, false, r.Id, r.Code, [], d, "content/shop/finance/epc_erp_retail.php");
 }
 
 public sealed record ErpRtlChannelSaveRequest(

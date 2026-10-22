@@ -11,13 +11,13 @@ public sealed class ErpEditLockAcquireDryRun : IErpEditLockAcquireDryRun
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET edit_lock_acquire is not implemented; PHP ajax_erp.php remains authoritative.", request);
         if (string.IsNullOrWhiteSpace(request.ResourceKey))
             return Refuse("dry-run-invalid","invalid_request","resourceKey is required.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.ResourceKey,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.ResourceKey,
             ["ajax_erp.php?action=edit_lock_acquire resource=@resourceKey (NOT executed)"],
             "ERP edit_lock_acquire payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=edit_lock_acquire");
     }
     private static ErpEditLockAcquireDryRunResult Refuse(string s,string c,string d,ErpEditLockAcquireRequest r)=>
-        new(s,0,true,false,true,c,false,r.ResourceKey,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=edit_lock_acquire");
+        new(s,0,true,true,false,c,false,r.ResourceKey,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=edit_lock_acquire");
 }
 public sealed record ErpEditLockAcquireRequest(string? ResourceKey = null, bool ConfirmWrites = false);
 public sealed record ErpEditLockAcquireDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? ResourceKey,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

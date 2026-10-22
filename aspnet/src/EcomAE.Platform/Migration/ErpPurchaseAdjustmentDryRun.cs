@@ -59,7 +59,7 @@ public sealed class ErpPurchaseAdjustmentDryRun : IErpPurchaseAdjustmentDryRun
         }
 
         return new ErpPurchaseAdjustmentDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             row.Id, request.DeltaExVat, request.Note,
             [
                 "Tax toolkit VAT recalc on new amount_ex_vat (NOT executed)",
@@ -72,7 +72,7 @@ public sealed class ErpPurchaseAdjustmentDryRun : IErpPurchaseAdjustmentDryRun
 
     private static ErpPurchaseAdjustmentDryRunResult Refuse(
         string status, string code, string detail, ErpPurchaseAdjustmentRequest request) =>
-        new(status, 0, true, false, true, code, false, request.PurchaseId, request.DeltaExVat, request.Note, [], detail,
+        new(status, 0, true, true, false, code, false, request.PurchaseId, request.DeltaExVat, request.Note, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=purchase_adjustment");
 }
 

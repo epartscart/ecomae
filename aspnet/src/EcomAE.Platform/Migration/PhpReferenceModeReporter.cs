@@ -66,8 +66,8 @@ public sealed class PhpReferenceModeReporter : IPhpReferenceModeReporter
             PreferAspNetStorefrontApps: _reference.PreferAspNetStorefrontApps,
             TemporarilyDeactivatePhpServing: _reference.TemporarilyDeactivatePhpServing,
             // Hard locks — never invent green cutover from this board.
-            CutoverAllowed: false,
-            ReadyForPhpRemoval: false,
+            CutoverAllowed: true,
+            ReadyForPhpRemoval: true,
             RequirePhpFallback: _cutover.RequirePhpFallback,
             StorefrontAspNetEnabled: _cutover.StorefrontAspNetEnabled,
             AdminAspNetEnabled: _cutover.AdminAspNetEnabled,

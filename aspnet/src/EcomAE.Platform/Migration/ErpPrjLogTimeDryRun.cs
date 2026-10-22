@@ -31,7 +31,7 @@ public sealed class ErpPrjLogTimeDryRun : IErpPrjLogTimeDryRun
         }
 
         return new ErpPrjLogTimeDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.ProjectId, request.TaskId, request.Hours,
             ["INSERT `epc_prj_timesheets` (NOT executed)"],
             "ErpPrjLogTime payload validated; write blocked until confirmWrites=true.",
@@ -43,7 +43,7 @@ public sealed class ErpPrjLogTimeDryRun : IErpPrjLogTimeDryRun
         string code,
         string detail,
         ErpPrjLogTimeRequest request) =>
-        new(status, 0, true, false, false, code, false, request.ProjectId, request.TaskId, request.Hours, [], detail,
+        new(status, 0, true, true, false, code, false, request.ProjectId, request.TaskId, request.Hours, [], detail,
             "content/shop/finance/epc_erp_projects.php");
 }
 

@@ -14,13 +14,13 @@ public sealed class ErpSubscriptionStatusDryRun : IErpSubscriptionStatusDryRun
         var status = (request.Status ?? "active").Trim().ToLowerInvariant();
         if (status.Length == 0)
             return Refuse("dry-run-invalid","status_required","status is required.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id,status,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Id,status,
             ["epc_sub_set_status(@id, @status) (NOT executed)"],
             "Subscription status payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=sub_status");
     }
     private static ErpSubscriptionStatusDryRunResult Refuse(string s,string c,string d,ErpSubscriptionStatusRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id,r.Status,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=sub_status");
+        new(s,0,true,true,false,c,false,r.Id,r.Status,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=sub_status");
 }
 public sealed record ErpSubscriptionStatusRequest(long Id, string? Status="active", bool ConfirmWrites=false);
 public sealed record ErpSubscriptionStatusDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id,string? SubStatus,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

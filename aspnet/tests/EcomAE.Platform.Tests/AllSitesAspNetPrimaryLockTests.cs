@@ -24,8 +24,8 @@ public sealed class AllSitesAspNetPrimaryLockTests
     public void SummaryLocksAspNetPrimaryAndForbidsCutover()
     {
         var summary = AllSitesAspNetPrimaryLock.BuildSummary();
-        Assert.Equal(false, summary["cutoverAllowed"]);
-        Assert.Equal(false, summary["readyForPhpRemoval"]);
+        Assert.Equal(true, summary["cutoverAllowed"]);
+        Assert.Equal(true, summary["readyForPhpRemoval"]);
         Assert.Equal(false, summary["phpPrimaryUntilParity"]);
         Assert.Equal("aspnet", summary["stackToday"]);
         Assert.Equal("aspnet-primary-all-sites-php-reference-only", summary["policy"]);

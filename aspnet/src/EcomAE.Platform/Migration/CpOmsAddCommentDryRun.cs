@@ -85,8 +85,8 @@ public sealed class CpOmsAddCommentDryRun : ICpOmsAddCommentDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             OrderId: request.OrderId,
@@ -104,7 +104,7 @@ public sealed class CpOmsAddCommentDryRun : ICpOmsAddCommentDryRun
 
     private static CpOmsAddCommentDryRunResult Refuse(
         string status, string code, string detail, CpOmsAddCommentRequest request) =>
-        new(status, 0, true, false, true, code, false, request.OrderId,
+        new(status, 0, true, true, false, code, false, request.OrderId,
             request.Text, null, null, [], detail,
             "/CP/content/shop/order_process/ajax_add_comment_to_log.php");
 }

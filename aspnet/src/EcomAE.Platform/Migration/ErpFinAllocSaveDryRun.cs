@@ -25,14 +25,14 @@ public sealed class ErpFinAllocSaveDryRun : IErpFinAllocSaveDryRun
         }
 
         return new ErpFinAllocSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Code,
             ["UPSERT `epc_fin_alloc_rule` (NOT executed)"],
             "ErpFinAllocSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_fin_advanced.php");
     }
 
     private static ErpFinAllocSaveDryRunResult Refuse(string s, string c, string d, ErpFinAllocSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Code, [], d, "content/shop/finance/epc_erp_fin_advanced.php");
+        new(s, 0, true, true, false, c, false, r.Id, r.Code, [], d, "content/shop/finance/epc_erp_fin_advanced.php");
 }
 
 public sealed record ErpFinAllocSaveRequest(

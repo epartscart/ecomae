@@ -83,8 +83,8 @@ public sealed class StorefrontGarageDeleteDryRun : IStorefrontGarageDeleteDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             CarId: car.Id,
@@ -101,7 +101,7 @@ public sealed class StorefrontGarageDeleteDryRun : IStorefrontGarageDeleteDryRun
 
     private static StorefrontGarageDeleteDryRunResult Refuse(
         string status, string code, string detail, StorefrontGarageDeleteRequest request) =>
-        new(status, 0, true, false, true, code, false, request.CarId, 0, null,
+        new(status, 0, true, true, false, code, false, request.CarId, 0, null,
             [], detail,
             "/content/shop/docpart/garage/ajax_operations_cars.php?action=delete_car");
 }

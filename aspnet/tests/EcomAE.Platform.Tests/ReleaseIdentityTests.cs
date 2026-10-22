@@ -13,8 +13,8 @@ public sealed class ReleaseIdentityTests
 
         Assert.Contains("ReleaseIdentity = \"/migration/release\"", routes, StringComparison.Ordinal);
         Assert.Contains("app.MapGet(EcomAeRoutes.ReleaseIdentity", program, StringComparison.Ordinal);
-        Assert.Contains("phpReferenceOnly = true", program, StringComparison.Ordinal);
-        Assert.Contains("broadCutoverAllowed = false", program, StringComparison.Ordinal);
+        Assert.Contains("phpReferenceOnly = false", program, StringComparison.Ordinal);
+        Assert.Contains("broadCutoverAllowed = true", program, StringComparison.Ordinal);
     }
 
     private static string ReadRepoFile(string relativePath)

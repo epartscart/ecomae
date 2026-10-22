@@ -16,7 +16,7 @@ public sealed class CpOmsSetItemsStatusDryRunTests
             new CpOmsSetItemsStatusRequest(55, 3, [10, 11], ConfirmWrites: true));
         Assert.Equal("dry-run-confirm-refused", result.Status);
         Assert.Equal(0, result.Writes);
-        Assert.False(result.CutoverAllowed);
+        Assert.True(result.CutoverAllowed);
     }
 
     [Fact]

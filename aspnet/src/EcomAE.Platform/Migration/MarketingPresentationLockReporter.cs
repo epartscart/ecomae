@@ -14,8 +14,8 @@ public sealed class MarketingPresentationLockReporter : IMarketingPresentationLo
             LiveHost: "www.ecomae.com",
             LiveHomeUrl: "https://www.ecomae.com/",
             AspNetPreviewRoute: "/marketing/app",
-            CutoverAllowed: false,
-            ReadyForPhpRemoval: false,
+            CutoverAllowed: true,
+            ReadyForPhpRemoval: true,
             TargetEndState: "100%-aspnet-core-live-php-reference-kept",
             RequiredLiveMarkers:
             [

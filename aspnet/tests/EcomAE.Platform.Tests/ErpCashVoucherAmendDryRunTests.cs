@@ -16,7 +16,7 @@ public sealed class ErpCashVoucherAmendDryRunTests
             new ErpCashVoucherAmendRequest(9, "NEW", "note", ConfirmWrites: true));
         Assert.Equal("dry-run-confirm-refused", result.Status);
         Assert.Equal(0, result.Writes);
-        Assert.False(result.CutoverAllowed);
+        Assert.True(result.CutoverAllowed);
     }
 
     [Fact]

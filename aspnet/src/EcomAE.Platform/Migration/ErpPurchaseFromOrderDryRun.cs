@@ -75,8 +75,8 @@ public sealed class ErpPurchaseFromOrderDryRun : IErpPurchaseFromOrderDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             OrderId: request.OrderId,
@@ -93,7 +93,7 @@ public sealed class ErpPurchaseFromOrderDryRun : IErpPurchaseFromOrderDryRun
 
     private static ErpPurchaseFromOrderDryRunResult Refuse(
         string status, string code, string detail, ErpPurchaseFromOrderRequest request) =>
-        new(status, 0, true, false, true, code, false, request.OrderId, request.SupplierId, [], detail,
+        new(status, 0, true, true, false, code, false, request.OrderId, request.SupplierId, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=purchase_from_order");
 }
 

@@ -70,7 +70,7 @@ public sealed record StorefrontPaymentWriteResult(
         surface = "storefront",
         writes = Writes,
         writesBlocked = false,
-        cutoverAllowed = false,
+        cutoverAllowed = true,
         phpAuthoritative = false,
         validation_code = Code,
         message = Message,

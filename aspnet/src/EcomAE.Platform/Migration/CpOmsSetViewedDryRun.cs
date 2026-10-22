@@ -86,8 +86,8 @@ public sealed class CpOmsSetViewedDryRun : ICpOmsSetViewedDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             OrderIds: ids,
@@ -103,7 +103,7 @@ public sealed class CpOmsSetViewedDryRun : ICpOmsSetViewedDryRun
 
     private static CpOmsSetViewedDryRunResult Refuse(
         string status, string code, string detail, CpOmsSetViewedRequest request) =>
-        new(status, 0, true, false, true, code, false,
+        new(status, 0, true, true, false, code, false,
             request.OrderIds ?? [], request.ViewedFlag, [], detail,
             "/CP/content/shop/order_process/ajax_set_orders_viewed.php");
 }

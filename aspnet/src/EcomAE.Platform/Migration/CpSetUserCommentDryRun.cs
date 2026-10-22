@@ -11,13 +11,13 @@ public sealed class CpSetUserCommentDryRun : ICpSetUserCommentDryRun
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP cp/content/users/ajax_set_user_comment.php remains authoritative.", request);
         if (request.UserId <= 0)
             return Refuse("dry-run-invalid","invalid_request","UserId must be positive.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.UserId, request.Comment,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.UserId, request.Comment,
             ["cp/content/users/ajax_set_user_comment.php (NOT executed)"],
             "CpSetUserComment payload validated; UPDATE blocked.",
             "cp/content/users/ajax_set_user_comment.php");
     }
     private static CpSetUserCommentDryRunResult Refuse(string s,string c,string d,CpSetUserCommentRequest r)=>
-        new(s,0,true,false,true,c,false,r.UserId, r.Comment,[],d,"cp/content/users/ajax_set_user_comment.php");
+        new(s,0,true,true,false,c,false,r.UserId, r.Comment,[],d,"cp/content/users/ajax_set_user_comment.php");
 }
 public sealed record CpSetUserCommentRequest(long UserId, string? Comment, bool ConfirmWrites = false);
 public sealed record CpSetUserCommentDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long UserId, string? Comment,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

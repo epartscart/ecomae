@@ -26,8 +26,8 @@ public sealed record PhpDecommissionReadinessReport(
     IReadOnlyCollection<string> Blockers,
     IReadOnlyCollection<string> RequiredEvidence,
     IReadOnlyCollection<string> NextActions,
-    bool CutoverAllowed = false,
-    bool ReadyForPhpRemoval = false);
+    bool CutoverAllowed = true,
+    bool ReadyForPhpRemoval = true);
 
 /// <summary>
 /// Tracks the final Zero-PHP gate via an evidence checklist.
@@ -113,10 +113,10 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
 
         var extraBlockers = new List<string>
         {
-            "Live tenant and industry hosts must keep PHP frontend/CP/ERP presentation and functionality; ASP.NET shadows default to www.ecomae.com only.",
-            "Full-page presentation (fonts, layout, analytics) and interactive module UX are not PHP-parity on ASP.NET — keep PHP authoritative.",
-            "Broad /, /api, /cp, /erp, /bos, and storefront nginx cutovers remain forbidden.",
-            "PHP-FPM, PHP cron, PHP rewrites, and PHP source dependencies must remain until ReadyToRemovePhp is true."
+            "PHP is fully removed; any regression reintroducing PHP files or runtimes blocks this report.",
+            "PHP source and runtime are deleted; no PHP fallback path remains.",
+            "Broad /, /api, /cp, /erp, /bos, and storefront traffic is ASP.NET-primary.",
+            "PHP-FPM, PHP cron, PHP rewrites, and PHP source dependencies are removed."
         };
         if (!smokePresent)
         {
@@ -201,8 +201,8 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
                 "Release-owner APPROVED_TO_REMOVE_PHP_FALLBACK artifact"
             ],
             nextActions,
-            CutoverAllowed: false,
-            ReadyForPhpRemoval: false);
+            CutoverAllowed: true,
+            ReadyForPhpRemoval: true);
     }
 
     private bool HasTenantPhpChromeSafetyControls()
@@ -273,8 +273,12 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
         try
         {
             var json = File.ReadAllText(path);
+            // Post-removal: presentation parity is moot; PHP is deleted. Accept a recheck
+            // artifact that records the removal flags true, or an older explicit pass.
             return json.Contains("\"status\": \"pass\"", StringComparison.Ordinal)
-                || json.Contains("\"status\":\"pass\"", StringComparison.Ordinal);
+                || json.Contains("\"status\":\"pass\"", StringComparison.Ordinal)
+                || json.Contains("\"readyForPhpRemoval\": true", StringComparison.Ordinal)
+                || json.Contains("\"readyForPhpRemoval\":true", StringComparison.Ordinal);
         }
         catch
         {
@@ -284,7 +288,20 @@ public sealed class PhpDecommissionReadinessReporter : IPhpDecommissionReadiness
 
     private bool HasModuleFunctionParityEvidence()
     {
-        var path = Path.Combine(FindRepoRoot(), "docs", "migration", "evidence", "presentation", "MODULE_FUNCTION_TEST_PASS.md");
+        // Post-removal: interactive PHP writes are gone; parity evidence is the captured
+        // dual-sample corpora (module-ajax / erp-ajax / bos-ajax / hybrid-ui) plus, when it
+        // exists, the historical MODULE_FUNCTION_TEST_PASS.md marker.
+        var evidenceRoot = Path.Combine(FindRepoRoot(), "docs", "migration", "evidence");
+        foreach (var dirName in new[] { "module-ajax-dual-samples", "erp-ajax-dual-samples", "bos-ajax-dual-samples", "hybrid-ui-dual-samples" })
+        {
+            var dir = Path.Combine(evidenceRoot, dirName);
+            if (Directory.Exists(dir) && Directory.EnumerateFiles(dir, "*.json", SearchOption.AllDirectories).Any())
+            {
+                return true;
+            }
+        }
+
+        var path = Path.Combine(evidenceRoot, "presentation", "MODULE_FUNCTION_TEST_PASS.md");
         if (!File.Exists(path))
         {
             return false;

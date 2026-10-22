@@ -9,13 +9,13 @@ public sealed class CpCrmActionDryRun : ICpCrmActionDryRun
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP remains authoritative.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Action,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Action,
             ["cp/content/shop/crm/ajax_crm.php (NOT executed)"],
             "CpCrmAction payload validated; UPDATE blocked.",
             "cp/content/shop/crm/ajax_crm.php");
     }
     private static CpCrmActionDryRunResult Refuse(string s,string c,string d,CpCrmActionRequest r)=>
-        new(s,0,true,false,true,c,false,r.Action,[],d,"cp/content/shop/crm/ajax_crm.php");
+        new(s,0,true,true,false,c,false,r.Action,[],d,"cp/content/shop/crm/ajax_crm.php");
 }
 public sealed record CpCrmActionRequest(string? Action = null, bool ConfirmWrites = false);
 public sealed record CpCrmActionDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? Action,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

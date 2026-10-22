@@ -30,14 +30,14 @@ public sealed class ErpPmBudgetLineSaveDryRun : IErpPmBudgetLineSaveDryRun
         }
 
         return new ErpPmBudgetLineSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Code,
             ["ajax_erp.php?action=pm_budget_line_save (NOT executed)"],
             "ErpPmBudgetLineSave payload validated; write blocked until confirmWrites=true.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=pm_budget_line_save");
     }
 
     private static ErpPmBudgetLineSaveDryRunResult Refuse(string s, string c, string d, ErpPmBudgetLineSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=pm_budget_line_save");
+        new(s, 0, true, true, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=pm_budget_line_save");
 }
 
 public sealed record ErpPmBudgetLineSaveRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);

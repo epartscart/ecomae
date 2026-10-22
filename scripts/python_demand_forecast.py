@@ -95,7 +95,9 @@ def forecast(rows: list[Row], cover_days: int) -> dict:
     stockouts = []
     for (brand, article), rs in by_part.items():
         total_stock = sum(r.exist for r in rs)
-        leads = [r.lead_days for r in rs if r.lead_days > 0]
+        stocked = [r for r in rs if r.exist > 0]
+        lead_pool = stocked if stocked else rs
+        leads = [r.lead_days for r in lead_pool if r.lead_days > 0]
         lead = min(leads) if leads else 14
         suppliers = {r.price_id for r in rs if r.exist > 0}
         priced = [r.price for r in rs if r.price > 0]
@@ -109,7 +111,7 @@ def forecast(rows: list[Row], cover_days: int) -> dict:
             continue
 
         # Urgency: stock cannot outlast the lead time + safety cover window.
-        cover_ratio = total_stock / max(1, len(rs))          # stock per offer
+        cover_ratio = total_stock / max(1, len(stocked))     # stock per in-stock offer
         days_cover = cover_ratio * 7                        # heuristic: weekly velocity proxy
         if days_cover < lead + cover_days:
             score = round((lead + cover_days - days_cover) / max(1, len(suppliers)), 1)

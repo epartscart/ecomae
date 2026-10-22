@@ -129,7 +129,7 @@ public sealed class BosTenantConfigBulkSetWriteTests
         Assert.Contains("BosTenantConfigBulkSet", module, StringComparison.Ordinal);
         Assert.Contains("IBosTenantConfigWriteService", module, StringComparison.Ordinal);
         Assert.Contains("BulkSetAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate.IsAllowed", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Bos/BosTenantConfigWriteService.cs"));
         Assert.Contains("epc_tenant_config_bulk_set", service, StringComparison.Ordinal);
@@ -141,7 +141,7 @@ public sealed class BosTenantConfigBulkSetWriteTests
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
         var program = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Program.cs"));
         Assert.Contains("IBosTenantConfigWriteService", program, StringComparison.Ordinal);
         var policy = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Services/PlatformHostPolicy.cs"));

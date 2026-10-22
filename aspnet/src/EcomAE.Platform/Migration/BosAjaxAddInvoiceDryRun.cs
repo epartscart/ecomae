@@ -10,13 +10,13 @@ public sealed class BosAjaxAddInvoiceDryRun : IBosAjaxAddInvoiceDryRun
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP ajax_epc_bos.php remains authoritative.", request);
         
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Id, request.Code,
             ["ajax_epc_bos.php?action=add_invoice (NOT executed)"],
             "BOS add_invoice payload validated; UPDATE blocked.",
             "/BOS/ajax_epc_bos.php?action=add_invoice");
     }
     private static BosAjaxAddInvoiceDryRunResult Refuse(string s,string c,string d,BosAjaxAddInvoiceRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id, r.Code,[],d,"/BOS/ajax_epc_bos.php?action=add_invoice");
+        new(s,0,true,true,false,c,false,r.Id, r.Code,[],d,"/BOS/ajax_epc_bos.php?action=add_invoice");
 }
 public sealed record BosAjaxAddInvoiceRequest(long Id=0, string? Code=null, bool ConfirmWrites=false);
 public sealed record BosAjaxAddInvoiceDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id, string? Code,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

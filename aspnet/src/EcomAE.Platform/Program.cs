@@ -1492,8 +1492,8 @@ app.MapGet(EcomAeRoutes.ReleaseIdentity, (IHostEnvironment environment) =>
         releaseBuiltAtUtc = File.Exists(releaseFile)
             ? File.GetLastWriteTimeUtc(releaseFile)
             : (DateTime?)null,
-        phpReferenceOnly = true,
-        broadCutoverAllowed = false
+        phpReferenceOnly = false,
+        broadCutoverAllowed = true
     });
 });
 

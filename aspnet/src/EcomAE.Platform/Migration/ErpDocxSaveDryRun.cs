@@ -25,14 +25,14 @@ public sealed class ErpDocxSaveDryRun : IErpDocxSaveDryRun
         }
 
         return new ErpDocxSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.DocType,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.DocType,
             ["UPSERT `epc_erp_doc_expiry` (NOT executed)"],
             "ErpDocxSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_doc_expiry.php");
     }
 
     private static ErpDocxSaveDryRunResult Refuse(string s, string c, string d, ErpDocxSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.DocType, [], d, "content/shop/finance/epc_erp_doc_expiry.php");
+        new(s, 0, true, true, false, c, false, r.Id, r.DocType, [], d, "content/shop/finance/epc_erp_doc_expiry.php");
 }
 
 public sealed record ErpDocxSaveRequest(

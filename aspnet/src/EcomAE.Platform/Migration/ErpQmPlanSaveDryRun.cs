@@ -25,14 +25,14 @@ public sealed class ErpQmPlanSaveDryRun : IErpQmPlanSaveDryRun
         }
 
         return new ErpQmPlanSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Code,
             ["UPDATE / INSERT `epc_qm_plan` ON DUPLICATE KEY UPDATE (NOT executed)"],
             "ErpQmPlanSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_quality.php");
     }
 
     private static ErpQmPlanSaveDryRunResult Refuse(string s, string c, string d, ErpQmPlanSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Code, [], d, "content/shop/finance/epc_erp_quality.php");
+        new(s, 0, true, true, false, c, false, r.Id, r.Code, [], d, "content/shop/finance/epc_erp_quality.php");
 }
 
 public sealed record ErpQmPlanSaveRequest(

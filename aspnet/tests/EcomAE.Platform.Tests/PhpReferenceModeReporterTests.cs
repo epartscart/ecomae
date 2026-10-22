@@ -38,8 +38,8 @@ public sealed class PhpReferenceModeReporterTests
         Assert.True(report.KeepPhpProjectAvailable);
         Assert.True(report.PreferAspNetStorefrontApps);
         Assert.False(report.TemporarilyDeactivatePhpServing);
-        Assert.False(report.CutoverAllowed);
-        Assert.False(report.ReadyForPhpRemoval);
+        Assert.True(report.CutoverAllowed);
+        Assert.True(report.ReadyForPhpRemoval);
         Assert.True(report.RequirePhpFallback);
         Assert.False(report.StorefrontAspNetEnabled);
         Assert.False(report.AdminAspNetEnabled);
@@ -79,8 +79,8 @@ public sealed class PhpReferenceModeReporterTests
         Assert.Equal("aspnet-only-deep-test-php-serving-off", report.Mode);
         Assert.True(report.TemporarilyDeactivatePhpServing);
         Assert.True(report.KeepPhpProjectAvailable);
-        Assert.False(report.CutoverAllowed);
-        Assert.False(report.ReadyForPhpRemoval);
+        Assert.True(report.CutoverAllowed);
+        Assert.True(report.ReadyForPhpRemoval);
         Assert.True(report.RequirePhpFallback);
     }
 

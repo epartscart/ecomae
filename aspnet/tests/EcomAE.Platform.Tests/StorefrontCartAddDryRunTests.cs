@@ -11,7 +11,7 @@ public sealed class StorefrontCartAddDryRunTests
         var r = StorefrontCartAddDryRun.EvaluateProduct(
             new StorefrontCartAddRequest(2, "Bosch", "0986", 1, 12m, ConfirmWrites: true));
         Assert.Equal("dry-run-confirm-refused", r.Status);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]

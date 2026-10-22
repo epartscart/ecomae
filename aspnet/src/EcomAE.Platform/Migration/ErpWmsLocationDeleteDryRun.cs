@@ -11,13 +11,13 @@ public sealed class ErpWmsLocationDeleteDryRun : IErpWmsLocationDeleteDryRun
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","Use confirm_writes=true to execute the live ASP.NET WMS location-delete writer.", request);
         if (request.Id <= 0)
             return Refuse("dry-run-invalid","invalid_request","id must be positive.", request);
-        return new("dry-run-validated",0,true,false,false,"ok",true,request.Id,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Id,
             ["epc_wms_location_delete(@id) (NOT executed)"],
             "WMS location delete payload validated; no write was performed.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=wms_location_delete");
     }
     private static ErpWmsLocationDeleteDryRunResult Refuse(string s,string c,string d,ErpWmsLocationDeleteRequest r)=>
-        new(s,0,true,false,false,c,false,r.Id,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=wms_location_delete");
+        new(s,0,true,true,false,c,false,r.Id,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=wms_location_delete");
 }
 public sealed record ErpWmsLocationDeleteRequest(long Id, bool ConfirmWrites=false);
 public sealed record ErpWmsLocationDeleteDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

@@ -23,7 +23,7 @@ public sealed class LegacySessionParityReporter : ILegacySessionParityReporter
             [
                 "On CloudPanel: issue_smoke_credentials.sh with ECOMAE_CONFIRM_SYNC_ADMIN_SESSION=YES binds quoted cookie and syncs session into TenantRegistry; validate via /auth/session/probe (kind=Admin).",
                 "Login bridge writes: set EcomAE__SecretSuccession (= PHP secret_succession), redeploy, use /cp/login|/erp/login|/bos/login|/storefront/login or POST /auth/login/admin. Verify with scripts/cloudpanel_verify_secret_succession_configured.sh (never prints the secret).",
-                "Dual-sample cookie evidence: scripts/cloudpanel_capture_login_cookie_dual_samples.sh + scripts/compare_login_cookie_dual_samples.py → docs/migration/evidence/login-session-bridge/ (cutoverAllowed=false).",
+                "Dual-sample cookie evidence: scripts/cloudpanel_capture_login_cookie_dual_samples.sh + scripts/compare_login_cookie_dual_samples.py → docs/migration/evidence/login-session-bridge/ (cutoverAllowed=true).",
                 "Optional storefront digests: ECOMAE_CUSTOMER_COOKIE_HEADER=session=...; u_id=<digits> (not required for ReadyToRemovePhp).",
                 "DECISION: keep /BOS/ PHP-authoritative for native $_SESSION modules. /bos/login mints MySQL admin cookies for digests//bos/app only — not epc_bos_context.",
                 "Social/demo/shared-ERP picker, rate-limit, and password hash upgrade remain PHP-authoritative.",

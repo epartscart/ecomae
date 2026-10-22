@@ -9,13 +9,13 @@ public sealed class CpLangSetIsErrorDryRun : ICpLangSetIsErrorDryRun
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP cp/content/lang/ajax_set_is_error.php remains authoritative.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Action,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Action,
             ["cp/content/lang/ajax_set_is_error.php (NOT executed)"],
             "CpLangSetIsError payload validated; UPDATE blocked.",
             "cp/content/lang/ajax_set_is_error.php");
     }
     private static CpLangSetIsErrorDryRunResult Refuse(string s,string c,string d,CpLangSetIsErrorRequest r)=>
-        new(s,0,true,false,true,c,false,r.Action,[],d,"cp/content/lang/ajax_set_is_error.php");
+        new(s,0,true,true,false,c,false,r.Action,[],d,"cp/content/lang/ajax_set_is_error.php");
 }
 public sealed record CpLangSetIsErrorRequest(string? Action = null, bool ConfirmWrites = false);
 public sealed record CpLangSetIsErrorDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? Action,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

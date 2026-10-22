@@ -40,7 +40,7 @@ public sealed class ErpConsEntitySaveDryRun : IErpConsEntitySaveDryRun
         }
 
         return new ErpConsEntitySaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.Id, request.Code, request.Name,
             [request.Id > 0
                 ? "UPDATE `epc_cons_entities` (NOT executed)"
@@ -50,7 +50,7 @@ public sealed class ErpConsEntitySaveDryRun : IErpConsEntitySaveDryRun
     }
 
     private static ErpConsEntitySaveDryRunResult Refuse(string status, string code, string detail, ErpConsEntitySaveRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Id, request.Code, request.Name, [], detail,
+        new(status, 0, true, true, false, code, false, request.Id, request.Code, request.Name, [], detail,
             "content/shop/finance/epc_erp_consolidation.php");
 }
 

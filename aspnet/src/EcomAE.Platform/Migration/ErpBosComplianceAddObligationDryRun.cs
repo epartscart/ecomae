@@ -30,7 +30,7 @@ public sealed class ErpBosComplianceAddObligationDryRun : IErpBosComplianceAddOb
         }
 
         return new ErpBosComplianceAddObligationDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.Title, request.Code,
             ["INSERT `epc_bos_compliance_obligations` (NOT executed)"],
             "ErpBosComplianceAddObligation payload validated; write blocked until confirmWrites=true.",
@@ -42,7 +42,7 @@ public sealed class ErpBosComplianceAddObligationDryRun : IErpBosComplianceAddOb
         string code,
         string detail,
         ErpBosComplianceAddObligationRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Title, request.Code, [], detail,
+        new(status, 0, true, true, false, code, false, request.Title, request.Code, [], detail,
             "content/shop/finance/epc_bos_compliance.php");
 }
 

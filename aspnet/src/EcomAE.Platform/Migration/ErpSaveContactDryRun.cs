@@ -11,13 +11,13 @@ public sealed class ErpSaveContactDryRun : IErpSaveContactDryRun
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live ASP.NET save_contact route; the dry-run never writes.", request);
         if (request.Id < 0)
             return Refuse("dry-run-invalid","invalid_request","id must be >= 0.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Id, request.Code,
             ["ajax_erp.php?action=save_contact (NOT executed)"],
             "ERP save_contact payload validated; no write without confirm_writes.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=save_contact");
     }
     private static ErpSaveContactDryRunResult Refuse(string s,string c,string d,ErpSaveContactRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=save_contact");
+        new(s,0,true,true,false,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=save_contact");
 }
 public sealed record ErpSaveContactRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);
 public sealed record ErpSaveContactDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id, string? Code,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

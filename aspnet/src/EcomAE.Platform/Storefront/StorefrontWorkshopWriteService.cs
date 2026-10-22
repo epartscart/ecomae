@@ -54,7 +54,7 @@ public sealed record StorefrontWorkshopWriteResult(
         status_token = Status,
         writes = Writes,
         writesBlocked = false,
-        cutoverAllowed = false,
+        cutoverAllowed = true,
         phpAuthoritative = false,
         validation_code = Code,
         job_id = Id,

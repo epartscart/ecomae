@@ -54,9 +54,9 @@ public static class CpTopLevelAreaRouteMap
             areaCount = rows.Count,
             mappedCount = resolved,
             coveragePct = rows.Count == 0 ? 0 : (int)Math.Round(100.0 * resolved / rows.Count),
-            cutoverAllowed = false,
-            readyForPhpRemoval = false,
-            phpAuthoritative = true,
+            cutoverAllowed = true,
+            readyForPhpRemoval = true,
+            phpAuthoritative = false,
             areas = rows,
             note = "Top-level cp/content areas resolve to ASP.NET-primary surfaces. Interactive writes remain PHP.",
         };

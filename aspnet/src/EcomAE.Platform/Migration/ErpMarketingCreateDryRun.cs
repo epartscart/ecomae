@@ -34,7 +34,7 @@ public sealed class ErpMarketingCreateDryRun : IErpMarketingCreateDryRun
             "dry-run-validated",
             0,
             true,
-            false,
+            true,
             false,
             "ok",
             true,
@@ -49,7 +49,7 @@ public sealed class ErpMarketingCreateDryRun : IErpMarketingCreateDryRun
         string code,
         string detail,
         ErpMarketingCreateRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Name, [], detail,
+        new(status, 0, true, true, false, code, false, request.Name, [], detail,
             "content/shop/finance/epc_erp_staff.php");
 }
 

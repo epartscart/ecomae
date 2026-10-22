@@ -71,7 +71,7 @@ public sealed class CpInfoBlocksWriteTests
         Assert.Contains("ICpInfoBlocksWriteService", module, StringComparison.Ordinal);
         Assert.Contains("save_info_block", module, StringComparison.Ordinal);
         Assert.Contains("delete_info_block", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpInfoBlocksWriteService.cs"));
         Assert.Contains("epc_scp_info_block_save", service, StringComparison.Ordinal);
         Assert.Contains("epc_scp_info_block_delete", service, StringComparison.Ordinal);
@@ -80,7 +80,7 @@ public sealed class CpInfoBlocksWriteTests
         Assert.Contains("DELETE FROM `epc_platform_info_blocks`", service, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_platform_info_blocks`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

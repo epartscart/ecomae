@@ -95,8 +95,8 @@ public sealed class StorefrontGarageCheckCarDryRun : IStorefrontGarageCheckCarDr
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             CarId: car.Id,
@@ -114,7 +114,7 @@ public sealed class StorefrontGarageCheckCarDryRun : IStorefrontGarageCheckCarDr
 
     private static StorefrontGarageCheckCarDryRunResult Refuse(
         string status, string code, string detail, StorefrontGarageCheckCarRequest request) =>
-        new(status, 0, true, false, true, code, false, request.CarId, request.OrderId, 0,
+        new(status, 0, true, true, false, code, false, request.CarId, request.OrderId, 0,
             [], detail,
             "/content/shop/docpart/garage/ajax_operations_cars.php?action=check_car");
 }

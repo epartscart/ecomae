@@ -67,7 +67,7 @@ public sealed class CpCurrencyScheduleSaveWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("CpCurrenciesScheduleSave", module, StringComparison.Ordinal);
         Assert.Contains("SaveScheduleAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpCurrencyWriteService.cs"));
         Assert.Contains("epc_currency_live_schedule_save", service, StringComparison.Ordinal);
         Assert.Contains("fx_live_auto_enabled", service, StringComparison.Ordinal);
@@ -76,7 +76,7 @@ public sealed class CpCurrencyScheduleSaveWriteTests
         Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_price_settings`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

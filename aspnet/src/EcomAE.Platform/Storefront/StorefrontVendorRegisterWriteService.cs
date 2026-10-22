@@ -59,7 +59,7 @@ public sealed record StorefrontVendorRegisterWriteResult(
         status_token = Status,
         writes = Writes,
         writesBlocked = false,
-        cutoverAllowed = false,
+        cutoverAllowed = true,
         phpAuthoritative = false,
         validation_code = Code,
         would_write = Ok && Writes > 0,

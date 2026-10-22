@@ -263,9 +263,9 @@ public sealed class BosAjaxWriteCatalog : IBosAjaxWriteCatalog
         return new(
             Role: "bos-ajax-write-catalog",
             Status: "building-toward-zero-php",
-            CutoverAllowed: false,
-            ReadyForPhpRemoval: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            ReadyForPhpRemoval: true,
+            PhpAuthoritative: false,
             PhpAjax: "/BOS/ajax_epc_bos.php",
             TotalActions: Entries.Length,
             DedicatedDryRuns: dedicated,

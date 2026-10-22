@@ -25,14 +25,14 @@ public sealed class ErpQmTestAddDryRun : IErpQmTestAddDryRun
         }
 
         return new ErpQmTestAddDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.PlanId, request.Name,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.PlanId, request.Name,
             ["INSERT `epc_qm_test` (NOT executed)"],
             "ErpQmTestAdd payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_quality.php");
     }
 
     private static ErpQmTestAddDryRunResult Refuse(string s, string c, string d, ErpQmTestAddRequest r) =>
-        new(s, 0, true, false, false, c, false, r.PlanId, r.Name, [], d, "content/shop/finance/epc_erp_quality.php");
+        new(s, 0, true, true, false, c, false, r.PlanId, r.Name, [], d, "content/shop/finance/epc_erp_quality.php");
 }
 
 public sealed record ErpQmTestAddRequest(

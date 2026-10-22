@@ -32,14 +32,14 @@ public sealed class ErpAgendaSaveDryRun : IErpAgendaSaveDryRun
         }
 
         return new ErpAgendaSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, title,
+            "dry-run-validated", 0, true, true, false, "ok", true, title,
             ["INSERT `epc_erp_agenda_events` (NOT executed)"],
             "ErpAgendaSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_extended.php");
     }
 
     private static ErpAgendaSaveDryRunResult Refuse(string s, string c, string d, ErpAgendaSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Title, [], d, "content/shop/finance/epc_erp_extended.php");
+        new(s, 0, true, true, false, c, false, r.Title, [], d, "content/shop/finance/epc_erp_extended.php");
 }
 
 public sealed record ErpAgendaSaveRequest(

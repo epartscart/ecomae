@@ -33,14 +33,14 @@ public sealed class ErpOaPartySaveDryRun : IErpOaPartySaveDryRun
         }
 
         return new ErpOaPartySaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, name,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, name,
             ["INSERT/UPDATE `epc_oa_party` (NOT executed)"],
             "ErpOaPartySave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_orgadmin.php");
     }
 
     private static ErpOaPartySaveDryRunResult Refuse(string s, string c, string d, ErpOaPartySaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Name ?? r.Code, [], d, "content/shop/finance/epc_erp_orgadmin.php");
+        new(s, 0, true, true, false, c, false, r.Id, r.Name ?? r.Code, [], d, "content/shop/finance/epc_erp_orgadmin.php");
 }
 
 public sealed record ErpOaPartySaveRequest(

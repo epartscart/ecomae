@@ -96,8 +96,8 @@ public sealed class StorefrontQuoteSubmitDryRun : IStorefrontQuoteSubmitDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             QuoteId: quote.Id,
@@ -115,7 +115,7 @@ public sealed class StorefrontQuoteSubmitDryRun : IStorefrontQuoteSubmitDryRun
 
     private static StorefrontQuoteSubmitDryRunResult Refuse(
         string status, string code, string detail, StorefrontQuoteSubmitRequest request) =>
-        new(status, 0, true, false, true, code, false, request.QuoteId, 0, null,
+        new(status, 0, true, true, false, code, false, request.QuoteId, 0, null,
             request.CustomerNote, [], detail,
             "/content/shop/order_process/ajax_quote_submit.php");
 }

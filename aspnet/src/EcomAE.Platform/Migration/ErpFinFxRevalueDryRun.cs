@@ -10,13 +10,13 @@ public sealed class ErpFinFxRevalueDryRun : IErpFinFxRevalueDryRun
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live /erp/ajax/fin-fx-revalue route (IErpFinFxRevalueWriteService); the dry-run evaluator never writes.", request);
         
-        return new("dry-run-validated",0,true,false,true,"ok",true,
+        return new("dry-run-validated",0,true,true,false,"ok",true,
             ["ajax_erp.php?action=fin_fx_revalue (NOT executed)"],
             "ERP fin_fx_revalue payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=fin_fx_revalue");
     }
     private static ErpFinFxRevalueDryRunResult Refuse(string s,string c,string d,ErpFinFxRevalueRequest r)=>
-        new(s,0,true,false,true,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=fin_fx_revalue");
+        new(s,0,true,true,false,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=fin_fx_revalue");
 }
 public sealed record ErpFinFxRevalueRequest(bool ConfirmWrites = false);
 public sealed record ErpFinFxRevalueDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

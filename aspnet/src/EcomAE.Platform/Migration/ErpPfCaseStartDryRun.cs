@@ -35,7 +35,7 @@ public sealed class ErpPfCaseStartDryRun : IErpPfCaseStartDryRun
         }
 
         return new ErpPfCaseStartDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.ProcessId, request.Title.Trim(),
             ["INSERT `epc_pf_cases` + `epc_pf_case_steps` (NOT executed)"],
             "ErpPfCaseStart payload validated; write blocked until confirmWrites=true.",
@@ -47,7 +47,7 @@ public sealed class ErpPfCaseStartDryRun : IErpPfCaseStartDryRun
         string code,
         string detail,
         ErpPfCaseStartRequest request) =>
-        new(status, 0, true, false, false, code, false, request.ProcessId, request.Title ?? string.Empty, [], detail,
+        new(status, 0, true, true, false, code, false, request.ProcessId, request.Title ?? string.Empty, [], detail,
             "content/shop/finance/epc_erp_processflow.php");
 }
 

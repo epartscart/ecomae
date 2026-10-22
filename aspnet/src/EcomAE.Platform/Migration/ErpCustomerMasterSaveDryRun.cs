@@ -35,8 +35,8 @@ public sealed class ErpCustomerMasterSaveDryRun : IErpCustomerMasterSaveDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             CustomerId: request.CustomerId,
@@ -55,7 +55,7 @@ public sealed class ErpCustomerMasterSaveDryRun : IErpCustomerMasterSaveDryRun
 
     private static ErpCustomerMasterSaveDryRunResult Refuse(
         string status, string code, string detail, ErpCustomerMasterSaveRequest request) =>
-        new(status, 0, true, false, true, code, false, request.CustomerId,
+        new(status, 0, true, true, false, code, false, request.CustomerId,
             request.CustomerName, request.CreditLimit, request.TermsDays, request.OnHold,
             [], detail, "/CP/content/shop/finance/erp/ajax_erp.php?action=customer_master_save");
 }

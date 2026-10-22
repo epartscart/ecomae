@@ -9,13 +9,13 @@ public sealed class CpPosOpenSessionDryRun : ICpPosOpenSessionDryRun
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP remains authoritative.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Action,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Action,
             ["cp/content/shop/pos/ajax_pos.php?action=open_session (NOT executed)"],
             "CpPosOpenSession payload validated; UPDATE blocked.",
             "cp/content/shop/pos/ajax_pos.php?action=open_session");
     }
     private static CpPosOpenSessionDryRunResult Refuse(string s,string c,string d,CpPosOpenSessionRequest r)=>
-        new(s,0,true,false,true,c,false,r.Action,[],d,"cp/content/shop/pos/ajax_pos.php?action=open_session");
+        new(s,0,true,true,false,c,false,r.Action,[],d,"cp/content/shop/pos/ajax_pos.php?action=open_session");
 }
 public sealed record CpPosOpenSessionRequest(string? Action = null, bool ConfirmWrites = false);
 public sealed record CpPosOpenSessionDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? Action,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

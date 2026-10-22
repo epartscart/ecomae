@@ -30,14 +30,14 @@ public sealed class ErpCollHoldSetDryRun : IErpCollHoldSetDryRun
         }
 
         return new ErpCollHoldSetDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.CustomerId,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.CustomerId,
             ["UPSERT `epc_credit_profiles.on_hold` + INSERT `epc_coll_hold` (NOT executed)"],
             "ErpCollHoldSet payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_collections.php");
     }
 
     private static ErpCollHoldSetDryRunResult Refuse(string s, string c, string d, ErpCollHoldSetRequest r) =>
-        new(s, 0, true, false, false, c, false, r.CustomerId, [], d, "content/shop/finance/epc_erp_collections.php");
+        new(s, 0, true, true, false, c, false, r.CustomerId, [], d, "content/shop/finance/epc_erp_collections.php");
 }
 
 public sealed record ErpCollHoldSetRequest(

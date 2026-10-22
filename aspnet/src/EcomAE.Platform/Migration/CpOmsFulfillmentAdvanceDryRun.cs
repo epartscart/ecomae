@@ -82,8 +82,8 @@ public sealed class CpOmsFulfillmentAdvanceDryRun : ICpOmsFulfillmentAdvanceDryR
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             OrderId: request.OrderId,
@@ -101,7 +101,7 @@ public sealed class CpOmsFulfillmentAdvanceDryRun : ICpOmsFulfillmentAdvanceDryR
 
     private static CpOmsFulfillmentAdvanceDryRunResult Refuse(
         string status, string code, string detail, CpOmsFulfillmentAdvanceRequest request) =>
-        new(status, 0, true, false, true, code, false,
+        new(status, 0, true, true, false, code, false,
             request.OrderId, request.SupplierKey, [], detail,
             "/CP/content/shop/order_process/ajax_epc_orders_oms.php?action=supplier_fulfillment_advance");
 }

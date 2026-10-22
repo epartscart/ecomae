@@ -31,8 +31,8 @@ public sealed class ErpJwModuleSaveDryRun : IErpJwModuleSaveDryRun
             "dry-run-validated",
             0,
             true,
-            false,
             true,
+            false,
             "ok",
             true,
             action,
@@ -43,7 +43,7 @@ public sealed class ErpJwModuleSaveDryRun : IErpJwModuleSaveDryRun
     }
 
     private static ErpJwModuleSaveDryRunResult Refuse(string s, string c, string d, ErpJwModuleSaveRequest r) =>
-        new(s, 0, true, false, true, c, false, r.Action, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php");
+        new(s, 0, true, true, false, c, false, r.Action, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php");
 }
 
 public sealed record ErpJwModuleSaveRequest(string Action, string? Code = null, bool ConfirmWrites = false);

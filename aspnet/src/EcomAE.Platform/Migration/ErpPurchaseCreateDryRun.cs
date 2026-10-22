@@ -29,7 +29,7 @@ public sealed class ErpPurchaseCreateDryRun : IErpPurchaseCreateDryRun
         }
 
         return new ErpPurchaseCreateDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.SupplierId, request.AmountExVat,
             [
                 "INSERT INTO `epc_erp_purchases` (…) (NOT executed)",
@@ -42,7 +42,7 @@ public sealed class ErpPurchaseCreateDryRun : IErpPurchaseCreateDryRun
 
     private static ErpPurchaseCreateDryRunResult Refuse(
         string status, string code, string detail, ErpPurchaseCreateRequest request) =>
-        new(status, 0, true, false, true, code, false, request.SupplierId, request.AmountExVat,
+        new(status, 0, true, true, false, code, false, request.SupplierId, request.AmountExVat,
             [], detail, "/CP/content/shop/finance/erp/ajax_erp.php?action=create_purchase");
 }
 

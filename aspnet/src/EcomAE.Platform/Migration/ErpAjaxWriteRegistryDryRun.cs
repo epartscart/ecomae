@@ -38,8 +38,8 @@ public sealed class ErpAjaxWriteRegistryDryRun : IErpAjaxWriteRegistryDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: entry.Coverage != "read",
             Action: action,
@@ -52,7 +52,7 @@ public sealed class ErpAjaxWriteRegistryDryRun : IErpAjaxWriteRegistryDryRun
 
     private static ErpAjaxWriteRegistryDryRunResult Refuse(
         string status, string code, string detail, string action, bool confirm, ErpAjaxWriteCatalogEntry? entry = null) =>
-        new(status, 0, true, false, true, code, false, action, entry?.Coverage ?? "unknown",
+        new(status, 0, true, true, false, code, false, action, entry?.Coverage ?? "unknown",
             entry?.AspNetRouteHint ?? "/erp/ajax-writes/dry-run/{action}", [], detail,
             string.IsNullOrEmpty(action)
                 ? "/CP/content/shop/finance/erp/ajax_erp.php"

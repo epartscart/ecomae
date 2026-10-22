@@ -100,8 +100,8 @@ public sealed class StorefrontGarageNotepadAddDryRun : IStorefrontGarageNotepadA
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             UserId: userId,
@@ -121,7 +121,7 @@ public sealed class StorefrontGarageNotepadAddDryRun : IStorefrontGarageNotepadA
 
     private static StorefrontGarageNotepadAddDryRunResult Refuse(
         string status, string code, string detail, StorefrontGarageNotepadAddRequest request) =>
-        new(status, 0, true, false, true, code, false, 0, request.GarageId,
+        new(status, 0, true, true, false, code, false, 0, request.GarageId,
             request.Manufacturer, request.Article, request.Name, request.Exist, request.Price,
             [], detail, "/content/shop/docpart/garage/ajax_add_to_notepad.php");
 }

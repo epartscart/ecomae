@@ -15,7 +15,7 @@ public sealed class ErpGlManualEntryDryRunTests
             [Coa(1), Coa(2)],
             new ErpGlManualEntryRequest([new(1, 10, 0), new(2, 0, 10)], ConfirmWrites: true));
         Assert.Equal("dry-run-confirm-refused", r.Status);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]

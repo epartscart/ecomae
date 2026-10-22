@@ -32,14 +32,14 @@ public sealed class ErpPrjaTxnAddDryRun : IErpPrjaTxnAddDryRun
         }
 
         return new ErpPrjaTxnAddDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.ProjectId, type,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.ProjectId, type,
             ["INSERT `epc_prja_txn` (NOT executed)"],
             "ErpPrjaTxnAdd payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_project_accounting.php");
     }
 
     private static ErpPrjaTxnAddDryRunResult Refuse(string s, string c, string d, ErpPrjaTxnAddRequest r) =>
-        new(s, 0, true, false, false, c, false, r.ProjectId, r.TxnType, [], d, "content/shop/finance/epc_erp_project_accounting.php");
+        new(s, 0, true, true, false, c, false, r.ProjectId, r.TxnType, [], d, "content/shop/finance/epc_erp_project_accounting.php");
 }
 
 public sealed record ErpPrjaTxnAddRequest(

@@ -72,7 +72,7 @@ public sealed class ErpOrderSettlementDryRun : IErpOrderSettlementDryRun
         }
 
         return new ErpOrderSettlementDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.OrderId, order.UserId, request.Amount, direction,
             [
                 "Resolve user_id from shop_orders (NOT executed)",
@@ -84,7 +84,7 @@ public sealed class ErpOrderSettlementDryRun : IErpOrderSettlementDryRun
 
     private static ErpOrderSettlementDryRunResult Refuse(
         string status, string code, string detail, ErpOrderSettlementRequest request) =>
-        new(status, 0, true, false, true, code, false, request.OrderId, 0, request.Amount, request.Direction, [], detail,
+        new(status, 0, true, true, false, code, false, request.OrderId, 0, request.Amount, request.Direction, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=order_settlement");
 }
 

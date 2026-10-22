@@ -30,14 +30,14 @@ public sealed class ErpEditLockReleaseDryRun : IErpEditLockReleaseDryRun
         }
 
         return new ErpEditLockReleaseDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.ResourceKey,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.ResourceKey,
             ["DELETE `epc_erp_edit_locks` (NOT executed)"],
             "ErpEditLockRelease payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_concurrency.php");
     }
 
     private static ErpEditLockReleaseDryRunResult Refuse(string s, string c, string d, ErpEditLockReleaseRequest r) =>
-        new(s, 0, true, false, false, c, false, r.ResourceKey, [], d, "content/shop/finance/epc_erp_concurrency.php");
+        new(s, 0, true, true, false, c, false, r.ResourceKey, [], d, "content/shop/finance/epc_erp_concurrency.php");
 }
 
 public sealed record ErpEditLockReleaseRequest(

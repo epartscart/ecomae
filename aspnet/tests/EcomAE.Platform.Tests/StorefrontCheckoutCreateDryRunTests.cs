@@ -11,7 +11,7 @@ public sealed class StorefrontCheckoutCreateDryRunTests
         var r = StorefrontCheckoutCreateDryRun.EvaluateShape(1, new StorefrontCheckoutCreateRequest(1, ConfirmWrites: true), cartCount: 2, cartSource: "database");
         Assert.Equal("dry-run-confirm-refused", r.Status);
         Assert.Equal(0, r.Writes);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]

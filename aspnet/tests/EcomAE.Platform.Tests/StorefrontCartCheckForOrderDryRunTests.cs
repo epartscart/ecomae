@@ -18,7 +18,7 @@ public sealed class StorefrontCartCheckForOrderDryRunTests
         Assert.Equal("dry-run-confirm-refused", result.Status);
         Assert.Equal(0, result.Writes);
         Assert.True(result.WritesBlocked);
-        Assert.False(result.CutoverAllowed);
+        Assert.True(result.CutoverAllowed);
         Assert.False(result.WouldWrite);
     }
 

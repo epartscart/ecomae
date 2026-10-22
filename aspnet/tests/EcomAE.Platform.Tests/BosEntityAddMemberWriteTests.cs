@@ -106,7 +106,7 @@ public sealed class BosEntityAddMemberWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/BosModule.cs"));
         Assert.Contains("BosEntitiesAddMember", module, StringComparison.Ordinal);
         Assert.Contains("AddMemberAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate.IsAllowed", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Bos/BosEntityWriteService.cs"));
         Assert.Contains("epc_entity_add_member", service, StringComparison.Ordinal);
@@ -117,7 +117,7 @@ public sealed class BosEntityAddMemberWriteTests
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
         Assert.DoesNotContain("A group id is required", service, StringComparison.Ordinal);
         Assert.DoesNotContain("A site key is required", service, StringComparison.Ordinal);
         Assert.DoesNotContain("Invalid consolidation method", service, StringComparison.Ordinal);

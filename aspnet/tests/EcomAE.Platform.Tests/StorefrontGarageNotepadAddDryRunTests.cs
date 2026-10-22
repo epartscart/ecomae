@@ -15,7 +15,7 @@ public sealed class StorefrontGarageNotepadAddDryRunTests
             5, [Vehicle(1)], new StorefrontGarageNotepadAddRequest(1, "Bosch", "0986", ConfirmWrites: true));
         Assert.Equal("dry-run-confirm-refused", r.Status);
         Assert.Equal(0, r.Writes);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]

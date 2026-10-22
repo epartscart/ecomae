@@ -41,7 +41,7 @@ public sealed class ErpFinPeriodStatusDryRun : IErpFinPeriodStatusDryRun
         }
 
         return new ErpFinPeriodStatusDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.CompanyId, request.Fy, request.PeriodNo, status,
             ["UPDATE `epc_fin_periods` SET `status` (NOT executed)"],
             "ErpFinPeriodStatus payload validated; write blocked until confirmWrites=true.",
@@ -49,7 +49,7 @@ public sealed class ErpFinPeriodStatusDryRun : IErpFinPeriodStatusDryRun
     }
 
     private static ErpFinPeriodStatusDryRunResult Refuse(string status, string code, string detail, ErpFinPeriodStatusRequest request) =>
-        new(status, 0, true, false, false, code, false, request.CompanyId, request.Fy, request.PeriodNo, request.Status, [], detail,
+        new(status, 0, true, true, false, code, false, request.CompanyId, request.Fy, request.PeriodNo, request.Status, [], detail,
             "content/shop/finance/epc_erp_fin_advanced.php");
 }
 

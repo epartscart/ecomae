@@ -42,7 +42,7 @@ public sealed class ErpInsSaveDryRun : IErpInsSaveDryRun
         }
 
         return new ErpInsSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.Id, request.PolicyNo,
             [request.Id > 0
                 ? "UPDATE `epc_erp_ins_policies` (NOT executed)"
@@ -56,7 +56,7 @@ public sealed class ErpInsSaveDryRun : IErpInsSaveDryRun
         string code,
         string detail,
         ErpInsSaveRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Id, request.PolicyNo, [], detail,
+        new(status, 0, true, true, false, code, false, request.Id, request.PolicyNo, [], detail,
             "content/shop/finance/epc_erp_insurance.php");
 }
 

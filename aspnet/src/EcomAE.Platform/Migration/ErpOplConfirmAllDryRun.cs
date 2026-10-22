@@ -10,13 +10,13 @@ public sealed class ErpOplConfirmAllDryRun : IErpOplConfirmAllDryRun
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET opl_confirm_all is not implemented; PHP ajax_erp.php remains authoritative.", request);
         
-        return new("dry-run-validated",0,true,false,true,"ok",true,
+        return new("dry-run-validated",0,true,true,false,"ok",true,
             ["ajax_erp.php?action=opl_confirm_all (NOT executed)"],
             "ERP opl_confirm_all payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=opl_confirm_all");
     }
     private static ErpOplConfirmAllDryRunResult Refuse(string s,string c,string d,ErpOplConfirmAllRequest r)=>
-        new(s,0,true,false,true,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=opl_confirm_all");
+        new(s,0,true,true,false,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=opl_confirm_all");
 }
 public sealed record ErpOplConfirmAllRequest(bool ConfirmWrites = false);
 public sealed record ErpOplConfirmAllDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)
