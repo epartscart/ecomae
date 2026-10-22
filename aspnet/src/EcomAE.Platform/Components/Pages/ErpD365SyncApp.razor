@@ -100,7 +100,7 @@
 
         <div class="tg-card tg-form">
             <h3>Apply staged → modules</h3>
-            <p>Moves the staged rows for one entity into its operational master — customers to the customer master, products to inventory items, orders to the document tables.</p>
+            <p>Moves the staged rows for one entity into its operational master — customers to the customer master, products to inventory items, orders to the document tables. Applies in batches of 400 — repeat until the message says nothing remains.</p>
             <form method="post" action="@Post("/erp/d365/apply-staged")">
                 @HiddenFields()
                 <label>Data entity</label>
@@ -116,7 +116,7 @@
 
         <div class="tg-card tg-form">
             <h3>Pull a data entity</h3>
-            <p>Reads the F&amp;O OData data entity into <code>epc_d365_sync_objects</code> staging — upserts by external key, never half-writes a master.</p>
+            <p>Reads the F&amp;O OData data entity into <code>epc_d365_sync_objects</code> staging — upserts by external key, never half-writes a master. Large entities stream in passes (max rows 0 = all); repeat the pull until the run log shows <em>ok</em>.</p>
             <form method="post" action="@Post("/erp/d365/connect-pull")">
                 @HiddenFields()
                 <label>Data entity</label>
@@ -126,8 +126,8 @@
                         <option value="@kv.Key">@kv.Value — @kv.Key</option>
                     }
                 </select>
-                <label>Max rows</label>
-                <input name="top" value="500" />
+                <label>Max rows (0 = all, resumes each pass)</label>
+                <input name="top" value="0" />
                 <button type="submit">Pull into staging</button>
             </form>
         </div>
@@ -149,7 +149,7 @@
                     <tr>
                         <td>#@r.Id</td>
                         <td>@r.Entity</td>
-                        <td><span class="tg-pill @(r.Status == "ok" ? "tg-pill-ok" : r.Status == "running" ? "tg-pill-warn" : "tg-pill-err")">@r.Status</span></td>
+                        <td><span class="tg-pill @(r.Status == "ok" ? "tg-pill-ok" : r.Status == "running" || r.Status == "partial" ? "tg-pill-warn" : "tg-pill-err")">@r.Status</span></td>
                         <td>@r.Fetched</td>
                         <td>@r.Staged</td>
                         <td>@(r.StartedAt > 0 ? DateTimeOffset.FromUnixTimeSeconds(r.StartedAt).UtcDateTime.ToString("yyyy-MM-dd HH:mm") : "—")</td>
@@ -203,10 +203,10 @@
 
     <div class="tg-card">
         <h3>Trial balance — EcomAE vs D365 F&amp;O</h3>
-        <p>Live compare per account + dimension. Pull <code>GeneralLedgerBalanceCDREntities</code> (posted transactions) to refresh the D365 side; every row must show <em>match</em> for the books to reconcile.</p>
+        <p>Live compare per account + dimension. Pull <code>TrialBalanceFiscalYearSnapshots</code> (the F&amp;O TB source) to refresh the D365 side; every row must show <em>match</em> for the books to reconcile.</p>
         @if (_tb.Rows.Count == 0)
         {
-            <p>Nothing to compare yet — pull <code>GeneralLedgerBalanceCDREntities</code> and <code>LedgerJournalLines</code>, apply them, then reload.</p>
+            <p>Nothing to compare yet — pull <code>TrialBalanceFiscalYearSnapshots</code> and the journal feeds (headers + lines), apply them, then reload.</p>
         }
         else
         {
@@ -247,6 +247,36 @@
             </table>
         }
     </div>
+
+    <div class="tg-card">
+        <h3>Inventory on-hand — EcomAE vs D365 F&amp;O</h3>
+        <p>Per warehouse: our stock qty + value vs D365 <code>WarehousesOnHandV2</code> (pull + apply it). Value on the D365 side reconciles through the inventory GL accounts in the TB above.</p>
+        @if (_inv.Count == 0)
+        {
+            <p>No on-hand data yet — pull and apply <code>WarehousesOnHandV2</code>.</p>
+        }
+        else
+        {
+            var invMatch = _inv.Count(r => r.QtyMatches);
+            <p><span class="tg-pill @(invMatch == _inv.Count ? "tg-pill-ok" : "tg-pill-warn")">@invMatch / @_inv.Count warehouses match on qty</span></p>
+            <table class="tg-table">
+                <thead><tr><th>Warehouse</th><th style="text-align:right">EcomAE qty</th><th style="text-align:right">EcomAE value</th><th style="text-align:right">D365 qty</th><th style="text-align:right">D365 available</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var r in _inv)
+                {
+                    <tr>
+                        <td>@r.Warehouse</td>
+                        <td style="text-align:right">@r.EcomAeQty.ToString("N3")</td>
+                        <td style="text-align:right">@r.EcomAeValue.ToString("N2")</td>
+                        <td style="text-align:right">@r.D365Qty.ToString("N3")</td>
+                        <td style="text-align:right">@r.D365Avail.ToString("N3")</td>
+                        <td><span class="tg-pill @(r.QtyMatches ? "tg-pill-ok" : "tg-pill-err")">@(r.QtyMatches ? "match" : "diff")</span></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
 </PhpErpDesktopChrome>
 
 @code {
@@ -258,6 +288,7 @@
     private IReadOnlyList<ErpD365SyncRun> _runs = Array.Empty<ErpD365SyncRun>();
     private IReadOnlyList<ErpD365StagedObject> _objects = Array.Empty<ErpD365StagedObject>();
     private ErpD365TbCompare _tb = new(Array.Empty<ErpD365TbCompareRow>(), 0m, 0m, 0m, 0m);
+    private IReadOnlyList<ErpD365InvCompareRow> _inv = Array.Empty<ErpD365InvCompareRow>();
     private string _entityFilter = "";
 
     protected override async Task OnInitializedAsync()
@@ -282,6 +313,7 @@
                     string.IsNullOrWhiteSpace(_entityFilter) ? null : _entityFilter,
                     50, ctx.RequestAborted).ConfigureAwait(false);
                 _tb = await D365Map.TrialBalanceCompareAsync(conn, ctx.RequestAborted).ConfigureAwait(false);
+                _inv = await D365Map.InventoryCompareAsync(conn, ctx.RequestAborted).ConfigureAwait(false);
             }
         }
         catch

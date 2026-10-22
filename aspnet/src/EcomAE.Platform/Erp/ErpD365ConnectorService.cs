@@ -77,6 +77,8 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             ["LedgerJournalHeaders"] = "General journal — headers",
             ["LedgerJournalLines"] = "General journal — lines",
             ["GeneralLedgerBalanceCDREntities"] = "GL balances by dimension (trial balance source)",
+            ["TrialBalanceFiscalYearSnapshots"] = "Trial balance snapshots (per dimension set)",
+            ["WarehousesOnHandV2"] = "Inventory on-hand by warehouse",
             ["CustTransBiEntities"] = "Posted customer transactions",
             ["VendTransBiEntities"] = "Posted vendor transactions",
             ["MainAccounts"] = "Chart of accounts (main accounts)",
@@ -92,6 +94,11 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
     private const string TokenPath = "/oauth2/v2.0/token";
     private const string RunsTable = "epc_d365_sync_runs";
     private const string ObjectsTable = "epc_d365_sync_objects";
+    private const string CursorsTable = "epc_d365_pull_cursors";
+    /// <summary>One pull call stays under the web proxy timeout — the cursor resumes on the next call.</summary>
+    private static readonly TimeSpan PullBudget = TimeSpan.FromSeconds(75);
+    /// <summary>OData page size per request — F&O accepts large tops; 1000 keeps each page fast.</summary>
+    private const int PageSize = 1000;
 
     private readonly IHttpClientFactory _http;
     private readonly IErpWriteConnectionFactory _connections;
@@ -209,7 +216,8 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             return new ErpD365PullResult(false, "unknown_entity", $"Unknown entity set '{entitySet}'.", 0, 0, 0);
         }
 
-        top = Math.Clamp(top, 1, 5000);
+        // top=0 means "all rows" — big entities stream over repeated calls via the pull cursor.
+        top = top <= 0 ? int.MaxValue : Math.Clamp(top, 1, int.MaxValue);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -232,12 +240,28 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             return new ErpD365PullResult(false, "auth_failed", "Entra token request failed — check credentials.", 0, 0, runId);
         }
 
+        // Resume: a finished or never-started pull begins at the first page; a partial pull
+        // continues from the stored nextLink. Each page stages in its own transaction together
+        // with the cursor so a killed request never loses or double-fetches committed work.
+        var resumeUrl = await ErpDb.ScalarAsync(
+            connection,
+            null,
+            $"SELECT next_url FROM {CursorsTable} WHERE entity = ? AND done = 0",
+            cancellationToken,
+            entitySet).ConfigureAwait(false) as string;
+
+        var budget = System.Diagnostics.Stopwatch.StartNew();
+        var fetched = 0;
+        var staged = 0;
+        var done = false;
         try
         {
             using var client = _http.CreateClient(HttpClientName);
-            var rows = new List<JsonElement>();
-            var nextLink = $"{_environmentUrl}/data/{entitySet}?$top={top}";
-            while (nextLink is not null && rows.Count < top)
+            var nextLink = !string.IsNullOrEmpty(resumeUrl)
+                ? resumeUrl
+                : $"{_environmentUrl}/data/{entitySet}?$top={PageSize}";
+            long remaining = top;
+            while (nextLink is not null && fetched < top)
             {
                 using var request = new HttpRequestMessage(HttpMethod.Get, nextLink);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -247,51 +271,81 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                 {
                     var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
                     var error = $"HTTP {(int)response.StatusCode}: {Trim(body, 300)}";
-                    await FinishRunAsync(connection, runId, "error", 0, 0, error, cancellationToken).ConfigureAwait(false);
-                    return new ErpD365PullResult(false, "odata_error", error, 0, 0, runId);
+                    await FinishRunAsync(connection, runId, "error", fetched, staged, error, cancellationToken).ConfigureAwait(false);
+                    return new ErpD365PullResult(false, "odata_error", error, fetched, staged, runId);
                 }
 
                 await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
                 using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
-                if (doc.RootElement.TryGetProperty("value", out var value) && value.ValueKind == JsonValueKind.Array)
+                var pageRows = doc.RootElement.TryGetProperty("value", out var value) && value.ValueKind == JsonValueKind.Array
+                    ? value.EnumerateArray().Select(e => e.Clone()).ToList()
+                    : new List<JsonElement>();
+                if (pageRows.Count > remaining)
                 {
-                    rows.AddRange(value.EnumerateArray().Select(e => e.Clone()));
+                    pageRows = pageRows.Take((int)remaining).ToList();
                 }
-
-                nextLink = doc.RootElement.TryGetProperty("@odata.nextLink", out var nl) && nl.ValueKind == JsonValueKind.String
+                var followLink = doc.RootElement.TryGetProperty("@odata.nextLink", out var nl) && nl.ValueKind == JsonValueKind.String
                     ? nl.GetString()
                     : null;
-            }
 
-            if (rows.Count > top)
-            {
-                rows = rows.Take(top).ToList();
-            }
-
-            var staged = 0;
-            await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
-            foreach (var row in rows)
-            {
-                var key = ExternalKeyOf(row);
-                var payload = row.GetRawText();
+                // Stage this page + advance the cursor atomically.
+                await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+                foreach (var row in pageRows)
+                {
+                    var key = ExternalKeyOf(row);
+                    var payload = row.GetRawText();
+                    var journalNo = JournalScopedNo(row);
+                    var lineRef = Str(row, "LineNumber", "JournalLineNumber", "InvoiceLineNumber", "VoucherLineNumber");
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        transaction,
+                        $"INSERT INTO {ObjectsTable} (entity, ext_key, payload, run_id, synced_at, journal_no, line_ref) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?) " +
+                        "ON DUPLICATE KEY UPDATE payload = VALUES(payload), run_id = VALUES(run_id), synced_at = VALUES(synced_at), journal_no = VALUES(journal_no), line_ref = VALUES(line_ref)",
+                        cancellationToken,
+                        entitySet,
+                        key,
+                        payload,
+                        runId,
+                        now,
+                        journalNo,
+                        lineRef.Length > 64 ? lineRef[..64] : lineRef).ConfigureAwait(false);
+                    staged++;
+                }
+                fetched += pageRows.Count;
+                remaining -= pageRows.Count;
+                var finished = followLink is null || remaining <= 0;
+                var cursorUrl = finished ? null : followLink;
                 await ErpDb.ExecuteAsync(
                     connection,
                     transaction,
-                    $"INSERT INTO {ObjectsTable} (entity, ext_key, payload, run_id, synced_at) " +
-                    "VALUES (?, ?, ?, ?, ?) " +
-                    "ON DUPLICATE KEY UPDATE payload = VALUES(payload), run_id = VALUES(run_id), synced_at = VALUES(synced_at)",
+                    $"INSERT INTO {CursorsTable} (entity, next_url, done, updated_at) VALUES (?, ?, ?, ?) " +
+                    "ON DUPLICATE KEY UPDATE next_url = VALUES(next_url), done = VALUES(done), updated_at = VALUES(updated_at)",
                     cancellationToken,
                     entitySet,
-                    key,
-                    payload,
-                    runId,
+                    cursorUrl,
+                    finished ? 1 : 0,
                     now).ConfigureAwait(false);
-                staged++;
-            }
-            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
-            await FinishRunAsync(connection, runId, "ok", rows.Count, staged, string.Empty, cancellationToken).ConfigureAwait(false);
-            return new ErpD365PullResult(true, "ok", $"Pulled {rows.Count} {label} row(s) into staging.", rows.Count, staged, runId);
+                if (finished)
+                {
+                    done = true;
+                    break;
+                }
+                nextLink = followLink;
+                if (budget.Elapsed > PullBudget)
+                {
+                    break; // partial — cursor stored; caller re-invokes to continue
+                }
+            }
+
+            var status = done ? "ok" : "partial";
+            var message = done
+                ? $"Pulled {fetched} {label} row(s) into staging."
+                : $"Pulled {fetched} {label} row(s) this pass — more available; run the pull again to continue.";
+            await FinishRunAsync(connection, runId, status, fetched, staged, string.Empty, cancellationToken).ConfigureAwait(false);
+            return new ErpD365PullResult(true, status, message, fetched, staged, runId);
         }
         catch (HttpRequestException ex)
         {
@@ -401,7 +455,35 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             "payload MEDIUMTEXT NOT NULL," +
             "run_id BIGINT NOT NULL DEFAULT 0," +
             "synced_at BIGINT NOT NULL," +
-            "UNIQUE KEY uq_entity_ext (entity, ext_key)" +
+            "applied_at BIGINT NOT NULL DEFAULT 0," +
+            "journal_no VARCHAR(64) NOT NULL DEFAULT ''," +
+            "line_ref VARCHAR(64) NOT NULL DEFAULT ''," +
+            "UNIQUE KEY uq_entity_ext (entity, ext_key)," +
+            "KEY ix_entity_applied (entity, applied_at)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+            cancellationToken).ConfigureAwait(false);
+        // Columns added after first release — ALTERs are no-ops once present (MySQL DDL commits anyway,
+        // so they must stay outside any transaction).
+        await ErpDb.TryExecuteAsync(connection,
+            $"ALTER TABLE {ObjectsTable} ADD `applied_at` BIGINT NOT NULL DEFAULT 0",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(connection,
+            $"ALTER TABLE {ObjectsTable} ADD `journal_no` VARCHAR(64) NOT NULL DEFAULT ''",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(connection,
+            $"ALTER TABLE {ObjectsTable} ADD `line_ref` VARCHAR(64) NOT NULL DEFAULT ''",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(connection,
+            $"ALTER TABLE {ObjectsTable} ADD KEY `ix_entity_applied` (`entity`, `applied_at`)",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            $"CREATE TABLE IF NOT EXISTS {CursorsTable} (" +
+            "entity VARCHAR(128) NOT NULL PRIMARY KEY," +
+            "next_url MEDIUMTEXT NULL," +
+            "done TINYINT(1) NOT NULL DEFAULT 0," +
+            "updated_at BIGINT NOT NULL" +
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
             cancellationToken).ConfigureAwait(false);
     }
@@ -555,6 +637,54 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             return null;
         }
         return uri.GetLeftPart(UriPartial.Authority).TrimEnd('/');
+    }
+
+    /// <summary>Reads a non-empty string/number field from a staged F&O row (same semantics as the mapper).</summary>
+    private static string Str(JsonElement row, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (row.TryGetProperty(name, out var value))
+            {
+                if (value.ValueKind == JsonValueKind.String)
+                {
+                    var text = value.GetString() ?? string.Empty;
+                    if (text.Trim().Length > 0)
+                    {
+                        return text.Trim();
+                    }
+                }
+                else if (value.ValueKind == JsonValueKind.Number)
+                {
+                    return value.GetRawText();
+                }
+            }
+        }
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// The journal's company-scoped number for journal-LINE staged rows (JournalBatchNumber|dataAreaId),
+    /// identical to what ApplyJournalHeaderAsync writes on gl_journals.journal_no — lets reconcile join
+    /// stored GL lines to staged line refs in pure SQL. Empty for rows without a journal number.
+    /// </summary>
+    private static string JournalScopedNo(JsonElement row)
+    {
+        var natural = Str(row, "JournalNumber", "JournalBatchNumber", "JournalId", "Voucher");
+        if (natural.Length == 0)
+        {
+            return string.Empty;
+        }
+        var company = Str(row, "dataAreaId", "CompanyId");
+        var scoped = company.Length > 0 ? company + "|" + natural : natural;
+        const int max = 32; // matches gl_journals.journal_no clipping in ApplyJournalHeaderAsync
+        if (scoped.Length <= max)
+        {
+            return scoped;
+        }
+        var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(scoped)))[..8].ToLowerInvariant();
+        var room = max - hash.Length - 1;
+        return room > 0 ? scoped[..room] + "-" + hash : hash;
     }
 
     private static string Trim(string value, int max)

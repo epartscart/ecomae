@@ -20,6 +20,12 @@ public interface IErpD365MappingService
 
     /// <summary>Live trial-balance compare: our GL balances per account vs balances aggregated from staged D365 posted transactions (GeneralLedgerBalanceCDREntities), keyed by dimension string for the dimension-set pivot — plus total debit/credit both sides must agree on.</summary>
     Task<ErpD365TbCompare> TrialBalanceCompareAsync(DbConnection connection, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ErpD365InvCompareRow>> InventoryCompareAsync(DbConnection connection, CancellationToken cancellationToken = default);
+}
+
+public sealed record ErpD365InvCompareRow(string Warehouse, decimal EcomAeQty, decimal EcomAeValue, decimal D365Qty, decimal D365Avail)
+{
+    public bool QtyMatches => Math.Abs(EcomAeQty - D365Qty) <= 0.005m;
 }
 
 public sealed record ErpD365TbCompareRow(string AccountCode, string AccountName, string Dimension, decimal EcomAeBalance, decimal D365Balance)
@@ -60,7 +66,12 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             ["LedgerJournalLines"] = "GL journal lines",
             ["MainAccounts"] = "Chart of accounts",
             ["LegalEntities"] = "Legal entities",
+            ["TrialBalanceFiscalYearSnapshots"] = "Trial balance snapshots",
+            ["WarehousesOnHandV2"] = "Inventory on-hand by warehouse",
         };
+
+        /// <summary>Rows processed per apply call — stays inside the web request budget; repeat to finish.</summary>
+        private const int ApplyBatchSize = 400;
 
     public async Task<ErpD365ApplyResult> ApplyAsync(DbConnection connection, string entity, long adminId, CancellationToken cancellationToken = default)
     {
@@ -199,10 +210,37 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             "CREATE TABLE IF NOT EXISTS `epc_erp_pm_cost_centres` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `legal_entity_id` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_cc_code` (`code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
             cancellationToken).ConfigureAwait(false);
 
-        var staged = new List<(string Key, string Payload)>();
+        // Warehouse stock positions pulled from D365 (WarehousesOnHandV2).
+        await ErpDb.TryExecuteAsync(connection,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_onhand` (" +
+            "id INT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
+            "data_area VARCHAR(16) NOT NULL DEFAULT ''," +
+            "item_no VARCHAR(64) NOT NULL DEFAULT ''," +
+            "product_name VARCHAR(190) NOT NULL DEFAULT ''," +
+            "site_id VARCHAR(32) NOT NULL DEFAULT ''," +
+            "warehouse_id VARCHAR(48) NOT NULL DEFAULT ''," +
+            "onhand_qty DECIMAL(18,4) NOT NULL DEFAULT 0," +
+            "avail_qty DECIMAL(18,4) NOT NULL DEFAULT 0," +
+            "reserved_qty DECIMAL(18,4) NOT NULL DEFAULT 0," +
+            "ordered_qty DECIMAL(18,4) NOT NULL DEFAULT 0," +
+            "synced_at BIGINT NOT NULL DEFAULT 0," +
+            "UNIQUE KEY uq_onhand (data_area, item_no, site_id, warehouse_id)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+            cancellationToken).ConfigureAwait(false);
+        // Apply bookkeeping columns on the staging table (outside any transaction — DDL commits).
+        await ErpDb.TryExecuteAsync(connection,
+            "ALTER TABLE `epc_d365_sync_objects` ADD `applied_at` BIGINT NOT NULL DEFAULT 0",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(connection,
+            "ALTER TABLE `epc_d365_sync_objects` ADD `attempts` INT NOT NULL DEFAULT 0",
+            cancellationToken).ConfigureAwait(false);
+
+        // Batched: rows whose payload changed since last apply (or never applied), least-tried
+        // first so persistently failing heads cannot starve the tail.
+        var staged = new List<(long Id, string Key, string Payload)>();
         await using (var command = connection.CreateCommand())
         {
-            command.CommandText = "SELECT ext_key, payload FROM epc_d365_sync_objects WHERE entity = @entity ORDER BY id";
+            command.CommandText = "SELECT id, ext_key, payload FROM epc_d365_sync_objects WHERE entity = @entity AND applied_at < synced_at ORDER BY attempts ASC, id ASC LIMIT " + ApplyBatchSize;
             var entityParam = command.CreateParameter();
             entityParam.ParameterName = "@entity";
             entityParam.Value = entity;
@@ -210,20 +248,27 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                staged.Add((reader.GetString(0), reader.GetString(1)));
+                staged.Add((reader.GetInt64(0), reader.GetString(1), reader.GetString(2)));
             }
         }
 
         if (staged.Count == 0)
         {
-            return new ErpD365ApplyResult(false, "no_staged", $"No staged rows for {entity} — pull the entity first.", 0, 0);
+            var total = Convert.ToInt64(await ErpDb.ScalarAsync(connection, null,
+                ErpDb.Positional("SELECT COUNT(*) FROM epc_d365_sync_objects WHERE entity = ?"), cancellationToken, entity).ConfigureAwait(false) ?? 0L);
+            if (total == 0)
+            {
+                return new ErpD365ApplyResult(false, "no_staged", $"No staged rows for {entity} — pull the entity first.", 0, 0);
+            }
+            return new ErpD365ApplyResult(true, "ok", $"{entity}: all {total} staged row(s) already applied.", 0, 0);
         }
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         var mapped = 0;
         var skipped = 0;
         var appliedJournalLineRefs = new Dictionary<long, HashSet<string>>();
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
-        foreach (var (extKey, payload) in staged)
+        foreach (var (stagedId, extKey, payload) in staged)
         {
             JsonDocument doc;
             try
@@ -233,6 +278,9 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             catch (JsonException)
             {
                 skipped++;
+                await ErpDb.ExecuteAsync(connection, transaction,
+                    ErpDb.Positional("UPDATE epc_d365_sync_objects SET applied_at = ? WHERE id = ?"),
+                    cancellationToken, now, stagedId).ConfigureAwait(false);
                 continue;
             }
 
@@ -255,76 +303,73 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                     "CustomerPaymentJournalLines" or "VendorPaymentJournalLines" or "LedgerJournalLines" => await ApplyJournalLineAsync(connection, transaction, doc.RootElement, extKey, entity, appliedJournalLineRefs, cancellationToken).ConfigureAwait(false),
                     "MainAccounts" => await ApplyMainAccountAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     "LegalEntities" => await ApplyLegalEntityAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
+                    "TrialBalanceFiscalYearSnapshots" => true, // compare-card source; fields kept on the staged row
+                    "WarehousesOnHandV2" => await ApplyOnHandAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     _ => false,
                 };
                 if (applied)
                 {
                     await StoreFieldsAsync(connection, transaction, entity, extKey, doc.RootElement, cancellationToken).ConfigureAwait(false);
                     mapped++;
+                    await ErpDb.ExecuteAsync(connection, transaction,
+                        ErpDb.Positional("UPDATE epc_d365_sync_objects SET applied_at = ? WHERE id = ?"),
+                        cancellationToken, now, stagedId).ConfigureAwait(false);
                 }
                 else
                 {
+                    // Dependency miss (journal/account/master not synced yet) — retry next call;
+                    // attempts ordering stops it from starving newer rows.
                     skipped++;
+                    await ErpDb.ExecuteAsync(connection, transaction,
+                        ErpDb.Positional("UPDATE epc_d365_sync_objects SET attempts = attempts + 1 WHERE id = ?"),
+                        cancellationToken, stagedId).ConfigureAwait(false);
                 }
             }
         }
-        // Journal-line reconcile: a dimension or voucher edit changes the staged key, so a stale
-        // staged row could leave a dead GL line. Read this feed's keyed refs on each touched journal
-        // and delete the ones this run did not apply (stale), plus any unclaimed legacy rows
-        // (line_ref='' rows can only exist from earlier imports on a D365 journal). Scoped by
-        // ext_entity so a different feed's lines on the same journal are never erased.
-        foreach (var (journalId, refs) in appliedJournalLineRefs)
+        // Journal-line reconcile: an upstream edit changes a line's key, so a staged row's
+        // removal must delete the stored GL line. The staged set is authoritative only once its
+        // pull finished — reconcile is skipped while the pull cursor is mid-stream, and it joins
+        // staged refs by the journal's scoped number (journal_no) so a partial apply batch still
+        // sees the complete staged picture. Scoped by ext_entity so other feeds are untouched.
+        var pullDone = await ErpDb.LongAsync(connection, transaction,
+            ErpDb.Positional("SELECT IFNULL(done,0) FROM epc_d365_pull_cursors WHERE entity = ?"),
+            cancellationToken, entity).ConfigureAwait(false);
+        if (pullDone == 1)
         {
-            var stale = new List<string>();
-            var otherFeedKeyed = false;
-            await using (var readCmd = connection.CreateCommand())
+            foreach (var journalId in appliedJournalLineRefs.Keys)
             {
-                readCmd.Transaction = transaction;
-                readCmd.CommandText =
-                    "SELECT `line_ref`, `ext_entity` FROM `epc_erp_gl_lines` " +
-                    "WHERE `journal_id` = @a AND `line_ref` <> ''";
-                var p1 = readCmd.CreateParameter(); p1.ParameterName = "@a"; p1.Value = journalId; readCmd.Parameters.Add(p1);
-                await using var reader = await readCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                var journalScoped = Convert.ToString(await ErpDb.ScalarAsync(connection, transaction,
+                    ErpDb.Positional("SELECT `journal_no` FROM `epc_erp_gl_journals` WHERE `id` = ?"),
+                    cancellationToken, journalId).ConfigureAwait(false)) ?? string.Empty;
+                if (journalScoped.Length == 0)
                 {
-                    var existing = reader.GetString(0);
-                    var feed = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
-                    if (feed.Equals(entity, StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (!refs.Contains(existing))
-                        {
-                            stale.Add(existing);
-                        }
-                    }
-                    else
-                    {
-                        otherFeedKeyed = true;
-                    }
+                    continue;
                 }
-            }
-            foreach (var chunk in stale.Chunk(400))
-            {
-                var marks = string.Join(",", chunk.Select(_ => "?"));
-                var args = new List<object?> { journalId, entity };
-                args.AddRange(chunk.Select(k => (object?)Clip(k, 64)));
+                var otherFeedKeyed = await ErpDb.LongAsync(connection, transaction,
+                    ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `line_ref` <> '' AND `ext_entity` <> ?"),
+                    cancellationToken, journalId, Clip(entity, 64)).ConfigureAwait(false) > 0;
                 await ErpDb.ExecuteAsync(connection, transaction,
-                    ErpDb.Positional($"DELETE FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_entity` = ? AND `line_ref` IN ({marks})"),
-                    cancellationToken, args.ToArray()).ConfigureAwait(false);
-            }
-            // Blank-ref leftovers belong to SOME feed but can't be attributed — only clear them
-            // when this journal is used by a single feed, so a shared journal doesn't lose the
-            // other feed's unclaimed rows.
-            if (!otherFeedKeyed)
-            {
-                await ErpDb.ExecuteAsync(connection, transaction,
-                    ErpDb.Positional("DELETE FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_entity` = '' AND `line_ref` = ''"),
-                    cancellationToken, journalId).ConfigureAwait(false);
+                    "DELETE l FROM `epc_erp_gl_lines` l WHERE l.`journal_id` = ? AND l.`ext_entity` = ? AND l.`line_ref` <> '' " +
+                    "AND l.`line_ref` NOT IN (SELECT `line_ref` FROM `epc_d365_sync_objects` WHERE `entity` = ? AND `journal_no` = ? AND `line_ref` <> '')",
+                    cancellationToken, journalId, Clip(entity, 64), entity, journalScoped).ConfigureAwait(false);
+                if (!otherFeedKeyed)
+                {
+                    await ErpDb.ExecuteAsync(connection, transaction,
+                        ErpDb.Positional("DELETE FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_entity` = '' AND `line_ref` = ''"),
+                        cancellationToken, journalId).ConfigureAwait(false);
+                }
             }
         }
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
+        var remaining = Convert.ToInt64(await ErpDb.ScalarAsync(connection, null,
+            ErpDb.Positional("SELECT COUNT(*) FROM epc_d365_sync_objects WHERE entity = ? AND applied_at < synced_at"),
+            cancellationToken, entity).ConfigureAwait(false) ?? 0L);
         var label = MappedEntities[entity];
-        return new ErpD365ApplyResult(true, "ok", $"Applied {mapped} row(s) into {label}.", mapped, skipped);
+        var message = remaining > 0
+            ? $"Applied {mapped} row(s) into {label} ({skipped} deferred — {remaining} staged row(s) remain; apply again)."
+            : $"Applied {mapped} row(s) into {label} ({skipped} deferred).";
+        return new ErpD365ApplyResult(true, "ok", message, mapped, skipped);
     }
 
     /// <inheritdoc />
@@ -357,13 +402,19 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             // GL not initialized yet — our side is simply zero.
         }
 
-        // D365 side: staged posted entries (GeneralLedgerBalanceCDREntities) aggregated per account+dimension.
+        // D365 side: prefer staged TrialBalanceFiscalYearSnapshots (the actual F&O TB source —
+        // debit/credit/ending balance per dimension value set per period); fall back to
+        // GeneralLedgerBalanceCDREntities when snapshots were never pulled.
         var theirs = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
         var snapshotPeriods = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         decimal theirDr = 0m, theirCr = 0m;
+        var snapshotCount = Convert.ToInt64(await ErpDb.ScalarAsync(connection, null,
+            "SELECT COUNT(*) FROM epc_d365_sync_objects WHERE entity = 'TrialBalanceFiscalYearSnapshots'",
+            cancellationToken).ConfigureAwait(false) ?? 0L);
+        var tbEntity = snapshotCount > 0 ? "TrialBalanceFiscalYearSnapshots" : "GeneralLedgerBalanceCDREntities";
         await using (var command = connection.CreateCommand())
         {
-            command.CommandText = "SELECT payload FROM epc_d365_sync_objects WHERE entity = 'GeneralLedgerBalanceCDREntities'";
+            command.CommandText = $"SELECT payload FROM epc_d365_sync_objects WHERE entity = '{tbEntity}'";
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -372,6 +423,51 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                 catch (JsonException) { continue; }
                 using (doc)
                 {
+                    if (tbEntity == "TrialBalanceFiscalYearSnapshots")
+                    {
+                        // Trial-balance snapshot rows: DimensionValue1 = main account, Value2..11 the
+                        // financial dimension segments for the hierarchy. Periods are cumulative —
+                        // keep the latest period per account+dimension key, "Current" posting layer only.
+                        var layer = Str(doc.RootElement, "PostingLayer");
+                        if (layer.Length > 0 && !layer.Equals("Current", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+                        var seg = new List<string>();
+                        for (var i = 1; i <= 11; i++)
+                        {
+                            var v = Str(doc.RootElement, $"DimensionValue{i}");
+                            if (v.Length > 0)
+                            {
+                                seg.Add(v);
+                            }
+                        }
+                        if (seg.Count == 0) continue;
+                        var sCode = seg[0];
+                        var sDim = string.Join('-', seg);
+                        var sDr = Dec(doc.RootElement, "AmountDebit");
+                        var sCr = Dec(doc.RootElement, "AmountCredit");
+                        var sKey = sCode + "\u001f" + sDim;
+                        var sPeriod = Str(doc.RootElement, "PeriodEndDate", "PeriodName", "FiscalPeriod", "Period");
+                        if (!snapshotPeriods.TryGetValue(sKey, out var sExisting) || string.CompareOrdinal(sPeriod, sExisting) >= 0)
+                        {
+                            // Totals count the latest period only — drop the previously included row.
+                            if (snapshotPeriods.TryGetValue(sKey, out var prev) && theirs.TryGetValue(sKey, out var prevNet))
+                            {
+                                var prevDr = prevNet > 0 ? prevNet : 0m;
+                                var prevCr = prevNet < 0 ? -prevNet : 0m;
+                                theirDr -= prevDr;
+                                theirCr -= prevCr;
+                            }
+                            snapshotPeriods[sKey] = sPeriod;
+                            var sNet = sDr - sCr;
+                            theirs[sKey] = sNet;
+                            theirDr += sDr;
+                            theirCr += sCr;
+                        }
+                        continue;
+                    }
+
                     var account = Str(doc.RootElement, "MainAccountId", "MainAccount", "LedgerDimension", "AccountDisplayValue", "Dimension");
                     if (account.Length == 0) continue;
                     var code = account.Split('-', '|')[0].Trim();
@@ -423,6 +519,63 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             rows.Add(new ErpD365TbCompareRow(code, ourRow.Name, dim, ourRow.Balance, theirBalance));
         }
         return new ErpD365TbCompare(rows, ourDr, ourCr, theirDr, theirCr);
+    }
+
+    /// <summary>
+    /// Inventory on-hand compare: our stock positions (epc_erp_inv_stock) vs D365 WarehousesOnHandV2
+    /// (epc_erp_inv_onhand, applied). Warehouse key join is on the warehouse CODE — our warehouses are
+    /// matched to their D365 id via epc_erp_inv_warehouses.code when present, else the numeric id.
+    /// </summary>
+    public async Task<IReadOnlyList<ErpD365InvCompareRow>> InventoryCompareAsync(DbConnection connection, CancellationToken cancellationToken = default)
+    {
+        var rows = new List<ErpD365InvCompareRow>();
+        // D365 side: on-hand per warehouse code (from the applied positions table).
+        var theirs = new Dictionary<string, (decimal Qty, decimal Avail)>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText =
+                    "SELECT `warehouse_id`, IFNULL(SUM(`onhand_qty`),0), IFNULL(SUM(`avail_qty`),0) FROM `epc_erp_inv_onhand` GROUP BY `warehouse_id`";
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    theirs[reader.GetString(0)] = (reader.GetDecimal(1), reader.GetDecimal(2));
+                }
+            }
+        }
+        catch { /* table absent until first WarehousesOnHandV2 apply */ }
+        // Ours: stock per warehouse — resolve warehouse code from epc_erp_inv_warehouses when it exists.
+        var ours = new Dictionary<string, (decimal Qty, decimal Value)>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            var hasWh = await ErpDb.ColumnKnownAsync(connection, "epc_erp_inv_warehouses", "code", cancellationToken).ConfigureAwait(false);
+            var whJoin = hasWh
+                ? "LEFT JOIN `epc_erp_inv_warehouses` w ON w.`id` = s.`warehouse_id` "
+                : "";
+            var keyExpr = hasWh ? "IFNULL(NULLIF(w.`code`,''), s.`warehouse_id`)" : "s.`warehouse_id`";
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText =
+                    $"SELECT {keyExpr}, IFNULL(SUM(s.`qty_on_hand`),0), IFNULL(SUM(s.`qty_on_hand` * s.`avg_unit_cost`),0) " +
+                    $"FROM `epc_erp_inv_stock` s {whJoin}GROUP BY {keyExpr}";
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var key = reader.IsDBNull(0) ? "0" : Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture) ?? "0";
+                    ours[key] = (reader.GetDecimal(1), reader.GetDecimal(2));
+                }
+            }
+        }
+        catch { /* stock table absent on a fresh tenant */ }
+
+        foreach (var key in ours.Keys.Union(theirs.Keys, StringComparer.OrdinalIgnoreCase).OrderBy(k => k, StringComparer.OrdinalIgnoreCase))
+        {
+            var o = ours.TryGetValue(key, out var ov) ? ov : (Qty: 0m, Value: 0m);
+            var t = theirs.TryGetValue(key, out var tv) ? tv : (Qty: 0m, Avail: 0m);
+            rows.Add(new ErpD365InvCompareRow(key, o.Qty, o.Value, t.Qty, t.Avail));
+        }
+        return rows;
     }
 
     /// <summary>Stores every F&O payload field for a staged row in epc_d365_object_fields (one row per field) so the module screens can display the complete field set, not just the mapped columns.</summary>
@@ -1346,6 +1499,33 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                 ErpDb.Positional("UPDATE `epc_erp_gl_lines` SET " + string.Join(", ", sets) + " WHERE `id` = ?"),
                 ct, vals.ToArray()).ConfigureAwait(false);
         }
+        return true;
+    }
+
+    /// <summary>WarehousesOnHandV2 → epc_erp_inv_onhand (qty positions per item × site × warehouse).</summary>
+    private static async Task<bool> ApplyOnHandAsync(DbConnection connection, DbTransaction tx, JsonElement row, CancellationToken ct)
+    {
+        var itemNo = Str(row, "ItemNumber", "ItemId");
+        var warehouse = Str(row, "InventoryWarehouseId", "WarehouseId", "Warehouse");
+        if (itemNo.Length == 0 || warehouse.Length == 0)
+        {
+            return false;
+        }
+        var dataArea = Str(row, "dataAreaId", "CompanyId");
+        var site = Str(row, "InventorySiteId", "SiteId", "Site");
+        var name = Str(row, "ProductName", "ItemName", "Name");
+        var onhand = Dec(row, "OnHandQuantity", "AvailPhysical");
+        var avail = Dec(row, "AvailableOnHandQuantity", "TotalAvailableQuantity", "AvailablePhysical");
+        var reserved = Dec(row, "ReservedOnHandQuantity", "ReservPhysical");
+        var ordered = Dec(row, "OrderedQuantity", "OnOrderQuantity");
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await ErpDb.ExecuteAsync(connection, tx,
+            "INSERT INTO `epc_erp_inv_onhand` (`data_area`, `item_no`, `product_name`, `site_id`, `warehouse_id`, `onhand_qty`, `avail_qty`, `reserved_qty`, `ordered_qty`, `synced_at`) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+            "ON DUPLICATE KEY UPDATE `product_name` = VALUES(`product_name`), `onhand_qty` = VALUES(`onhand_qty`), `avail_qty` = VALUES(`avail_qty`), `reserved_qty` = VALUES(`reserved_qty`), `ordered_qty` = VALUES(`ordered_qty`), `synced_at` = VALUES(`synced_at`)",
+            ct,
+            Clip(dataArea, 16), Clip(itemNo, 64), Clip(name, 190), Clip(site, 32), Clip(warehouse, 48),
+            onhand, avail, reserved, ordered, now).ConfigureAwait(false);
         return true;
     }
 
