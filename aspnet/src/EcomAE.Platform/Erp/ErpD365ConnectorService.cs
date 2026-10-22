@@ -471,7 +471,15 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
     private static string ExternalKeyOf(JsonElement row)
     {
         var parts = new List<string>();
-        foreach (var candidate in new[] { "dataAreaId", "ItemNumber", "CustomerAccount", "VendorAccount", "SalesOrderNumber", "PurchaseOrderNumber", "InvoiceNumber", "MainAccountId", "CompanyId" })
+        foreach (var candidate in new[]
+        {
+            // Business keys — same document stays one staged row on re-pull.
+            "dataAreaId", "ItemNumber", "CustomerAccount", "VendorAccount", "SalesOrderNumber", "PurchaseOrderNumber", "InvoiceNumber", "JournalBatchNumber", "Voucher", "MainAccountId", "CompanyId",
+            // Line/dimension/period discriminators — distinct rows sharing the same document key must not overwrite each other.
+            "LineNumber", "JournalLineNumber", "InvoiceLineNumber", "VoucherLineNumber", "LineRef", "RecId", "LineId",
+            "LedgerDimension", "Dimension", "DimensionSet", "AccountDisplayValue",
+            "FiscalYear", "FiscalPeriod", "Period", "AccountingDate",
+        })
         {
             if (row.TryGetProperty(candidate, out var p) && p.ValueKind == JsonValueKind.String && p.GetString() is { Length: > 0 } s)
             {
