@@ -85,7 +85,7 @@
                 }
                 else if (!string.IsNullOrWhiteSpace(_brand.LogoUrl))
                 {
-                    <img class="bos-login__brand-logo" src="@_brand.LogoUrl" alt="@_brand.Label" />
+                    <img class="bos-login__brand-logo" style="display:block;margin:0 auto .6rem;width:auto;height:auto;max-width:200px;max-height:88px;" src="@_brand.LogoUrl" alt="@_brand.Label" />
                     <h1 class="bos-login__brand-title">@_content.HeroTitle</h1>
                     <p class="bos-login__brand-tagline">@_content.HeroTagline</p>
                 }

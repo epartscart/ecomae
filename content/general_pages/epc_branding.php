@@ -78,7 +78,8 @@ function epc_brand_hosted_by_html()
 	}
 	$label = 'Built &amp; Managed by ';
 	$link = '<a href="https://www.ecomae.com/" target="_blank" rel="noopener noreferrer">ecomae.com</a>';
-	return '<span class="epc-hosted-by">' . $label . $link . '</span>';
+	$license = ' <span class="epc-hosted-by__license">(Licensed under: ECOM GLOBAL FZE LLC &mdash; Registered) &middot; <a href="https://www.ecomae.com/" target="_blank" rel="noopener noreferrer">www.ecomae.com</a> &middot; <a href="mailto:info@ecomae.com">info@ecomae.com</a></span>';
+	return '<span class="epc-hosted-by">' . $label . $link . $license . '</span>';
 }
 
 function epc_brand_cp_context()
