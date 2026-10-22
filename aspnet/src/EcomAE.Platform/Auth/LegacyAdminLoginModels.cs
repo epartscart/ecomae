@@ -15,7 +15,8 @@ public sealed record LegacyLoginRequest(
     string Password,
     string ContactType,
     bool RememberMe,
-    LegacyLoginSurface Surface);
+    LegacyLoginSurface Surface,
+    string? TotpCode = null);
 
 public sealed record LegacyLoginSuccess(
     int UserId,

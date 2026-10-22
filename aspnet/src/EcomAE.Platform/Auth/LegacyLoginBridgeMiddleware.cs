@@ -44,7 +44,7 @@ public sealed class LegacyLoginBridgeMiddleware
             || (context.Request.Headers.Accept.ToString().Contains("text/html", StringComparison.OrdinalIgnoreCase)
                 && !context.Request.Headers.Accept.ToString().Contains("application/json", StringComparison.OrdinalIgnoreCase));
 
-        string contact = "", password = "", contactType = "email", surface = SurfaceFromPath(context.Request.Path), redirect = "";
+        string contact = "", password = "", contactType = "email", surface = SurfaceFromPath(context.Request.Path), redirect = "", totp = "";
         var remember = false;
 
         try
@@ -71,6 +71,7 @@ public sealed class LegacyLoginBridgeMiddleware
 
                 redirect = form["redirect"].ToString();
                 remember = form["remember_me"].Count > 0;
+                totp = form["totp"].ToString();
                 wantsHtml = true;
             }
             else if ((context.Request.ContentType ?? "").Contains("application/json", StringComparison.OrdinalIgnoreCase))
@@ -97,6 +98,7 @@ public sealed class LegacyLoginBridgeMiddleware
 
                 redirect = root.TryGetProperty("redirect", out var rd) ? rd.GetString() ?? "" : "";
                 remember = root.TryGetProperty("remember_me", out var r) && r.ValueKind == JsonValueKind.True;
+                totp = root.TryGetProperty("totp", out var tp) ? tp.GetString() ?? "" : "";
             }
             else
             {
@@ -113,7 +115,7 @@ public sealed class LegacyLoginBridgeMiddleware
 
             var loginSurface = LegacyLoginSurfaceParser.Parse(surface);
             var outcome = await login.LoginAsync(
-                new LegacyLoginRequest(contact, password, contactType, remember, loginSurface),
+                new LegacyLoginRequest(contact, password, contactType, remember, loginSurface, totp),
                 LegacySessionTokenFactory.ResolveClientIp(context.Request),
                 context.Request.Headers.UserAgent.ToString(),
                 context.RequestAborted).ConfigureAwait(false);

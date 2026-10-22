@@ -227,6 +227,22 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                         identity is null ? "-" : string.Join(',', identity.GroupIds));
                     return await Fail("Account lacks backend permissions.", "no_backend_access").ConfigureAwait(false);
                 }
+
+                await LegacyTotpService.EnsureTableAsync(connection, cancellationToken).ConfigureAwait(false);
+                if (await LegacyTotpService.IsEnabledAsync(connection, user.UserId, cancellationToken).ConfigureAwait(false))
+                {
+                    if (string.IsNullOrWhiteSpace(request.TotpCode))
+                    {
+                        return await Fail(
+                            "Enter the 6-digit authentication code from your authenticator app.",
+                            "totp_required").ConfigureAwait(false);
+                    }
+
+                    if (!await LegacyTotpService.VerifyCodeAsync(connection, user.UserId, request.TotpCode, cancellationToken).ConfigureAwait(false))
+                    {
+                        return await Fail("Incorrect authentication code.", "totp_invalid").ConfigureAwait(false);
+                    }
+                }
             }
 
             var time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();

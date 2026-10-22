@@ -191,6 +191,13 @@
                                placeholder="Enter secure password" />
                         <div class="bos-login__field-line"></div>
                     </div>
+                    <div class="bos-login__field">
+                        <label for="bosTotp"><i class="fa fa-shield"></i> Authentication code <small style="font-weight:400;color:#5b7791">(only if 2FA is enabled)</small></label>
+                        <input type="text" id="bosTotp" name="totp" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code"
+                               data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
+                               placeholder="6-digit code" />
+                        <div class="bos-login__field-line"></div>
+                    </div>
                     @if (!string.IsNullOrEmpty(_error) && _errorSurface != "erp")
                     {
                         <div class="bos-login__error is-visible" id="bosLoginError">
@@ -242,6 +249,13 @@
                                data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
                                data-epc-anti-autofill="1" readonly="readonly"
                                placeholder="Enter your password" />
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    <div class="bos-login__field">
+                        <label for="bosErpTotp"><i class="fa fa-shield"></i> Authentication code <small style="font-weight:400;color:#5b7791">(only if 2FA is enabled)</small></label>
+                        <input type="text" id="bosErpTotp" name="totp" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code"
+                               data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
+                               placeholder="6-digit code" />
                         <div class="bos-login__field-line"></div>
                     </div>
                     @if (!string.IsNullOrEmpty(_error) && _errorSurface == "erp")
