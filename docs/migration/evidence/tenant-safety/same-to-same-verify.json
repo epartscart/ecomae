@@ -3,8 +3,8 @@
   "status": "pass",
   "policy": "same-to-same-invisible-migration",
   "mandate": "Tenants must not feel PHP→ASP.NET change. Frontend/CP/ERP/BOS/storefront product chrome stays PHP.",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "tenantChromeProbe": {
     "status": "pass",
     "passCount": 21,

@@ -6,8 +6,8 @@
   "status": "dry-run-validated",
   "writes": 0,
   "writesBlocked": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "phpAuthoritative": true,
   "dualSampleBaseline": "migration-contract-golden",
   "note": "Migration-mode erp ajax dry-run golden; ASP.NET now has a confirm_writes-gated PHP-owned statement-line import twin, but PHP remains authoritative until confirmed field dual-sample + RELEASE_OWNER_APPROVAL.md."

@@ -1,7 +1,7 @@
 {
   "role": "tenant-php-chrome-safety-controls",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "requiredFiles": [
     "scripts/ecomae_nginx_site_safety.py",

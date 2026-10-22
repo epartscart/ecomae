@@ -1,8 +1,8 @@
 {
   "role": "full-architecture-php-aspnet-link-remap-board",
   "branch": "cursor/full-arch-link-remap-audit-7b3b",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "includes": ["#957 ERP tab map", "#958 CP shop/brochure map", "cross-surface steal/host fixes"],
   "areas": {
     "superCpAndTenantCp": {

@@ -195,8 +195,8 @@
     "cp-module-ajax-payments-save_config-dry-run",
     "cp-module-ajax-logistics-create_shipment-dry-run"
   ],
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "phpAuthoritative": true,
   "aspNetInteractiveComplete": 0,
   "note": "183 unique Wave B write dry-run routes (writes=0). PHP ajax remains authoritative until dual-sample + RELEASE_OWNER_APPROVAL.md."

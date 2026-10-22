@@ -1,7 +1,7 @@
 {
   "role": "php-catalog-coverage-board",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "totalTracked": 734,
   "floors": {

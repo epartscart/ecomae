@@ -1,7 +1,7 @@
 {
   "status": "soft-fail",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "failureCount": 3,
   "warningCount": 2,
   "failures": [

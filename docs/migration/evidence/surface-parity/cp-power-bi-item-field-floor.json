@@ -1,7 +1,7 @@
 {
   "role": "cp-power-bi-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-power-bi",
   "collectionKey": "reports",

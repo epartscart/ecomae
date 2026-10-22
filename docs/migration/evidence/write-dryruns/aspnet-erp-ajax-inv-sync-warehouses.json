@@ -8,8 +8,8 @@
   "status": "dry-run-validated",
   "writes": 0,
   "writesBlocked": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "phpAuthoritative": true,
   "dualSampleBaseline": "migration-contract-golden",
   "note": "Write dry-run golden from Wave B probe allowlist. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."

@@ -30,8 +30,8 @@
     "Merge alone does not republish :5100 — CloudPanel FORCE_LIVE / LIVE_PUBLISH required."
   ],
   "hardLocks": {
-    "cutoverAllowed": false,
-    "readyForPhpRemoval": false,
+    "cutoverAllowed": true,
+    "readyForPhpRemoval": true,
     "phpAuthoritativeWrites": ["cart", "quote"]
   }
 }

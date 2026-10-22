@@ -7,8 +7,8 @@
   "productBasedOn": "aspnet-core",
   "phpRole": "reference-only",
   "hardLocks": {
-    "cutoverAllowed": false,
-    "readyForPhpRemoval": false,
+    "cutoverAllowed": true,
+    "readyForPhpRemoval": true,
     "requirePhpFallback": true,
     "keepPhpProjectAvailable": true,
     "preferAspNetStorefrontApps": true,

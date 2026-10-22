@@ -1,7 +1,7 @@
 {
   "role": "www-live-exact-route-probe",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "presentation": {
     "total": 144,
     "byStatus": {

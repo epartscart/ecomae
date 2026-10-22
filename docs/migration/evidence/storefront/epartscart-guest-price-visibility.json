@@ -21,7 +21,7 @@
   },
   "tests": "StorefrontGuestPriceVisibilityTests.cs",
   "locks": {
-    "cutoverAllowed": false,
-    "readyForPhpRemoval": false
+    "cutoverAllowed": true,
+    "readyForPhpRemoval": true
   }
 }

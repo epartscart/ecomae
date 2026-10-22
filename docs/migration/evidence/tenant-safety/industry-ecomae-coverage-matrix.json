@@ -1,7 +1,7 @@
 {
   "role": "industry-ecomae-frontend-coverage-matrix",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "generatedAtUnix": 1785872440,
   "hostCount": 28,

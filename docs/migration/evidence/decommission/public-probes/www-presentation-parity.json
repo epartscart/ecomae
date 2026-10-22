@@ -1,7 +1,7 @@
 {
   "status": "presentation-shell-scaffolded",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "contract": "ASP.NET Core surface shells must reuse PHP chrome CSS/asset URLs and keep JSON digests unchanged for tooling.",
   "surfaces": [
     {

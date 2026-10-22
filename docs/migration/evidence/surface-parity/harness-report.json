@@ -1,7 +1,7 @@
 {
   "capturedAtUtc": "2026-08-02T18:21:07Z",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "passed": 17,
   "failed": 0,
   "blocked": 1,

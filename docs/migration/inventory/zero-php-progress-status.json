@@ -94,6 +94,6 @@
     "RELEASE_OWNER_APPROVAL.md already present; RequirePhpFallback=false only per dual-sample-green exact route.",
     "PHP source deletion remains a separate human gate \u2014 never this cutover operator."
   ],
-  "cutoverAllowed": false,
+  "cutoverAllowed": true,
   "readyForPhpRemoval": true
 }

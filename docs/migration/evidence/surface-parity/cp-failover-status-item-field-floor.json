@@ -1,7 +1,7 @@
 {
   "role": "cp-failover-status-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-failover-status",
   "requireNonemptyMigrationSentinel": true,

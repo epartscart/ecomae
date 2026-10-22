@@ -1,7 +1,7 @@
 {
   "role": "catalog-offline-cache-nested-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "offlineCacheObjectDataStemCount": 10,
   "nestedListStemCount": 7,

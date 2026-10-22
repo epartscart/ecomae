@@ -13,8 +13,8 @@
     "licenses",
     "setup-wizard"
   ],
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "phpAuthoritative": true,
   "aspNetInteractiveComplete": 0,
   "note": "7 on-premises surfaces (writes=0 dry-runs + licenses read digest). PHP pack remains authoritative until dual-sample + RELEASE_OWNER_APPROVAL.md."

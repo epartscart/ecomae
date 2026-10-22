@@ -6,8 +6,8 @@
   "status": "dry-run-validated",
   "writes": 0,
   "writesBlocked": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "phpAuthoritative": true,
   "dualSampleBaseline": "migration-contract-golden",
   "note": "Migration-mode dry-run golden; live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."

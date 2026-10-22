@@ -1,7 +1,7 @@
 {
   "role": "cp-marketing-growth-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-marketing-growth",
   "collectionKey": "reviews",

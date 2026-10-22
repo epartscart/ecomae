@@ -1,8 +1,8 @@
 {
   "verdict": "blocked-parity-incomplete-php-must-remain",
   "capturedAtUtc": "2026-08-03T05:45:57Z",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "readyToRemovePhp": true,
   "passed": 11,
   "failed": 0,

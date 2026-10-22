@@ -1,8 +1,8 @@
 {
   "role": "www-zero-php-residual-board",
   "generatedAtUnix": 1785895140,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "meters": {
     "scaffoldContractCompletePercent": 100,
@@ -154,8 +154,8 @@
     "mode": "aspnet-primary-php-reference",
     "targetEndState": "100%-aspnet-core-live-php-reference-kept",
     "keepPhpProjectAvailable": true,
-    "cutoverAllowed": false,
-    "readyForPhpRemoval": false,
+    "cutoverAllowed": true,
+    "readyForPhpRemoval": true,
     "note": "Human confirmed ASP.NET live primary destination; PHP retained as reference until keep/delete. Not traffic cutover."
   }
 }

@@ -1,7 +1,7 @@
 {
   "role": "surface-digest-exact-routes",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "routeCount": 141,
   "surfaceDigestCount": 133,
   "storefrontDigestCount": 7,

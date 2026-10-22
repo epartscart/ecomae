@@ -1,7 +1,7 @@
 {
   "role": "storefront-shadow-dual-sample-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "tenantStorefrontPhp": true,
   "phpAuthoritativeTenantChrome": "https://epartscart.com/",

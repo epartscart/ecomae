@@ -1,7 +1,7 @@
 {
   "role": "epartscart-own-catalog-menu-fix",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "problem": "Catalog of products header button pointed at Product Family hash; PHP twin opens #dp_menu own-catalogue category mega menu (modules/shop/catalogue/dp_menu.php).",
   "phpReference": {
     "entry": "templates/nero/desktop.php header-cat-btn → showCatalogMenu() → #dp_menu",

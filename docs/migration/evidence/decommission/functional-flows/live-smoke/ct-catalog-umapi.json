@@ -3,8 +3,8 @@
   "flowId": "ct-catalog-umapi",
   "title": "CT / catalog fetch + UMAPI miss-fill reporting",
   "status": "blocked",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "requiredProbes": [
     "Auth catalog status connected=true (staging-smoke)",

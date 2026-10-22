@@ -1,7 +1,7 @@
 {
   "role": "cp-doc-expiry-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-doc-expiry",
   "collectionKey": "documents",

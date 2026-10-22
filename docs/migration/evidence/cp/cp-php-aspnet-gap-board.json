@@ -1,8 +1,8 @@
 {
   "role": "cp-php-aspnet-gap-board",
   "branch": "cursor/epartscart-cp-php-parity-7b3b",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "hostRules": {
     "superCpHosts": [
       "www.ecomae.com",
@@ -68,7 +68,7 @@
     "lang": ["page_lang_main", "page_lang_editor"],
     "shellModules": ["workshop", "sao", "kkt", "data_transfer", "prices_upload", "prices_edit", "prices_send", "print_docs", "bulk_upload"],
     "catalogTotalActions": 430,
-    "cutoverAllowed": false,
+    "cutoverAllowed": true,
     "phpAuthoritative": true
   },
   "moduleStatuses": [

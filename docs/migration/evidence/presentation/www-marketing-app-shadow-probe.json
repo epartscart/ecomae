@@ -1,8 +1,8 @@
 {
   "role": "www-marketing-app-shadow-probe",
   "generatedAtUnix": 1785865318,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "routeCount": 37,
   "passed": 0,

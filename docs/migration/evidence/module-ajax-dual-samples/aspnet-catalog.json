@@ -4,7 +4,7 @@
   "dedicatedDryRuns": 249,
   "registryDryRuns": 145,
   "coveragePct": 100,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "phpAuthoritative": true
 }

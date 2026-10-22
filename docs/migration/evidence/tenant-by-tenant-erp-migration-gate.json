@@ -3,8 +3,8 @@
   "version": 1,
   "scope": "erp",
   "authority": "php-until-formal-acceptance",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "promotionRule": {
     "requiredForEachTenant": [
       "php-route-parity",

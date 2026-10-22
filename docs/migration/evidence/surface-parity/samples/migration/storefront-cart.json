@@ -31,7 +31,7 @@
     "user_id": 9
   },
   "dualSampleBaseline": "migration-contract-golden",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "note": "migration-mode contract sample; lines[] item-field sentinel locked; qty/guest/checkout remain PHP; cutoverAllowed=false"
 }

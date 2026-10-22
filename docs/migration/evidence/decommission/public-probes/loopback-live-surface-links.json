@@ -1,7 +1,7 @@
 {
   "status": "catalogued-php-authoritative-except-allowlisted-aspnet",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "platformHost": "www.ecomae.com",
   "links": [
     {

@@ -1,7 +1,7 @@
 {
   "role": "cp-auto-price-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-auto-price",
   "collectionKey": "rules",

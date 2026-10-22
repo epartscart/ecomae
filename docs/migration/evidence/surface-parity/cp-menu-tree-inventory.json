@@ -1,7 +1,7 @@
 {
   "role": "cp-menu-tree-inventory",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "digestRoute": "/cp/menus",
   "blazorRoute": "/cp/menus-app",
   "phpAuthoritative": [

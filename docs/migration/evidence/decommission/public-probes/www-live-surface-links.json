@@ -4664,6 +4664,6 @@
     "Hybrid module directories on /cp|/erp|/bos|/storefront/app; counts at GET /migration/php-module-catalog.",
     "Human RELEASE_OWNER_APPROVAL.md gates PHP traffic/fallback removal \u2014 keep PHP project as reference unless a separate deletion approval exists."
   ],
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true
 }

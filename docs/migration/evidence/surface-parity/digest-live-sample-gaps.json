@@ -1,8 +1,8 @@
 {
   "role": "digest-live-sample-gaps",
   "generatedAtUnix": 1785869879,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "coreStemsRequired": [
     "cp-dashboard-summary",

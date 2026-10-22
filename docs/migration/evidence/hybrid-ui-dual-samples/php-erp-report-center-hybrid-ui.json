@@ -4,7 +4,7 @@
   "surface": "erp",
   "phpAuthoritativePath": "/ERP/?epc_erp_shell=1&area=finance&tab=rc_finance",
   "phpAuthoritative": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "note": "PHP report-center tab remains authoritative for run/CSV until dual-sample + human RELEASE_OWNER_APPROVAL.md."
 }

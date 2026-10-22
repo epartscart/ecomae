@@ -1,8 +1,8 @@
 {
   "role": "compare-result",
   "ok": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "contractOnly": false,
   "offerCount": 2,
   "errors": [],

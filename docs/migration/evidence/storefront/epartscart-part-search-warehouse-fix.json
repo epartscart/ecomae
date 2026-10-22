@@ -1,7 +1,7 @@
 {
   "role": "epartscart-part-search-warehouse-fix",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "problem": "Top part-number search on epartscart.com showed no results: nginx edge 302 /storefront/search-app → /en/shop/part_search looped with PreferAspNet/PHP-paused remap back to search-app; bunches digest empty when tenant shop DB unbound; protocol-3 poll short-circuited empty SQL without PHP ajax_getProductsOfBunch fall-through.",
   "phpReference": {
     "entry": "/en/shop/part_search?article=",

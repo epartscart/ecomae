@@ -1,7 +1,7 @@
 {
   "role": "cp-debug-console-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-debug-console",
   "requireNonemptyMigrationSentinel": true,

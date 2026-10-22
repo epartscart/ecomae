@@ -1,7 +1,7 @@
 {
   "role": "cp-web-tracker-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-web-tracker",
   "collectionKey": "sessions",

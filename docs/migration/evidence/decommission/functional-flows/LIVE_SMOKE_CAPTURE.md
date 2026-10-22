@@ -193,8 +193,8 @@ Edit `live-smoke/<flowId>.json`:
     "..."
   ],
   "capturedAtUnix": 1785867000,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0
 }
 ```

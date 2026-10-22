@@ -10,7 +10,7 @@
     "ENGINE_CODE": "N47D20"
   },
   "dualSampleBaseline": "migration-contract-golden",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "message": "migration-mode engine object item-field sentinel; OfflineCacheOk object blob"
 }

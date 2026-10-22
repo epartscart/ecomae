@@ -2,8 +2,8 @@
   "role": "php-on-premises-authoritative-inventory",
   "generatedAtUnix": 1785870874,
   "phpAuthoritative": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "totalActions": 7,
   "actions": [

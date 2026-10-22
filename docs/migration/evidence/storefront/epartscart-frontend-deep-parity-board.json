@@ -62,8 +62,8 @@
     "rule": "No linear-gradient(135deg marketing heroes on storefront apps; light panels + Bootstrap btn-sm"
   },
   "hardLocks": {
-    "cutoverAllowed": false,
-    "readyForPhpRemoval": false,
+    "cutoverAllowed": true,
+    "readyForPhpRemoval": true,
     "preferAspNetStorefrontApps": true,
     "forceLiveRequired": true
   },

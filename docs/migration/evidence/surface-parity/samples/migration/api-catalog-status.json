@@ -19,6 +19,6 @@
   "source": "migration",
   "note": "migration-mode contract sample; PHP remains authoritative",
   "dualSampleBaseline": "migration-contract-golden",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true
 }

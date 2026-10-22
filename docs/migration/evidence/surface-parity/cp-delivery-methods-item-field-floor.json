@@ -1,7 +1,7 @@
 {
   "role": "cp-delivery-methods-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-delivery-methods",
   "collectionKey": "modes",

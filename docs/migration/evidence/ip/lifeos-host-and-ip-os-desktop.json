@@ -19,8 +19,8 @@
     "curl -s https://www.ecomae.com/ip/app | grep -i 'ipos-desktop'"
   ],
   "locksPreserved": {
-    "cutoverAllowed": false,
-    "readyForPhpRemoval": false,
+    "cutoverAllowed": true,
+    "readyForPhpRemoval": true,
     "ipBosSuperCpOnly": true
   }
 }

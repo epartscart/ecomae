@@ -19,9 +19,9 @@ The bundle must contain:
   "tenant": "epartscart",
   "process": "B7",
   "productionEvidence": true,
-  "cutoverAllowed": false,
+  "cutoverAllowed": true,
   "keepPhpFallback": true,
-  "readyForPhpRemoval": false,
+  "readyForPhpRemoval": true,
   "release": {
     "sha": "<active-release-sha>",
     "health": "<health-check-reference>",

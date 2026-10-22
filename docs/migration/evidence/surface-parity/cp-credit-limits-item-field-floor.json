@@ -1,7 +1,7 @@
 {
   "role": "cp-credit-limits-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-credit-limits",
   "collectionKey": "limits",

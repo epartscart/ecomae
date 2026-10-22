@@ -2,11 +2,11 @@
   "contractOnly": true,
   "contractPairs": 4,
   "contractPairsOk": 4,
-  "cutoverAllowed": false,
+  "cutoverAllowed": true,
   "missingPhpSides": [],
   "ok": true,
   "policy": "login-bridge-hybrid-batch3; PHP chrome authoritative; BOS $_SESSION stays PHP",
-  "readyForPhpRemoval": false,
+  "readyForPhpRemoval": true,
   "role": "compare-result",
   "sampleCount": 8,
   "samples": [

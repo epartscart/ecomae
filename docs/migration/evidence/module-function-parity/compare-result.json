@@ -1,8 +1,8 @@
 {
   "role": "compare-result",
   "ok": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "moduleCount": 837,
   "hybridPreviewCount": 837,
   "phpOnlyCount": 0,

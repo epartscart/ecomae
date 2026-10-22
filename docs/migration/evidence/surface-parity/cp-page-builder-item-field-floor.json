@@ -1,7 +1,7 @@
 {
   "role": "cp-page-builder-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-page-builder",
   "collectionKey": "layouts",

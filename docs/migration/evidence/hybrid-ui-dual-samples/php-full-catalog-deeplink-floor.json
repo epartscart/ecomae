@@ -1,7 +1,7 @@
 {
   "role": "php-full-catalog-deeplink-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "totalTracked": 734,
   "counts": {

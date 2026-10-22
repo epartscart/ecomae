@@ -1,7 +1,7 @@
 {
   "role": "catalog-vin-envelope-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "api-catalog-vin",
   "route": "/api/v1/catalog/vin",

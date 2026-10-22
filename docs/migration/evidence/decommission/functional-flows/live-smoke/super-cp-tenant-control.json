@@ -3,8 +3,8 @@
   "flowId": "super-cp-tenant-control",
   "title": "Super CP control of tenant CP (fleet / isolation / onboard)",
   "status": "blocked",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "requiredProbes": [
     "Super CP tenants list + BOS fleet-health sampleTenants for a live tenant",

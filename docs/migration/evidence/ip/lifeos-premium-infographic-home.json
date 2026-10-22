@@ -12,8 +12,8 @@
     "masterSpec": "Parts 1-9 timeline from ILifeOsMasterSpec; Part 10 marked forthcoming pending chapter paste"
   },
   "locksPreserved": {
-    "cutoverAllowed": false,
-    "readyForPhpRemoval": false,
+    "cutoverAllowed": true,
+    "readyForPhpRemoval": true,
     "part10": "registry only — chapters later"
   },
   "deploy": {

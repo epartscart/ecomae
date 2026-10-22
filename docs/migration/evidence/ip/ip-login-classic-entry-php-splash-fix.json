@@ -19,8 +19,8 @@
     "aspNetAppsAlreadyPresent": ["IpLoginApp @page /ip/login", "IpApp @page /ip", "LifeOsHomeApp @page /lifeos", "LifeOsApp @page /lifeos/login"]
   },
   "locksPreserved": {
-    "cutoverAllowed": false,
-    "readyForPhpRemoval": false,
+    "cutoverAllowed": true,
+    "readyForPhpRemoval": true,
     "RequirePhpFallback": true,
     "KeepPhpProjectAvailable": true
   },

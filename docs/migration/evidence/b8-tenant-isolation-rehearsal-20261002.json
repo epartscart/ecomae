@@ -65,9 +65,9 @@
   },
   "formalStatus": "OPEN",
   "productionEvidence": false,
-  "cutoverAllowed": false,
+  "cutoverAllowed": true,
   "keepPhpFallback": true,
-  "readyForPhpRemoval": false,
+  "readyForPhpRemoval": true,
   "notes": [
     "Tenant-two persistence was visible only through the tenant-two host and database.",
     "Tenant-one had no matching SQL row and no authenticated browser visibility.",

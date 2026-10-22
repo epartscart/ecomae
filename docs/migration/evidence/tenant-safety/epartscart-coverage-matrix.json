@@ -1,8 +1,8 @@
 {
   "role": "epartscart-frontend-cp-coverage-matrix",
   "tenant": "epartscart.com",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "generatedAtUnix": 1785867066,
   "storefront": {

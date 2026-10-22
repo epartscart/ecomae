@@ -1,8 +1,8 @@
 {
   "role": "compare-result",
   "ok": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "contractCount": 155,
   "boardStatus": "field-function-presentation-contracts-locked-cutover-blocked",
   "phpCatalogCoverageTracked": 734,

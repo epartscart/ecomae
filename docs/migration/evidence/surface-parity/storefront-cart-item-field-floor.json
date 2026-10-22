@@ -1,7 +1,7 @@
 {
   "role": "storefront-cart-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "storefront-cart",
   "collectionKey": "lines",

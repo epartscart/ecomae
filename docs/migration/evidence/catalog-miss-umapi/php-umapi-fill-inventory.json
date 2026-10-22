@@ -1,8 +1,8 @@
 {
   "role": "php-umapi-fill-inventory",
   "phpAuthoritative": true,
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "liveFillPaths": [
     "api/umapi_proxy.php",
     "api/v1/catalog.php"

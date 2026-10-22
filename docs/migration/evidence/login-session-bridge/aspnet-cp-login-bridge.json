@@ -11,7 +11,7 @@
     "kind": "Admin",
     "has_backend_access": true
   },
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "note": "Contract stub for Batch 3. Replace with live loopback capture on CloudPanel."
 }

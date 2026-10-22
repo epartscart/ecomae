@@ -1,7 +1,7 @@
 {
   "role": "cp-ai-service-item-field-floor",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false,
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true,
   "aspNetInteractiveComplete": 0,
   "stem": "cp-ai-service",
   "collectionKey": "queries",

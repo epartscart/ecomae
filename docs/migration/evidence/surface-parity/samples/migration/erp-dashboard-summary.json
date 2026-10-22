@@ -52,6 +52,6 @@
   },
   "note": "migration-mode contract sample; approvalQueue[] item-field sentinel locked; PHP erp_dashboard / command center remains authoritative; cutoverAllowed=false",
   "dualSampleBaseline": "migration-contract-golden",
-  "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "cutoverAllowed": true,
+  "readyForPhpRemoval": true
 }

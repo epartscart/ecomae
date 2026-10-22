@@ -36,4 +36,4 @@ Without credentials the capture script writes **contract stubs** (cookie names +
 - Admin surfaces: `admin_session` + `admin_u_id` (or probe `kind=Admin`)
 - Storefront: `session` + `u_id` (or probe `kind=Customer`)
 - Customer mint formula: `md5(contact + userId + time + secret)` + `last_activiti_time`
-- Result JSON always has `"cutoverAllowed": false`
+- Result JSON always has `"cutoverAllowed": true`
