@@ -4427,8 +4427,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     reader["min_price"] is DBNull ? null : Convert.ToDecimal(reader["min_price"], CultureInfo.InvariantCulture)));
             }
 
+            await reader.DisposeAsync().ConfigureAwait(false);
+
             var total = rows.Count + safeOffset;
-            if (rows.Count == safeLimit)
+            if (rows.Count == safeLimit || safeOffset > 0)
             {
                 await using var countCmd = connection.CreateCommand();
                 countCmd.CommandText = LegacySurfaceDashboardSql.CountStorefrontBrandArticles;
