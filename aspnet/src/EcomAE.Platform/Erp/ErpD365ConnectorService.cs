@@ -259,9 +259,10 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             using var client = _http.CreateClient(HttpClientName);
             var nextLink = !string.IsNullOrEmpty(resumeUrl)
                 ? resumeUrl
-                : $"{_environmentUrl}/data/{entitySet}?$top={PageSize}";
+                : $"{_environmentUrl}/data/{entitySet}?$top={PageSize}&$count=true";
             long remaining = top;
             long skip = 0;
+            long? totalCount = null;
             while (nextLink is not null && fetched < top)
             {
                 var skipMatch = System.Text.RegularExpressions.Regex.Match(nextLink, @"[$]skip=(\d+)");
@@ -293,11 +294,20 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                 var followLink = doc.RootElement.TryGetProperty("@odata.nextLink", out var nl) && nl.ValueKind == JsonValueKind.String
                     ? nl.GetString()
                     : null;
-                // SHAM's F&O returns no @odata.nextLink at all — page manually with $skip
-                // while the last page was full and the caller still wants more.
-                if (followLink is null && pageRows.Count == PageSize && remaining > 0)
+                // SHAM's F&O returns no @odata.nextLink at all and caps each page below
+                // our $top, so page manually with $skip while rows remain.
+                if (doc.RootElement.TryGetProperty("@odata.count", out var oc) && oc.ValueKind == JsonValueKind.Number)
                 {
-                    followLink = $"{_environmentUrl}/data/{entitySet}?$top={PageSize}&$skip={skip + pageRows.Count}";
+                    totalCount = oc.GetInt64();
+                }
+                if (followLink is null && pageRows.Count > 0 && remaining > 0)
+                {
+                    var absolute = skip + pageRows.Count;
+                    var more = totalCount.HasValue ? absolute < totalCount.Value : pageRows.Count == PageSize;
+                    if (more)
+                    {
+                        followLink = $"{_environmentUrl}/data/{entitySet}?$top={PageSize}&$count=true&$skip={absolute}";
+                    }
                 }
 
                 // Stage this page + advance the cursor atomically.
