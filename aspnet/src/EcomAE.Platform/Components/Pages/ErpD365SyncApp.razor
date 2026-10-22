@@ -32,6 +32,8 @@
     .tg-pill-ok { background:#e8f6ee; color:#0f6b3f; }
     .tg-pill-warn { background:#fff3d6; color:#8a5a00; }
     .tg-pill-err { background:#fdeaea; color:#9c1c1c; }
+    .tg-payload { font-family:ui-monospace,Consolas,monospace; font-size:11px; color:#33465a; white-space:pre-wrap; word-break:break-all; max-width:520px; }
+    details.tg-obj summary { cursor:pointer; color:#1c5d96; font-size:12px; }
 </style>
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="D365 sync" BreadcrumbArea="Organization" BreadcrumbTab="D365 sync">
@@ -73,6 +75,22 @@
                     <button type="submit">Test connection</button>
                 </form>
             }
+        </div>
+
+        <div class="tg-card tg-form">
+            <h3>Browse staged objects</h3>
+            <p>Filter the staged-object grid below to one entity.</p>
+            <form method="get" action="@Post("/erp/d365-sync")">
+                <label>Entity</label>
+                <select name="entity">
+                    <option value="">— all entities —</option>
+                    @foreach (var kv in ErpD365ConnectorService.KnownEntities)
+                    {
+                        <option value="@kv.Key" selected="@(kv.Key == _entityFilter)">@kv.Value — @kv.Key</option>
+                    }
+                </select>
+                <button type="submit">Filter</button>
+            </form>
         </div>
 
         <div class="tg-card tg-form">
@@ -121,6 +139,37 @@
             </table>
         }
     </div>
+
+    <div class="tg-card">
+        <h3>Staged objects@(string.IsNullOrWhiteSpace(_entityFilter) ? "" : " — " + _entityFilter)</h3>
+        <p>The pulled rows land here (latest first). The raw F&amp;O payload is shown per row — expand to inspect the exact fields SHAM sends.</p>
+        @if (_objects.Count == 0)
+        {
+            <p>No staged objects yet — pull an entity above.</p>
+        }
+        else
+        {
+            <table class="tg-table">
+                <thead><tr><th>Entity</th><th>External key</th><th>Synced</th><th>Payload</th></tr></thead>
+                <tbody>
+                @foreach (var o in _objects)
+                {
+                    <tr>
+                        <td>@o.Entity</td>
+                        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@o.ExternalKey</td>
+                        <td>@(o.SyncedAt > 0 ? DateTimeOffset.FromUnixTimeSeconds(o.SyncedAt).UtcDateTime.ToString("yyyy-MM-dd HH:mm") : "—")</td>
+                        <td>
+                            <details class="tg-obj">
+                                <summary>@ShortPayload(o.Payload)</summary>
+                                <div class="tg-payload">@o.Payload</div>
+                            </details>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
 </PhpErpDesktopChrome>
 
 @code {
@@ -130,6 +179,8 @@
     private string _flashErr = "";
     private ErpD365ConnectionStatus? _status;
     private IReadOnlyList<ErpD365SyncRun> _runs = Array.Empty<ErpD365SyncRun>();
+    private IReadOnlyList<ErpD365StagedObject> _objects = Array.Empty<ErpD365StagedObject>();
+    private string _entityFilter = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -140,6 +191,7 @@
         _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted).ConfigureAwait(false);
         _flashOk = ctx.Request.Query["ok"].ToString();
         _flashErr = ctx.Request.Query["err"].ToString();
+        _entityFilter = ctx.Request.Query["entity"].ToString();
 
         try
         {
@@ -148,6 +200,9 @@
                 await using var conn = await Connections.OpenAsync(ctx.RequestAborted).ConfigureAwait(false);
                 _status = await D365.GetStatusAsync(conn, ctx.RequestAborted).ConfigureAwait(false);
                 _runs = await D365.RecentRunsAsync(conn, 25, ctx.RequestAborted).ConfigureAwait(false);
+                _objects = await D365.StagedObjectsAsync(conn,
+                    string.IsNullOrWhiteSpace(_entityFilter) ? null : _entityFilter,
+                    50, ctx.RequestAborted).ConfigureAwait(false);
             }
         }
         catch
@@ -157,6 +212,12 @@
     }
 
     private string Post(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext!, path);
+
+    private static string ShortPayload(string payload)
+    {
+        var text = payload.Length > 140 ? payload[..140] + "…" : payload;
+        return text.Replace('\n', ' ').Replace('\r', ' ');
+    }
 
     private MarkupString HiddenFields()
     {
