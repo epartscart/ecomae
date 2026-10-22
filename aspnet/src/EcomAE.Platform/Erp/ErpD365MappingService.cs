@@ -1082,41 +1082,33 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
     /// mapping. Unmatched segments are kept as dimension values, never force-created as the wrong
     /// kind. Returns (legalEntityId, businessUnitId, dimTypeCode, dimValueCode).
     /// </summary>
-    private static async Task<(long EntityId, long BuId, long CostCentreId, string TypeCode, string ValueCode)> ResolveDimensionsAsync(
-        DbConnection connection, DbTransaction tx, string dimensionString, JsonElement row, CancellationToken ct)
+    private static async Task<(long EntityId, long BuId, string TypeCode, string ValueCode)> ResolveDimensionsAsync(
+        DbConnection connection, DbTransaction tx, string accountDimensionString, string defaultDimensionString, JsonElement row, CancellationToken ct)
     {
         var entityId = 0L;
         var buId = 0L;
-        var costCentreId = 0L;
         var typeCode = "";
         var valueCode = "";
+        // Account-bearing strings (LedgerDimension/AccountDisplayValue) lead with the main account
+        // — skip segment 0. Default-dimension strings hold ONLY dimension values, keep them all.
         var segments = new List<string>();
-        var explicitBu = Str(row, "BusinessUnit");
-        var explicitEntity = Str(row, "LegalEntity", "Company", "CompanyCode");
+        var accSegs = accountDimensionString.Split('-', '|').Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
+        if (accSegs.Count > 0)
+        {
+            accSegs.RemoveAt(0);
+            segments.AddRange(accSegs);
+        }
+        segments.AddRange(defaultDimensionString.Split('-', '|').Select(s => s.Trim()).Where(s => s.Length > 0));
+        // Explicit per-dimension payload fields supplement the string, never replace it.
+        foreach (var f in new[] { Str(row, "LegalEntity", "Company", "CompanyCode"), Str(row, "BusinessUnit"), Str(row, "CostCenter", "CostCentre"), Str(row, "Department") })
+        {
+            if (f.Length > 0 && !segments.Contains(f, StringComparer.OrdinalIgnoreCase))
+            {
+                segments.Add(f);
+            }
+        }
         var explicitCostCentre = Str(row, "CostCenter", "CostCentre");
         var explicitDepartment = Str(row, "Department");
-        if (explicitBu.Length > 0 || explicitEntity.Length > 0 || explicitCostCentre.Length > 0 || explicitDepartment.Length > 0)
-        {
-            if (explicitEntity.Length > 0) segments.Add(explicitEntity);
-            if (explicitBu.Length > 0) segments.Add(explicitBu);
-            if (explicitCostCentre.Length > 0) segments.Add(explicitCostCentre);
-            if (explicitDepartment.Length > 0) segments.Add(explicitDepartment);
-        }
-        else
-        {
-            foreach (var seg in dimensionString.Split('-', '|'))
-            {
-                var s = seg.Trim();
-                if (s.Length > 0)
-                {
-                    segments.Add(s);
-                }
-            }
-            if (segments.Count > 0)
-            {
-                segments.RemoveAt(0); // segment 0 is the main account code
-            }
-        }
         foreach (var seg in segments)
         {
             // Classify by what EXISTS in our masters — a D365 code can be a BU here and a legal
@@ -1141,26 +1133,11 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                 }
                 catch (DbException) { }
             }
-            // Dimension value master: reuse an existing value (any type) — a code already
-            // classified keeps its kind; new codes go under 'other' (never dropped).
+            // Dimension value master: reuse an existing value (any type); new codes go under
+            // 'other' — nothing is dropped and ids never alias master ids.
             try
             {
-                var (valId, valType) = await EnsureDimValueAsync(connection, tx, seg, seg == explicitCostCentre ? "cost_centre" : seg == explicitDepartment ? "department" : null, ct).ConfigureAwait(false);
-                if (valType.Equals("cost_centre", StringComparison.OrdinalIgnoreCase) && costCentreId == 0)
-                {
-                    costCentreId = valId;
-                    continue;
-                }
-                if (valType.Equals("legal_entity", StringComparison.OrdinalIgnoreCase) && entityId == 0)
-                {
-                    entityId = valId;
-                    continue;
-                }
-                if (valType.Equals("business_unit", StringComparison.OrdinalIgnoreCase) && buId == 0)
-                {
-                    buId = valId;
-                    continue;
-                }
+                var (_, valType) = await EnsureDimValueAsync(connection, tx, seg, seg == explicitCostCentre ? "cost_centre" : seg == explicitDepartment ? "department" : null, ct).ConfigureAwait(false);
                 if (valueCode.Length == 0)
                 {
                     typeCode = valType;
@@ -1176,7 +1153,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                 }
             }
         }
-        return (entityId, buId, costCentreId, typeCode, valueCode);
+        return (entityId, buId, typeCode, valueCode);
     }
 
     /// <summary>
@@ -1270,7 +1247,9 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         if (note.Length == 0) note = voucher;
 
         var dimensionString = Str(row, "LedgerDimension", "AccountDisplayValue", "DimensionDisplayValue", "DefaultDimensionDisplayValue");
-        var (dimEntityId, dimBuId, dimCostCentreId, dimTypeCode, dimValueCode) = await ResolveDimensionsAsync(connection, tx, dimensionString, row, ct).ConfigureAwait(false);
+        var accountDimString = Str(row, "LedgerDimension", "AccountDisplayValue");
+        var defaultDimString = Str(row, "DimensionDisplayValue", "DefaultDimensionDisplayValue");
+        var (dimEntityId, dimBuId, dimTypeCode, dimValueCode) = await ResolveDimensionsAsync(connection, tx, accountDimString, defaultDimString, row, ct).ConfigureAwait(false);
         var legalEntityId = dimEntityId > 0 ? dimEntityId : await ResolveCompanyIdAsync(connection, tx, row, ct).ConfigureAwait(false);
         var hasDimString = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_string", ct).ConfigureAwait(false);
         var hasVoucher = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "voucher", ct).ConfigureAwait(false);
@@ -1305,7 +1284,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             if (hasBu) { cols.Add("`business_unit_id`"); marks.Add("?"); vals.Add(dimBuId); }
             if (hasDimType) { cols.Add("`dimension_type_code`"); marks.Add("?"); vals.Add(Clip(dimTypeCode, 32)); }
             if (hasDimValue) { cols.Add("`dimension_value_code`"); marks.Add("?"); vals.Add(Clip(dimValueCode, 64)); }
-            if (hasCostCentre) { cols.Add("`cost_centre_id`"); marks.Add("?"); vals.Add(dimCostCentreId); }
+            if (hasCostCentre) { cols.Add("`cost_centre_id`"); marks.Add("?"); vals.Add(0L); }
             await ErpDb.ExecuteAsync(connection, tx,
                 ErpDb.Positional("INSERT INTO `epc_erp_gl_lines` (" + string.Join(", ", cols) + ") VALUES (" + string.Join(", ", marks) + ")"),
                 ct, vals.ToArray()).ConfigureAwait(false);
@@ -1322,7 +1301,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             if (hasBu) { sets.Add("`business_unit_id` = ?"); vals.Add(dimBuId); }
             if (hasDimType) { sets.Add("`dimension_type_code` = ?"); vals.Add(Clip(dimTypeCode, 32)); }
             if (hasDimValue) { sets.Add("`dimension_value_code` = ?"); vals.Add(Clip(dimValueCode, 64)); }
-            if (hasCostCentre) { sets.Add("`cost_centre_id` = ?"); vals.Add(dimCostCentreId); }
+            if (hasCostCentre) { sets.Add("`cost_centre_id` = ?"); vals.Add(0L); }
             vals.Add(existing);
             await ErpDb.ExecuteAsync(connection, tx,
                 ErpDb.Positional("UPDATE `epc_erp_gl_lines` SET " + string.Join(", ", sets) + " WHERE `id` = ?"),
