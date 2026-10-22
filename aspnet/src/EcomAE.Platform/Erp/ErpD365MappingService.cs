@@ -54,6 +54,18 @@ public sealed class ErpD365MappingService : IErpD365MappingService
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
             cancellationToken).ConfigureAwait(false);
 
+        await ErpDb.TryExecuteAsync(connection,
+            "CREATE TABLE IF NOT EXISTS `epc_d365_object_fields` (" +
+            "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
+            "entity VARCHAR(128) NOT NULL," +
+            "ext_key VARCHAR(255) NOT NULL DEFAULT ''," +
+            "field_name VARCHAR(191) NOT NULL," +
+            "field_value MEDIUMTEXT NULL," +
+            "UNIQUE KEY uq_entity_ext_field (entity, ext_key, field_name)," +
+            "KEY ix_entity (entity, ext_key)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+            cancellationToken).ConfigureAwait(false);
+
         var staged = new List<(string Key, string Payload)>();
         await using (var command = connection.CreateCommand())
         {
@@ -77,7 +89,7 @@ public sealed class ErpD365MappingService : IErpD365MappingService
         var mapped = 0;
         var skipped = 0;
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
-        foreach (var (_, payload) in staged)
+        foreach (var (extKey, payload) in staged)
         {
             JsonDocument doc;
             try
@@ -104,6 +116,7 @@ public sealed class ErpD365MappingService : IErpD365MappingService
                 };
                 if (applied)
                 {
+                    await StoreFieldsAsync(connection, transaction, entity, extKey, doc.RootElement, cancellationToken).ConfigureAwait(false);
                     mapped++;
                 }
                 else
@@ -116,6 +129,23 @@ public sealed class ErpD365MappingService : IErpD365MappingService
 
         var label = MappedEntities[entity];
         return new ErpD365ApplyResult(true, "ok", $"Applied {mapped} row(s) into {label}.", mapped, skipped);
+    }
+
+    /// <summary>Stores every F&O payload field for a staged row in epc_d365_object_fields (one row per field) so the module screens can display the complete field set, not just the mapped columns.</summary>
+    private static async Task StoreFieldsAsync(DbConnection connection, DbTransaction tx, string entity, string extKey, JsonElement row, CancellationToken ct)
+    {
+        await ErpDb.ExecuteAsync(connection, tx,
+            ErpDb.Positional("DELETE FROM `epc_d365_object_fields` WHERE `entity` = ? AND `ext_key` = ?"),
+            ct, entity, extKey).ConfigureAwait(false);
+        foreach (var property in row.EnumerateObject())
+        {
+            var text = property.Value.ValueKind == JsonValueKind.String
+                ? property.Value.GetString()
+                : property.Value.GetRawText();
+            await ErpDb.ExecuteAsync(connection, tx,
+                ErpDb.Positional("INSERT INTO `epc_d365_object_fields` (`entity`, `ext_key`, `field_name`, `field_value`) VALUES (?, ?, ?, ?)"),
+                ct, entity, extKey, Clip(property.Name, 191), Clip(text, 60000)).ConfigureAwait(false);
+        }
     }
 
     // ---- field helpers ----
