@@ -481,9 +481,17 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             "FiscalYear", "FiscalPeriod", "Period", "AccountingDate",
         })
         {
-            if (row.TryGetProperty(candidate, out var p) && p.ValueKind == JsonValueKind.String && p.GetString() is { Length: > 0 } s)
+            if (row.TryGetProperty(candidate, out var p))
             {
-                parts.Add(s);
+                // F&O sends ids like LineNumber as JSON numbers, not strings — accept both.
+                if (p.ValueKind == JsonValueKind.String && p.GetString() is { Length: > 0 } s)
+                {
+                    parts.Add(s);
+                }
+                else if (p.ValueKind is JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False)
+                {
+                    parts.Add(p.GetRawText());
+                }
             }
         }
         if (parts.Count == 0)
