@@ -18,14 +18,20 @@ public interface IErpD365MappingService
     IReadOnlyDictionary<string, string> MappedEntities { get; }
     Task<ErpD365ApplyResult> ApplyAsync(DbConnection connection, string entity, long adminId, CancellationToken cancellationToken = default);
 
-    /// <summary>Live trial-balance compare: our GL balances per account vs balances aggregated from staged D365 posted transactions (GeneralLedgerBalanceCDREntities), keyed by dimension string for the dimension-set pivot.</summary>
-    Task<IReadOnlyList<ErpD365TbCompareRow>> TrialBalanceCompareAsync(DbConnection connection, CancellationToken cancellationToken = default);
+    /// <summary>Live trial-balance compare: our GL balances per account vs balances aggregated from staged D365 posted transactions (GeneralLedgerBalanceCDREntities), keyed by dimension string for the dimension-set pivot — plus total debit/credit both sides must agree on.</summary>
+    Task<ErpD365TbCompare> TrialBalanceCompareAsync(DbConnection connection, CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpD365TbCompareRow(string AccountCode, string AccountName, string Dimension, decimal EcomAeBalance, decimal D365Balance)
 {
     public decimal Difference => EcomAeBalance - D365Balance;
     public bool Matches => Math.Abs(Difference) < 0.005m;
+}
+
+/// <summary>Trial-balance compare: per-account+dimension rows plus the debit/credit totals both sides must agree on (a TB match means every detail row AND the totals match).</summary>
+public sealed record ErpD365TbCompare(IReadOnlyList<ErpD365TbCompareRow> Rows, decimal EcomAeDebit, decimal EcomAeCredit, decimal D365Debit, decimal D365Credit)
+{
+    public bool TotalsMatch => Math.Abs(EcomAeDebit - D365Debit) < 0.005m && Math.Abs(EcomAeCredit - D365Credit) < 0.005m;
 }
 
 public sealed record ErpD365ApplyResult(bool Succeeded, string Code, string Message, int Mapped, int Skipped);
@@ -165,10 +171,17 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         // dimension tables on top of them, so a fresh tenant needs the base ensure.
         await glPosting.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await glService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
-        // Stable D365 identity column on GL lines — added here (pre-transaction) because ALTER
-        // implicitly commits any open MySQL transaction.
+        // Stable D365 identity columns on GL lines — added here (pre-transaction) because ALTER
+        // implicitly commits any open MySQL transaction. line_ref carries the D365 line number
+        // (stable across amount/note/dimension edits); ext_entity scopes a line to its feed.
         await ErpDb.TryExecuteAsync(connection,
             "ALTER TABLE `epc_erp_gl_lines` ADD `ext_key` varchar(255) NOT NULL DEFAULT ''",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(connection,
+            "ALTER TABLE `epc_erp_gl_lines` ADD `line_ref` varchar(64) NOT NULL DEFAULT ''",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(connection,
+            "ALTER TABLE `epc_erp_gl_lines` ADD `ext_entity` varchar(64) NOT NULL DEFAULT ''",
             cancellationToken).ConfigureAwait(false);
 
         var staged = new List<(string Key, string Payload)>();
@@ -193,8 +206,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
 
         var mapped = 0;
         var skipped = 0;
-        var appliedJournalLineKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var touchedJournalIds = new HashSet<long>();
+        var appliedJournalLineRefs = new Dictionary<long, HashSet<string>>();
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         foreach (var (extKey, payload) in staged)
         {
@@ -225,7 +237,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                     "VendorInvoiceHeaders" => await ApplyPurchaseInvoiceAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
                     "VendorInvoiceLines" => await ApplyPurchaseInvoiceLineAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     "CustomerPaymentJournalHeaders" or "VendorPaymentJournalHeaders" or "LedgerJournalHeaders" => await ApplyJournalHeaderAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
-                    "CustomerPaymentJournalLines" or "VendorPaymentJournalLines" or "LedgerJournalLines" => await ApplyJournalLineAsync(connection, transaction, doc.RootElement, extKey, appliedJournalLineKeys, touchedJournalIds, cancellationToken).ConfigureAwait(false),
+                    "CustomerPaymentJournalLines" or "VendorPaymentJournalLines" or "LedgerJournalLines" => await ApplyJournalLineAsync(connection, transaction, doc.RootElement, extKey, entity, appliedJournalLineRefs, cancellationToken).ConfigureAwait(false),
                     "MainAccounts" => await ApplyMainAccountAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     _ => false,
                 };
@@ -240,28 +252,24 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                 }
             }
         }
-        // Journal-line reconcile: a dimension or voucher edit changes the staged key, so the OLD
-        // keyed line no longer matches any staged row. Any ext_key line on a touched journal whose
-        // key was not applied this run is stale — delete it or the balance double-counts.
-        if (touchedJournalIds.Count > 0)
+        // Journal-line reconcile: a dimension or voucher edit changes the staged key, so a stale
+        // staged row could leave a dead GL line. Delete keyed lines of THIS feed on touched journals
+        // whose line_ref was not applied — scoped by ext_entity so a different feed's lines on the
+        // same journal are never erased. Chunked: one delete binds at most ~400 params.
+        foreach (var (journalId, refs) in appliedJournalLineRefs)
         {
-            foreach (var journalId in touchedJournalIds)
+            if (refs.Count == 0)
             {
-                if (appliedJournalLineKeys.Count == 0)
-                {
-                    await ErpDb.ExecuteAsync(connection, transaction,
-                        ErpDb.Positional("DELETE FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_key` <> ''"),
-                        cancellationToken, journalId).ConfigureAwait(false);
-                }
-                else
-                {
-                    var marks = string.Join(",", appliedJournalLineKeys.Select(_ => "?"));
-                    var args = new List<object?> { journalId };
-                    args.AddRange(appliedJournalLineKeys.Select(k => (object?)Clip(k, 255)));
-                    await ErpDb.ExecuteAsync(connection, transaction,
-                        ErpDb.Positional($"DELETE FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_key` <> '' AND `ext_key` NOT IN ({marks})"),
-                        cancellationToken, args.ToArray()).ConfigureAwait(false);
-                }
+                continue;
+            }
+            foreach (var chunk in refs.Chunk(400))
+            {
+                var marks = string.Join(",", chunk.Select(_ => "?"));
+                var args = new List<object?> { journalId, entity };
+                args.AddRange(chunk.Select(k => (object?)Clip(k, 64)));
+                await ErpDb.ExecuteAsync(connection, transaction,
+                    ErpDb.Positional($"DELETE FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_entity` = ? AND `line_ref` <> '' AND `line_ref` NOT IN ({marks})"),
+                    cancellationToken, args.ToArray()).ConfigureAwait(false);
             }
         }
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
@@ -271,12 +279,13 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<ErpD365TbCompareRow>> TrialBalanceCompareAsync(DbConnection connection, CancellationToken cancellationToken = default)
+    public async Task<ErpD365TbCompare> TrialBalanceCompareAsync(DbConnection connection, CancellationToken cancellationToken = default)
     {
-        // EcomAE side: posted GL lines per account + dimension string.
+        // EcomAE side: posted GL lines per account + dimension string, with debit/credit totals.
         var ours = new Dictionary<string, (string Name, decimal Balance)>(StringComparer.OrdinalIgnoreCase);
+        decimal ourDr = 0m, ourCr = 0m;
         var oursSql =
-            "SELECT a.`code`, a.`name`, IFNULL(l.`dimension_string`,''), IFNULL(SUM(l.`debit`),0)-IFNULL(SUM(l.`credit`),0) " +
+            "SELECT a.`code`, a.`name`, IFNULL(l.`dimension_string`,''), IFNULL(SUM(l.`debit`),0), IFNULL(SUM(l.`credit`),0) " +
             "FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.`id` = l.`coa_id` " +
             "GROUP BY a.`code`, a.`name`, IFNULL(l.`dimension_string`,'')";
         try
@@ -287,7 +296,11 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 var key = reader.GetString(0) + "\u001f" + reader.GetString(2);
-                ours[key] = (reader.GetString(1), reader.GetDecimal(3));
+                var dr = reader.GetDecimal(3);
+                var cr = reader.GetDecimal(4);
+                ours[key] = (reader.GetString(1), dr - cr);
+                ourDr += dr;
+                ourCr += cr;
             }
         }
         catch
@@ -298,6 +311,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         // D365 side: staged posted entries (GeneralLedgerBalanceCDREntities) aggregated per account+dimension.
         var theirs = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
         var snapshotPeriods = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        decimal theirDr = 0m, theirCr = 0m;
         await using (var command = connection.CreateCommand())
         {
             command.CommandText = "SELECT payload FROM epc_d365_sync_objects WHERE entity = 'GeneralLedgerBalanceCDREntities'";
@@ -326,6 +340,8 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                     }
                     var net = debit - credit;
                     var key = code + "\u001f" + dimension;
+                    theirDr += debit;
+                    theirCr += credit;
                     // Period snapshots are cumulative: keep the latest period's balance rather than
                     // summing closing balances across periods (Jan 100 + Feb 140 = 140, not 240).
                     var period = Str(doc.RootElement, "FiscalPeriod", "Period", "FiscalYear", "AccountingPeriod");
@@ -357,7 +373,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             var theirBalance = theirs.TryGetValue(key, out var t) ? t : 0m;
             rows.Add(new ErpD365TbCompareRow(code, ourRow.Name, dim, ourRow.Balance, theirBalance));
         }
-        return rows;
+        return new ErpD365TbCompare(rows, ourDr, ourCr, theirDr, theirCr);
     }
 
     /// <summary>Stores every F&O payload field for a staged row in epc_d365_object_fields (one row per field) so the module screens can display the complete field set, not just the mapped columns.</summary>
@@ -931,7 +947,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
     }
 
     /// <summary>LedgerJournalLines → epc_erp_gl_lines (parent via company-scoped journal_no, coa via main account).</summary>
-    private static async Task<bool> ApplyJournalLineAsync(DbConnection connection, DbTransaction tx, JsonElement row, string extKey, HashSet<string> appliedKeys, HashSet<long> touchedJournalIds, CancellationToken ct)
+    private static async Task<bool> ApplyJournalLineAsync(DbConnection connection, DbTransaction tx, JsonElement row, string extKey, string entity, Dictionary<long, HashSet<string>> appliedRefsByJournal, CancellationToken ct)
     {
         var journalNo = ScopedKey(row, Str(row, "JournalNumber", "JournalBatchNumber", "JournalId"), 32);
         var accountCode = Str(row, "MainAccount", "MainAccountId", "AccountDisplayValue", "LedgerDimension");
@@ -946,8 +962,17 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         {
             return false;
         }
-        touchedJournalIds.Add(journalId);
-        appliedKeys.Add(extKey);
+        // The D365 line number is the stable identity of this line — amount, note, voucher and
+        // dimension edits all keep it, so matching on it updates in place (no duplicates, no collapse).
+        var lineRef = Str(row, "LineNumber", "JournalLineNumber", "VoucherLineNumber", "LineRef", "RecId");
+        if (lineRef.Length == 0) lineRef = "k:" + extKey; // no line id in payload — fall back to the staged key
+        lineRef = Clip(lineRef, 64);
+        if (!appliedRefsByJournal.TryGetValue(journalId, out var refs))
+        {
+            refs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            appliedRefsByJournal[journalId] = refs;
+        }
+        refs.Add(lineRef);
 
         // Resolve the COA row: take the main-account segment when the field carries a dimension string.
         var code = accountCode.Split('-', '|')[0].Trim();
@@ -968,30 +993,25 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         var hasDimString = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_string", ct).ConfigureAwait(false);
         var hasVoucher = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "voucher", ct).ConfigureAwait(false);
 
-        // The staged staging key is the stable D365 identity of this line (company|doc|line ids) —
-        // matching on it means an edited amount OR note updates the same GL line instead of
-        // appending a duplicate, while two distinct lines can never collapse into one.
-        // (The `ext_key` column is ensured in ApplyAsync before the transaction opens — DDL must not
-        // run here: MySQL ALTER implicitly commits the ambient transaction.)
         var existing = await ErpDb.LongAsync(connection, tx,
-            ErpDb.Positional("SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_key` = ? LIMIT 1"),
-            ct, journalId, Clip(extKey, 255)).ConfigureAwait(false);
+            ErpDb.Positional("SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `line_ref` = ? AND `ext_entity` = ? LIMIT 1"),
+            ct, journalId, lineRef, Clip(entity, 64)).ConfigureAwait(false);
         if (existing <= 0)
         {
-            // Legacy rows applied before ext_key existed: claim by the old match and stamp the key.
+            // Legacy rows applied before line_ref existed: claim by the old match and stamp the ref.
             existing = await ErpDb.LongAsync(connection, tx,
                 ErpDb.Positional(hasVoucher && voucher.Length > 0
-                    ? "SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `coa_id` = ? AND IFNULL(`line_note`,'') = ? AND `voucher` = ? AND `ext_key` = '' LIMIT 1"
-                    : "SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `coa_id` = ? AND IFNULL(`line_note`,'') = ? AND `ext_key` = '' LIMIT 1"),
+                    ? "SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `coa_id` = ? AND IFNULL(`line_note`,'') = ? AND `voucher` = ? AND `line_ref` = '' LIMIT 1"
+                    : "SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `coa_id` = ? AND IFNULL(`line_note`,'') = ? AND `line_ref` = '' LIMIT 1"),
                 ct, hasVoucher && voucher.Length > 0
                     ? new object?[] { journalId, coaId, Clip(note, 255), Clip(voucher, 255) }
                     : new object?[] { journalId, coaId, Clip(note, 255) }).ConfigureAwait(false);
         }
         if (existing <= 0)
         {
-            var cols = new List<string> { "`journal_id`", "`coa_id`", "`debit`", "`credit`", "`line_note`", "`ext_key`" };
-            var marks = new List<string> { "?", "?", "?", "?", "?", "?" };
-            var vals = new List<object?> { journalId, coaId, debit, credit, Clip(note, 255), Clip(extKey, 255) };
+            var cols = new List<string> { "`journal_id`", "`coa_id`", "`debit`", "`credit`", "`line_note`", "`ext_key`", "`line_ref`", "`ext_entity`" };
+            var marks = new List<string> { "?", "?", "?", "?", "?", "?", "?", "?" };
+            var vals = new List<object?> { journalId, coaId, debit, credit, Clip(note, 255), Clip(extKey, 255), lineRef, Clip(entity, 64) };
             if (hasDimString) { cols.Add("`dimension_string`"); marks.Add("?"); vals.Add(Clip(dimensionString, 255)); }
             if (hasVoucher) { cols.Add("`voucher`"); marks.Add("?"); vals.Add(Clip(voucher, 255)); }
             await ErpDb.ExecuteAsync(connection, tx,
@@ -1001,9 +1021,9 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         else
         {
             // coa_id is always updated: a changed MainAccount resolves a new account and the
-            // stable ext_key match must not leave the amount on the old one.
-            var sets = new List<string> { "`coa_id` = ?", "`debit` = ?", "`credit` = ?", "`line_note` = ?", "`ext_key` = ?" };
-            var vals = new List<object?> { coaId, debit, credit, Clip(note, 255), Clip(extKey, 255) };
+            // stable line_ref match must not leave the amount on the old one.
+            var sets = new List<string> { "`coa_id` = ?", "`debit` = ?", "`credit` = ?", "`line_note` = ?", "`ext_key` = ?", "`ext_entity` = ?" };
+            var vals = new List<object?> { coaId, debit, credit, Clip(note, 255), Clip(extKey, 255), Clip(entity, 64) };
             if (hasDimString && dimensionString.Length > 0) { sets.Add("`dimension_string` = ?"); vals.Add(Clip(dimensionString, 255)); }
             if (hasVoucher && voucher.Length > 0) { sets.Add("`voucher` = ?"); vals.Add(Clip(voucher, 255)); }
             vals.Add(existing);
