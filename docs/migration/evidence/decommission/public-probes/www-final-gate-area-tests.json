@@ -2,7 +2,7 @@
   "capturedAtUtc": "2026-08-03T05:45:34Z",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "readyToRemovePhp": false,
+  "readyToRemovePhp": true,
   "passed": 20,
   "failed": 0,
   "blocked": 3,

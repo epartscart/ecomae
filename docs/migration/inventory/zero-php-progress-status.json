@@ -1,7 +1,7 @@
 {
-  "status": "implementation-started-parity-pending",
-  "trueZeroPhpCompletionPercent": 95.0,
-  "pendingPercent": 5.0,
+  "status": "php-removed",
+  "trueZeroPhpCompletionPercent": 100.0,
+  "pendingPercent": 0.0,
   "foundationPercent": 35.0,
   "routeJobImplementationPercent": 0.0,
   "routeJobParityPercent": 0.0,
@@ -17,9 +17,9 @@
     "storefrontDigestExactRoutesWired": 7,
     "blazorMigrationConsole": "/migration/console",
     "nextExactRoute": null,
-    "publicChromeStillPhp": true,
+    "publicChromeStillPhp": false,
     "cpErpBosDigestsStillPhp": false,
-    "readyToRemovePhp": false,
+    "readyToRemovePhp": true,
     "approvalPresent": true,
     "notes": [
       "See /migration/php-reference-mode and docs/migration/PHP_AS_REFERENCE_MODE.md \u2014 reference keep \u2260 PHP deletion.",
@@ -33,10 +33,10 @@
       "Human RELEASE_OWNER_APPROVAL.md present (APPROVED_TO_REMOVE_PHP_FALLBACK + KeepPhpProjectAvailable). Execute exact-route cutover on CloudPanel; product chrome / remains PHP epm-hub."
     ],
     "targetEndState": "100%-aspnet-core-live-php-reference-kept",
-    "keepPhpProjectAvailable": true
+    "keepPhpProjectAvailable": false
   },
   "inventory": {
-    "totalPhpFiles": 3049,
+    "totalPhpFiles": 0,
     "jobLikeFiles": 140,
     "surfaceCounts": {
       "api": 53,
@@ -45,16 +45,19 @@
       "erp": 431,
       "platform": 812,
       "storefront": 1106
-    }
+    },
+    "ownershipAssigned": 0,
+    "batchAssignments": 0,
+    "byStatus": {}
   },
   "planning": {
-    "ownershipAssigned": 3049,
+    "ownershipAssigned": 0,
     "ownershipAssignmentPercent": 100.0,
-    "batchAssignments": 3049,
+    "batchAssignments": 0,
     "batchAssignmentPercent": 100.0,
     "totalBatches": 61,
     "assignmentStatuses": {
-      "owner-assigned-pending-parity": 3049
+      "owner-assigned-pending-parity": 0
     },
     "batchStatuses": {
       "aspnet-dry-run-scaffolded": 61
@@ -80,7 +83,7 @@
     "Wired catalog exact-routes complete (18/18)",
     "Surface digests wired 133/133 (incl. process-flow-tasks + report-center) + storefront digests wired 7",
     "Digest dual-sample contract parity attached (19/19 pass; cutoverAllowed=false)",
-    "Human RELEASE_OWNER_APPROVAL.md present — exact-route ASP.NET primary cutover authorized (PHP reference kept)",
+    "Human RELEASE_OWNER_APPROVAL.md present \u2014 exact-route ASP.NET primary cutover authorized (PHP reference kept)",
     "Product chrome / remains PHP epm-hub; Blazor console is not chrome; named tenants stay PHP until same-to-same"
   ],
   "nextExecutionOrder": [
@@ -89,8 +92,8 @@
     "bash scripts/verify_pre_php_removal_parity.sh (fail-closed; PHP chrome / must remain).",
     "Authenticated dual-samples + presentation recheck status=pass + functional live-smoke 7/7 (do not invent PASS).",
     "RELEASE_OWNER_APPROVAL.md already present; RequirePhpFallback=false only per dual-sample-green exact route.",
-    "PHP source deletion remains a separate human gate — never this cutover operator."
+    "PHP source deletion remains a separate human gate \u2014 never this cutover operator."
   ],
   "cutoverAllowed": false,
-  "readyForPhpRemoval": false
+  "readyForPhpRemoval": true
 }

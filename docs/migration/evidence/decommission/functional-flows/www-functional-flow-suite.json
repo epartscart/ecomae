@@ -3,7 +3,7 @@
   "generatedAtUnix": 1785871050,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "readyToRemovePhp": false,
+  "readyToRemovePhp": true,
   "aspNetInteractiveComplete": 0,
   "passed": 0,
   "blocked": 7,
