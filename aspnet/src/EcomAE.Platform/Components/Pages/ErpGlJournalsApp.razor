@@ -21,6 +21,8 @@
 
     
     <PhpErpModulePageHeader Title="General Ledger Journals" Subtitle="Create, inspect, and reverse posted journals with an auditable correction entry." PhpTabHref="@_phpTab" />
+
+    <ErpD365ModuleArea Kind="gl" />
     <ErpManualProcessStrip Keys="gl" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/gl-journals-app" />

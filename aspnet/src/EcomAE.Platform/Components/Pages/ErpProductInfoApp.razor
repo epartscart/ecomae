@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Routing
 @using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
@@ -23,6 +24,8 @@
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="@_listHref" />
 
     <PhpErpModulePageHeader Title="Product information" Subtitle="@(_jewellery ? "Jewellery item master: every jewellery master, metal-stock product, inventory, and stock report on one page." : "Open an item for track-expiry and same-type siblings. Field Open loads the 280-character options excerpt. Variant Open loads the 280-character combo excerpt. Create item writes here. Dimension-link save is not available on this page.")" PhpTabHref="@_phpTab" />
+
+    <ErpD365ModuleArea Kind="products" />
     <PhpErpD365ActionPane PhpTabHref="@RibbonNewHref" RefreshHref="@Nav.Uri" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
 

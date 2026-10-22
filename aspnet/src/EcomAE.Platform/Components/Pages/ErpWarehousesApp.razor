@@ -21,6 +21,8 @@
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@OpenedListHref" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
+
+    <ErpD365ModuleArea Kind="warehouses" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     <p class="text-muted" style="margin:8px 0 12px;">

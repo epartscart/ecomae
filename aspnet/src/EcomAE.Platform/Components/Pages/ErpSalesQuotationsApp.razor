@@ -27,6 +27,8 @@
     <PhpErpModulePageHeader Title="Sales quotations" Subtitle="Save a CRM quote here with persisted line bodies, CRM context, notes excerpt, and financial totals. Accept, quote email, Convert and expiry are not available on this page. This page does not invent a send." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
+    <ErpD365QuotationPanel />
+
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Sales quotation stats">
         <div class="kpi"><div class="lbl">Quotes</div><div class="val">@_summary.QuoteCount.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Draft</div><div class="val">@_summary.DraftCount.ToString(CultureInfo.InvariantCulture)</div></div>

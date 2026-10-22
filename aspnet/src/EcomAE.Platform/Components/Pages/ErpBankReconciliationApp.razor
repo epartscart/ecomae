@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -17,6 +18,8 @@
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
+
+    <ErpD365ModuleArea Kind="banks" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     @if (!string.IsNullOrWhiteSpace(_flash))

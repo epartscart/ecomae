@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
@@ -20,6 +21,8 @@
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
     <PhpErpModulePageHeader Title="Chart of Accounts" Subtitle="Create an account here. Open a row for the 280-character description excerpt, system flag, and created time." PhpTabHref="@_phpTab" />
+
+    <ErpD365ModuleArea Kind="coa" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
     @if (_isAdmin)

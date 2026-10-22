@@ -6,6 +6,7 @@
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -19,6 +20,8 @@
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="@_listHref" />
 
     <PhpErpModulePageHeader Title="Multi-currency GL" Subtitle="Open an FX rate for created time. Open a currency journal for the note and site. Set FX rate and post IAS-21 revaluation here." PhpTabHref="@_phpTab" />
+
+    <ErpD365ModuleArea Kind="fx" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     @if (!string.IsNullOrWhiteSpace(_flash))

@@ -1,0 +1,55 @@
+@* CSV template/export/import bar for one D365 bulk area. Drop onto any module page. *@
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@using System.Web
+@inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
+@inject EcomAE.Platform.Cp.ICpCsrfGuard Csrf
+
+<div class="epc-erp-table-wrap" style="margin-bottom:12px">
+    <p style="margin:0 0 .4rem"><strong>@Title — opening data (CSV)</strong>
+        <a class="btn btn-xs btn-default" href="@Get("/erp/d365/csv-template")?area=@Area" target="_blank">template</a>
+        <a class="btn btn-xs btn-default" href="@Get("/erp/d365/csv-export")?area=@(Area + ExtraQuery)" target="_blank">export CSV</a>
+    </p>
+    <form method="post" action="@Post("/erp/d365/csv-import")" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+        @Hidden()
+        <input type="hidden" name="area" value="@Area" />
+        <label style="flex:1;min-width:280px">CSV content (header row + data rows)
+            <textarea name="csv" rows="2" style="width:100%" placeholder="@Placeholder" required></textarea>
+        </label>
+        <button type="submit" class="btn btn-primary btn-sm">Validate + commit import</button>
+    </form>
+    <p class="help-block" style="margin:.5rem 0 0">Natural-key upsert — re-running the same file is safe. Header row must match the template.</p>
+</div>
+
+@code {
+    [Parameter] public string Area { get; set; } = "";
+    [Parameter] public string Title { get; set; } = "CSV";
+    [Parameter] public string Placeholder { get; set; } = "";
+    [Parameter] public string ExtraQuery { get; set; } = "";
+
+    private string _csrf = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted).ConfigureAwait(false);
+        _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted).ConfigureAwait(false);
+    }
+
+    private string Post(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext!, path);
+    private string Get(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext!, path);
+
+    private MarkupString Hidden()
+    {
+        var returnUrl = HttpUtility.HtmlAttributeEncode(
+            (Http.HttpContext?.Request.Path.Value ?? "") + Http.HttpContext?.Request.QueryString.Value);
+        return (MarkupString)(
+            "<input type=\"hidden\" name=\"confirmWrites\" value=\"true\" />"
+            + $"<input type=\"hidden\" name=\"returnUrl\" value=\"{returnUrl}\" />"
+            + $"<input type=\"hidden\" name=\"csrf_guard_key\" value=\"{HttpUtility.HtmlAttributeEncode(_csrf)}\" />");
+    }
+}
