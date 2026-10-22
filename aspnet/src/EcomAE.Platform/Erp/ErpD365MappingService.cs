@@ -59,6 +59,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             ["LedgerJournalHeaders"] = "GL journals (headers)",
             ["LedgerJournalLines"] = "GL journal lines",
             ["MainAccounts"] = "Chart of accounts",
+            ["LegalEntities"] = "Legal entities",
         };
 
     public async Task<ErpD365ApplyResult> ApplyAsync(DbConnection connection, string entity, long adminId, CancellationToken cancellationToken = default)
@@ -184,6 +185,17 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             "ALTER TABLE `epc_erp_gl_lines` ADD `ext_entity` varchar(64) NOT NULL DEFAULT ''",
             cancellationToken).ConfigureAwait(false);
 
+        // Legal entities + business units — dimension targets on journals/lines (fresh-tenant safe).
+        await ErpDb.TryExecuteAsync(connection,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_legal_entities` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `country_code` varchar(4) NOT NULL DEFAULT '', `currency_code` varchar(8) NOT NULL DEFAULT '', `trn` varchar(40) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_le_code` (`code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(connection,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_business_units` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `legal_entity_id` int(11) NOT NULL DEFAULT 0, `parent_id` int(11) NOT NULL DEFAULT 0, `manager` varchar(120) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_bu_code` (`code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(connection,
+            "ALTER TABLE `epc_erp_pm_legal_entities` ADD UNIQUE KEY `ux_le_code` (`code`)",
+            cancellationToken).ConfigureAwait(false);
+
         var staged = new List<(string Key, string Payload)>();
         await using (var command = connection.CreateCommand())
         {
@@ -239,6 +251,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                     "CustomerPaymentJournalHeaders" or "VendorPaymentJournalHeaders" or "LedgerJournalHeaders" => await ApplyJournalHeaderAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
                     "CustomerPaymentJournalLines" or "VendorPaymentJournalLines" or "LedgerJournalLines" => await ApplyJournalLineAsync(connection, transaction, doc.RootElement, extKey, entity, appliedJournalLineRefs, cancellationToken).ConfigureAwait(false),
                     "MainAccounts" => await ApplyMainAccountAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
+                    "LegalEntities" => await ApplyLegalEntityAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     _ => false,
                 };
                 if (applied)
@@ -974,17 +987,243 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         var reference = Str(row, "Description", "JournalName", "Name");
         var journalDate = DateOf(row, "Date", "JournalDate", "PostingDate");
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var companyId = await ResolveCompanyIdAsync(connection, tx, row, ct).ConfigureAwait(false);
 
         if (naturalNo.Length > 0 && !string.Equals(naturalNo, journalNo, StringComparison.Ordinal))
         {
             await ErpDb.ExecuteAsync(connection, tx,
                 ErpDb.Positional("UPDATE `epc_erp_gl_journals` SET `journal_no` = ? WHERE `journal_no` = ?"), ct, journalNo, naturalNo).ConfigureAwait(false);
         }
-        await ErpDb.ExecuteAsync(connection, tx,
-            "INSERT INTO `epc_erp_gl_journals` (`journal_no`, `journal_date`, `reference`, `source_type`, `source_id`, `admin_id`, `time_created`) " +
-            "VALUES (?, ?, ?, ?, 0, ?, ?) ON DUPLICATE KEY UPDATE `journal_date` = VALUES(`journal_date`), `reference` = VALUES(`reference`), `source_type` = VALUES(`source_type`)",
-            ct, journalNo, journalDate > 0 ? journalDate : now, Clip(reference, 128), sourceType, adminId, now).ConfigureAwait(false);
+        var hasCompany = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_journals", "company_id", ct).ConfigureAwait(false);
+        if (hasCompany)
+        {
+            await ErpDb.ExecuteAsync(connection, tx,
+                "INSERT INTO `epc_erp_gl_journals` (`journal_no`, `journal_date`, `reference`, `source_type`, `source_id`, `company_id`, `admin_id`, `time_created`) " +
+                "VALUES (?, ?, ?, ?, 0, ?, ?, ?) ON DUPLICATE KEY UPDATE `journal_date` = VALUES(`journal_date`), `reference` = VALUES(`reference`), `source_type` = VALUES(`source_type`), `company_id` = VALUES(`company_id`)",
+                ct, journalNo, journalDate > 0 ? journalDate : now, Clip(reference, 128), sourceType, companyId, adminId, now).ConfigureAwait(false);
+        }
+        else
+        {
+            await ErpDb.ExecuteAsync(connection, tx,
+                "INSERT INTO `epc_erp_gl_journals` (`journal_no`, `journal_date`, `reference`, `source_type`, `source_id`, `admin_id`, `time_created`) " +
+                "VALUES (?, ?, ?, ?, 0, ?, ?) ON DUPLICATE KEY UPDATE `journal_date` = VALUES(`journal_date`), `reference` = VALUES(`reference`), `source_type` = VALUES(`source_type`)",
+                ct, journalNo, journalDate > 0 ? journalDate : now, Clip(reference, 128), sourceType, adminId, now).ConfigureAwait(false);
+        }
         return true;
+    }
+
+    /// <summary>LegalEntities → epc_erp_pm_legal_entities (code = dataAreaId).</summary>
+    private static async Task<bool> ApplyLegalEntityAsync(DbConnection connection, DbTransaction tx, JsonElement row, CancellationToken ct)
+    {
+        var code = Str(row, "Id", "dataAreaId", "LegalEntityId", "CompanyId");
+        if (code.Length == 0)
+        {
+            return false;
+        }
+        var name = Str(row, "Name", "LegalEntityName", "Description");
+        if (name.Length == 0) name = code;
+        var country = Str(row, "CountryRegionId", "Country", "CountryCode");
+        var currency = Str(row, "Currency", "CurrencyCode", "AccountingCurrency");
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var existing = await ErpDb.LongAsync(connection, tx,
+            ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `code` = ? LIMIT 1"), ct, Clip(code, 40)).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            await ErpDb.ExecuteAsync(connection, tx,
+                ErpDb.Positional("UPDATE `epc_erp_pm_legal_entities` SET `name` = ?, `country_code` = ?, `currency_code` = ?, `time_updated` = ? WHERE `id` = ?"),
+                ct, Clip(name, 190), Clip(country, 4), Clip(currency, 8), now, existing).ConfigureAwait(false);
+        }
+        else
+        {
+            await ErpDb.ExecuteAsync(connection, tx,
+                "INSERT INTO `epc_erp_pm_legal_entities` (`code`, `name`, `country_code`, `currency_code`, `active`, `time_created`, `time_updated`) " +
+                "VALUES (?, ?, ?, ?, 1, ?, ?)",
+                ct, Clip(code, 40), Clip(name, 190), Clip(country, 4), Clip(currency, 8), now, now).ConfigureAwait(false);
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// dataAreaId → epc_erp_pm_legal_entities.id; creates the row when the company hasn't been
+    /// pulled via LegalEntities yet so imported journals always carry a legal entity.
+    /// </summary>
+    private static async Task<long> ResolveCompanyIdAsync(DbConnection connection, DbTransaction tx, JsonElement row, CancellationToken ct)
+    {
+        var code = Str(row, "dataAreaId", "CompanyId");
+        if (code.Length == 0)
+        {
+            return 0L;
+        }
+        try
+        {
+            var existing = await ErpDb.LongAsync(connection, tx,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `code` = ? LIMIT 1"), ct, Clip(code, 40)).ConfigureAwait(false);
+            if (existing > 0)
+            {
+                return existing;
+            }
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            await ErpDb.ExecuteAsync(connection, tx,
+                "INSERT INTO `epc_erp_pm_legal_entities` (`code`, `name`, `active`, `time_created`, `time_updated`) VALUES (?, ?, 1, ?, ?)",
+                ct, Clip(code, 40), Clip(code, 190), now, now).ConfigureAwait(false);
+            return await ErpDb.LongAsync(connection, tx,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `code` = ? LIMIT 1"), ct, Clip(code, 40)).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            return 0L; // table not provisioned yet
+        }
+    }
+
+    /// <summary>
+    /// Parses the F&O dimension string (e.g. "501100-BU01-CC01") into structured line columns.
+    /// Each non-account segment is looked up in BOTH master tables — a code can be a business unit
+    /// in D365 and a legal entity here, or vice versa, so whichever table contains it decides the
+    /// mapping. Unmatched segments are kept as dimension values, never force-created as the wrong
+    /// kind. Returns (legalEntityId, businessUnitId, dimTypeCode, dimValueCode).
+    /// </summary>
+    private static async Task<(long EntityId, long BuId, long CostCentreId, string TypeCode, string ValueCode)> ResolveDimensionsAsync(
+        DbConnection connection, DbTransaction tx, string dimensionString, JsonElement row, CancellationToken ct)
+    {
+        var entityId = 0L;
+        var buId = 0L;
+        var costCentreId = 0L;
+        var typeCode = "";
+        var valueCode = "";
+        var segments = new List<string>();
+        var explicitBu = Str(row, "BusinessUnit");
+        var explicitEntity = Str(row, "LegalEntity", "Company", "CompanyCode");
+        var explicitCostCentre = Str(row, "CostCenter", "CostCentre");
+        var explicitDepartment = Str(row, "Department");
+        if (explicitBu.Length > 0 || explicitEntity.Length > 0 || explicitCostCentre.Length > 0 || explicitDepartment.Length > 0)
+        {
+            if (explicitEntity.Length > 0) segments.Add(explicitEntity);
+            if (explicitBu.Length > 0) segments.Add(explicitBu);
+            if (explicitCostCentre.Length > 0) segments.Add(explicitCostCentre);
+            if (explicitDepartment.Length > 0) segments.Add(explicitDepartment);
+        }
+        else
+        {
+            foreach (var seg in dimensionString.Split('-', '|'))
+            {
+                var s = seg.Trim();
+                if (s.Length > 0)
+                {
+                    segments.Add(s);
+                }
+            }
+            if (segments.Count > 0)
+            {
+                segments.RemoveAt(0); // segment 0 is the main account code
+            }
+        }
+        foreach (var seg in segments)
+        {
+            // Classify by what EXISTS in our masters — a D365 code can be a BU here and a legal
+            // entity there (or vice versa); whichever table contains it wins.
+            if (buId == 0)
+            {
+                try
+                {
+                    var found = await ErpDb.LongAsync(connection, tx,
+                        ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_business_units` WHERE `code` = ? LIMIT 1"), ct, Clip(seg, 40)).ConfigureAwait(false);
+                    if (found > 0) { buId = found; continue; }
+                }
+                catch (DbException) { }
+            }
+            if (entityId == 0)
+            {
+                try
+                {
+                    var found = await ErpDb.LongAsync(connection, tx,
+                        ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `code` = ? LIMIT 1"), ct, Clip(seg, 40)).ConfigureAwait(false);
+                    if (found > 0) { entityId = found; continue; }
+                }
+                catch (DbException) { }
+            }
+            // Dimension value master: reuse an existing value (any type) — a code already
+            // classified keeps its kind; new codes go under 'other' (never dropped).
+            try
+            {
+                var (valId, valType) = await EnsureDimValueAsync(connection, tx, seg, seg == explicitCostCentre ? "cost_centre" : seg == explicitDepartment ? "department" : null, ct).ConfigureAwait(false);
+                if (valType.Equals("cost_centre", StringComparison.OrdinalIgnoreCase) && costCentreId == 0)
+                {
+                    costCentreId = valId;
+                    continue;
+                }
+                if (valType.Equals("legal_entity", StringComparison.OrdinalIgnoreCase) && entityId == 0)
+                {
+                    entityId = valId;
+                    continue;
+                }
+                if (valType.Equals("business_unit", StringComparison.OrdinalIgnoreCase) && buId == 0)
+                {
+                    buId = valId;
+                    continue;
+                }
+                if (valueCode.Length == 0)
+                {
+                    typeCode = valType;
+                    valueCode = Clip(seg, 64);
+                }
+            }
+            catch (DbException)
+            {
+                if (valueCode.Length == 0)
+                {
+                    typeCode = "other";
+                    valueCode = Clip(seg, 64);
+                }
+            }
+        }
+        return (entityId, buId, costCentreId, typeCode, valueCode);
+    }
+
+    /// <summary>
+    /// Finds (or creates under `preferredType`/`other`) a dimension value in epc_erp_gl_dim_values;
+    /// returns (value id, its dimension type code). Values keep their existing type on re-sync.
+    /// </summary>
+    private static async Task<(long Id, string TypeCode)> EnsureDimValueAsync(
+        DbConnection connection, DbTransaction tx, string valueCode, string? preferredType, CancellationToken ct)
+    {
+        var existing = 0L;
+        var existingType = "";
+        await using (var cmd = connection.CreateCommand())
+        {
+            cmd.Transaction = tx;
+            cmd.CommandText =
+                "SELECT v.`id`, t.`code` FROM `epc_erp_gl_dim_values` v " +
+                "JOIN `epc_erp_gl_dim_types` t ON t.`id` = v.`type_id` WHERE v.`value_code` = @v LIMIT 1";
+            var p = cmd.CreateParameter(); p.ParameterName = "@v"; p.Value = Clip(valueCode, 64); cmd.Parameters.Add(p);
+            await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            if (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                existing = reader.GetInt64(0);
+                existingType = reader.GetString(1);
+            }
+        }
+        if (existing > 0)
+        {
+            return (existing, existingType);
+        }
+        var typeCode = preferredType ?? "other";
+        var typeId = await ErpDb.LongAsync(connection, tx,
+            ErpDb.Positional("SELECT `id` FROM `epc_erp_gl_dim_types` WHERE `code` = ? LIMIT 1"), ct, typeCode).ConfigureAwait(false);
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        if (typeId <= 0)
+        {
+            await ErpDb.ExecuteAsync(connection, tx,
+                "INSERT INTO `epc_erp_gl_dim_types` (`code`, `name`, `is_system`, `active`, `time_created`) VALUES (?, ?, 0, 1, ?)",
+                ct, typeCode, typeCode == "other" ? "Other dimensions" : typeCode, now).ConfigureAwait(false);
+            typeId = await ErpDb.LongAsync(connection, tx,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_gl_dim_types` WHERE `code` = ? LIMIT 1"), ct, typeCode).ConfigureAwait(false);
+        }
+        await ErpDb.ExecuteAsync(connection, tx,
+            "INSERT IGNORE INTO `epc_erp_gl_dim_values` (`type_id`, `value_code`, `value_name`, `active`, `time_created`) VALUES (?, ?, ?, 1, ?)",
+            ct, typeId, Clip(valueCode, 64), Clip(valueCode, 255), now).ConfigureAwait(false);
+        var id = await ErpDb.LongAsync(connection, tx,
+            ErpDb.Positional("SELECT `id` FROM `epc_erp_gl_dim_values` WHERE `type_id` = ? AND `value_code` = ? LIMIT 1"), ct, typeId, Clip(valueCode, 64)).ConfigureAwait(false);
+        return (id, typeCode);
     }
 
     /// <summary>LedgerJournalLines → epc_erp_gl_lines (parent via company-scoped journal_no, coa via main account).</summary>
@@ -1031,8 +1270,15 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         if (note.Length == 0) note = voucher;
 
         var dimensionString = Str(row, "LedgerDimension", "AccountDisplayValue", "DimensionDisplayValue", "DefaultDimensionDisplayValue");
+        var (dimEntityId, dimBuId, dimCostCentreId, dimTypeCode, dimValueCode) = await ResolveDimensionsAsync(connection, tx, dimensionString, row, ct).ConfigureAwait(false);
+        var legalEntityId = dimEntityId > 0 ? dimEntityId : await ResolveCompanyIdAsync(connection, tx, row, ct).ConfigureAwait(false);
         var hasDimString = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_string", ct).ConfigureAwait(false);
         var hasVoucher = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "voucher", ct).ConfigureAwait(false);
+        var hasLegalEntity = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "legal_entity_id", ct).ConfigureAwait(false);
+        var hasBu = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "business_unit_id", ct).ConfigureAwait(false);
+        var hasDimType = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_type_code", ct).ConfigureAwait(false);
+        var hasDimValue = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_value_code", ct).ConfigureAwait(false);
+        var hasCostCentre = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "cost_centre_id", ct).ConfigureAwait(false);
 
         var existing = await ErpDb.LongAsync(connection, tx,
             ErpDb.Positional("SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `line_ref` = ? AND `ext_entity` = ? LIMIT 1"),
@@ -1055,6 +1301,11 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             var vals = new List<object?> { journalId, coaId, debit, credit, Clip(note, 255), Clip(extKey, 255), lineRef, Clip(entity, 64) };
             if (hasDimString) { cols.Add("`dimension_string`"); marks.Add("?"); vals.Add(Clip(dimensionString, 255)); }
             if (hasVoucher) { cols.Add("`voucher`"); marks.Add("?"); vals.Add(Clip(voucher, 255)); }
+            if (hasLegalEntity) { cols.Add("`legal_entity_id`"); marks.Add("?"); vals.Add(legalEntityId); }
+            if (hasBu) { cols.Add("`business_unit_id`"); marks.Add("?"); vals.Add(dimBuId); }
+            if (hasDimType) { cols.Add("`dimension_type_code`"); marks.Add("?"); vals.Add(Clip(dimTypeCode, 32)); }
+            if (hasDimValue) { cols.Add("`dimension_value_code`"); marks.Add("?"); vals.Add(Clip(dimValueCode, 64)); }
+            if (hasCostCentre) { cols.Add("`cost_centre_id`"); marks.Add("?"); vals.Add(dimCostCentreId); }
             await ErpDb.ExecuteAsync(connection, tx,
                 ErpDb.Positional("INSERT INTO `epc_erp_gl_lines` (" + string.Join(", ", cols) + ") VALUES (" + string.Join(", ", marks) + ")"),
                 ct, vals.ToArray()).ConfigureAwait(false);
@@ -1067,6 +1318,11 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             var vals = new List<object?> { coaId, debit, credit, Clip(note, 255), Clip(extKey, 255), Clip(entity, 64) };
             if (hasDimString && dimensionString.Length > 0) { sets.Add("`dimension_string` = ?"); vals.Add(Clip(dimensionString, 255)); }
             if (hasVoucher && voucher.Length > 0) { sets.Add("`voucher` = ?"); vals.Add(Clip(voucher, 255)); }
+            if (hasLegalEntity) { sets.Add("`legal_entity_id` = ?"); vals.Add(legalEntityId); }
+            if (hasBu) { sets.Add("`business_unit_id` = ?"); vals.Add(dimBuId); }
+            if (hasDimType) { sets.Add("`dimension_type_code` = ?"); vals.Add(Clip(dimTypeCode, 32)); }
+            if (hasDimValue) { sets.Add("`dimension_value_code` = ?"); vals.Add(Clip(dimValueCode, 64)); }
+            if (hasCostCentre) { sets.Add("`cost_centre_id` = ?"); vals.Add(dimCostCentreId); }
             vals.Add(existing);
             await ErpDb.ExecuteAsync(connection, tx,
                 ErpDb.Positional("UPDATE `epc_erp_gl_lines` SET " + string.Join(", ", sets) + " WHERE `id` = ?"),
