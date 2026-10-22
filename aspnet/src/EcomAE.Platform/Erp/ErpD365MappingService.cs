@@ -21,7 +21,7 @@ public interface IErpD365MappingService
 
 public sealed record ErpD365ApplyResult(bool Succeeded, string Code, string Message, int Mapped, int Skipped);
 
-public sealed class ErpD365MappingService : IErpD365MappingService
+public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle) : IErpD365MappingService
 {
     public IReadOnlyDictionary<string, string> MappedEntities { get; } =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -65,6 +65,14 @@ public sealed class ErpD365MappingService : IErpD365MappingService
             "KEY ix_entity (entity, ext_key)" +
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
             cancellationToken).ConfigureAwait(false);
+
+        // Ensure every master the mappers write exists on this database — on a fresh tenant
+        // the lazy schema has never run, so the first apply must create them.
+        await docCycle.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpSalesWorkspaceSpecs.EnsureSalesAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpPurchasingWorkspaceSpecs.EnsurePurchasingAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpGlChartOfAccountsSeeder.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
 
         var staged = new List<(string Key, string Payload)>();
         await using (var command = connection.CreateCommand())
@@ -148,6 +156,13 @@ public sealed class ErpD365MappingService : IErpD365MappingService
         }
     }
 
+    /// <summary>Company-scoped master key: F&amp;O dataAreaId prefixes the natural key so two companies never overwrite each other's records (mirrors the staging key's company|key shape). Shared masters (COA, global parties) stay unscoped.</summary>
+    private static string ScopedKey(JsonElement row, string naturalKey)
+    {
+        var company = Str(row, "dataAreaId", "CompanyId");
+        return company.Length > 0 ? company + "|" + naturalKey : naturalKey;
+    }
+
     // ---- field helpers ----
 
     private static string Str(JsonElement row, params string[] names)
@@ -197,8 +212,8 @@ public sealed class ErpD365MappingService : IErpD365MappingService
     /// <summary>ReleasedProductsV2 → epc_erp_inv_items (upsert by sku).</summary>
     private static async Task<bool> ApplyProductAsync(DbConnection connection, DbTransaction tx, JsonElement row, CancellationToken ct)
     {
-        var sku = Str(row, "ItemNumber", "ItemId", "ProductNumber");
-        if (sku.Length == 0)
+        var sku = ScopedKey(row, Str(row, "ItemNumber", "ItemId", "ProductNumber"));
+        if (sku.Length == 0 || sku[0] == '|' || sku[^1] == '|')
         {
             return false;
         }
@@ -218,7 +233,7 @@ public sealed class ErpD365MappingService : IErpD365MappingService
         return true;
     }
 
-    /// <summary>CustomersV3 → epc_erp_customers (upsert by name).</summary>
+    /// <summary>CustomersV3 → epc_erp_contacts (party_type='customer') — the real customer master the ERP workflows read.</summary>
     private static async Task<bool> ApplyCustomerAsync(DbConnection connection, DbTransaction tx, JsonElement row, CancellationToken ct)
     {
         var name = Str(row, "OrganizationName", "CustomerName", "Name", "CustomerAccount");
@@ -227,19 +242,56 @@ public sealed class ErpD365MappingService : IErpD365MappingService
             return false;
         }
 
+        var account = Str(row, "CustomerAccount", "AccountNum");
         var email = Str(row, "PrimaryContactEmail", "PrimaryContactEmailAddress", "InvoiceEmail");
-        var existing = await ErpDb.LongAsync(connection, tx,
-            ErpDb.Positional("SELECT `id` FROM `epc_erp_customers` WHERE `name` = ? LIMIT 1"), ct, name).ConfigureAwait(false);
+        var phone = Str(row, "PrimaryContactPhone", "PrimaryContactTelephone");
+        var trn = Str(row, "TaxExemptNumber", "VATNum", "TaxRegistrationNumber");
+        var company = Str(row, "dataAreaId", "CompanyId");
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+        var hasEmail = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "email", ct).ConfigureAwait(false);
+        var hasPhone = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "phone", ct).ConfigureAwait(false);
+        var hasCompany = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "company", ct).ConfigureAwait(false);
+        var hasTrn = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "trn", ct).ConfigureAwait(false);
+        var hasAccountCode = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "account_code", ct).ConfigureAwait(false);
+
+        // Upsert by customer account when available (global party identity), else by name.
+        var existing = hasAccountCode && account.Length > 0
+            ? await ErpDb.LongAsync(connection, tx,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_contacts` WHERE `party_type` = 'customer' AND `account_code` = ? LIMIT 1"), ct, account).ConfigureAwait(false)
+            : await ErpDb.LongAsync(connection, tx,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_contacts` WHERE `party_type` = 'customer' AND `name` = ? LIMIT 1"), ct, name).ConfigureAwait(false);
         if (existing > 0)
         {
+            var sets = new List<string>();
+            var vals = new List<object?>();
+            if (hasEmail) { sets.Add("`email` = ?"); vals.Add(Clip(email, 120)); }
+            if (hasPhone) { sets.Add("`phone` = ?"); vals.Add(Clip(phone, 40)); }
+            if (hasTrn) { sets.Add("`trn` = ?"); vals.Add(Clip(trn, 40)); }
+            if (hasCompany && company.Length > 0) { sets.Add("`company` = ?"); vals.Add(Clip(company, 160)); }
+            sets.Add("`name` = ?"); vals.Add(Clip(name, 160));
+            sets.Add("`time_updated` = ?"); vals.Add(now);
+            vals.Add(existing);
             await ErpDb.ExecuteAsync(connection, tx,
-                ErpDb.Positional("UPDATE `epc_erp_customers` SET `email` = ? WHERE `id` = ?"), ct, Clip(email, 160), existing).ConfigureAwait(false);
+                ErpDb.Positional("UPDATE `epc_erp_contacts` SET " + string.Join(", ", sets) + " WHERE `id` = ?"),
+                ct, vals.ToArray()).ConfigureAwait(false);
         }
         else
         {
+            var cols = new List<string> { "`party_type`", "`name`" };
+            var marks = new List<string> { "'customer'", "?" };
+            var vals = new List<object?> { Clip(name, 160) };
+            if (hasAccountCode) { cols.Add("`account_code`"); marks.Add("?"); vals.Add(Clip(account, 120)); }
+            if (hasEmail) { cols.Add("`email`"); marks.Add("?"); vals.Add(Clip(email, 120)); }
+            if (hasPhone) { cols.Add("`phone`"); marks.Add("?"); vals.Add(Clip(phone, 40)); }
+            if (hasTrn) { cols.Add("`trn`"); marks.Add("?"); vals.Add(Clip(trn, 40)); }
+            if (hasCompany) { cols.Add("`company`"); marks.Add("?"); vals.Add(Clip(company, 160)); }
+            cols.Add("`active`"); marks.Add("1");
+            cols.Add("`time_created`"); marks.Add("?"); vals.Add(now);
+            cols.Add("`time_updated`"); marks.Add("?"); vals.Add(now);
             await ErpDb.ExecuteAsync(connection, tx,
-                ErpDb.Positional("INSERT INTO `epc_erp_customers` (`name`, `email`, `created_at_utc`) VALUES (?, ?, UTC_TIMESTAMP())"),
-                ct, Clip(name, 160), Clip(email, 160)).ConfigureAwait(false);
+                ErpDb.Positional("INSERT INTO `epc_erp_contacts` (" + string.Join(", ", cols) + ") VALUES (" + string.Join(", ", marks) + ")"),
+                ct, vals.ToArray()).ConfigureAwait(false);
         }
         return true;
     }
@@ -301,8 +353,8 @@ public sealed class ErpD365MappingService : IErpD365MappingService
     /// <summary>SalesOrderHeadersV2 → epc_erp_sales_orders (upsert by so_no).</summary>
     private static async Task<bool> ApplySalesOrderAsync(DbConnection connection, DbTransaction tx, JsonElement row, long adminId, CancellationToken ct)
     {
-        var soNo = Str(row, "SalesOrderNumber", "SalesOrderId", "OrderId");
-        if (soNo.Length == 0)
+        var soNo = ScopedKey(row, Str(row, "SalesOrderNumber", "SalesOrderId", "OrderId"));
+        if (soNo.Length == 0 || soNo[^1] == '|')
         {
             return false;
         }
@@ -328,8 +380,8 @@ public sealed class ErpD365MappingService : IErpD365MappingService
     /// <summary>PurchaseOrderHeadersV2 → epc_erp_purchase_orders (upsert by po_no).</summary>
     private static async Task<bool> ApplyPurchaseOrderAsync(DbConnection connection, DbTransaction tx, JsonElement row, long adminId, CancellationToken ct)
     {
-        var poNo = Str(row, "PurchaseOrderNumber", "PurchaseOrderId", "OrderNumber");
-        if (poNo.Length == 0)
+        var poNo = ScopedKey(row, Str(row, "PurchaseOrderNumber", "PurchaseOrderId", "OrderNumber"));
+        if (poNo.Length == 0 || poNo[^1] == '|')
         {
             return false;
         }
