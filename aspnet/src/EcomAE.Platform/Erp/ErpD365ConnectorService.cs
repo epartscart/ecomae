@@ -60,6 +60,9 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             ["LegalEntities"] = "Legal entities / data areas",
         };
 
+    /// <summary>Named HTTP client (60s timeout) registered in Program.cs.</summary>
+    public const string HttpClientName = "ecomae-d365";
+
     private const string TokenPath = "/oauth2/v2.0/token";
     private const string RunsTable = "epc_d365_sync_runs";
     private const string ObjectsTable = "epc_d365_sync_objects";
@@ -127,7 +130,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
 
         try
         {
-            using var client = _http.CreateClient();
+            using var client = _http.CreateClient(HttpClientName);
             using var request = new HttpRequestMessage(HttpMethod.Get, $"{_environmentUrl}/data/LegalEntities?$top=1");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -189,24 +192,39 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
 
         try
         {
-            using var client = _http.CreateClient();
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"{_environmentUrl}/data/{entitySet}?$top={top}&$count=true");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode)
+            using var client = _http.CreateClient(HttpClientName);
+            var rows = new List<JsonElement>();
+            var nextLink = $"{_environmentUrl}/data/{entitySet}?$top={top}";
+            while (nextLink is not null && rows.Count < top)
             {
-                var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-                var error = $"HTTP {(int)response.StatusCode}: {Trim(body, 300)}";
-                await FinishRunAsync(connection, runId, "error", 0, 0, error, cancellationToken).ConfigureAwait(false);
-                return new ErpD365PullResult(false, "odata_error", error, 0, 0, runId);
+                using var request = new HttpRequestMessage(HttpMethod.Get, nextLink);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                    var error = $"HTTP {(int)response.StatusCode}: {Trim(body, 300)}";
+                    await FinishRunAsync(connection, runId, "error", 0, 0, error, cancellationToken).ConfigureAwait(false);
+                    return new ErpD365PullResult(false, "odata_error", error, 0, 0, runId);
+                }
+
+                await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+                if (doc.RootElement.TryGetProperty("value", out var value) && value.ValueKind == JsonValueKind.Array)
+                {
+                    rows.AddRange(value.EnumerateArray().Select(e => e.Clone()));
+                }
+
+                nextLink = doc.RootElement.TryGetProperty("@odata.nextLink", out var nl) && nl.ValueKind == JsonValueKind.String
+                    ? nl.GetString()
+                    : null;
             }
 
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-            using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var rows = doc.RootElement.TryGetProperty("value", out var value) && value.ValueKind == JsonValueKind.Array
-                ? value.EnumerateArray().Select(e => e.Clone()).ToList()
-                : new List<JsonElement>();
+            if (rows.Count > top)
+            {
+                rows = rows.Take(top).ToList();
+            }
 
             var staged = 0;
             await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
@@ -242,6 +260,11 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         {
             await FinishRunAsync(connection, runId, "error", 0, 0, $"Bad JSON: {ex.Message}", cancellationToken).ConfigureAwait(false);
             return new ErpD365PullResult(false, "json", $"Unparseable OData response: {ex.Message}", 0, 0, runId);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            await FinishRunAsync(connection, runId, "error", 0, 0, ex.Message, cancellationToken).ConfigureAwait(false);
+            return new ErpD365PullResult(false, "error", ex.Message, 0, 0, runId);
         }
     }
 
@@ -349,16 +372,23 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         }
     }
 
+    /// <summary>Composite staging key: company (dataAreaId) plus every business key present, so records can never collide across companies.</summary>
     private static string ExternalKeyOf(JsonElement row)
     {
+        var parts = new List<string>();
         foreach (var candidate in new[] { "dataAreaId", "ItemNumber", "CustomerAccount", "VendorAccount", "SalesOrderNumber", "PurchaseOrderNumber", "InvoiceNumber", "MainAccountId", "CompanyId" })
         {
             if (row.TryGetProperty(candidate, out var p) && p.ValueKind == JsonValueKind.String && p.GetString() is { Length: > 0 } s)
             {
-                return s.Length > 200 ? s[..200] : s;
+                parts.Add(s);
             }
         }
-        return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(row.GetRawText())))[..40];
+        if (parts.Count == 0)
+        {
+            return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(row.GetRawText())))[..40];
+        }
+        var key = string.Join('|', parts);
+        return key.Length > 200 ? key[..200] : key;
     }
 
     private async Task FinishRunAsync(DbConnection connection, long runId, string status, int fetched, int staged, string error, CancellationToken cancellationToken)
@@ -397,8 +427,20 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
     private static string? FirstNonEmpty(params string?[] values)
         => values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v))?.Trim();
 
+    /// <summary>Environment must be an https URL on a *.dynamics.com host — anything else is rejected so the Entra bearer token can never be sent to an untrusted endpoint.</summary>
     private static string? NormalizeEnvUrl(string? url)
-        => string.IsNullOrWhiteSpace(url) ? null : url.Trim().TrimEnd('/');
+    {
+        if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url.Trim(), UriKind.Absolute, out var uri))
+        {
+            return null;
+        }
+        if (!string.Equals(uri.Scheme, "https", StringComparison.OrdinalIgnoreCase)
+            || !uri.Host.EndsWith(".dynamics.com", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+        return uri.GetLeftPart(UriPartial.Authority).TrimEnd('/');
+    }
 
     private static string Trim(string value, int max)
         => value.Length <= max ? value : value[..max] + "…";
