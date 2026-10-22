@@ -234,7 +234,7 @@ public sealed class ErpFirstPaintBudgetTests
             "aspnet/src/EcomAE.Platform/Middleware/SurfaceFirstPaintMiddleware.cs"));
         Assert.Contains("ErpFirstPaint.Observe", middleware, StringComparison.Ordinal);
         Assert.Contains("3s SSR first-paint wall clock", middleware, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", middleware, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", middleware, StringComparison.Ordinal);
         var factory = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Data/MySqlTenantDbConnectionFactory.cs"));
         Assert.Contains("ApplyFirstPaintTimeouts", factory, StringComparison.Ordinal);

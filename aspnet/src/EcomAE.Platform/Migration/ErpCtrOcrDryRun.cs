@@ -30,14 +30,14 @@ public sealed class ErpCtrOcrDryRun : IErpCtrOcrDryRun
         }
 
         return new ErpCtrOcrDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Code,
             ["ajax_erp.php?action=ctr_ocr (NOT executed)"],
             "ErpCtrOcr payload validated; write blocked until confirmWrites=true.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=ctr_ocr");
     }
 
     private static ErpCtrOcrDryRunResult Refuse(string s, string c, string d, ErpCtrOcrRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=ctr_ocr");
+        new(s, 0, true, true, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=ctr_ocr");
 }
 
 public sealed record ErpCtrOcrRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);

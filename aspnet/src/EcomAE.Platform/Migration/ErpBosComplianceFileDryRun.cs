@@ -35,7 +35,7 @@ public sealed class ErpBosComplianceFileDryRun : IErpBosComplianceFileDryRun
         }
 
         return new ErpBosComplianceFileDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.ObligationId, request.PeriodLabel,
             ["INSERT `epc_bos_compliance_filings` (NOT executed)"],
             "ErpBosComplianceFile payload validated; write blocked until confirmWrites=true.",
@@ -47,7 +47,7 @@ public sealed class ErpBosComplianceFileDryRun : IErpBosComplianceFileDryRun
         string code,
         string detail,
         ErpBosComplianceFileRequest request) =>
-        new(status, 0, true, false, false, code, false, request.ObligationId, request.PeriodLabel, [], detail,
+        new(status, 0, true, true, false, code, false, request.ObligationId, request.PeriodLabel, [], detail,
             "content/shop/finance/epc_bos_compliance.php");
 }
 

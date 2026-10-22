@@ -32,14 +32,14 @@ public sealed class ErpSubscriptionSaveDryRun : IErpSubscriptionSaveDryRun
         }
 
         return new ErpSubscriptionSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, code, customer, request.Id,
+            "dry-run-validated", 0, true, true, false, "ok", true, code, customer, request.Id,
             ["INSERT/UPDATE `epc_erp_subscriptions` (NOT executed)"],
             "ErpSubscriptionSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_subscriptions.php");
     }
 
     private static ErpSubscriptionSaveDryRunResult Refuse(string status, string code, string detail, ErpSubscriptionSaveRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Code, request.Customer, request.Id, [], detail,
+        new(status, 0, true, true, false, code, false, request.Code, request.Customer, request.Id, [], detail,
             "content/shop/finance/epc_erp_subscriptions.php");
 }
 

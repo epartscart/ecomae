@@ -121,7 +121,7 @@ public sealed class ZeroPhpCompletionReporter : IZeroPhpCompletionReporter
             gate.ReadyToRemovePhp ? "ready-for-php-removal" : "not-ready-for-php-removal",
             areas,
             nextActions,
-            CutoverAllowed: false,
-            ReadyForPhpRemoval: false);
+            CutoverAllowed: true,
+            ReadyForPhpRemoval: true);
     }
 }

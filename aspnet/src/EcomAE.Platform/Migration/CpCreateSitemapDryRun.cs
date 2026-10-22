@@ -9,13 +9,13 @@ public sealed class CpCreateSitemapDryRun : ICpCreateSitemapDryRun
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP cp/content/content/ajax_create_sitemap.php remains authoritative.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Action,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Action,
             ["cp/content/content/ajax_create_sitemap.php (NOT executed)"],
             "CpCreateSitemap payload validated; UPDATE blocked.",
             "cp/content/content/ajax_create_sitemap.php");
     }
     private static CpCreateSitemapDryRunResult Refuse(string s,string c,string d,CpCreateSitemapRequest r)=>
-        new(s,0,true,false,true,c,false,r.Action,[],d,"cp/content/content/ajax_create_sitemap.php");
+        new(s,0,true,true,false,c,false,r.Action,[],d,"cp/content/content/ajax_create_sitemap.php");
 }
 public sealed record CpCreateSitemapRequest(string? Action = null, bool ConfirmWrites = false);
 public sealed record CpCreateSitemapDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? Action,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

@@ -31,14 +31,14 @@ public sealed class ErpWhtRecordDryRun : IErpWhtRecordDryRun
         }
 
         return new ErpWhtRecordDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.CodeId, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.CodeId, request.Code,
             ["INSERT `epc_wht_txn` (NOT executed)"],
             "ErpWhtRecord payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_withholding.php");
     }
 
     private static ErpWhtRecordDryRunResult Refuse(string s, string c, string d, ErpWhtRecordRequest r) =>
-        new(s, 0, true, false, false, c, false, r.CodeId, r.Code, [], d, "content/shop/finance/epc_erp_withholding.php");
+        new(s, 0, true, true, false, c, false, r.CodeId, r.Code, [], d, "content/shop/finance/epc_erp_withholding.php");
 }
 
 public sealed record ErpWhtRecordRequest(

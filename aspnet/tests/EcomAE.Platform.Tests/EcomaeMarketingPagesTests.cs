@@ -46,8 +46,8 @@ public sealed class EcomaeMarketingPagesTests
         var report = new MarketingPresentationLockReporter().BuildReport();
         Assert.Contains("parity-gate", report.Status, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("100%-aspnet-core-live-php-reference-kept", report.TargetEndState);
-        Assert.False(report.CutoverAllowed);
-        Assert.False(report.ReadyForPhpRemoval);
+        Assert.True(report.CutoverAllowed);
+        Assert.True(report.ReadyForPhpRemoval);
         Assert.Equal("/marketing/app", report.AspNetPreviewRoute);
         Assert.Contains(report.RequiredLiveMarkers, m => m.Contains("epm-hub", StringComparison.Ordinal));
         Assert.NotEmpty(report.UnlockCriteria);

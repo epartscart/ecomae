@@ -17,13 +17,13 @@ public sealed class CpPaymentsWriteDryRun : ICpPaymentsWriteDryRun
         var action = (request.Action ?? "").Trim();
         if (string.IsNullOrWhiteSpace(action) || !AllowedActions.Contains(action))
             return Refuse("dry-run-unknown-action", "unknown_action", $"action '{action}' is not a known payments ajax action.", request);
-        return new("dry-run-validated", 0, true, false, true, "ok", true, action,
+        return new("dry-run-validated", 0, true, true, false, "ok", true, action,
             [$"cp/content/shop/payments/ajax_payments.php?action={action} (NOT executed)"],
             "CpPaymentsWrite payload validated; UPDATE blocked.",
             "cp/content/shop/payments/ajax_payments.php");
     }
     private static CpPaymentsWriteDryRunResult Refuse(string s, string c, string d, CpPaymentsWriteRequest r) =>
-        new(s, 0, true, false, true, c, false, r.Action, [], d, "cp/content/shop/payments/ajax_payments.php");
+        new(s, 0, true, true, false, c, false, r.Action, [], d, "cp/content/shop/payments/ajax_payments.php");
 }
 public sealed record CpPaymentsWriteRequest(string? Action = null, bool ConfirmWrites = false);
 public sealed record CpPaymentsWriteDryRunResult(string Status, int Writes, bool WritesBlocked, bool CutoverAllowed, bool PhpAuthoritative, string ValidationCode, bool WouldWrite, string? Action, IReadOnlyList<string> SimulatedSql, string Detail, string PhpAjax)

@@ -25,14 +25,14 @@ public sealed class ErpRbacRoleSaveDryRun : IErpRbacRoleSaveDryRun
         }
 
         return new ErpRbacRoleSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Code,
             ["INSERT `epc_rbac_role` ON DUPLICATE KEY UPDATE (NOT executed)"],
             "ErpRbacRoleSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_rbac.php");
     }
 
     private static ErpRbacRoleSaveDryRunResult Refuse(string s, string c, string d, ErpRbacRoleSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Code, [], d, "content/shop/finance/epc_erp_rbac.php");
+        new(s, 0, true, true, false, c, false, r.Code, [], d, "content/shop/finance/epc_erp_rbac.php");
 }
 
 public sealed record ErpRbacRoleSaveRequest(

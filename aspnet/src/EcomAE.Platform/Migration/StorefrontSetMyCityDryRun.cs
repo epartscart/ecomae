@@ -11,13 +11,13 @@ public sealed class StorefrontSetMyCityDryRun : IStorefrontSetMyCityDryRun
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP modules/shop/geo/ajax_set_my_city.php remains authoritative.", request);
         if (request.CityId <= 0)
             return Refuse("dry-run-invalid","invalid_request","CityId must be positive.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.CityId,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.CityId,
             ["modules/shop/geo/ajax_set_my_city.php (NOT executed)"],
             "StorefrontSetMyCity payload validated; UPDATE blocked.",
             "modules/shop/geo/ajax_set_my_city.php");
     }
     private static StorefrontSetMyCityDryRunResult Refuse(string s,string c,string d,StorefrontSetMyCityRequest r)=>
-        new(s,0,true,false,true,c,false,r.CityId,[],d,"modules/shop/geo/ajax_set_my_city.php");
+        new(s,0,true,true,false,c,false,r.CityId,[],d,"modules/shop/geo/ajax_set_my_city.php");
 }
 public sealed record StorefrontSetMyCityRequest(long CityId, bool ConfirmWrites = false);
 public sealed record StorefrontSetMyCityDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long CityId,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

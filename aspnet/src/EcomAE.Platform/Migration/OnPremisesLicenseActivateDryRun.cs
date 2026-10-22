@@ -49,8 +49,8 @@ public sealed class OnPremisesLicenseActivateDryRun : IOnPremisesLicenseActivate
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             LicenseKeyPreview: Mask(key),
@@ -69,7 +69,7 @@ public sealed class OnPremisesLicenseActivateDryRun : IOnPremisesLicenseActivate
 
     private static OnPremisesLicenseActivateDryRunResult Refuse(
         string status, string code, string detail, OnPremisesLicenseActivateRequest request) =>
-        new(status, 0, true, false, true, code, false,
+        new(status, 0, true, true, false, code, false,
             Mask(request.LicenseKey), Mask(request.Fingerprint),
             Truncate(request.Hostname, 190), Truncate(request.Ip, 45),
             [], detail, "/api/v1/licenses/activate.php");

@@ -82,7 +82,7 @@ public sealed class BosRmaRegisterWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/BosModule.cs"));
         Assert.Contains("BosRmaRegister", module, StringComparison.Ordinal);
         Assert.Contains("RegisterAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate.IsAllowed", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Bos/BosRmaWriteService.cs"));
         Assert.Contains("epc_warranty_register", service, StringComparison.Ordinal);
@@ -92,7 +92,7 @@ public sealed class BosRmaRegisterWriteTests
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private sealed class UnconfiguredConnections : EcomAE.Platform.Erp.IErpWriteConnectionFactory

@@ -30,7 +30,7 @@ public sealed class ErpBosComplianceSaveRetentionDryRun : IErpBosComplianceSaveR
         }
 
         return new ErpBosComplianceSaveRetentionDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.Label, request.DocType,
             ["INSERT `epc_bos_retention_rules` (NOT executed)"],
             "ErpBosRetentionSave payload validated; write blocked until confirmWrites=true.",
@@ -42,7 +42,7 @@ public sealed class ErpBosComplianceSaveRetentionDryRun : IErpBosComplianceSaveR
         string code,
         string detail,
         ErpBosComplianceSaveRetentionRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Label, request.DocType, [], detail,
+        new(status, 0, true, true, false, code, false, request.Label, request.DocType, [], detail,
             "content/shop/finance/epc_bos_compliance.php");
 }
 

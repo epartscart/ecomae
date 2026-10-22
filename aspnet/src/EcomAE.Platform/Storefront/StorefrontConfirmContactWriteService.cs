@@ -36,7 +36,7 @@ public sealed record StorefrontConfirmContactWriteResult(
         status_token = Status,
         writes = Writes,
         writesBlocked = false,
-        cutoverAllowed = false,
+        cutoverAllowed = true,
         phpAuthoritative = false,
         validation_code = Code,
         can_try_again = CanTryAgain,

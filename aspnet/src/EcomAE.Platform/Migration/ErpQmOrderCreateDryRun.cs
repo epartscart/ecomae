@@ -13,14 +13,14 @@ public sealed class ErpQmOrderCreateDryRun : IErpQmOrderCreateDryRun
             return Refuse("dry-run-invalid","company_required","company_id is required.", request);
         if (request.PlanId < 0 || request.ItemId < 0 || request.Qty < 0)
             return Refuse("dry-run-invalid","invalid_request","plan_id, item_id, and qty must be non-negative.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.CompanyId, request.PlanId,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.CompanyId, request.PlanId,
             request.RefType, request.RefId, request.ItemId, request.Qty,
             ["ajax_erp.php?action=qm_order_create (NOT executed)"],
             "ERP qm_order_create payload validated; INSERT blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=qm_order_create");
     }
     private static ErpQmOrderCreateDryRunResult Refuse(string s,string c,string d,ErpQmOrderCreateRequest r)=>
-        new(s,0,true,false,true,c,false,r.CompanyId, r.PlanId, r.RefType, r.RefId, r.ItemId, r.Qty, [],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=qm_order_create");
+        new(s,0,true,true,false,c,false,r.CompanyId, r.PlanId, r.RefType, r.RefId, r.ItemId, r.Qty, [],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=qm_order_create");
 }
 public sealed record ErpQmOrderCreateRequest(
     long CompanyId = 0,

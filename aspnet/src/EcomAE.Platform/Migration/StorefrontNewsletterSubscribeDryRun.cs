@@ -11,13 +11,13 @@ public sealed class StorefrontNewsletterSubscribeDryRun : IStorefrontNewsletterS
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP ajax_newsletter_subscribe.php remains authoritative.", request);
         if (string.IsNullOrWhiteSpace(request.Email))
             return Refuse("dry-run-invalid","invalid_request","Email is required.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Email,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Email,
             ["ajax_newsletter_subscribe.php (NOT executed)"],
             "StorefrontNewsletterSubscribe payload validated; UPDATE blocked.",
             "ajax_newsletter_subscribe.php");
     }
     private static StorefrontNewsletterSubscribeDryRunResult Refuse(string s,string c,string d,StorefrontNewsletterSubscribeRequest r)=>
-        new(s,0,true,false,true,c,false,r.Email,[],d,"ajax_newsletter_subscribe.php");
+        new(s,0,true,true,false,c,false,r.Email,[],d,"ajax_newsletter_subscribe.php");
 }
 public sealed record StorefrontNewsletterSubscribeRequest(string? Email, bool ConfirmWrites = false);
 public sealed record StorefrontNewsletterSubscribeDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? Email,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

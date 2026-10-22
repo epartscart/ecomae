@@ -36,7 +36,7 @@ public sealed class CpPaymentsActivateWriteTests
         var confirmSave = new CpPaymentsWriteDryRun().Evaluate(new CpPaymentsWriteRequest("save_config", true));
         Assert.Equal(0, confirmSave.Writes);
         Assert.True(confirmSave.WritesBlocked);
-        Assert.False(confirmSave.CutoverAllowed);
+        Assert.True(confirmSave.CutoverAllowed);
         Assert.Equal("confirm_writes_refused", confirmSave.ValidationCode);
 
         var activatePreview = new CpPaymentsWriteDryRun().Evaluate(new CpPaymentsWriteRequest("activate", false));
@@ -101,7 +101,7 @@ public sealed class CpPaymentsActivateWriteTests
         Assert.Contains("SaveAccountAsync", module, StringComparison.Ordinal);
         Assert.Contains("DisableAccountAsync", module, StringComparison.Ordinal);
         Assert.Contains("SeedPlatformAccountAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpPaymentsWriteService.cs"));
         Assert.Contains("epc_payment_set_active", service, StringComparison.Ordinal);
         Assert.Contains("epc_pay_accounts_mark_settlement", service, StringComparison.Ordinal);
@@ -111,7 +111,7 @@ public sealed class CpPaymentsActivateWriteTests
         Assert.Contains("parameters_values", service, StringComparison.Ordinal);
         Assert.Contains("epc_payment_accounts", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

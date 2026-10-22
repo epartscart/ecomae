@@ -62,7 +62,7 @@ public sealed class BosEntityIntercompanyWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/BosModule.cs"));
         Assert.Contains("BosEntitiesIntercompany", module, StringComparison.Ordinal);
         Assert.Contains("RecordIntercompanyAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate.IsAllowed", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Bos/BosEntityWriteService.cs"));
         Assert.Contains("epc_entity_add_member", service, StringComparison.Ordinal);
@@ -74,7 +74,7 @@ public sealed class BosEntityIntercompanyWriteTests
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
         Assert.DoesNotContain("From and to site keys are required", service, StringComparison.Ordinal);
         Assert.DoesNotContain("Inter-company amount cannot be zero", service, StringComparison.Ordinal);
         Assert.DoesNotContain("Entity group not found", service, StringComparison.Ordinal);

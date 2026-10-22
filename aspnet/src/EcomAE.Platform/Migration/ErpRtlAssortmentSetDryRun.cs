@@ -25,14 +25,14 @@ public sealed class ErpRtlAssortmentSetDryRun : IErpRtlAssortmentSetDryRun
         }
 
         return new ErpRtlAssortmentSetDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.ChannelId, request.ItemId,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.ChannelId, request.ItemId,
             ["INSERT `epc_rtl_assortment` ON DUPLICATE KEY UPDATE (NOT executed)"],
             "ErpRtlAssortmentSet payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_retail.php");
     }
 
     private static ErpRtlAssortmentSetDryRunResult Refuse(string s, string c, string d, ErpRtlAssortmentSetRequest r) =>
-        new(s, 0, true, false, false, c, false, r.ChannelId, r.ItemId, [], d, "content/shop/finance/epc_erp_retail.php");
+        new(s, 0, true, true, false, c, false, r.ChannelId, r.ItemId, [], d, "content/shop/finance/epc_erp_retail.php");
 }
 
 public sealed record ErpRtlAssortmentSetRequest(

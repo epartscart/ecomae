@@ -27,7 +27,7 @@ public sealed class ErpFiscalSetLockDryRun : IErpFiscalSetLockDryRun
 
         var clearing = request.LockDateUnix == 0;
         return new ErpFiscalSetLockDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.LockDateUnix, request.Note, clearing,
             [
                 clearing
@@ -42,7 +42,7 @@ public sealed class ErpFiscalSetLockDryRun : IErpFiscalSetLockDryRun
 
     private static ErpFiscalSetLockDryRunResult Refuse(
         string status, string code, string detail, ErpFiscalSetLockRequest request) =>
-        new(status, 0, true, false, false, code, false, request.LockDateUnix, request.Note, false, [], detail,
+        new(status, 0, true, true, false, code, false, request.LockDateUnix, request.Note, false, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=fiscal_set_lock");
 }
 

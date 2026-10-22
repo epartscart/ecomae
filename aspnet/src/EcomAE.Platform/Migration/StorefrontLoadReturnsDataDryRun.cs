@@ -9,13 +9,13 @@ public sealed class StorefrontLoadReturnsDataDryRun : IStorefrontLoadReturnsData
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP content/shop/returns/ajax/ajax_load_returns_data.php remains authoritative.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Action,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Action,
             ["content/shop/returns/ajax/ajax_load_returns_data.php (NOT executed)"],
             "StorefrontLoadReturnsData payload validated; UPDATE blocked.",
             "content/shop/returns/ajax/ajax_load_returns_data.php");
     }
     private static StorefrontLoadReturnsDataDryRunResult Refuse(string s,string c,string d,StorefrontLoadReturnsDataRequest r)=>
-        new(s,0,true,false,true,c,false,r.Action,[],d,"content/shop/returns/ajax/ajax_load_returns_data.php");
+        new(s,0,true,true,false,c,false,r.Action,[],d,"content/shop/returns/ajax/ajax_load_returns_data.php");
 }
 public sealed record StorefrontLoadReturnsDataRequest(string? Action = null, bool ConfirmWrites = false);
 public sealed record StorefrontLoadReturnsDataDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? Action,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

@@ -30,7 +30,7 @@ public sealed class ErpPayrollUpdateDaysDryRun : IErpPayrollUpdateDaysDryRun
         }
 
         return new ErpPayrollUpdateDaysDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.DaysWorked,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.DaysWorked,
             ["UPDATE `epc_erp_payroll_lines` + recalc run totals (NOT executed)"],
             "ErpPayrollUpdateDays payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_payroll.php");
@@ -38,7 +38,7 @@ public sealed class ErpPayrollUpdateDaysDryRun : IErpPayrollUpdateDaysDryRun
 
     private static ErpPayrollUpdateDaysDryRunResult Refuse(
         string status, string code, string detail, ErpPayrollUpdateDaysRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Id, request.DaysWorked, [], detail,
+        new(status, 0, true, true, false, code, false, request.Id, request.DaysWorked, [], detail,
             "content/shop/finance/epc_erp_payroll.php");
 }
 

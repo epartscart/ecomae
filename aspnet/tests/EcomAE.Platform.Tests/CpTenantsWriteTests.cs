@@ -109,7 +109,7 @@ public sealed class CpTenantsWriteTests
         Assert.Contains("IErpOnlyShopBootstrap", program, StringComparison.Ordinal);
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("ICpTenantsWriteService", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpTenantsWriteService.cs"));
         Assert.Contains("epc_portal_tenant_control_set_active", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
@@ -146,7 +146,7 @@ public sealed class CpTenantsWriteTests
         Assert.Contains("do not remap TenantRegistry to PHP", bootstrap, StringComparison.Ordinal);
         Assert.Contains("OpenAsync(dbName, userName: null, password: null", bootstrap, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

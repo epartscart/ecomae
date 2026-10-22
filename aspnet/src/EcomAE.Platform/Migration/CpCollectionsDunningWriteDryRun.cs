@@ -28,7 +28,7 @@ public sealed class CpCollectionsDunningWriteDryRun : ICpCollectionsDunningWrite
             "dry-run-validated",
             0,
             true,
-            false,
+            true,
             false,
             "ok",
             true,
@@ -43,7 +43,7 @@ public sealed class CpCollectionsDunningWriteDryRun : ICpCollectionsDunningWrite
         string code,
         string detail,
         CpCollectionsDunningWriteRequest request)
-        => new(status, 0, true, false, false, code, false, request.Action, [], detail, "content/shop/finance/epc_collections_dunning.php");
+        => new(status, 0, true, true, false, code, false, request.Action, [], detail, "content/shop/finance/epc_collections_dunning.php");
 }
 
 public sealed record CpCollectionsDunningWriteRequest(string? Action = null, bool ConfirmWrites = false);

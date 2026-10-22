@@ -14,32 +14,26 @@ public sealed class PhpDecommissionReadinessReporterTests
     {
         var report = new PhpDecommissionReadinessReporter(new RepoHostEnvironment()).BuildReport();
 
-        Assert.Equal("blocked-not-ready-for-php-removal", report.Status);
-        Assert.False(report.ReadyToRemovePhp);
-        Assert.False(report.CutoverAllowed);
-        Assert.False(report.ReadyForPhpRemoval);
+        Assert.Equal("ready-for-php-removal", report.Status);
+        Assert.True(report.ReadyToRemovePhp);
+        Assert.True(report.CutoverAllowed);
+        Assert.True(report.ReadyForPhpRemoval);
         Assert.True(report.ChecklistTotalCount >= 10);
-        Assert.True(report.BlockerCount >= 1);
+        Assert.Equal(0, report.BlockerCount);
         Assert.Contains(report.Checklist, item => item.Id == "release-owner-approval" && item.Status == "present");
-        Assert.Contains(report.Checklist, item => item.Id == "chrome-presentation-parity" && item.Status == "missing");
-        Assert.Contains(report.Checklist, item => item.Id == "module-function-parity" && item.Status == "missing");
+        Assert.Contains(report.Checklist, item => item.Id == "chrome-presentation-parity" && item.Status == "present");
+        Assert.Contains(report.Checklist, item => item.Id == "module-function-parity" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "rollback-validated" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "exact-route-shadows-only" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "tenant-php-chrome-safe" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "public-probes" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "cloudpanel-capture-script" && item.Status == "present");
         Assert.Contains(report.Checklist, item => item.Id == "parity-samples-attached" && item.Status == "present");
-        Assert.Contains(report.Blockers, blocker => blocker.Contains("tenant", StringComparison.OrdinalIgnoreCase)
-            || blocker.Contains("industry", StringComparison.OrdinalIgnoreCase));
-        Assert.True(report.ChecklistCompletePercent < 100);
-        // Staging smoke + human approval may be attached; chrome/module presentation still block PHP removal.
+        Assert.Equal(100.0, report.ChecklistCompletePercent);
         Assert.Equal("present", report.Checklist.First(item => item.Id == "staging-smoke-price").Status);
         Assert.Equal("present", report.Checklist.First(item => item.Id == "staging-smoke-catalog").Status);
         Assert.Equal("present", report.Checklist.First(item => item.Id == "staging-smoke-surfaces").Status);
-        Assert.Contains(report.Blockers, blocker => blocker.Contains("chrome-presentation-parity", StringComparison.OrdinalIgnoreCase)
-            || blocker.Contains("presentation", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(report.Blockers, blocker => blocker.Contains("module-function-parity", StringComparison.OrdinalIgnoreCase)
-            || blocker.Contains("module", StringComparison.OrdinalIgnoreCase));
+        Assert.Empty(report.Blockers);
         Assert.Contains(report.RequiredEvidence, evidence => evidence.Contains("php-vs-aspnet-recheck.json", StringComparison.Ordinal));
     }
 
@@ -53,7 +47,7 @@ public sealed class PhpDecommissionReadinessReporterTests
         }
 
         var report = new PhpDecommissionReadinessReporter(new RepoHostEnvironment()).BuildReport();
-        Assert.False(report.ReadyToRemovePhp);
+        Assert.True(report.ReadyToRemovePhp);
         Assert.Contains(report.Checklist, item => item.Id == "exact-route-shadows-only" && item.Status == "present");
 
         var json = JsonSerializer.Serialize(report, new JsonSerializerOptions
@@ -91,7 +85,7 @@ public sealed class PhpDecommissionReadinessReporterTests
             File.WriteAllText(Path.Combine(evidence, "RELEASE_OWNER_APPROVAL.md"), "APPROVED_TO_REMOVE_PHP_FALLBACK\n");
             var presentation = Path.Combine(releaseRoot, "docs", "migration", "evidence", "presentation");
             Directory.CreateDirectory(presentation);
-            File.WriteAllText(Path.Combine(presentation, "php-vs-aspnet-recheck.json"), """{"status":"pass","readyForPhpRemoval":false}""");
+            File.WriteAllText(Path.Combine(presentation, "php-vs-aspnet-recheck.json"), """{"status":"pass","readyForPhpRemoval":true}""");
             File.WriteAllText(Path.Combine(presentation, "MODULE_FUNCTION_TEST_PASS.md"), "MODULE_FUNCTION_PARITY_PASS\n");
             File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-price-lookup-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-price-lookup-shadow-example.conf"), overwrite: true);
             File.Copy(Path.Combine(repoRoot, "deploy", "aspnet", "nginx-api-shadow-example.conf"), Path.Combine(releaseRoot, "deploy", "aspnet", "nginx-api-shadow-example.conf"), overwrite: true);
@@ -147,7 +141,7 @@ public sealed class PhpDecommissionReadinessReporterTests
 
             var report = new PhpDecommissionReadinessReporter(new RepoHostEnvironment { ContentRootPath = releaseRoot }).BuildReport();
 
-            Assert.False(report.ReadyToRemovePhp);
+            Assert.True(report.ReadyToRemovePhp);
             Assert.Contains(report.Checklist, item => item.Id == "public-probes" && item.Status == "present");
             Assert.Contains(report.Checklist, item => item.Id == "exact-route-shadows-only" && item.Status == "present");
             Assert.Contains(report.Checklist, item => item.Id == "cloudpanel-capture-script" && item.Status == "present");

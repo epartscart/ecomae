@@ -36,7 +36,7 @@ public sealed class ErpHrEmpSaveDryRun : IErpHrEmpSaveDryRun
         }
 
         return new ErpHrEmpSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.Id, request.Code,
             ["INSERT/UPDATE `epc_hr_employees` (NOT executed)"],
             "ErpHrEmpSave payload validated; write blocked until confirmWrites=true.",
@@ -44,7 +44,7 @@ public sealed class ErpHrEmpSaveDryRun : IErpHrEmpSaveDryRun
     }
 
     private static ErpHrEmpSaveDryRunResult Refuse(string status, string code, string detail, ErpHrEmpSaveRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Id, request.Code, [], detail,
+        new(status, 0, true, true, false, code, false, request.Id, request.Code, [], detail,
             "content/shop/finance/epc_erp_hr.php");
 }
 

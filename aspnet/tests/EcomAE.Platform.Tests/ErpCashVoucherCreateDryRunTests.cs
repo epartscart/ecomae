@@ -11,7 +11,7 @@ public sealed class ErpCashVoucherCreateDryRunTests
         var r = ErpCashEntryCreateDryRun.EvaluateShape(
             new ErpCashEntryCreateRequest(1, 10m, ConfirmWrites: true));
         Assert.Equal("dry-run-confirm-refused", r.Status);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
         Assert.False(r.PhpAuthoritative);
     }
 

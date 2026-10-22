@@ -35,7 +35,7 @@ public sealed class ErpHrExpenseSaveDryRun : IErpHrExpenseSaveDryRun
         }
 
         return new ErpHrExpenseSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.EmployeeId, request.Title, request.LineCount,
             ["INSERT `epc_hr_expenses` (NOT executed)"],
             "ErpHrExpenseSave payload validated; write blocked until confirmWrites=true.",
@@ -43,7 +43,7 @@ public sealed class ErpHrExpenseSaveDryRun : IErpHrExpenseSaveDryRun
     }
 
     private static ErpHrExpenseSaveDryRunResult Refuse(string status, string code, string detail, ErpHrExpenseSaveRequest request) =>
-        new(status, 0, true, false, false, code, false, request.EmployeeId, request.Title, request.LineCount, [], detail,
+        new(status, 0, true, true, false, code, false, request.EmployeeId, request.Title, request.LineCount, [], detail,
             "content/shop/finance/epc_erp_hr.php");
 }
 

@@ -70,7 +70,7 @@ public sealed class CpCrmProjectSaveWriteTests
         Assert.Contains("ICpCrmProjectWriteService", program, StringComparison.Ordinal);
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("ICpCrmProjectWriteService", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpCrmProjectWriteService.cs"));
         Assert.Contains("epc_crm_save_project", service, StringComparison.Ordinal);
         Assert.Contains("epc_crm_save_project_task", service, StringComparison.Ordinal);
@@ -81,7 +81,7 @@ public sealed class CpCrmProjectSaveWriteTests
         Assert.Contains("crm_save_project_task", module, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

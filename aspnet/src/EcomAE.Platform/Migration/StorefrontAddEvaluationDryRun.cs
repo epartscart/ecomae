@@ -11,13 +11,13 @@ public sealed class StorefrontAddEvaluationDryRun : IStorefrontAddEvaluationDryR
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP content/shop/catalogue/evaluations/ajax_add_evaluation.php remains authoritative.", request);
         if (request.ProductId <= 0)
             return Refuse("dry-run-invalid","invalid_request","ProductId must be positive.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.ProductId, request.Rating,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.ProductId, request.Rating,
             ["content/shop/catalogue/evaluations/ajax_add_evaluation.php (NOT executed)"],
             "StorefrontAddEvaluation payload validated; UPDATE blocked.",
             "content/shop/catalogue/evaluations/ajax_add_evaluation.php");
     }
     private static StorefrontAddEvaluationDryRunResult Refuse(string s,string c,string d,StorefrontAddEvaluationRequest r)=>
-        new(s,0,true,false,true,c,false,r.ProductId, r.Rating,[],d,"content/shop/catalogue/evaluations/ajax_add_evaluation.php");
+        new(s,0,true,true,false,c,false,r.ProductId, r.Rating,[],d,"content/shop/catalogue/evaluations/ajax_add_evaluation.php");
 }
 public sealed record StorefrontAddEvaluationRequest(long ProductId, int Rating = 5, bool ConfirmWrites = false);
 public sealed record StorefrontAddEvaluationDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long ProductId, int Rating,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

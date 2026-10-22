@@ -11,13 +11,13 @@ public sealed class StorefrontCheckOrderNotAuthorizedDryRun : IStorefrontCheckOr
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP content/shop/order_process/ajax_check_order_not_authorized.php remains authoritative.", request);
         if (request.OrderId <= 0)
             return Refuse("dry-run-invalid","invalid_request","OrderId must be positive.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.OrderId,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.OrderId,
             ["content/shop/order_process/ajax_check_order_not_authorized.php (NOT executed)"],
             "StorefrontCheckOrderNotAuthorized payload validated; UPDATE blocked.",
             "content/shop/order_process/ajax_check_order_not_authorized.php");
     }
     private static StorefrontCheckOrderNotAuthorizedDryRunResult Refuse(string s,string c,string d,StorefrontCheckOrderNotAuthorizedRequest r)=>
-        new(s,0,true,false,true,c,false,r.OrderId,[],d,"content/shop/order_process/ajax_check_order_not_authorized.php");
+        new(s,0,true,true,false,c,false,r.OrderId,[],d,"content/shop/order_process/ajax_check_order_not_authorized.php");
 }
 public sealed record StorefrontCheckOrderNotAuthorizedRequest(long OrderId, bool ConfirmWrites = false);
 public sealed record StorefrontCheckOrderNotAuthorizedDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long OrderId,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

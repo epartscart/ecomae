@@ -84,8 +84,8 @@ public sealed class StorefrontQuoteAddManualDryRun : IStorefrontQuoteAddManualDr
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             QuoteId: quoteId,
@@ -110,7 +110,7 @@ public sealed class StorefrontQuoteAddManualDryRun : IStorefrontQuoteAddManualDr
 
     private static StorefrontQuoteAddManualDryRunResult Refuse(
         string status, string code, string detail, StorefrontQuoteAddManualRequest request) =>
-        new(status, 0, true, false, true, code, false, 0, 0, false,
+        new(status, 0, true, true, false, code, false, 0, 0, false,
             request.Manufacturer, request.Article, request.CountNeed, [], detail,
             "/content/shop/order_process/ajax_add_to_quote_manual.php");
 }

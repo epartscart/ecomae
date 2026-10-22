@@ -11,13 +11,13 @@ public sealed class ErpSyncContactsDryRun : IErpSyncContactsDryRun
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live ASP.NET sync_contacts route; the dry-run never writes.", request);
         if (request.Id < 0)
             return Refuse("dry-run-invalid","invalid_request","id must be >= 0.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Id, request.Code,
             ["ajax_erp.php?action=sync_contacts (NOT executed)"],
             "ERP sync_contacts payload validated; no write without confirm_writes.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=sync_contacts");
     }
     private static ErpSyncContactsDryRunResult Refuse(string s,string c,string d,ErpSyncContactsRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=sync_contacts");
+        new(s,0,true,true,false,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=sync_contacts");
 }
 public sealed record ErpSyncContactsRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);
 public sealed record ErpSyncContactsDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id, string? Code,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

@@ -29,7 +29,7 @@ public sealed class ErpInsDocAddDryRun : IErpInsDocAddDryRun
         }
 
         return new ErpInsDocAddDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.PolicyId, request.Title,
             ["INSERT `epc_erp_ins_documents` (NOT executed)"],
             "ErpInsDocAdd payload validated; write blocked until confirmWrites=true.",
@@ -41,7 +41,7 @@ public sealed class ErpInsDocAddDryRun : IErpInsDocAddDryRun
         string code,
         string detail,
         ErpInsDocAddRequest request) =>
-        new(status, 0, true, false, false, code, false, request.PolicyId, request.Title, [], detail,
+        new(status, 0, true, true, false, code, false, request.PolicyId, request.Title, [], detail,
             "content/shop/finance/epc_erp_insurance.php");
 }
 

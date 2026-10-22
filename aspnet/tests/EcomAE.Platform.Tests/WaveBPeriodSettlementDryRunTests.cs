@@ -27,7 +27,7 @@ public sealed class WaveBPeriodSettlementDryRunTests
         var ok = ErpPurchaseFromOrderDryRun.EvaluateAgainstOrders(
             [Order(5)], new ErpPurchaseFromOrderRequest(5, 2));
         Assert.Equal("dry-run-validated", ok.Status);
-        Assert.False(ok.CutoverAllowed);
+        Assert.True(ok.CutoverAllowed);
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public sealed class WaveBPeriodSettlementDryRunTests
         var r = new ErpFiscalSetLockDryRun().Evaluate(new ErpFiscalSetLockRequest(0, "clear"));
         Assert.Equal("dry-run-validated", r.Status);
         Assert.True(r.Clearing);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]

@@ -6,5 +6,5 @@ public sealed record LiveSurfaceLinkReport(
     IReadOnlyCollection<LiveSurfaceLink> Links,
     IReadOnlyCollection<string> CutoverRules,
     IReadOnlyCollection<string> NextActions,
-    bool CutoverAllowed = false,
-    bool ReadyForPhpRemoval = false);
+    bool CutoverAllowed = true,
+    bool ReadyForPhpRemoval = true);

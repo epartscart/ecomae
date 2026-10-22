@@ -33,14 +33,14 @@ public sealed class ErpErFieldAddDryRun : IErpErFieldAddDryRun
         }
 
         return new ErpErFieldAddDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.FormatId, label,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.FormatId, label,
             ["INSERT `epc_er_field` (NOT executed)"],
             "ErpErFieldAdd payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_elec_reporting.php");
     }
 
     private static ErpErFieldAddDryRunResult Refuse(string s, string c, string d, ErpErFieldAddRequest r) =>
-        new(s, 0, true, false, false, c, false, r.FormatId, r.Label, [], d, "content/shop/finance/epc_erp_elec_reporting.php");
+        new(s, 0, true, true, false, c, false, r.FormatId, r.Label, [], d, "content/shop/finance/epc_erp_elec_reporting.php");
 }
 
 public sealed record ErpErFieldAddRequest(

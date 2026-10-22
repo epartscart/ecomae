@@ -32,14 +32,14 @@ public sealed class ErpIntgEntitySaveDryRun : IErpIntgEntitySaveDryRun
         }
 
         return new ErpIntgEntitySaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.CompanyId, name,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.CompanyId, name,
             ["INSERT/UPDATE `epc_intg_entity` (NOT executed)"],
             "ErpIntgEntitySave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_integration.php");
     }
 
     private static ErpIntgEntitySaveDryRunResult Refuse(string s, string c, string d, ErpIntgEntitySaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.CompanyId, r.Name, [], d, "content/shop/finance/epc_erp_integration.php");
+        new(s, 0, true, true, false, c, false, r.CompanyId, r.Name, [], d, "content/shop/finance/epc_erp_integration.php");
 }
 
 public sealed record ErpIntgEntitySaveRequest(

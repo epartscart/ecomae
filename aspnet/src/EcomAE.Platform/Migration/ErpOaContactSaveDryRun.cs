@@ -32,14 +32,14 @@ public sealed class ErpOaContactSaveDryRun : IErpOaContactSaveDryRun
         }
 
         return new ErpOaContactSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.PartyId, type,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.PartyId, type,
             ["INSERT `epc_oa_contact` (NOT executed)"],
             "ErpOaContactSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_orgadmin.php");
     }
 
     private static ErpOaContactSaveDryRunResult Refuse(string s, string c, string d, ErpOaContactSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.PartyId, r.ContactType, [], d, "content/shop/finance/epc_erp_orgadmin.php");
+        new(s, 0, true, true, false, c, false, r.PartyId, r.ContactType, [], d, "content/shop/finance/epc_erp_orgadmin.php");
 }
 
 public sealed record ErpOaContactSaveRequest(

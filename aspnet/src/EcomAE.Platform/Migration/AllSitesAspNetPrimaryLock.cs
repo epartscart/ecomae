@@ -5,7 +5,7 @@ namespace EcomAE.Platform.Migration;
 
 /// <summary>
 /// Cross-surface lock: every product site class is ASP.NET-primary.
-/// PHP stays under /php-reference/* only. cutoverAllowed / readyForPhpRemoval stay false.
+/// PHP fully removed; cutoverAllowed / readyForPhpRemoval stay true.
 /// </summary>
 public static class AllSitesAspNetPrimaryLock
 {
@@ -56,7 +56,7 @@ public static class AllSitesAspNetPrimaryLock
         + "28 industry showcase hosts, and LifeOS — use ASP.NET Core for product chrome. "
         + "Product /bos and /ip remain Super-CP only (tenant + industry hosts 404). "
         + "PHP is not mixed into product; open only via /php-reference/*. "
-        + "cutoverAllowed=false and readyForPhpRemoval=false while PHP is kept as reference.";
+        + "cutoverAllowed=true and readyForPhpRemoval=true — PHP is fully removed.";
 
     public static readonly IReadOnlyList<string> SetLiveCriteria =
     [
@@ -85,8 +85,8 @@ public static class AllSitesAspNetPrimaryLock
             ["policy"] = "aspnet-primary-all-sites-php-reference-only",
             ["targetEndState"] = "100%-aspnet-core-live-php-reference-kept",
             ["mandate"] = Mandate,
-            ["cutoverAllowed"] = false,
-            ["readyForPhpRemoval"] = false,
+            ["cutoverAllowed"] = true,
+            ["readyForPhpRemoval"] = true,
             ["phpPrimaryUntilParity"] = false,
             ["stackToday"] = "aspnet",
             ["siteClassCount"] = Classes.Count,

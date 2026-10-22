@@ -28,7 +28,7 @@ public sealed class ErpUaeTaxFtaFetchDryRun : IErpUaeTaxFtaFetchDryRun
             "dry-run-validated",
             0,
             true,
-            false,
+            true,
             false,
             "ok",
             true,
@@ -38,7 +38,7 @@ public sealed class ErpUaeTaxFtaFetchDryRun : IErpUaeTaxFtaFetchDryRun
     }
 
     private static ErpUaeTaxFtaFetchDryRunResult Refuse(string s, string c, string d, ErpUaeTaxFtaFetchRequest r) =>
-        new(s, 0, true, false, false, c, false, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=uae_tax_fta_fetch");
+        new(s, 0, true, true, false, c, false, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=uae_tax_fta_fetch");
 }
 
 public sealed record ErpUaeTaxFtaFetchRequest(bool ConfirmWrites = false, bool Force = false);

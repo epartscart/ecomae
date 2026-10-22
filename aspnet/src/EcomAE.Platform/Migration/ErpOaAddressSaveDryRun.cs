@@ -32,14 +32,14 @@ public sealed class ErpOaAddressSaveDryRun : IErpOaAddressSaveDryRun
         }
 
         return new ErpOaAddressSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.PartyId, purpose,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.PartyId, purpose,
             ["INSERT `epc_oa_address` (NOT executed)"],
             "ErpOaAddressSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_orgadmin.php");
     }
 
     private static ErpOaAddressSaveDryRunResult Refuse(string s, string c, string d, ErpOaAddressSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.PartyId, r.Purpose, [], d, "content/shop/finance/epc_erp_orgadmin.php");
+        new(s, 0, true, true, false, c, false, r.PartyId, r.Purpose, [], d, "content/shop/finance/epc_erp_orgadmin.php");
 }
 
 public sealed record ErpOaAddressSaveRequest(

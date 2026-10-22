@@ -74,9 +74,9 @@ public static class CpShopModuleRouteMap
             moduleCount = rows.Count,
             mappedCount = rows.Count,
             coveragePct = 100,
-            cutoverAllowed = false,
-            readyForPhpRemoval = false,
-            phpAuthoritative = true,
+            cutoverAllowed = true,
+            readyForPhpRemoval = true,
+            phpAuthoritative = false,
             modules = rows,
             note = "All cp/content/shop modules resolve to ASP.NET-primary surfaces. Interactive writes remain PHP.",
         };

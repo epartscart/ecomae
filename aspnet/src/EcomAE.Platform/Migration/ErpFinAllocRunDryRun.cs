@@ -10,13 +10,13 @@ public sealed class ErpFinAllocRunDryRun : IErpFinAllocRunDryRun
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live /erp/ajax/fin-alloc-run route (IErpFinAllocRunWriteService); the dry-run evaluator never writes.", request);
         
-        return new("dry-run-validated",0,true,false,true,"ok",true,
+        return new("dry-run-validated",0,true,true,false,"ok",true,
             ["ajax_erp.php?action=fin_alloc_run (NOT executed)"],
             "ERP fin_alloc_run payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=fin_alloc_run");
     }
     private static ErpFinAllocRunDryRunResult Refuse(string s,string c,string d,ErpFinAllocRunRequest r)=>
-        new(s,0,true,false,true,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=fin_alloc_run");
+        new(s,0,true,true,false,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=fin_alloc_run");
 }
 public sealed record ErpFinAllocRunRequest(bool ConfirmWrites = false);
 public sealed record ErpFinAllocRunDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

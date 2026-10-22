@@ -101,7 +101,7 @@ public sealed class BosDunningAddInvoiceWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/BosModule.cs"));
         Assert.Contains("BosDunningAddInvoice", module, StringComparison.Ordinal);
         Assert.Contains("AddInvoiceAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate.IsAllowed", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Bos/BosDunningWriteService.cs"));
         Assert.Contains("epc_dunning_add_invoice", service, StringComparison.Ordinal);
@@ -111,7 +111,7 @@ public sealed class BosDunningAddInvoiceWriteTests
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private sealed class UnconfiguredConnections : EcomAE.Platform.Erp.IErpWriteConnectionFactory

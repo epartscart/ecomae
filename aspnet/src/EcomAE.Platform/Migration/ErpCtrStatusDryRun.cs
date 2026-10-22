@@ -11,13 +11,13 @@ public sealed class ErpCtrStatusDryRun : IErpCtrStatusDryRun
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live ASP.NET ctr_status write service in the route handler; this dry-run evaluator never writes.", request);
         if (request.Id <= 0)
             return Refuse("dry-run-invalid","invalid_request","id must be positive.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.TargetStatus,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Id, request.TargetStatus,
             ["ajax_erp.php?action=ctr_status id=@id status=@status (NOT executed)"],
             "ERP ctr_status payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=ctr_status");
     }
     private static ErpCtrStatusDryRunResult Refuse(string s,string c,string d,ErpCtrStatusRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id, r.TargetStatus,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=ctr_status");
+        new(s,0,true,true,false,c,false,r.Id, r.TargetStatus,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=ctr_status");
 }
 public sealed record ErpCtrStatusRequest(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
 public sealed record ErpCtrStatusDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id, string? TargetStatus,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

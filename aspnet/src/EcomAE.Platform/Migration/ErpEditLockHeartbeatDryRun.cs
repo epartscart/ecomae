@@ -30,14 +30,14 @@ public sealed class ErpEditLockHeartbeatDryRun : IErpEditLockHeartbeatDryRun
         }
 
         return new ErpEditLockHeartbeatDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.ResourceKey,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.ResourceKey,
             ["UPDATE `epc_erp_edit_locks` heartbeat (NOT executed)"],
             "ErpEditLockHeartbeat payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_concurrency.php");
     }
 
     private static ErpEditLockHeartbeatDryRunResult Refuse(string s, string c, string d, ErpEditLockHeartbeatRequest r) =>
-        new(s, 0, true, false, false, c, false, r.ResourceKey, [], d, "content/shop/finance/epc_erp_concurrency.php");
+        new(s, 0, true, true, false, c, false, r.ResourceKey, [], d, "content/shop/finance/epc_erp_concurrency.php");
 }
 
 public sealed record ErpEditLockHeartbeatRequest(

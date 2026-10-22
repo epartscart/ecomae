@@ -36,7 +36,7 @@ public sealed class ErpWmsReceiveDryRun : IErpWmsReceiveDryRun
         }
 
         return new ErpWmsReceiveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             item, request.Qty, request.ReceiveLocationId, request.PutawayLocationId,
             ["INSERT `epc_erp_wms_lp` + INSERT `epc_erp_wms_work` putaway (NOT executed)"],
             "ErpWmsReceive payload validated; no write was performed.",
@@ -44,7 +44,7 @@ public sealed class ErpWmsReceiveDryRun : IErpWmsReceiveDryRun
     }
 
     private static ErpWmsReceiveDryRunResult Refuse(string status, string code, string detail, ErpWmsReceiveRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Item, request.Qty, request.ReceiveLocationId, request.PutawayLocationId, [], detail,
+        new(status, 0, true, true, false, code, false, request.Item, request.Qty, request.ReceiveLocationId, request.PutawayLocationId, [], detail,
             "content/shop/finance/epc_erp_wms.php");
 }
 

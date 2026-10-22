@@ -30,14 +30,14 @@ public sealed class ErpBplanAdvanceDryRun : IErpBplanAdvanceDryRun
         }
 
         return new ErpBplanAdvanceDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id,
             ["UPDATE `epc_bplan_plan` SET stage (NOT executed)"],
             "ErpBplanAdvance payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_budget_planning.php");
     }
 
     private static ErpBplanAdvanceDryRunResult Refuse(string s, string c, string d, ErpBplanAdvanceRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, [], d, "content/shop/finance/epc_erp_budget_planning.php");
+        new(s, 0, true, true, false, c, false, r.Id, [], d, "content/shop/finance/epc_erp_budget_planning.php");
 }
 
 public sealed record ErpBplanAdvanceRequest(long Id, bool ConfirmWrites = false);

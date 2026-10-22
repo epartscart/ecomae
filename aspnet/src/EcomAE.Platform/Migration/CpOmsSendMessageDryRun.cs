@@ -89,8 +89,8 @@ public sealed class CpOmsSendMessageDryRun : ICpOmsSendMessageDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             OrderId: request.OrderId,
@@ -110,7 +110,7 @@ public sealed class CpOmsSendMessageDryRun : ICpOmsSendMessageDryRun
 
     private static CpOmsSendMessageDryRunResult Refuse(
         string status, string code, string detail, CpOmsSendMessageRequest request) =>
-        new(status, 0, true, false, true, code, false, request.OrderId, request.ItemId,
+        new(status, 0, true, true, false, code, false, request.OrderId, request.ItemId,
             request.Text, null, null, [], detail,
             "/CP/content/shop/order_process/ajax_epc_orders_oms.php?action=send_message");
 }

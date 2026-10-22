@@ -62,14 +62,14 @@ public sealed class CpSocialHubWriteTests
         Assert.Contains("ICpSocialHubWriteService", module, StringComparison.Ordinal);
         Assert.Contains("var isSuper = SuperCpHostGate.IsAllowed(context)", module, StringComparison.Ordinal);
         Assert.Contains("siteKey = CpSocialHubWriteService.ResolveSiteKey(null, false, context.Request.Host.Host)", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpSocialHubWriteService.cs"));
         Assert.Contains("epc_social_save_draft", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_social_post_drafts`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

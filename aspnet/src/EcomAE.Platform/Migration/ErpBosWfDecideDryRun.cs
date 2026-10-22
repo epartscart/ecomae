@@ -30,7 +30,7 @@ public sealed class ErpBosWfDecideDryRun : IErpBosWfDecideDryRun
         }
 
         return new ErpBosWfDecideDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.RequestId, request.Decision,
             ["UPDATE `epc_bos_approval_requests` + INSERT `epc_bos_approval_log` (NOT executed)"],
             "ErpBosWfDecide payload validated; write blocked until confirmWrites=true.",
@@ -42,7 +42,7 @@ public sealed class ErpBosWfDecideDryRun : IErpBosWfDecideDryRun
         string code,
         string detail,
         ErpBosWfDecideRequest request) =>
-        new(status, 0, true, false, false, code, false, request.RequestId, request.Decision, [], detail,
+        new(status, 0, true, true, false, code, false, request.RequestId, request.Decision, [], detail,
             "content/shop/finance/epc_bos_workflow.php");
 }
 

@@ -25,7 +25,7 @@ public sealed class ErpPeriodReopenDryRun : IErpPeriodReopenDryRun
         }
 
         return new ErpPeriodReopenDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true, ym, request.Note,
+            "dry-run-validated", 0, true, true, false, "ok", true, ym, request.Note,
             ["epc_erp_period_reopen(@ym, @admin, @note) (NOT executed)"],
             "Period reopen payload validated; status UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=period_reopen");
@@ -33,7 +33,7 @@ public sealed class ErpPeriodReopenDryRun : IErpPeriodReopenDryRun
 
     private static ErpPeriodReopenDryRunResult Refuse(
         string status, string code, string detail, ErpPeriodReopenRequest request) =>
-        new(status, 0, true, false, true, code, false, request.YearMonth, request.Note, [], detail,
+        new(status, 0, true, true, false, code, false, request.YearMonth, request.Note, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=period_reopen");
 }
 

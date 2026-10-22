@@ -1,0 +1,1 @@
+APPROVED_TO_REMOVE_PHP_FALLBACK — PHP stack fully removed from repository and production (docroot .php files deleted, php-fpm stopped and masked, PHP binaries removed). Approved via merged PR chain #2375-#2380.

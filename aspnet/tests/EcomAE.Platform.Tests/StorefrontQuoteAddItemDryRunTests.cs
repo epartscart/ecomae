@@ -15,7 +15,7 @@ public sealed class StorefrontQuoteAddItemDryRunTests
             5, [Quote(9, 5)], new StorefrontQuoteAddItemRequest(2, "Bosch", "0986", 1, true));
         Assert.Equal("dry-run-confirm-refused", r.Status);
         Assert.Equal(0, r.Writes);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]

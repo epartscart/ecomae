@@ -25,14 +25,14 @@ public sealed class ErpIntgEventRaiseDryRun : IErpIntgEventRaiseDryRun
         }
 
         return new ErpIntgEventRaiseDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Event, request.CompanyId,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Event, request.CompanyId,
             ["INSERT `epc_intg_event_log` (NOT executed)"],
             "ErpIntgEventRaise payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_integration.php");
     }
 
     private static ErpIntgEventRaiseDryRunResult Refuse(string s, string c, string d, ErpIntgEventRaiseRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Event, r.CompanyId, [], d, "content/shop/finance/epc_erp_integration.php");
+        new(s, 0, true, true, false, c, false, r.Event, r.CompanyId, [], d, "content/shop/finance/epc_erp_integration.php");
 }
 
 public sealed record ErpIntgEventRaiseRequest(

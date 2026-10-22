@@ -25,14 +25,14 @@ public sealed class ErpBosIntelToggleControlDryRun : IErpBosIntelToggleControlDr
         }
 
         return new ErpBosIntelToggleControlDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.ControlKey, request.Enabled,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.ControlKey, request.Enabled,
             ["ajax_erp.php?action=bos_intel_toggle_control (NOT executed)"],
             "ErpBosIntelToggle payload validated; write blocked until confirmWrites=true.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=bos_intel_toggle_control");
     }
 
     private static ErpBosIntelToggleControlDryRunResult Refuse(string s, string c, string d, ErpBosIntelToggleControlRequest r) =>
-        new(s, 0, true, false, false, c, false, r.ControlKey, r.Enabled, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=bos_intel_toggle_control");
+        new(s, 0, true, true, false, c, false, r.ControlKey, r.Enabled, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=bos_intel_toggle_control");
 }
 
 public sealed record ErpBosIntelToggleControlRequest(string? ControlKey = null, bool Enabled = true, bool ConfirmWrites = false);

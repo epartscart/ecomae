@@ -30,7 +30,7 @@ public sealed class ErpInsClaimAddDryRun : IErpInsClaimAddDryRun
         }
 
         return new ErpInsClaimAddDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.Id, request.PolicyId, request.ClaimNo,
             [request.Id > 0
                 ? "UPDATE `epc_erp_ins_claims` (NOT executed)"
@@ -40,7 +40,7 @@ public sealed class ErpInsClaimAddDryRun : IErpInsClaimAddDryRun
     }
 
     private static ErpInsClaimAddDryRunResult Refuse(string status, string code, string detail, ErpInsClaimAddRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Id, request.PolicyId, request.ClaimNo, [], detail,
+        new(status, 0, true, true, false, code, false, request.Id, request.PolicyId, request.ClaimNo, [], detail,
             "content/shop/finance/epc_erp_insurance.php");
 }
 

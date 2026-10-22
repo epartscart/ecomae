@@ -30,14 +30,14 @@ public sealed class ErpMfgrRouteSaveDryRun : IErpMfgrRouteSaveDryRun
         }
 
         return new ErpMfgrRouteSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Code,
             ["ajax_erp.php?action=mfgr_route_save (NOT executed)"],
             "ErpMfgrRouteSave payload validated; write blocked until confirmWrites=true.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=mfgr_route_save");
     }
 
     private static ErpMfgrRouteSaveDryRunResult Refuse(string s, string c, string d, ErpMfgrRouteSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=mfgr_route_save");
+        new(s, 0, true, true, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=mfgr_route_save");
 }
 
 public sealed record ErpMfgrRouteSaveRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);

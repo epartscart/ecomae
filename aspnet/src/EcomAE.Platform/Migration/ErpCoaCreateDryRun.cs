@@ -42,7 +42,7 @@ public sealed class ErpCoaCreateDryRun : IErpCoaCreateDryRun
         }
 
         return new ErpCoaCreateDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true, code, name, type,
+            "dry-run-validated", 0, true, true, false, "ok", true, code, name, type,
             ["INSERT INTO `epc_erp_coa_accounts` (…) (NOT executed)"],
             "Payload shape validated; COA INSERT blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=create_coa");
@@ -50,7 +50,7 @@ public sealed class ErpCoaCreateDryRun : IErpCoaCreateDryRun
 
     private static ErpCoaCreateDryRunResult Refuse(
         string status, string code, string detail, ErpCoaCreateRequest request) =>
-        new(status, 0, true, false, true, code, false, request.Code, request.Name, request.AccountType,
+        new(status, 0, true, true, false, code, false, request.Code, request.Name, request.AccountType,
             [], detail, "/CP/content/shop/finance/erp/ajax_erp.php?action=create_coa");
 }
 

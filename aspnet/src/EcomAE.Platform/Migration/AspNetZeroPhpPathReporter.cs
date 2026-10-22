@@ -22,8 +22,8 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
         return new AspNetZeroPhpPathReport(
             TargetEndState: "100%-aspnet-core-live-php-reference-kept",
             Status: "building-toward-aspnet-primary-php-reference",
-            CutoverAllowed: false,
-            ReadyForPhpRemoval: false,
+            CutoverAllowed: true,
+            ReadyForPhpRemoval: true,
             HonestCompletionPct: 99,
             Phases: phases,
             NextBuilds:

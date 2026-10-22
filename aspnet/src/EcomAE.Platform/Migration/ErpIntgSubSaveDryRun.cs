@@ -32,14 +32,14 @@ public sealed class ErpIntgSubSaveDryRun : IErpIntgSubSaveDryRun
         }
 
         return new ErpIntgSubSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Event, type,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Event, type,
             ["INSERT `epc_intg_event_sub` (NOT executed)"],
             "ErpIntgSubSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_integration.php");
     }
 
     private static ErpIntgSubSaveDryRunResult Refuse(string s, string c, string d, ErpIntgSubSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Event, r.TargetType, [], d, "content/shop/finance/epc_erp_integration.php");
+        new(s, 0, true, true, false, c, false, r.Event, r.TargetType, [], d, "content/shop/finance/epc_erp_integration.php");
 }
 
 public sealed record ErpIntgSubSaveRequest(

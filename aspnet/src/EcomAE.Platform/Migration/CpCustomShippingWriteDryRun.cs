@@ -28,7 +28,7 @@ public sealed class CpCustomShippingWriteDryRun : ICpCustomShippingWriteDryRun
             "dry-run-validated",
             0,
             true,
-            false,
+            true,
             false,
             "ok",
             true,
@@ -43,7 +43,7 @@ public sealed class CpCustomShippingWriteDryRun : ICpCustomShippingWriteDryRun
         string code,
         string detail,
         CpCustomShippingWriteRequest request)
-        => new(status, 0, true, false, false, code, false, request.Action, [], detail, "content/shop/finance/epc_custom_shipping.php");
+        => new(status, 0, true, true, false, code, false, request.Action, [], detail, "content/shop/finance/epc_custom_shipping.php");
 }
 
 public sealed record CpCustomShippingWriteRequest(string? Action = null, bool ConfirmWrites = false);

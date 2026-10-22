@@ -25,7 +25,7 @@ public sealed class ErpSupplierCreateDryRun : IErpSupplierCreateDryRun
         }
 
         return new ErpSupplierCreateDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true, name,
+            "dry-run-validated", 0, true, true, false, "ok", true, name,
             [
                 "INSERT INTO `epc_erp_suppliers` (…) (NOT executed)",
                 "Dimension save vendor (NOT executed)"
@@ -36,7 +36,7 @@ public sealed class ErpSupplierCreateDryRun : IErpSupplierCreateDryRun
 
     private static ErpSupplierCreateDryRunResult Refuse(
         string status, string code, string detail, ErpSupplierCreateRequest request) =>
-        new(status, 0, true, false, true, code, false, request.Name, [], detail,
+        new(status, 0, true, true, false, code, false, request.Name, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=create_supplier");
 }
 

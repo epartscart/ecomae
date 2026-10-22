@@ -15,7 +15,7 @@ public sealed class CpOmsSendMessageDryRunTests
             [Order(9)], new CpOmsSendMessageRequest(9, "hello", ConfirmWrites: true));
         Assert.Equal("dry-run-confirm-refused", r.Status);
         Assert.Equal(0, r.Writes);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
         Assert.False(r.WouldWrite);
     }
 
@@ -38,7 +38,7 @@ public sealed class CpOmsSendMessageDryRunTests
         Assert.True(r.WouldWrite);
         Assert.Equal(0, r.Writes);
         Assert.True(r.WritesBlocked);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
         Assert.Equal(42, r.ItemId);
         Assert.Contains(r.SimulatedSql, s => s.Contains("shop_orders_messages", StringComparison.Ordinal));
         Assert.Contains(r.SimulatedSql, s => s.Contains("NOT executed", StringComparison.Ordinal));

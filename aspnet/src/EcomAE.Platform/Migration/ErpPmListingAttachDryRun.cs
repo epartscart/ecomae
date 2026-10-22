@@ -30,14 +30,14 @@ public sealed class ErpPmListingAttachDryRun : IErpPmListingAttachDryRun
         }
 
         return new ErpPmListingAttachDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Code,
             ["ajax_erp.php?action=pm_listing_attach (NOT executed)"],
             "ErpPmListingAttach payload validated; write blocked until confirmWrites=true.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=pm_listing_attach");
     }
 
     private static ErpPmListingAttachDryRunResult Refuse(string s, string c, string d, ErpPmListingAttachRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=pm_listing_attach");
+        new(s, 0, true, true, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=pm_listing_attach");
 }
 
 public sealed record ErpPmListingAttachRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);

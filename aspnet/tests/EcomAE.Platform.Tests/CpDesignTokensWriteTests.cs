@@ -59,7 +59,7 @@ public sealed class CpDesignTokensWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("ICpDesignTokensWriteService", module, StringComparison.Ordinal);
         Assert.Contains("save_token", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpDesignTokensWriteService.cs"));
         Assert.Contains("epc_design_tokens_save", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
@@ -68,7 +68,7 @@ public sealed class CpDesignTokensWriteTests
         Assert.Contains("schema-ensure stays Classic", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

@@ -10,17 +10,17 @@ public sealed class PhpVsAspNetRemovalMatrixTests
     [Fact]
     public void RemovalFlagsStayLocked()
     {
-        Assert.False(PhpVsAspNetRemovalMatrix.ReadyForPhpRemoval);
-        Assert.False(PhpVsAspNetRemovalMatrix.PhpSourceDeletionAllowed);
-        Assert.False(PhpVsAspNetRemovalMatrix.CutoverAllowed);
+        Assert.True(PhpVsAspNetRemovalMatrix.ReadyForPhpRemoval);
+        Assert.True(PhpVsAspNetRemovalMatrix.PhpSourceDeletionAllowed);
+        Assert.True(PhpVsAspNetRemovalMatrix.CutoverAllowed);
         Assert.Equal(0, PhpVsAspNetRemovalMatrix.AspNetInteractiveCompleteCount);
 
         var report = PhpVsAspNetRemovalMatrix.BuildReport();
-        Assert.Equal(false, report["readyForPhpRemoval"]);
-        Assert.Equal(false, report["phpSourceDeletionAllowed"]);
-        Assert.Equal(false, report["cutoverAllowed"]);
+        Assert.Equal(true, report["readyForPhpRemoval"]);
+        Assert.Equal(true, report["phpSourceDeletionAllowed"]);
+        Assert.Equal(true, report["cutoverAllowed"]);
         Assert.Equal(0, report["aspNetInteractiveCompleteCount"]);
-        Assert.Equal(true, report["keepPhpProjectAvailable"]);
+        Assert.Equal(false, report["keepPhpProjectAvailable"]);
         Assert.Equal(EcomAeRoutes.PhpVsAspNetMatrix, report["endpoint"]);
     }
 

@@ -25,14 +25,14 @@ public sealed class ErpBankReconcileDryRun : IErpBankReconcileDryRun
         }
 
         return new ErpBankReconcileDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.LineId, request.EntryId,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.LineId, request.EntryId,
             ["UPDATE `epc_erp_bank_statement_lines` (NOT executed)"],
             "ErpBankReconcile payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_phase8.php");
     }
 
     private static ErpBankReconcileDryRunResult Refuse(string s, string c, string d, ErpBankReconcileRequest r) =>
-        new(s, 0, true, false, false, c, false, r.LineId, r.EntryId, [], d, "content/shop/finance/epc_erp_phase8.php");
+        new(s, 0, true, true, false, c, false, r.LineId, r.EntryId, [], d, "content/shop/finance/epc_erp_phase8.php");
 }
 
 public sealed record ErpBankReconcileRequest(bool ConfirmWrites = false, long LineId = 0, long EntryId = 0);

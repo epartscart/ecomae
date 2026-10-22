@@ -25,7 +25,7 @@ public sealed class WaveBGlWorkflowDryRunTests
         var r = ErpPurchaseAdjustmentDryRun.EvaluateAgainstPurchases(
             [Purchase(4)], new ErpPurchaseAdjustmentRequest(4, -5m, "wave-b"));
         Assert.Equal("dry-run-validated", r.Status);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]
@@ -70,6 +70,6 @@ public sealed class WaveBGlWorkflowDryRunTests
         var r = new ErpWorkflowCreateDryRun().Evaluate(new ErpWorkflowCreateRequest("Pick parts", "warehouse", "high", 9));
         Assert.Equal("dry-run-validated", r.Status);
         Assert.Equal(0, r.Writes);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 }

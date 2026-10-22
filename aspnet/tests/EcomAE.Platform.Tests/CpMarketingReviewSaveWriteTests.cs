@@ -70,7 +70,7 @@ public sealed class CpMarketingReviewSaveWriteTests
         Assert.Contains("SaveReviewAsync", module, StringComparison.Ordinal);
         Assert.Contains("ToggleTaskAsync", module, StringComparison.Ordinal);
         Assert.Contains("SaveKpiAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpMarketingGrowthWriteService.cs"));
         Assert.Contains("epc_marketing_save_review", service, StringComparison.Ordinal);
         Assert.Contains("epc_marketing_toggle_task", service, StringComparison.Ordinal);
@@ -81,7 +81,7 @@ public sealed class CpMarketingReviewSaveWriteTests
         Assert.Contains("INSERT INTO `epc_marketing_kpi_log`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

@@ -10,13 +10,13 @@ public sealed class BosAjaxRunDetailsDryRun : IBosAjaxRunDetailsDryRun
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP ajax_epc_bos.php remains authoritative.", request);
         
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Id, request.Code,
             ["ajax_epc_bos.php?action=run_details (NOT executed)"],
             "BOS run_details payload validated; UPDATE blocked.",
             "/BOS/ajax_epc_bos.php?action=run_details");
     }
     private static BosAjaxRunDetailsDryRunResult Refuse(string s,string c,string d,BosAjaxRunDetailsRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id, r.Code,[],d,"/BOS/ajax_epc_bos.php?action=run_details");
+        new(s,0,true,true,false,c,false,r.Id, r.Code,[],d,"/BOS/ajax_epc_bos.php?action=run_details");
 }
 public sealed record BosAjaxRunDetailsRequest(long Id=0, string? Code=null, bool ConfirmWrites=false);
 public sealed record BosAjaxRunDetailsDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id, string? Code,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

@@ -25,14 +25,14 @@ public sealed class ErpCftLineAddDryRun : IErpCftLineAddDryRun
         }
 
         return new ErpCftLineAddDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.ForecastId, request.Direction,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.ForecastId, request.Direction,
             ["INSERT `epc_cft_line` (NOT executed)"],
             "ErpCftLineAdd payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_cash_treasury.php");
     }
 
     private static ErpCftLineAddDryRunResult Refuse(string s, string c, string d, ErpCftLineAddRequest r) =>
-        new(s, 0, true, false, false, c, false, r.ForecastId, r.Direction, [], d, "content/shop/finance/epc_erp_cash_treasury.php");
+        new(s, 0, true, true, false, c, false, r.ForecastId, r.Direction, [], d, "content/shop/finance/epc_erp_cash_treasury.php");
 }
 
 public sealed record ErpCftLineAddRequest(

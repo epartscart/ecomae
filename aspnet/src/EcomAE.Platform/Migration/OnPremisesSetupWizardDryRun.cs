@@ -9,13 +9,13 @@ public sealed class OnPremisesSetupWizardDryRun : IOnPremisesSetupWizardDryRun
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP setup-wizard.php remains authoritative.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.TenantCode,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.TenantCode,
             ["deploy/on-premises/setup-wizard.php (NOT executed)"],
             "On-premises setup wizard payload validated; schema migrate blocked. See deploy/on-premises-aspnet/ scaffold.",
             "deploy/on-premises/setup-wizard.php");
     }
     private static OnPremisesSetupWizardDryRunResult Refuse(string s,string c,string d,OnPremisesSetupWizardRequest r)=>
-        new(s,0,true,false,true,c,false,r.TenantCode,[],d,"deploy/on-premises/setup-wizard.php");
+        new(s,0,true,true,false,c,false,r.TenantCode,[],d,"deploy/on-premises/setup-wizard.php");
 }
 public sealed record OnPremisesSetupWizardRequest(string? TenantCode = null, bool ConfirmWrites = false);
 public sealed record OnPremisesSetupWizardDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? TenantCode,IReadOnlyList<string> SimulatedSql,string Detail,string PhpPath)

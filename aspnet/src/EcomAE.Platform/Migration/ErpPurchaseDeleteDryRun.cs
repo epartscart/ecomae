@@ -64,7 +64,7 @@ public sealed class ErpPurchaseDeleteDryRun : IErpPurchaseDeleteDryRun
         }
 
         return new ErpPurchaseDeleteDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, row.Id, row.Status,
+            "dry-run-validated", 0, true, true, false, "ok", true, row.Id, row.Status,
             [
                 "DELETE FROM `epc_erp_supplier_accounting` WHERE purchase_id=@id (NOT executed)",
                 "DELETE FROM `epc_erp_purchases` WHERE id=@id (NOT executed)"
@@ -75,7 +75,7 @@ public sealed class ErpPurchaseDeleteDryRun : IErpPurchaseDeleteDryRun
 
     private static ErpPurchaseDeleteDryRunResult Refuse(
         string status, string code, string detail, ErpPurchaseDeleteRequest request) =>
-        new(status, 0, true, false, false, code, false, request.PurchaseId, null, [], detail,
+        new(status, 0, true, true, false, code, false, request.PurchaseId, null, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=purchase_delete");
 }
 

@@ -30,14 +30,14 @@ public sealed class ErpOplSetStatusDryRun : IErpOplSetStatusDryRun
         }
 
         return new ErpOplSetStatusDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.TargetStatus,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.TargetStatus,
             ["ajax_erp.php?action=opl_set_status (NOT executed)"],
             "ErpOplSetStatus payload validated; write blocked until confirmWrites=true.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=opl_set_status");
     }
 
     private static ErpOplSetStatusDryRunResult Refuse(string s, string c, string d, ErpOplSetStatusRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.TargetStatus, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=opl_set_status");
+        new(s, 0, true, true, false, c, false, r.Id, r.TargetStatus, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=opl_set_status");
 }
 
 public sealed record ErpOplSetStatusRequest(long Id = 0, string? TargetStatus = null, bool ConfirmWrites = false);

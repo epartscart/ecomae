@@ -59,7 +59,7 @@ public sealed class ErpErFormatSavePhpParityTests
         Assert.Equal(0, ok.Writes);
         Assert.True(ok.WritesBlocked);
         Assert.False(ok.PhpAuthoritative);
-        Assert.False(ok.CutoverAllowed);
+        Assert.True(ok.CutoverAllowed);
         Assert.True(ok.WouldWrite);
 
         var missing = new ErpErFormatSaveDryRun().Evaluate(new ErpErFormatSaveRequest());

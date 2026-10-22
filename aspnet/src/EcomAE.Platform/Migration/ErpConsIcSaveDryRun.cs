@@ -41,7 +41,7 @@ public sealed class ErpConsIcSaveDryRun : IErpConsIcSaveDryRun
         }
 
         return new ErpConsIcSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.FromEntity, request.ToEntity, request.Amount,
             ["INSERT `epc_cons_ic` (NOT executed)"],
             "ErpConsIcSave payload validated; write blocked until confirmWrites=true.",
@@ -53,7 +53,7 @@ public sealed class ErpConsIcSaveDryRun : IErpConsIcSaveDryRun
         string code,
         string detail,
         ErpConsIcSaveRequest request) =>
-        new(status, 0, true, false, false, code, false, request.FromEntity, request.ToEntity, request.Amount, [], detail,
+        new(status, 0, true, true, false, code, false, request.FromEntity, request.ToEntity, request.Amount, [], detail,
             "content/shop/finance/epc_erp_consolidation.php");
 }
 

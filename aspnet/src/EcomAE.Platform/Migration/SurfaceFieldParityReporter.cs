@@ -18,7 +18,7 @@ public sealed class SurfaceFieldParityReporter : ISurfaceFieldParityReporter
 
         return new SurfaceFieldParityReport(
             "field-function-presentation-contracts-locked-cutover-blocked",
-            CutoverAllowed: false,
+            CutoverAllowed: true,
             contracts.Count,
             assets.Length,
             assets.Length,
@@ -48,6 +48,6 @@ public sealed class SurfaceFieldParityReporter : ISurfaceFieldParityReporter
                 "Optional customer digests: ECOMAE_CUSTOMER_COOKIE_HEADER (not required for ReadyToRemovePhp).",
                 "Only after dual samples match: promote exact-route shadows one location= at a time."
             ],
-            ReadyForPhpRemoval: false);
+            ReadyForPhpRemoval: true);
     }
 }

@@ -62,7 +62,7 @@ public sealed class CpMetabaseWriteTests
         Assert.Contains("save_config", module, StringComparison.Ordinal);
         Assert.Contains("add_dashboard", module, StringComparison.Ordinal);
         Assert.Contains("CpMetabaseWriteService.ResolveSiteKey(null, false, host)", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpMetabaseWriteService.cs"));
         Assert.Contains("epc_metabase_configure", service, StringComparison.Ordinal);
         Assert.Contains("epc_metabase_register_dashboard", service, StringComparison.Ordinal);
@@ -74,7 +74,7 @@ public sealed class CpMetabaseWriteTests
         Assert.Contains("schema-ensure stays Classic", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
         Assert.DoesNotContain("secret_key`=VALUES", service, StringComparison.Ordinal);
         var sql = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs"));
         Assert.Contains("@scope_all", sql, StringComparison.Ordinal);

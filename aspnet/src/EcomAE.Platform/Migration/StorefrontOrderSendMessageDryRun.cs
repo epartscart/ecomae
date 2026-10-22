@@ -99,8 +99,8 @@ public sealed class StorefrontOrderSendMessageDryRun : IStorefrontOrderSendMessa
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             OrderId: order.Id,
@@ -120,7 +120,7 @@ public sealed class StorefrontOrderSendMessageDryRun : IStorefrontOrderSendMessa
 
     private static StorefrontOrderSendMessageDryRunResult Refuse(
         string status, string code, string detail, StorefrontOrderSendMessageRequest request) =>
-        new(status, 0, true, false, true, code, false, request.OrderId, 0,
+        new(status, 0, true, true, false, code, false, request.OrderId, 0,
             request.Text, null, null, [], detail,
             "/content/shop/messager/ajax_send_message.php");
 }

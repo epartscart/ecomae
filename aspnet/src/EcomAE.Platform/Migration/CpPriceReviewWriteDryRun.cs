@@ -9,13 +9,13 @@ public sealed class CpPriceReviewWriteDryRun : ICpPriceReviewWriteDryRun
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP cp/content/shop/prices_upload/price_review/ajax_price_review.php remains authoritative.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Action,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Action,
             ["cp/content/shop/prices_upload/price_review/ajax_price_review.php (NOT executed)"],
             "CpPriceReviewWrite payload validated; UPDATE blocked.",
             "cp/content/shop/prices_upload/price_review/ajax_price_review.php");
     }
     private static CpPriceReviewWriteDryRunResult Refuse(string s,string c,string d,CpPriceReviewWriteRequest r)=>
-        new(s,0,true,false,true,c,false,r.Action,[],d,"cp/content/shop/prices_upload/price_review/ajax_price_review.php");
+        new(s,0,true,true,false,c,false,r.Action,[],d,"cp/content/shop/prices_upload/price_review/ajax_price_review.php");
 }
 public sealed record CpPriceReviewWriteRequest(string? Action = null, bool ConfirmWrites = false);
 public sealed record CpPriceReviewWriteDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? Action,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

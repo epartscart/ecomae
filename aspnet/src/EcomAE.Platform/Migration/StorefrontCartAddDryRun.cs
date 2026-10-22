@@ -83,8 +83,8 @@ public sealed class StorefrontCartAddDryRun : IStorefrontCartAddDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             ProductType: 2,
@@ -99,7 +99,7 @@ public sealed class StorefrontCartAddDryRun : IStorefrontCartAddDryRun
 
     private static StorefrontCartAddDryRunResult Refuse(
         string status, string code, string detail, StorefrontCartAddRequest request) =>
-        new(status, 0, true, false, true, code, false, request.ProductType,
+        new(status, 0, true, true, false, code, false, request.ProductType,
             request.Manufacturer ?? "", request.Article ?? "", request.CountNeed, request.Price,
             null, detail, "/content/shop/order_process/ajax_add_to_basket.php");
 }

@@ -14,13 +14,13 @@ public sealed class ErpSyncSuppliersDryRun : IErpSyncSuppliersDryRun
         if (request.ConfirmWrites)
         {
             return new ErpSyncSuppliersDryRunResult(
-                "dry-run-confirm-refused", 0, true, false, true, "confirm_writes_refused", false,
+                "dry-run-confirm-refused", 0, true, true, false, "confirm_writes_refused", false,
                 [], "confirm_writes is handled by the live IErpSupplierWriteService.SyncFromStoragesAsync; the dry-run never executes.",
                 "/CP/content/shop/finance/erp/ajax_erp.php?action=sync_suppliers");
         }
 
         return new ErpSyncSuppliersDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             [
                 "epc_erp_sync_suppliers_from_storages(@db) warehouse→supplier upsert (NOT executed)"
             ],

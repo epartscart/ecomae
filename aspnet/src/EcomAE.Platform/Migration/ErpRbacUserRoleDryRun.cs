@@ -25,14 +25,14 @@ public sealed class ErpRbacUserRoleDryRun : IErpRbacUserRoleDryRun
         }
 
         return new ErpRbacUserRoleDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.UserId, request.RoleId,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.UserId, request.RoleId,
             ["INSERT IGNORE / DELETE `epc_rbac_user_role` (NOT executed)"],
             "ErpRbacUserRole payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_rbac.php");
     }
 
     private static ErpRbacUserRoleDryRunResult Refuse(string s, string c, string d, ErpRbacUserRoleRequest r) =>
-        new(s, 0, true, false, false, c, false, r.UserId, r.RoleId, [], d, "content/shop/finance/epc_erp_rbac.php");
+        new(s, 0, true, true, false, c, false, r.UserId, r.RoleId, [], d, "content/shop/finance/epc_erp_rbac.php");
 }
 
 public sealed record ErpRbacUserRoleRequest(

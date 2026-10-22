@@ -39,8 +39,8 @@ public sealed class OnPremisesHealthDryRun : IOnPremisesHealthDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             LicenseKeyPreview: key.Length <= 8 ? key : key[..4] + "…" + key[^4..],
@@ -57,7 +57,7 @@ public sealed class OnPremisesHealthDryRun : IOnPremisesHealthDryRun
 
     private static OnPremisesHealthDryRunResult Refuse(
         string status, string code, string detail, OnPremisesHealthRequest request) =>
-        new(status, 0, true, false, true, code, false,
+        new(status, 0, true, true, false, code, false,
             Mask(request.LicenseKey), request.Status, [], detail,
             "/api/v1/on-premises/health.php");
 

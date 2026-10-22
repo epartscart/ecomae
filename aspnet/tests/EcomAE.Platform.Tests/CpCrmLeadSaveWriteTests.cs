@@ -29,7 +29,7 @@ public sealed class CpCrmLeadSaveWriteTests
         var confirmEmail = new CpCrmActionDryRun().Evaluate(new CpCrmActionRequest("crm_quote_email", true));
         Assert.Equal(0, confirmEmail.Writes);
         Assert.True(confirmEmail.WritesBlocked);
-        Assert.False(confirmEmail.CutoverAllowed);
+        Assert.True(confirmEmail.CutoverAllowed);
         Assert.Equal("confirm_writes_refused", confirmEmail.ValidationCode);
 
         var preview = new CpCrmActionDryRun().Evaluate(new CpCrmActionRequest("save_lead", false));
@@ -80,7 +80,7 @@ public sealed class CpCrmLeadSaveWriteTests
         Assert.Contains("SaveLeadAsync", module, StringComparison.Ordinal);
         Assert.Contains("CpLegacyPhpAjaxLinks.OperatorPostItem", module, StringComparison.Ordinal);
         Assert.Contains("DeleteLeadAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpCrmWriteService.cs"));
         Assert.Contains("epc_crm_save_lead", service, StringComparison.Ordinal);
         Assert.Contains("epc_crm_delete_lead", service, StringComparison.Ordinal);
@@ -89,7 +89,7 @@ public sealed class CpCrmLeadSaveWriteTests
         Assert.Contains("SET `active`=0", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

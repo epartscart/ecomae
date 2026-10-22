@@ -30,7 +30,7 @@ public sealed class ErpMfgWoCreateDryRun : IErpMfgWoCreateDryRun
         }
 
         return new ErpMfgWoCreateDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.BomId, request.WoNo,
             ["INSERT `epc_mfg_work_orders` (NOT executed)"],
             "ErpMfgWoCreate payload validated; write blocked until confirmWrites=true.",
@@ -42,7 +42,7 @@ public sealed class ErpMfgWoCreateDryRun : IErpMfgWoCreateDryRun
         string code,
         string detail,
         ErpMfgWoCreateRequest request) =>
-        new(status, 0, true, false, false, code, false, request.BomId, request.WoNo, [], detail,
+        new(status, 0, true, true, false, code, false, request.BomId, request.WoNo, [], detail,
             "content/shop/finance/epc_erp_manufacturing.php");
 }
 

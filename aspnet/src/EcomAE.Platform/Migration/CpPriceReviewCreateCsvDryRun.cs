@@ -9,13 +9,13 @@ public sealed class CpPriceReviewCreateCsvDryRun : ICpPriceReviewCreateCsvDryRun
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP cp/content/shop/prices_upload/price_review/ajax_create_csv.php remains authoritative.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Action,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Action,
             ["cp/content/shop/prices_upload/price_review/ajax_create_csv.php (NOT executed)"],
             "CpPriceReviewCreateCsv payload validated; UPDATE blocked.",
             "cp/content/shop/prices_upload/price_review/ajax_create_csv.php");
     }
     private static CpPriceReviewCreateCsvDryRunResult Refuse(string s,string c,string d,CpPriceReviewCreateCsvRequest r)=>
-        new(s,0,true,false,true,c,false,r.Action,[],d,"cp/content/shop/prices_upload/price_review/ajax_create_csv.php");
+        new(s,0,true,true,false,c,false,r.Action,[],d,"cp/content/shop/prices_upload/price_review/ajax_create_csv.php");
 }
 public sealed record CpPriceReviewCreateCsvRequest(string? Action = null, bool ConfirmWrites = false);
 public sealed record CpPriceReviewCreateCsvDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? Action,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

@@ -68,7 +68,7 @@ public sealed class CpDocumentControlCompanySaveWriteTests
         Assert.Contains("ICpDocumentControlWriteService", program, StringComparison.Ordinal);
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("ICpDocumentControlWriteService", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpDocumentControlWriteService.cs"));
         Assert.Contains("epc_dc_save_company", service, StringComparison.Ordinal);
         Assert.Contains("epc_dc_save_template", service, StringComparison.Ordinal);
@@ -78,7 +78,7 @@ public sealed class CpDocumentControlCompanySaveWriteTests
         Assert.Contains("save_template", module, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

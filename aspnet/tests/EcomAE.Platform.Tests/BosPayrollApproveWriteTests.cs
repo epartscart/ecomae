@@ -49,7 +49,7 @@ public sealed class BosPayrollApproveWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/BosModule.cs"));
         Assert.Contains("BosPayrollApproveRun", module, StringComparison.Ordinal);
         Assert.Contains("ApproveRunAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate.IsAllowed", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Bos/BosPayrollWriteService.cs"));
         Assert.Contains("epc_payroll_approve_run", service, StringComparison.Ordinal);
@@ -59,7 +59,7 @@ public sealed class BosPayrollApproveWriteTests
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

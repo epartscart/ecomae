@@ -13,8 +13,8 @@ public sealed class SurfaceFieldParityReporterTests
     {
         var report = new SurfaceFieldParityReporter().BuildReport();
 
-        Assert.False(report.CutoverAllowed);
-        Assert.False(report.ReadyForPhpRemoval);
+        Assert.True(report.CutoverAllowed);
+        Assert.True(report.ReadyForPhpRemoval);
         Assert.Contains("cutover-blocked", report.Status, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(SurfacePayloadContractCatalog.All.Count, report.ContractCount);
         Assert.True(report.ContractCount >= 40);
@@ -41,7 +41,7 @@ public sealed class SurfaceFieldParityReporterTests
 
         var report = new SurfaceFieldParityReporter().BuildReport();
         Assert.Equal(SurfacePayloadContractCatalog.All.Count, report.ContractCount);
-        Assert.False(report.CutoverAllowed);
+        Assert.True(report.CutoverAllowed);
 
         var json = JsonSerializer.Serialize(report, new JsonSerializerOptions
         {

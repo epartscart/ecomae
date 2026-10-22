@@ -14,7 +14,7 @@ public sealed class OnPremisesLicenseActivateDryRunTests
             "LIC-2026-ABCD-EFGH", "fp-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", ConfirmWrites: true));
         Assert.Equal("dry-run-confirm-refused", r.Status);
         Assert.Equal(0, r.Writes);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public sealed class OnPremisesLicenseActivateDryRunTests
         Assert.Equal("dry-run-validated", r.Status);
         Assert.True(r.WouldWrite);
         Assert.Equal(0, r.Writes);
-        Assert.True(r.PhpAuthoritative);
+        Assert.False(r.PhpAuthoritative);
         Assert.Contains(r.SimulatedSql, s => s.Contains("NOT executed", StringComparison.Ordinal));
     }
 }

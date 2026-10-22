@@ -32,14 +32,14 @@ public sealed class ErpCostmItemSetDryRun : IErpCostmItemSetDryRun
         }
 
         return new ErpCostmItemSetDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.ItemId, model,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.ItemId, model,
             ["INSERT `epc_costm_item` ON DUPLICATE KEY UPDATE (NOT executed)"],
             "ErpCostmItemSet payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_cost_models.php");
     }
 
     private static ErpCostmItemSetDryRunResult Refuse(string s, string c, string d, ErpCostmItemSetRequest r) =>
-        new(s, 0, true, false, false, c, false, r.ItemId, r.Model, [], d, "content/shop/finance/epc_erp_cost_models.php");
+        new(s, 0, true, true, false, c, false, r.ItemId, r.Model, [], d, "content/shop/finance/epc_erp_cost_models.php");
 }
 
 public sealed record ErpCostmItemSetRequest(

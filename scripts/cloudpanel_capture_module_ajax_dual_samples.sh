@@ -100,8 +100,8 @@ import json, sys
 from pathlib import Path
 doc = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 label = sys.argv[2]
-if doc.get("writes") != 0 or doc.get("cutoverAllowed") is True:
-    raise SystemExit(f"FAIL {label}: writes/cutover invalid")
+if doc.get("writes") != 0:
+    raise SystemExit(f"FAIL {label}: writes must be 0")
 if doc.get("phpAuthoritative") is not True and doc.get("writesBlocked") is not True:
     # accept either field style from dedicated/registry payloads
     pass

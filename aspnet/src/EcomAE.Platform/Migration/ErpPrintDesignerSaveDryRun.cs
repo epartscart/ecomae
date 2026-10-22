@@ -25,14 +25,14 @@ public sealed class ErpPrintDesignerSaveDryRun : IErpPrintDesignerSaveDryRun
         }
 
         return new ErpPrintDesignerSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Code,
             ["UPSERT `epc_erp_print_templates` (NOT executed)"],
             "ErpPrintDesignerSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_print_designer.php");
     }
 
     private static ErpPrintDesignerSaveDryRunResult Refuse(string s, string c, string d, ErpPrintDesignerSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Code, [], d, "content/shop/finance/epc_erp_print_designer.php");
+        new(s, 0, true, true, false, c, false, r.Id, r.Code, [], d, "content/shop/finance/epc_erp_print_designer.php");
 }
 
 public sealed record ErpPrintDesignerSaveRequest(

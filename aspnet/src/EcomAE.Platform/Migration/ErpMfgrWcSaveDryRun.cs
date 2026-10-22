@@ -30,14 +30,14 @@ public sealed class ErpMfgrWcSaveDryRun : IErpMfgrWcSaveDryRun
         }
 
         return new ErpMfgrWcSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Code,
             ["ajax_erp.php?action=mfgr_wc_save (NOT executed)"],
             "ErpMfgrWcSave payload validated; write blocked until confirmWrites=true.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=mfgr_wc_save");
     }
 
     private static ErpMfgrWcSaveDryRunResult Refuse(string s, string c, string d, ErpMfgrWcSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=mfgr_wc_save");
+        new(s, 0, true, true, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=mfgr_wc_save");
 }
 
 public sealed record ErpMfgrWcSaveRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);

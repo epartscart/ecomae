@@ -30,14 +30,14 @@ public sealed class ErpMfgrPlannedFirmDryRun : IErpMfgrPlannedFirmDryRun
         }
 
         return new ErpMfgrPlannedFirmDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Code,
             ["ajax_erp.php?action=mfgr_planned_firm (NOT executed)"],
             "ErpMfgrPlannedFirm payload validated; write blocked until confirmWrites=true.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=mfgr_planned_firm");
     }
 
     private static ErpMfgrPlannedFirmDryRunResult Refuse(string s, string c, string d, ErpMfgrPlannedFirmRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=mfgr_planned_firm");
+        new(s, 0, true, true, false, c, false, r.Id, r.Code, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=mfgr_planned_firm");
 }
 
 public sealed record ErpMfgrPlannedFirmRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);

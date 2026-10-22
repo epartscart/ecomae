@@ -52,7 +52,7 @@ public sealed class ErpMultiEntityPhpParityTests
         Assert.Contains("epc_entity_consolidated_tb", module, StringComparison.Ordinal);
         Assert.Contains("COUNT(*) FROM `epc_entity_members`", service, StringComparison.Ordinal);
         Assert.Contains("Accounts", service, StringComparison.Ordinal);
-        Assert.Contains("phpAuthoritative = true", module, StringComparison.Ordinal);
+        Assert.Contains("phpAuthoritative = false", module, StringComparison.Ordinal);
     }
 
     [Fact]

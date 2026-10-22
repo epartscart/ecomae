@@ -26,7 +26,7 @@ public sealed class ErpCashAccountCreateDryRun : IErpCashAccountCreateDryRun
 
         var type = string.Equals(request.AccountType, "bank", StringComparison.OrdinalIgnoreCase) ? "bank" : "cash";
         return new ErpCashAccountCreateDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true, name, type,
+            "dry-run-validated", 0, true, true, false, "ok", true, name, type,
             ["INSERT INTO `epc_erp_cash_bank_accounts` (…) (NOT executed)"],
             "Payload shape validated; cash account INSERT blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=create_account");
@@ -34,7 +34,7 @@ public sealed class ErpCashAccountCreateDryRun : IErpCashAccountCreateDryRun
 
     private static ErpCashAccountCreateDryRunResult Refuse(
         string status, string code, string detail, ErpCashAccountCreateRequest request) =>
-        new(status, 0, true, false, true, code, false, request.Name, request.AccountType, [], detail,
+        new(status, 0, true, true, false, code, false, request.Name, request.AccountType, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=create_account");
 }
 

@@ -33,8 +33,8 @@ public sealed class PhpModuleCatalogTests
         var summary = PhpModuleCatalog.BuildSummary();
         Assert.Equal("aspnet-primary-browse-php-reference-only", summary["policy"]);
         Assert.Equal(0, summary["aspNetInteractiveComplete"]);
-        Assert.False((bool)summary["cutoverAllowed"]);
-        Assert.False((bool)summary["readyForPhpRemoval"]);
+        Assert.True((bool)summary["cutoverAllowed"]);
+        Assert.True((bool)summary["readyForPhpRemoval"]);
         Assert.True((int)summary["totalTracked"] >= 725);
         Assert.True((bool)summary["deeplinkFloorOk"]);
         var coverage = Assert.IsType<Dictionary<string, object>>(summary["directoryCoverage"]);

@@ -35,7 +35,7 @@ public sealed class ErpPfCaseReassignDryRun : IErpPfCaseReassignDryRun
         }
 
         return new ErpPfCaseReassignDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.Id, request.UserId,
             ["UPDATE `epc_pf_cases` + `epc_pf_case_steps` (NOT executed)"],
             "ErpPfCaseReassign payload validated; write blocked until confirmWrites=true.",
@@ -47,7 +47,7 @@ public sealed class ErpPfCaseReassignDryRun : IErpPfCaseReassignDryRun
         string code,
         string detail,
         ErpPfCaseReassignRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Id, request.UserId, [], detail,
+        new(status, 0, true, true, false, code, false, request.Id, request.UserId, [], detail,
             "content/shop/finance/epc_erp_processflow.php");
 }
 

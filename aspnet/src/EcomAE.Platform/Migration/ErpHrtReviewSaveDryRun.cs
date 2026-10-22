@@ -25,14 +25,14 @@ public sealed class ErpHrtReviewSaveDryRun : IErpHrtReviewSaveDryRun
         }
 
         return new ErpHrtReviewSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.EmployeeName,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.EmployeeName,
             ["UPDATE / INSERT `epc_hrt_review` (NOT executed)"],
             "ErpHrtReviewSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_hr_talent.php");
     }
 
     private static ErpHrtReviewSaveDryRunResult Refuse(string s, string c, string d, ErpHrtReviewSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.EmployeeName, [], d, "content/shop/finance/epc_erp_hr_talent.php");
+        new(s, 0, true, true, false, c, false, r.Id, r.EmployeeName, [], d, "content/shop/finance/epc_erp_hr_talent.php");
 }
 
 public sealed record ErpHrtReviewSaveRequest(

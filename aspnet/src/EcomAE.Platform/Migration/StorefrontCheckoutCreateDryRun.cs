@@ -65,8 +65,8 @@ public sealed class StorefrontCheckoutCreateDryRun : IStorefrontCheckoutCreateDr
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             HowGetMode: request.HowGetMode,
@@ -85,7 +85,7 @@ public sealed class StorefrontCheckoutCreateDryRun : IStorefrontCheckoutCreateDr
 
     private static StorefrontCheckoutCreateDryRunResult Refuse(
         string status, string code, string detail, StorefrontCheckoutCreateRequest request) =>
-        new(status, 0, true, false, true, code, false, request.HowGetMode, request.OfficeId, 0,
+        new(status, 0, true, true, false, code, false, request.HowGetMode, request.OfficeId, 0,
             [], detail, "/content/shop/order_process/ajax_checkout_create.php");
 }
 

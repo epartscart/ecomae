@@ -26,7 +26,7 @@ public sealed class ErpPeriodLockDryRun : IErpPeriodLockDryRun
         }
 
         return new ErpPeriodLockDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true, ym, request.Note,
+            "dry-run-validated", 0, true, true, false, "ok", true, ym, request.Note,
             [
                 "epc_erp_period_lock(@ym, @admin, @note) (NOT executed)",
                 "Soft-close prerequisite + reopen path stay PHP until dual-sample"
@@ -37,7 +37,7 @@ public sealed class ErpPeriodLockDryRun : IErpPeriodLockDryRun
 
     private static ErpPeriodLockDryRunResult Refuse(
         string status, string code, string detail, ErpPeriodLockRequest request) =>
-        new(status, 0, true, false, true, code, false, request.YearMonth, request.Note, [], detail,
+        new(status, 0, true, true, false, code, false, request.YearMonth, request.Note, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=period_lock");
 }
 

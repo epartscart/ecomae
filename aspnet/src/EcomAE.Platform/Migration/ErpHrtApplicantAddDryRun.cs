@@ -25,14 +25,14 @@ public sealed class ErpHrtApplicantAddDryRun : IErpHrtApplicantAddDryRun
         }
 
         return new ErpHrtApplicantAddDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.JobId, request.Name,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.JobId, request.Name,
             ["INSERT `epc_hrt_applicant` (NOT executed)"],
             "ErpHrtApplicantAdd payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_hr_talent.php");
     }
 
     private static ErpHrtApplicantAddDryRunResult Refuse(string s, string c, string d, ErpHrtApplicantAddRequest r) =>
-        new(s, 0, true, false, false, c, false, r.JobId, r.Name, [], d, "content/shop/finance/epc_erp_hr_talent.php");
+        new(s, 0, true, true, false, c, false, r.JobId, r.Name, [], d, "content/shop/finance/epc_erp_hr_talent.php");
 }
 
 public sealed record ErpHrtApplicantAddRequest(

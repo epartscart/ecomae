@@ -67,7 +67,7 @@ public sealed class CpPartsAgentConfigWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("CpPartsAgentSaveConfig", module, StringComparison.Ordinal);
         Assert.Contains("SaveConfigAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpPartsAgentWriteService.cs"));
         Assert.Contains("epc_agent_save_config", service, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_parts_agent_config`", service, StringComparison.Ordinal);
@@ -77,7 +77,7 @@ public sealed class CpPartsAgentConfigWriteTests
         Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_parts_agent_message`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

@@ -29,7 +29,7 @@ public sealed class ErpHrLeaveRequestDryRun : IErpHrLeaveRequestDryRun
         }
 
         return new ErpHrLeaveRequestDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.EmployeeId, request.Type,
             ["INSERT `epc_hr_leave` (NOT executed)"],
             "ErpHrLeaveRequest payload validated; write blocked until confirmWrites=true.",
@@ -37,7 +37,7 @@ public sealed class ErpHrLeaveRequestDryRun : IErpHrLeaveRequestDryRun
     }
 
     private static ErpHrLeaveRequestDryRunResult Refuse(string status, string code, string detail, ErpHrLeaveRequestRequest request) =>
-        new(status, 0, true, false, false, code, false, request.EmployeeId, request.Type, [], detail,
+        new(status, 0, true, true, false, code, false, request.EmployeeId, request.Type, [], detail,
             "content/shop/finance/epc_erp_hr.php");
 }
 

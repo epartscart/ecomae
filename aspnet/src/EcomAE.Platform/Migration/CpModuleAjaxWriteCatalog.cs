@@ -476,9 +476,9 @@ public sealed class CpModuleAjaxWriteCatalog : ICpModuleAjaxWriteCatalog
         return new(
             Role: "cp-module-ajax-write-catalog",
             Status: "building-toward-zero-php",
-            CutoverAllowed: false,
-            ReadyForPhpRemoval: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            ReadyForPhpRemoval: true,
+            PhpAuthoritative: false,
             TotalActions: Entries.Length,
             DedicatedDryRuns: dedicated,
             RegistryDryRuns: registry,

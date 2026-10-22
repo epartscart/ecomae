@@ -32,14 +32,14 @@ public sealed class ErpPltJobRunDryRun : IErpPltJobRunDryRun
         }
 
         return new ErpPltJobRunDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.JobId, status,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.JobId, status,
             ["INSERT `epc_plt_batch_run`; UPDATE `epc_plt_batch_job` (NOT executed)"],
             "ErpPltJobRun payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_platform.php");
     }
 
     private static ErpPltJobRunDryRunResult Refuse(string s, string c, string d, ErpPltJobRunRequest r) =>
-        new(s, 0, true, false, false, c, false, r.JobId, r.Status, [], d, "content/shop/finance/epc_erp_platform.php");
+        new(s, 0, true, true, false, c, false, r.JobId, r.Status, [], d, "content/shop/finance/epc_erp_platform.php");
 }
 
 public sealed record ErpPltJobRunRequest(

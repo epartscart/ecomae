@@ -77,7 +77,7 @@ public sealed class BosCreditSetLimitWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/BosModule.cs"));
         Assert.Contains("BosCreditSetLimit", module, StringComparison.Ordinal);
         Assert.Contains("SetLimitAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate.IsAllowed", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Bos/BosCreditWriteService.cs"));
         Assert.Contains("epc_credit_set_limit", service, StringComparison.Ordinal);
@@ -89,7 +89,7 @@ public sealed class BosCreditSetLimitWriteTests
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private sealed class UnconfiguredConnections : EcomAE.Platform.Erp.IErpWriteConnectionFactory

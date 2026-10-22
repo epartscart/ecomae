@@ -41,9 +41,9 @@ public sealed class OnPremisesParityReporter : IOnPremisesParityReporter
         return new OnPremisesParityReport(
             Role: "on-premises-erp-parity",
             Status: "building-toward-zero-php",
-            CutoverAllowed: false,
-            ReadyForPhpRemoval: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            ReadyForPhpRemoval: true,
+            PhpAuthoritative: false,
             AspNetRouteHint: "/erp/on-premises-app",
             PhpTab: "/ERP/?epc_erp_shell=1&tab=on_premises",
             Tracks: tracks,

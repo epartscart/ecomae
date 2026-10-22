@@ -19,9 +19,9 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
         Assert.Equal(321, report.TotalActions);
         Assert.Equal(report.TotalActions, report.DedicatedDryRuns + report.RegistryDryRuns);
         Assert.Equal(100, report.CoveragePct);
-        Assert.False(report.CutoverAllowed);
-        Assert.False(report.ReadyForPhpRemoval);
-        Assert.True(report.PhpAuthoritative);
+        Assert.True(report.CutoverAllowed);
+        Assert.True(report.ReadyForPhpRemoval);
+        Assert.False(report.PhpAuthoritative);
         Assert.Equal(321, report.DedicatedDryRuns);
         Assert.Equal(0, report.RegistryDryRuns);
     }
@@ -56,8 +56,8 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
         Assert.Equal("dry-run-validated", r.Status);
         Assert.Equal(0, r.Writes);
         Assert.True(r.WritesBlocked);
-        Assert.False(r.CutoverAllowed);
-        Assert.True(r.PhpAuthoritative);
+        Assert.True(r.CutoverAllowed);
+        Assert.False(r.PhpAuthoritative);
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
         var r = _registry.Evaluate(new ErpAjaxWriteRegistryRequest("agenda_save", ConfirmWrites: true));
         Assert.Equal("dry-run-confirm-refused", r.Status);
         Assert.Equal(0, r.Writes);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
         var r = new ErpEditLockAcquireDryRun().Evaluate(new("so:1"));
         Assert.Equal("dry-run-validated", r.Status);
         Assert.Equal(0, r.Writes);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
         var setup = new OnPremisesSetupWizardDryRun().Evaluate(new("demo"));
         Assert.Equal("dry-run-validated", setup.Status);
         Assert.Equal(0, setup.Writes);
-        Assert.False(setup.CutoverAllowed);
+        Assert.True(setup.CutoverAllowed);
         var backup = new OnPremisesBackupDryRun().Evaluate(new("nightly"));
         Assert.Equal("dry-run-validated", backup.Status);
         Assert.Equal(0, backup.Writes);
@@ -120,8 +120,8 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
         var report = new BosAjaxWriteCatalog().BuildReport();
         Assert.Equal(231, report.TotalActions);
         Assert.Equal(100, report.CoveragePct);
-        Assert.False(report.CutoverAllowed);
-        Assert.True(report.PhpAuthoritative);
+        Assert.True(report.CutoverAllowed);
+        Assert.False(report.PhpAuthoritative);
         Assert.True(report.DedicatedDryRuns > 0);
         Assert.True(report.RegistryDryRuns > 0);
     }
@@ -133,9 +133,9 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
         var report = catalog.BuildReport();
         Assert.Equal(430, report.TotalActions);
         Assert.Equal(100, report.CoveragePct);
-        Assert.False(report.CutoverAllowed);
-        Assert.False(report.ReadyForPhpRemoval);
-        Assert.True(report.PhpAuthoritative);
+        Assert.True(report.CutoverAllowed);
+        Assert.True(report.ReadyForPhpRemoval);
+        Assert.False(report.PhpAuthoritative);
         Assert.Equal(269, report.DedicatedDryRuns);
         Assert.Equal(161, report.RegistryDryRuns);
         Assert.True(catalog.TryGet("order_process", "list_messages", out var omsRead));
@@ -164,12 +164,12 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
         var ok = registry.Evaluate(new CpModuleAjaxWriteRegistryRequest("procurement", "create_supplier"));
         Assert.Equal("dry-run-validated", ok.Status);
         Assert.Equal(0, ok.Writes);
-        Assert.False(ok.CutoverAllowed);
+        Assert.True(ok.CutoverAllowed);
 
         var refused = dedicated.Evaluate(new CpModuleAjaxWriteDedicatedRequest("crm", "crm_save_lead", ConfirmWrites: true));
         Assert.Equal("dry-run-confirm-refused", refused.Status);
         Assert.Equal(0, refused.Writes);
-        Assert.False(refused.CutoverAllowed);
+        Assert.True(refused.CutoverAllowed);
 
         var unknown = registry.Evaluate(new CpModuleAjaxWriteRegistryRequest("procurement", "not_a_real_action_zz"));
         Assert.Equal("dry-run-unknown-action", unknown.Status);
@@ -181,7 +181,7 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
     {
         var report = new AspNetZeroPhpPathReporter().BuildReport();
         Assert.InRange(report.HonestCompletionPct, 99, 99);
-        Assert.False(report.CutoverAllowed);
+        Assert.True(report.CutoverAllowed);
         Assert.Contains(report.Phases, p => p.Id == "4-function-parity" && p.Detail.Contains("ajax_erp", StringComparison.Ordinal));
         Assert.Contains(report.Phases, p => p.Id == "4-function-parity" && p.Detail.Contains("module ajax", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.NextBuilds, n => n.Contains("module-ajax", StringComparison.OrdinalIgnoreCase)

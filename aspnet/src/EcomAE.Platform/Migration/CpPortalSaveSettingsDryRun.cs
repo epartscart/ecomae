@@ -9,13 +9,13 @@ public sealed class CpPortalSaveSettingsDryRun : ICpPortalSaveSettingsDryRun
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP remains authoritative.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Action,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Action,
             ["cp/content/control/portal/ajax_portal.php?action=save_settings (NOT executed)"],
             "CpPortalSaveSettings payload validated; UPDATE blocked.",
             "cp/content/control/portal/ajax_portal.php?action=save_settings");
     }
     private static CpPortalSaveSettingsDryRunResult Refuse(string s,string c,string d,CpPortalSaveSettingsRequest r)=>
-        new(s,0,true,false,true,c,false,r.Action,[],d,"cp/content/control/portal/ajax_portal.php?action=save_settings");
+        new(s,0,true,true,false,c,false,r.Action,[],d,"cp/content/control/portal/ajax_portal.php?action=save_settings");
 }
 public sealed record CpPortalSaveSettingsRequest(string? Action = null, bool ConfirmWrites = false);
 public sealed record CpPortalSaveSettingsDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? Action,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

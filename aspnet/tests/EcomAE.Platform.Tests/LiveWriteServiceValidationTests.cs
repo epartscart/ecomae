@@ -40,7 +40,7 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("invalid_account", result.ValidationCode);
         Assert.Equal(0, result.Writes);
         Assert.True(result.WritesBlocked);
-        Assert.True(result.PhpAuthoritative);
+        Assert.False(result.PhpAuthoritative);
     }
 
     [Fact]

@@ -42,7 +42,7 @@ public sealed class ErpWorkflowCreateDryRun : IErpWorkflowCreateDryRun
         }
 
         return new ErpWorkflowCreateDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             title, dept, priority, request.OrderId,
             ["INSERT INTO `epc_erp_workflow_tasks` (…) (NOT executed)"],
             "ErpWorkflowCreate payload validated; INSERT blocked until confirmWrites=true.",
@@ -51,7 +51,7 @@ public sealed class ErpWorkflowCreateDryRun : IErpWorkflowCreateDryRun
 
     private static ErpWorkflowCreateDryRunResult Refuse(
         string status, string code, string detail, ErpWorkflowCreateRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Title, request.DepartmentCode, request.Priority, request.OrderId,
+        new(status, 0, true, true, false, code, false, request.Title, request.DepartmentCode, request.Priority, request.OrderId,
             [], detail, "content/shop/finance/epc_erp_staff.php");
 }
 

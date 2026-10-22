@@ -15,13 +15,13 @@ public sealed class ErpPrjaRecognizeDryRun : IErpPrjaRecognizeDryRun
             return Refuse("dry-run-invalid","invalid_method","method must be poc, completed, or straight_line.", request);
         if (request.Fraction is < 0 or > 1)
             return Refuse("dry-run-invalid","invalid_fraction","fraction must be between 0 and 1.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.ProjectId, request.Method,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.ProjectId, request.Method,
             ["ajax_erp.php?action=prja_recognize (NOT executed)"],
             "ERP prja_recognize payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=prja_recognize");
     }
     private static ErpPrjaRecognizeDryRunResult Refuse(string s,string c,string d,ErpPrjaRecognizeRequest r)=>
-        new(s,0,true,false,true,c,false,r.ProjectId, r.Method,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=prja_recognize");
+        new(s,0,true,true,false,c,false,r.ProjectId, r.Method,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=prja_recognize");
 }
 public sealed record ErpPrjaRecognizeRequest(
     long Id = 0,

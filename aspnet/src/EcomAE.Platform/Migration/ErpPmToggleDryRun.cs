@@ -30,14 +30,14 @@ public sealed class ErpPmToggleDryRun : IErpPmToggleDryRun
         }
 
         return new ErpPmToggleDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id,
             ["ajax_erp.php?action=pm_toggle id=@id (NOT executed)"],
             "ErpPmToggle payload validated; write blocked until confirmWrites=true.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=pm_toggle");
     }
 
     private static ErpPmToggleDryRunResult Refuse(string s, string c, string d, ErpPmToggleRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=pm_toggle");
+        new(s, 0, true, true, false, c, false, r.Id, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=pm_toggle");
 }
 
 public sealed record ErpPmToggleRequest(long Id = 0, bool ConfirmWrites = false);

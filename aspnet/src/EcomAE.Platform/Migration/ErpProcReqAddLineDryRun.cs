@@ -30,14 +30,14 @@ public sealed class ErpProcReqAddLineDryRun : IErpProcReqAddLineDryRun
         }
 
         return new ErpProcReqAddLineDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id,
             ["INSERT `epc_proc_req_line` + recalc `epc_proc_req` (NOT executed)"],
             "ErpProcReqAddLine payload validated; no write was performed.",
             "content/shop/finance/epc_erp_procurement.php");
     }
 
     private static ErpProcReqAddLineDryRunResult Refuse(string s, string c, string d, ErpProcReqAddLineRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, [], d, "content/shop/finance/epc_erp_procurement.php");
+        new(s, 0, true, true, false, c, false, r.Id, [], d, "content/shop/finance/epc_erp_procurement.php");
 }
 
 public sealed record ErpProcReqAddLineRequest(

@@ -25,14 +25,14 @@ public sealed class ErpOplParamsSaveDryRun : IErpOplParamsSaveDryRun
         }
 
         return new ErpOplParamsSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.ItemId, request.WarehouseId,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.ItemId, request.WarehouseId,
             ["UPSERT `epc_erp_planning_params` (NOT executed)"],
             "ErpOplParamsSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_order_planning.php");
     }
 
     private static ErpOplParamsSaveDryRunResult Refuse(string s, string c, string d, ErpOplParamsSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.ItemId, r.WarehouseId, [], d, "content/shop/finance/epc_erp_order_planning.php");
+        new(s, 0, true, true, false, c, false, r.ItemId, r.WarehouseId, [], d, "content/shop/finance/epc_erp_order_planning.php");
 }
 
 public sealed record ErpOplParamsSaveRequest(

@@ -25,14 +25,14 @@ public sealed class ErpBplanSaveDryRun : IErpBplanSaveDryRun
         }
 
         return new ErpBplanSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Name,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Name,
             ["UPDATE / INSERT `epc_bplan_plan` (NOT executed)"],
             "ErpBplanSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_budget_planning.php");
     }
 
     private static ErpBplanSaveDryRunResult Refuse(string s, string c, string d, ErpBplanSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Name, [], d, "content/shop/finance/epc_erp_budget_planning.php");
+        new(s, 0, true, true, false, c, false, r.Id, r.Name, [], d, "content/shop/finance/epc_erp_budget_planning.php");
 }
 
 public sealed record ErpBplanSaveRequest(

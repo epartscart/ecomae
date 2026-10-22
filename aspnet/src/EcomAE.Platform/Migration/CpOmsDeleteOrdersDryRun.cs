@@ -79,8 +79,8 @@ public sealed class CpOmsDeleteOrdersDryRun : ICpOmsDeleteOrdersDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             OrderIds: ids,
@@ -95,7 +95,7 @@ public sealed class CpOmsDeleteOrdersDryRun : ICpOmsDeleteOrdersDryRun
 
     private static CpOmsDeleteOrdersDryRunResult Refuse(
         string status, string code, string detail, CpOmsDeleteOrdersRequest request) =>
-        new(status, 0, true, false, true, code, false, request.OrderIds ?? [], [], detail,
+        new(status, 0, true, true, false, code, false, request.OrderIds ?? [], [], detail,
             "/CP/content/shop/order_process/ajax_delete_orders.php");
 }
 

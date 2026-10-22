@@ -63,7 +63,7 @@ public sealed class CpNlReportingWriteTests
         Assert.Contains("ICpNlReportingWriteService", module, StringComparison.Ordinal);
         Assert.Contains("save_definition", module, StringComparison.Ordinal);
         Assert.Contains("delete_definition", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpNlReportingWriteService.cs"));
         Assert.Contains("epc_nlr_create_definition", service, StringComparison.Ordinal);
         Assert.Contains("epc_nlr_delete_definition", service, StringComparison.Ordinal);
@@ -74,7 +74,7 @@ public sealed class CpNlReportingWriteTests
         Assert.Contains("schema-ensure stays Classic", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
         Assert.DoesNotContain("query_template`=?", service, StringComparison.Ordinal);
     }
 

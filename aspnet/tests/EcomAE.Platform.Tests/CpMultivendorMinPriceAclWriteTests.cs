@@ -61,7 +61,7 @@ public sealed class CpMultivendorMinPriceAclWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("CpMultivendorMinPriceAclSave", module, StringComparison.Ordinal);
         Assert.Contains("SaveMinPriceAclAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpPricesUploadWriteService.cs"));
         Assert.Contains("epc_mv_min_price_acl_save", service, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_mv_min_price_acl`", service, StringComparison.Ordinal);
@@ -70,7 +70,7 @@ public sealed class CpMultivendorMinPriceAclWriteTests
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

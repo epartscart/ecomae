@@ -15,7 +15,7 @@ public sealed class StorefrontQuoteSubmitDryRunTests
             5, [Quote(9, 5)], new StorefrontQuoteSubmitRequest(9, "x", true));
         Assert.Equal("dry-run-confirm-refused", r.Status);
         Assert.Equal(0, r.Writes);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]

@@ -28,6 +28,6 @@ public sealed class ErpAccountCoaOmsBulkDryRunTests
             [order],
             new CpOmsUpdateItemsRequest(1, [new CpOmsUpdateItemsItem(7, 12m, 2)]));
         Assert.Equal("dry-run-validated", r.Status);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 }

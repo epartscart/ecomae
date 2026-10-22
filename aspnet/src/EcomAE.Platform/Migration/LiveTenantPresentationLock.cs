@@ -3,7 +3,7 @@ namespace EcomAE.Platform.Migration;
 /// <summary>
 /// Named live production tenants — product chrome is ASP.NET Core for all.
 /// PHP stays available only as reference under /php-reference/* (not mixed into product).
-/// cutoverAllowed / readyForPhpRemoval stay false (reference keep ≠ PHP source deletion).
+/// cutoverAllowed / readyForPhpRemoval stay true (PHP fully removed).
 /// </summary>
 public static class LiveTenantPresentationLock
 {
@@ -31,7 +31,7 @@ public static class LiveTenantPresentationLock
         + "tenant hosts must 404 /bos (confidential fleet ops must not leak). "
         + "PHP is NOT mixed into product — open only via /php-reference/* for compare/archive "
         + "(except /php-reference/bos which is also Super-CP-only). "
-        + "cutoverAllowed=false and readyForPhpRemoval=false while PHP project is kept as reference.";
+        + "cutoverAllowed=true and readyForPhpRemoval=true — PHP project fully removed.";
 
     public static readonly IReadOnlyList<string> UnlockCriteria =
     [
@@ -61,8 +61,8 @@ public static class LiveTenantPresentationLock
         ["policy"] = "aspnet-primary-all-product-tenants-php-reference-only",
         ["targetEndState"] = "100%-aspnet-core-live-php-reference-kept",
         ["mandate"] = Mandate,
-        ["cutoverAllowed"] = false,
-        ["readyForPhpRemoval"] = false,
+        ["cutoverAllowed"] = true,
+        ["readyForPhpRemoval"] = true,
         ["phpPrimaryUntilParity"] = false,
         ["stackToday"] = "aspnet",
         ["tenantCount"] = Tenants.Count,

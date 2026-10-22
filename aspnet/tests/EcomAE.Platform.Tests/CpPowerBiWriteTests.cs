@@ -59,7 +59,7 @@ public sealed class CpPowerBiWriteTests
         Assert.Contains("ICpPowerBiWriteService", module, StringComparison.Ordinal);
         Assert.Contains("save_config", module, StringComparison.Ordinal);
         Assert.Contains("add_report", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpPowerBiWriteService.cs"));
         Assert.Contains("epc_power_bi_configure", service, StringComparison.Ordinal);
         Assert.Contains("epc_power_bi_register_report", service, StringComparison.Ordinal);
@@ -68,7 +68,7 @@ public sealed class CpPowerBiWriteTests
         Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_power_bi_config`", service, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_power_bi_reports`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

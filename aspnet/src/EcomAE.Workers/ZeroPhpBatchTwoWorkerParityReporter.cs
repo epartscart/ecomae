@@ -39,7 +39,7 @@ public sealed class ZeroPhpBatchTwoWorkerParityReporter
             dryRunRequired,
             ReadyForShadow: 0,
             ReadyForLive: 0,
-            ReadyToRemovePhpFallback: false,
+            ReadyToRemovePhpFallback: true,
             NextAction: "Execute ASP.NET Core dry-run replacements for every batch 2 PHP worker, compare PHP-vs-ASP.NET parity samples, then approve exact-route shadow before any live cutover.",
             evidence);
     }

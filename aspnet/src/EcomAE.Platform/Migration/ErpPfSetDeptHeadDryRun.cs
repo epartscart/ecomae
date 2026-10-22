@@ -35,7 +35,7 @@ public sealed class ErpPfSetDeptHeadDryRun : IErpPfSetDeptHeadDryRun
         }
 
         return new ErpPfSetDeptHeadDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.DepartmentCode, request.HeadUserId,
             ["INSERT `epc_pf_dept_heads` (NOT executed)"],
             "ErpPfSetDeptHead payload validated; write blocked until confirmWrites=true.",
@@ -47,7 +47,7 @@ public sealed class ErpPfSetDeptHeadDryRun : IErpPfSetDeptHeadDryRun
         string code,
         string detail,
         ErpPfSetDeptHeadRequest request) =>
-        new(status, 0, true, false, false, code, false, request.DepartmentCode, request.HeadUserId, [], detail,
+        new(status, 0, true, true, false, code, false, request.DepartmentCode, request.HeadUserId, [], detail,
             "content/shop/finance/epc_erp_processflow.php");
 }
 

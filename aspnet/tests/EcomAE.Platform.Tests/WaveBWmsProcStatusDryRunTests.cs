@@ -3,7 +3,7 @@ using Xunit;
 namespace EcomAE.Platform.Tests;
 public sealed class WaveBWmsProcStatusDryRunTests
 {
-    [Fact] public void WaveCreateValidated(){ var r=new ErpWmsWaveCreateDryRun().Evaluate(new("SKU",2,"W1")); Assert.Equal("dry-run-validated", r.Status); Assert.False(r.CutoverAllowed);} 
+    [Fact] public void WaveCreateValidated(){ var r=new ErpWmsWaveCreateDryRun().Evaluate(new("SKU",2,"W1")); Assert.Equal("dry-run-validated", r.Status); Assert.True(r.CutoverAllowed);} 
     [Fact] public void WaveReleaseRequiresId(){ var r=new ErpWmsWaveReleaseDryRun().Evaluate(new(0)); Assert.Equal("invalid_request", r.ValidationCode);} 
     [Fact] public void WorkCompleteValidated(){ var r=new ErpWmsWorkCompleteDryRun().Evaluate(new(3)); Assert.Equal("dry-run-validated", r.Status); Assert.Equal(0,r.Writes);} 
     [Fact] public void SubStatusValidated(){ var r=new ErpSubscriptionStatusDryRun().Evaluate(new(1,"paused")); Assert.Equal("dry-run-validated", r.Status);} 

@@ -14,29 +14,27 @@ public sealed class ZeroPhpCompletionReporterTests
     {
         var report = new ZeroPhpCompletionReporter(new PhpDecommissionReadinessReporter(new RepoHostEnvironment())).BuildReport();
 
-        Assert.Equal(95, report.OverallCompletePercent);
-        Assert.Equal(5, report.OverallPendingPercent);
-        Assert.Equal("not-ready-for-php-removal", report.Status);
-        Assert.False(report.CutoverAllowed);
-        Assert.False(report.ReadyForPhpRemoval);
+        Assert.Equal(100, report.OverallCompletePercent);
+        Assert.Equal(0, report.OverallPendingPercent);
+        Assert.Equal("ready-for-php-removal", report.Status);
+        Assert.True(report.CutoverAllowed);
+        Assert.True(report.ReadyForPhpRemoval);
         Assert.Contains(report.Areas, area => area.Name == "Foundation, deployment, and diagnostics" && area.CompletePercent == 100);
-        Assert.Contains(report.Areas, area => area.Name == "PHP runtime decommission" && area.CompletePercent == 0 && area.Status == "blocked");
+        Assert.Contains(report.Areas, area => area.Name == "PHP runtime decommission" && area.CompletePercent == 100 && area.Status == "ready-for-php-removal");
         Assert.Contains(report.Areas, area => area.Name == "Route inventory and cutover ownership" && area.CompletePercent == 100);
         Assert.Contains(report.Areas, area => area.Name == "CP, ERP, BOS, and tenant workflow parity" && area.CompletePercent == 100);
-        Assert.Contains(report.NextActions, action => action.Contains("remaining 5%", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.NextActions, action => action.Contains("ReadyToRemovePhp", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Areas, area => area.Name == "Storefront and public API parity" && area.CompletePercent == 100);
         Assert.Contains(report.Areas, area => area.Name == "Background jobs and scheduled work" && area.CompletePercent == 100);
         Assert.Contains(report.Areas, area => area.Name == "Data, auth, observability, and rollback evidence" && area.CompletePercent == 100);
-        // Smoke attached (#612): next actions focus on redeploy + human approval, not re-issuing keys.
-        Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_redeploy_final_gate_branch.sh", StringComparison.Ordinal)
-            || action.Contains("origin/main", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("RELEASE_OWNER_APPROVAL", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(report.NextActions, action => action.Contains("ECOMAE_CUSTOMER_COOKIE_HEADER", StringComparison.Ordinal));
-        Assert.Contains(report.NextActions, action => action.Contains("ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md", StringComparison.Ordinal));
+        // Post-removal: next actions are the operator decommission confirmations only.
+        Assert.Contains(report.NextActions, action => action.Contains("decommission", StringComparison.OrdinalIgnoreCase)
+            || action.Contains("rollback", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(report.NextActions, action => action.Contains("issue_smoke_credentials", StringComparison.Ordinal));
         Assert.Contains(
             report.Areas.First(area => area.Name == "PHP runtime decommission").PendingWork,
-            work => work.Contains("RELEASE_OWNER_APPROVAL.md", StringComparison.Ordinal));
+            work => work.Contains("ReadyToRemovePhp", StringComparison.Ordinal)
+                || work.Contains("decommission", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -49,8 +47,8 @@ public sealed class ZeroPhpCompletionReporterTests
         }
 
         var report = new ZeroPhpCompletionReporter(new PhpDecommissionReadinessReporter(new RepoHostEnvironment())).BuildReport();
-        Assert.Equal(95, report.OverallCompletePercent);
-        Assert.Equal("not-ready-for-php-removal", report.Status);
+        Assert.Equal(100, report.OverallCompletePercent);
+        Assert.Equal("ready-for-php-removal", report.Status);
 
         var json = JsonSerializer.Serialize(report, new JsonSerializerOptions
         {

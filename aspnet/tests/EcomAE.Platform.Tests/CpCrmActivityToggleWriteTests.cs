@@ -56,7 +56,7 @@ public sealed class CpCrmActivityToggleWriteTests
         Assert.Contains("ICpCrmActivityWriteService", module, StringComparison.Ordinal);
         Assert.Contains("ToggleDoneAsync", module, StringComparison.Ordinal);
         Assert.Contains("SaveAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpCrmActivityWriteService.cs"));
         Assert.Contains("epc_crm_toggle_activity_done", service, StringComparison.Ordinal);
         Assert.Contains("epc_crm_save_activity", service, StringComparison.Ordinal);
@@ -65,7 +65,7 @@ public sealed class CpCrmActivityToggleWriteTests
         Assert.Contains("INSERT INTO `epc_crm_activities`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

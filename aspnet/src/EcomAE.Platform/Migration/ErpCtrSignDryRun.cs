@@ -25,14 +25,14 @@ public sealed class ErpCtrSignDryRun : IErpCtrSignDryRun
         }
 
         return new ErpCtrSignDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id,
             ["ajax_erp.php?action=ctr_sign (NOT executed)"],
             "ErpCtrSign payload validated; write blocked until confirmWrites=true.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=ctr_sign");
     }
 
     private static ErpCtrSignDryRunResult Refuse(string s, string c, string d, ErpCtrSignRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=ctr_sign");
+        new(s, 0, true, true, false, c, false, r.Id, [], d, "/CP/content/shop/finance/erp/ajax_erp.php?action=ctr_sign");
 }
 
 public sealed record ErpCtrSignRequest(long Id = 0, bool ConfirmWrites = false);

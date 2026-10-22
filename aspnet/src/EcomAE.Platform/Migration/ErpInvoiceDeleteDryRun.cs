@@ -62,7 +62,7 @@ public sealed class ErpInvoiceDeleteDryRun : IErpInvoiceDeleteDryRun
         }
 
         return new ErpInvoiceDeleteDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, row.Id, row.Status,
+            "dry-run-validated", 0, true, true, false, "ok", true, row.Id, row.Status,
             [
                 "DELETE FROM `epc_einvoice_lines` WHERE document_id=@id (NOT executed)",
                 "DELETE FROM `epc_einvoice_documents` WHERE id=@id AND status='draft' (NOT executed)"
@@ -73,7 +73,7 @@ public sealed class ErpInvoiceDeleteDryRun : IErpInvoiceDeleteDryRun
 
     private static ErpInvoiceDeleteDryRunResult Refuse(
         string status, string code, string detail, ErpInvoiceDeleteRequest request) =>
-        new(status, 0, true, false, false, code, false, request.InvoiceId, null, [], detail,
+        new(status, 0, true, true, false, code, false, request.InvoiceId, null, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=invoice_delete");
 }
 

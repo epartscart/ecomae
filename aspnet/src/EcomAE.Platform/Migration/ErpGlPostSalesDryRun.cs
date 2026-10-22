@@ -29,7 +29,7 @@ public sealed class ErpGlPostSalesDryRun : IErpGlPostSalesDryRun
         }
 
         return new ErpGlPostSalesDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.DateFromUnix, request.DateToUnix,
             ["epc_erp_gl_post_sales_orders(@from, @to) journal INSERTs (NOT executed)"],
             "GL post-sales date window validated; journal posting blocked until dual-sample.",
@@ -38,7 +38,7 @@ public sealed class ErpGlPostSalesDryRun : IErpGlPostSalesDryRun
 
     private static ErpGlPostSalesDryRunResult Refuse(
         string status, string code, string detail, ErpGlPostSalesRequest request) =>
-        new(status, 0, true, false, true, code, false, request.DateFromUnix, request.DateToUnix, [], detail,
+        new(status, 0, true, true, false, code, false, request.DateFromUnix, request.DateToUnix, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=gl_post_sales");
 }
 

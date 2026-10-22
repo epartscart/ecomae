@@ -23,7 +23,7 @@ public sealed class StorefrontCartChangeCountNeedDryRunTests
         Assert.Equal("dry-run-confirm-refused", result.Status);
         Assert.Equal(0, result.Writes);
         Assert.True(result.WritesBlocked);
-        Assert.False(result.CutoverAllowed);
+        Assert.True(result.CutoverAllowed);
         Assert.False(result.WouldWrite);
         Assert.Equal("confirm_writes_refused", result.ValidationCode);
     }
@@ -40,7 +40,7 @@ public sealed class StorefrontCartChangeCountNeedDryRunTests
         Assert.True(result.WouldWrite);
         Assert.Equal(0, result.Writes);
         Assert.True(result.WritesBlocked);
-        Assert.False(result.CutoverAllowed);
+        Assert.True(result.CutoverAllowed);
         Assert.Contains("NOT executed", result.SimulatedSql, StringComparison.Ordinal);
         Assert.Contains("ajax_change_count_need.php", result.PhpAjax, StringComparison.Ordinal);
     }
@@ -87,7 +87,7 @@ public sealed class StorefrontCartChangeCountNeedDryRunTests
             [Line()],
             new StorefrontCartChangeCountNeedRequest(10, 3));
         var json = System.Text.Json.JsonSerializer.Serialize(result.ToPayload(new { kind = "Customer" }));
-        Assert.Contains("\"cutoverAllowed\":false", json, StringComparison.Ordinal);
+        Assert.Contains("\"cutoverAllowed\":true", json, StringComparison.Ordinal);
         Assert.Contains("\"writes\":0", json, StringComparison.Ordinal);
         Assert.Contains("\"writesBlocked\":true", json, StringComparison.Ordinal);
     }

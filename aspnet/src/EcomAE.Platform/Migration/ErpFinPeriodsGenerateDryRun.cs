@@ -25,14 +25,14 @@ public sealed class ErpFinPeriodsGenerateDryRun : IErpFinPeriodsGenerateDryRun
         }
 
         return new ErpFinPeriodsGenerateDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             ["INSERT `epc_fin_periods` (NOT executed)"],
             "ErpFinPeriodsGenerate payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_fin_advanced.php");
     }
 
     private static ErpFinPeriodsGenerateDryRunResult Refuse(string s, string c, string d, ErpFinPeriodsGenerateRequest r) =>
-        new(s, 0, true, false, false, c, false, [], d, "content/shop/finance/epc_erp_fin_advanced.php");
+        new(s, 0, true, true, false, c, false, [], d, "content/shop/finance/epc_erp_fin_advanced.php");
 }
 
 public sealed record ErpFinPeriodsGenerateRequest(bool ConfirmWrites = false, int Fy = 0, int StartMonth = 1);

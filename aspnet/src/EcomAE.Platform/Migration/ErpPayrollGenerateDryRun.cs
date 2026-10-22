@@ -31,7 +31,7 @@ public sealed class ErpPayrollGenerateDryRun : IErpPayrollGenerateDryRun
         }
 
         return new ErpPayrollGenerateDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.PeriodLabel,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.PeriodLabel,
             ["INSERT/rebuild `epc_erp_payroll_runs` + lines (NOT executed)"],
             "ErpPayrollGenerate payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_payroll.php");
@@ -39,7 +39,7 @@ public sealed class ErpPayrollGenerateDryRun : IErpPayrollGenerateDryRun
 
     private static ErpPayrollGenerateDryRunResult Refuse(
         string status, string code, string detail, ErpPayrollGenerateRequest request) =>
-        new(status, 0, true, false, false, code, false, request.PeriodLabel, [], detail,
+        new(status, 0, true, true, false, code, false, request.PeriodLabel, [], detail,
             "content/shop/finance/epc_erp_payroll.php");
 }
 

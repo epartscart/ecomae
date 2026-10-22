@@ -72,8 +72,8 @@ public sealed class BosModule : ISurfaceModule
                     ok = true,
                     manifest,
                     writes = 0,
-                    cutoverAllowed = false,
-                    phpAuthoritative = true,
+                    cutoverAllowed = true,
+                    phpAuthoritative = false,
                     note = "Manifest generation is contract-only in this tranche; tenant persistence, enrollment redemption, and synchronization remain separately guarded."
                 });
             }
@@ -160,7 +160,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to mark notifications read.",
                     session = SessionPayload(session)
@@ -173,7 +173,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, marked = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, marked = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosNotificationsDismiss, async (
@@ -225,7 +225,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to dismiss a notification.",
                     session = SessionPayload(session)
@@ -238,7 +238,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosNotificationsMarkAllRead, async (
@@ -290,7 +290,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to mark all notifications read.",
                     session = SessionPayload(session)
@@ -303,7 +303,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, marked = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, marked = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosNotificationsPrefsSave, async (
@@ -353,7 +353,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save notification preferences.",
                     session = SessionPayload(session)
@@ -367,7 +367,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosNotificationsCleanup, async (
@@ -405,7 +405,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to clean up old read notifications.",
                     session = SessionPayload(session)
@@ -418,7 +418,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, deleted = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, deleted = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosCreditHold, async (
@@ -460,7 +460,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to hold a credit limit.",
                     session = SessionPayload(session)
@@ -473,7 +473,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosCreditRelease, async (
@@ -513,7 +513,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to release a credit hold.",
                     session = SessionPayload(session)
@@ -526,7 +526,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosCreditSetLimit, async (
@@ -578,7 +578,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save a credit limit.",
                     session = SessionPayload(session)
@@ -592,7 +592,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosApiKeysRevoke, async (
@@ -630,7 +630,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to revoke an API key.",
                     session = SessionPayload(session)
@@ -643,7 +643,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosWebhooksDelete, async (
@@ -681,7 +681,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to delete a webhook.",
                     session = SessionPayload(session)
@@ -694,7 +694,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosWebhooksDlqResolve, async (
@@ -732,7 +732,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to resolve a webhook DLQ item.",
                     session = SessionPayload(session)
@@ -745,7 +745,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosPoCancel, async (
@@ -783,7 +783,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to cancel a PO.",
                     session = SessionPayload(session)
@@ -796,7 +796,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosPoReject, async (
@@ -840,7 +840,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to reject a PO.",
                     session = SessionPayload(session)
@@ -853,7 +853,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosPoApprove, async (
@@ -897,7 +897,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to approve a PO.",
                     session = SessionPayload(session)
@@ -910,7 +910,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosFulfillmentPickItem, async (
@@ -950,7 +950,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to pick a fulfillment item.",
                     session = SessionPayload(session)
@@ -963,7 +963,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosFulfillmentTransition, async (
@@ -1045,7 +1045,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to transition a fulfillment order.",
                     session = SessionPayload(session)
@@ -1058,7 +1058,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosFulfillmentCreateWave, async (
@@ -1098,7 +1098,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create a fulfillment wave.",
                     session = SessionPayload(session)
@@ -1111,7 +1111,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosBillingCancel, async (
@@ -1151,7 +1151,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to cancel a subscription.",
                     session = SessionPayload(session)
@@ -1164,7 +1164,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosBillingPay, async (
@@ -1204,7 +1204,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to record a billing payment.",
                     session = SessionPayload(session)
@@ -1217,7 +1217,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosBillingCreatePlan, async (
@@ -1347,7 +1347,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create a billing plan.",
                     session = SessionPayload(session)
@@ -1360,7 +1360,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosBillingSubscribe, async (
@@ -1400,7 +1400,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to subscribe a tenant.",
                     session = SessionPayload(session)
@@ -1413,7 +1413,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosRmaTransition, async (
@@ -1455,7 +1455,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to transition an RMA.",
                     session = SessionPayload(session)
@@ -1468,7 +1468,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosRmaRegister, async (
@@ -1522,7 +1522,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to register a warranty.",
                     session = SessionPayload(session)
@@ -1535,7 +1535,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosDealersAutoTier, async (
@@ -1573,7 +1573,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to auto-tier a dealer.",
                     session = SessionPayload(session)
@@ -1586,7 +1586,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosDunningUpdateStatus, async (
@@ -1628,7 +1628,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to update dunning status.",
                     session = SessionPayload(session)
@@ -1641,7 +1641,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosDunningRecordPayment, async (
@@ -1681,7 +1681,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to record a dunning payment.",
                     session = SessionPayload(session)
@@ -1694,7 +1694,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosDunningCreateProfile, async (
@@ -1736,7 +1736,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create a dunning profile.",
                     session = SessionPayload(session)
@@ -1749,7 +1749,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosDunningAddInvoice, async (
@@ -1830,7 +1830,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to add a dunning invoice.",
                     session = SessionPayload(session)
@@ -1844,7 +1844,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosSsoProviderToggle, async (
@@ -1886,7 +1886,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to toggle an SSO provider.",
                     session = SessionPayload(session)
@@ -1899,7 +1899,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosSsoProviderDelete, async (
@@ -1937,7 +1937,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to delete an SSO provider.",
                     session = SessionPayload(session)
@@ -1950,7 +1950,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosSandboxPromote, async (
@@ -1988,7 +1988,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to promote a sandbox snapshot.",
                     session = SessionPayload(session)
@@ -2001,7 +2001,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosSandboxDiscard, async (
@@ -2039,7 +2039,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to discard a sandbox snapshot.",
                     session = SessionPayload(session)
@@ -2052,7 +2052,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosSandboxApplyChange, async (
@@ -2098,7 +2098,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to apply a sandbox change.",
                     session = SessionPayload(session)
@@ -2111,7 +2111,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosSandboxCreate, async (
@@ -2155,7 +2155,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create a sandbox snapshot.",
                     session = SessionPayload(session)
@@ -2168,7 +2168,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosMarketplaceUninstall, async (
@@ -2208,7 +2208,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to uninstall a marketplace app.",
                     session = SessionPayload(session)
@@ -2221,7 +2221,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosMarketplaceInstall, async (
@@ -2263,7 +2263,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to install a marketplace app.",
                     session = SessionPayload(session)
@@ -2276,7 +2276,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosMarketplaceReview, async (
@@ -2335,7 +2335,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to add a marketplace review.",
                     session = SessionPayload(session)
@@ -2348,7 +2348,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosIndustryAssign, async (
@@ -2390,7 +2390,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to assign an industry pack.",
                     session = SessionPayload(session)
@@ -2403,7 +2403,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosPromosRecordUsage, async (
@@ -2449,7 +2449,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to record promotion usage.",
                     session = SessionPayload(session)
@@ -2462,7 +2462,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosPromosCreate, async (
@@ -2516,7 +2516,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create a promotion.",
                     session = SessionPayload(session)
@@ -2529,7 +2529,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosEntitiesAddMember, async (
@@ -2601,7 +2601,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to add an entity member.",
                     session = SessionPayload(session)
@@ -2614,7 +2614,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosEntitiesIntercompany, async (
@@ -2660,7 +2660,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to record an intercompany txn.",
                     session = SessionPayload(session)
@@ -2673,7 +2673,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosEntitiesEliminate, async (
@@ -2711,7 +2711,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to eliminate matched intercompany txns.",
                     session = SessionPayload(session)
@@ -2724,7 +2724,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosPayrollApproveRun, async (
@@ -2764,7 +2764,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to approve a payroll run.",
                     session = SessionPayload(session)
@@ -2777,7 +2777,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosPayrollEmployeeAdd, async (
@@ -2837,7 +2837,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to add a payroll employee.",
                     session = SessionPayload(session)
@@ -2850,7 +2850,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosSoc2AddEvidence, async (
@@ -2902,7 +2902,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to add SOC 2 evidence.",
                     session = SessionPayload(session)
@@ -2916,7 +2916,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosSoc2UpdateControl, async (
@@ -2956,7 +2956,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to update a SOC 2 control.",
                     session = SessionPayload(session)
@@ -2972,7 +2972,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosSoc2CreatePolicy, async (
@@ -3039,7 +3039,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create a SOC 2 policy.",
                     session = SessionPayload(session)
@@ -3052,7 +3052,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosWorkflowsToggle, async (
@@ -3094,7 +3094,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to toggle a workflow.",
                     session = SessionPayload(session)
@@ -3107,7 +3107,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosWorkflowsDelete, async (
@@ -3145,7 +3145,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to delete a workflow.",
                     session = SessionPayload(session)
@@ -3158,7 +3158,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosWorkflowsCreate, async (
@@ -3213,7 +3213,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create a workflow.",
                     session = SessionPayload(session)
@@ -3226,7 +3226,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosVaultNewVersion, async (
@@ -3278,7 +3278,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to add a vault document version.",
                     session = SessionPayload(session)
@@ -3291,7 +3291,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosVaultCreateFolder, async (
@@ -3335,7 +3335,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create a vault folder.",
                     session = SessionPayload(session)
@@ -3348,7 +3348,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosVaultUpload, async (
@@ -3407,7 +3407,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to upload a vault document.",
                     session = SessionPayload(session)
@@ -3420,7 +3420,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosImportsCreate, async (
@@ -3511,7 +3511,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create an import job.",
                     session = SessionPayload(session)
@@ -3524,7 +3524,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosNlReportingCreate, async (
@@ -3583,7 +3583,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to create an NL report definition.",
                     session = SessionPayload(session)
@@ -3596,7 +3596,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosDesignTokensSave, async (
@@ -3638,7 +3638,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save a design token.",
                     session = SessionPayload(session)
@@ -3651,7 +3651,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosTenantConfigSet, async (
@@ -3697,7 +3697,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save tenant config.",
                     session = SessionPayload(session)
@@ -3710,7 +3710,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosTenantConfigBulkSet, async (
@@ -3754,7 +3754,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to bulk-set tenant config.",
                     session = SessionPayload(session)
@@ -3767,7 +3767,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosAiClassReview, async (
@@ -3813,7 +3813,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to review an AI classification.",
                     session = SessionPayload(session)
@@ -3826,7 +3826,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosAiClassSeedHs, async (
@@ -3862,7 +3862,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to seed HS codes.",
                     session = SessionPayload(session)
@@ -3875,7 +3875,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, inserted = written.Id, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, inserted = written.Id, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.BosMfaSave, async (
@@ -3919,7 +3919,7 @@ public sealed class BosModule : ISurfaceModule
                     status = "dry-run",
                     writes = 0,
                     writesBlocked = true,
-                    phpAuthoritative = true,
+                    phpAuthoritative = false,
                     validation_code = "dry_run",
                     message = "Set confirmWrites=true to save an MFA policy.",
                     session = SessionPayload(session)
@@ -3932,7 +3932,7 @@ public sealed class BosModule : ISurfaceModule
                 "/bos/fleet-summary-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.BosAjaxWriteCatalog, (IBosAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));

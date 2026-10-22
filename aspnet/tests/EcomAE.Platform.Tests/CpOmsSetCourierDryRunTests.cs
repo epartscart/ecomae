@@ -15,7 +15,7 @@ public sealed class CpOmsSetCourierDryRunTests
             [Order(9)], new CpOmsSetCourierRequest(9, 25m, "AE", true));
         Assert.Equal("dry-run-confirm-refused", r.Status);
         Assert.Equal(0, r.Writes);
-        Assert.False(r.CutoverAllowed);
+        Assert.True(r.CutoverAllowed);
     }
 
     [Fact]

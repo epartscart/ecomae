@@ -14,13 +14,13 @@ public sealed class ErpGlSyncUnpostedDryRun : IErpGlSyncUnpostedDryRun
         if (request.ConfirmWrites)
         {
             return new ErpGlSyncUnpostedDryRunResult(
-                "dry-run-confirm-refused", 0, true, false, true, "confirm_writes_refused", false,
+                "dry-run-confirm-refused", 0, true, true, false, "confirm_writes_refused", false,
                 [], "confirm_writes is handled by the live IErpGlSyncUnpostedWriteService.SyncAsync; the dry-run never executes.",
                 "/CP/content/shop/finance/erp/ajax_erp.php?action=gl_sync_unposted");
         }
 
         return new ErpGlSyncUnpostedDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             ["epc_erp_gl_sync_unposted(@db) sub-ledger → GL journals (NOT executed)"],
             "GL sync-unposted simulated; journal INSERTs blocked until dual-sample.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=gl_sync_unposted");

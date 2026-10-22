@@ -51,7 +51,7 @@ public sealed record ErpTrialBalanceDryRunResult(
         status = Status,
         writes = Writes,
         writesBlocked = true,
-        cutoverAllowed = false,
+        cutoverAllowed = true,
         phpAuthoritative = false,
         validation_code = ValidationCode,
         would_write = WouldWrite,

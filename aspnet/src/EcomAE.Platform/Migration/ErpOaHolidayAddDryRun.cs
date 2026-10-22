@@ -32,14 +32,14 @@ public sealed class ErpOaHolidayAddDryRun : IErpOaHolidayAddDryRun
         }
 
         return new ErpOaHolidayAddDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.CalendarId, date,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.CalendarId, date,
             ["INSERT/UPDATE `epc_oa_holiday` (NOT executed)"],
             "ErpOaHolidayAdd payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_orgadmin.php");
     }
 
     private static ErpOaHolidayAddDryRunResult Refuse(string s, string c, string d, ErpOaHolidayAddRequest r) =>
-        new(s, 0, true, false, false, c, false, r.CalendarId, r.HolidayDate ?? r.Code, [], d, "content/shop/finance/epc_erp_orgadmin.php");
+        new(s, 0, true, true, false, c, false, r.CalendarId, r.HolidayDate ?? r.Code, [], d, "content/shop/finance/epc_erp_orgadmin.php");
 }
 
 public sealed record ErpOaHolidayAddRequest(

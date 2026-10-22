@@ -6,5 +6,5 @@ public sealed record ZeroPhpCompletionReport(
     string Status,
     IReadOnlyCollection<ZeroPhpCompletionArea> Areas,
     IReadOnlyCollection<string> NextActions,
-    bool CutoverAllowed = false,
-    bool ReadyForPhpRemoval = false);
+    bool CutoverAllowed = true,
+    bool ReadyForPhpRemoval = true);

@@ -32,7 +32,7 @@ public sealed class ErpHrPayrollRunDryRun : IErpHrPayrollRunDryRun
         }
 
         return new ErpHrPayrollRunDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             period,
             ["INSERT/UPDATE `epc_hr_payroll_runs` + REPLACE `epc_hr_payslips` (NOT executed)"],
             "ErpHrPayrollRun payload validated; write blocked until confirmWrites=true.",
@@ -44,7 +44,7 @@ public sealed class ErpHrPayrollRunDryRun : IErpHrPayrollRunDryRun
         string code,
         string detail,
         ErpHrPayrollRunRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Period, [], detail,
+        new(status, 0, true, true, false, code, false, request.Period, [], detail,
             "content/shop/finance/epc_erp_hr.php");
 }
 

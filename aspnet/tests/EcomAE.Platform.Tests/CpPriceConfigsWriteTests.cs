@@ -77,7 +77,7 @@ public sealed class CpPriceConfigsWriteTests
         Assert.Contains("ICpPriceConfigsWriteService", module, StringComparison.Ordinal);
         Assert.Contains("save_price_config", module, StringComparison.Ordinal);
         Assert.Contains("delete_price_config", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpPriceConfigsWriteService.cs"));
         Assert.Contains("epc_scp_price_config_save", service, StringComparison.Ordinal);
         Assert.Contains("epc_scp_price_config_delete", service, StringComparison.Ordinal);
@@ -87,7 +87,7 @@ public sealed class CpPriceConfigsWriteTests
         Assert.Contains("schema-ensure stays Classic", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
         var map = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Presentation/PhpSurfaceLinkMap.cs"));
         Assert.Contains("epc_super_cp_price_configs\", \"/cp/price-configs-app\"", map, StringComparison.Ordinal);
         Assert.DoesNotContain("epc_super_cp_price_configs\", \"/cp/price-lists-app\"", map, StringComparison.Ordinal);

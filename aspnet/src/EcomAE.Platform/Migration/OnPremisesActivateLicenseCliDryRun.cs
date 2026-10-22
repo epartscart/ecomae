@@ -9,13 +9,13 @@ public sealed class OnPremisesActivateLicenseCliDryRun : IOnPremisesActivateLice
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused; PHP remains authoritative.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Action,
+        return new("dry-run-validated",0,true,true,false,"ok",true,request.Action,
             ["deploy/on-premises/activate-license.php (NOT executed)"],
             "OnPremisesActivateLicenseCli payload validated; UPDATE blocked.",
             "deploy/on-premises/activate-license.php");
     }
     private static OnPremisesActivateLicenseCliDryRunResult Refuse(string s,string c,string d,OnPremisesActivateLicenseCliRequest r)=>
-        new(s,0,true,false,true,c,false,r.Action,[],d,"deploy/on-premises/activate-license.php");
+        new(s,0,true,true,false,c,false,r.Action,[],d,"deploy/on-premises/activate-license.php");
 }
 public sealed record OnPremisesActivateLicenseCliRequest(string? Action = null, bool ConfirmWrites = false);
 public sealed record OnPremisesActivateLicenseCliDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? Action,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

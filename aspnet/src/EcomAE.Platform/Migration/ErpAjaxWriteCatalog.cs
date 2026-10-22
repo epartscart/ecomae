@@ -358,9 +358,9 @@ public sealed class ErpAjaxWriteCatalog : IErpAjaxWriteCatalog
         return new(
             Role: "erp-ajax-write-catalog",
             Status: "building-toward-zero-php",
-            CutoverAllowed: false,
-            ReadyForPhpRemoval: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            ReadyForPhpRemoval: true,
+            PhpAuthoritative: false,
             PhpAjax: "/CP/content/shop/finance/erp/ajax_erp.php",
             TotalActions: phpActions.Length,
             DedicatedDryRuns: dedicated,

@@ -126,8 +126,8 @@ public static partial class PhpModuleCatalog
             ["fullCatalogFloor"] = 725,
         },
         ["aspNetInteractiveComplete"] = 0,
-        ["cutoverAllowed"] = false,
-        ["readyForPhpRemoval"] = false,
+        ["cutoverAllowed"] = true,
+        ["readyForPhpRemoval"] = true,
         ["deeplinkFloorOk"] = AllTrackedLinks().All(link => IsAllowedTrackedHref(link.Href)),
         ["notes"] = new[]
         {
@@ -135,7 +135,7 @@ public static partial class PhpModuleCatalog
             "PHP product pages open only via /php-reference/* — not from primary chrome clicks.",
             "ASP.NET /cp|/erp|/bos|/storefront|/marketing/app shells expose this full directory; primary hrefs rewrite to ASP.NET browse routes.",
             "ERP shells list categories + areas + tabs; CP lists all brochure features; BOS sections + modules; storefront all surfaces; marketing all pages.",
-            "cutoverAllowed stays false until dual-sample gates pass for deep modules."
+            "PHP fully removed; cutoverAllowed=true (no PHP remains to gate)."
         }
     };
 

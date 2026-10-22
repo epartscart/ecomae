@@ -34,7 +34,7 @@ public sealed class ErpWorkflowStatusDryRun : IErpWorkflowStatusDryRun
         }
 
         return new ErpWorkflowStatusDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true, request.TaskId, status,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.TaskId, status,
             ["UPDATE `epc_erp_workflow_tasks` SET status/completed_at WHERE id=@task (NOT executed)"],
             "Workflow status payload validated; UPDATE blocked until dual-sample.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=workflow_status");
@@ -42,7 +42,7 @@ public sealed class ErpWorkflowStatusDryRun : IErpWorkflowStatusDryRun
 
     private static ErpWorkflowStatusDryRunResult Refuse(
         string status, string code, string detail, ErpWorkflowStatusRequest request) =>
-        new(status, 0, true, false, true, code, false, request.TaskId, request.Status, [], detail,
+        new(status, 0, true, true, false, code, false, request.TaskId, request.Status, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=workflow_status");
 }
 

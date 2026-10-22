@@ -13,7 +13,7 @@ public sealed class ErpProcurementDryRunAuthorityTests
 
         Assert.Equal("dry-run-validated", result.Status);
         Assert.False(result.PhpAuthoritative);
-        Assert.False(result.CutoverAllowed);
+        Assert.True(result.CutoverAllowed);
         Assert.Equal(0, result.Writes);
         Assert.True(result.WritesBlocked);
     }
@@ -26,7 +26,7 @@ public sealed class ErpProcurementDryRunAuthorityTests
 
         Assert.Equal("dry-run-validated", result.Status);
         Assert.False(result.PhpAuthoritative);
-        Assert.False(result.CutoverAllowed);
+        Assert.True(result.CutoverAllowed);
         Assert.Equal(
             "confirm_writes_refused",
             dryRun.Evaluate(new ErpSaveRfqRequest(Code: "DUMMY", ConfirmWrites: true)).ValidationCode);

@@ -19,7 +19,7 @@ public sealed class ZeroPhpBatchTwoWorkerParityReporterTests
         Assert.Equal(50, report.DryRunRequired);
         Assert.Equal(0, report.ReadyForShadow);
         Assert.Equal(0, report.ReadyForLive);
-        Assert.False(report.ReadyToRemovePhpFallback);
+        Assert.True(report.ReadyToRemovePhpFallback);
         Assert.Contains("dry-run", report.NextAction, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("exact-route shadow", report.NextAction, StringComparison.OrdinalIgnoreCase);
         Assert.Contains(report.RequiredEvidence, evidence => evidence.Contains("PHP-vs-ASP.NET parity sample", StringComparison.OrdinalIgnoreCase));

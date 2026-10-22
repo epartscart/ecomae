@@ -19,7 +19,7 @@ public sealed class ZeroPhpCutoverBatchParityReporterTests
         Assert.Equal(2949, fleet.TotalAssignments);
         Assert.Equal(2949, fleet.DryRunRequired);
         Assert.Equal(0, fleet.ReadyForShadow);
-        Assert.False(fleet.ReadyToRemovePhpFallback);
+        Assert.True(fleet.ReadyToRemovePhpFallback);
         Assert.True(fleet.PhpFallbackRequired);
         Assert.Equal(50, batch3.TotalAssignments);
         Assert.Contains("exact-route shadow", batch3.NextAction, StringComparison.OrdinalIgnoreCase);

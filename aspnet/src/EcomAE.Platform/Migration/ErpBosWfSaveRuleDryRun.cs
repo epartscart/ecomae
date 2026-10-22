@@ -31,7 +31,7 @@ public sealed class ErpBosWfSaveRuleDryRun : IErpBosWfSaveRuleDryRun
         }
 
         return new ErpBosWfSaveRuleDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true,
+            "dry-run-validated", 0, true, true, false, "ok", true,
             request.Id, request.Name, request.EntityType,
             ["INSERT/UPDATE `epc_bos_approval_rules` (NOT executed)"],
             "ErpBosWfSaveRule payload validated; write blocked until confirmWrites=true.",
@@ -43,7 +43,7 @@ public sealed class ErpBosWfSaveRuleDryRun : IErpBosWfSaveRuleDryRun
         string code,
         string detail,
         ErpBosWfSaveRuleRequest request) =>
-        new(status, 0, true, false, false, code, false, request.Id, request.Name, request.EntityType, [], detail,
+        new(status, 0, true, true, false, code, false, request.Id, request.Name, request.EntityType, [], detail,
             "content/shop/finance/epc_bos_workflow.php");
 }
 

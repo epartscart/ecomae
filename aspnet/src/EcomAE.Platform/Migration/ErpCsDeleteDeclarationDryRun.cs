@@ -30,14 +30,14 @@ public sealed class ErpCsDeleteDeclarationDryRun : IErpCsDeleteDeclarationDryRun
         }
 
         return new ErpCsDeleteDeclarationDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Code,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Code,
             ["DELETE `epc_custom_shipping_declaration_items` + `epc_custom_shipping_declarations` (NOT executed)"],
             "ErpCsDeleteDeclaration payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_custom_shipping.php");
     }
 
     private static ErpCsDeleteDeclarationDryRunResult Refuse(string s, string c, string d, ErpCsDeleteDeclarationRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Code, [], d, "content/shop/finance/epc_custom_shipping.php");
+        new(s, 0, true, true, false, c, false, r.Id, r.Code, [], d, "content/shop/finance/epc_custom_shipping.php");
 }
 
 public sealed record ErpCsDeleteDeclarationRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);

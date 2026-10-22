@@ -30,14 +30,14 @@ public sealed class ErpWmsWorkCompleteDryRun : IErpWmsWorkCompleteDryRun
         }
 
         return new ErpWmsWorkCompleteDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id,
             ["epc_wms_work_complete(@id) (NOT executed)"],
             "ErpWmsWorkComplete payload validated; no write was performed.",
             "content/shop/finance/epc_erp_wms.php");
     }
 
     private static ErpWmsWorkCompleteDryRunResult Refuse(string s, string c, string d, ErpWmsWorkCompleteRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, [], d, "content/shop/finance/epc_erp_wms.php");
+        new(s, 0, true, true, false, c, false, r.Id, [], d, "content/shop/finance/epc_erp_wms.php");
 }
 
 public sealed record ErpWmsWorkCompleteRequest(long Id, bool ConfirmWrites = false);

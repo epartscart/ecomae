@@ -62,7 +62,7 @@ public sealed class CpStorefrontStorageToggleWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("CpPricesStorefrontStorageToggle", module, StringComparison.Ordinal);
         Assert.Contains("SetStorefrontToggleAsync", module, StringComparison.Ordinal);
-        Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
+        Assert.Contains("cutoverAllowed = true", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpPricesUploadWriteService.cs"));
         Assert.Contains("epc_ssf_set_toggle", service, StringComparison.Ordinal);
         Assert.Contains("storefront_temp_disabled", service, StringComparison.Ordinal);
@@ -73,7 +73,7 @@ public sealed class CpStorefrontStorageToggleWriteTests
         Assert.DoesNotContain("ALTER TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = false", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

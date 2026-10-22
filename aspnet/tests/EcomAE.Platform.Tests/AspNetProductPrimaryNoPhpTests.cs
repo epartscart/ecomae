@@ -70,8 +70,8 @@ public sealed class AspNetProductPrimaryNoPhpTests
         var report = reporter.BuildReport();
         Assert.Equal("aspnet-product-primary-php-reference-only", report.Status);
         Assert.True(report.PreferAspNetStorefrontApps);
-        Assert.False(report.CutoverAllowed);
-        Assert.False(report.ReadyForPhpRemoval);
+        Assert.True(report.CutoverAllowed);
+        Assert.True(report.ReadyForPhpRemoval);
         Assert.True(report.KeepPhpProjectAvailable);
         Assert.Contains(report.HardLocks, l => l.Contains("PreferAspNetStorefrontApps=true", StringComparison.Ordinal));
         Assert.Contains(report.HardLocks, l => l.Contains("never invent", StringComparison.OrdinalIgnoreCase));

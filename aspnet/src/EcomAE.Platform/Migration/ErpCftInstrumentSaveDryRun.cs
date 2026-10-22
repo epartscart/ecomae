@@ -25,14 +25,14 @@ public sealed class ErpCftInstrumentSaveDryRun : IErpCftInstrumentSaveDryRun
         }
 
         return new ErpCftInstrumentSaveDryRunResult(
-            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Ref,
+            "dry-run-validated", 0, true, true, false, "ok", true, request.Id, request.Ref,
             ["UPSERT `epc_cft_instrument` (NOT executed)"],
             "ErpCftInstrumentSave payload validated; write blocked until confirmWrites=true.",
             "content/shop/finance/epc_erp_cash_treasury.php");
     }
 
     private static ErpCftInstrumentSaveDryRunResult Refuse(string s, string c, string d, ErpCftInstrumentSaveRequest r) =>
-        new(s, 0, true, false, false, c, false, r.Id, r.Ref, [], d, "content/shop/finance/epc_erp_cash_treasury.php");
+        new(s, 0, true, true, false, c, false, r.Id, r.Ref, [], d, "content/shop/finance/epc_erp_cash_treasury.php");
 }
 
 public sealed record ErpCftInstrumentSaveRequest(

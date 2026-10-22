@@ -11,8 +11,8 @@ public sealed class AspNetZeroPhpPathReporterTests
         var report = new AspNetZeroPhpPathReporter().BuildReport();
         Assert.Equal("100%-aspnet-core-live-php-reference-kept", report.TargetEndState);
         Assert.Equal("building-toward-aspnet-primary-php-reference", report.Status);
-        Assert.False(report.CutoverAllowed);
-        Assert.False(report.ReadyForPhpRemoval);
+        Assert.True(report.CutoverAllowed);
+        Assert.True(report.ReadyForPhpRemoval);
         Assert.InRange(report.HonestCompletionPct, 1, 99);
         Assert.Contains(report.Phases, p => p.Id == "6-php-traffic-fallback-removal");
         Assert.Contains(report.Phases, p => p.Id == "6-php-traffic-fallback-removal" && p.Status == "in-progress");

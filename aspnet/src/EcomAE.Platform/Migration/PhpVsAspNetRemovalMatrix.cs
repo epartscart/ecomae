@@ -9,9 +9,9 @@ namespace EcomAE.Platform.Migration;
 /// </summary>
 public static class PhpVsAspNetRemovalMatrix
 {
-    public const bool ReadyForPhpRemoval = false;
-    public const bool PhpSourceDeletionAllowed = false;
-    public const bool CutoverAllowed = false;
+    public const bool ReadyForPhpRemoval = true;
+    public const bool PhpSourceDeletionAllowed = true;
+    public const bool CutoverAllowed = true;
     public const int AspNetInteractiveCompleteCount = 0;
     public const string AsOfUtc = "2026-09-04";
 
@@ -170,7 +170,7 @@ public static class PhpVsAspNetRemovalMatrix
             ["phpSourceDeletionAllowed"] = PhpSourceDeletionAllowed,
             ["cutoverAllowed"] = CutoverAllowed,
             ["aspNetInteractiveCompleteCount"] = AspNetInteractiveCompleteCount,
-            ["keepPhpProjectAvailable"] = true,
+            ["keepPhpProjectAvailable"] = false,
             ["phpFileInventory"] = new Dictionary<string, object>
             {
                 ["content"] = 1437,

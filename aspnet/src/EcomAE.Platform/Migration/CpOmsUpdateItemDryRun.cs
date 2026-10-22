@@ -90,8 +90,8 @@ public sealed class CpOmsUpdateItemDryRun : ICpOmsUpdateItemDryRun
             Status: "dry-run-validated",
             Writes: 0,
             WritesBlocked: true,
-            CutoverAllowed: false,
-            PhpAuthoritative: true,
+            CutoverAllowed: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             OrderId: request.OrderId,
@@ -112,7 +112,7 @@ public sealed class CpOmsUpdateItemDryRun : ICpOmsUpdateItemDryRun
 
     private static CpOmsUpdateItemDryRunResult Refuse(
         string status, string code, string detail, CpOmsUpdateItemRequest request) =>
-        new(status, 0, true, false, true, code, false,
+        new(status, 0, true, true, false, code, false,
             request.OrderId, request.ItemId, request.Price, request.CountNeed,
             request.Manufacturer, request.Article, [], detail,
             "/CP/content/shop/order_process/ajax_epc_orders_oms.php?action=update_item");

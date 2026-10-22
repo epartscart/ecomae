@@ -94,8 +94,20 @@ public static class PhpDecommissionEvidence
     public static bool HasParitySamples(string root)
     {
         var dir = Path.Combine(root, "parity-samples");
-        return Directory.Exists(dir)
-            && Directory.EnumerateFiles(dir, "*.json", SearchOption.AllDirectories).Any();
+        if (Directory.Exists(dir) && Directory.EnumerateFiles(dir, "*.json", SearchOption.AllDirectories).Any())
+        {
+            return true;
+        }
+
+        // Post-removal: captured dual-sample corpora live under evidence/*-dual-samples/.
+        var evidenceRoot = Path.GetDirectoryName(root);
+        if (!string.IsNullOrWhiteSpace(evidenceRoot) && Directory.Exists(evidenceRoot))
+        {
+            return Directory.EnumerateDirectories(evidenceRoot, "*dual-samples*")
+                .Any(d => Directory.EnumerateFiles(d, "*.json", SearchOption.AllDirectories).Any());
+        }
+
+        return false;
     }
 
     public static bool HasReleaseOwnerApproval(string root)
