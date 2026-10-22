@@ -104,10 +104,10 @@ public sealed class EpartFrontOwnBrandService : IEpartFrontOwnBrandService
             await using var command = connection.CreateCommand();
             command.CommandTimeout = 3; // PHP sets PDO::ATTR_TIMEOUT 3
             command.CommandText =
-                "SELECT d.`brand` AS brand, COUNT(*) AS cnt "
+                "SELECT d.`manufacturer` AS brand, COUNT(*) AS cnt "
                 + "FROM `shop_docpart_prices_data` d "
-                + "WHERE d.`brand` LIKE @brandLike "
-                + "GROUP BY d.`brand` ORDER BY cnt DESC LIMIT 10";
+                + "WHERE d.`manufacturer` LIKE @brandLike "
+                + "GROUP BY d.`manufacturer` ORDER BY cnt DESC LIMIT 10";
             var p = command.CreateParameter();
             p.ParameterName = "@brandLike";
             p.Value = OwnBrandLike;
