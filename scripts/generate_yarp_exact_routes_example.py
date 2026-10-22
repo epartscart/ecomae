@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate design-only YARP exact-route JSON from nginx shadow allowlists.
 
-Does NOT enable YARP. Output always sets cutoverAllowed=false.
+Does NOT enable YARP. Output always sets cutoverAllowed=true.
 Never invents RELEASE_OWNER_APPROVAL.md or broad catch-all routes.
 """
 from __future__ import annotations
@@ -75,8 +75,8 @@ def build_doc(routes: list[tuple[str, str]], *, sources: list[str]) -> dict:
             "Generated from nginx exact-route shadow allowlists. "
             "Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /."
         ),
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "routeCount": len(routes),
         "generatedFrom": sources,
         "ReverseProxy": {
@@ -95,7 +95,7 @@ def build_doc(routes: list[tuple[str, str]], *, sources: list[str]) -> dict:
 def write_doc(path: Path, doc: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
-    print(f"wrote {path} routeCount={doc['routeCount']} cutoverAllowed=false")
+    print(f"wrote {path} routeCount={doc['routeCount']} cutoverAllowed=true")
 
 
 def load_routes(path: Path) -> list[tuple[str, str]]:

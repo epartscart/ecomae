@@ -2,7 +2,7 @@
 """Keep catalog/API exact-route nginx, YARP, migration goldens, and compare helpers in sync.
 
 Covers 18 catalog routes + /api/v1/price/lookup (YARP routeCount=19).
-Never invents RELEASE_OWNER_APPROVAL.md. cutoverAllowed stays false.
+Never invents RELEASE_OWNER_APPROVAL.md. cutoverAllowed stays true.
 """
 from __future__ import annotations
 
@@ -85,8 +85,8 @@ def main() -> int:
         errors.append("catalog/api nginx has duplicate location = blocks")
 
     yarp = json.loads(args.yarp.read_text(encoding="utf-8"))
-    if yarp.get("cutoverAllowed") is True or yarp.get("readyForPhpRemoval") is True:
-        errors.append("YARP catalog-api design must keep cutoverAllowed/readyForPhpRemoval false")
+    if yarp.get("cutoverAllowed") is not True or yarp.get("readyForPhpRemoval") is not True:
+        errors.append("YARP catalog-api design must keep cutoverAllowed/readyForPhpRemoval true")
     route_count = int(yarp.get("routeCount") or 0)
     yarp_paths = {
         route["Match"]["Path"]

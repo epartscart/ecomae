@@ -7,7 +7,7 @@
   "flows": [
     {
       "id": "warehouse-search-offers",
-      "title": "epartscart warehouse frontend — stock / search offers",
+      "title": "epartscart warehouse frontend \u2014 stock / search offers",
       "surface": "storefront+erp+cp",
       "requiredPhpTests": [
         "tests/erp_advanced/run_warehouse_search_fast_tests.php"
@@ -77,7 +77,7 @@
       ],
       "liveSmokeRequiredForPhpRemoval": [
         "Authenticated /cp/einvoice-documents digest field parity",
-        "Create→validate→submit→poll dry-run sequence paired with PHP (writes=0 until approval)"
+        "Create\u2192validate\u2192submit\u2192poll dry-run sequence paired with PHP (writes=0 until approval)"
       ]
     },
     {
@@ -100,7 +100,7 @@
       ],
       "liveSmokeRequiredForPhpRemoval": [
         "Auth catalog status connected=true (staging-smoke)",
-        "Miss → PHP UMAPI fill → ASP.NET cache hit dual-sample without inventing cutover",
+        "Miss \u2192 PHP UMAPI fill \u2192 ASP.NET cache hit dual-sample without inventing cutover",
         "18/18 catalog exact-route auth gates remain ASP.NET JSON"
       ]
     },
@@ -178,7 +178,7 @@
       ],
       "liveSmokeRequiredForPhpRemoval": [
         "Super CP tenants list + BOS fleet-health sampleTenants for a live tenant",
-        "Onboard/demo tenant provision → isolated DB → tenant CP login smoke",
+        "Onboard/demo tenant provision \u2192 isolated DB \u2192 tenant CP login smoke",
         "Tenant hosts still PHP chrome until intentional exact-route cutover"
       ]
     }

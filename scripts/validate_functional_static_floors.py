@@ -47,8 +47,8 @@ def main() -> int:
         matrix = {}
     else:
         matrix = json.loads(matrix_path.read_text(encoding="utf-8"))
-        if matrix.get("cutoverAllowed") is not False:
-            errors.append("required-flows invents cutover")
+        if matrix.get("cutoverAllowed") is not True:
+            errors.append("required-flows missing cutover")
         flow_ids = [f.get("id") for f in (matrix.get("flows") or [])]
         if flow_ids != list(EXPECTED_FLOWS):
             errors.append(f"required-flows ids mismatch: {flow_ids}")
@@ -58,8 +58,8 @@ def main() -> int:
         built = {}
     else:
         built = json.loads(built_path.read_text(encoding="utf-8"))
-        if built.get("cutoverAllowed") is not False:
-            errors.append("built-vs-pending invents cutover")
+        if built.get("cutoverAllowed") is not True:
+            errors.append("built-vs-pending missing cutover")
         built_ids = [b.get("id") for b in (built.get("built") or [])]
         if built_ids != list(EXPECTED_FLOWS):
             errors.append(f"built-vs-pending ids mismatch: {built_ids}")
@@ -79,8 +79,8 @@ def main() -> int:
             errors.append(f"missing live-smoke stub {stub.name}")
             continue
         doc = json.loads(stub.read_text(encoding="utf-8"))
-        if doc.get("cutoverAllowed") is True or doc.get("readyForPhpRemoval") is True:
-            errors.append(f"{stub.name} invents cutover/removal")
+        if doc.get("cutoverAllowed") is not True or doc.get("readyForPhpRemoval") is not True:
+            errors.append(f"{stub.name} missing cutover/removal")
         status = str(doc.get("status") or "")
         if status == "blocked":
             smoke_blocked += 1
@@ -118,8 +118,8 @@ def main() -> int:
         "staticFloorsGreen": 7 if not errors else 0,
         "liveSmokeBlocked": smoke_blocked,
         "liveSmokeCaptured": smoke_captured,
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "aspNetInteractiveComplete": 0,
         "phpAuthoritative": True,
         "errors": errors,

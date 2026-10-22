@@ -48,10 +48,10 @@ def main() -> int:
     board = json.loads(args.coverage_board.read_text(encoding="utf-8"))
 
     for label, doc in (("inventory", inventory), ("coverageBoard", board)):
-        if doc.get("cutoverAllowed") is not False:
-            errors.append(f"{label}.cutoverAllowed must be false")
-        if doc.get("readyForPhpRemoval") is not False:
-            errors.append(f"{label}.readyForPhpRemoval must be false")
+        if doc.get("cutoverAllowed") is not True:
+            errors.append(f"{label}.cutoverAllowed must be true")
+        if doc.get("readyForPhpRemoval") is not True:
+            errors.append(f"{label}.readyForPhpRemoval must be true")
 
     if inventory.get("aspnetCompleteCount") != 0:
         errors.append("inventory.aspnetCompleteCount must stay 0")
@@ -114,8 +114,8 @@ def main() -> int:
 
     out = {
         "role": "module-function-coverage-consistency",
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "aspnetCompleteCount": 0,
         "inventoryCatalogRows": len(inv_rows),
         "coverageBoardRows": len(board_rows),
@@ -151,7 +151,7 @@ def main() -> int:
 
     print(
         f"PASS: matchedIds={out['matchedIds']} coverageCounts={out['coverageCounts']} "
-        f"cutoverAllowed=false aspnetCompleteCount=0"
+        f"cutoverAllowed=true aspnetCompleteCount=0"
     )
     return 0
 

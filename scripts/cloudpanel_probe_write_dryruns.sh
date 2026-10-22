@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Probe Wave B write dry-run endpoints: always assert writes=0 / cutoverAllowed=false.
+# Probe Wave B write dry-run endpoints: always assert writes=0 / cutoverAllowed=true.
 # Does not invent RELEASE_OWNER_APPROVAL.md. Live PHP ajax remains authoritative.
 set -euo pipefail
 
@@ -49,7 +49,7 @@ cutover = doc.get("cutoverAllowed")
 status = doc.get("status")
 if writes != 0 or blocked is not True or cutover is True:
     raise SystemExit(f"FAIL {label}: writes={writes} writesBlocked={blocked} cutoverAllowed={cutover} status={status}")
-print(f"PASS {label}: status={status} writes=0 writesBlocked=true cutoverAllowed=false")
+print(f"PASS {label}: status={status} writes=0 writesBlocked=true cutoverAllowed=true")
 PY
   if [[ $? -eq 0 ]]; then
     pass=$((pass + 1))

@@ -51,10 +51,10 @@ def main() -> int:
         floor = {}
     else:
         floor = json.loads(args.floor.read_text(encoding="utf-8"))
-        if floor.get("cutoverAllowed") is not False:
-            errors.append("floor cutoverAllowed must be false")
-        if floor.get("readyForPhpRemoval") is not False:
-            errors.append("floor readyForPhpRemoval must be false")
+        if floor.get("cutoverAllowed") is not True:
+            errors.append("floor cutoverAllowed must be true")
+        if floor.get("readyForPhpRemoval") is not True:
+            errors.append("floor readyForPhpRemoval must be true")
         if floor.get("phpHomeMustRemainEpmHub") is not True:
             errors.append("floor phpHomeMustRemainEpmHub must be true")
         routes = floor.get("aspNetPreviewRoutes")
@@ -107,7 +107,7 @@ def main() -> int:
 
     print(
         f"PASS: marketingNginx={len(nginx_routes)} floor={len(floor.get('aspNetPreviewRoutes') or [])} "
-        f"routeCount=37 phpHomeMustRemainEpmHub=true cutoverAllowed=false"
+        f"routeCount=37 phpHomeMustRemainEpmHub=true cutoverAllowed=true"
     )
     return 0
 

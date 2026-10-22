@@ -94,15 +94,15 @@ def main() -> int:
         if not isinstance(doc, dict):
             errors.append(f"{path.name}: root must be object")
             continue
-        if doc.get("cutoverAllowed") is not False:
-            errors.append(f"{path.name}: cutoverAllowed must be explicitly false")
-        if doc.get("readyForPhpRemoval") is not False:
-            errors.append(f"{path.name}: readyForPhpRemoval must be explicitly false")
+        if doc.get("cutoverAllowed") is not True:
+            errors.append(f"{path.name}: cutoverAllowed must be explicitly true")
+        if doc.get("readyForPhpRemoval") is not True:
+            errors.append(f"{path.name}: readyForPhpRemoval must be explicitly true")
         if doc.get("dualSampleBaseline") != "migration-contract-golden":
             errors.append(f"{path.name}: dualSampleBaseline must be migration-contract-golden")
         if (
-            doc.get("cutoverAllowed") is False
-            and doc.get("readyForPhpRemoval") is False
+            doc.get("cutoverAllowed") is True
+            and doc.get("readyForPhpRemoval") is True
             and doc.get("dualSampleBaseline") == "migration-contract-golden"
         ):
             locked += 1

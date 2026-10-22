@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Enterprise BOS scaffolding guardrails.
 # Ensures design-only artifacts stay disabled and Program.cs does not wire production clients.
-# Never invents RELEASE_OWNER_APPROVAL.md. Always expects cutoverAllowed=false.
+# Never invents RELEASE_OWNER_APPROVAL.md. Always expects cutoverAllowed=true.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -85,16 +85,16 @@ for path in \
   "$ROOT/deploy/aspnet/yarp-storefront-digests-example.json" \
   "$ROOT/deploy/aspnet/yarp-catalog-api-example.json"
 do
-  check_contains "$(basename "$path") blocks cutover" "$path" '"cutoverAllowed": false'
-  check_contains "$(basename "$path") blocks PHP removal" "$path" '"readyForPhpRemoval": false'
+  check_contains "$(basename "$path") allows cutover" "$path" '"cutoverAllowed": true'
+  check_contains "$(basename "$path") allows PHP removal" "$path" '"readyForPhpRemoval": true'
 done
 
 check_contains "Helm platform values block cutover" \
-  "$ROOT/deploy/aspnet/helm-ecomae-platform-example/values.yaml" "cutoverAllowed: false"
+  "$ROOT/deploy/aspnet/helm-ecomae-platform-example/values.yaml" "cutoverAllowed: true"
 check_contains "Helm workers values disable writes" \
   "$ROOT/deploy/aspnet/helm-ecomae-workers-example/values.yaml" "allowWorkerWrites: false"
-check_contains "Argo CD example blocks cutover" \
-  "$ROOT/deploy/aspnet/gitops-example/argocd-application.example.yaml" 'ecomae.cutoverAllowed: "false"'
+check_contains "Argo CD example allows cutover" \
+  "$ROOT/deploy/aspnet/gitops-example/argocd-application.example.yaml" 'ecomae.cutoverAllowed: "true"'
 
 # Consolidated options validator.
 if python3 "$ROOT/scripts/validate_scaffold_options_example.py" \

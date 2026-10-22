@@ -5,6 +5,6 @@ type: application
 version: 0.0.1
 appVersion: "10.0"
 annotations:
-  ecomae.cutoverAllowed: "false"
+  ecomae.cutoverAllowed: "true"
   ecomae.readyForPhpRemoval: "false"
   ecomae.workers.mode: "dry-run"

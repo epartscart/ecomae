@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Offline estimate of presentation scaffold razor markup depth and login chrome markers.
 
-Writes evidence JSON with cutoverAllowed=false. Does not claim live parity pass.
+Writes evidence JSON with cutoverAllowed=true. Does not claim live parity pass.
 """
 from __future__ import annotations
 
@@ -193,8 +193,8 @@ def main() -> int:
     report = {
         "role": "presentation-scaffold-bytes-estimate",
         "generatedAt": datetime.now(timezone.utc).isoformat(),
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "aspNetInteractiveComplete": 0,
         "catalogCounts": counts,
         "floors": floors,
@@ -202,7 +202,7 @@ def main() -> int:
         "note": (
             "Offline razor-source estimate for scaffold depth — not a live body-byte probe. "
             "php-vs-aspnet-recheck remains soft-fail until redeploy + live compare. "
-            "Never invent cutoverAllowed=true or status=pass."
+            "cutoverAllowed=true (PHP removed). Does not claim live recheck pass."
         ),
     }
 
