@@ -260,19 +260,29 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         foreach (var (journalId, refs) in appliedJournalLineRefs)
         {
             var stale = new List<string>();
+            var otherFeedKeyed = false;
             await using (var readCmd = connection.CreateCommand())
             {
                 readCmd.Transaction = transaction;
-                readCmd.CommandText = "SELECT `line_ref` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_entity` = ? AND `line_ref` <> ''";
-                var p1 = readCmd.CreateParameter(); p1.Value = journalId; readCmd.Parameters.Add(p1);
-                var p2 = readCmd.CreateParameter(); p2.Value = Clip(entity, 64); readCmd.Parameters.Add(p2);
+                readCmd.CommandText =
+                    "SELECT `line_ref`, `ext_entity` FROM `epc_erp_gl_lines` " +
+                    "WHERE `journal_id` = @a AND `line_ref` <> ''";
+                var p1 = readCmd.CreateParameter(); p1.ParameterName = "@a"; p1.Value = journalId; readCmd.Parameters.Add(p1);
                 await using var reader = await readCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     var existing = reader.GetString(0);
-                    if (!refs.Contains(existing))
+                    var feed = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+                    if (feed.Equals(entity, StringComparison.OrdinalIgnoreCase))
                     {
-                        stale.Add(existing);
+                        if (!refs.Contains(existing))
+                        {
+                            stale.Add(existing);
+                        }
+                    }
+                    else
+                    {
+                        otherFeedKeyed = true;
                     }
                 }
             }
@@ -285,9 +295,15 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                     ErpDb.Positional($"DELETE FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_entity` = ? AND `line_ref` IN ({marks})"),
                     cancellationToken, args.ToArray()).ConfigureAwait(false);
             }
-            await ErpDb.ExecuteAsync(connection, transaction,
-                ErpDb.Positional("DELETE FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_entity` = '' AND `line_ref` = ''"),
-                cancellationToken, journalId).ConfigureAwait(false);
+            // Blank-ref leftovers belong to SOME feed but can't be attributed — only clear them
+            // when this journal is used by a single feed, so a shared journal doesn't lose the
+            // other feed's unclaimed rows.
+            if (!otherFeedKeyed)
+            {
+                await ErpDb.ExecuteAsync(connection, transaction,
+                    ErpDb.Positional("DELETE FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_entity` = '' AND `line_ref` = ''"),
+                    cancellationToken, journalId).ConfigureAwait(false);
+            }
         }
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
