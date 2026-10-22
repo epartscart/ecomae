@@ -302,7 +302,7 @@
 			<div class="epc-own-brand-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">
 				@foreach (var row in _ownBrand)
 				{
-					<a href="@(_brandsHref + (_brandsHref.Contains('?') ? "&" : "?") + "brand=" + Uri.EscapeDataString(row.Brand))" style="display:block;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;text-decoration:none;transition:border-color .15s,box-shadow .15s;">
+					<a href="@(StorefrontSurfaceLinks.PartSearch + "?brend=" + Uri.EscapeDataString(row.Brand))" style="display:block;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;text-decoration:none;transition:border-color .15s,box-shadow .15s;">
 						<strong style="display:block;color:#172536;font-size:14px;">@row.Brand</strong>
 						<small style="color:#64748b;font-size:12px;">@row.Count.ToString("N0") items</small>
 					</a>
