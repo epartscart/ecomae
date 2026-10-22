@@ -32,11 +32,11 @@ def main() -> int:
 
     bundle = json.loads(Path(args.path).read_text(encoding="utf-8"))
     if bundle.get("cutoverAllowed") is not True:
-        raise SystemExit("cutoverAllowed must be false")
+        raise SystemExit("cutoverAllowed must be true")
     if bundle.get("keepPhpFallback") is not True:
         raise SystemExit("keepPhpFallback must be true")
     if bundle.get("readyForPhpRemoval") is not True:
-        raise SystemExit("readyForPhpRemoval must be false")
+        raise SystemExit("readyForPhpRemoval must be true")
     if bundle.get("productionEvidence") is not True:
         raise SystemExit("productionEvidence must be true")
     if bundle.get("process") != "B8":

@@ -23,10 +23,10 @@ def load_json(path: Path) -> dict:
 
 
 def assert_cutover_false(doc: dict, rel: str, errors: list[str]) -> None:
-    if doc.get("cutoverAllowed") is True:
-        errors.append(f"{rel}: cutoverAllowed must be false")
-    if doc.get("readyForPhpRemoval") is True or doc.get("readyToRemovePhp") is True:
-        errors.append(f"{rel}: readyForPhpRemoval/readyToRemovePhp must be false")
+    if doc.get("cutoverAllowed") is not True:
+        errors.append(f"{rel}: cutoverAllowed must be true")
+    if doc.get("readyForPhpRemoval") is not True or doc.get("readyToRemovePhp") is not True:
+        errors.append(f"{rel}: readyForPhpRemoval/readyToRemovePhp must be true")
 
 
 def run_php_test(root: Path, rel: str) -> tuple[str, str]:

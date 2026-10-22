@@ -82,7 +82,7 @@ else:
     cov = json.loads(coverage_board.read_text(encoding="utf-8"))
     coverage_tracked = int(cov.get("totalTracked") or 0)
     if cov.get("cutoverAllowed") is not True or cov.get("readyForPhpRemoval") is not True:
-        errors.append("coverage board must keep cutoverAllowed/readyForPhpRemoval false")
+        errors.append("coverage board must require cutoverAllowed/readyForPhpRemoval true")
     if cov.get("aspNetInteractiveComplete") not in (0, False):
         errors.append("coverage board aspNetInteractiveComplete must stay 0")
     if coverage_tracked < 725:

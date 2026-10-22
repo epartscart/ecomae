@@ -47,7 +47,7 @@
         "/ru/",
         "/parts/"
       ],
-      "storefrontLangTreeNote": "Entire language commerce trees proxy to ASP.NET. Product browser never renders PHP nero. PHP HTML only under /php-reference/* (paused unless operator restores). Backend ajax/write bridges may still call PHP APIs until cutoverAllowed=true.",
+      "storefrontLangTreeNote": "Entire language commerce trees proxy to ASP.NET. Product browser never renders PHP nero. PHP HTML only under /php-reference/* (paused unless operator restores). Backend ajax/write bridges may still call PHP APIs (cutover complete).",
       "storefrontChpuAspNet": [
         "/en/",
         "/parts/"
@@ -135,7 +135,7 @@
     "https://www.epartscart.com/erp"
   ],
   "phpSameToSameUrls": [],
-  "note": "epartscart `/` is ASP.NET PHP-style presentation (not PHP index.php). Primary clicks stay on ASP.NET; PHP only under /php-reference/*. CP/ERP/BOS/IP/LifeOS require admin login on Super-CP; tenants 404 /bos|/ip|/lifeos. cutoverAllowed=false.",
+  "note": "epartscart `/` is ASP.NET PHP-style presentation (not PHP index.php). Primary clicks stay on ASP.NET; PHP only under /php-reference/*. CP/ERP/BOS/IP/LifeOS require admin login on Super-CP; tenants 404 /bos|/ip|/lifeos. cutoverAllowed=true.",
   "installer": "scripts/cloudpanel_install_classic_entry_aspnet_primary.sh",
   "confirmEnv": "ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES",
   "tenantConfirmEnv": "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES",

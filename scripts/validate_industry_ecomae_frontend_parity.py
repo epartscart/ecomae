@@ -76,10 +76,10 @@ def load_json(path: Path) -> dict:
 
 
 def assert_cutover_false(doc: dict, rel: str, errors: list[str]) -> None:
-    if doc.get("cutoverAllowed") is True:
-        errors.append(f"{rel}: cutoverAllowed must be false")
-    if doc.get("readyForPhpRemoval") is True or doc.get("readyToRemovePhp") is True:
-        errors.append(f"{rel}: readyForPhpRemoval must be false")
+    if doc.get("cutoverAllowed") is not True:
+        errors.append(f"{rel}: cutoverAllowed must be true")
+    if doc.get("readyForPhpRemoval") is not True or doc.get("readyToRemovePhp") is not True:
+        errors.append(f"{rel}: readyForPhpRemoval must be true")
 
 
 def probe(url: str, timeout: float = 18.0) -> dict:

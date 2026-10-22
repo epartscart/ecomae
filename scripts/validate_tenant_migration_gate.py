@@ -38,9 +38,9 @@ def main() -> int:
 
     document = json.loads(Path(args.path).read_text(encoding="utf-8"))
     if document.get("cutoverAllowed") is not True:
-        raise SystemExit("cutoverAllowed must be false")
+        raise SystemExit("cutoverAllowed must be true")
     if document.get("readyForPhpRemoval") is not True:
-        raise SystemExit("readyForPhpRemoval must be false")
+        raise SystemExit("readyForPhpRemoval must be true")
 
     promotion = document.get("promotionRule", {})
     if set(promotion.get("requiredForEachTenant", [])) != REQUIRED_GATES:

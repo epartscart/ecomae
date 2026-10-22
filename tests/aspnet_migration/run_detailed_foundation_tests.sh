@@ -35,10 +35,10 @@ run_optional() {
 printf '== ASP.NET Core migration detailed foundation verification ==\n'
 
 run_required 'foundation wiring checks' "$ROOT/tests/aspnet_migration/run_foundation_checks.sh"
-run_required 'PHP surface route alias regression checks' php "$ROOT/tests/erp_advanced/run_surface_route_alias_tests.php"
 
-printf '\n== PHP syntax checks for migration-touched entry points ==\n'
+printf '\n== Zero-PHP assertions for removed entry points ==\n'
 PHP_FILES=(
+    "$ROOT/tests/erp_advanced/run_surface_route_alias_tests.php"
     "$ROOT/content/general_pages/epc_portal_route_aliases.php"
     "$ROOT/index.php"
     "$ROOT/cp/content/shop/finance/erp/erp_dashboard.php"
@@ -48,15 +48,10 @@ PHP_FILES=(
     "$ROOT/epc-regenerate-issues-report.php"
 )
 for file in "${PHP_FILES[@]}"; do
-    if [[ ! -f "$file" ]]; then
-        fail "missing PHP file: ${file#$ROOT/}"
-        continue
-    fi
-
-    if php -l "$file" >/dev/null; then
-        pass "php -l ${file#$ROOT/}"
+    if [[ -f "$file" ]]; then
+        fail "PHP file still present: ${file#$ROOT/}"
     else
-        fail "php -l ${file#$ROOT/}"
+        pass "PHP file removed: ${file#$ROOT/}"
     fi
 done
 

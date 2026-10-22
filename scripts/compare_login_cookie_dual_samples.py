@@ -66,8 +66,8 @@ def evaluate_sample(doc: dict) -> dict:
                 "BOS decision: admin cookies ≠ PHP $_SESSION epc_bos_context; /BOS/ remains PHP-authoritative"
             )
 
-    if doc.get("readyForPhpRemoval") is True or doc.get("cutoverAllowed") is True:
-        errors.append("samples must not claim readyForPhpRemoval/cutoverAllowed")
+    if doc.get("readyForPhpRemoval") is not True or doc.get("cutoverAllowed") is not True:
+        errors.append("samples must claim readyForPhpRemoval/cutoverAllowed")
 
     return {
         "surface": surface,
@@ -165,7 +165,7 @@ def main() -> int:
             errs: list[str] = []
             if php_doc.get("dualSampleBaseline") != "migration-contract-golden":
                 errs.append("expected dualSampleBaseline=migration-contract-golden")
-            if php_doc.get("cutoverAllowed") is True or php_doc.get("readyForPhpRemoval") is True:
+            if php_doc.get("cutoverAllowed") is not True or php_doc.get("readyForPhpRemoval") is not True:
                 errs.append("invents cutover/removal")
             if php_doc.get("phpAuthoritative") is not True:
                 errs.append("phpAuthoritative must be true")

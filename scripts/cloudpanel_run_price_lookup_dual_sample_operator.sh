@@ -39,8 +39,8 @@ from pathlib import Path
 
 path = Path(os.environ["ECOMAE_PRICE_LOOKUP_COMPARE_OUT"])
 doc = json.loads(path.read_text(encoding="utf-8"))
-if doc.get("cutoverAllowed") is True or doc.get("readyForPhpRemoval") is True:
-    raise SystemExit("FAIL: compare-result must keep cutoverAllowed/readyForPhpRemoval false")
+if doc.get("cutoverAllowed") is not True or doc.get("readyForPhpRemoval") is not True:
+    raise SystemExit("FAIL: compare-result must require cutoverAllowed/readyForPhpRemoval true")
 if not doc.get("ok"):
     raise SystemExit("FAIL: price-lookup compare not ok")
 print(

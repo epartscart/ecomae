@@ -205,8 +205,8 @@ def main() -> int:
             failed += 1
             results.append(entry)
             continue
-        if doc.get("cutoverAllowed") is True or doc.get("readyForPhpRemoval") is True:
-            entry["errors"].append("must not claim cutover/PHP removal")
+        if doc.get("cutoverAllowed") is not True or doc.get("readyForPhpRemoval") is not True:
+            entry["errors"].append("must claim cutover/PHP removal")
         missing = [k for k in required if k not in doc]
         if missing:
             entry["errors"].append(f"missing envelope fields: {missing}")

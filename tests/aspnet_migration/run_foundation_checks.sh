@@ -188,7 +188,7 @@ check 'live smoke checks CloudPanel dashboard path' contains "$ROOT/tests/live_s
 check 'live smoke reports proxy tunnel failures' contains "$ROOT/tests/live_smoke/run_ecomae_surface_smoke.sh" 'blocked by outbound proxy CONNECT tunnel'
 check 'live smoke requires opt-in' contains "$ROOT/tests/live_smoke/run_ecomae_surface_smoke.sh" 'RUN_LIVE_ECOMAE_SMOKE=1'
 check 'detailed foundation test runner exists' test -x "$ROOT/tests/aspnet_migration/run_detailed_foundation_tests.sh"
-check 'detailed foundation test runner includes PHP lint' contains "$ROOT/tests/aspnet_migration/run_detailed_foundation_tests.sh" 'php -l'
+check 'detailed foundation test runner asserts zero PHP files' contains "$ROOT/tests/aspnet_migration/run_detailed_foundation_tests.sh" 'PHP file still present'
 check 'detailed foundation test runner handles missing dotnet' contains "$ROOT/tests/aspnet_migration/run_detailed_foundation_tests.sh" 'dotnet SDK is not installed'
 check 'live smoke checks super BOS trailing slash' contains "$ROOT/tests/live_smoke/run_ecomae_surface_smoke.sh" 'Super BOS trailing slash'
 check 'consolidated PR script exists' test -x "$ROOT/scripts/prepare_consolidated_aspnet_pr.sh"

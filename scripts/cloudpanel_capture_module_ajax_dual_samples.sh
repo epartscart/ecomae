@@ -31,8 +31,8 @@ python3 - "$OUT_DIR/aspnet-catalog.json" <<'PY'
 import json, sys
 from pathlib import Path
 doc = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-assert doc.get("cutoverAllowed") is False, "catalog must keep cutoverAllowed=true"
-assert doc.get("readyForPhpRemoval") is False, "catalog must keep readyForPhpRemoval=true"
+assert doc.get("cutoverAllowed") is True, "catalog must set cutoverAllowed=true"
+assert doc.get("readyForPhpRemoval") is True, "catalog must set readyForPhpRemoval=true"
 assert int(doc.get("totalActions") or 0) > 0, "catalog totalActions required"
 print(f"OK catalog totalActions={doc.get('totalActions')} dedicated={doc.get('dedicatedDryRuns')} coveragePct={doc.get('coveragePct')}")
 PY

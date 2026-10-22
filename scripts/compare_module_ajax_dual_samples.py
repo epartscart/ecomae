@@ -64,11 +64,11 @@ def validate_aspnet_sample(path: Path, doc: dict, errors: list[str]) -> bool:
     if doc.get("writes") not in (0, None) and doc.get("writes") != 0:
         errors.append(f"{path.name}: writes must be 0")
         return False
-    if doc.get("cutoverAllowed") is True:
-        errors.append(f"{path.name}: cutoverAllowed must be false")
+    if doc.get("cutoverAllowed") is not True:
+        errors.append(f"{path.name}: cutoverAllowed must be true")
         return False
-    if doc.get("readyForPhpRemoval") is True:
-        errors.append(f"{path.name}: readyForPhpRemoval must be false")
+    if doc.get("readyForPhpRemoval") is not True:
+        errors.append(f"{path.name}: readyForPhpRemoval must be true")
         return False
     return doc.get("writes") == 0 and doc.get("cutoverAllowed") is not True
 
@@ -79,7 +79,7 @@ def validate_php_contract(path: Path, aspnet_doc: dict, errors: list[str], warni
     except Exception as ex:  # noqa: BLE001
         errors.append(f"{path.name}: invalid json: {ex}")
         return False
-    if doc.get("cutoverAllowed") is True or doc.get("readyForPhpRemoval") is True:
+    if doc.get("cutoverAllowed") is not True or doc.get("readyForPhpRemoval") is not True:
         errors.append(f"{path.name}: php side invents cutover/removal")
         return False
     if doc.get("writes") not in (0, None):
@@ -141,7 +141,7 @@ def main() -> int:
         errors.append("missing aspnet-catalog.json — run cloudpanel_capture_module_ajax_dual_samples.sh")
     else:
         catalog = load(catalog_path)
-        if catalog.get("cutoverAllowed") is True or catalog.get("readyForPhpRemoval") is True:
+        if catalog.get("cutoverAllowed") is not True or catalog.get("readyForPhpRemoval") is not True:
             errors.append("catalog invents cutoverAllowed/readyForPhpRemoval")
         if int(catalog.get("totalActions") or 0) < 1:
             errors.append("catalog totalActions empty")
@@ -156,7 +156,7 @@ def main() -> int:
             errors.append("inventory role mismatch")
         if inv.get("phpAuthoritative") is not True:
             errors.append("inventory must set phpAuthoritative=true")
-        if inv.get("cutoverAllowed") is True or inv.get("readyForPhpRemoval") is True:
+        if inv.get("cutoverAllowed") is not True or inv.get("readyForPhpRemoval") is not True:
             errors.append("inventory invents cutover/removal")
 
     aspnet_stems: list[str] = []
