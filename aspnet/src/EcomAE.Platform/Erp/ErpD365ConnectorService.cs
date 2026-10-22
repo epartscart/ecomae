@@ -72,6 +72,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             ["VendorInvoiceLines"] = "Purchase invoice lines",
             ["LedgerJournalHeaders"] = "Journal headers (RV / PV / general)",
             ["LedgerJournalLines"] = "Journal lines",
+            ["GeneralJournalAccountEntries"] = "Posted GL transactions (trial balance source)",
             ["MainAccounts"] = "Chart of accounts (main accounts)",
             ["LegalEntities"] = "Legal entities / data areas",
         };

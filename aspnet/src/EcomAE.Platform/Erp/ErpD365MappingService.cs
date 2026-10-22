@@ -17,11 +17,20 @@ public interface IErpD365MappingService
     /// <summary>Entities that have a staged → master mapping.</summary>
     IReadOnlyDictionary<string, string> MappedEntities { get; }
     Task<ErpD365ApplyResult> ApplyAsync(DbConnection connection, string entity, long adminId, CancellationToken cancellationToken = default);
+
+    /// <summary>Live trial-balance compare: our GL balances per account vs balances aggregated from staged D365 posted transactions (GeneralJournalAccountEntries), keyed by dimension string for the dimension-set pivot.</summary>
+    Task<IReadOnlyList<ErpD365TbCompareRow>> TrialBalanceCompareAsync(DbConnection connection, CancellationToken cancellationToken = default);
+}
+
+public sealed record ErpD365TbCompareRow(string AccountCode, string AccountName, string Dimension, decimal EcomAeBalance, decimal D365Balance)
+{
+    public decimal Difference => EcomAeBalance - D365Balance;
+    public bool Matches => Math.Abs(Difference) < 0.005m;
 }
 
 public sealed record ErpD365ApplyResult(bool Succeeded, string Code, string Message, int Mapped, int Skipped);
 
-public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle) : IErpD365MappingService
+public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErpD365GlService glService) : IErpD365MappingService
 {
     public IReadOnlyDictionary<string, string> MappedEntities { get; } =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -148,6 +157,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle) : IE
         await ErpSalesWorkspaceSpecs.EnsureSalesAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpPurchasingWorkspaceSpecs.EnsurePurchasingAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpGlChartOfAccountsSeeder.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+        await glService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
         var staged = new List<(string Key, string Payload)>();
         await using (var command = connection.CreateCommand())
@@ -220,6 +230,75 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle) : IE
 
         var label = MappedEntities[entity];
         return new ErpD365ApplyResult(true, "ok", $"Applied {mapped} row(s) into {label}.", mapped, skipped);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<ErpD365TbCompareRow>> TrialBalanceCompareAsync(DbConnection connection, CancellationToken cancellationToken = default)
+    {
+        // EcomAE side: posted GL lines per account + dimension string.
+        var ours = new Dictionary<string, (string Name, decimal Balance)>(StringComparer.OrdinalIgnoreCase);
+        var oursSql =
+            "SELECT a.`code`, a.`name`, IFNULL(l.`dimension_string`,''), IFNULL(SUM(l.`debit`),0)-IFNULL(SUM(l.`credit`),0) " +
+            "FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.`id` = l.`coa_id` " +
+            "GROUP BY a.`code`, a.`name`, IFNULL(l.`dimension_string`,'')";
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = oursSql;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var key = reader.GetString(0) + "\u001f" + reader.GetString(2);
+                ours[key] = (reader.GetString(1), reader.GetDecimal(3));
+            }
+        }
+        catch
+        {
+            // GL not initialized yet — our side is simply zero.
+        }
+
+        // D365 side: staged posted entries (GeneralJournalAccountEntries) aggregated per account+dimension.
+        var theirs = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = "SELECT payload FROM epc_d365_sync_objects WHERE entity = 'GeneralJournalAccountEntries'";
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                JsonDocument doc;
+                try { doc = JsonDocument.Parse(reader.GetString(0)); }
+                catch (JsonException) { continue; }
+                using (doc)
+                {
+                    var account = Str(doc.RootElement, "MainAccountId", "MainAccount", "LedgerDimension", "AccountDisplayValue");
+                    if (account.Length == 0) continue;
+                    var code = account.Split('-', '|')[0].Trim();
+                    var dimension = account.Contains('-') || account.Contains('|') ? account : string.Empty;
+                    var debit = Dec(doc.RootElement, "AccountingCurrencyAmountDebit", "AmountCurDebit", "DebitAmount", "Debit");
+                    var credit = Dec(doc.RootElement, "AccountingCurrencyAmountCredit", "AmountCurCredit", "CreditAmount", "Credit");
+                    if (debit == 0m && credit == 0m)
+                    {
+                        var amount = Dec(doc.RootElement, "AccountingCurrencyAmount", "Amount");
+                        if (amount >= 0) { debit = amount; } else { credit = -amount; }
+                    }
+                    var key = code + "\u001f" + dimension;
+                    theirs[key] = theirs.TryGetValue(key, out var v) ? v + debit - credit : debit - credit;
+                }
+            }
+        }
+
+        var names = ours.ToDictionary(k => k.Key.Split('\u001f')[0], v => v.Value.Name, StringComparer.OrdinalIgnoreCase);
+        var rows = new List<ErpD365TbCompareRow>();
+        foreach (var key in ours.Keys.Union(theirs.Keys, StringComparer.OrdinalIgnoreCase).OrderBy(k => k, StringComparer.OrdinalIgnoreCase))
+        {
+            var parts = key.Split('\u001f');
+            var code = parts[0];
+            var dim = parts.Length > 1 ? parts[1] : string.Empty;
+            var ourRow = ours.TryGetValue(key, out var o) ? o : (Name: names.TryGetValue(code, out var n) ? n : code, Balance: 0m);
+            var theirBalance = theirs.TryGetValue(key, out var t) ? t : 0m;
+            rows.Add(new ErpD365TbCompareRow(code, ourRow.Name, dim, ourRow.Balance, theirBalance));
+        }
+        return rows;
     }
 
     /// <summary>Stores every F&O payload field for a staged row in epc_d365_object_fields (one row per field) so the module screens can display the complete field set, not just the mapped columns.</summary>
@@ -824,15 +903,37 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle) : IE
         var voucher = Str(row, "VoucherNumber", "Voucher");
         if (note.Length == 0) note = voucher;
 
-        var lineNo = (int)Dec(row, "LineNumber", "LineNum");
+        var dimensionString = Str(row, "LedgerDimension", "AccountDisplayValue", "DimensionDisplayValue", "DefaultDimensionDisplayValue");
+        var hasDimString = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_string", ct).ConfigureAwait(false);
+        var hasVoucher = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "voucher", ct).ConfigureAwait(false);
+
         var existing = await ErpDb.LongAsync(connection, tx,
             ErpDb.Positional("SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `coa_id` = ? AND `debit` = ? AND `credit` = ? AND IFNULL(`line_note`,'') = ? LIMIT 1"),
             ct, journalId, coaId, debit, credit, Clip(note, 255)).ConfigureAwait(false);
         if (existing <= 0)
         {
+            var cols = new List<string> { "`journal_id`", "`coa_id`", "`debit`", "`credit`", "`line_note`" };
+            var marks = new List<string> { "?", "?", "?", "?", "?" };
+            var vals = new List<object?> { journalId, coaId, debit, credit, Clip(note, 255) };
+            if (hasDimString) { cols.Add("`dimension_string`"); marks.Add("?"); vals.Add(Clip(dimensionString, 255)); }
+            if (hasVoucher) { cols.Add("`voucher`"); marks.Add("?"); vals.Add(Clip(voucher, 255)); }
             await ErpDb.ExecuteAsync(connection, tx,
-                ErpDb.Positional("INSERT INTO `epc_erp_gl_lines` (`journal_id`, `coa_id`, `debit`, `credit`, `line_note`) VALUES (?, ?, ?, ?, ?)"),
-                ct, journalId, coaId, debit, credit, Clip(note, 255)).ConfigureAwait(false);
+                ErpDb.Positional("INSERT INTO `epc_erp_gl_lines` (" + string.Join(", ", cols) + ") VALUES (" + string.Join(", ", marks) + ")"),
+                ct, vals.ToArray()).ConfigureAwait(false);
+        }
+        else if (hasDimString || hasVoucher)
+        {
+            var sets = new List<string>();
+            var vals = new List<object?>();
+            if (hasDimString && dimensionString.Length > 0) { sets.Add("`dimension_string` = ?"); vals.Add(Clip(dimensionString, 255)); }
+            if (hasVoucher && voucher.Length > 0) { sets.Add("`voucher` = ?"); vals.Add(Clip(voucher, 255)); }
+            if (sets.Count > 0)
+            {
+                vals.Add(existing);
+                await ErpDb.ExecuteAsync(connection, tx,
+                    ErpDb.Positional("UPDATE `epc_erp_gl_lines` SET " + string.Join(", ", sets) + " WHERE `id` = ?"),
+                    ct, vals.ToArray()).ConfigureAwait(false);
+            }
         }
         return true;
     }
