@@ -102,6 +102,7 @@ function epc_ecomae_platform_head_html($title, $canonicalPath = '/', $descriptio
 		. '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />'
 		. '<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap" rel="stylesheet" />'
 		. '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />'
+		. '<link rel="icon" type="image/png" href="/content/general_pages/epc_ecomae_logo_svg.php" />'
 		. epc_ecomae_platform_styles()
 		. '</head><body class="epm-body">';
 }
