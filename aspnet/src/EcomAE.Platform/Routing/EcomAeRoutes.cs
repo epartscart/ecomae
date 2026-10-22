@@ -3049,6 +3049,10 @@ public static class EcomAeRoutes
     public const string ErpD365FieldsSave = "/erp/d365/fields-save";
     /// <summary>D365 bulk: CSV template download for an opening-data area.</summary>
     public const string ErpD365CsvTemplate = "/erp/d365/csv-template";
+    /// <summary>D365 live connector: test the Entra/OData connection (admin only).</summary>
+    public const string ErpD365ConnectTest = "/erp/d365/connect-test";
+    /// <summary>D365 live connector: pull one F&O data entity into staging.</summary>
+    public const string ErpD365ConnectPull = "/erp/d365/connect-pull";
     /// <summary>D365 bulk: CSV upload → validate → commit for an opening-data area.</summary>
     public const string ErpD365CsvImport = "/erp/d365/csv-import";
     /// <summary>D365 bulk: CSV export of a grid/report area.</summary>

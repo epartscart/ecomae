@@ -408,6 +408,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpD365DeliveryPdf, HandleD365DeliveryPdfAsync);
         endpoints.MapGet(EcomAeRoutes.ErpD365CsvTemplate, HandleD365CsvTemplateAsync);
         endpoints.MapPost(EcomAeRoutes.ErpD365CsvImport, HandleD365CsvImportAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365ConnectTest, HandleD365ConnectTestAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365ConnectPull, HandleD365ConnectPullAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpD365CsvExport, HandleD365CsvExportAsync);
         endpoints.MapPost(EcomAeRoutes.ErpD365QuoteStatus, HandleD365QuoteStatusAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpD365QuotePdf, HandleD365QuotePdfAsync);
@@ -27363,6 +27365,66 @@ public sealed class ErpModule : ISurfaceModule
         await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         var res = await d365.SaveEntityDocProfileAsync(conn, entityId, profile, session.UserId, cancellationToken).ConfigureAwait(false);
         return LiveWriteFormBinder.Complete(context, "/erp/documents-app", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 live connector: probe Entra token + OData reachability (admin; read-only outside).</summary>
+    private static async Task<IResult> HandleD365ConnectTestAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        EcomAE.Platform.Erp.IErpD365ConnectorService d365connect,
+                EcomAE.Platform.Cp.ICpCsrfGuard csrf,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-sync", "Admin ERP capability required to test the D365 connection.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
+        }
+
+        var res = await d365connect.TestConnectionAsync(cancellationToken).ConfigureAwait(false);
+        return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = 0, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 live connector: pull an F&O OData data entity into epc_d365_sync_objects staging.</summary>
+    private static async Task<IResult> HandleD365ConnectPullAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        EcomAE.Platform.Erp.IErpD365ConnectorService d365connect,
+                EcomAE.Platform.Cp.ICpCsrfGuard csrf,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-sync", "Admin ERP capability required to pull D365 data.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to pull a D365 entity into staging. Fields: entity (ReleasedProductsV2|CustomersV3|VendorsV2|SalesOrderHeadersV2|PurchaseOrderHeadersV2|SalesInvoiceHeadersV2|MainAccounts|LegalEntities), top (1-5000).", session = SessionPayload(session) });
+        }
+
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
+        }
+
+        var entity = AmlText(fields, "entity");
+        var top = (int)AmlLong(fields, "top");
+        if (top <= 0) top = 500;
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var res = await d365connect.PullEntityAsync(conn, entity, top, session.UserId, cancellationToken).ConfigureAwait(false);
+        return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Staged, fetched = res.Fetched, staged = res.Staged, run_id = res.RunId, message = res.Message, session = SessionPayload(session) });
     }
 
     /// <summary>D365 doc-cycle: save D365 fields on an existing so|po|dn|customer|vendor|product row.</summary>
