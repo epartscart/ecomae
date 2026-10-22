@@ -4390,18 +4390,20 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     public async Task<StorefrontBrandArticlesResult> ListStorefrontBrandArticlesAsync(
         string manufacturer,
         int limit,
+        int offset,
         CancellationToken cancellationToken = default)
     {
-        var safeLimit = Math.Clamp(limit, 1, 2000);
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var safeOffset = Math.Max(0, offset);
         var brand = (manufacturer ?? string.Empty).Trim().ToUpperInvariant();
         if (brand.Length == 0)
         {
-            return new(string.Empty, [], 0, "empty", "Manufacturer required.");
+            return new(string.Empty, [], 0, 0, "empty", "Manufacturer required.");
         }
 
         if (!_connections.IsConfigured)
         {
-            return new(brand, [], 0, "migration", "TenantRegistry DB is not configured.");
+            return new(brand, [], 0, 0, "migration", "TenantRegistry DB is not configured.");
         }
 
         try
@@ -4412,6 +4414,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             AddParameter(command, "@brand", brand);
             AddParameter(command, "@brandCompact", brand.Replace(" ", "", StringComparison.Ordinal).Replace("-", "", StringComparison.Ordinal).Replace(".", "", StringComparison.Ordinal));
             AddParameter(command, "@limit", safeLimit);
+            AddParameter(command, "@offset", safeOffset);
             var rows = new List<StorefrontBrandArticleDigest>();
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -4424,11 +4427,22 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     reader["min_price"] is DBNull ? null : Convert.ToDecimal(reader["min_price"], CultureInfo.InvariantCulture)));
             }
 
-            return new(brand, rows, rows.Count, "database", rows.Count == 0 ? "No articles for this manufacturer." : string.Empty);
+            var total = rows.Count + safeOffset;
+            if (rows.Count == safeLimit)
+            {
+                await using var countCmd = connection.CreateCommand();
+                countCmd.CommandText = LegacySurfaceDashboardSql.CountStorefrontBrandArticles;
+                AddParameter(countCmd, "@brand", brand);
+                AddParameter(countCmd, "@brandCompact", brand.Replace(" ", "", StringComparison.Ordinal).Replace("-", "", StringComparison.Ordinal).Replace(".", "", StringComparison.Ordinal));
+                var totalObj = await countCmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                total = totalObj is DBNull or null ? total : Convert.ToInt32(totalObj, CultureInfo.InvariantCulture);
+            }
+
+            return new(brand, rows, total, rows.Count, "database", rows.Count == 0 ? "No articles for this manufacturer." : string.Empty);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return new(brand, [], 0, "database-error", ex.Message);
+            return new(brand, [], 0, 0, "database-error", "Manufacturer catalogue is temporarily unavailable.");
         }
     }
 

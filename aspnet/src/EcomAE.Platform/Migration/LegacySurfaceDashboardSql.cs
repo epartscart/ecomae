@@ -4213,8 +4213,22 @@ public static class LegacySurfaceDashboardSql
           AND (UPPER(TRIM(d.`manufacturer`)) = @brand
                OR REPLACE(REPLACE(REPLACE(UPPER(TRIM(d.`manufacturer`)), ' ', ''), '-', ''), '.', '') = @brandCompact)
         GROUP BY UPPER(TRIM(d.`article`))
+        HAVING SUM(IFNULL(d.`exist`, 0)) > 0
         ORDER BY article ASC
-        LIMIT @limit
+        LIMIT @offset, @limit
+        """;
+
+    /// <summary>Total distinct articles a manufacturer offers (brand browse pager).</summary>
+    public const string CountStorefrontBrandArticles = """
+        SELECT COUNT(*) FROM (
+            SELECT 1
+            FROM `shop_docpart_prices_data` d
+            WHERE TRIM(IFNULL(d.`article`, '')) <> ''
+              AND (UPPER(TRIM(d.`manufacturer`)) = @brand
+                   OR REPLACE(REPLACE(REPLACE(UPPER(TRIM(d.`manufacturer`)), ' ', ''), '-', ''), '.', '') = @brandCompact)
+            GROUP BY UPPER(TRIM(d.`article`))
+            HAVING SUM(IFNULL(d.`exist`, 0)) > 0
+        ) t
         """;
 
     /// <summary>Cross-reference partners for normalized article (PHP <c>docpart_load_interchange_partners</c>).</summary>

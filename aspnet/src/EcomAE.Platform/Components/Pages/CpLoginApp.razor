@@ -38,6 +38,8 @@
         align-items: center;
         gap: .4rem;
     }
+
+    .bos-login__brand-logo { max-height:88px; max-width:240px; display:block; margin:0 auto .6rem; filter:drop-shadow(0 6px 18px rgba(0,0,0,.45)); }
 </style>
 </HeadContent>
 <style>
@@ -78,6 +80,12 @@
                 @if (_brand.LogoKind != LoginHostBrand.Kind.Platform)
                 {
                     <PhpLoginHostBrand Brand="@_brand" />
+                    <h1 class="bos-login__brand-title">@_content.HeroTitle</h1>
+                    <p class="bos-login__brand-tagline">@_content.HeroTagline</p>
+                }
+                else if (!string.IsNullOrWhiteSpace(_brand.LogoUrl))
+                {
+                    <img class="bos-login__brand-logo" src="@_brand.LogoUrl" alt="@_brand.Label" />
                     <h1 class="bos-login__brand-title">@_content.HeroTitle</h1>
                     <p class="bos-login__brand-tagline">@_content.HeroTagline</p>
                 }
@@ -208,6 +216,8 @@
                     <a href="/erp/login">ERP</a>
                     <span class="bos-login__footer-sep">&middot;</span>
                     <a href="/">Browse without login</a>
+                    <span class="bos-login__footer-sep">&middot;</span>
+                    <span class="bos-login__footer-credit">@ErpAppAssets.Attribution</span>
                 </div>
             </div>
         </div>

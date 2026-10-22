@@ -1,3 +1,4 @@
+using EcomAE.Platform.Erp;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Services;
 
@@ -232,7 +233,7 @@ public static class LoginHostBrand
             "platform",
             "ECOM AE",
             "Enterprise Resource Planning",
-            null,
+            ErpAppAssets.PlatformLogoUrl,
             "#0d9488",
             "rgba(13,148,136,.28)",
             "teal-moon",
@@ -246,7 +247,7 @@ public static class LoginHostBrand
             "platform",
             "ECOM AE",
             "Business Operating System",
-            null,
+            ErpAppAssets.PlatformLogoUrl,
             "#0ea5e9",
             "rgba(14,165,233,.28)",
             "cyan-stars",
@@ -260,7 +261,7 @@ public static class LoginHostBrand
             "platform",
             "ECOM AE",
             "Control Panel · Operator Console",
-            null,
+            ErpAppAssets.PlatformLogoUrl,
             "#e11d48",
             "rgba(225,29,72,.28)",
             "crimson-stars",
