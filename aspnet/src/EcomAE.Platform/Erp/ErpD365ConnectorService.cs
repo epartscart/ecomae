@@ -93,7 +93,8 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         _clientId = FirstNonEmpty(configuration["D365:ClientId"], Environment.GetEnvironmentVariable("ECOMAE_D365_CLIENT_ID"));
         _clientSecret = FirstNonEmpty(configuration["D365:ClientSecret"], Environment.GetEnvironmentVariable("ECOMAE_D365_CLIENT_SECRET"));
         _username = FirstNonEmpty(configuration["D365:Username"], Environment.GetEnvironmentVariable("ECOMAE_D365_USERNAME"));
-        _password = FirstNonEmpty(configuration["D365:Password"], Environment.GetEnvironmentVariable("ECOMAE_D365_PASSWORD"));
+        // Passwords keep leading/trailing whitespace — FirstNonEmpty would silently corrupt them.
+        _password = FirstNonEmptyRaw(configuration["D365:Password"], Environment.GetEnvironmentVariable("ECOMAE_D365_PASSWORD"));
         _environmentUrl = NormalizeEnvUrl(
             FirstNonEmpty(configuration["D365:EnvironmentUrl"], Environment.GetEnvironmentVariable("ECOMAE_D365_ENVIRONMENT_URL")));
     }
@@ -104,11 +105,16 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
     /// <summary>True when either an Entra app registration (tenant+client+secret) or a service-account login (username+password) plus an environment URL is set.</summary>
     public bool IsConfigured =>
         !string.IsNullOrWhiteSpace(_environmentUrl)
-        && ((!string.IsNullOrWhiteSpace(_tenantId)
-                && !string.IsNullOrWhiteSpace(_clientId)
-                && !string.IsNullOrWhiteSpace(_clientSecret))
-            || (!string.IsNullOrWhiteSpace(_username)
-                && !string.IsNullOrWhiteSpace(_password)));
+        && (HasClientCredentials || HasServiceAccount);
+
+    private bool HasClientCredentials =>
+        !string.IsNullOrWhiteSpace(_tenantId)
+        && !string.IsNullOrWhiteSpace(_clientId)
+        && !string.IsNullOrWhiteSpace(_clientSecret);
+
+    private bool HasServiceAccount =>
+        !string.IsNullOrWhiteSpace(_username)
+        && !string.IsNullOrWhiteSpace(_password);
 
     public string? EnvironmentUrl => _environmentUrl;
 
@@ -350,30 +356,36 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         try
         {
             using var client = _http.CreateClient();
-            // Prefer the Entra app registration; fall back to a resource-owner password grant
-            // (username+password via the Azure CLI public client) when no app secret exists.
-            var fields = !string.IsNullOrWhiteSpace(_clientSecret)
+            // Prefer the Entra app registration only when the full tuple exists; otherwise use a
+            // resource-owner password grant. A configured confidential ClientId cannot do a public-client
+            // password grant, so the fallback always uses the well-known Azure CLI public client id.
+            var fields = HasClientCredentials
                 ? new Dictionary<string, string>
                 {
                     ["grant_type"] = "client_credentials",
                     ["client_id"] = _clientId!,
-                    ["client_secret"] = _clientSecret,
+                    ["client_secret"] = _clientSecret!,
                     ["scope"] = $"{_environmentUrl}/.default",
                 }
                 : new Dictionary<string, string>
                 {
                     ["grant_type"] = "password",
-                    ["client_id"] = string.IsNullOrWhiteSpace(_clientId) ? RopcClientId : _clientId!,
+                    ["client_id"] = RopcClientId,
                     ["username"] = _username!,
                     ["password"] = _password!,
                     ["scope"] = $"{_environmentUrl}/.default",
                 };
             using var form = new FormUrlEncodedContent(fields);
             var authority = string.IsNullOrWhiteSpace(_tenantId) ? "organizations" : _tenantId;
-            using var response = await client.PostAsync(
-                $"https://login.microsoftonline.com/{authority}{TokenPath}",
-                form,
-                cancellationToken).ConfigureAwait(false);
+            var tokenEndpoint = new Uri($"https://login.microsoftonline.com/{authority}{TokenPath}");
+            using var response = await client.PostAsync(tokenEndpoint, form, cancellationToken).ConfigureAwait(false);
+            // The default handler follows redirects: a cross-host redirect would forward the password-grant
+            // body to an attacker endpoint. If the final request went anywhere but the token endpoint, fail.
+            if (response.RequestMessage?.RequestUri is { } finalUri && finalUri != tokenEndpoint)
+            {
+                _logger.LogWarning("D365 token request redirected to {Uri} — refusing to trust it", finalUri);
+                return null;
+            }
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("D365 token request failed: {Status}", (int)response.StatusCode);
@@ -449,6 +461,10 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
 
     private static string? FirstNonEmpty(params string?[] values)
         => values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v))?.Trim();
+
+    /// <summary>Like <see cref="FirstNonEmpty"/> but preserves whitespace — for secrets where spaces are meaningful.</summary>
+    private static string? FirstNonEmptyRaw(params string?[] values)
+        => values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
 
     /// <summary>Environment must be an https URL on a *.dynamics.com host — anything else is rejected so the Entra bearer token can never be sent to an untrusted endpoint.</summary>
     private static string? NormalizeEnvUrl(string? url)
