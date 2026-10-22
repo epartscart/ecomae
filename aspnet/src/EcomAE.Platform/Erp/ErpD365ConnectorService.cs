@@ -73,6 +73,8 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
     private readonly string? _tenantId;
     private readonly string? _clientId;
     private readonly string? _clientSecret;
+    private readonly string? _username;
+    private readonly string? _password;
     private readonly string? _environmentUrl;
 
     private string? _cachedToken;
@@ -90,15 +92,23 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         _tenantId = FirstNonEmpty(configuration["D365:TenantId"], Environment.GetEnvironmentVariable("ECOMAE_D365_TENANT_ID"));
         _clientId = FirstNonEmpty(configuration["D365:ClientId"], Environment.GetEnvironmentVariable("ECOMAE_D365_CLIENT_ID"));
         _clientSecret = FirstNonEmpty(configuration["D365:ClientSecret"], Environment.GetEnvironmentVariable("ECOMAE_D365_CLIENT_SECRET"));
+        _username = FirstNonEmpty(configuration["D365:Username"], Environment.GetEnvironmentVariable("ECOMAE_D365_USERNAME"));
+        _password = FirstNonEmpty(configuration["D365:Password"], Environment.GetEnvironmentVariable("ECOMAE_D365_PASSWORD"));
         _environmentUrl = NormalizeEnvUrl(
             FirstNonEmpty(configuration["D365:EnvironmentUrl"], Environment.GetEnvironmentVariable("ECOMAE_D365_ENVIRONMENT_URL")));
     }
 
+    /// <summary>Microsoft Azure CLI public client id — the well-known client that accepts ROPC grants when the tenant has not disabled them.</summary>
+    private const string RopcClientId = "04b07795-8ddb-461a-bbee-02f9e1bf7b46";
+
+    /// <summary>True when either an Entra app registration (tenant+client+secret) or a service-account login (username+password) plus an environment URL is set.</summary>
     public bool IsConfigured =>
-        !string.IsNullOrWhiteSpace(_tenantId)
-        && !string.IsNullOrWhiteSpace(_clientId)
-        && !string.IsNullOrWhiteSpace(_clientSecret)
-        && !string.IsNullOrWhiteSpace(_environmentUrl);
+        !string.IsNullOrWhiteSpace(_environmentUrl)
+        && ((!string.IsNullOrWhiteSpace(_tenantId)
+                && !string.IsNullOrWhiteSpace(_clientId)
+                && !string.IsNullOrWhiteSpace(_clientSecret))
+            || (!string.IsNullOrWhiteSpace(_username)
+                && !string.IsNullOrWhiteSpace(_password)));
 
     public string? EnvironmentUrl => _environmentUrl;
 
@@ -119,13 +129,13 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
     {
         if (!IsConfigured)
         {
-            return ErpSimpleWriteResult.Fail("not_configured", "D365 connection is not configured. Set D365:TenantId / ClientId / ClientSecret / EnvironmentUrl (or ECOMAE_D365_* env).");
+            return ErpSimpleWriteResult.Fail("not_configured", "D365 connection is not configured. Set D365:EnvironmentUrl plus either TenantId/ClientId/ClientSecret or Username/Password (or the ECOMAE_D365_* env vars).");
         }
 
         var token = await AcquireTokenAsync(cancellationToken).ConfigureAwait(false);
         if (token is null)
         {
-            return ErpSimpleWriteResult.Fail("auth_failed", "Entra token request failed — check tenant id, client id and client secret.");
+            return ErpSimpleWriteResult.Fail("auth_failed", "Entra token request failed — check the tenant id and the client credentials or the service-account username/password.");
         }
 
         try
@@ -340,15 +350,28 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         try
         {
             using var client = _http.CreateClient();
-            using var form = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                ["grant_type"] = "client_credentials",
-                ["client_id"] = _clientId!,
-                ["client_secret"] = _clientSecret!,
-                ["scope"] = $"{_environmentUrl}/.default",
-            });
+            // Prefer the Entra app registration; fall back to a resource-owner password grant
+            // (username+password via the Azure CLI public client) when no app secret exists.
+            var fields = !string.IsNullOrWhiteSpace(_clientSecret)
+                ? new Dictionary<string, string>
+                {
+                    ["grant_type"] = "client_credentials",
+                    ["client_id"] = _clientId!,
+                    ["client_secret"] = _clientSecret,
+                    ["scope"] = $"{_environmentUrl}/.default",
+                }
+                : new Dictionary<string, string>
+                {
+                    ["grant_type"] = "password",
+                    ["client_id"] = string.IsNullOrWhiteSpace(_clientId) ? RopcClientId : _clientId!,
+                    ["username"] = _username!,
+                    ["password"] = _password!,
+                    ["scope"] = $"{_environmentUrl}/.default",
+                };
+            using var form = new FormUrlEncodedContent(fields);
+            var authority = string.IsNullOrWhiteSpace(_tenantId) ? "organizations" : _tenantId;
             using var response = await client.PostAsync(
-                $"https://login.microsoftonline.com/{_tenantId}{TokenPath}",
+                $"https://login.microsoftonline.com/{authority}{TokenPath}",
                 form,
                 cancellationToken).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
