@@ -410,6 +410,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpD365CsvImport, HandleD365CsvImportAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365ConnectTest, HandleD365ConnectTestAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365ConnectPull, HandleD365ConnectPullAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365ApplyStaged, HandleD365ApplyStagedAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpMfaEnrollConfirm, HandleMfaEnrollConfirmAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpMfaDisable, HandleMfaDisableAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpD365CsvExport, HandleD365CsvExportAsync);
@@ -27497,6 +27498,39 @@ public sealed class ErpModule : ISurfaceModule
         await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         var res = await d365connect.PullEntityAsync(conn, entity, top, session.UserId, cancellationToken).ConfigureAwait(false);
         return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Staged, fetched = res.Fetched, staged = res.Staged, run_id = res.RunId, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 live connector: apply staged rows for one entity into its operational master.</summary>
+    private static async Task<IResult> HandleD365ApplyStagedAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        EcomAE.Platform.Erp.IErpD365MappingService d365map,
+                EcomAE.Platform.Cp.ICpCsrfGuard csrf,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-sync", "Admin ERP capability required to apply D365 staged data.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to apply staged rows into the module masters. Fields: entity (ReleasedProductsV2|CustomersV3|VendorsV2|SalesOrderHeadersV2|PurchaseOrderHeadersV2|MainAccounts).", session = SessionPayload(session) });
+        }
+
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
+        }
+
+        var entity = AmlText(fields, "entity");
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var res = await d365map.ApplyAsync(conn, entity, session.UserId, cancellationToken).ConfigureAwait(false);
+        return LiveWriteFormBinder.Complete(context, "/erp/d365-sync?entity=" + Uri.EscapeDataString(entity), res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Mapped, mapped = res.Mapped, skipped = res.Skipped, message = res.Message, session = SessionPayload(session) });
     }
 
     /// <summary>D365 doc-cycle: save D365 fields on an existing so|po|dn|customer|vendor|product row.</summary>

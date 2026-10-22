@@ -5,12 +5,14 @@
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
 @using System.Web
+@using System.Text.Json
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @using EcomAE.Platform.Cp
 @inject ICpCsrfGuard Csrf
 @inject IErpWriteConnectionFactory Connections
 @inject IErpD365ConnectorService D365
+@inject IErpD365MappingService D365Map
 
 <PageTitle>D365 sync · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -34,6 +36,9 @@
     .tg-pill-err { background:#fdeaea; color:#9c1c1c; }
     .tg-payload { font-family:ui-monospace,Consolas,monospace; font-size:11px; color:#33465a; white-space:pre-wrap; word-break:break-all; max-width:520px; }
     details.tg-obj summary { cursor:pointer; color:#1c5d96; font-size:12px; }
+    table.tg-fields { border-collapse:collapse; margin:6px 0; font-size:11.5px; max-width:560px; }
+    .tg-field-name { color:#12324f; font-weight:600; padding:2px 10px 2px 0; vertical-align:top; white-space:nowrap; }
+    .tg-field-value { color:#40566c; padding:2px 0; vertical-align:top; word-break:break-word; }
 </style>
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="D365 sync" BreadcrumbArea="Organization" BreadcrumbTab="D365 sync">
@@ -90,6 +95,22 @@
                     }
                 </select>
                 <button type="submit">Filter</button>
+            </form>
+        </div>
+
+        <div class="tg-card tg-form">
+            <h3>Apply staged → modules</h3>
+            <p>Moves the staged rows for one entity into its operational master — customers to the customer master, products to inventory items, orders to the document tables.</p>
+            <form method="post" action="@Post("/erp/d365/apply-staged")">
+                @HiddenFields()
+                <label>Data entity</label>
+                <select name="entity">
+                    @foreach (var kv in D365Map.MappedEntities)
+                    {
+                        <option value="@kv.Key">@kv.Key → @kv.Value</option>
+                    }
+                </select>
+                <button type="submit">Apply staged rows</button>
             </form>
         </div>
 
@@ -160,8 +181,17 @@
                         <td>@(o.SyncedAt > 0 ? DateTimeOffset.FromUnixTimeSeconds(o.SyncedAt).UtcDateTime.ToString("yyyy-MM-dd HH:mm") : "—")</td>
                         <td>
                             <details class="tg-obj">
-                                <summary>@ShortPayload(o.Payload)</summary>
-                                <div class="tg-payload">@o.Payload</div>
+                                <summary>@FieldSummary(o.Payload)</summary>
+                                <table class="tg-fields">
+                                    @foreach (var f in ParseFields(o.Payload))
+                                    {
+                                        <tr><td class="tg-field-name">@f.Key</td><td class="tg-field-value">@f.Value</td></tr>
+                                    }
+                                </table>
+                                <details class="tg-obj">
+                                    <summary>Raw payload</summary>
+                                    <div class="tg-payload">@o.Payload</div>
+                                </details>
                             </details>
                         </td>
                     </tr>
@@ -217,6 +247,33 @@
     {
         var text = payload.Length > 140 ? payload[..140] + "…" : payload;
         return text.Replace('\n', ' ').Replace('\r', ' ');
+    }
+
+    private static string FieldSummary(string payload)
+    {
+        var fields = ParseFields(payload);
+        return fields.Count == 0 ? ShortPayload(payload) : $"{fields.Count} fields — expand to view all";
+    }
+
+    private static List<KeyValuePair<string, string>> ParseFields(string payload)
+    {
+        var list = new List<KeyValuePair<string, string>>();
+        try
+        {
+            using var doc = JsonDocument.Parse(payload);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object) return list;
+            foreach (var property in doc.RootElement.EnumerateObject())
+            {
+                var text = property.Value.ValueKind == JsonValueKind.String
+                    ? property.Value.GetString() ?? ""
+                    : property.Value.GetRawText();
+                list.Add(new KeyValuePair<string, string>(property.Name, text));
+            }
+        }
+        catch (JsonException)
+        {
+        }
+        return list;
     }
 
     private MarkupString HiddenFields()
