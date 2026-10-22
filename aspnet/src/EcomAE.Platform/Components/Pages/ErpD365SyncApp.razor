@@ -200,6 +200,37 @@
             </table>
         }
     </div>
+
+    <div class="tg-card">
+        <h3>Trial balance — EcomAE vs D365 F&amp;O</h3>
+        <p>Live compare per account + dimension. Pull <code>GeneralJournalAccountEntries</code> (posted transactions) to refresh the D365 side; every row must show <em>match</em> for the books to reconcile.</p>
+        @if (_tb.Count == 0)
+        {
+            <p>Nothing to compare yet — pull <code>GeneralJournalAccountEntries</code> and <code>LedgerJournalLines</code>, apply them, then reload.</p>
+        }
+        else
+        {
+            var matched = _tb.Count(r => r.Matches);
+            <p><span class="tg-pill @(matched == _tb.Count ? "tg-pill-ok" : "tg-pill-warn")">@matched / @_tb.Count accounts match</span></p>
+            <table class="tg-table">
+                <thead><tr><th>Account</th><th>Name</th><th>Dimension</th><th style="text-align:right">EcomAE</th><th style="text-align:right">D365</th><th style="text-align:right">Diff</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var r in _tb)
+                {
+                    <tr>
+                        <td>@r.AccountCode</td>
+                        <td>@r.AccountName</td>
+                        <td>@r.Dimension</td>
+                        <td style="text-align:right">@r.EcomAeBalance.ToString("N2")</td>
+                        <td style="text-align:right">@r.D365Balance.ToString("N2")</td>
+                        <td style="text-align:right">@r.Difference.ToString("N2")</td>
+                        <td><span class="tg-pill @(r.Matches ? "tg-pill-ok" : "tg-pill-err")">@(r.Matches ? "match" : "diff")</span></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
 </PhpErpDesktopChrome>
 
 @code {
@@ -210,6 +241,7 @@
     private ErpD365ConnectionStatus? _status;
     private IReadOnlyList<ErpD365SyncRun> _runs = Array.Empty<ErpD365SyncRun>();
     private IReadOnlyList<ErpD365StagedObject> _objects = Array.Empty<ErpD365StagedObject>();
+    private IReadOnlyList<ErpD365TbCompareRow> _tb = Array.Empty<ErpD365TbCompareRow>();
     private string _entityFilter = "";
 
     protected override async Task OnInitializedAsync()
@@ -233,6 +265,7 @@
                 _objects = await D365.StagedObjectsAsync(conn,
                     string.IsNullOrWhiteSpace(_entityFilter) ? null : _entityFilter,
                     50, ctx.RequestAborted).ConfigureAwait(false);
+                _tb = await D365Map.TrialBalanceCompareAsync(conn, ctx.RequestAborted).ConfigureAwait(false);
             }
         }
         catch
