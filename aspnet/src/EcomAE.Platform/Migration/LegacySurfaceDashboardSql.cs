@@ -4198,6 +4198,25 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>
+    /// Manufacturer browse rows (/en/parts/{BRAND}): distinct articles a manufacturer offers,
+    /// with PHP show article / name / stock aggregate / min positive price.
+    /// </summary>
+    public const string SelectStorefrontBrandArticles = """
+        SELECT MIN(TRIM(d.`article`)) AS article,
+               MAX(NULLIF(TRIM(IFNULL(d.`article_show`, '')), '')) AS article_show,
+               MAX(NULLIF(TRIM(IFNULL(d.`name`, '')), '')) AS part_name,
+               SUM(IFNULL(d.`exist`, 0)) AS exist_sum,
+               MIN(CASE WHEN IFNULL(d.`price`, 0) > 0 THEN d.`price` ELSE NULL END) AS min_price
+        FROM `shop_docpart_prices_data` d
+        WHERE TRIM(IFNULL(d.`article`, '')) <> ''
+          AND (UPPER(TRIM(d.`manufacturer`)) = @brand
+               OR REPLACE(REPLACE(REPLACE(UPPER(TRIM(d.`manufacturer`)), ' ', ''), '-', ''), '.', '') = @brandCompact)
+        GROUP BY UPPER(TRIM(d.`article`))
+        ORDER BY article ASC
+        LIMIT @limit
+        """;
+
     /// <summary>Cross-reference partners for normalized article (PHP <c>docpart_load_interchange_partners</c>).</summary>
     public const string SelectStorefrontArticleCrossPairs = """
         SELECT IFNULL(`manufacturer_article`, '') AS source_brand,
