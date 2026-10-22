@@ -18,7 +18,7 @@ public interface IErpD365MappingService
     IReadOnlyDictionary<string, string> MappedEntities { get; }
     Task<ErpD365ApplyResult> ApplyAsync(DbConnection connection, string entity, long adminId, CancellationToken cancellationToken = default);
 
-    /// <summary>Live trial-balance compare: our GL balances per account vs balances aggregated from staged D365 posted transactions (GeneralJournalAccountEntries), keyed by dimension string for the dimension-set pivot.</summary>
+    /// <summary>Live trial-balance compare: our GL balances per account vs balances aggregated from staged D365 posted transactions (GeneralLedgerBalanceCDREntities), keyed by dimension string for the dimension-set pivot.</summary>
     Task<IReadOnlyList<ErpD365TbCompareRow>> TrialBalanceCompareAsync(DbConnection connection, CancellationToken cancellationToken = default);
 }
 
@@ -39,13 +39,17 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             ["CustomersV3"] = "Customers",
             ["VendorsV2"] = "Suppliers",
             ["SalesOrderHeadersV2"] = "Sales orders",
-            ["SalesOrderLinesV2"] = "Sales order lines",
+            ["SalesOrderLines"] = "Sales order lines",
             ["PurchaseOrderHeadersV2"] = "Purchase orders",
             ["PurchaseOrderLinesV2"] = "Purchase order lines",
             ["SalesInvoiceHeadersV2"] = "Sales invoices",
-            ["SalesInvoiceLinesV2"] = "Sales invoice lines",
+            ["SalesInvoiceLines"] = "Sales invoice lines",
             ["VendorInvoiceHeaders"] = "Purchase invoices",
             ["VendorInvoiceLines"] = "Purchase invoice lines",
+            ["CustomerPaymentJournalHeaders"] = "GL journals — receipt vouchers",
+            ["CustomerPaymentJournalLines"] = "GL journal lines — receipt vouchers",
+            ["VendorPaymentJournalHeaders"] = "GL journals — payment vouchers",
+            ["VendorPaymentJournalLines"] = "GL journal lines — payment vouchers",
             ["LedgerJournalHeaders"] = "GL journals (headers)",
             ["LedgerJournalLines"] = "GL journal lines",
             ["MainAccounts"] = "Chart of accounts",
@@ -203,15 +207,15 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                     "CustomersV3" => await ApplyCustomerAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     "VendorsV2" => await ApplyVendorAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     "SalesOrderHeadersV2" => await ApplySalesOrderAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
-                    "SalesOrderLinesV2" => await ApplySalesOrderLineAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
+                    "SalesOrderLines" => await ApplySalesOrderLineAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     "PurchaseOrderHeadersV2" => await ApplyPurchaseOrderAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
                     "PurchaseOrderLinesV2" => await ApplyPurchaseOrderLineAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     "SalesInvoiceHeadersV2" => await ApplySalesInvoiceAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
-                    "SalesInvoiceLinesV2" => await ApplySalesInvoiceLineAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
+                    "SalesInvoiceLines" => await ApplySalesInvoiceLineAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     "VendorInvoiceHeaders" => await ApplyPurchaseInvoiceAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
                     "VendorInvoiceLines" => await ApplyPurchaseInvoiceLineAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
-                    "LedgerJournalHeaders" => await ApplyJournalHeaderAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
-                    "LedgerJournalLines" => await ApplyJournalLineAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
+                    "CustomerPaymentJournalHeaders" or "VendorPaymentJournalHeaders" or "LedgerJournalHeaders" => await ApplyJournalHeaderAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
+                    "CustomerPaymentJournalLines" or "VendorPaymentJournalLines" or "LedgerJournalLines" => await ApplyJournalLineAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     "MainAccounts" => await ApplyMainAccountAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     _ => false,
                 };
@@ -257,11 +261,11 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             // GL not initialized yet — our side is simply zero.
         }
 
-        // D365 side: staged posted entries (GeneralJournalAccountEntries) aggregated per account+dimension.
+        // D365 side: staged posted entries (GeneralLedgerBalanceCDREntities) aggregated per account+dimension.
         var theirs = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
         await using (var command = connection.CreateCommand())
         {
-            command.CommandText = "SELECT payload FROM epc_d365_sync_objects WHERE entity = 'GeneralJournalAccountEntries'";
+            command.CommandText = "SELECT payload FROM epc_d365_sync_objects WHERE entity = 'GeneralLedgerBalanceCDREntities'";
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -270,15 +274,16 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                 catch (JsonException) { continue; }
                 using (doc)
                 {
-                    var account = Str(doc.RootElement, "MainAccountId", "MainAccount", "LedgerDimension", "AccountDisplayValue");
+                    var account = Str(doc.RootElement, "MainAccountId", "MainAccount", "LedgerDimension", "AccountDisplayValue", "Dimension");
                     if (account.Length == 0) continue;
                     var code = account.Split('-', '|')[0].Trim();
-                    var dimension = account.Contains('-') || account.Contains('|') ? account : string.Empty;
+                    var dimension = Str(doc.RootElement, "Dimension", "DimensionSet", "LedgerDimension", "AccountDisplayValue");
                     var debit = Dec(doc.RootElement, "AccountingCurrencyAmountDebit", "AmountCurDebit", "DebitAmount", "Debit");
                     var credit = Dec(doc.RootElement, "AccountingCurrencyAmountCredit", "AmountCurCredit", "CreditAmount", "Credit");
                     if (debit == 0m && credit == 0m)
                     {
-                        var amount = Dec(doc.RootElement, "AccountingCurrencyAmount", "Amount");
+                        // Balance entities (CDR balances, snapshots) carry a signed net amount.
+                        var amount = Dec(doc.RootElement, "AccountingCurrencyAmount", "Balance", "BalanceAmount", "ClosingBalance", "Amount", "Total");
                         if (amount >= 0) { debit = amount; } else { credit = -amount; }
                     }
                     var key = code + "\u001f" + dimension;
