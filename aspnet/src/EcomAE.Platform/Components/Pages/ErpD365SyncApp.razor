@@ -11,6 +11,7 @@
 @inject ICpCsrfGuard Csrf
 @inject IErpWriteConnectionFactory Connections
 @inject IErpD365ConnectorService D365
+@inject IErpD365MappingService D365Map
 
 <PageTitle>D365 sync · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -90,6 +91,22 @@
                     }
                 </select>
                 <button type="submit">Filter</button>
+            </form>
+        </div>
+
+        <div class="tg-card tg-form">
+            <h3>Apply staged → modules</h3>
+            <p>Moves the staged rows for one entity into its operational master — customers to the customer master, products to inventory items, orders to the document tables.</p>
+            <form method="post" action="@Post("/erp/d365/apply-staged")">
+                @HiddenFields()
+                <label>Data entity</label>
+                <select name="entity">
+                    @foreach (var kv in D365Map.MappedEntities)
+                    {
+                        <option value="@kv.Key">@kv.Key → @kv.Value</option>
+                    }
+                </select>
+                <button type="submit">Apply staged rows</button>
             </form>
         </div>
 

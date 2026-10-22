@@ -3053,6 +3053,7 @@ public static class EcomAeRoutes
     public const string ErpD365ConnectTest = "/erp/d365/connect-test";
     /// <summary>D365 live connector: pull one F&O data entity into staging.</summary>
     public const string ErpD365ConnectPull = "/erp/d365/connect-pull";
+    public const string ErpD365ApplyStaged = "/erp/d365/apply-staged";
     /// <summary>TOTP two-factor: confirm enrollment with a code from the authenticator app.</summary>
     public const string ErpMfaEnrollConfirm = "/erp/mfa/enroll-confirm";
     /// <summary>TOTP two-factor: disable with a current code.</summary>
