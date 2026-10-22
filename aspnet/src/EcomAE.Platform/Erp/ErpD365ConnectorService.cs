@@ -261,8 +261,14 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                 ? resumeUrl
                 : $"{_environmentUrl}/data/{entitySet}?$top={PageSize}";
             long remaining = top;
+            long skip = 0;
             while (nextLink is not null && fetched < top)
             {
+                var skipMatch = System.Text.RegularExpressions.Regex.Match(nextLink, @"[$]skip=(\d+)");
+                if (skipMatch.Success)
+                {
+                    skip = long.Parse(skipMatch.Groups[1].Value);
+                }
                 using var request = new HttpRequestMessage(HttpMethod.Get, nextLink);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -287,6 +293,12 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                 var followLink = doc.RootElement.TryGetProperty("@odata.nextLink", out var nl) && nl.ValueKind == JsonValueKind.String
                     ? nl.GetString()
                     : null;
+                // SHAM's F&O returns no @odata.nextLink at all — page manually with $skip
+                // while the last page was full and the caller still wants more.
+                if (followLink is null && pageRows.Count == PageSize && remaining > 0)
+                {
+                    followLink = $"{_environmentUrl}/data/{entitySet}?$top={PageSize}&$skip={skip + pageRows.Count}";
+                }
 
                 // Stage this page + advance the cursor atomically.
                 await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
@@ -556,9 +568,11 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         foreach (var candidate in new[]
         {
             // Business keys — same document stays one staged row on re-pull.
-            "dataAreaId", "ItemNumber", "CustomerAccount", "VendorAccount", "SalesOrderNumber", "PurchaseOrderNumber", "InvoiceNumber", "JournalBatchNumber", "Voucher", "MainAccountId", "CompanyId",
+            "dataAreaId", "ItemNumber", "CustomerAccount", "CustomerAccountNumber", "VendorAccount", "VendorAccountNumber", "SalesOrderNumber", "PurchaseOrderNumber", "InvoiceNumber", "JournalBatchNumber", "Voucher", "MainAccountId", "CompanyId",
             // Line/dimension/period discriminators — distinct rows sharing the same document key must not overwrite each other.
             "LineNumber", "JournalLineNumber", "InvoiceLineNumber", "VoucherLineNumber", "LineRef", "RecId", "LineId",
+            "InventorySiteId", "InventoryWarehouseId", "ProductColorId", "ProductSizeId", "ProductStyleId", "ProductVersionId", "ProductConfigurationId",
+            "SnapshotHeader", "DimensionHierarchyId", "FocusDimensionHierarchy", "PostingLayer", "PeriodName", "PeriodType", "YearName", "LedgerRecId", "LedgerName",
             "LedgerDimension", "Dimension", "DimensionSet", "AccountDisplayValue",
             "FiscalYear", "FiscalPeriod", "Period", "AccountingDate",
         })
