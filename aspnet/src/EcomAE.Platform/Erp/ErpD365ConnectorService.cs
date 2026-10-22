@@ -22,6 +22,7 @@ public interface IErpD365ConnectorService
     Task<ErpSimpleWriteResult> TestConnectionAsync(CancellationToken cancellationToken = default);
     Task<ErpD365PullResult> PullEntityAsync(DbConnection connection, string entitySet, int top, long adminId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ErpD365SyncRun>> RecentRunsAsync(DbConnection connection, int limit, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ErpD365StagedObject>> StagedObjectsAsync(DbConnection connection, string? entity, int limit, CancellationToken cancellationToken = default);
     Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken = default);
 }
 
@@ -43,6 +44,14 @@ public sealed record ErpD365SyncRun(
     string Error,
     long StartedAt,
     long FinishedAt);
+
+public sealed record ErpD365StagedObject(
+    long Id,
+    string Entity,
+    string ExternalKey,
+    string Payload,
+    long RunId,
+    long SyncedAt);
 
 public sealed class ErpD365ConnectorService : IErpD365ConnectorService
 {
@@ -195,11 +204,11 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             connection,
             null,
             $"INSERT INTO {RunsTable} (entity, direction, status, fetched, staged, error, started_at, finished_at, admin_id) " +
-            "VALUES (@entity, 'pull', 'running', 0, 0, '', @started, 0, @admin)",
+            "VALUES (?, 'pull', 'running', 0, 0, '', ?, 0, ?)",
             cancellationToken,
-            new MySqlConnector.MySqlParameter("@entity", entitySet),
-            new MySqlConnector.MySqlParameter("@started", now),
-            new MySqlConnector.MySqlParameter("@admin", adminId)).ConfigureAwait(false);
+            entitySet,
+            now,
+            adminId).ConfigureAwait(false);
         runId = Convert.ToInt64(await ErpDb.ScalarAsync(connection, null, "SELECT LAST_INSERT_ID()", cancellationToken).ConfigureAwait(false));
 
         var token = await AcquireTokenAsync(cancellationToken).ConfigureAwait(false);
@@ -255,14 +264,14 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                     connection,
                     transaction,
                     $"INSERT INTO {ObjectsTable} (entity, ext_key, payload, run_id, synced_at) " +
-                    "VALUES (@entity, @ext, @payload, @run, @now) " +
+                    "VALUES (?, ?, ?, ?, ?) " +
                     "ON DUPLICATE KEY UPDATE payload = VALUES(payload), run_id = VALUES(run_id), synced_at = VALUES(synced_at)",
                     cancellationToken,
-                    new MySqlConnector.MySqlParameter("@entity", entitySet),
-                    new MySqlConnector.MySqlParameter("@ext", key),
-                    new MySqlConnector.MySqlParameter("@payload", payload),
-                    new MySqlConnector.MySqlParameter("@run", runId),
-                    new MySqlConnector.MySqlParameter("@now", now)).ConfigureAwait(false);
+                    entitySet,
+                    key,
+                    payload,
+                    runId,
+                    now).ConfigureAwait(false);
                 staged++;
             }
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
@@ -312,6 +321,40 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                 reader.GetInt64(7)));
         }
         return runs;
+    }
+
+    public async Task<IReadOnlyList<ErpD365StagedObject>> StagedObjectsAsync(DbConnection connection, string? entity, int limit, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        var rows = new List<ErpD365StagedObject>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT id, entity, ext_key, payload, run_id, synced_at FROM {ObjectsTable}" +
+            (string.IsNullOrWhiteSpace(entity) ? string.Empty : " WHERE entity = @entity") +
+            " ORDER BY id DESC LIMIT @limit";
+        if (!string.IsNullOrWhiteSpace(entity))
+        {
+            var entityParam = command.CreateParameter();
+            entityParam.ParameterName = "@entity";
+            entityParam.Value = entity;
+            command.Parameters.Add(entityParam);
+        }
+        var limitParam = command.CreateParameter();
+        limitParam.ParameterName = "@limit";
+        limitParam.Value = Math.Clamp(limit, 1, 500);
+        command.Parameters.Add(limitParam);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(new ErpD365StagedObject(
+                reader.GetInt64(0),
+                reader.GetString(1),
+                reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
+                reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                reader.GetInt64(4),
+                reader.GetInt64(5)));
+        }
+        return rows;
     }
 
     public async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken = default)
@@ -434,14 +477,14 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         await ErpDb.ExecuteAsync(
             connection,
             null,
-            $"UPDATE {RunsTable} SET status = @status, fetched = @fetched, staged = @staged, error = @error, finished_at = @done WHERE id = @id",
+            $"UPDATE {RunsTable} SET status = ?, fetched = ?, staged = ?, error = ?, finished_at = ? WHERE id = ?",
             cancellationToken,
-            new MySqlConnector.MySqlParameter("@status", status),
-            new MySqlConnector.MySqlParameter("@fetched", fetched),
-            new MySqlConnector.MySqlParameter("@staged", staged),
-            new MySqlConnector.MySqlParameter("@error", error.Length > 65000 ? error[..65000] : error),
-            new MySqlConnector.MySqlParameter("@done", DateTimeOffset.UtcNow.ToUnixTimeSeconds()),
-            new MySqlConnector.MySqlParameter("@id", runId)).ConfigureAwait(false);
+            status,
+            fetched,
+            staged,
+            error.Length > 65000 ? error[..65000] : error,
+            DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            runId).ConfigureAwait(false);
     }
 
     private async Task<(string? Status, DateTimeOffset? At)> LastRunAsync(DbConnection connection, CancellationToken cancellationToken)
