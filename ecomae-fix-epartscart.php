@@ -55,7 +55,7 @@ try {
 		'industry_code' => 'auto_parts',
 		'status' => 'live',
 		'trade_name' => 'eParts Cart',
-		'hub_name' => 'Electronic World Group',
+		'hub_name' => 'ECOM GLOBAL FZE LLC',
 		'from_email' => 'partsdoc2025@gmail.com',
 		'db_name' => $docCfg->db,
 		'db_user' => $docCfg->user,

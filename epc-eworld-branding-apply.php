@@ -1,6 +1,6 @@
 <?php
 /**
- * Apply e-world Commerce System / Electronic World Group branding to DB.
+ * Apply e-world Commerce System / ECOM GLOBAL FZE LLC branding to DB.
  * https://www.epartscart.com/epc-eworld-branding-apply.php?token=epartscart-deploy-2026
  */
 header('Content-Type: text/plain; charset=utf-8');
@@ -20,9 +20,9 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 $replacements = array(
 	3997 => array('en' => 'e-world Commerce System', 'ru' => 'e-world Commerce System'),
-	3998 => array('en' => 'multi-industry commerce platform by Electronic World Group', 'ru' => 'мультиотраслевая commerce-платформа Electronic World Group'),
-	3999 => array('en' => 'content management by Electronic World Group', 'ru' => 'система управления Electronic World Group'),
-	4000 => array('en' => 'e-commerce by Electronic World Group', 'ru' => 'интернет-магазин Electronic World Group'),
+	3998 => array('en' => 'multi-industry commerce platform by ECOM GLOBAL FZE LLC', 'ru' => 'мультиотраслевая commerce-платформа ECOM GLOBAL FZE LLC'),
+	3999 => array('en' => 'content management by ECOM GLOBAL FZE LLC', 'ru' => 'система управления ECOM GLOBAL FZE LLC'),
+	4000 => array('en' => 'e-commerce by ECOM GLOBAL FZE LLC', 'ru' => 'интернет-магазин ECOM GLOBAL FZE LLC'),
 	4035 => array('en' => 'e-world Commerce System', 'ru' => 'e-world Commerce System'),
 );
 $ins = $pdo->prepare(
@@ -57,8 +57,8 @@ foreach ($hosts as $host) {
 		$host,
 		$industry,
 		'e-world Commerce System',
-		'Electronic World Group',
-		'Designed by Electronic World Group',
+		'ECOM GLOBAL FZE LLC',
+		'Designed by ECOM GLOBAL FZE LLC',
 		json_encode(isset($ind['cp_packs']) ? $ind['cp_packs'] : array('core')),
 		json_encode(isset($ind['theme']) ? $ind['theme'] : array()),
 		time(),
@@ -67,5 +67,5 @@ foreach ($hosts as $host) {
 }
 
 echo "CP name: e-world Commerce System\n";
-echo "Design by: Electronic World Group\n";
+echo "Design by: ECOM GLOBAL FZE LLC\n";
 echo "Done.\n";

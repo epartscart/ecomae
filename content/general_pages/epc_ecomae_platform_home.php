@@ -48,7 +48,7 @@ function epc_ecomae_h($v)
 				<a class="btn btn-primary btn-lg" href="#contact"><i class="fa fa-envelope"></i> Request demo</a>
 				<a class="btn btn-default btn-lg" href="<?php echo epc_ecomae_h($super_cp); ?>" style="color:#0f172a"><i class="fa fa-th-large"></i> Platform login</a>
 			</div>
-			<p style="margin-top:16px;opacity:.85;font-size:13px">Designed by <?php echo epc_ecomae_h(epc_brand_hub_name()); ?> · Electronic World Group</p>
+			<p style="margin-top:16px;opacity:.85;font-size:13px">Designed by <?php echo epc_ecomae_h(epc_brand_hub_name()); ?> · ECOM GLOBAL FZE LLC</p>
 		</div>
 	</div>
 
@@ -112,6 +112,6 @@ function epc_ecomae_h($v)
 	<div class="epc-ecomae-card" id="contact" style="margin-top:32px">
 		<h4><i class="fa fa-envelope"></i> Contact</h4>
 		<p>Email: <a href="mailto:hello@ecomae.com">hello@ecomae.com</a> · Platform operator login: <a href="<?php echo epc_ecomae_h($super_cp); ?>">cp.ecomae.com</a></p>
-		<p class="text-muted" style="margin-top:12px">ecomae — E-Commerce Arab Emirates. Hosted commerce platform by Electronic World Group.</p>
+		<p class="text-muted" style="margin-top:12px">ecomae — E-Commerce Arab Emirates. Hosted commerce platform by ECOM GLOBAL FZE LLC.</p>
 	</div>
 </div>

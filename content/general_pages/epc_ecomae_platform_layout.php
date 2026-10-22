@@ -77,7 +77,7 @@ function epc_ecomae_platform_head_html($title, $canonicalPath = '/', $descriptio
 					'url' => $base,
 					'logo' => $ogImg,
 					'address' => array('@type' => 'PostalAddress', 'addressLocality' => 'Dubai', 'addressCountry' => 'AE'),
-					'parentOrganization' => array('@type' => 'Organization', 'name' => 'Electronic World Group'),
+					'parentOrganization' => array('@type' => 'Organization', 'name' => 'ECOM GLOBAL FZE LLC'),
 				),
 				array(
 					'@type' => 'WebSite',
@@ -280,7 +280,7 @@ function epc_ecomae_platform_layout_close()
 				<a href="<?php echo epc_ecomae_h($base); ?>dmca">IP notice</a>
 			</div>
 		</div>
-		<p class="epm-footer__copy">&copy; <?php echo date('Y'); ?> Electronic World Group · Dubai, UAE · <a href="<?php echo epc_ecomae_h($base); ?>legal">Legal policies</a></p>
+		<p class="epm-footer__copy">&copy; <?php echo date('Y'); ?> ECOM GLOBAL FZE LLC · Dubai, UAE · <a href="<?php echo epc_ecomae_h($base); ?>legal">Legal policies</a></p>
 	</div>
 </footer>
 <?php

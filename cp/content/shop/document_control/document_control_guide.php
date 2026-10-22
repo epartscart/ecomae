@@ -61,4 +61,4 @@ defined('_ASTEXE_') or die('No access');
 
 <h4>7. Support &amp; deployment</h4>
 <p>Setup script (server): <code>/epc-document-control-cp-setup.php?token=…</code></p>
-<p>Designed by <strong>Electronic World Group</strong> for the <strong>e-world Commerce System</strong>.</p>
+<p>Designed by <strong>ECOM GLOBAL FZE LLC</strong> for the <strong>e-world Commerce System</strong>.</p>

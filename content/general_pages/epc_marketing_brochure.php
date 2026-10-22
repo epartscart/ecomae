@@ -20,7 +20,7 @@ function epc_brochure_profile(string $brand): array
 		return array(
 			'id' => 'epartscart',
 			'name' => 'eParts Cart',
-			'legal' => 'Electronic World Group',
+			'legal' => 'ECOM GLOBAL FZE LLC',
 			'tagline' => 'Spare parts commerce — storefront, OMS, and Control Panel',
 			'domain' => 'www.epartscart.com',
 			'url' => 'https://www.epartscart.com',
@@ -43,7 +43,7 @@ function epc_brochure_profile(string $brand): array
 	return array(
 		'id' => 'ecomae',
 		'name' => 'ECOM AE',
-		'legal' => 'Electronic World Group',
+		'legal' => 'ECOM GLOBAL FZE LLC',
 		'tagline' => 'Blockchain BOS Enterprise System — commerce, ERP, CRM, compliance',
 		'domain' => 'www.ecomae.com',
 		'url' => 'https://www.ecomae.com',

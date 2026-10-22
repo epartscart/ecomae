@@ -74,7 +74,7 @@ function epc_ecomae_platform_page_legal(array $params = array()): string
 		echo '<div class="epm-badge"><i class="fa ' . epc_ecomae_h($d['icon']) . '"></i> Legal policy</div>';
 		echo '<h1 class="epm-section-title" style="font-size:32px;margin-top:10px">' . epc_ecomae_h($d['title']) . '</h1>';
 		echo '<p class="epm-section-lead" style="max-width:820px">' . epc_ecomae_h($d['summary']) . '</p>';
-		echo '<p style="color:var(--epm-muted);font-size:13px;margin:0 0 22px">Effective date: ' . epc_ecomae_h($effective) . ' · Electronic World Group · Dubai, UAE</p>';
+		echo '<p style="color:var(--epm-muted);font-size:13px;margin:0 0 22px">Effective date: ' . epc_ecomae_h($effective) . ' · ECOM GLOBAL FZE LLC · Dubai, UAE</p>';
 
 		foreach ($d['sections'] as $sec) {
 			echo '<section style="margin-top:22px;max-width:820px">';

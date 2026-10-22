@@ -23,7 +23,7 @@ function epc_ecomae_legal_effective_date(): string
  */
 function epc_ecomae_legal_catalog(): array
 {
-	$co = 'Electronic World Group (trading as ECOM AE)';
+	$co = 'ECOM GLOBAL FZE LLC (trading as ECOM AE)';
 	$product = 'ECOM AE Blockchain BOS Enterprise System';
 	$contact = 'legal@ecomae.com';
 	$security = 'security@ecomae.com';
@@ -341,7 +341,7 @@ function epc_ecomae_legal_catalog(): array
 				array(
 					'h' => '1. Our marks',
 					'p' => array(
-						'“ECOM AE”, “ecomae”, “Blockchain BOS”, “Blockchain BOS Enterprise System”, “Electronic World Group”, associated logos, product names, and distinctive brand elements (the “Marks”) are trademarks or trade dress of ' . $co . ' or its affiliates.',
+						'“ECOM AE”, “ecomae”, “Blockchain BOS”, “Blockchain BOS Enterprise System”, “ECOM GLOBAL FZE LLC”, associated logos, product names, and distinctive brand elements (the “Marks”) are trademarks or trade dress of ' . $co . ' or its affiliates.',
 					),
 				),
 				array(

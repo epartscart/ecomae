@@ -1352,7 +1352,7 @@ function epc_ecomae_platform_page_contact()
 			</form>
 		</div>
 		<div class="epm-card">
-			<h4><i class="fa fa-map-marker text-primary"></i> Electronic World Group</h4>
+			<h4><i class="fa fa-map-marker text-primary"></i> ECOM GLOBAL FZE LLC</h4>
 			<p>Dubai, United Arab Emirates</p>
 			<p style="color:var(--epm-muted);font-size:14px">Hosted multi-tenant cloud · Go live in 24 hours · UAE e-invoice ready.</p>
 		</div>
@@ -1376,7 +1376,7 @@ function epc_ecomae_platform_page_about()
 		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407,#5a0f16 50%,#0a0a0a)"></div>
 		<div class="epm-hero__content">
 			<h1>About ECOM AE</h1>
-			<p class="lead">Built by Electronic World Group in Dubai — one cloud for commerce, ERP, CRM, and UAE e-invoicing.</p>
+			<p class="lead">Built by ECOM GLOBAL FZE LLC in Dubai — one cloud for commerce, ERP, CRM, and UAE e-invoicing.</p>
 		</div>
 	</div>
 	<div class="epm-split">
@@ -1391,7 +1391,7 @@ function epc_ecomae_platform_page_about()
 			</ul>
 		</div>
 		<div class="epm-card epm-card--accent">
-			<h4>Electronic World Group</h4>
+			<h4>ECOM GLOBAL FZE LLC</h4>
 			<p>Dubai, UAE · B2B SaaS and commerce infrastructure for the GCC.</p>
 			<div class="epm-cta" style="margin-top:12px">
 				<a class="epm-btn epm-btn--primary epm-btn--sm" href="<?php echo epc_ecomae_h($base); ?>platform/contact">Contact us</a>
