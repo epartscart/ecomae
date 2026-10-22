@@ -1,3 +1,4 @@
+using EcomAE.Platform.Erp;
 using EcomAE.Platform.Presentation;
 using Xunit;
 using System.IO;
@@ -47,11 +48,11 @@ public sealed class LoginHostBrandTests
     }
 
     [Fact]
-    public void SuperHost_NeverBorrowsTenantLogoUrl()
+    public void SuperHost_UsesPlatformLogoUrl_NeverATenantLogo()
     {
         var brand = LoginHostBrand.Resolve("www.ecomae.com", "erp");
         Assert.Equal(LoginHostBrand.Kind.Platform, brand.LogoKind);
-        Assert.True(string.IsNullOrWhiteSpace(brand.LogoUrl));
+        Assert.Equal(ErpAppAssets.PlatformLogoUrl, brand.LogoUrl);
         Assert.Equal("ECOM AE", brand.Label);
     }
 
