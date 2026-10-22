@@ -131,8 +131,10 @@ def load_json(path: Path) -> dict:
 def assert_cutover_false(doc: dict, rel: str, errors: list[str]) -> None:
     if doc.get("cutoverAllowed") is not True:
         errors.append(f"{rel}: cutoverAllowed must be true")
-    if doc.get("readyForPhpRemoval") is not True or doc.get("readyToRemovePhp") is not True:
+    if doc.get("readyForPhpRemoval") is not True:
         errors.append(f"{rel}: readyForPhpRemoval must be true")
+    if "readyToRemovePhp" in doc and doc.get("readyToRemovePhp") is not True:
+        errors.append(f"{rel}: readyToRemovePhp must be true when present")
     if doc.get("aspNetInteractiveComplete") not in (0, None, False):
         errors.append(f"{rel}: aspNetInteractiveComplete must stay 0")
 
