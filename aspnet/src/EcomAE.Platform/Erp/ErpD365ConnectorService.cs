@@ -331,7 +331,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         await using var command = connection.CreateCommand();
         command.CommandText = $"SELECT id, entity, ext_key, payload, run_id, synced_at FROM {ObjectsTable}" +
             (string.IsNullOrWhiteSpace(entity) ? string.Empty : " WHERE entity = @entity") +
-            " ORDER BY id DESC LIMIT @limit";
+            " ORDER BY synced_at DESC, id DESC LIMIT @limit";
         if (!string.IsNullOrWhiteSpace(entity))
         {
             var entityParam = command.CreateParameter();
