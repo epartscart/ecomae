@@ -63,6 +63,9 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
     /// <summary>Named HTTP client (60s timeout) registered in Program.cs.</summary>
     public const string HttpClientName = "ecomae-d365";
 
+    /// <summary>Token-only HTTP client with auto-redirect disabled — a redirected password grant must never leave the token endpoint.</summary>
+    public const string TokenHttpClientName = "ecomae-d365-token";
+
     private const string TokenPath = "/oauth2/v2.0/token";
     private const string RunsTable = "epc_d365_sync_runs";
     private const string ObjectsTable = "epc_d365_sync_objects";
@@ -355,7 +358,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
 
         try
         {
-            using var client = _http.CreateClient();
+            using var client = _http.CreateClient(TokenHttpClientName);
             // Prefer the Entra app registration only when the full tuple exists; otherwise use a
             // resource-owner password grant. A configured confidential ClientId cannot do a public-client
             // password grant, so the fallback always uses the well-known Azure CLI public client id.
@@ -379,11 +382,11 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             var authority = string.IsNullOrWhiteSpace(_tenantId) ? "organizations" : _tenantId;
             var tokenEndpoint = new Uri($"https://login.microsoftonline.com/{authority}{TokenPath}");
             using var response = await client.PostAsync(tokenEndpoint, form, cancellationToken).ConfigureAwait(false);
-            // The default handler follows redirects: a cross-host redirect would forward the password-grant
-            // body to an attacker endpoint. If the final request went anywhere but the token endpoint, fail.
-            if (response.RequestMessage?.RequestUri is { } finalUri && finalUri != tokenEndpoint)
+            // The client is registered with AllowAutoRedirect=false, so a redirect response means the
+            // endpoint tried to move the request — refuse instead of leaking the grant body cross-host.
+            if ((int)response.StatusCode is >= 300 and < 400)
             {
-                _logger.LogWarning("D365 token request redirected to {Uri} — refusing to trust it", finalUri);
+                _logger.LogWarning("D365 token request was redirected ({Status}) — refusing to follow", (int)response.StatusCode);
                 return null;
             }
             if (!response.IsSuccessStatusCode)

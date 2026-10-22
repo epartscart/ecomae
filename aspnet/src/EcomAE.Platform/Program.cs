@@ -763,6 +763,8 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTaxRuleService, EcomAE.Platfo
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365DocCycleService, EcomAE.Platform.Erp.ErpD365DocCycleService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365GlService, EcomAE.Platform.Erp.ErpD365GlService>();
 builder.Services.AddHttpClient(EcomAE.Platform.Erp.ErpD365ConnectorService.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(60));
+builder.Services.AddHttpClient(EcomAE.Platform.Erp.ErpD365ConnectorService.TokenHttpClientName, client => client.Timeout = TimeSpan.FromSeconds(60))
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 builder.Services.AddSingleton<EcomAE.Platform.Erp.IErpD365ConnectorService, EcomAE.Platform.Erp.ErpD365ConnectorService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamLandedCostService, EcomAE.Platform.Erp.ErpShamLandedCostService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShamEliminationService, EcomAE.Platform.Erp.ErpShamEliminationService>();
