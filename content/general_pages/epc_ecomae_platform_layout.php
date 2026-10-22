@@ -77,7 +77,7 @@ function epc_ecomae_platform_head_html($title, $canonicalPath = '/', $descriptio
 					'url' => $base,
 					'logo' => $ogImg,
 					'address' => array('@type' => 'PostalAddress', 'addressLocality' => 'Dubai', 'addressCountry' => 'AE'),
-					'parentOrganization' => array('@type' => 'Organization', 'name' => 'Electronic World Group'),
+					'parentOrganization' => array('@type' => 'Organization', 'name' => 'ECOM GLOBAL FZE LLC'),
 				),
 				array(
 					'@type' => 'WebSite',
@@ -102,6 +102,7 @@ function epc_ecomae_platform_head_html($title, $canonicalPath = '/', $descriptio
 		. '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />'
 		. '<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap" rel="stylesheet" />'
 		. '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />'
+		. '<link rel="icon" type="image/png" href="/content/general_pages/epc_ecomae_logo_svg.php" />'
 		. epc_ecomae_platform_styles()
 		. '</head><body class="epm-body">';
 }
@@ -279,7 +280,7 @@ function epc_ecomae_platform_layout_close()
 				<a href="<?php echo epc_ecomae_h($base); ?>dmca">IP notice</a>
 			</div>
 		</div>
-		<p class="epm-footer__copy">&copy; <?php echo date('Y'); ?> Electronic World Group · Dubai, UAE · <a href="<?php echo epc_ecomae_h($base); ?>legal">Legal policies</a></p>
+		<p class="epm-footer__copy">&copy; <?php echo date('Y'); ?> ECOM GLOBAL FZE LLC · Dubai, UAE · <a href="<?php echo epc_ecomae_h($base); ?>legal">Legal policies</a></p>
 	</div>
 </footer>
 <?php

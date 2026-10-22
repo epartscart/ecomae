@@ -560,6 +560,7 @@ public static class PhpLegacyAssetBridge
     {
         foreach (var candidate in new[]
                  {
+                     "aspnet/src/EcomAE.Platform/wwwroot/login-brand/ecomae-fze-mark.png",
                      "content/general_pages/epc_ecomae_logo.svg",
                      "aspnet/src/EcomAE.Platform/wwwroot/assets/media/logos/ecomae_mark.svg"
                  })
@@ -567,7 +568,7 @@ public static class PhpLegacyAssetBridge
             var path = Path.GetFullPath(Path.Combine(repoRoot, candidate));
             if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
             {
-                return Results.File(path, "image/svg+xml");
+                return Results.File(path, path.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? "image/png" : "image/svg+xml");
             }
         }
 

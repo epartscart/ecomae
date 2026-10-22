@@ -802,7 +802,7 @@ function epc_portal_demo_sync_cp_packs(PDO $platformPdo, string $siteKey, ?array
 	$settings['domain_path'] = $demoUrl;
 	if ($industry === 'auto_parts') {
 		$settings['system_name'] = (string) ($settings['system_name'] ?? 'eParts Cart');
-		$settings['hub_name'] = (string) ($settings['hub_name'] ?? 'Electronic World Group');
+		$settings['hub_name'] = (string) ($settings['hub_name'] ?? 'ECOM GLOBAL FZE LLC');
 		if (!empty($settings['cp_menu']) && is_array($settings['cp_menu'])) {
 			// keep epartscart menu policy
 		}
@@ -2036,7 +2036,7 @@ function epc_portal_demo_push_tenant_settings(PDO $platformPdo, string $siteKey,
 	$settings['industry_code'] = $industry;
 	if ($industry === 'auto_parts') {
 		$settings['system_name'] = (string) ($epcClone['system_name'] ?? 'eParts Cart');
-		$settings['hub_name'] = (string) ($epcClone['hub_name'] ?? 'Electronic World Group');
+		$settings['hub_name'] = (string) ($epcClone['hub_name'] ?? 'ECOM GLOBAL FZE LLC');
 		$settings['tagline'] = (string) ($epcClone['tagline'] ?? 'Auto parts & commerce');
 	} else {
 		$settings['system_name'] = $tradeName . ' Demo';

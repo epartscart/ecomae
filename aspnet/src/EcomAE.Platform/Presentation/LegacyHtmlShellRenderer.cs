@@ -45,7 +45,7 @@ public sealed class LegacyHtmlShellRenderer : ILegacyHtmlShellRenderer
         sb.Append("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
         sb.Append("  <meta name=\"robots\" content=\"noindex,nofollow,noarchive\">\n");
         sb.Append("  <title>").Append(title).Append("</title>\n");
-        sb.Append("  <link rel=\"icon\" type=\"image/svg+xml\" href=\"").Append(LegacyPresentationAssets.BrandMarkUrl).Append("\">\n");
+        sb.Append("  <link rel=\"icon\" type=\"image/png\" href=\"").Append(LegacyPresentationAssets.BrandMarkUrl).Append("\">\n");
 
         foreach (var href in LegacyPresentationAssets.StylesheetsFor(key))
         {

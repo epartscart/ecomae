@@ -19,9 +19,9 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 $replacements = array(
 	3997 => array('en' => 'e-world Commerce System', 'ru' => 'e-world Commerce System'),
-	3998 => array('en' => 'multi-industry commerce platform by Electronic World Group', 'ru' => 'мультиотраслевая commerce-платформа Electronic World Group'),
-	3999 => array('en' => 'content management by Electronic World Group', 'ru' => 'система управления Electronic World Group'),
-	4000 => array('en' => 'e-commerce by Electronic World Group', 'ru' => 'интернет-магазин Electronic World Group'),
+	3998 => array('en' => 'multi-industry commerce platform by ECOM GLOBAL FZE LLC', 'ru' => 'мультиотраслевая commerce-платформа ECOM GLOBAL FZE LLC'),
+	3999 => array('en' => 'content management by ECOM GLOBAL FZE LLC', 'ru' => 'система управления ECOM GLOBAL FZE LLC'),
+	4000 => array('en' => 'e-commerce by ECOM GLOBAL FZE LLC', 'ru' => 'интернет-магазин ECOM GLOBAL FZE LLC'),
 	4035 => array('en' => 'e-world Commerce System', 'ru' => 'e-world Commerce System'),
 );
 

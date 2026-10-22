@@ -119,7 +119,7 @@ public sealed class EcomaeMarketingHomeParityTests
         Assert.Contains("href=\"/platform/pricing\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("href=\"/marketing/platform", text, StringComparison.Ordinal);
         Assert.DoesNotContain("href=\"/marketing/privacy", text, StringComparison.Ordinal);
-        Assert.Contains("Electronic World Group", text, StringComparison.Ordinal);
+        Assert.Contains("ECOM GLOBAL FZE LLC", text, StringComparison.Ordinal);
     }
 
     [Fact]

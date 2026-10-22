@@ -164,7 +164,7 @@ $introFields = epc_portal_intro_field_defs();
 						</div>
 						<div class="col-md-4 form-group">
 							<label>Hub / group name</label>
-							<input class="form-control" name="hub_name" id="epc_intro_hub" value="<?php echo epc_th_h($editTenant['hub_name'] ?? 'Electronic World Group'); ?>">
+							<input class="form-control" name="hub_name" id="epc_intro_hub" value="<?php echo epc_th_h($editTenant['hub_name'] ?? 'ECOM GLOBAL FZE LLC'); ?>">
 						</div>
 					</div>
 					<div class="row">

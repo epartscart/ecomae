@@ -36,5 +36,5 @@ public static class LifeOsLegalCatalog
     public static string LegalHubHref => CanonicalHost + "/legal";
 
     public static string CopyrightLine(int year) =>
-        $"© {year} Electronic World Group · Dubai, UAE";
+        $"© {year} ECOM GLOBAL FZE LLC · Dubai, UAE";
 }

@@ -69,7 +69,7 @@ function epc_portal_tenant_templates(): array
 			'hostname' => 'www.epartscart.com',
 			'industry' => 'auto_parts',
 			'trade_name' => 'eParts Cart',
-			'hub_name' => 'Electronic World Group',
+			'hub_name' => 'ECOM GLOBAL FZE LLC',
 			'from_email' => 'epartscart@gmail.com',
 			'storefront_package' => 'automotive_spareparts_pro',
 			'theme_template' => 'classic',
@@ -81,7 +81,7 @@ function epc_portal_tenant_templates(): array
 			'hostname' => 'www.taxofinca.com',
 			'industry' => 'tax_advisory',
 			'trade_name' => 'Taxofin',
-			'hub_name' => 'Electronic World Group',
+			'hub_name' => 'ECOM GLOBAL FZE LLC',
 			'from_email' => 'info@taxofinca.com',
 		),
 		'electronicae' => array(
@@ -89,7 +89,7 @@ function epc_portal_tenant_templates(): array
 			'hostname' => 'www.electronicae.com',
 			'industry' => 'electronics',
 			'trade_name' => 'Electronicae',
-			'hub_name' => 'Electronic World Group',
+			'hub_name' => 'ECOM GLOBAL FZE LLC',
 			'from_email' => 'hello@electronicae.com',
 		),
 		'stylenlook' => array(
@@ -97,7 +97,7 @@ function epc_portal_tenant_templates(): array
 			'hostname' => 'www.stylenlook.com',
 			'industry' => 'fashion',
 			'trade_name' => 'Stylenlook',
-			'hub_name' => 'Electronic World Group',
+			'hub_name' => 'ECOM GLOBAL FZE LLC',
 			'from_email' => 'hello@stylenlook.com',
 		),
 		'thejewellerytrend' => array(
@@ -105,7 +105,7 @@ function epc_portal_tenant_templates(): array
 			'hostname' => 'www.thejewellerytrend.com',
 			'industry' => 'jewellery',
 			'trade_name' => 'The Jewellery Trend',
-			'hub_name' => 'Electronic World Group',
+			'hub_name' => 'ECOM GLOBAL FZE LLC',
 			'from_email' => 'hello@thejewellerytrend.com',
 		),
 		'erp_only_demo' => array(
@@ -113,7 +113,7 @@ function epc_portal_tenant_templates(): array
 			'hostname' => 'www.ecomae.com',
 			'industry' => 'erp_standalone',
 			'trade_name' => 'Client ERP',
-			'hub_name' => 'Electronic World Group',
+			'hub_name' => 'ECOM GLOBAL FZE LLC',
 			'from_email' => 'admin@client.com',
 			'access_mode' => 'erp_only',
 			'hosted_on' => 'platform',
@@ -126,7 +126,7 @@ function epc_portal_tenant_templates(): array
 			'hostname' => 'www.ecomae.com',
 			'industry' => 'erp_standalone',
 			'trade_name' => 'ASAP',
-			'hub_name' => 'Electronic World Group',
+			'hub_name' => 'ECOM GLOBAL FZE LLC',
 			'from_email' => 'admin@asap-ae.com',
 			'access_mode' => 'erp_only',
 			'hosted_on' => 'platform',
@@ -575,7 +575,7 @@ function epc_portal_tenant_row_to_profile(array $row): array
 		'hub_name' => (string) $row['hub_name'],
 		'from_email' => (string) $row['from_email'],
 		'system_name' => 'e-world Commerce System',
-		'tagline' => 'Designed by Electronic World Group',
+		'tagline' => 'Designed by ECOM GLOBAL FZE LLC',
 	);
 }
 

@@ -58,7 +58,7 @@ header('Content-Type: text/html; charset=utf-8');
 <body style="font-family:sans-serif;text-align:center;padding:4rem">
 <h1>Temporarily offline</h1>
 <p>This site is paused while we migrate to the ecomae platform.</p>
-<p><small>Electronic World Group</small></p>
+<p><small>ECOM GLOBAL FZE LLC</small></p>
 </body></html>
 PHP;
 

@@ -217,8 +217,8 @@ function epc_portal_default_site_settings($host)
 		$profile = array(
 			'industry' => 'auto_parts',
 			'system_name' => 'e-world Commerce System',
-			'hub_name' => 'Electronic World Group',
-			'tagline' => 'Designed by Electronic World Group',
+			'hub_name' => 'ECOM GLOBAL FZE LLC',
+			'tagline' => 'Designed by ECOM GLOBAL FZE LLC',
 			'domain_path' => epc_portal_guess_domain_path($host),
 		);
 	}

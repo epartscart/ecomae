@@ -256,7 +256,7 @@ function epc_erp_portal_render_shell($innerCallback, array $opts = array())
 	$hostedBy = epc_brand_hosted_by_html();
 	echo $hostedBy;
 	if ($platformHost && trim(strip_tags($hostedBy)) === '') {
-		echo '<span class="epc-erp-platform-foot">&copy; ' . date('Y') . ' Electronic World Group &middot; '
+		echo '<span class="epc-erp-platform-foot">&copy; ' . date('Y') . ' ECOM GLOBAL FZE LLC &middot; '
 			. '<a href="https://www.ecomae.com/platform">ECOM AE platform</a> &middot; Dubai, UAE</span>';
 	}
 	?>

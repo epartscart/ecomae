@@ -2,7 +2,7 @@
   "id": "lifeos-legal-footer-php-parity",
   "capturedAtUtc": "2026-08-07T12:45:00Z",
   "verdict": "live-scaffold",
-  "summary": "lifeos.ecomae.com site footer mirrors PHP ecomae.com Legal & security strip + Electronic World Group copyright",
+  "summary": "lifeos.ecomae.com site footer mirrors PHP ecomae.com Legal & security strip + ECOM GLOBAL FZE LLC copyright",
   "phpSource": "content/general_pages/epc_ecomae_platform_layout.php :: epc_ecomae_platform_layout_close()",
   "aspnet": {
     "catalog": "LifeOs/Legal/LifeOsLegalCatalog.cs",
@@ -25,12 +25,12 @@
     "Blockchain disclaimer → https://www.ecomae.com/blockchain-disclaimer",
     "IP notice → https://www.ecomae.com/dmca"
   ],
-  "copyright": "© {year} Electronic World Group · Dubai, UAE · Legal policies",
+  "copyright": "© {year} ECOM GLOBAL FZE LLC · Dubai, UAE · Legal policies",
   "note": "Canonical policy bodies remain PHP-primary on www.ecomae.com (lifeos host returns 404 for bare /privacy).",
   "prove": [
     "curl -sL https://lifeos.ecomae.com/lifeos | grep -F 'Legal &amp; security'",
     "curl -sL https://lifeos.ecomae.com/lifeos | grep -F 'https://www.ecomae.com/privacy'",
-    "curl -sL https://lifeos.ecomae.com/lifeos | grep -F 'Electronic World Group'",
+    "curl -sL https://lifeos.ecomae.com/lifeos | grep -F 'ECOM GLOBAL FZE LLC'",
     "curl -sL https://lifeos.ecomae.com/lifeos/mobile | grep -F 'https://www.ecomae.com/copyright'"
   ]
 }

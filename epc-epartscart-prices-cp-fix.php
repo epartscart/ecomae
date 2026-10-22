@@ -80,7 +80,7 @@ if ($apply) {
 		'access_mode' => 'full',
 		'enabled_packs' => $mergedPacks,
 		'system_name' => $settings['system_name'] ?? 'eParts Cart',
-		'hub_name' => $settings['hub_name'] ?? 'Electronic World Group',
+		'hub_name' => $settings['hub_name'] ?? 'ECOM GLOBAL FZE LLC',
 		'tagline' => $settings['tagline'] ?? 'Auto parts & commerce',
 		'domain_path' => $settings['domain_path'] ?? ('https://' . $hostname . '/'),
 		'contact' => $settings['contact'] ?? array(),

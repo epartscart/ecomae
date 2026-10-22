@@ -809,7 +809,7 @@ function epc_portal_site_profile()
 				$profile['site_key'] = 'epartscart';
 				$profile['industry'] = 'auto_parts';
 				$profile['trade_name'] = 'eParts Cart';
-				$profile['hub_name'] = 'Electronic World Group';
+				$profile['hub_name'] = 'ECOM GLOBAL FZE LLC';
 				$profile['from_email'] = 'epartscart@gmail.com';
 			}
 		}

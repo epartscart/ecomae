@@ -467,7 +467,7 @@ a{color:inherit}
 
 <footer class="isp-foot">
   <div class="isp-foot__inner">
-    <p>© <?php echo date('Y'); ?> Electronic World Group · <?php echo htmlspecialchars($subLabel); ?> on <?php echo htmlspecialchars($seoHost); ?></p>
+    <p>© <?php echo date('Y'); ?> ECOM GLOBAL FZE LLC · <?php echo htmlspecialchars($subLabel); ?> on <?php echo htmlspecialchars($seoHost); ?></p>
     <p>
       <a href="<?php echo htmlspecialchars($hubUrl); ?>"><?php echo htmlspecialchars($name); ?> hub</a> ·
       <a href="https://www.ecomae.com/legal">Legal</a> ·
