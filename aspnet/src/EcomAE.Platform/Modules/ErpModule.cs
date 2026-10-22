@@ -27494,7 +27494,6 @@ public sealed class ErpModule : ISurfaceModule
 
         var entity = AmlText(fields, "entity");
         var top = (int)AmlLong(fields, "top");
-        if (top <= 0) top = 500;
         await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         var res = await d365connect.PullEntityAsync(conn, entity, top, session.UserId, cancellationToken).ConfigureAwait(false);
         return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Staged, fetched = res.Fetched, staged = res.Staged, run_id = res.RunId, message = res.Message, session = SessionPayload(session) });
