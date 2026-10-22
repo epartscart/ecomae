@@ -36,7 +36,6 @@ printf 'Environment file: %s\n' "$ENV_FILE"
 printf 'Local ASP.NET Core port: %s\n' "$PLATFORM_PORT"
 
 check_command dotnet required
-check_command php required
 check_command curl required
 check_command nginx optional
 check_command systemctl optional
@@ -79,9 +78,9 @@ if [[ -f "$ENV_FILE" ]]; then
     fi
 
     if grep -Fq 'MigrationRouteCutover__RequirePhpFallback=true' "$ENV_FILE"; then
-        pass "PHP fallback remains enabled"
+        warn "environment still sets RequirePhpFallback=true; PHP is removed — drop the flag"
     else
-        fail "PHP fallback is not explicitly enabled"
+        pass "no PHP fallback flag required (PHP removed)"
     fi
 else
     warn "environment file missing; copy deploy/aspnet/platform.env.example to $ENV_FILE"

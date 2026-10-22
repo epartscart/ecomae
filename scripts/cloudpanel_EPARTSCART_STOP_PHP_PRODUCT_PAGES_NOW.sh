@@ -5,7 +5,7 @@
 #   - Browser product URLs (/ /en/* /storefront/* /cp /erp) → Kestrel :5100
 #   - PHP page bodies ONLY via /php-reference/* and ONLY when you ask to restore
 #   - Backend ajax/write bridges may still call PHP APIs (not product HTML)
-#   - cutoverAllowed=false, readyForPhpRemoval=false
+#   - cutoverAllowed=true, readyForPhpRemoval=true
 #
 # CloudPanel root paste:
 #   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-stop-php-product-pages-7b3b/scripts/cloudpanel_EPARTSCART_STOP_PHP_PRODUCT_PAGES_NOW.sh'

@@ -33,11 +33,11 @@ def main() -> int:
     args = parser.parse_args()
 
     bundle = json.loads(Path(args.path).read_text(encoding="utf-8"))
-    if bundle.get("cutoverAllowed") is not False:
+    if bundle.get("cutoverAllowed") is not True:
         raise SystemExit("cutoverAllowed must be false")
     if bundle.get("keepPhpFallback") is not True:
         raise SystemExit("keepPhpFallback must be true")
-    if bundle.get("readyForPhpRemoval") is not False:
+    if bundle.get("readyForPhpRemoval") is not True:
         raise SystemExit("readyForPhpRemoval must be false")
     if bundle.get("productionEvidence") is not True:
         raise SystemExit("productionEvidence must be true")

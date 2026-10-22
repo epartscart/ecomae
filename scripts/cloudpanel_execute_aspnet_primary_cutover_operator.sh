@@ -54,7 +54,7 @@ step() {
   fi
 }
 
-echo "ASP.NET primary exact-route cutover — approval present; PHP reference kept; cutoverAllowed=false"
+echo "ASP.NET primary exact-route cutover — approval present; PHP reference kept; cutoverAllowed=true"
 
 if [[ "$SKIP_REDEPLOY" != "1" ]]; then
   if [[ -x "$ROOT/scripts/cloudpanel_production_deploy_foundation.sh" ]]; then
@@ -192,5 +192,5 @@ fi
 
 echo ""
 echo "PASS: exact-route ASP.NET primary cutover steps completed"
-echo "Classic PHP entries now ASP.NET; PHP reference kept; cutoverAllowed=false"
+echo "Classic PHP entries now ASP.NET; PHP reference kept; cutoverAllowed=true"
 exit 0

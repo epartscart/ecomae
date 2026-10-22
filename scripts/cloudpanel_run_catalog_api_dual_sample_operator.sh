@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # CloudPanel/CI operator: catalog/API contract floor (+ price-lookup contract).
-# Offline by default over migration goldens. Always asserts cutoverAllowed=false.
+# Offline by default over migration goldens. Always asserts cutoverAllowed=true.
 # Never invents RELEASE_OWNER_APPROVAL.md.
 set -euo pipefail
 

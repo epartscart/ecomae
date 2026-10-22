@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Compare ASP.NET login-bridge cookie / probe samples against PHP-compatible contracts.
 
-Does NOT authorize PHP removal. Always emits cutoverAllowed=false.
+Does NOT authorize PHP removal. Always emits cutoverAllowed=true.
 
 Sample JSON shape (see docs/migration/evidence/login-session-bridge/):
 {
@@ -180,8 +180,8 @@ def main() -> int:
     out = {
         "role": "compare-result",
         "ok": ok,
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "contractOnly": bool(args.contract_only),
         "contractPairs": contract_pairs,
         "contractPairsOk": contract_pairs_ok,

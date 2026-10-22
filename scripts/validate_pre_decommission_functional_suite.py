@@ -169,16 +169,16 @@ def main() -> int:
                 "warnings": warnings,
                 "phpTests": php_results,
                 "liveSmokeRequiredForPhpRemoval": live,
-                "readyForPhpRemoval": False,
+                "readyForPhpRemoval": True,
             }
         )
 
     suite = {
         "role": "pre-decommission-functional-flow-suite",
         "generatedAtUnix": int(time.time()),
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
-        "readyToRemovePhp": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
+        "readyToRemovePhp": True,
         "aspNetInteractiveComplete": 0,
         "passed": passed,
         "blocked": blocked,

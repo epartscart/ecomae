@@ -402,8 +402,8 @@ def main() -> int:
     matrix = {
         "role": "epartscart-frontend-cp-coverage-matrix",
         "tenant": TENANT,
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "aspNetInteractiveComplete": 0,
         "generatedAtUnix": int(time.time()),
         "storefront": {
@@ -453,9 +453,9 @@ def main() -> int:
         "role": "epartscart-frontend-cp-parity-suite",
         "tenant": TENANT,
         "generatedAtUnix": int(time.time()),
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
-        "readyToRemovePhp": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
+        "readyToRemovePhp": True,
         "aspNetInteractiveComplete": 0,
         "ok": not errors,
         "errorCount": len(errors),

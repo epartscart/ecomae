@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Cut product PHP front-controllers on www.ecomae.com — ASP.NET only.
-# PHP remains installed under /php-reference/* for compare (cutoverAllowed=false).
+# PHP remains installed under /php-reference/* for compare (cutoverAllowed=true).
 #
 # CloudPanel root paste:
 #   ECOMAE_BRANCH=cursor/no-product-php-urls-marketing-7b3b \

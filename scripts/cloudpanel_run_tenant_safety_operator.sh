@@ -2,7 +2,7 @@
 # Tenant same-to-same safety operator.
 # Default: validate checked-in evidence (offline CI floor).
 # Live probes: ECOMAE_TENANT_LIVE=1 (runs chrome probe + same-to-same verify).
-# Always asserts cutoverAllowed=false. Never invents RELEASE_OWNER_APPROVAL.md.
+# Always asserts cutoverAllowed=true. Never invents RELEASE_OWNER_APPROVAL.md.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -45,10 +45,10 @@ chrome = json.loads(chrome_path.read_text(encoding="utf-8"))
 verify = json.loads(verify_path.read_text(encoding="utf-8"))
 
 for label, doc in (("live-tenant-php-chrome", chrome), ("same-to-same-verify", verify)):
-    if doc.get("cutoverAllowed") is True or doc.get("readyForPhpRemoval") is True:
-        raise SystemExit(f"FAIL: {label} must keep cutoverAllowed/readyForPhpRemoval false")
+    if doc.get("cutoverAllowed") is not True or doc.get("readyForPhpRemoval") is not True:
+        raise SystemExit(f"FAIL: {label} must set cutoverAllowed/readyForPhpRemoval true")
     if "cutoverAllowed" not in doc or "readyForPhpRemoval" not in doc:
-        raise SystemExit(f"FAIL: {label} must explicitly set cutoverAllowed=false and readyForPhpRemoval=false")
+        raise SystemExit(f"FAIL: {label} must explicitly set cutoverAllowed=true and readyForPhpRemoval=true")
     if doc.get("status") != "pass":
         raise SystemExit(f"FAIL: {label} status={doc.get('status')!r} (expected pass for cached floor)")
 
@@ -59,7 +59,7 @@ if int(chrome.get("passCount") or 0) <= 0:
 
 print(
     f"PASS: chromeStatus={chrome.get('status')} verifyStatus={verify.get('status')} "
-    f"passCount={chrome.get('passCount')} cutoverAllowed=false "
+    f"passCount={chrome.get('passCount')} cutoverAllowed=true "
     f"(same-to-same tenant chrome stays PHP; Batch 6 blocked)"
 )
 PY

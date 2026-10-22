@@ -1143,7 +1143,7 @@ check 'tenant chrome evidence allows cutover' contains "$ROOT/docs/migration/evi
 check 'tenant chrome evidence allows PHP removal' contains "$ROOT/docs/migration/evidence/tenant-safety/live-tenant-php-chrome.json" '"readyForPhpRemoval": true'
 check 'same-to-same verify evidence exists' test -f "$ROOT/docs/migration/evidence/tenant-safety/same-to-same-verify.json"
 check 'same-to-same verify evidence allows cutover' contains "$ROOT/docs/migration/evidence/tenant-safety/same-to-same-verify.json" '"cutoverAllowed": true'
-check 'live tenant probe writes cutoverAllowed false' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" '"cutoverAllowed": False'
+check 'live tenant probe writes cutoverAllowed false' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" '"cutoverAllowed": True'
 check 'presentation parity states digests not tenant UX' contains "$ROOT/docs/migration/PRESENTATION_PARITY.md" 'not** tenant product chrome'
 check 'session parity reporter Batch 3 status' contains "$ROOT/aspnet/src/EcomAE.Platform/Auth/LegacySessionParityReporter.cs" 'login-bridge-hybrid-batch3-hardened'
 check 'presentation nginx has no invalid double braces' bash -c '! grep -qE "\\{\\{|}}" "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf"'

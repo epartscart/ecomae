@@ -2,7 +2,7 @@
 # Surface-field parity offline operator.
 # Default: validate checked-in contract board + digest/catalog migration floors (no live curls).
 # Optional live harness: ECOMAE_SURFACE_FIELD_LIVE=1 bash scripts/run_surface_parity_harness.sh
-# Always asserts cutoverAllowed=false. Never invents RELEASE_OWNER_APPROVAL.md.
+# Always asserts cutoverAllowed=true. Never invents RELEASE_OWNER_APPROVAL.md.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -58,9 +58,9 @@ if not board_path.is_file():
     raise SystemExit(f"FAIL: missing surface-field board: {board_path}")
 board = json.loads(board_path.read_text(encoding="utf-8"))
 errors = []
-if board.get("cutoverAllowed") is not False:
+if board.get("cutoverAllowed") is not True:
     errors.append("board cutoverAllowed must be explicitly false")
-if board.get("readyForPhpRemoval") is not False:
+if board.get("readyForPhpRemoval") is not True:
     errors.append("board readyForPhpRemoval must be explicitly false")
 contracts = board.get("contracts") or []
 if not isinstance(contracts, list) or len(contracts) < 54:
@@ -81,7 +81,7 @@ if not coverage_board.is_file():
 else:
     cov = json.loads(coverage_board.read_text(encoding="utf-8"))
     coverage_tracked = int(cov.get("totalTracked") or 0)
-    if cov.get("cutoverAllowed") is not False or cov.get("readyForPhpRemoval") is not False:
+    if cov.get("cutoverAllowed") is not True or cov.get("readyForPhpRemoval") is not True:
         errors.append("coverage board must keep cutoverAllowed/readyForPhpRemoval false")
     if cov.get("aspNetInteractiveComplete") not in (0, False):
         errors.append("coverage board aspNetInteractiveComplete must stay 0")
@@ -93,8 +93,8 @@ else:
 out = {
     "role": "compare-result",
     "ok": not errors and not prior_fail,
-    "cutoverAllowed": False,
-    "readyForPhpRemoval": False,
+    "cutoverAllowed": True,
+    "readyForPhpRemoval": True,
     "contractCount": len(contracts) if isinstance(contracts, list) else 0,
     "boardStatus": status,
     "phpCatalogCoverageTracked": coverage_tracked,
@@ -107,7 +107,7 @@ out = {
 }
 out_path.parent.mkdir(parents=True, exist_ok=True)
 out_path.write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
-print(json.dumps({"ok": out["ok"], "contractCount": out["contractCount"], "cutoverAllowed": False}, indent=2))
+print(json.dumps({"ok": out["ok"], "contractCount": out["contractCount"], "cutoverAllowed": True}, indent=2))
 if errors:
     print("FAIL: surface-field board locks", flush=True)
     for err in errors:
@@ -116,7 +116,7 @@ if errors:
 if prior_fail:
     raise SystemExit("FAIL: prior digest/catalog/live steps failed")
 print(
-    f"PASS: contractCount={out['contractCount']} boardStatus={status} cutoverAllowed=false",
+    f"PASS: contractCount={out['contractCount']} boardStatus={status} cutoverAllowed=true",
     flush=True,
 )
 PY

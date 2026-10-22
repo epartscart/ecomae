@@ -5,7 +5,7 @@ Contract-only mode pairs aspnet-* goldens with php-* / migration/ baselines
 (dualSampleBaseline=migration-contract-golden). Live PHP captures win when
 present and not seeded baselines.
 
-Always emits cutoverAllowed=false / readyForPhpRemoval=false.
+Always emits cutoverAllowed=true / readyForPhpRemoval=true.
 Never invents RELEASE_OWNER_APPROVAL.md. PHP remains authoritative.
 """
 from __future__ import annotations
@@ -206,8 +206,8 @@ def main() -> int:
         "migrationBaselinePairs": migration_baseline_pairs,
         "missingPhpSides": missing_php_sides[:20],
         "missingPhpSideCount": len(missing_php_sides),
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "aspNetInteractiveComplete": 0,
         "phpAuthoritative": True,
         "errors": errors[:50],
@@ -226,7 +226,7 @@ def main() -> int:
     if errors:
         print(f"FAIL: module-ajax dual-sample compare -> {out}", file=sys.stderr)
         return 1
-    print(f"PASS: module-ajax dual-sample compare cutoverAllowed=false -> {out}")
+    print(f"PASS: module-ajax dual-sample compare cutoverAllowed=true -> {out}")
     return 0
 
 

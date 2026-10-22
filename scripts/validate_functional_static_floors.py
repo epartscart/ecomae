@@ -137,7 +137,7 @@ def main() -> int:
         return 1
     print(
         f"PASS: functional static floors 7/7 green; liveSmokeBlocked={smoke_blocked} "
-        f"captured={smoke_captured} cutoverAllowed=false"
+        f"captured={smoke_captured} cutoverAllowed=true"
     )
     return 0
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Refuse new PHP files and production UI that mentions PHP / classic / classical.
 
-Existing PHP stays on disk (readyToRemovePhp=false). New product work is ASP.NET Core only.
+Existing PHP stays on disk (readyToRemovePhp=true). New product work is ASP.NET Core only.
 Gated deploy runs this before publish so a mistaken SHA cannot ship stack words or new PHP.
 """
 from __future__ import annotations

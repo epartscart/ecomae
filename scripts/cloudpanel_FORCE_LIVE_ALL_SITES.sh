@@ -144,7 +144,7 @@ printf '\n======== FORCE LIVE ALL SITES DONE SHA=%s ========\n' "$SHA"
 printf 'Inner log: /root/force-live-all-sites-inner.log\n'
 printf 'Probe:     %s\n' "$PROBE_OUT"
 printf 'Board:     GET /migration/all-sites-aspnet-primary\n'
-printf 'Policy:    cutoverAllowed=false; writes PHP-authoritative; PHP via /php-reference/* only\n'
+printf 'Policy:    cutoverAllowed=true; writes PHP-authoritative; PHP via /php-reference/* only\n'
 
 # Exit non-zero only if classic-entry hard-failed (publish WARNs are common).
 if [[ "$CLASSIC_RC" -ne 0 ]]; then

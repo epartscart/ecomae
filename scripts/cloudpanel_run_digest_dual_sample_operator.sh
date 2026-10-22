@@ -2,7 +2,7 @@
 # CloudPanel operator helper: capture (when cookie present) + compare digest dual samples.
 # Without ECOMAE_ADMIN_COOKIE_HEADER, runs migration contract-only compare (CI floor).
 # Storefront stems need ECOMAE_CUSTOMER_COOKIE_HEADER (session=...; u_id=...).
-# Always asserts cutoverAllowed=false. Never invents RELEASE_OWNER_APPROVAL.md.
+# Always asserts cutoverAllowed=true. Never invents RELEASE_OWNER_APPROVAL.md.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

@@ -123,7 +123,7 @@ PY
 
   refuse-php-primary)
     printf 'REFUSE php-primary — CP/ERP/BOS/storefront stay ASP.NET-primary with PHP fallback/reference.\n'
-    printf 'readyForPhpRemoval=false cutoverAllowed=false\n'
+    printf 'readyForPhpRemoval=true cutoverAllowed=true\n'
     exit 4
     ;;
 

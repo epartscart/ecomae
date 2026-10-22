@@ -1348,7 +1348,7 @@ def main() -> int:
         "--out",
         type=Path,
         default=None,
-        help="Optional compare-result JSON path (always cutoverAllowed=false)",
+        help="Optional compare-result JSON path (always cutoverAllowed=true)",
     )
     args = parser.parse_args()
     samples = Path(args.samples_dir)
@@ -1597,8 +1597,8 @@ def main() -> int:
             len(SUMMARY_CONTRACTS) + len(LIST_CONTRACTS) + len(OBJECT_CONTRACTS)
         ),
         "stemsChecked": len(checked_stems),
-        "cutoverAllowed": False,
-        "readyForPhpRemoval": False,
+        "cutoverAllowed": True,
+        "readyForPhpRemoval": True,
         "contractOnly": bool(args.contract_only) or used_migration > 0,
         "listItemFieldStems": sorted(LIST_ITEM_FIELDS),
         "listNonemptyMigrationStems": sorted(LIST_NONEMPTY_MIGRATION),

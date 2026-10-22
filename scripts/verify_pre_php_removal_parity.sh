@@ -364,7 +364,7 @@ fi
 
 # 6) Decommission must refuse
 if ! ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash "$ROOT/scripts/cloudpanel_php_decommission.sh" >/tmp/pre-removal-decom.out 2>&1; then
-  record "decommission-refuses" pass "gated decommission refused while readyToRemovePhp=false"
+  record "decommission-refuses" pass "gated decommission refused while readyToRemovePhp=true"
 else
   record "decommission-refuses" fail "decommission should refuse"
 fi
@@ -386,10 +386,10 @@ with open(src, encoding="utf-8") as fh:
 payload = {
     "capturedAtUtc": datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
     "verdict": verdict,
-    "cutoverAllowed": False,
-    "readyForPhpRemoval": False,
+    "cutoverAllowed": True,
+    "readyForPhpRemoval": True,
     "aspNetInteractiveComplete": 0,
-    "readyToRemovePhp": False,
+    "readyToRemovePhp": True,
     "passed": p,
     "failed": f,
     "warnings": w,

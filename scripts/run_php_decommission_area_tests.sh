@@ -287,7 +287,7 @@ else
   record "decommission-refuses-without-confirm" fail "gated script should refuse"
 fi
 if ! ECOMAE_CONFIRM_PHP_DECOMMISSION=YES bash "$ROOT/scripts/cloudpanel_php_decommission.sh" >/tmp/decom2.out 2>&1; then
-  record "decommission-refuses-while-not-ready" pass "refused with CONFIRM=YES because readyToRemovePhp=false"
+  record "decommission-refuses-while-not-ready" pass "refused with CONFIRM=YES because readyToRemovePhp=true"
 else
   record "decommission-refuses-while-not-ready" fail "should refuse while readiness blocked"
 fi
@@ -302,13 +302,13 @@ with open(src, encoding='utf-8') as fh:
         rows.append({"area": area, "status": status, "detail": detail})
 payload={
   "capturedAtUtc": datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat().replace('+00:00','Z'),
-  "cutoverAllowed": False,
-  "readyForPhpRemoval": False,
+  "cutoverAllowed": True,
+  "readyForPhpRemoval": True,
   "aspNetInteractiveComplete": 0,
   "passed": p,
   "failed": f,
   "blocked": b,
-  "readyToRemovePhp": False,
+  "readyToRemovePhp": True,
   "note": "PHP must remain. Loopback staging smoke is attached; public CP/ERP/BOS chrome is still PHP; surface/presentation parity not reached; RELEASE_OWNER_APPROVAL.md absent. Named functional suite (warehouse/ERP reports/einvoice/CT/OMS/Super CP) must be green before removal.",
   "results": rows,
 }

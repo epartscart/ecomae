@@ -270,7 +270,7 @@
 .epm-hub__core-pulse{position:absolute;left:50%;top:40%;width:120px;height:120px;transform:translate(-50%,-50%);border:2px solid rgba(14,165,233,.35);border-radius:50%;animation:epmCorePulseOut 2.5s ease-out infinite;pointer-events:none}
 @keyframes epmCorePulseOut{0%{transform:translate(-50%,-50%) scale(.6);opacity:.8}100%{transform:translate(-50%,-50%) scale(2.2);opacity:0}}
 
-.epm-hub__logo{max-width:min(200px,42vw);height:auto;display:block;margin:0 auto 8px;filter:drop-shadow(0 16px 40px rgba(14,165,233,.35));animation:epmHubLogoFloat 5s ease-in-out infinite}
+.epm-hub__logo{width:min(200px,42vw);max-width:200px;aspect-ratio:1/1;object-fit:contain;display:block;border-radius:18px;margin:0 auto 8px;filter:drop-shadow(0 16px 40px rgba(14,165,233,.35));animation:epmHubLogoFloat 5s ease-in-out infinite}
 @keyframes epmHubLogoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .epm-hub__headline{font-family:'Syne',system-ui,sans-serif;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:0 0 12px;display:flex;flex-direction:column;align-items:center}
 .epm-hub__headline-line{display:block;font-size:clamp(28px,4.8vw,58px)}

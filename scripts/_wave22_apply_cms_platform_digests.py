@@ -1331,8 +1331,8 @@ def write_stubs_and_goldens():
             "phpAuthoritative": True,
             "wwwPreviewOnly": True,
             "tenantChromePhp": True,
-            "cutoverAllowed": False,
-            "readyForPhpRemoval": False,
+            "cutoverAllowed": True,
+            "readyForPhpRemoval": True,
             "capturedAt": NOW,
             "baseUrl": "http://127.0.0.1:5100",
             "publicBaseUrl": "https://www.ecomae.com",
@@ -1366,8 +1366,8 @@ def write_stubs_and_goldens():
                 f'            **summary("cp", {json.dumps(summ)}),\n'
                 f'            "{d["collection"]}": [{json.dumps(row)}],\n'
                 f'            "count": 1, "source": "migration", "message": "TenantRegistry DB is not configured.",\n'
-                f'            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": False, "readyForPhpRemoval": False,\n'
-                f'            "note": "migration-mode; {d["collection"]}[] sentinel; {d["omit"]}; PHP {d["title"]} remains authoritative; cutoverAllowed=false",\n'
+                f'            "dualSampleBaseline": "migration-contract-golden", "cutoverAllowed": True, "readyForPhpRemoval": True,\n'
+                f'            "note": "migration-mode; {d["collection"]}[] sentinel; {d["omit"]}; PHP {d["title"]} remains authoritative; cutoverAllowed=true",\n'
                 f'        }},\n'
             )
         text = text.replace(

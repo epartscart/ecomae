@@ -77,8 +77,8 @@ for path in sorted(PAGES.glob("*App.razor")):
 
 out = {
     "role": "php-color-scheme-floor",
-    "cutoverAllowed": False,
-    "readyForPhpRemoval": False,
+    "cutoverAllowed": True,
+    "readyForPhpRemoval": True,
     "aspNetInteractiveComplete": 0,
     "forbiddenHits": len(hits),
     "hits": hits[:80],

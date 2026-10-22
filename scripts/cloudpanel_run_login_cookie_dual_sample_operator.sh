@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # CloudPanel operator helper: capture + compare login-cookie dual samples (Batch 3).
-# Always asserts cutoverAllowed=false. Never invents RELEASE_OWNER_APPROVAL.md.
+# Always asserts cutoverAllowed=true. Never invents RELEASE_OWNER_APPROVAL.md.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
