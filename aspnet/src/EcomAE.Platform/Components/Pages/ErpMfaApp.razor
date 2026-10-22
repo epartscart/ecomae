@@ -1,0 +1,155 @@
+@page "/erp/security-mfa"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@using System.Web
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@using EcomAE.Platform.Cp
+@inject ICpCsrfGuard Csrf
+@inject IErpWriteConnectionFactory Connections
+
+<PageTitle>Two-factor sign-in · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<style>
+    .tg-card { background:#fff; border:1px solid #dde6ee; border-radius:10px; padding:16px 18px; margin:0 0 16px; box-shadow:0 1px 2px rgba(16,42,66,.05); }
+    .tg-card h3 { margin:0 0 8px; font-size:15px; color:#12324f; }
+    .tg-card p, .tg-card li { font-size:12.5px; color:#40566c; line-height:1.55; }
+    .tg-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+    .tg-form label { display:block; font-size:11px; color:#4a627a; margin:8px 0 2px; }
+    .tg-form input { width:100%; box-sizing:border-box; border:1px solid #c3d3de; border-radius:6px; padding:6px 8px; font-size:12.5px; }
+    .tg-form button { margin-top:10px; background:#12324f; color:#fff; border:0; border-radius:6px; padding:7px 14px; font-size:12.5px; cursor:pointer; }
+    .tg-form button.tg-danger { background:#8a1c1c; }
+    .tg-flash { border-radius:8px; padding:10px 14px; margin:0 0 16px; font-size:13px; }
+    .tg-flash-ok { background:#e8f6ee; border:1px solid #9fd8b6; color:#0f6b3f; }
+    .tg-flash-err { background:#fdeaea; border:1px solid #f0b4b4; color:#9c1c1c; }
+    .tg-pill { display:inline-block; border-radius:999px; padding:2px 10px; font-size:11px; font-weight:600; }
+    .tg-pill-ok { background:#e8f6ee; color:#0f6b3f; }
+    .tg-pill-warn { background:#fff3d6; color:#8a5a00; }
+    .tg-secret { font-family:ui-monospace,Consolas,monospace; font-size:15px; letter-spacing:1px; word-break:break-all; background:#f4f8fb; border:1px dashed #9fb8cb; border-radius:6px; padding:8px 10px; margin:6px 0; }
+</style>
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Two-factor sign-in" BreadcrumbArea="Security" BreadcrumbTab="Two-factor sign-in">
+    <PhpErpModulePageHeader
+        Title="Two-factor sign-in"
+        Subtitle="TOTP authenticator (RFC 6238) on your CP / ERP / BOS login — password plus a 6-digit code from your authenticator app."
+        PhpTabHref="/erp/security-mfa" />
+
+    @if (_flashOk.Length > 0)
+    {
+        <div class="tg-flash tg-flash-ok">@_flashOk</div>
+    }
+    @if (_flashErr.Length > 0)
+    {
+        <div class="tg-flash tg-flash-err">@_flashErr</div>
+    }
+
+    <div class="tg-grid">
+        <div class="tg-card">
+            <h3>Status</h3>
+            @if (!_isAdmin)
+            {
+                <p>Sign in with an ERP admin session to manage two-factor sign-in.</p>
+            }
+            else if (!_enabled)
+            {
+                <p><span class="tg-pill tg-pill-warn">off</span></p>
+                <p>Two-factor sign-in is <strong>not enabled</strong> on this account. Any password leak is a full account compromise — enable it below.</p>
+            }
+            else
+            {
+                <p><span class="tg-pill tg-pill-ok">enabled</span></p>
+                <p>Every CP / ERP / BOS login for this account now requires the 6-digit code from your authenticator app.</p>
+            }
+        </div>
+
+        @if (_isAdmin && !_enabled)
+        {
+            <div class="tg-card tg-form">
+                <h3>Enable</h3>
+                <ol>
+                    <li>Open your authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</li>
+                    <li>Add an account and choose <strong>manual key entry</strong>.</li>
+                    <li>Enter this secret key:</li>
+                </ol>
+                <div class="tg-secret">@_pendingSecret</div>
+                <p style="font-size:11px">Account label: <code>ECOMAE:@_email</code> · SHA1 · 6 digits · 30 s. A fresh secret is generated each time this page loads until you confirm.</p>
+                <form method="post" action="@Post("/erp/mfa/enroll-confirm")">
+                    @HiddenFields()
+                    <label>6-digit code from the app</label>
+                    <input name="code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" required />
+                    <button type="submit">Enable two-factor</button>
+                </form>
+            </div>
+        }
+
+        @if (_isAdmin && _enabled)
+        {
+            <div class="tg-card tg-form">
+                <h3>Disable</h3>
+                <p>Enter a current authenticator code to turn two-factor sign-in off for this account.</p>
+                <form method="post" action="@Post("/erp/mfa/disable")">
+                    @HiddenFields()
+                    <label>Current 6-digit code</label>
+                    <input name="code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" required />
+                    <button type="submit" class="tg-danger">Disable two-factor</button>
+                </form>
+            </div>
+        }
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private bool _enabled;
+    private string _csrf = "";
+    private string _email = "";
+    private string _pendingSecret = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted).ConfigureAwait(false);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted).ConfigureAwait(false);
+        _email = session.Email ?? "";
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
+
+        try
+        {
+            if (_isAdmin && Connections.IsConfigured)
+            {
+                await using var conn = await Connections.OpenAsync(ctx.RequestAborted).ConfigureAwait(false);
+                await LegacyTotpService.EnsureTableAsync(conn, ctx.RequestAborted).ConfigureAwait(false);
+                _enabled = await LegacyTotpService.IsEnabledAsync(conn, session.UserId, ctx.RequestAborted).ConfigureAwait(false);
+                if (!_enabled)
+                {
+                    var (base32, _) = await LegacyTotpService.StartEnrollmentAsync(conn, session.UserId, _email, ctx.RequestAborted).ConfigureAwait(false);
+                    _pendingSecret = base32;
+                }
+            }
+        }
+        catch
+        {
+            // Enrollment prep is best-effort; the forms still post.
+        }
+    }
+
+    private string Post(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext!, path);
+
+    private MarkupString HiddenFields()
+    {
+        var returnUrl = HttpUtility.HtmlAttributeEncode(
+            (Http.HttpContext?.Request.Path.Value ?? "/erp/security-mfa") + Http.HttpContext?.Request.QueryString.Value);
+        return (MarkupString)(
+            $"<input type=\"hidden\" name=\"confirmWrites\" value=\"true\" />"
+            + $"<input type=\"hidden\" name=\"returnUrl\" value=\"{returnUrl}\" />"
+            + $"<input type=\"hidden\" name=\"csrf_guard_key\" value=\"{HttpUtility.HtmlAttributeEncode(_csrf)}\" />");
+    }
+}

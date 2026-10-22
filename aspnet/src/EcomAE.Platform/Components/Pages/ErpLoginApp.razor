@@ -238,6 +238,13 @@ else
                                placeholder="Enter your password" />
                         <div class="bos-login__field-line"></div>
                     </div>
+                    <div class="bos-login__field">
+                        <label for="erpTotp"><i class="fa fa-shield"></i> Authentication code <small style="font-weight:400;color:#5b7791">(only if 2FA is enabled)</small></label>
+                        <input type="text" id="erpTotp" name="totp" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code"
+                               data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
+                               placeholder="6-digit code" />
+                        <div class="bos-login__field-line"></div>
+                    </div>
                     @if (!string.IsNullOrEmpty(_error))
                     {
                         <div class="bos-login__error is-visible" id="erpLoginError">

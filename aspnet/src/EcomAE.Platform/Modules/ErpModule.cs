@@ -410,6 +410,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpD365CsvImport, HandleD365CsvImportAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365ConnectTest, HandleD365ConnectTestAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365ConnectPull, HandleD365ConnectPullAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpMfaEnrollConfirm, HandleMfaEnrollConfirmAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpMfaDisable, HandleMfaDisableAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpD365CsvExport, HandleD365CsvExportAsync);
         endpoints.MapPost(EcomAeRoutes.ErpD365QuoteStatus, HandleD365QuoteStatusAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpD365QuotePdf, HandleD365QuotePdfAsync);
@@ -27390,6 +27392,76 @@ public sealed class ErpModule : ISurfaceModule
 
         var res = await d365connect.TestConnectionAsync(cancellationToken).ConfigureAwait(false);
         return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = 0, message = res.Message, session = SessionPayload(session) });
+    }
+
+    /// <summary>TOTP: confirm enrollment — verifies the code against the pending secret, then enables 2FA.</summary>
+    private static async Task<IResult> HandleMfaEnrollConfirmAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+                EcomAE.Platform.Cp.ICpCsrfGuard csrf,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/security-mfa", "Admin ERP capability required to manage two-factor sign-in.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to enable two-factor sign-in. Fields: code.", session = SessionPayload(session) });
+        }
+
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await LegacyTotpService.EnsureTableAsync(conn, cancellationToken).ConfigureAwait(false);
+        var ok = await LegacyTotpService.ConfirmEnrollmentAsync(conn, session.UserId, AmlText(fields, "code"), cancellationToken).ConfigureAwait(false);
+        var msg = ok
+            ? "Two-factor sign-in enabled — CP / ERP / BOS logins for this account now require the authenticator code."
+            : "Incorrect code — the secret on the authenticator app must match the one shown on the page. Re-check and try again.";
+        return LiveWriteFormBinder.Complete(context, "/erp/security-mfa", ok, msg, new { ok, writes = ok ? 1 : 0, message = msg, session = SessionPayload(session) });
+    }
+
+    /// <summary>TOTP: disable — requires a current authenticator code.</summary>
+    private static async Task<IResult> HandleMfaDisableAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+                EcomAE.Platform.Cp.ICpCsrfGuard csrf,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/security-mfa", "Admin ERP capability required to manage two-factor sign-in.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to disable two-factor sign-in. Fields: code.", session = SessionPayload(session) });
+        }
+
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await LegacyTotpService.EnsureTableAsync(conn, cancellationToken).ConfigureAwait(false);
+        var ok = await LegacyTotpService.DisableAsync(conn, session.UserId, AmlText(fields, "code"), cancellationToken).ConfigureAwait(false);
+        var msg = ok
+            ? "Two-factor sign-in disabled for this account."
+            : "Incorrect code — two-factor sign-in stays enabled.";
+        return LiveWriteFormBinder.Complete(context, "/erp/security-mfa", ok, msg, new { ok, writes = ok ? 1 : 0, message = msg, session = SessionPayload(session) });
     }
 
     /// <summary>D365 live connector: pull an F&O OData data entity into epc_d365_sync_objects staging.</summary>
