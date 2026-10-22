@@ -27,8 +27,8 @@ from pathlib import Path
 
 path = Path(os.environ["ECOMAE_MODULE_FUNCTION_COMPARE_OUT"])
 doc = json.loads(path.read_text(encoding="utf-8"))
-if doc.get("cutoverAllowed") is True or doc.get("readyForPhpRemoval") is True:
-    raise SystemExit("FAIL: compare-result must keep cutoverAllowed/readyForPhpRemoval false")
+if doc.get("cutoverAllowed") is not True or doc.get("readyForPhpRemoval") is not True:
+    raise SystemExit("FAIL: compare-result must require cutoverAllowed/readyForPhpRemoval true")
 if int(doc.get("aspnetCompleteCount") or 0) != 0:
     raise SystemExit("FAIL: aspnetCompleteCount must remain 0 without human pass evidence")
 if not doc.get("ok"):

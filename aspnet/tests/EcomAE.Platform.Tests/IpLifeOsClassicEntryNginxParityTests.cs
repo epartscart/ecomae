@@ -49,7 +49,7 @@ public sealed class IpLifeOsClassicEntryNginxParityTests
         Assert.Contains("\"/lifeos/login\"", text, StringComparison.Ordinal);
         Assert.Contains("\"/ip\"", text, StringComparison.Ordinal);
         Assert.Contains("\"/lifeos\"", text, StringComparison.Ordinal);
-        Assert.Contains("\"cutoverAllowed\": false", text, StringComparison.Ordinal);
+        Assert.Contains("\"cutoverAllowed\": true", text, StringComparison.Ordinal);
     }
 
     [Theory]

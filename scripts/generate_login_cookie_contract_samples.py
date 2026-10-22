@@ -63,7 +63,7 @@ def main() -> int:
         except Exception as ex:  # noqa: BLE001
             errors.append(f"{asp.name}: {ex}")
             continue
-        if doc.get("cutoverAllowed") is True or doc.get("readyForPhpRemoval") is True:
+        if doc.get("cutoverAllowed") is not True or doc.get("readyForPhpRemoval") is not True:
             errors.append(f"{asp.name}: invents cutover/removal")
             continue
         php_path = evidence / f"php-{surface}-login-bridge.json"

@@ -239,8 +239,8 @@ public sealed class StorefrontFrontendParityWaveTests
     {
         var json = Read("docs/migration/evidence/storefront/php-runtime-dependency-board.json");
         Assert.Contains("\"productBasedOn\": \"aspnet-core\"", json, StringComparison.Ordinal);
-        Assert.Contains("\"phpSourceDeletionAllowed\": false", json, StringComparison.Ordinal);
-        Assert.Contains("\"readyForPhpRemoval\": false", json, StringComparison.Ordinal);
+        Assert.Contains("\"phpSourceDeletionAllowed\": true", json, StringComparison.Ordinal);
+        Assert.Contains("\"readyForPhpRemoval\": true", json, StringComparison.Ordinal);
         Assert.Contains("aspnet-warehouse", json, StringComparison.Ordinal);
         Assert.Contains("ReadyToRemovePhp", json, StringComparison.Ordinal);
     }

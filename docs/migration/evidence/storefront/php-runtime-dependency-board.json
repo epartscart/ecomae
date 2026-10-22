@@ -9,13 +9,13 @@
     "requirePhpFallback": true,
     "keepPhpProjectAvailable": true,
     "preferAspNetStorefrontApps": true,
-    "phpSourceDeletionAllowed": false
+    "phpSourceDeletionAllowed": true
   },
   "policy": [
     "Product URLs (/ /cp /erp /storefront/*-app) must not depend on interim PHP /en pages for chrome or navigation.",
     "PHP remains available under /php-reference/* for side-by-side gap compares only.",
     "Do not delete PHP files until readyForPhpRemoval + ReadyToRemovePhp after all runtime deps are ported and dual-sample green.",
-    "No new PHP business features — close gaps in ASP.NET Core."
+    "No new PHP business features \u2014 close gaps in ASP.NET Core."
   ],
   "remainingPhpRuntimeDependencies": [
     {
@@ -42,7 +42,7 @@
     {
       "id": "bulk-upload-process",
       "aspnet": "/storefront/bulk-upload-app iframe + dry-run",
-      "php": "/php-reference/en/shop/bulk-upload → ajax_process.php",
+      "php": "/php-reference/en/shop/bulk-upload \u2192 ajax_process.php",
       "status": "reference-embed",
       "note": "History digest is ASP.NET; process/cross/cart writes still PHP reference."
     },
@@ -69,8 +69,8 @@
     }
   ],
   "completedThisWave": [
-    "PreferAspNetStorefrontApps=true by default — product chrome uses /storefront/*-app not /en PHP",
-    "Storefront stub→PHP redirect skipped in product mode",
+    "PreferAspNetStorefrontApps=true by default \u2014 product chrome uses /storefront/*-app not /en PHP",
+    "Storefront stub\u2192PHP redirect skipped in product mode",
     "Protocol-3 progressive poll uses aspnet-warehouse SQL (no PHP for price lists)",
     "VIN/bulk iframes pointed at /php-reference (not product /en)"
   ],

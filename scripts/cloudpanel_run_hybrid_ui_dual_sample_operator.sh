@@ -34,8 +34,8 @@ from pathlib import Path
 
 path = Path(os.environ["ECOMAE_HYBRID_UI_COMPARE_OUT"])
 doc = json.loads(path.read_text(encoding="utf-8"))
-if doc.get("cutoverAllowed") is True or doc.get("readyForPhpRemoval") is True:
-    raise SystemExit("FAIL: compare-result must keep cutoverAllowed/readyForPhpRemoval false")
+if doc.get("cutoverAllowed") is not True or doc.get("readyForPhpRemoval") is not True:
+    raise SystemExit("FAIL: compare-result must require cutoverAllowed/readyForPhpRemoval true")
 print(
     f"PASS: pairsChecked={doc.get('pairsChecked')} "
     f"hybridUiSamplesOk={doc.get('hybridUiSamplesOk')} "

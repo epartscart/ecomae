@@ -61,7 +61,7 @@ def main() -> int:
         errors.append("missing aspnet-catalog.json")
     else:
         catalog = load(catalog_path)
-        if catalog.get("cutoverAllowed") is True or catalog.get("readyForPhpRemoval") is True:
+        if catalog.get("cutoverAllowed") is not True or catalog.get("readyForPhpRemoval") is not True:
             errors.append("catalog invents cutover/removal")
         if int(catalog.get("totalActions") or 0) < 321:
             errors.append(f"catalog totalActions={catalog.get('totalActions')} < 321")
@@ -74,7 +74,7 @@ def main() -> int:
         inv = load(inv_path)
         if inv.get("phpAuthoritative") is not True:
             errors.append("inventory must set phpAuthoritative=true")
-        if inv.get("cutoverAllowed") is True or inv.get("readyForPhpRemoval") is True:
+        if inv.get("cutoverAllowed") is not True or inv.get("readyForPhpRemoval") is not True:
             errors.append("inventory invents cutover/removal")
 
     for path in sorted(evidence.glob("aspnet-*.json")):
@@ -84,8 +84,8 @@ def main() -> int:
         doc = load(path)
         if doc.get("writes") not in (0, None):
             errors.append(f"{path.name}: writes must be 0")
-        if doc.get("cutoverAllowed") is True:
-            errors.append(f"{path.name}: cutoverAllowed must be false")
+        if doc.get("cutoverAllowed") is not True:
+            errors.append(f"{path.name}: cutoverAllowed must be true")
         if doc.get("writes") == 0:
             samples_ok += 1
 
@@ -101,7 +101,7 @@ def main() -> int:
             if not is_migration_baseline(php):
                 errors.append(f"php-{stem}.json: expected dualSampleBaseline=migration-contract-golden")
                 continue
-            if php_doc.get("cutoverAllowed") is True or php_doc.get("readyForPhpRemoval") is True:
+            if php_doc.get("cutoverAllowed") is not True or php_doc.get("readyForPhpRemoval") is not True:
                 errors.append(f"php-{stem}.json invents cutover/removal")
                 continue
             if php_doc.get("writes") not in (0, None):
