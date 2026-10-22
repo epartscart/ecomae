@@ -586,6 +586,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Article-only search: warehouse manufacturers for normalized article (PHP brand picker).</summary>
     Task<StorefrontArticleBrandsResult> ListStorefrontArticleBrandsAsync(string article, int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Manufacturer browse (/en/parts/{BRAND}): all articles the brand offers (PHP CHPU manufacturer page).</summary>
+    Task<StorefrontBrandArticlesResult> ListStorefrontBrandArticlesAsync(string manufacturer, int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Cross references for article (+ optional brand filter, PHP <c>ajax_epc_cross_search</c>).</summary>
     Task<StorefrontCrossRefsResult> ListStorefrontCrossRefsAsync(string article, int limit, CancellationToken cancellationToken = default);
 

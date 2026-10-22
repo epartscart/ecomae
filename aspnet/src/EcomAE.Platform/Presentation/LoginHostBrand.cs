@@ -281,23 +281,40 @@ public static class LoginHostBrand
             }
         }
 
-        // Operations hosts: {key}-operations-uae.ecomae.com and {key}.ecomae.com.
-        if (normalized.EndsWith(".ecomae.com", StringComparison.Ordinal)
-            && normalized.Length > ".ecomae.com".Length)
+        // Operations hosts — canonical shapes only (ErpOperationsHost rules):
+        //   {key}.ecomae.com
+        //   {key}-operations-{ccc}.ecomae.com / {key}.operations.{ccc}.ecomae.com
+        //   {key}-sandbox-{ccc}.ecomae.com    / {key}.sandbox.{ccc}.ecomae.com
+        // Site keys are [a-z0-9]+ — no hyphens, so suffix matching is exact.
+        const string suffix = ".ecomae.com";
+        if (normalized.EndsWith(suffix, StringComparison.Ordinal)
+            && normalized.Length > suffix.Length)
         {
-            var slug = normalized[..^".ecomae.com".Length];
+            var slug = normalized[..^suffix.Length];
             if (TenantCatalog.ContainsKey(slug))
             {
                 return slug;
             }
 
-            var dash = slug.IndexOf('-');
-            if (dash > 0)
+            foreach (var key in TenantCatalog.Keys)
             {
-                var prefix = slug[..dash];
-                if (TenantCatalog.ContainsKey(prefix))
+                if (slug.StartsWith(key + "-operations-", StringComparison.Ordinal)
+                    || slug.StartsWith(key + "-sandbox-", StringComparison.Ordinal)
+                    || slug.StartsWith(key + ".operations.", StringComparison.Ordinal)
+                    || slug.StartsWith(key + ".sandbox.", StringComparison.Ordinal))
                 {
-                    return prefix;
+                    var rest = slug[key.Length..];
+                    var tier = rest.StartsWith("-operations-", StringComparison.Ordinal)
+                        ? rest["-operations-".Length..]
+                        : rest.StartsWith("-sandbox-", StringComparison.Ordinal)
+                            ? rest["-sandbox-".Length..]
+                            : rest.StartsWith(".operations.", StringComparison.Ordinal)
+                                ? rest[".operations.".Length..]
+                                : rest[".sandbox.".Length..];
+                    if (tier.Length == 3 && tier.All(char.IsLetter))
+                    {
+                        return key;
+                    }
                 }
             }
         }

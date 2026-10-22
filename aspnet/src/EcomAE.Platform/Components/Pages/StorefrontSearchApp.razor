@@ -160,6 +160,61 @@
         </PhpStorefrontPageHeader>
     }
 
+    @if (_manufacturerBrowse)
+    {
+        <section class="epc-sf-brand-browse">
+            <div class="table-responsive">
+                <table class="table table-hover table-condensed">
+                    <thead>
+                        <tr>
+                            <th>Article</th>
+                            <th>Name</th>
+                            <th class="text-center">Availability</th>
+                            <th class="text-right">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in _brandBrowseRows)
+                        {
+                            var href = BrandArticleHref(row.Article, _brandInput);
+                            var nameCell = string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name;
+                            <tr>
+                                <td><a href="@href" data-enhance-nav="false">@(string.IsNullOrWhiteSpace(row.ArticleShow) ? row.Article : row.ArticleShow)</a></td>
+                                <td><a href="@href" data-enhance-nav="false">@nameCell</a></td>
+                                <td class="text-center"><a href="@href">@(row.Exist > 0 ? row.Exist.ToString(CultureInfo.InvariantCulture) : "—")</a></td>
+                                <td class="text-right">
+                                    <a href="@href">
+                                        @if (_pricesVisible && row.MinPrice is decimal bmp)
+                                        {
+                                            <span class="epc-price-value" data-epc-base-price="@bmp.ToString("0.00", CultureInfo.InvariantCulture)">@bmp.ToString("N2", CultureInfo.InvariantCulture)</span>
+                                        }
+                                        else
+                                        {
+                                            @:—
+                                        }
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (_brandBrowseRows.Count == 0)
+            {
+                <div class="epc-sf-name-empty">
+                    @if (string.IsNullOrWhiteSpace(_brandBrowseMessage))
+                    {
+                        <text>No products listed for @_brandInput — enter a part number above.</text>
+                    }
+                    else
+                    {
+                        @_brandBrowseMessage
+                    }
+                </div>
+            }
+        </section>
+    }
+
     @if (_mode is "name")
     {
         @if (!_nameSearchLoaded && string.IsNullOrWhiteSpace(_nameQuery))
@@ -1558,6 +1613,9 @@
     private string _storeBrand = "Storefront";
     private string _brandInput = "";
     private string _mode = "";
+    private bool _manufacturerBrowse;
+    private IReadOnlyList<StorefrontBrandArticleDigest> _brandBrowseRows = [];
+    private string _brandBrowseMessage = "";
     private string _heroTitle = "Part search";
     private string _heroSubtitle = "Search by article, choose a brand, then open warehouse prices.";
     private string _normalized = "";
@@ -1771,6 +1829,7 @@
             // PHP manufacturer browse: /en/parts/{BRAND}
             _articleInput = ArticleQuery?.Trim() ?? "";
             _brandInput = FirstNonEmpty(BrandQuery, BrendQuery, pathBrand);
+            _manufacturerBrowse = string.IsNullOrWhiteSpace(_articleInput) && !string.IsNullOrWhiteSpace(_brandInput);
         }
         else
         {
@@ -1841,6 +1900,13 @@
 
         if (string.IsNullOrWhiteSpace(_articleInput))
         {
+            if (_manufacturerBrowse && !string.IsNullOrWhiteSpace(_brandInput))
+            {
+                var browse = await Dashboards.ListStorefrontBrandArticlesAsync(_brandInput, 2000);
+                _brandBrowseRows = browse.Rows;
+                _brandBrowseMessage = browse.Message;
+            }
+
             return;
         }
 

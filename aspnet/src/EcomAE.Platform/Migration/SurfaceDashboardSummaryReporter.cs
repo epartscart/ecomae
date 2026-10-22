@@ -4387,6 +4387,51 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         return new(normalized, [], 0, "database", string.Empty);
     }
 
+    public async Task<StorefrontBrandArticlesResult> ListStorefrontBrandArticlesAsync(
+        string manufacturer,
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 2000);
+        var brand = (manufacturer ?? string.Empty).Trim().ToUpperInvariant();
+        if (brand.Length == 0)
+        {
+            return new(string.Empty, [], 0, "empty", "Manufacturer required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(brand, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontBrandArticles;
+            AddParameter(command, "@brand", brand);
+            AddParameter(command, "@brandCompact", brand.Replace(" ", "", StringComparison.Ordinal).Replace("-", "", StringComparison.Ordinal).Replace(".", "", StringComparison.Ordinal));
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<StorefrontBrandArticleDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new StorefrontBrandArticleDigest(
+                    Convert.ToString(reader["article"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["article_show"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["part_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    reader["exist_sum"] is DBNull ? 0 : Convert.ToInt32(reader["exist_sum"], CultureInfo.InvariantCulture),
+                    reader["min_price"] is DBNull ? null : Convert.ToDecimal(reader["min_price"], CultureInfo.InvariantCulture)));
+            }
+
+            return new(brand, rows, rows.Count, "database", rows.Count == 0 ? "No articles for this manufacturer." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(brand, [], 0, "database-error", ex.Message);
+        }
+    }
+
     public Task<StorefrontCrossRefsResult> ListStorefrontCrossRefsAsync(string article, int limit, CancellationToken cancellationToken = default)
         => ListStorefrontCrossRefsAsync(article, brand: null, limit, cancellationToken);
 

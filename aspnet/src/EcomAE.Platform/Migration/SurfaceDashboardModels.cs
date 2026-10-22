@@ -2832,6 +2832,21 @@ public sealed record StorefrontArticleBrandsResult(
     string Source,
     string Message);
 
+/// <summary>PHP manufacturer browse row (/en/parts/{BRAND}) — one row per article the brand offers.</summary>
+public sealed record StorefrontBrandArticleDigest(
+    string Article,
+    string ArticleShow,
+    string Name,
+    int Exist,
+    decimal? MinPrice);
+
+public sealed record StorefrontBrandArticlesResult(
+    string Brand,
+    IReadOnlyList<StorefrontBrandArticleDigest> Rows,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record StorefrontCrossRefDigest(
     string Brand,
     string Article,

@@ -207,23 +207,6 @@
   box-shadow: 0 4px 18px rgba(20, 184, 166, .4), inset 0 1px 0 rgba(255, 255, 255, .15) !important;
 }
 
-.bos-login--tenant-sham .bos-login__cap-icon--tone-1 {
-  background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%) !important;
-  box-shadow: 0 4px 18px rgba(220, 38, 38, .45), inset 0 1px 0 rgba(255, 255, 255, .15) !important;
-}
-.bos-login--tenant-sham .bos-login__cap-icon--tone-2 {
-  background: linear-gradient(135deg, #64748b 0%, #334155 100%) !important;
-  box-shadow: 0 4px 18px rgba(100, 116, 139, .4), inset 0 1px 0 rgba(255, 255, 255, .15) !important;
-}
-.bos-login--tenant-sham .bos-login__cap-icon--tone-3 {
-  background: linear-gradient(135deg, #f87171 0%, #b91c1c 100%) !important;
-  box-shadow: 0 4px 18px rgba(248, 113, 113, .4), inset 0 1px 0 rgba(255, 255, 255, .15) !important;
-}
-.bos-login--tenant-sham .bos-login__cap-icon--tone-4 {
-  background: linear-gradient(135deg, #94a3b8 0%, #475569 100%) !important;
-  box-shadow: 0 4px 18px rgba(148, 163, 184, .4), inset 0 1px 0 rgba(255, 255, 255, .15) !important;
-}
-
 .bos-login--cp .bos-login__cap-icon--tone-1 {
   background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%) !important;
   box-shadow: 0 4px 18px rgba(244, 63, 94, .45), inset 0 1px 0 rgba(255, 255, 255, .15) !important;
