@@ -193,6 +193,8 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
 
         var mapped = 0;
         var skipped = 0;
+        var appliedJournalLineKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var touchedJournalIds = new HashSet<long>();
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         foreach (var (extKey, payload) in staged)
         {
@@ -223,7 +225,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                     "VendorInvoiceHeaders" => await ApplyPurchaseInvoiceAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
                     "VendorInvoiceLines" => await ApplyPurchaseInvoiceLineAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     "CustomerPaymentJournalHeaders" or "VendorPaymentJournalHeaders" or "LedgerJournalHeaders" => await ApplyJournalHeaderAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
-                    "CustomerPaymentJournalLines" or "VendorPaymentJournalLines" or "LedgerJournalLines" => await ApplyJournalLineAsync(connection, transaction, doc.RootElement, extKey, cancellationToken).ConfigureAwait(false),
+                    "CustomerPaymentJournalLines" or "VendorPaymentJournalLines" or "LedgerJournalLines" => await ApplyJournalLineAsync(connection, transaction, doc.RootElement, extKey, appliedJournalLineKeys, touchedJournalIds, cancellationToken).ConfigureAwait(false),
                     "MainAccounts" => await ApplyMainAccountAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     _ => false,
                 };
@@ -235,6 +237,30 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                 else
                 {
                     skipped++;
+                }
+            }
+        }
+        // Journal-line reconcile: a dimension or voucher edit changes the staged key, so the OLD
+        // keyed line no longer matches any staged row. Any ext_key line on a touched journal whose
+        // key was not applied this run is stale — delete it or the balance double-counts.
+        if (touchedJournalIds.Count > 0)
+        {
+            foreach (var journalId in touchedJournalIds)
+            {
+                if (appliedJournalLineKeys.Count == 0)
+                {
+                    await ErpDb.ExecuteAsync(connection, transaction,
+                        ErpDb.Positional("DELETE FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_key` <> ''"),
+                        cancellationToken, journalId).ConfigureAwait(false);
+                }
+                else
+                {
+                    var marks = string.Join(",", appliedJournalLineKeys.Select(_ => "?"));
+                    var args = new List<object?> { journalId };
+                    args.AddRange(appliedJournalLineKeys.Select(k => (object?)Clip(k, 255)));
+                    await ErpDb.ExecuteAsync(connection, transaction,
+                        ErpDb.Positional($"DELETE FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `ext_key` <> '' AND `ext_key` NOT IN ({marks})"),
+                        cancellationToken, args.ToArray()).ConfigureAwait(false);
                 }
             }
         }
@@ -905,7 +931,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
     }
 
     /// <summary>LedgerJournalLines → epc_erp_gl_lines (parent via company-scoped journal_no, coa via main account).</summary>
-    private static async Task<bool> ApplyJournalLineAsync(DbConnection connection, DbTransaction tx, JsonElement row, string extKey, CancellationToken ct)
+    private static async Task<bool> ApplyJournalLineAsync(DbConnection connection, DbTransaction tx, JsonElement row, string extKey, HashSet<string> appliedKeys, HashSet<long> touchedJournalIds, CancellationToken ct)
     {
         var journalNo = ScopedKey(row, Str(row, "JournalNumber", "JournalBatchNumber", "JournalId"), 32);
         var accountCode = Str(row, "MainAccount", "MainAccountId", "AccountDisplayValue", "LedgerDimension");
@@ -920,6 +946,8 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         {
             return false;
         }
+        touchedJournalIds.Add(journalId);
+        appliedKeys.Add(extKey);
 
         // Resolve the COA row: take the main-account segment when the field carries a dimension string.
         var code = accountCode.Split('-', '|')[0].Trim();
@@ -972,8 +1000,10 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         }
         else
         {
-            var sets = new List<string> { "`debit` = ?", "`credit` = ?", "`line_note` = ?", "`ext_key` = ?" };
-            var vals = new List<object?> { debit, credit, Clip(note, 255), Clip(extKey, 255) };
+            // coa_id is always updated: a changed MainAccount resolves a new account and the
+            // stable ext_key match must not leave the amount on the old one.
+            var sets = new List<string> { "`coa_id` = ?", "`debit` = ?", "`credit` = ?", "`line_note` = ?", "`ext_key` = ?" };
+            var vals = new List<object?> { coaId, debit, credit, Clip(note, 255), Clip(extKey, 255) };
             if (hasDimString && dimensionString.Length > 0) { sets.Add("`dimension_string` = ?"); vals.Add(Clip(dimensionString, 255)); }
             if (hasVoucher && voucher.Length > 0) { sets.Add("`voucher` = ?"); vals.Add(Clip(voucher, 255)); }
             vals.Add(existing);
