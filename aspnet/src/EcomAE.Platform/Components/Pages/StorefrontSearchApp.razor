@@ -181,7 +181,7 @@
                             <tr>
                                 <td><a href="@href" data-enhance-nav="false">@(string.IsNullOrWhiteSpace(row.ArticleShow) ? row.Article : row.ArticleShow)</a></td>
                                 <td><a href="@href" data-enhance-nav="false">@nameCell</a></td>
-                                <td class="text-center"><a href="@href">@(row.Exist > 0 ? row.Exist.ToString(CultureInfo.InvariantCulture) : "—")</a></td>
+                                <td class="text-center"><a href="@href">@(!_pricesVisible ? StorefrontPriceAccess.SensitiveMask : (row.Exist > 0 ? row.Exist.ToString(CultureInfo.InvariantCulture) : "—"))</a></td>
                                 <td class="text-right">
                                     <a href="@href">
                                         @if (_pricesVisible && row.MinPrice is decimal bmp)
@@ -211,6 +211,21 @@
                         @_brandBrowseMessage
                     }
                 </div>
+            }
+            @if (_brandBrowseTotal > BrandBrowsePageSize)
+            {
+                var totalPages = (int)Math.Ceiling(_brandBrowseTotal / (double)BrandBrowsePageSize);
+                <nav class="epc-sf-brand-browse__pager text-center" aria-label="Manufacturer pages">
+                    @if (_brandBrowsePage > 1)
+                    {
+                        <a class="btn btn-sm btn-default" href="?page=@(_brandBrowsePage - 1)">← Prev</a>
+                    }
+                    <span>Page @_brandBrowsePage of @totalPages — @_brandBrowseTotal articles</span>
+                    @if (_brandBrowsePage < totalPages)
+                    {
+                        <a class="btn btn-sm btn-default" href="?page=@(_brandBrowsePage + 1)">Next →</a>
+                    }
+                </nav>
             }
         </section>
     }
@@ -1616,6 +1631,9 @@
     private bool _manufacturerBrowse;
     private IReadOnlyList<StorefrontBrandArticleDigest> _brandBrowseRows = [];
     private string _brandBrowseMessage = "";
+    private int _brandBrowsePage = 1;
+    private int _brandBrowseTotal;
+    private const int BrandBrowsePageSize = 200;
     private string _heroTitle = "Part search";
     private string _heroSubtitle = "Search by article, choose a brand, then open warehouse prices.";
     private string _normalized = "";
@@ -1747,6 +1765,9 @@
 
     [SupplyParameterFromQuery(Name = "engine")]
     public string? EngineQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "page")]
+    public int? PageQuery { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -1902,8 +1923,13 @@
         {
             if (_manufacturerBrowse && !string.IsNullOrWhiteSpace(_brandInput))
             {
-                var browse = await Dashboards.ListStorefrontBrandArticlesAsync(_brandInput, 2000);
+                _brandBrowsePage = Math.Max(1, PageQuery ?? 1);
+                var browse = await Dashboards.ListStorefrontBrandArticlesAsync(
+                    _brandInput,
+                    BrandBrowsePageSize,
+                    (_brandBrowsePage - 1) * BrandBrowsePageSize);
                 _brandBrowseRows = browse.Rows;
+                _brandBrowseTotal = browse.TotalCount;
                 _brandBrowseMessage = browse.Message;
             }
 

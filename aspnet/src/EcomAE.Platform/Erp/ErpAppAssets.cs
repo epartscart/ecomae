@@ -22,9 +22,17 @@ public static class ErpAppAssets
 
     public const string LoginBrandPrefix = "/platform-assets/login-brand";
 
+    public const string PlatformLogoUrl = LoginBrandPrefix + "/ecomae-fze.png";
+
+    // ECOM GLOBAL FZE LLC owns the ecomae.com brand; the licence line travels
+    // with every "design and build by" credit across BOS / CP / ERP surfaces.
+    public const string Attribution =
+        "Design & Build by ecomae.com (Licensed under: ECOM GLOBAL FZE LLC — Registered) · www.ecomae.com";
+
     private static readonly HashSet<string> LoginBrandAllow = new(StringComparer.OrdinalIgnoreCase)
     {
         "alshamali.png",
+        "ecomae-fze.png",
     };
 
     private static readonly HashSet<string> StyleAllow = new(StringComparer.OrdinalIgnoreCase)

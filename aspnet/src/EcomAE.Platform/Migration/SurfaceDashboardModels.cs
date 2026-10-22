@@ -2843,6 +2843,7 @@ public sealed record StorefrontBrandArticleDigest(
 public sealed record StorefrontBrandArticlesResult(
     string Brand,
     IReadOnlyList<StorefrontBrandArticleDigest> Rows,
+    int TotalCount,
     int Count,
     string Source,
     string Message);

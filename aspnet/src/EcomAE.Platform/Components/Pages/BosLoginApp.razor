@@ -42,6 +42,8 @@
         align-items: center;
         gap: .4rem;
     }
+
+    .bos-login__brand-logo { max-height:88px; max-width:240px; display:block; margin:0 auto .6rem; filter:drop-shadow(0 6px 18px rgba(0,0,0,.45)); }
 </style>
 </HeadContent>
 <style>
@@ -82,13 +84,7 @@
     <div class="bos-login__hero">
         <div class="bos-login__hero-content">
             <div class="bos-login__brand-mark">
-                <div class="bos-login__brand-icon">
-                    <div class="bos-login__brand-icon-inner">
-                        <i class="fa fa-th-large"></i>
-                    </div>
-                    <div class="bos-login__brand-ring"></div>
-                    <div class="bos-login__brand-ring bos-login__brand-ring--2"></div>
-                </div>
+                <img class="bos-login__brand-logo" src="@ErpAppAssets.PlatformLogoUrl" alt="ECOM GLOBAL FZE LLC" />
                 <h1 class="bos-login__brand-title">BOS</h1>
                 <p class="bos-login__brand-tagline">Business Operating System</p>
             </div>
@@ -280,6 +276,8 @@
                     <span class="bos-login__footer-logo">ECOM<span>AE</span></span>
                     <span class="bos-login__footer-sep">&middot;</span>
                     <span>Business Operating System v1.5.0</span>
+                    <span class="bos-login__footer-sep">&middot;</span>
+                    <span class="bos-login__footer-credit">@ErpAppAssets.Attribution</span>
                 </div>
             </div>
         </div>

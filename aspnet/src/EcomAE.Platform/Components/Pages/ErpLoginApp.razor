@@ -53,6 +53,8 @@
     body.bos-body--login:has(.bos-login--tenant-sham) {
         background: linear-gradient(160deg, #020617 0%, #1a0505 45%, #450a0a 80%, #0f172a 100%) !important;
     }
+
+    .bos-login__brand-logo { max-height:88px; max-width:240px; display:block; margin:0 auto .6rem; filter:drop-shadow(0 6px 18px rgba(0,0,0,.45)); }
 </style>
 </HeadContent>
 <style>
@@ -135,6 +137,12 @@ else
             @if (_brand.LogoKind is not (LoginHostBrand.Kind.Platform or LoginHostBrand.Kind.CompanyMark))
             {
                 <PhpLoginHostBrand Brand="@_brand" />
+                <h1 class="bos-login__brand-title">@_content.HeroTitle</h1>
+                <p class="bos-login__brand-tagline">@_content.HeroTagline</p>
+            }
+            else if (!string.IsNullOrWhiteSpace(_brand.LogoUrl))
+            {
+                <img class="bos-login__brand-logo" src="@_brand.LogoUrl" alt="@_brand.Label" />
                 <h1 class="bos-login__brand-title">@_content.HeroTitle</h1>
                 <p class="bos-login__brand-tagline">@_content.HeroTagline</p>
             }
@@ -271,6 +279,8 @@ else
                         <span class="bos-login__footer-sep">&middot;</span>
                         <a href="/cp/client-erp">Other company</a>
                     }
+                    <span class="bos-login__footer-sep">&middot;</span>
+                    <span class="bos-login__footer-credit">@ErpAppAssets.Attribution</span>
                 </div>
             </div>
         </div>

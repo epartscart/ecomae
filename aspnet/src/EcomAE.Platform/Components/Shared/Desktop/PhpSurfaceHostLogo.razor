@@ -23,6 +23,14 @@
             <span class="epc-surface-host-logo__name">@Brand.Label</span>
         }
     }
+    else if (!string.IsNullOrWhiteSpace(Brand.LogoUrl))
+    {
+        <img class="epc-surface-host-logo__img" src="@Brand.LogoUrl" alt="@Brand.Label" />
+        @if (ShowLabel)
+        {
+            <span class="epc-surface-host-logo__name">@Brand.Label</span>
+        }
+    }
     else if (Brand.LogoKind == LoginHostBrand.Kind.CompanyMark)
     {
         <i class="fa @MarkIcon epc-surface-host-logo__mark" aria-hidden="true"></i>
