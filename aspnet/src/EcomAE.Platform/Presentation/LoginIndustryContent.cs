@@ -32,7 +32,7 @@ public static class LoginIndustryContent
 
         return brand.SiteKey.ToLowerInvariant() switch
         {
-            "epartscart" => AutoParts(brand, surfaceKey),
+            "epartscart" or "sham" => AutoParts(brand, surfaceKey),
             "electronicae" => Electronics(brand, surfaceKey),
             "stylenlook" => Fashion(brand, surfaceKey),
             "thejewellerytrend" => Jewellery(brand, surfaceKey),

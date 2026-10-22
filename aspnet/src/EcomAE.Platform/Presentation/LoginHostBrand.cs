@@ -102,6 +102,20 @@ public static class LoginHostBrand
                     "rgba(255,255,255,.45)", "rgba(16,185,129,.5)"
                 ],
                 "bos-login--tenant-taxofinca"),
+            ["sham"] = new(
+                Kind.TenantImage,
+                "sham",
+                "Al Shamali Auto Parts Group",
+                "GENUINE & AFTERMARKET PARTS • DUBAI",
+                Erp.ErpAppAssets.LoginBrandPrefix + "/alshamali.png",
+                "#dc2626",
+                "rgba(220,38,38,.28)",
+                "autoparts",
+                [
+                    "rgba(220,38,38,.9)", "rgba(248,113,113,.7)", "rgba(254,202,202,.5)",
+                    "rgba(255,255,255,.55)", "rgba(148,163,184,.5)", "rgba(185,28,28,.65)"
+                ],
+                "bos-login--tenant-sham"),
         };
 
     /// <summary>Company ERP-only login on www.ecomae.com/cp/client-erp/{key} — never Super CP fleet copy.</summary>
@@ -264,6 +278,27 @@ public static class LoginHostBrand
             if (normalized == key + ".com" || normalized == key)
             {
                 return key;
+            }
+        }
+
+        // Operations hosts: {key}-operations-uae.ecomae.com and {key}.ecomae.com.
+        if (normalized.EndsWith(".ecomae.com", StringComparison.Ordinal)
+            && normalized.Length > ".ecomae.com".Length)
+        {
+            var slug = normalized[..^".ecomae.com".Length];
+            if (TenantCatalog.ContainsKey(slug))
+            {
+                return slug;
+            }
+
+            var dash = slug.IndexOf('-');
+            if (dash > 0)
+            {
+                var prefix = slug[..dash];
+                if (TenantCatalog.ContainsKey(prefix))
+                {
+                    return prefix;
+                }
             }
         }
 
