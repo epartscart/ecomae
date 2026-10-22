@@ -20,6 +20,13 @@ public static class ErpAppAssets
 
     public const string StylePrefix = "/platform-assets/css";
 
+    public const string LoginBrandPrefix = "/platform-assets/login-brand";
+
+    private static readonly HashSet<string> LoginBrandAllow = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "alshamali.png",
+    };
+
     private static readonly HashSet<string> StyleAllow = new(StringComparer.OrdinalIgnoreCase)
     {
         "epc-enterprise-design-system.css",
@@ -69,6 +76,26 @@ public static class ErpAppAssets
             }
 
             return Results.File(path, "text/css; charset=utf-8");
+        });
+
+        endpoints.MapGet(LoginBrandPrefix + "/{fileName}", (IWebHostEnvironment env, string fileName) =>
+        {
+            if (!LoginBrandAllow.Contains(fileName))
+            {
+                return Results.NotFound(new { ok = false, error = "unknown-login-brand-asset", file = fileName });
+            }
+
+            var webRoot = string.IsNullOrWhiteSpace(env.WebRootPath)
+                ? Path.Combine(env.ContentRootPath, "wwwroot")
+                : env.WebRootPath;
+            var root = Path.GetFullPath(Path.Combine(webRoot, "login-brand"));
+            var path = Path.GetFullPath(Path.Combine(root, fileName));
+            if (!path.StartsWith(root, StringComparison.Ordinal) || !File.Exists(path))
+            {
+                return Results.NotFound(new { ok = false, error = "missing-login-brand-asset", file = fileName });
+            }
+
+            return Results.File(path, "image/png");
         });
     }
 }
