@@ -310,29 +310,40 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                     }
                 }
 
-                // Stage this page + advance the cursor atomically.
-                await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+                // Stage this page + advance the cursor atomically. Rows go in as one
+                // multi-row INSERT per chunk — a per-row INSERT costs most of the pull
+                // budget on large entities (SO/SI lines run ~1M rows).
+                var tuples = new List<object?>(pageRows.Count * 7);
+                var marks = new List<string>(pageRows.Count);
                 foreach (var row in pageRows)
                 {
                     var key = ExternalKeyOf(row);
                     var payload = row.GetRawText();
                     var journalNo = JournalScopedNo(row);
                     var lineRef = Str(row, "LineNumber", "JournalLineNumber", "InvoiceLineNumber", "VoucherLineNumber");
+                    marks.Add("(?, ?, ?, ?, ?, ?, ?)");
+                    tuples.Add(entitySet);
+                    tuples.Add(key);
+                    tuples.Add(payload);
+                    tuples.Add(runId);
+                    tuples.Add(now);
+                    tuples.Add(journalNo);
+                    tuples.Add(lineRef.Length > 64 ? lineRef[..64] : lineRef);
+                    staged++;
+                }
+                await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+                for (var off = 0; off < marks.Count; off += 200)
+                {
+                    var take = Math.Min(200, marks.Count - off);
+                    var sql = $"INSERT INTO {ObjectsTable} (entity, ext_key, payload, run_id, synced_at, journal_no, line_ref) VALUES " +
+                              string.Join(", ", marks.GetRange(off, take)) +
+                              " ON DUPLICATE KEY UPDATE payload = VALUES(payload), run_id = VALUES(run_id), synced_at = VALUES(synced_at), journal_no = VALUES(journal_no), line_ref = VALUES(line_ref)";
                     await ErpDb.ExecuteAsync(
                         connection,
                         transaction,
-                        $"INSERT INTO {ObjectsTable} (entity, ext_key, payload, run_id, synced_at, journal_no, line_ref) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?) " +
-                        "ON DUPLICATE KEY UPDATE payload = VALUES(payload), run_id = VALUES(run_id), synced_at = VALUES(synced_at), journal_no = VALUES(journal_no), line_ref = VALUES(line_ref)",
+                        sql,
                         cancellationToken,
-                        entitySet,
-                        key,
-                        payload,
-                        runId,
-                        now,
-                        journalNo,
-                        lineRef.Length > 64 ? lineRef[..64] : lineRef).ConfigureAwait(false);
-                    staged++;
+                        tuples.GetRange(off * 7, take * 7).ToArray()).ConfigureAwait(false);
                 }
                 fetched += pageRows.Count;
                 remaining -= pageRows.Count;
