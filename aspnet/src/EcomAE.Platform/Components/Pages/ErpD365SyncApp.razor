@@ -1,0 +1,170 @@
+@page "/erp/d365-sync"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@using System.Web
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@using EcomAE.Platform.Cp
+@inject ICpCsrfGuard Csrf
+@inject IErpWriteConnectionFactory Connections
+@inject IErpD365ConnectorService D365
+
+<PageTitle>D365 sync · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<style>
+    .tg-card { background:#fff; border:1px solid #dde6ee; border-radius:10px; padding:16px 18px; margin:0 0 16px; box-shadow:0 1px 2px rgba(16,42,66,.05); }
+    .tg-card h3 { margin:0 0 8px; font-size:15px; color:#12324f; }
+    .tg-card p, .tg-card li { font-size:12.5px; color:#40566c; line-height:1.55; }
+    .tg-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+    .tg-form label { display:block; font-size:11px; color:#4a627a; margin:8px 0 2px; }
+    .tg-form input, .tg-form select { width:100%; box-sizing:border-box; border:1px solid #c3d3de; border-radius:6px; padding:6px 8px; font-size:12.5px; }
+    .tg-form button { margin-top:10px; background:#12324f; color:#fff; border:0; border-radius:6px; padding:7px 14px; font-size:12.5px; cursor:pointer; }
+    .tg-flash { border-radius:8px; padding:10px 14px; margin:0 0 16px; font-size:13px; }
+    .tg-flash-ok { background:#e8f6ee; border:1px solid #9fd8b6; color:#0f6b3f; }
+    .tg-flash-err { background:#fdeaea; border:1px solid #f0b4b4; color:#9c1c1c; }
+    .tg-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .tg-table th, .tg-table td { border-bottom:1px solid #e4ecf2; padding:6px 8px; text-align:left; }
+    .tg-table th { color:#12324f; background:#f4f8fb; }
+    .tg-pill { display:inline-block; border-radius:999px; padding:2px 10px; font-size:11px; font-weight:600; }
+    .tg-pill-ok { background:#e8f6ee; color:#0f6b3f; }
+    .tg-pill-warn { background:#fff3d6; color:#8a5a00; }
+    .tg-pill-err { background:#fdeaea; color:#9c1c1c; }
+</style>
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="D365 sync" BreadcrumbArea="Organization" BreadcrumbTab="D365 sync">
+    <PhpErpModulePageHeader
+        Title="D365 sync"
+        Subtitle="Live Finance &amp; Operations connection — Entra client-credentials token, OData data-entity pulls into staging, one-way D365 → EcomAE."
+        PhpTabHref="/erp/d365-sync" />
+
+    @if (_flashOk.Length > 0)
+    {
+        <div class="tg-flash tg-flash-ok">@_flashOk</div>
+    }
+    @if (_flashErr.Length > 0)
+    {
+        <div class="tg-flash tg-flash-err">@_flashErr</div>
+    }
+
+    <div class="tg-grid">
+        <div class="tg-card">
+            <h3>Connection</h3>
+            @if (_status is null)
+            {
+                <p><span class="tg-pill tg-pill-warn">unconfigured</span></p>
+                <p>Set <code>D365:TenantId</code>, <code>D365:ClientId</code>, <code>D365:ClientSecret</code>, <code>D365:EnvironmentUrl</code> (or the <code>ECOMAE_D365_*</code> environment variables) on the platform host, then restart the service.</p>
+            }
+            else
+            {
+                <p>
+                    <span class="tg-pill @(_status.Configured ? "tg-pill-ok" : "tg-pill-warn")">@(_status.Configured ? "configured" : "missing secrets")</span>
+                </p>
+                <p>Environment: <strong>@(_status.EnvironmentUrl ?? "—")</strong></p>
+                <p>Last run: @(_status.LastRunStatus ?? "none yet")@(_status.LastRunAt is { } at ? $" · {at.UtcDateTime:yyyy-MM-dd HH:mm} UTC" : "")</p>
+                <p>Staged objects: <strong>@_status.StagedObjectCount</strong></p>
+            }
+            @if (_isAdmin)
+            {
+                <form method="post" action="@Post("/erp/d365/connect-test")" class="tg-form">
+                    @HiddenFields()
+                    <button type="submit">Test connection</button>
+                </form>
+            }
+        </div>
+
+        <div class="tg-card tg-form">
+            <h3>Pull a data entity</h3>
+            <p>Reads the F&amp;O OData data entity into <code>epc_d365_sync_objects</code> staging — upserts by external key, never half-writes a master.</p>
+            <form method="post" action="@Post("/erp/d365/connect-pull")">
+                @HiddenFields()
+                <label>Data entity</label>
+                <select name="entity">
+                    @foreach (var kv in ErpD365ConnectorService.KnownEntities)
+                    {
+                        <option value="@kv.Key">@kv.Value — @kv.Key</option>
+                    }
+                </select>
+                <label>Max rows</label>
+                <input name="top" value="500" />
+                <button type="submit">Pull into staging</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="tg-card">
+        <h3>Recent runs</h3>
+        @if (_runs.Count == 0)
+        {
+            <p>No sync runs yet.</p>
+        }
+        else
+        {
+            <table class="tg-table">
+                <thead><tr><th>Run</th><th>Entity</th><th>Status</th><th>Fetched</th><th>Staged</th><th>Started</th><th>Error</th></tr></thead>
+                <tbody>
+                @foreach (var r in _runs)
+                {
+                    <tr>
+                        <td>#@r.Id</td>
+                        <td>@r.Entity</td>
+                        <td><span class="tg-pill @(r.Status == "ok" ? "tg-pill-ok" : r.Status == "running" ? "tg-pill-warn" : "tg-pill-err")">@r.Status</span></td>
+                        <td>@r.Fetched</td>
+                        <td>@r.Staged</td>
+                        <td>@(r.StartedAt > 0 ? DateTimeOffset.FromUnixTimeSeconds(r.StartedAt).UtcDateTime.ToString("yyyy-MM-dd HH:mm") : "—")</td>
+                        <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@r.Error</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private string _csrf = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private ErpD365ConnectionStatus? _status;
+    private IReadOnlyList<ErpD365SyncRun> _runs = Array.Empty<ErpD365SyncRun>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted).ConfigureAwait(false);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted).ConfigureAwait(false);
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
+
+        try
+        {
+            if (Connections.IsConfigured)
+            {
+                await using var conn = await Connections.OpenAsync(ctx.RequestAborted).ConfigureAwait(false);
+                _status = await D365.GetStatusAsync(conn, ctx.RequestAborted).ConfigureAwait(false);
+                _runs = await D365.RecentRunsAsync(conn, 25, ctx.RequestAborted).ConfigureAwait(false);
+            }
+        }
+        catch
+        {
+            // Status load is best-effort; the forms still post.
+        }
+    }
+
+    private string Post(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext!, path);
+
+    private MarkupString HiddenFields()
+    {
+        var returnUrl = HttpUtility.HtmlAttributeEncode(
+            (Http.HttpContext?.Request.Path.Value ?? "/erp/d365-sync") + Http.HttpContext?.Request.QueryString.Value);
+        return (MarkupString)(
+            $"<input type=\"hidden\" name=\"confirmWrites\" value=\"true\" />"
+            + $"<input type=\"hidden\" name=\"returnUrl\" value=\"{returnUrl}\" />"
+            + $"<input type=\"hidden\" name=\"csrf_guard_key\" value=\"{HttpUtility.HtmlAttributeEncode(_csrf)}\" />");
+    }
+}
