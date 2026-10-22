@@ -204,18 +204,21 @@
     <div class="tg-card">
         <h3>Trial balance — EcomAE vs D365 F&amp;O</h3>
         <p>Live compare per account + dimension. Pull <code>GeneralLedgerBalanceCDREntities</code> (posted transactions) to refresh the D365 side; every row must show <em>match</em> for the books to reconcile.</p>
-        @if (_tb.Count == 0)
+        @if (_tb.Rows.Count == 0)
         {
             <p>Nothing to compare yet — pull <code>GeneralLedgerBalanceCDREntities</code> and <code>LedgerJournalLines</code>, apply them, then reload.</p>
         }
         else
         {
-            var matched = _tb.Count(r => r.Matches);
-            <p><span class="tg-pill @(matched == _tb.Count ? "tg-pill-ok" : "tg-pill-warn")">@matched / @_tb.Count accounts match</span></p>
+            var matched = _tb.Rows.Count(r => r.Matches);
+            <p>
+                <span class="tg-pill @(matched == _tb.Rows.Count ? "tg-pill-ok" : "tg-pill-warn")">@matched / @_tb.Rows.Count accounts match</span>
+                <span class="tg-pill @(_tb.TotalsMatch ? "tg-pill-ok" : "tg-pill-err")">@(_tb.TotalsMatch ? "debit + credit totals match" : "totals differ")</span>
+            </p>
             <table class="tg-table">
                 <thead><tr><th>Account</th><th>Name</th><th>Dimension</th><th style="text-align:right">EcomAE</th><th style="text-align:right">D365</th><th style="text-align:right">Diff</th><th></th></tr></thead>
                 <tbody>
-                @foreach (var r in _tb)
+                @foreach (var r in _tb.Rows)
                 {
                     <tr>
                         <td>@r.AccountCode</td>
@@ -227,6 +230,19 @@
                         <td><span class="tg-pill @(r.Matches ? "tg-pill-ok" : "tg-pill-err")">@(r.Matches ? "match" : "diff")</span></td>
                     </tr>
                 }
+                <tr style="font-weight:600;border-top:2px solid #888">
+                    <td colspan="3">Total debit</td>
+                    <td style="text-align:right">@_tb.EcomAeDebit.ToString("N2")</td>
+                    <td style="text-align:right">@_tb.D365Debit.ToString("N2")</td>
+                    <td style="text-align:right">@((_tb.EcomAeDebit - _tb.D365Debit).ToString("N2"))</td>
+                    <td rowspan="2"><span class="tg-pill @(_tb.TotalsMatch ? "tg-pill-ok" : "tg-pill-err")">@(_tb.TotalsMatch ? "match" : "diff")</span></td>
+                </tr>
+                <tr style="font-weight:600">
+                    <td colspan="3">Total credit</td>
+                    <td style="text-align:right">@_tb.EcomAeCredit.ToString("N2")</td>
+                    <td style="text-align:right">@_tb.D365Credit.ToString("N2")</td>
+                    <td style="text-align:right">@((_tb.EcomAeCredit - _tb.D365Credit).ToString("N2"))</td>
+                </tr>
                 </tbody>
             </table>
         }
@@ -241,7 +257,7 @@
     private ErpD365ConnectionStatus? _status;
     private IReadOnlyList<ErpD365SyncRun> _runs = Array.Empty<ErpD365SyncRun>();
     private IReadOnlyList<ErpD365StagedObject> _objects = Array.Empty<ErpD365StagedObject>();
-    private IReadOnlyList<ErpD365TbCompareRow> _tb = Array.Empty<ErpD365TbCompareRow>();
+    private ErpD365TbCompare _tb = new(Array.Empty<ErpD365TbCompareRow>(), 0m, 0m, 0m, 0m);
     private string _entityFilter = "";
 
     protected override async Task OnInitializedAsync()
