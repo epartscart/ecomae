@@ -90,7 +90,7 @@ run_required 'zero-PHP route inventory markdown renders' bash -c '"$1" markdown 
 run_required 'ASP.NET Core proxy guardrail checks' "$ROOT/scripts/verify_aspnet_proxy_guardrails.sh"
 
 if command -v dotnet >/dev/null 2>&1; then
-    run_required '.NET unit tests' dotnet test "$ROOT/aspnet/tests/EcomAE.Platform.Tests"
+    run_required '.NET unit tests' nice -n 15 dotnet test "$ROOT/aspnet/tests/EcomAE.Platform.Tests" -maxcpucount:"${ECOMAE_DEPLOY_MAX_CPU:-2}"
 else
     warn '.NET unit tests skipped; dotnet SDK is not installed in this environment'
 fi
