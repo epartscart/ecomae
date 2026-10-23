@@ -26,7 +26,7 @@ public sealed class ErpIndustryDashboardTests
         var pulse = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Erp/ErpIndustryPulseReadService.cs"));
 
         Assert.Contains("data-industry=\"@_kind\"", page, StringComparison.Ordinal);
-        Assert.Contains("epc-exec-kpis", page, StringComparison.Ordinal);
+        Assert.Contains("epc-dash-kpi", page, StringComparison.Ordinal);
         Assert.Contains("Executive dashboard", page, StringComparison.Ordinal);
         Assert.Contains("ErpIndustryDashboardCatalog.Kind", page, StringComparison.Ordinal);
         Assert.Contains("24K sell", page, StringComparison.Ordinal);
