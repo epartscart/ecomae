@@ -80,7 +80,7 @@
                     <div class="epc-dash-legend">
                         <a class="epc-dash-legend__row" href="@Go("/erp/process-flow-tasks-app")"><i class="epc-dash-legend__dot" style="--c:#2563eb"></i><span>Open cases</span><b>@_openNonOverdue</b></a>
                         <a class="epc-dash-legend__row" href="@Go("/erp/process-flow-tasks-app?pf_view=monitor&f_status=done")"><i class="epc-dash-legend__dot" style="--c:#0a7d33"></i><span>Completed</span><b>@_s.ProcessDone</b></a>
-                        <a class="epc-dash-legend__row" href="@Go("/erp/process-flow-tasks-app")"><i class="epc-dash-legend__dot" style="--c:#c0392b"></i><span>Overdue</span><b>@_s.ProcessOverdue</b></a>
+                        <a class="epc-dash-legend__row" href="@Go("/erp/process-flow-tasks-app?pf_view=monitor&f_status=overdue")"><i class="epc-dash-legend__dot" style="--c:#c0392b"></i><span>Overdue</span><b>@_s.ProcessOverdue</b></a>
                     </div>
                 </div>
             </section>
