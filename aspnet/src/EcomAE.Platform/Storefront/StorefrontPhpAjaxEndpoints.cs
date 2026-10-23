@@ -695,7 +695,8 @@ public static class StorefrontPhpAjaxEndpoints
             cancellationToken,
             (connection, ct) => StorefrontPhpAjax.ProductsOfBunch2Async(connection, article, officeId, storageId, query, 0, groupId, access.PricesVisible, ct),
             StorefrontPhpAjax.NoDbConnect,
-            cacheKey).ConfigureAwait(false);
+            cacheKey,
+            payload => payload is not StorefrontPhpAjax.Bunch2Body bunch || bunch.Message.Length == 0).ConfigureAwait(false);
     }
 
     private static async Task<IResult> SkuMediaAsync(
@@ -5186,13 +5187,20 @@ public static class StorefrontPhpAjaxEndpoints
         }
 
         SemaphoreSlim? flight = null;
+        var acquired = false;
         try
         {
             if (cacheKey is not null)
             {
                 // Single-flight: parallel misses on one key produce the payload once.
                 flight = s_catalogFlights.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
+                if (s_catalogFlights.Count >= CatalogCacheMaxEntries)
+                {
+                    s_catalogFlights.Clear();
+                }
+
                 await flight.WaitAsync(cancellationToken).ConfigureAwait(false);
+                acquired = true;
                 if (CatalogTryGet(cacheKey, out var cached))
                 {
                     return Emit(context, cached!);
@@ -5217,10 +5225,12 @@ public static class StorefrontPhpAjaxEndpoints
         }
         finally
         {
-            if (flight is not null)
+            // Release only if acquired (a canceled WaitAsync owns nothing), and keep the
+            // semaphore: removing it while waiters are queued would split the next miss
+            // into a parallel flight. Entries die with the periodic capacity clear.
+            if (acquired)
             {
-                flight.Release();
-                s_catalogFlights.TryRemove(cacheKey!, out _);
+                flight!.Release();
             }
         }
     }
