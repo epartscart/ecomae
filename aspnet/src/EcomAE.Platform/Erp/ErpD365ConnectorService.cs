@@ -287,6 +287,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                 var pageRows = doc.RootElement.TryGetProperty("value", out var value) && value.ValueKind == JsonValueKind.Array
                     ? value.EnumerateArray().Select(e => e.Clone()).ToList()
                     : new List<JsonElement>();
+                var fullPageCount = pageRows.Count;
                 if (pageRows.Count > remaining)
                 {
                     pageRows = pageRows.Take((int)remaining).ToList();
@@ -294,15 +295,23 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                 var followLink = doc.RootElement.TryGetProperty("@odata.nextLink", out var nl) && nl.ValueKind == JsonValueKind.String
                     ? nl.GetString()
                     : null;
+                // Only follow links back to the configured F&O host — a hostile or
+                // buggy response must not redirect the bearer token elsewhere.
+                if (followLink is not null &&
+                    (!Uri.TryCreate(followLink, UriKind.Absolute, out var linkUri) ||
+                     !linkUri.Host.Equals(new Uri(_environmentUrl!).Host, StringComparison.OrdinalIgnoreCase)))
+                {
+                    followLink = null;
+                }
                 // SHAM's F&O returns no @odata.nextLink at all and caps each page below
                 // our $top, so page manually with $skip while rows remain.
                 if (doc.RootElement.TryGetProperty("@odata.count", out var oc) && oc.ValueKind == JsonValueKind.Number)
                 {
                     totalCount = oc.GetInt64();
                 }
-                if (followLink is null && pageRows.Count > 0 && remaining > 0)
+                if (followLink is null && pageRows.Count > 0)
                 {
-                    var absolute = skip + pageRows.Count;
+                    var absolute = skip + fullPageCount;
                     var more = totalCount.HasValue ? absolute < totalCount.Value : pageRows.Count == PageSize;
                     if (more)
                     {
@@ -337,7 +346,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                     var take = Math.Min(200, marks.Count - off);
                     var sql = $"INSERT INTO {ObjectsTable} (entity, ext_key, payload, run_id, synced_at, journal_no, line_ref) VALUES " +
                               string.Join(", ", marks.GetRange(off, take)) +
-                              " ON DUPLICATE KEY UPDATE payload = VALUES(payload), run_id = VALUES(run_id), synced_at = VALUES(synced_at), journal_no = VALUES(journal_no), line_ref = VALUES(line_ref)";
+                              " ON DUPLICATE KEY UPDATE payload = VALUES(payload), run_id = VALUES(run_id), synced_at = VALUES(synced_at), journal_no = VALUES(journal_no), line_ref = VALUES(line_ref), applied_at = IF(payload <> VALUES(payload), 0, applied_at)";
                     await ErpDb.ExecuteAsync(
                         connection,
                         transaction,
@@ -347,7 +356,10 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                 }
                 fetched += pageRows.Count;
                 remaining -= pageRows.Count;
-                var finished = followLink is null || remaining <= 0;
+                // "Done" means F&O has no more rows — hitting the caller's `top`
+                // limit mid-entity keeps the cursor so a later pull resumes here
+                // instead of losing the rest of the page.
+                var finished = followLink is null;
                 var cursorUrl = finished ? null : followLink;
                 await ErpDb.ExecuteAsync(
                     connection,
@@ -367,6 +379,10 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                     break;
                 }
                 nextLink = followLink;
+                if (remaining <= 0)
+                {
+                    break; // caller's row limit — cursor stored; next pull resumes
+                }
                 if (budget.Elapsed > PullBudget)
                 {
                     break; // partial — cursor stored; caller re-invokes to continue

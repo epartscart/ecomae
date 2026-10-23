@@ -241,6 +241,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         await using (var command = connection.CreateCommand())
         {
             command.CommandText = "SELECT id, ext_key, payload FROM epc_d365_sync_objects WHERE entity = @entity AND applied_at < synced_at ORDER BY attempts ASC, id ASC LIMIT " + ApplyBatchSize;
+            command.CommandTimeout = 300; // the staging table can exceed a million rows during pulls
             var entityParam = command.CreateParameter();
             entityParam.ParameterName = "@entity";
             entityParam.Value = entity;
@@ -407,6 +408,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         // GeneralLedgerBalanceCDREntities when snapshots were never pulled.
         var theirs = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
         var snapshotPeriods = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var snapshotSyncedAt = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
         decimal theirDr = 0m, theirCr = 0m;
         var snapshotCount = Convert.ToInt64(await ErpDb.ScalarAsync(connection, null,
             "SELECT COUNT(*) FROM epc_d365_sync_objects WHERE entity = 'TrialBalanceFiscalYearSnapshots'",
@@ -414,10 +416,12 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         var tbEntity = snapshotCount > 0 ? "TrialBalanceFiscalYearSnapshots" : "GeneralLedgerBalanceCDREntities";
         await using (var command = connection.CreateCommand())
         {
-            command.CommandText = $"SELECT payload FROM epc_d365_sync_objects WHERE entity = '{tbEntity}'";
+            command.CommandText = $"SELECT payload, synced_at FROM epc_d365_sync_objects WHERE entity = '{tbEntity}'";
+            command.CommandTimeout = 300;
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
+                var rowSyncedAt = reader.GetInt64(1);
                 JsonDocument doc;
                 try { doc = JsonDocument.Parse(reader.GetString(0)); }
                 catch (JsonException) { continue; }
@@ -449,7 +453,11 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                         var sCr = Dec(doc.RootElement, "AmountCredit");
                         var sKey = sCode + "\u001f" + sDim;
                         var sPeriod = Str(doc.RootElement, "PeriodEndDate", "PeriodName", "FiscalPeriod", "Period");
-                        if (!snapshotPeriods.TryGetValue(sKey, out var sExisting) || string.CompareOrdinal(sPeriod, sExisting) >= 0)
+                        // Duplicate staged rows (e.g. keyed differently across connector upgrades)
+                        // resolve to the same key — the freshest sync wins within a period.
+                        if (!snapshotPeriods.TryGetValue(sKey, out var sExisting) ||
+                            string.CompareOrdinal(sPeriod, sExisting) > 0 ||
+                            (sPeriod == sExisting && rowSyncedAt >= (snapshotSyncedAt.TryGetValue(sKey, out var lastSync) ? lastSync : 0)))
                         {
                             // Totals count the latest period only — drop the previously included row.
                             if (snapshotPeriods.TryGetValue(sKey, out var prev) && theirs.TryGetValue(sKey, out var prevNet))
@@ -460,6 +468,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                                 theirCr -= prevCr;
                             }
                             snapshotPeriods[sKey] = sPeriod;
+                            snapshotSyncedAt[sKey] = rowSyncedAt;
                             var sNet = sDr - sCr;
                             theirs[sKey] = sNet;
                             theirDr += sDr;
@@ -492,9 +501,12 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                     var period = Str(doc.RootElement, "FiscalPeriod", "Period", "FiscalYear", "AccountingPeriod");
                     if (isSnapshot)
                     {
-                        if (!snapshotPeriods.TryGetValue(key, out var existingPeriod) || string.CompareOrdinal(period, existingPeriod) >= 0)
+                        if (!snapshotPeriods.TryGetValue(key, out var existingPeriod) ||
+                            string.CompareOrdinal(period, existingPeriod) > 0 ||
+                            (period == existingPeriod && rowSyncedAt >= (snapshotSyncedAt.TryGetValue(key, out var prevSync) ? prevSync : 0)))
                         {
                             snapshotPeriods[key] = period;
+                            snapshotSyncedAt[key] = rowSyncedAt;
                             theirs[key] = net;
                         }
                     }
