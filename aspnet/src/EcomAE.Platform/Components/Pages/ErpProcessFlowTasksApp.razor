@@ -703,6 +703,7 @@
     private static readonly (string Key, string Label)[] StatusFilters =
     [
         ("open", "Open"),
+        ("overdue", "Overdue"),
         ("all", "All"),
         ("done", "Completed"),
         ("rejected", "Rejected"),
@@ -784,7 +785,9 @@
         _orgCases = _tasks.Where(MatchesQuery).OrderByDescending(row => row.Status == "open").ThenBy(row => row.Title).ToList();
         _inbox = _tasks.Where(t => t.Status == "open" && _userId > 0 && t.CurrentAssigneeId == _userId).ToList();
         _inboxCount = _inbox.Count;
-        _visible = _status == "all" ? _tasks : _tasks.Where(t => string.Equals(t.Status, _status, StringComparison.OrdinalIgnoreCase)).ToList();
+        _visible = _status == "all" ? _tasks
+            : _status == "overdue" ? _tasks.Where(IsOverdue).ToList()
+            : _tasks.Where(t => string.Equals(t.Status, _status, StringComparison.OrdinalIgnoreCase)).ToList();
         _detail = _pfCaseId > 0 ? _tasks.FirstOrDefault(t => t.Id == _pfCaseId) : null;
         _byLocation = _tasks
             .Where(t => t.Status == "open" && !string.IsNullOrWhiteSpace(t.CurrentLocation))
