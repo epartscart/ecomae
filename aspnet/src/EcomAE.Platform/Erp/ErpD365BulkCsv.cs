@@ -186,13 +186,21 @@ public static class ErpD365BulkCsv
     }
 
     /// <summary>
-    /// Column set for a synced D365 entity: the union of every top-level payload field seen in
-    /// staging — a template built from this can never drop a field the connector captured.
+    /// Column set for a synced D365 entity: the canonical full schema (every field the entity
+    /// can carry, from ErpD365EntityFieldCatalog — templates are complete even with staging
+    /// empty), unioned with every top-level payload field seen in staging.
     /// </summary>
     public static async Task<IReadOnlyList<string>> D365EntityColumnsAsync(DbConnection connection, string entitySet, CancellationToken cancellationToken)
     {
         var cols = new List<string>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var known in ErpD365EntityFieldCatalog.FieldsFor(entitySet))
+        {
+            if (seen.Add(known))
+            {
+                cols.Add(known);
+            }
+        }
         // The field store holds every field of every applied row — a field that appears only
         // outside the payload scan window below is still captured here.
         try

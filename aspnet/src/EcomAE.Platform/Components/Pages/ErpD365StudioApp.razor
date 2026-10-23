@@ -115,12 +115,35 @@
         </table>
     </div>
 
-    <h3 style="margin:18px 0 10px;color:#12324f">Synced D365 data — every field (from /erp/d365-sync)</h3>
+    <h3 style="margin:18px 0 10px;color:#12324f">D365 entity templates — every field (upload-ready)</h3>
     <div class="tg-card">
-        <p>Live rows pulled from F&O into staging. The template lists <strong>every field the entity actually sent</strong> (e.g. all 326 released-product fields incl. ASAP_*); the export is the full grid — no field is dropped. Nested values stay as compact JSON.</p>
+        <p>Each template carries the <strong>complete field schema</strong> of the D365 entity (e.g. all 326 released-product fields incl. ASAP_* SHAM customs) — fill any columns you have and import; every column is preserved in the ERP field store, nothing is dropped. Templates are always available, synced or not.</p>
+        <table class="tg-table">
+            <thead><tr><th>D365 entity</th><th class="text-right">Fields</th><th>Actions</th></tr></thead>
+            <tbody>
+                @foreach (var e in ErpD365EntityFieldCatalog.Entities)
+                {
+                    <tr>
+                        <td><code>@e</code></td>
+                        <td class="text-right">@ErpD365EntityFieldCatalog.FieldsFor(e).Count</td>
+                        <td class="tg-links">
+                            <a href="@Get("/erp/d365/csv-template")?d365=@e">template (all fields)</a>
+                            <a href="@Get("/erp/d365/csv-export")?d365=@e">export CSV</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @if (_staged.Count > 0)
+        {
+            <p style="margin-top:10px"><strong>Staged rows:</strong> @string.Join(" · ", _staged.Select(e => e.Entity + " (" + e.Rows.ToString("N0") + ")"))</p>
+        }
+    </div>
+
+    <div class="tg-card" style="display:none">
         @if (_staged.Count == 0)
         {
-            <p>No staged entities yet — pull one at <a href="@Get("/erp/d365-sync")">/erp/d365-sync</a>.</p>
+            <p></p>
         }
         else
         {

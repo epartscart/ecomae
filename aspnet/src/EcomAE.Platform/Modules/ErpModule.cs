@@ -412,6 +412,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpD365ConnectPull, HandleD365ConnectPullAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365ApplyStaged, HandleD365ApplyStagedAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365SyncToggle, HandleD365SyncToggleAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365SaveConnection, HandleD365SaveConnectionAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpMfaEnrollConfirm, HandleMfaEnrollConfirmAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpMfaDisable, HandleMfaDisableAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpD365CsvExport, HandleD365CsvExportAsync);
@@ -27376,6 +27377,7 @@ public sealed class ErpModule : ISurfaceModule
         HttpContext context,
         ILegacySessionValidator validator,
         EcomAE.Platform.Erp.IErpD365ConnectorService d365connect,
+        IErpWriteConnectionFactory connections,
                 EcomAE.Platform.Cp.ICpCsrfGuard csrf,
         CancellationToken cancellationToken)
     {
@@ -27392,7 +27394,8 @@ public sealed class ErpModule : ISurfaceModule
             return csrfBlock;
         }
 
-        var res = await d365connect.TestConnectionAsync(cancellationToken).ConfigureAwait(false);
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var res = await d365connect.TestConnectionAsync(conn, cancellationToken).ConfigureAwait(false);
         return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = 0, message = res.Message, session = SessionPayload(session) });
     }
 
@@ -27577,6 +27580,49 @@ public sealed class ErpModule : ISurfaceModule
             ? "D365 sync switched on — pulls and applies are enabled."
             : "D365 sync switched off — pulls and applies are disabled; the connection stays configured.";
         return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", true, msg, new { ok = true, writes = 1, enabled = enable, message = msg, session = SessionPayload(session) });
+    }
+
+    /// <summary>D365 live connector: save the credentials entered on the sync page (params override the host env).</summary>
+    private static async Task<IResult> HandleD365SaveConnectionAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        EcomAE.Platform.Erp.IErpD365ConnectorService d365connect,
+                EcomAE.Platform.Cp.ICpCsrfGuard csrf,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-sync", "Admin ERP capability required to save the D365 connection.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save the D365 connection settings. Fields: environment_url, tenant_id, client_id, client_secret, username, password (blank = use the host env value).", session = SessionPayload(session) });
+        }
+
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
+        }
+
+        await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var settings = new EcomAE.Platform.Erp.ErpD365ConnectionSettings(
+            AmlText(fields, "environment_url"),
+            AmlText(fields, "tenant_id"),
+            AmlText(fields, "client_id"),
+            AmlText(fields, "client_secret"),
+            AmlText(fields, "username"),
+            AmlText(fields, "password"));
+        await d365connect.SaveConnectionSettingsAsync(conn, settings, cancellationToken).ConfigureAwait(false);
+        var resolved = await d365connect.ResolveSettingsAsync(conn, cancellationToken).ConfigureAwait(false);
+        var msg = resolved.IsConfigured
+            ? "D365 credentials saved — connection is configured; switch sync on to enable pulls."
+            : "D365 credentials saved — still incomplete: need environment URL plus either username+password or tenant id + client id + client secret.";
+        return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", resolved.IsConfigured, msg, new { ok = resolved.IsConfigured, writes = 1, configured = resolved.IsConfigured, message = msg, session = SessionPayload(session) });
     }
 
     /// <summary>D365 doc-cycle: save D365 fields on an existing so|po|dn|customer|vendor|product row.</summary>
