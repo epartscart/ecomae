@@ -106,7 +106,7 @@ public sealed class ErpWorkflowProcessFlowPhpParityTests
     public void Dashboard_UsesExecutiveTilesWithoutStackDisclosure()
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpDashboardSummaryApp.razor"));
-        Assert.Contains("epc-exec-kpis", text, StringComparison.Ordinal);
+        Assert.Contains("epc-dash-kpi", text, StringComparison.Ordinal);
         Assert.Contains("Executive dashboard", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PHP reference", text, StringComparison.Ordinal);
