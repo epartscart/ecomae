@@ -1448,10 +1448,20 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         }
         refs.Add(lineRef);
 
-        // Resolve the COA row: take the main-account segment when the field carries a dimension string.
-        var code = accountCode.Split('-', '|')[0].Trim();
-        var coaId = await ErpDb.LongAsync(connection, tx,
-            ErpDb.Positional("SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = ? LIMIT 1"), ct, Clip(code, 16)).ConfigureAwait(false);
+        // Resolve the COA row: a LedgerDimension display string is company--account--dims,
+        // so the main account is not always the first segment — take the segment that
+        // actually exists in the chart of accounts (index 1 first, the D365 convention).
+        var segments = accountCode.Split('-', '|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var ordered = segments.Length > 1
+            ? new[] { segments[1], segments[0] }.Concat(segments.Skip(2)).ToArray()
+            : segments;
+        var coaId = 0L;
+        foreach (var seg in ordered)
+        {
+            coaId = await ErpDb.LongAsync(connection, tx,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = ? LIMIT 1"), ct, Clip(seg, 16)).ConfigureAwait(false);
+            if (coaId > 0) break;
+        }
         if (coaId <= 0)
         {
             return false; // account not synced yet — pull MainAccounts first
