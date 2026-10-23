@@ -26,7 +26,8 @@ public interface IErpD365ConnectorService
     Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken = default);
 
     /// <summary>Persisted on/off switch for the live connector (epc_erp_d365_parameters area='sync', key='enabled'). Off by default — pulls and applies refuse while off.</summary>
-    Task<bool> SyncEnabledAsync(DbConnection connection, CancellationToken cancellationToken = default);
+    /// <param name="transaction">Pass the ambient transaction when called inside one — a command without it is rejected by MySqlConnector. Ensure is skipped then: callers within a transaction already passed the entry guard that created the table.</param>
+    Task<bool> SyncEnabledAsync(DbConnection connection, CancellationToken cancellationToken = default, DbTransaction? transaction = null);
     Task SetSyncEnabledAsync(DbConnection connection, bool enabled, CancellationToken cancellationToken = default);
 }
 
@@ -172,13 +173,16 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         return new ErpD365ConnectionStatus(IsConfigured, _environmentUrl, status, at, staged, enabled);
     }
 
-    public async Task<bool> SyncEnabledAsync(DbConnection connection, CancellationToken cancellationToken = default)
+    public async Task<bool> SyncEnabledAsync(DbConnection connection, CancellationToken cancellationToken = default, DbTransaction? transaction = null)
     {
         ArgumentNullException.ThrowIfNull(connection);
-        await ErpLazySchema.EnsureD365ParametersAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (transaction is null)
+        {
+            await ErpLazySchema.EnsureD365ParametersAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
         var v = Convert.ToString(await ErpDb.ScalarAsync(
             connection,
-            null,
+            transaction,
             ErpDb.Positional("SELECT `param_value` FROM `epc_erp_d365_parameters` WHERE `company_id` = 1 AND `area` = 'sync' AND `param_key` = 'enabled'"),
             cancellationToken).ConfigureAwait(false)) ?? "";
         return v == "1";
