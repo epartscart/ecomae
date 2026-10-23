@@ -27538,7 +27538,8 @@ public sealed class ErpModule : ISurfaceModule
         {
             return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", false, "D365 sync is off — switch it on with the toggle on the connection card first.", new { ok = false, writes = 0, message = "D365 sync is off — switch it on first.", session = SessionPayload(session) });
         }
-        var res = await d365map.ApplyAsync(conn, entity, session.UserId, cancellationToken).ConfigureAwait(false);
+        var res = await d365map.ApplyAsync(conn, entity, session.UserId, cancellationToken,
+            ct => d365connect.SyncEnabledAsync(conn, ct)).ConfigureAwait(false);
         return LiveWriteFormBinder.Complete(context, "/erp/d365-sync?entity=" + Uri.EscapeDataString(entity), res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Mapped, mapped = res.Mapped, skipped = res.Skipped, message = res.Message, session = SessionPayload(session) });
     }
 
