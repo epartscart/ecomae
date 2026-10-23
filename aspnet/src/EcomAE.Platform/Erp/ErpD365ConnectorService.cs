@@ -24,6 +24,10 @@ public interface IErpD365ConnectorService
     Task<IReadOnlyList<ErpD365SyncRun>> RecentRunsAsync(DbConnection connection, int limit, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ErpD365StagedObject>> StagedObjectsAsync(DbConnection connection, string? entity, int limit, CancellationToken cancellationToken = default);
     Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken = default);
+
+    /// <summary>Persisted on/off switch for the live connector (epc_erp_d365_parameters area='sync', key='enabled'). Off by default — pulls and applies refuse while off.</summary>
+    Task<bool> SyncEnabledAsync(DbConnection connection, CancellationToken cancellationToken = default);
+    Task SetSyncEnabledAsync(DbConnection connection, bool enabled, CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpD365ConnectionStatus(
@@ -31,7 +35,8 @@ public sealed record ErpD365ConnectionStatus(
     string? EnvironmentUrl,
     string? LastRunStatus,
     DateTimeOffset? LastRunAt,
-    int StagedObjectCount);
+    int StagedObjectCount,
+    bool SyncEnabled);
 
 public sealed record ErpD365PullResult(bool Succeeded, string Code, string Message, int Fetched, int Staged, long RunId);
 
@@ -163,7 +168,38 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             null,
             $"SELECT COUNT(*) FROM {ObjectsTable}",
             cancellationToken).ConfigureAwait(false) ?? 0L);
-        return new ErpD365ConnectionStatus(IsConfigured, _environmentUrl, status, at, staged);
+        var enabled = await SyncEnabledAsync(connection, cancellationToken).ConfigureAwait(false);
+        return new ErpD365ConnectionStatus(IsConfigured, _environmentUrl, status, at, staged, enabled);
+    }
+
+    public async Task<bool> SyncEnabledAsync(DbConnection connection, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        await ErpLazySchema.EnsureD365ParametersAsync(connection, cancellationToken).ConfigureAwait(false);
+        var v = Convert.ToString(await ErpDb.ScalarAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `param_value` FROM `epc_erp_d365_parameters` WHERE `company_id` = 1 AND `area` = 'sync' AND `param_key` = 'enabled'"),
+            cancellationToken).ConfigureAwait(false)) ?? "";
+        return v == "1";
+    }
+
+    public async Task SetSyncEnabledAsync(DbConnection connection, bool enabled, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        await ErpLazySchema.EnsureD365ParametersAsync(connection, cancellationToken).ConfigureAwait(false);
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "INSERT INTO `epc_erp_d365_parameters` (`company_id`,`area`,`param_key`,`caption`,`param_value`,`value_kind`,`created_by`,`time_created`,`time_updated`) " +
+                "VALUES (1,'sync','enabled','D365 sync enabled',?,'flag',0,?,?) " +
+                "ON DUPLICATE KEY UPDATE `param_value`=VALUES(`param_value`),`time_updated`=VALUES(`time_updated`)"),
+            cancellationToken,
+            enabled ? "1" : "0",
+            now,
+            now).ConfigureAwait(false);
     }
 
     public async Task<ErpSimpleWriteResult> TestConnectionAsync(CancellationToken cancellationToken = default)
