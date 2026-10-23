@@ -3056,6 +3056,7 @@ public static class EcomAeRoutes
     public const string ErpD365ApplyStaged = "/erp/d365/apply-staged";
     /// <summary>D365 live connector: persisted on/off switch for pulls and applies.</summary>
     public const string ErpD365SyncToggle = "/erp/d365/sync-toggle";
+    public const string ErpD365SaveConnection = "/erp/d365/save-connection";
     /// <summary>TOTP two-factor: confirm enrollment with a code from the authenticator app.</summary>
     public const string ErpMfaEnrollConfirm = "/erp/mfa/enroll-confirm";
     /// <summary>TOTP two-factor: disable with a current code.</summary>

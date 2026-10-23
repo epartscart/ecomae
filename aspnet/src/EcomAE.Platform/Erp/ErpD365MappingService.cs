@@ -16,7 +16,7 @@ public interface IErpD365MappingService
 {
     /// <summary>Entities that have a staged → master mapping.</summary>
     IReadOnlyDictionary<string, string> MappedEntities { get; }
-    Task<ErpD365ApplyResult> ApplyAsync(DbConnection connection, string entity, long adminId, CancellationToken cancellationToken = default, Func<CancellationToken, Task<bool>>? syncGate = null);
+    Task<ErpD365ApplyResult> ApplyAsync(DbConnection connection, string entity, long adminId, CancellationToken cancellationToken = default, Func<DbTransaction, CancellationToken, Task<bool>>? syncGate = null);
 
     /// <summary>Live trial-balance compare: our GL balances per account vs balances aggregated from staged D365 posted transactions (GeneralLedgerBalanceCDREntities), keyed by dimension string for the dimension-set pivot — plus total debit/credit both sides must agree on.</summary>
     Task<ErpD365TbCompare> TrialBalanceCompareAsync(DbConnection connection, CancellationToken cancellationToken = default);
@@ -75,7 +75,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         /// <summary>Rows processed per apply call — stays inside the web request budget; repeat to finish.</summary>
         private const int ApplyBatchSize = 400;
 
-    public async Task<ErpD365ApplyResult> ApplyAsync(DbConnection connection, string entity, long adminId, CancellationToken cancellationToken = default, Func<CancellationToken, Task<bool>>? syncGate = null)
+    public async Task<ErpD365ApplyResult> ApplyAsync(DbConnection connection, string entity, long adminId, CancellationToken cancellationToken = default, Func<DbTransaction, CancellationToken, Task<bool>>? syncGate = null)
     {
         ArgumentNullException.ThrowIfNull(connection);
         if (!MappedEntities.ContainsKey(entity))
@@ -277,7 +277,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             // Switching sync off mid-apply stops the remaining rows of this batch — the gate
             // is re-checked every 64 rows (one query each) so off takes effect inside the batch.
             if (syncGate is not null && (gateRow++ & 63) == 0 && gateRow > 1
-                && !await syncGate(cancellationToken).ConfigureAwait(false))
+                && !await syncGate(transaction, cancellationToken).ConfigureAwait(false))
             {
                 break;
             }

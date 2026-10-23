@@ -19,15 +19,42 @@ public interface IErpD365ConnectorService
     bool IsConfigured { get; }
     string? EnvironmentUrl { get; }
     Task<ErpD365ConnectionStatus> GetStatusAsync(DbConnection connection, CancellationToken cancellationToken = default);
-    Task<ErpSimpleWriteResult> TestConnectionAsync(CancellationToken cancellationToken = default);
+    Task<ErpSimpleWriteResult> TestConnectionAsync(DbConnection? connection = null, CancellationToken cancellationToken = default);
+    /// <summary>Effective connection settings: page-entered parameter rows override the host env values.</summary>
+    Task<ErpD365ConnectionSettings> ResolveSettingsAsync(DbConnection connection, CancellationToken cancellationToken = default);
+    /// <summary>Persist credentials entered on the sync page (epc_erp_d365_parameters area='connection'). Blank fields clear to the env fallback.</summary>
+    Task SaveConnectionSettingsAsync(DbConnection connection, ErpD365ConnectionSettings settings, CancellationToken cancellationToken = default);
     Task<ErpD365PullResult> PullEntityAsync(DbConnection connection, string entitySet, int top, long adminId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ErpD365SyncRun>> RecentRunsAsync(DbConnection connection, int limit, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ErpD365StagedObject>> StagedObjectsAsync(DbConnection connection, string? entity, int limit, CancellationToken cancellationToken = default);
     Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken = default);
 
     /// <summary>Persisted on/off switch for the live connector (epc_erp_d365_parameters area='sync', key='enabled'). Off by default — pulls and applies refuse while off.</summary>
-    Task<bool> SyncEnabledAsync(DbConnection connection, CancellationToken cancellationToken = default);
+    /// <param name="transaction">Pass the ambient transaction when called inside one — a command without it is rejected by MySqlConnector. Ensure is skipped then: callers within a transaction already passed the entry guard that created the table.</param>
+    Task<bool> SyncEnabledAsync(DbConnection connection, CancellationToken cancellationToken = default, DbTransaction? transaction = null);
     Task SetSyncEnabledAsync(DbConnection connection, bool enabled, CancellationToken cancellationToken = default);
+}
+
+public sealed record ErpD365ConnectionSettings(
+    string? EnvironmentUrl,
+    string? TenantId,
+    string? ClientId,
+    string? ClientSecret,
+    string? Username,
+    string? Password)
+{
+    public bool HasClientCredentials =>
+        !string.IsNullOrWhiteSpace(TenantId)
+        && !string.IsNullOrWhiteSpace(ClientId)
+        && !string.IsNullOrWhiteSpace(ClientSecret);
+
+    public bool HasServiceAccount =>
+        !string.IsNullOrWhiteSpace(Username)
+        && !string.IsNullOrWhiteSpace(Password);
+
+    public bool IsConfigured =>
+        !string.IsNullOrWhiteSpace(EnvironmentUrl)
+        && (HasClientCredentials || HasServiceAccount);
 }
 
 public sealed record ErpD365ConnectionStatus(
@@ -117,7 +144,11 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
     private readonly string? _password;
     private readonly string? _environmentUrl;
 
+    /// <summary>Parameter keys the sync page's credential form writes (area='connection' in epc_erp_d365_parameters).</summary>
+    public static readonly string[] ConnectionParamKeys = ["environment_url", "tenant_id", "client_id", "client_secret", "username", "password"];
+
     private string? _cachedToken;
+    private string? _cachedTokenKey;
     private DateTimeOffset _tokenExpiresAt = DateTimeOffset.MinValue;
 
     public ErpD365ConnectorService(
@@ -142,7 +173,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
     /// <summary>Microsoft Azure CLI public client id — the well-known client that accepts ROPC grants when the tenant has not disabled them.</summary>
     private const string RopcClientId = "04b07795-8ddb-461a-bbee-02f9e1bf7b46";
 
-    /// <summary>True when either an Entra app registration (tenant+client+secret) or a service-account login (username+password) plus an environment URL is set.</summary>
+    /// <summary>Env-configured only (no parameter read) — kept for cheap checks; the status card and all flows use the resolved settings.</summary>
     public bool IsConfigured =>
         !string.IsNullOrWhiteSpace(_environmentUrl)
         && (HasClientCredentials || HasServiceAccount);
@@ -158,6 +189,75 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
 
     public string? EnvironmentUrl => _environmentUrl;
 
+    public async Task<ErpD365ConnectionSettings> ResolveSettingsAsync(DbConnection connection, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        // Credentials live in a dedicated table — not the shared parameter store, whose
+        // readers are broader — and TEXT columns so long secrets are never truncated.
+        await ErpLazySchema.EnsureD365ConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
+        var stored = new ErpD365ConnectionSettings(null, null, null, null, null, null);
+        await using (var cmd = connection.CreateCommand())
+        {
+            cmd.CommandText = "SELECT `environment_url`,`tenant_id`,`client_id`,`client_secret`,`username`,`password` FROM `epc_erp_d365_connection` WHERE `company_id` = 1";
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                stored = new ErpD365ConnectionSettings(
+                    reader.IsDBNull(0) ? null : reader.GetString(0),
+                    reader.IsDBNull(1) ? null : reader.GetString(1),
+                    reader.IsDBNull(2) ? null : reader.GetString(2),
+                    reader.IsDBNull(3) ? null : reader.GetString(3),
+                    reader.IsDBNull(4) ? null : reader.GetString(4),
+                    reader.IsDBNull(5) ? null : reader.GetString(5));
+            }
+        }
+        // A non-empty page-entered value wins; empty falls back to the host env/config.
+        string? Pick(string? pageValue, string? envFallback)
+            => !string.IsNullOrEmpty(pageValue) ? pageValue : envFallback;
+        return new ErpD365ConnectionSettings(
+            NormalizeEnvUrl(Pick(stored.EnvironmentUrl, _environmentUrl)),
+            Pick(stored.TenantId, _tenantId),
+            Pick(stored.ClientId, _clientId),
+            Pick(stored.ClientSecret, _clientSecret),
+            Pick(stored.Username, _username),
+            Pick(stored.Password, _password));
+    }
+
+    public async Task SaveConnectionSettingsAsync(DbConnection connection, ErpD365ConnectionSettings settings, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        await ErpLazySchema.EnsureD365ConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        // Merge: a blank field keeps the stored value — editing the URL must not erase a saved
+        // password/secret. (To clear a credential deliberately, the row can be emptied directly.)
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "INSERT INTO `epc_erp_d365_connection` (`company_id`,`environment_url`,`tenant_id`,`client_id`,`client_secret`,`username`,`password`,`time_updated`) " +
+                "VALUES (1,?,?,?,?,?,?,?,?) " +
+                "ON DUPLICATE KEY UPDATE " +
+                "`environment_url`=IF(VALUES(`environment_url`)<>'',VALUES(`environment_url`),`environment_url`)," +
+                "`tenant_id`=IF(VALUES(`tenant_id`)<>'',VALUES(`tenant_id`),`tenant_id`)," +
+                "`client_id`=IF(VALUES(`client_id`)<>'',VALUES(`client_id`),`client_id`)," +
+                "`client_secret`=IF(VALUES(`client_secret`)<>'',VALUES(`client_secret`),`client_secret`)," +
+                "`username`=IF(VALUES(`username`)<>'',VALUES(`username`),`username`)," +
+                "`password`=IF(VALUES(`password`)<>'',VALUES(`password`),`password`)," +
+                "`time_updated`=VALUES(`time_updated`)"),
+            cancellationToken,
+            settings.EnvironmentUrl ?? "",
+            settings.TenantId ?? "",
+            settings.ClientId ?? "",
+            settings.ClientSecret ?? "",
+            settings.Username ?? "",
+            settings.Password ?? "",
+            now).ConfigureAwait(false);
+        // A credential change invalidates any cached token minted under the previous settings.
+        _cachedToken = null;
+        _cachedTokenKey = null;
+        _tokenExpiresAt = DateTimeOffset.MinValue;
+    }
+
     public async Task<ErpD365ConnectionStatus> GetStatusAsync(DbConnection connection, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(connection);
@@ -169,16 +269,20 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             $"SELECT COUNT(*) FROM {ObjectsTable}",
             cancellationToken).ConfigureAwait(false) ?? 0L);
         var enabled = await SyncEnabledAsync(connection, cancellationToken).ConfigureAwait(false);
-        return new ErpD365ConnectionStatus(IsConfigured, _environmentUrl, status, at, staged, enabled);
+        var resolved = await ResolveSettingsAsync(connection, cancellationToken).ConfigureAwait(false);
+        return new ErpD365ConnectionStatus(resolved.IsConfigured, resolved.EnvironmentUrl, status, at, staged, enabled);
     }
 
-    public async Task<bool> SyncEnabledAsync(DbConnection connection, CancellationToken cancellationToken = default)
+    public async Task<bool> SyncEnabledAsync(DbConnection connection, CancellationToken cancellationToken = default, DbTransaction? transaction = null)
     {
         ArgumentNullException.ThrowIfNull(connection);
-        await ErpLazySchema.EnsureD365ParametersAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (transaction is null)
+        {
+            await ErpLazySchema.EnsureD365ParametersAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
         var v = Convert.ToString(await ErpDb.ScalarAsync(
             connection,
-            null,
+            transaction,
             ErpDb.Positional("SELECT `param_value` FROM `epc_erp_d365_parameters` WHERE `company_id` = 1 AND `area` = 'sync' AND `param_key` = 'enabled'"),
             cancellationToken).ConfigureAwait(false)) ?? "";
         return v == "1";
@@ -202,14 +306,17 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             now).ConfigureAwait(false);
     }
 
-    public async Task<ErpSimpleWriteResult> TestConnectionAsync(CancellationToken cancellationToken = default)
+    public async Task<ErpSimpleWriteResult> TestConnectionAsync(DbConnection? connection = null, CancellationToken cancellationToken = default)
     {
-        if (!IsConfigured)
+        var settings = connection is null
+            ? new ErpD365ConnectionSettings(_environmentUrl, _tenantId, _clientId, _clientSecret, _username, _password)
+            : await ResolveSettingsAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (!settings.IsConfigured)
         {
-            return ErpSimpleWriteResult.Fail("not_configured", "D365 connection is not configured. Set D365:EnvironmentUrl plus either TenantId/ClientId/ClientSecret or Username/Password (or the ECOMAE_D365_* env vars).");
+            return ErpSimpleWriteResult.Fail("not_configured", "D365 connection is not configured — enter the environment URL and credentials in the Connection card on this page (or set the ECOMAE_D365_* env vars).");
         }
 
-        var token = await AcquireTokenAsync(cancellationToken).ConfigureAwait(false);
+        var token = await AcquireTokenAsync(settings, cancellationToken).ConfigureAwait(false);
         if (token is null)
         {
             return ErpSimpleWriteResult.Fail("auth_failed", "Entra token request failed — check the tenant id and the client credentials or the service-account username/password.");
@@ -218,7 +325,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         try
         {
             using var client = _http.CreateClient(HttpClientName);
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"{_environmentUrl}/data/LegalEntities?$top=1");
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"{settings.EnvironmentUrl}/data/LegalEntities?$top=1");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
@@ -232,7 +339,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         }
         catch (HttpRequestException ex)
         {
-            return ErpSimpleWriteResult.Fail("network", $"Cannot reach {_environmentUrl}: {ex.Message}");
+            return ErpSimpleWriteResult.Fail("network", $"Cannot reach {settings.EnvironmentUrl}: {ex.Message}");
         }
     }
 
@@ -244,9 +351,10 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(connection);
-        if (!IsConfigured)
+        var settings = await ResolveSettingsAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (!settings.IsConfigured)
         {
-            return new ErpD365PullResult(false, "not_configured", "D365 connection is not configured.", 0, 0, 0);
+            return new ErpD365PullResult(false, "not_configured", "D365 connection is not configured — enter credentials on this page.", 0, 0, 0);
         }
 
         if (!KnownEntities.TryGetValue(entitySet, out var label))
@@ -271,7 +379,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             adminId).ConfigureAwait(false);
         runId = Convert.ToInt64(await ErpDb.ScalarAsync(connection, null, "SELECT LAST_INSERT_ID()", cancellationToken).ConfigureAwait(false));
 
-        var token = await AcquireTokenAsync(cancellationToken).ConfigureAwait(false);
+        var token = await AcquireTokenAsync(settings, cancellationToken).ConfigureAwait(false);
         if (token is null)
         {
             await FinishRunAsync(connection, runId, "auth_failed", 0, 0, "Entra token request failed", cancellationToken).ConfigureAwait(false);
@@ -295,15 +403,15 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         try
         {
             using var client = _http.CreateClient(HttpClientName);
-            var envUri = new Uri(_environmentUrl!);
+            var envUri = new Uri(settings.EnvironmentUrl!);
             var nextLink = !string.IsNullOrEmpty(resumeUrl)
                 ? resumeUrl
-                : $"{_environmentUrl}/data/{entitySet}?$top={PageSize}&$count=true";
+                : $"{settings.EnvironmentUrl}/data/{entitySet}?$top={PageSize}&$count=true";
             // A stored cursor gets the same check as a fresh nextLink — the bearer token
             // must never go to a destination we did not verify this run.
             if (!IsSafeContinuation(envUri, nextLink))
             {
-                nextLink = $"{_environmentUrl}/data/{entitySet}?$top={PageSize}&$count=true";
+                nextLink = $"{settings.EnvironmentUrl}/data/{entitySet}?$top={PageSize}&$count=true";
             }
             long remaining = top;
             long skip = 0;
@@ -366,7 +474,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                     var more = totalCount.HasValue ? absolute < totalCount.Value : pageRows.Count == PageSize;
                     if (more)
                     {
-                        followLink = $"{_environmentUrl}/data/{entitySet}?$top={PageSize}&$count=true&$skip={absolute}";
+                        followLink = $"{settings.EnvironmentUrl}/data/{entitySet}?$top={PageSize}&$count=true&$skip={absolute}";
                     }
                 }
 
@@ -450,7 +558,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         catch (HttpRequestException ex)
         {
             await FinishRunAsync(connection, runId, "error", 0, 0, ex.Message, cancellationToken).ConfigureAwait(false);
-            return new ErpD365PullResult(false, "network", $"Cannot reach {_environmentUrl}: {ex.Message}", 0, 0, runId);
+            return new ErpD365PullResult(false, "network", $"Cannot reach {settings.EnvironmentUrl}: {ex.Message}", 0, 0, runId);
         }
         catch (JsonException ex)
         {
@@ -588,9 +696,10 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<string?> AcquireTokenAsync(CancellationToken cancellationToken)
+    private async Task<string?> AcquireTokenAsync(ErpD365ConnectionSettings settings, CancellationToken cancellationToken)
     {
-        if (_cachedToken is not null && _tokenExpiresAt > DateTimeOffset.UtcNow.AddMinutes(2))
+        var settingsKey = (settings.EnvironmentUrl ?? "") + "|" + (settings.ClientId ?? "") + "|" + (settings.Username ?? "");
+        if (_cachedToken is not null && _cachedTokenKey == settingsKey && _tokenExpiresAt > DateTimeOffset.UtcNow.AddMinutes(2))
         {
             return _cachedToken;
         }
@@ -601,24 +710,24 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             // Prefer the Entra app registration only when the full tuple exists; otherwise use a
             // resource-owner password grant. A configured confidential ClientId cannot do a public-client
             // password grant, so the fallback always uses the well-known Azure CLI public client id.
-            var fields = HasClientCredentials
+            var fields = settings.HasClientCredentials
                 ? new Dictionary<string, string>
                 {
                     ["grant_type"] = "client_credentials",
-                    ["client_id"] = _clientId!,
-                    ["client_secret"] = _clientSecret!,
-                    ["scope"] = $"{_environmentUrl}/.default",
+                    ["client_id"] = settings.ClientId!,
+                    ["client_secret"] = settings.ClientSecret!,
+                    ["scope"] = $"{settings.EnvironmentUrl}/.default",
                 }
                 : new Dictionary<string, string>
                 {
                     ["grant_type"] = "password",
                     ["client_id"] = RopcClientId,
-                    ["username"] = _username!,
-                    ["password"] = _password!,
-                    ["scope"] = $"{_environmentUrl}/.default",
+                    ["username"] = settings.Username!,
+                    ["password"] = settings.Password!,
+                    ["scope"] = $"{settings.EnvironmentUrl}/.default",
                 };
             using var form = new FormUrlEncodedContent(fields);
-            var authority = string.IsNullOrWhiteSpace(_tenantId) ? "organizations" : _tenantId;
+            var authority = string.IsNullOrWhiteSpace(settings.TenantId) ? "organizations" : settings.TenantId;
             var tokenEndpoint = new Uri($"https://login.microsoftonline.com/{authority}{TokenPath}");
             using var response = await client.PostAsync(tokenEndpoint, form, cancellationToken).ConfigureAwait(false);
             // The client is registered with AllowAutoRedirect=false, so a redirect response means the
@@ -639,6 +748,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             var token = doc.RootElement.GetProperty("access_token").GetString();
             var expiresIn = doc.RootElement.TryGetProperty("expires_in", out var exp) && exp.TryGetInt32(out var seconds) ? seconds : 3600;
             _cachedToken = token;
+            _cachedTokenKey = settingsKey;
             _tokenExpiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresIn);
             return token;
         }

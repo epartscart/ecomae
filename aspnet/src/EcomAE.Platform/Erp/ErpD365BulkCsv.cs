@@ -186,13 +186,21 @@ public static class ErpD365BulkCsv
     }
 
     /// <summary>
-    /// Column set for a synced D365 entity: the union of every top-level payload field seen in
-    /// staging — a template built from this can never drop a field the connector captured.
+    /// Column set for a synced D365 entity: the canonical full schema (every field the entity
+    /// can carry, from ErpD365EntityFieldCatalog — templates are complete even with staging
+    /// empty), unioned with every top-level payload field seen in staging.
     /// </summary>
     public static async Task<IReadOnlyList<string>> D365EntityColumnsAsync(DbConnection connection, string entitySet, CancellationToken cancellationToken)
     {
         var cols = new List<string>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var known in ErpD365EntityFieldCatalog.FieldsFor(entitySet))
+        {
+            if (seen.Add(known))
+            {
+                cols.Add(known);
+            }
+        }
         // The field store holds every field of every applied row — a field that appears only
         // outside the payload scan window below is still captured here.
         try
@@ -216,28 +224,35 @@ public static class ErpD365BulkCsv
         {
             // field store not provisioned yet — payload scan below still covers it
         }
-        await using var command = connection.CreateCommand();
-        command.CommandText = "SELECT `payload` FROM `epc_d365_sync_objects` WHERE `entity` = @e ORDER BY `id` DESC LIMIT 2000";
-        var p = command.CreateParameter();
-        p.ParameterName = "@e";
-        p.Value = entitySet;
-        command.Parameters.Add(p);
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        try
         {
-            JsonDocument doc;
-            try { doc = JsonDocument.Parse(reader.GetString(0)); }
-            catch (JsonException) { continue; }
-            using (doc)
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `payload` FROM `epc_d365_sync_objects` WHERE `entity` = @e ORDER BY `id` DESC LIMIT 2000";
+            var p = command.CreateParameter();
+            p.ParameterName = "@e";
+            p.Value = entitySet;
+            command.Parameters.Add(p);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                foreach (var prop in doc.RootElement.EnumerateObject())
+                JsonDocument doc;
+                try { doc = JsonDocument.Parse(reader.GetString(0)); }
+                catch (JsonException) { continue; }
+                using (doc)
                 {
-                    if (seen.Add(prop.Name))
+                    foreach (var prop in doc.RootElement.EnumerateObject())
                     {
-                        cols.Add(prop.Name);
+                        if (seen.Add(prop.Name))
+                        {
+                            cols.Add(prop.Name);
+                        }
                     }
                 }
             }
+        }
+        catch (DbException)
+        {
+            // staging table not provisioned on this tenant yet — the catalog columns still apply
         }
         return cols;
     }

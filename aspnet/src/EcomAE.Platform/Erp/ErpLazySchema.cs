@@ -1829,6 +1829,24 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Official process parameter values'",
             ct);
 
+    /// <summary>D365 connector credentials entered on the sync page — a dedicated table (not the
+    /// shared parameter store, whose readers are broader) with TEXT columns so long secrets fit.</summary>
+    public static Task EnsureD365ConnectionAsync(DbConnection c, CancellationToken ct) =>
+        ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_d365_connection` (" +
+            "`company_id` int(11) NOT NULL DEFAULT 1," +
+            "`environment_url` varchar(512) NOT NULL DEFAULT ''," +
+            "`tenant_id` varchar(64) NOT NULL DEFAULT ''," +
+            "`client_id` varchar(128) NOT NULL DEFAULT ''," +
+            "`client_secret` text NULL," +
+            "`username` varchar(256) NOT NULL DEFAULT ''," +
+            "`password` text NULL," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`company_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='D365 connector credentials'",
+            ct);
+
     /// <summary>Document interlinks that follow official process edges.</summary>
     public static Task EnsureD365LinkAsync(DbConnection c, CancellationToken ct) =>
         ErpDb.TryExecuteAsync(

@@ -62,7 +62,7 @@
             @if (_status is null)
             {
                 <p><span class="tg-pill tg-pill-warn">unconfigured</span></p>
-                <p>Set <code>D365:EnvironmentUrl</code> plus either an Entra app registration (<code>TenantId</code> / <code>ClientId</code> / <code>ClientSecret</code>) or a service-account login (<code>Username</code> / <code>Password</code>) — or the <code>ECOMAE_D365_*</code> environment variables — on the platform host, then restart the service.</p>
+                <p>Enter the F&amp;O environment URL plus either a service-account login (username + password) or an Entra app registration (tenant id + client id + client secret) in the <strong>Credentials</strong> form below — saved per tenant, nothing can connect until you do.</p>
             }
             else
             {
@@ -80,6 +80,26 @@
             }
             @if (_isAdmin)
             {
+                <details class="tg-form" style="margin-bottom:10px">
+                    <summary style="cursor:pointer;font-weight:600">Credentials @( (_status?.Configured ?? false) ? "— saved" : "— required before connecting")</summary>
+                    <form method="post" action="@Post("/erp/d365/save-connection")">
+                        @HiddenFields()
+                        <label>Environment URL</label>
+                        <input name="environment_url" type="url" placeholder="https://sham.operations.uae.dynamics.com" value="@(_status?.EnvironmentUrl)" />
+                        <label>Username (service-account login)</label>
+                        <input name="username" type="text" autocomplete="off" placeholder="user@tenant.com" />
+                        <label>Password</label>
+                        <input name="password" type="password" autocomplete="new-password" />
+                        <label>Tenant id (optional — Entra app registration)</label>
+                        <input name="tenant_id" type="text" autocomplete="off" />
+                        <label>Client id (optional)</label>
+                        <input name="client_id" type="text" autocomplete="off" />
+                        <label>Client secret (optional)</label>
+                        <input name="client_secret" type="password" autocomplete="new-password" />
+                        <button type="submit">Save credentials</button>
+                        <p style="font-size:12px;color:#557">Saved to the tenant parameter store — blank fields keep any host-env value; secrets are never echoed back.</p>
+                    </form>
+                </details>
                 <form method="post" action="@Post("/erp/d365/connect-test")" class="tg-form">
                     @HiddenFields()
                     <button type="submit">Test connection</button>
