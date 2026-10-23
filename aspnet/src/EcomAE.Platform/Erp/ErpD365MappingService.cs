@@ -1282,7 +1282,13 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             // resolved account segment too so it is not stored as a fake dimension value.
             if (accountSegment.Length > 0)
             {
-                accSegs.RemoveAll(s => s.Equals(accountSegment, StringComparison.OrdinalIgnoreCase));
+                // Only the account position is dropped — a later segment may be a genuine
+                // dimension value that happens to share the account's code.
+                var accountPos = accSegs.FindIndex(s => s.Equals(accountSegment, StringComparison.OrdinalIgnoreCase));
+                if (accountPos >= 0)
+                {
+                    accSegs.RemoveAt(accountPos);
+                }
             }
             segments.AddRange(accSegs);
         }

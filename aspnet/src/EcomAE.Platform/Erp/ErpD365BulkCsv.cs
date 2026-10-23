@@ -193,6 +193,29 @@ public static class ErpD365BulkCsv
     {
         var cols = new List<string>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        // The field store holds every field of every applied row — a field that appears only
+        // outside the payload scan window below is still captured here.
+        try
+        {
+            await using var fieldsCmd = connection.CreateCommand();
+            fieldsCmd.CommandText = "SELECT `field_name` FROM `epc_d365_object_fields` WHERE `entity` = @e GROUP BY `field_name` ORDER BY MIN(`id`)";
+            var fp = fieldsCmd.CreateParameter();
+            fp.ParameterName = "@e";
+            fp.Value = entitySet;
+            fieldsCmd.Parameters.Add(fp);
+            await using var fieldsReader = await fieldsCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await fieldsReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (seen.Add(fieldsReader.GetString(0)))
+                {
+                    cols.Add(fieldsReader.GetString(0));
+                }
+            }
+        }
+        catch (DbException)
+        {
+            // field store not provisioned yet — payload scan below still covers it
+        }
         await using var command = connection.CreateCommand();
         command.CommandText = "SELECT `payload` FROM `epc_d365_sync_objects` WHERE `entity` = @e ORDER BY `id` DESC LIMIT 2000";
         var p = command.CreateParameter();
