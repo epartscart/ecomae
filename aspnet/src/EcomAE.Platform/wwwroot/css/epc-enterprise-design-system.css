@@ -2691,8 +2691,11 @@ a.epc-dash-legend__row:hover { color: #0e7490; }
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(15, 43, 82, .06);
     background: #fff;
-    overflow: hidden;
 }
+.epc-d365-lp-main > .epc-erp-table-wrap { overflow-x: auto; }
+.epc-d365-lp-main > .panel,
+.epc-d365-lp-main > .epc-erp-form-panel,
+.epc-d365-lp-main > section { overflow: hidden; }
 .epc-d365-lp-main > .panel { margin-bottom: 0; }
 .epc-d365-filterbar {
     display: flex;
