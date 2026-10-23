@@ -550,7 +550,7 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpFixedAssetDetailResult> BuildErpFixedAssetDetailAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only process-flow cases from PHP <c>epc_pf_cases</c> (writes remain PHP).</summary>
-    Task<ErpProcessFlowTasksDigestResult> BuildErpProcessFlowTasksDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpProcessFlowTasksDigestResult> BuildErpProcessFlowTasksDigestAsync(int limit, CancellationToken cancellationToken = default, string? statusFilter = null);
 
     /// <summary>Read-only ERP report-center registry (+ optional table-backed/computed run). CSV/export remain PHP.</summary>
     Task<ErpReportCenterDigestResult> BuildErpReportCenterDigestAsync(string? key, int limit, CancellationToken cancellationToken = default, int? companyId = null);
