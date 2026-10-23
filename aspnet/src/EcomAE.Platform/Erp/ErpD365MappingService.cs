@@ -1737,16 +1737,17 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         }
 
         // F&O signs credit amounts negative (a credit of 500 arrives as -500) and may send
-        // IsCredit as "Yes"/true. Credits therefore must be absoluted to the credit column;
-        // debits keep their sign — a negative debit is a reversal and must net the ledger down.
+        // IsCredit as "Yes"/true. Never store negative columns: credits are absoluted, and a
+        // negative debit reversal is stored as a positive credit (same net, and journal
+        // reversal / ErpGlPostingService.Validate require non-negative debit/credit).
         var amount = Dec(row, "AccountingCurrencyAmount");
         var isCreditRaw = row.TryGetProperty("IsCredit", out var ic) ? ic : default;
         var isCredit = (isCreditRaw.ValueKind == JsonValueKind.True)
             || (isCreditRaw.ValueKind == JsonValueKind.String
                 && isCreditRaw.GetString() is string icText
                 && (icText.Equals("Yes", StringComparison.OrdinalIgnoreCase) || icText.Equals("true", StringComparison.OrdinalIgnoreCase) || icText == "1"));
-        var debit = isCredit ? 0m : amount;
-        var credit = isCredit ? Math.Abs(amount) : 0m;
+        var debit = isCredit ? 0m : Math.Max(amount, 0m);
+        var credit = isCredit ? Math.Abs(amount) : Math.Max(-amount, 0m);
         var note = Str(row, "Text", "PaymentReference", "Description");
         if (note.Length == 0) { note = voucher; }
         var lineRef = Clip(Str(row, "SourceKey", "RecId", "LedgerDimension"), 64);
