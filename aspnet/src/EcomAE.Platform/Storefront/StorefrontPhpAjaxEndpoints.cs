@@ -683,13 +683,19 @@ public static class StorefrontPhpAjaxEndpoints
         _ = int.TryParse(await FieldAsync(context, "group_id", cancellationToken).ConfigureAwait(false), NumberStyles.Integer, CultureInfo.InvariantCulture, out var groupId);
         var query = await FieldAsync(context, "query", cancellationToken).ConfigureAwait(false);
         var access = await priceAccess.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
+        var cacheKey = CatalogKey(context, "bunch2", article, officeId, storageId, groupId, query, access.PricesVisible);
+        if (CatalogTryGet(cacheKey, out var cached))
+        {
+            return Emit(context, cached!);
+        }
+
         return await WithDbAsync(
             context,
             connections,
             cancellationToken,
             (connection, ct) => StorefrontPhpAjax.ProductsOfBunch2Async(connection, article, officeId, storageId, query, 0, groupId, access.PricesVisible, ct),
             StorefrontPhpAjax.NoDbConnect,
-            CatalogKey(context, "bunch2", article, officeId, storageId, groupId, query, access.PricesVisible)).ConfigureAwait(false);
+            cacheKey).ConfigureAwait(false);
     }
 
     private static async Task<IResult> SkuMediaAsync(
@@ -728,7 +734,8 @@ public static class StorefrontPhpAjaxEndpoints
             cancellationToken,
             (connection, ct) => StorefrontPhpAjax.SkuMediaLookupAsync(connection, brand, article, productId, ct),
             StorefrontPhpAjax.SkuMediaNoDatabase(),
-            cacheKey).ConfigureAwait(false);
+            cacheKey,
+            payload => payload is StorefrontPhpAjax.SkuLookupBody).ConfigureAwait(false);
     }
 
     private static async Task<IResult> AddToBasketAsync(
@@ -5170,19 +5177,34 @@ public static class StorefrontPhpAjaxEndpoints
         CancellationToken cancellationToken,
         Func<System.Data.Common.DbConnection, CancellationToken, Task<object>> body,
         object fallback,
-        string? cacheKey = null)
+        string? cacheKey = null,
+        Func<object, bool>? cacheFilter = null)
     {
         if (!connections.IsConfigured)
         {
             return Fallback(context, fallback);
         }
 
+        SemaphoreSlim? flight = null;
         try
         {
+            if (cacheKey is not null)
+            {
+                // Single-flight: parallel misses on one key produce the payload once.
+                flight = s_catalogFlights.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
+                await flight.WaitAsync(cancellationToken).ConfigureAwait(false);
+                if (CatalogTryGet(cacheKey, out var cached))
+                {
+                    return Emit(context, cached!);
+                }
+            }
+
             var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
             await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
             var payload = await body(connection, cancellationToken).ConfigureAwait(false);
-            if (cacheKey is not null && !ReferenceEquals(payload, fallback))
+            if (cacheKey is not null
+                && !ReferenceEquals(payload, fallback)
+                && (cacheFilter is null || cacheFilter(payload)))
             {
                 CatalogSet(cacheKey, payload);
             }
@@ -5193,11 +5215,20 @@ public static class StorefrontPhpAjaxEndpoints
         {
             return Fallback(context, fallback);
         }
+        finally
+        {
+            if (flight is not null)
+            {
+                flight.Release();
+                s_catalogFlights.TryRemove(cacheKey!, out _);
+            }
+        }
     }
 
     // Short-lived read-mostly cache for the public catalog XHRs: identical
     // scraper bursts then replay the stored JSON without touching MySQL.
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (object Payload, long ExpiresTick)> s_catalogCache = new(StringComparer.Ordinal);
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, SemaphoreSlim> s_catalogFlights = new(StringComparer.Ordinal);
     private const int CatalogCacheMaxEntries = 60_000;
     private const long CatalogCacheTtlMs = 90_000;
 
@@ -5208,7 +5239,7 @@ public static class StorefrontPhpAjaxEndpoints
         var sb = new System.Text.StringBuilder(scope).Append('|').Append(endpoint);
         foreach (var part in parts)
         {
-            sb.Append('\x1f').Append(part);
+            sb.Append('\x1f').Append(part?.ToString()?.Replace('\x1f', ' '));
         }
 
         return sb.ToString();
