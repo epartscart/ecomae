@@ -18,83 +18,124 @@
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard" BreadcrumbArea="Home" BreadcrumbTab="Executive dashboard">
 
-    <PhpErpModulePageHeader Title="@_boardTitle" Subtitle="@_boardLead" />
+    <div class="epc-dash" aria-label="@_boardTitle">
 
-    <div class="epc-infographic" data-industry="@_kind" aria-label="@_boardTitle">
-        <div class="epc-infographic__head">
-            <div>
-                <div class="epc-infographic__eyebrow">@_companyLabel · @_industryLabel</div>
-                <h2 class="epc-infographic__title">@_boardTitle</h2>
-                <p class="epc-infographic__sub">@_boardLead</p>
+        <section class="epc-dash-hero" data-industry="@_kind">
+            <div class="epc-dash-hero__eyebrow">@_companyLabel · @_industryLabel</div>
+            <h2 class="epc-dash-hero__title">@_boardTitle</h2>
+            <p class="epc-dash-hero__sub">@_boardLead</p>
+            <div class="epc-dash-hero__meta">
+                <span class="epc-dash-hero__chip"><i class="fa fa-calendar"></i> @_todayLabel</span>
+                <span class="epc-dash-hero__chip"><i class="fa fa-circle" style="color:#4ade80"></i> Healthy</span>
+                <span class="epc-dash-hero__chip"><i class="fa fa-circle" style="color:#fbbf24"></i> Attention</span>
+                <span class="epc-dash-hero__chip"><i class="fa fa-circle" style="color:#f87171"></i> Action</span>
             </div>
-            <div class="epc-infographic__legend">
-                <span><i></i>Healthy</span><span class="is-alert"><i></i>Attention</span><span class="is-action"><i></i>Action</span>
-            </div>
-        </div>
-        <div class="epc-exec-kpis" aria-label="Industry KPIs">
+        </section>
+
+        <h5 class="epc-dash-sec"><i class="fa fa-industry"></i> @_industryLabel KPIs</h5>
+        <div class="epc-dash-grid" aria-label="Industry KPIs">
             @foreach (var tile in _industryTiles)
             {
                 @ExecTile(tile.Label, tile.Value, tile.Href, tile.Color, tile.Hint)
             }
         </div>
-    </div>
 
-    <h5 class="epc-eds-sec"><i class="fa fa-book"></i> Executive dashboard</h5>
-    <p class="text-muted">Cash, receivables, payables, stock, and tax stay on this board for every industry.</p>
-    <div class="epc-exec-kpis" aria-label="Executive KPIs">
-        @ExecTile("Cash position", Money(_s.CashPosition), Go("/erp/cash-accounts-app"), "#2bb3c0", "Cash & bank")
-        @ExecTile("Receivables", Money(_s.Receivables), Go("/erp/receivables-app"), Health(_s.Receivables, warnAbove: false), "Open AR")
-        @ExecTile("Payables", Money(_s.Payables), Go("/erp/payables-app"), Health(_s.Payables, warnAbove: true), "Open AP")
-        @ExecTile("Stock value", Money(_s.StockValue), Go("/erp/inventory-stock-app"), "#0a7d33", "On-hand inventory")
-        @ExecTile("Revenue (ex. VAT)", Money(_s.RevenueExVat), Go("/erp/invoices-app"), "#2bb3c0", "Completed sales")
-        @ExecTile("Orders", _s.OrdersCount.ToString(CultureInfo.InvariantCulture), Go("/erp/sales-orders-app"), "#2563eb", "Sales orders")
-        @ExecTile("VAT net payable", Money(_s.VatNetPayable), Go("/erp/vat-app"), Health(_s.VatNetPayable, warnAbove: true), "Current return")
-        @ExecTile("Period status", _s.PeriodStatus, Go("/erp/period-close-app"), string.Equals(_s.PeriodStatus, "open", StringComparison.OrdinalIgnoreCase) ? "#0a7d33" : "#c98a00", "Fiscal period")
-    </div>
+        <h5 class="epc-dash-sec"><i class="fa fa-book"></i> Executive dashboard</h5>
+        <div class="epc-dash-grid" aria-label="Executive KPIs">
+            @ExecTile("Cash position", Money(_s.CashPosition), Go("/erp/cash-accounts-app"), "#2bb3c0", "Cash & bank")
+            @ExecTile("Receivables", Money(_s.Receivables), Go("/erp/receivables-app"), Health(_s.Receivables, warnAbove: false), "Open AR")
+            @ExecTile("Payables", Money(_s.Payables), Go("/erp/payables-app"), Health(_s.Payables, warnAbove: true), "Open AP")
+            @ExecTile("Stock value", Money(_s.StockValue), Go("/erp/inventory-stock-app"), "#0a7d33", "On-hand inventory")
+            @ExecTile("Revenue (ex. VAT)", Money(_s.RevenueExVat), Go("/erp/invoices-app"), "#2bb3c0", "Completed sales")
+            @ExecTile("Orders", _s.OrdersCount.ToString(CultureInfo.InvariantCulture), Go("/erp/sales-orders-app"), "#2563eb", "Sales orders")
+            @ExecTile("VAT net payable", Money(_s.VatNetPayable), Go("/erp/vat-app"), Health(_s.VatNetPayable, warnAbove: true), "Current return")
+            @ExecTile("Period status", _s.PeriodStatus, Go("/erp/period-close-app"), string.Equals(_s.PeriodStatus, "open", StringComparison.OrdinalIgnoreCase) ? "#0a7d33" : "#c98a00", "Fiscal period")
+        </div>
 
-    <h5 class="epc-eds-sec"><i class="fa fa-sitemap"></i> Process flow</h5>
-    <div class="epc-exec-kpis" aria-label="Process flow">
-        @ExecTile("Open cases", _s.ProcessOpen.ToString(CultureInfo.InvariantCulture), Go("/erp/process-flow-tasks-app"), "#2563eb", "Monitor")
-        @ExecTile("Completed", _s.ProcessDone.ToString(CultureInfo.InvariantCulture), Go("/erp/process-flow-tasks-app?pf_view=monitor&f_status=done"), "#0a7d33", "Done")
-        @ExecTile("Overdue", _s.ProcessOverdue.ToString(CultureInfo.InvariantCulture), Go("/erp/process-flow-tasks-app"), _s.ProcessOverdue > 0 ? "#c0392b" : "#0a7d33", "SLA")
-    </div>
+        <div class="epc-dash-cards">
+            <section class="epc-dash-card" aria-label="Financial position">
+                <div class="epc-dash-card__hd">
+                    <h4><i class="fa fa-bar-chart" style="color:#0e7490"></i> Financial position</h4>
+                    <span class="note">share of max</span>
+                </div>
+                <div class="epc-dash-bars">
+                    @BarRow("Receivables", _s.Receivables, "#2563eb", Go("/erp/receivables-app"))
+                    @BarRow("Payables", _s.Payables, "#c98a00", Go("/erp/payables-app"))
+                    @BarRow("Stock value", _s.StockValue, "#0a7d33", Go("/erp/inventory-stock-app"))
+                    @BarRow("Revenue (ex. VAT)", _s.RevenueExVat, "#2bb3c0", Go("/erp/invoices-app"))
+                    @BarRow("VAT net payable", _s.VatNetPayable, "#b45309", Go("/erp/vat-app"))
+                    @BarRow("Cash position", _s.CashPosition, "#1d4f91", Go("/erp/cash-accounts-app"))
+                </div>
+            </section>
 
-    <h5 class="epc-eds-sec"><i class="fa fa-check-square-o"></i> Approval queue</h5>
-    <div class="epc-erp-table-wrap">
-        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-            <thead>
-                <tr><th>Category</th><th>Label</th><th>Count</th><th>Action</th><th>Severity</th></tr>
-            </thead>
-            <tbody>
-                @if (_queue.Count == 0)
-                {
-                    <tr><td colspan="5" class="text-muted">No approval queue items.</td></tr>
-                }
-                else
-                {
-                    @foreach (var item in _queue)
-                    {
-                        <tr>
-                            <td>@item.Category</td>
-                            <td>@item.Label</td>
-                            <td>@item.Count.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@Go(item.Link)">@item.Action</a></td>
-                            <td><span class="label label-@(item.Severity is "high" or "bad" ? "danger" : (item.Severity is "warn" or "medium" ? "warning" : "default"))">@item.Severity</span></td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
+            <section class="epc-dash-card" aria-label="Process flow">
+                <div class="epc-dash-card__hd">
+                    <h4><i class="fa fa-sitemap" style="color:#0e7490"></i> Process flow</h4>
+                    <span class="note"><a href="@Go("/erp/process-flow-tasks-app")">monitor</a></span>
+                </div>
+                <div class="epc-dash-donut-wrap">
+                    <div class="epc-dash-donut" style="--p1:@_donutP1;--p2:@_donutP2;">
+                        <div class="epc-dash-donut__center"><b>@_processTotal</b><span>cases</span></div>
+                    </div>
+                    <div class="epc-dash-legend">
+                        <div class="epc-dash-legend__row"><i class="epc-dash-legend__dot" style="--c:#2563eb"></i><span>Open cases</span><b>@_s.ProcessOpen</b></div>
+                        <div class="epc-dash-legend__row"><i class="epc-dash-legend__dot" style="--c:#0a7d33"></i><span>Completed</span><b>@_s.ProcessDone</b></div>
+                        <div class="epc-dash-legend__row"><i class="epc-dash-legend__dot" style="--c:#c0392b"></i><span>Overdue</span><b>@_s.ProcessOverdue</b></div>
+                    </div>
+                </div>
+            </section>
 
-    <h5 class="epc-eds-sec"><i class="fa fa-truck"></i> Working capital</h5>
-    <div class="epc-exec-kpis">
-        @ExecTile("Supplier credit", Money(_s.SupplierCredit), Go("/erp/suppliers-app"), "#0a7d33", "Credit notes")
-        @ExecTile("Supplier debit", Money(_s.SupplierDebit), Go("/erp/payables-app"), "#c98a00", "Open bills")
-        @ExecTile("Supplier net", Money(_s.SupplierNet), Go("/erp/suppliers-app"), "#2563eb", "Net position")
-        @ExecTile("Active suppliers", _s.ActiveSuppliers.ToString(CultureInfo.InvariantCulture), Go("/erp/suppliers-app"), "#2bb3c0", "Masters")
-        @ExecTile("Active purchases", _s.ActivePurchases.ToString(CultureInfo.InvariantCulture), Go("/erp/purchases-app"), "#2563eb", "Open POs / bills")
-        @ExecTile("Active items", _s.InventoryItems.ToString(CultureInfo.InvariantCulture), Go("/erp/inventory-stock-app"), "#0a7d33", "SKU count")
+            <section class="epc-dash-card" aria-label="Working capital">
+                <div class="epc-dash-card__hd">
+                    <h4><i class="fa fa-truck" style="color:#0e7490"></i> Working capital</h4>
+                    <span class="note"><a href="@Go("/erp/suppliers-app")">suppliers</a></span>
+                </div>
+                <div class="epc-dash-bars">
+                    @BarRow("Supplier credit", _s.SupplierCredit, "#0a7d33", Go("/erp/suppliers-app"))
+                    @BarRow("Supplier debit", _s.SupplierDebit, "#c98a00", Go("/erp/payables-app"))
+                    @BarRow("Supplier net", Math.Abs(_s.SupplierNet), "#2563eb", Go("/erp/suppliers-app"), Money(_s.SupplierNet))
+                </div>
+                <div class="epc-dash-grid" style="margin-top:.9rem;">
+                    @ExecTile("Active suppliers", _s.ActiveSuppliers.ToString(CultureInfo.InvariantCulture), Go("/erp/suppliers-app"), "#2bb3c0", "Masters")
+                    @ExecTile("Active purchases", _s.ActivePurchases.ToString(CultureInfo.InvariantCulture), Go("/erp/purchases-app"), "#2563eb", "Open POs / bills")
+                    @ExecTile("Active items", _s.InventoryItems.ToString(CultureInfo.InvariantCulture), Go("/erp/inventory-stock-app"), "#0a7d33", "SKU count")
+                </div>
+            </section>
+        </div>
+
+        <section class="epc-dash-card epc-dash-card--table" aria-label="Approval queue">
+            <div class="epc-dash-card__hd">
+                <h4><i class="fa fa-check-square-o" style="color:#0e7490"></i> Approval queue</h4>
+                <span class="note">@_queue.Count items</span>
+            </div>
+            <div class="epc-erp-table-wrap">
+                <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr><th>Category</th><th>Label</th><th>Count</th><th>Action</th><th>Severity</th></tr>
+                    </thead>
+                    <tbody>
+                        @if (_queue.Count == 0)
+                        {
+                            <tr><td colspan="5" class="text-muted">No approval queue items.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in _queue)
+                            {
+                                <tr>
+                                    <td>@item.Category</td>
+                                    <td>@item.Label</td>
+                                    <td>@item.Count.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td><a href="@Go(item.Link)">@item.Action</a></td>
+                                    <td><span class="label label-@(item.Severity is "high" or "bad" ? "danger" : (item.Severity is "warn" or "medium" ? "warning" : "default"))">@item.Severity</span></td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
     </div>
 
     @if (!_isAdmin)
@@ -120,6 +161,12 @@
     private ErpIndustryPulse _pulse = ErpIndustryPulse.Empty;
     private ErpLandlordMeasure _yearBook = ErpLandlordMeasure.Empty;
     private List<DashTile> _industryTiles = [];
+    private string _todayLabel = DateTime.UtcNow.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
+    private string _donutP1 = "0deg";
+    private string _donutP2 = "0deg";
+    private string _processTotal = "0";
+    private decimal _finMax = 1m;
+    private decimal _wcMax = 1m;
     private ErpDashboardSummary _s = new(
         0, 0, 0, 0, 0, 0, 0,
         0, 0, 0,
@@ -194,6 +241,15 @@
         }
 
         BuildTiles();
+        var total = _s.ProcessOpen + _s.ProcessDone + _s.ProcessOverdue;
+        _processTotal = total.ToString("N0", CultureInfo.InvariantCulture);
+        if (total > 0)
+        {
+            _donutP1 = (_s.ProcessOpen * 360.0 / total).ToString("0.#", CultureInfo.InvariantCulture) + "deg";
+            _donutP2 = ((_s.ProcessOpen + _s.ProcessDone) * 360.0 / total).ToString("0.#", CultureInfo.InvariantCulture) + "deg";
+        }
+        _finMax = Math.Max(1m, new[] { _s.Receivables, _s.Payables, _s.StockValue, _s.RevenueExVat, _s.VatNetPayable, _s.CashPosition }.Max());
+        _wcMax = Math.Max(1m, new[] { _s.SupplierCredit, _s.SupplierDebit, Math.Abs(_s.SupplierNet) }.Max());
     }
 
     private void BuildTiles()
@@ -280,12 +336,23 @@
 
     private RenderFragment ExecTile(string label, string value, string href, string color, string hint) => __builder =>
     {
-        <div class="epc-exec-kpi" style="--tile-color:@color;">
+        <div class="epc-dash-kpi" style="--tile-color:@color;">
             <a href="@href">
                 <div class="lbl">@label</div>
-                <div class="val" style="color:@color;">@value</div>
+                <div class="val">@value</div>
                 <div class="hint">@hint</div>
             </a>
+        </div>
+    };
+
+    private RenderFragment BarRow(string label, decimal value, string color, string href, string? displayOverride = null) => __builder =>
+    {
+        var max = label.StartsWith("Supplier", StringComparison.Ordinal) ? _wcMax : _finMax;
+        var pct = max <= 0 ? 0m : Math.Max(0m, Math.Min(100m, Math.Abs(value) * 100m / max));
+        <div class="epc-dash-bar__row">
+            <a class="epc-dash-bar__lbl" href="@href">@label</a>
+            <div class="epc-dash-bar__track"><div class="epc-dash-bar__fill" style="--bar-color:@color;width:@pct.ToString("0.#", CultureInfo.InvariantCulture)%"></div></div>
+            <div class="epc-dash-bar__val"><a href="@href" style="color:inherit;text-decoration:none">@(displayOverride ?? Money(value))</a></div>
         </div>
     };
 
