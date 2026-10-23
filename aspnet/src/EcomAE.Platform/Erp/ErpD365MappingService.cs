@@ -66,6 +66,8 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             ["LedgerJournalLines"] = "GL journal lines",
             ["MainAccounts"] = "Chart of accounts",
             ["LegalEntities"] = "Legal entities",
+            ["GeneralJournalEntryBiEntities"] = "Posted GL vouchers (headers)",
+            ["GeneralJournalAccountEntryBiEntities"] = "Posted GL entries (lines)",
             ["TrialBalanceFiscalYearSnapshots"] = "Trial balance snapshots",
             ["WarehousesOnHandV2"] = "Inventory on-hand by warehouse",
         };
@@ -302,6 +304,8 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                     "VendorInvoiceLines" => await ApplyPurchaseInvoiceLineAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     "CustomerPaymentJournalHeaders" or "VendorPaymentJournalHeaders" or "LedgerJournalHeaders" => await ApplyJournalHeaderAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
                     "CustomerPaymentJournalLines" or "VendorPaymentJournalLines" or "LedgerJournalLines" => await ApplyJournalLineAsync(connection, transaction, doc.RootElement, extKey, entity, appliedJournalLineRefs, cancellationToken).ConfigureAwait(false),
+                    "GeneralJournalEntryBiEntities" => await ApplyGlEntryHeaderAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
+                    "GeneralJournalAccountEntryBiEntities" => await ApplyGlAccountEntryAsync(connection, transaction, doc.RootElement, extKey, entity, cancellationToken).ConfigureAwait(false),
                     "MainAccounts" => await ApplyMainAccountAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     "LegalEntities" => await ApplyLegalEntityAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     "TrialBalanceFiscalYearSnapshots" => true, // compare-card source; fields kept on the staged row
@@ -1584,6 +1588,202 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             ct,
             Clip(dataArea, 16), Clip(itemNo, 64), Clip(name, 190), Clip(site, 32), Clip(warehouse, 48),
             onhand, avail, reserved, ordered, now).ConfigureAwait(false);
+        return true;
+    }
+
+    /// <summary>GeneralJournalEntryBiEntities → epc_erp_gl_journals (posted voucher headers; journal_no = gj|SourceKey).</summary>
+    private static async Task<bool> ApplyGlEntryHeaderAsync(DbConnection connection, DbTransaction tx, JsonElement row, long adminId, CancellationToken ct)
+    {
+        var sourceKey = Str(row, "SourceKey", "GeneralJournalEntry", "RecId", "TransferId");
+        if (sourceKey.Length == 0)
+        {
+            return false;
+        }
+        var journalNo = Clip("gj|" + sourceKey, 32);
+        var category = Str(row, "JournalCategory", "JournalType", "JournalName");
+        var sourceType = category.Contains("Purch", StringComparison.OrdinalIgnoreCase) ? "purchase"
+            : category.Contains("Sales", StringComparison.OrdinalIgnoreCase) ? "sales"
+            : category.Contains("Paym", StringComparison.OrdinalIgnoreCase) || category.Contains("Payment", StringComparison.OrdinalIgnoreCase) ? "payment"
+            : category.Contains("Bank", StringComparison.OrdinalIgnoreCase) || category.Contains("Cash", StringComparison.OrdinalIgnoreCase) ? "cash"
+            : "manual";
+        var reference = Str(row, "SubledgerVoucher", "Voucher", "DocumentNumber", "JournalNumber");
+        var journalDate = DateOf(row, "AccountingDate", "DocumentDate", "CreatedOn");
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var companyId = await ResolveCompanyIdAsync(connection, tx, row, ct).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(connection, tx,
+            "INSERT INTO `epc_erp_gl_journals` (`journal_no`, `journal_date`, `reference`, `source_type`, `source_id`, `company_id`, `admin_id`, `time_created`) " +
+            "VALUES (?, ?, ?, ?, 0, ?, ?, ?) ON DUPLICATE KEY UPDATE `journal_date` = VALUES(`journal_date`), `reference` = VALUES(`reference`), `source_type` = VALUES(`source_type`), `company_id` = VALUES(`company_id`)",
+            ct, journalNo, journalDate > 0 ? journalDate : now, Clip(reference, 128), sourceType, companyId, adminId, now).ConfigureAwait(false);
+        return true;
+    }
+
+    /// <summary>
+    /// GeneralJournalAccountEntryBiEntities → epc_erp_gl_lines: the posted ledger entries — every
+    /// row carries LedgerDimensionValuesJson ({MAINACCOUNT, LEGALENTITY, BUSINESSUNIT, COSTCENTER, …})
+    /// so the main account and each financial dimension land on the real master columns.
+    /// </summary>
+    private static async Task<bool> ApplyGlAccountEntryAsync(DbConnection connection, DbTransaction tx, JsonElement row, string extKey, string entity, CancellationToken ct)
+    {
+        var entryFk = Str(row, "GeneralJournalEntry");
+        var journalNo = entryFk.Length > 0 ? Clip("gj|" + entryFk, 32) : ScopedKey(row, Str(row, "JournalNumber", "JournalBatchNumber"), 32);
+        if (journalNo.Length == 0)
+        {
+            return false;
+        }
+        long journalId = 0;
+        var voucher = "";
+        await using (var jcmd = connection.CreateCommand())
+        {
+            jcmd.Transaction = tx;
+            jcmd.CommandText = "SELECT `id`, IFNULL(`reference`,'') FROM `epc_erp_gl_journals` WHERE `journal_no` = @j LIMIT 1";
+            var p = jcmd.CreateParameter(); p.ParameterName = "@j"; p.Value = journalNo; jcmd.Parameters.Add(p);
+            await using var r = await jcmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            if (await r.ReadAsync(ct).ConfigureAwait(false))
+            {
+                journalId = r.GetInt64(0);
+                voucher = r.GetString(1);
+            }
+        }
+        if (journalId <= 0)
+        {
+            return false; // header not applied yet — pull/apply GeneralJournalEntryBiEntities first
+        }
+
+        var entityId = 0L;
+        var buId = 0L;
+        var costCentreId = 0L;
+        var dimTypeCode = "";
+        var dimValueCode = "";
+        var mainAccount = "";
+        var dimsJson = Str(row, "LedgerDimensionValuesJson");
+        if (dimsJson.Length > 0)
+        {
+            try
+            {
+                using var dims = JsonDocument.Parse(dimsJson);
+                var dimObjs = dims.RootElement.ValueKind == JsonValueKind.Array
+                    ? dims.RootElement.EnumerateArray().ToList()
+                    : new List<JsonElement> { dims.RootElement };
+                foreach (var obj in dimObjs)
+                {
+                    if (obj.ValueKind != JsonValueKind.Object) { continue; }
+                    foreach (var prop in obj.EnumerateObject())
+                    {
+                        var val = prop.Value.ValueKind == JsonValueKind.String ? prop.Value.GetString() ?? "" : prop.Value.ToString();
+                        if (val.Length == 0) { continue; }
+                        switch (prop.Name.ToUpperInvariant())
+                        {
+                            case "MAINACCOUNT":
+                                mainAccount = val;
+                                break;
+                            case "LEGALENTITY":
+                                entityId = entityId > 0 ? entityId : await ErpDb.LongAsync(connection, tx,
+                                    ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `code` = ? LIMIT 1"), ct, Clip(val, 40)).ConfigureAwait(false);
+                                break;
+                            case "BUSINESSUNIT":
+                                buId = buId > 0 ? buId : await ErpDb.LongAsync(connection, tx,
+                                    ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_business_units` WHERE `code` = ? LIMIT 1"), ct, Clip(val, 40)).ConfigureAwait(false);
+                                break;
+                            case "COSTCENTER":
+                            case "COSTCENTRE":
+                                costCentreId = costCentreId > 0 ? costCentreId : await ResolveCostCentreIdAsync(connection, tx, val, ct).ConfigureAwait(false);
+                                break;
+                            default:
+                                // Any other D365 dimension (WORKER, DEPARTMENT, projects, …): provision a
+                                // value under a type named after the dimension so nothing is dropped.
+                                var (_, valType) = await EnsureDimValueAsync(connection, tx, val, prop.Name.ToLowerInvariant(), ct).ConfigureAwait(false);
+                                if (dimValueCode.Length == 0)
+                                {
+                                    dimTypeCode = valType;
+                                    dimValueCode = Clip(val, 64);
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+            catch (JsonException) { /* malformed dims JSON — LedgerAccount fallback below still carries the string */ }
+        }
+        var ledgerAccount = Str(row, "LedgerAccount", "AccountDisplayValue", "LedgerDimension");
+        if (mainAccount.Length == 0 && ledgerAccount.Length > 0)
+        {
+            mainAccount = ledgerAccount.Split('-', '|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault() ?? "";
+        }
+        if (mainAccount.Length == 0)
+        {
+            return false;
+        }
+        var coaId = await ErpDb.LongAsync(connection, tx,
+            ErpDb.Positional("SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = ? LIMIT 1"), ct, Clip(mainAccount, 16)).ConfigureAwait(false);
+        if (coaId <= 0)
+        {
+            return false; // account not synced yet — pull MainAccounts first
+        }
+        if (entityId == 0)
+        {
+            entityId = await ResolveCompanyIdAsync(connection, tx, row, ct).ConfigureAwait(false);
+        }
+
+        var amount = Dec(row, "AccountingCurrencyAmount");
+        var isCredit = Str(row, "IsCredit").Equals("Yes", StringComparison.OrdinalIgnoreCase);
+        var debit = isCredit ? 0m : amount;
+        var credit = isCredit ? amount : 0m;
+        var note = Str(row, "Text", "PaymentReference", "Description");
+        if (note.Length == 0) { note = voucher; }
+        var lineRef = Clip(Str(row, "SourceKey", "RecId", "LedgerDimension"), 64);
+        if (lineRef.Length == 0) { lineRef = "k:" + Clip(extKey, 60); }
+
+        var hasDimString = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_string", ct, tx).ConfigureAwait(false);
+        var hasVoucher = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "voucher", ct, tx).ConfigureAwait(false);
+        var hasLegalEntity = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "legal_entity_id", ct, tx).ConfigureAwait(false);
+        var hasBu = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "business_unit_id", ct, tx).ConfigureAwait(false);
+        var hasDimType = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_type_code", ct, tx).ConfigureAwait(false);
+        var hasDimValue = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_value_code", ct, tx).ConfigureAwait(false);
+        var hasCostCentre = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "cost_centre_id", ct, tx).ConfigureAwait(false);
+        var hasCurrency = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "currency_code", ct, tx).ConfigureAwait(false);
+        var hasAmtCur = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "amount_currency", ct, tx).ConfigureAwait(false);
+        var currency = Str(row, "TransactionCurrencyCode");
+        var amountCur = Dec(row, "TransactionCurrencyAmount");
+
+        var existing = await ErpDb.LongAsync(connection, tx,
+            ErpDb.Positional("SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `line_ref` = ? AND `ext_entity` = ? LIMIT 1"),
+            ct, journalId, lineRef, Clip(entity, 64)).ConfigureAwait(false);
+        if (existing <= 0)
+        {
+            var cols = new List<string> { "`journal_id`", "`coa_id`", "`debit`", "`credit`", "`line_note`", "`ext_key`", "`line_ref`", "`ext_entity`" };
+            var marks = new List<string> { "?", "?", "?", "?", "?", "?", "?", "?" };
+            var vals = new List<object?> { journalId, coaId, debit, credit, Clip(note, 255), Clip(extKey, 255), lineRef, Clip(entity, 64) };
+            if (hasDimString) { cols.Add("`dimension_string`"); marks.Add("?"); vals.Add(Clip(ledgerAccount, 255)); }
+            if (hasVoucher) { cols.Add("`voucher`"); marks.Add("?"); vals.Add(Clip(voucher, 255)); }
+            if (hasLegalEntity) { cols.Add("`legal_entity_id`"); marks.Add("?"); vals.Add(entityId); }
+            if (hasBu) { cols.Add("`business_unit_id`"); marks.Add("?"); vals.Add(buId); }
+            if (hasDimType) { cols.Add("`dimension_type_code`"); marks.Add("?"); vals.Add(Clip(dimTypeCode, 32)); }
+            if (hasDimValue) { cols.Add("`dimension_value_code`"); marks.Add("?"); vals.Add(Clip(dimValueCode, 64)); }
+            if (hasCostCentre) { cols.Add("`cost_centre_id`"); marks.Add("?"); vals.Add(costCentreId); }
+            if (hasCurrency) { cols.Add("`currency_code`"); marks.Add("?"); vals.Add(Clip(currency, 255)); }
+            if (hasAmtCur) { cols.Add("`amount_currency`"); marks.Add("?"); vals.Add(amountCur); }
+            await ErpDb.ExecuteAsync(connection, tx,
+                ErpDb.Positional("INSERT INTO `epc_erp_gl_lines` (" + string.Join(", ", cols) + ") VALUES (" + string.Join(", ", marks) + ")"),
+                ct, vals.ToArray()).ConfigureAwait(false);
+        }
+        else
+        {
+            var sets = new List<string> { "`coa_id` = ?", "`debit` = ?", "`credit` = ?", "`line_note` = ?", "`ext_key` = ?", "`ext_entity` = ?" };
+            var vals = new List<object?> { coaId, debit, credit, Clip(note, 255), Clip(extKey, 255), Clip(entity, 64) };
+            if (hasDimString && ledgerAccount.Length > 0) { sets.Add("`dimension_string` = ?"); vals.Add(Clip(ledgerAccount, 255)); }
+            if (hasVoucher && voucher.Length > 0) { sets.Add("`voucher` = ?"); vals.Add(Clip(voucher, 255)); }
+            if (hasLegalEntity) { sets.Add("`legal_entity_id` = ?"); vals.Add(entityId); }
+            if (hasBu) { sets.Add("`business_unit_id` = ?"); vals.Add(buId); }
+            if (hasDimType) { sets.Add("`dimension_type_code` = ?"); vals.Add(Clip(dimTypeCode, 32)); }
+            if (hasDimValue) { sets.Add("`dimension_value_code` = ?"); vals.Add(Clip(dimValueCode, 64)); }
+            if (hasCostCentre) { sets.Add("`cost_centre_id` = ?"); vals.Add(costCentreId); }
+            if (hasCurrency) { sets.Add("`currency_code` = ?"); vals.Add(Clip(currency, 255)); }
+            if (hasAmtCur) { sets.Add("`amount_currency` = ?"); vals.Add(amountCur); }
+            vals.Add(existing);
+            await ErpDb.ExecuteAsync(connection, tx,
+                ErpDb.Positional("UPDATE `epc_erp_gl_lines` SET " + string.Join(", ", sets) + " WHERE `id` = ?"),
+                ct, vals.ToArray()).ConfigureAwait(false);
+        }
         return true;
     }
 
