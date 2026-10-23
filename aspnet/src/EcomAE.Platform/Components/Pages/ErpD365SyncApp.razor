@@ -62,7 +62,7 @@
             @if (_status is null)
             {
                 <p><span class="tg-pill tg-pill-warn">unconfigured</span></p>
-                <p>Set <code>D365:EnvironmentUrl</code> plus either an Entra app registration (<code>TenantId</code> / <code>ClientId</code> / <code>ClientSecret</code>) or a service-account login (<code>Username</code> / <code>Password</code>) — or the <code>ECOMAE_D365_*</code> environment variables — on the platform host, then restart the service.</p>
+                <p>Enter the F&amp;O environment URL plus either a service-account login (username + password) or an Entra app registration (tenant id + client id + client secret) in the <strong>Credentials</strong> form below — saved per tenant, nothing can connect until you do.</p>
             }
             else
             {
