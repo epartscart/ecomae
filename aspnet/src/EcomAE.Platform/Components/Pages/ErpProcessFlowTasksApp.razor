@@ -772,8 +772,7 @@
         _userId = session.UserId;
         if (!_isAdmin) return;
 
-        var result = await Dashboards.BuildErpProcessFlowTasksDigestAsync(
-            300, ctx.RequestAborted, _status is "all" ? null : _status);
+        var result = await Dashboards.BuildErpProcessFlowTasksDigestAsync(300, ctx.RequestAborted);
         _summary = result.Summary;
         _tasks = result.Tasks;
         _steps = result.Steps;
@@ -786,10 +785,20 @@
         _orgCases = _tasks.Where(MatchesQuery).OrderByDescending(row => row.Status == "open").ThenBy(row => row.Title).ToList();
         _inbox = _tasks.Where(t => t.Status == "open" && _userId > 0 && t.CurrentAssigneeId == _userId).ToList();
         _inboxCount = _inbox.Count;
-        _visible = _status == "all" ? _tasks
-            : _status == "overdue" ? _tasks.Where(IsOverdue).ToList()
-            : _tasks.Where(t => string.Equals(t.Status, _status, StringComparison.OrdinalIgnoreCase)).ToList();
-        _detail = _pfCaseId > 0 ? _tasks.FirstOrDefault(t => t.Id == _pfCaseId) : null;
+        if (_status == "all")
+        {
+            _visible = _tasks;
+        }
+        else
+        {
+            // Filter server-side so filtered views are not capped by the first-300 sample;
+            // _tasks stays unfiltered for detail lookups, hierarchy, and tab counts.
+            var filtered = await Dashboards.BuildErpProcessFlowTasksDigestAsync(300, ctx.RequestAborted, _status);
+            _visible = filtered.Tasks.ToList();
+        }
+        _detail = _pfCaseId > 0
+            ? _tasks.FirstOrDefault(t => t.Id == _pfCaseId) ?? _visible.FirstOrDefault(t => t.Id == _pfCaseId)
+            : null;
         _byLocation = _tasks
             .Where(t => t.Status == "open" && !string.IsNullOrWhiteSpace(t.CurrentLocation))
             .GroupBy(t => t.CurrentLocation, StringComparer.OrdinalIgnoreCase)
@@ -874,7 +883,8 @@
 
     private string CaseHref(long id)
     {
-        var href = "/erp/process-flow-tasks-app?pf_view=monitor&pf_case=" + id.ToString(CultureInfo.InvariantCulture);
+        var href = "/erp/process-flow-tasks-app?pf_view=monitor&pf_case=" + id.ToString(CultureInfo.InvariantCulture)
+            + "&f_status=" + Uri.EscapeDataString(_status);
         return _companyId > 0 ? href + "&company=" + _companyId.ToString(CultureInfo.InvariantCulture) : href;
     }
 
