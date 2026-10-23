@@ -224,28 +224,35 @@ public static class ErpD365BulkCsv
         {
             // field store not provisioned yet — payload scan below still covers it
         }
-        await using var command = connection.CreateCommand();
-        command.CommandText = "SELECT `payload` FROM `epc_d365_sync_objects` WHERE `entity` = @e ORDER BY `id` DESC LIMIT 2000";
-        var p = command.CreateParameter();
-        p.ParameterName = "@e";
-        p.Value = entitySet;
-        command.Parameters.Add(p);
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        try
         {
-            JsonDocument doc;
-            try { doc = JsonDocument.Parse(reader.GetString(0)); }
-            catch (JsonException) { continue; }
-            using (doc)
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `payload` FROM `epc_d365_sync_objects` WHERE `entity` = @e ORDER BY `id` DESC LIMIT 2000";
+            var p = command.CreateParameter();
+            p.ParameterName = "@e";
+            p.Value = entitySet;
+            command.Parameters.Add(p);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                foreach (var prop in doc.RootElement.EnumerateObject())
+                JsonDocument doc;
+                try { doc = JsonDocument.Parse(reader.GetString(0)); }
+                catch (JsonException) { continue; }
+                using (doc)
                 {
-                    if (seen.Add(prop.Name))
+                    foreach (var prop in doc.RootElement.EnumerateObject())
                     {
-                        cols.Add(prop.Name);
+                        if (seen.Add(prop.Name))
+                        {
+                            cols.Add(prop.Name);
+                        }
                     }
                 }
             }
+        }
+        catch (DbException)
+        {
+            // staging table not provisioned on this tenant yet — the catalog columns still apply
         }
         return cols;
     }

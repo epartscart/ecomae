@@ -192,59 +192,66 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
     public async Task<ErpD365ConnectionSettings> ResolveSettingsAsync(DbConnection connection, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(connection);
-        await ErpLazySchema.EnsureD365ParametersAsync(connection, cancellationToken).ConfigureAwait(false);
-        var vals = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        // Credentials live in a dedicated table — not the shared parameter store, whose
+        // readers are broader — and TEXT columns so long secrets are never truncated.
+        await ErpLazySchema.EnsureD365ConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
+        var stored = new ErpD365ConnectionSettings(null, null, null, null, null, null);
         await using (var cmd = connection.CreateCommand())
         {
-            cmd.CommandText = "SELECT `param_key`, `param_value` FROM `epc_erp_d365_parameters` WHERE `company_id` = 1 AND `area` = 'connection'";
+            cmd.CommandText = "SELECT `environment_url`,`tenant_id`,`client_id`,`client_secret`,`username`,`password` FROM `epc_erp_d365_connection` WHERE `company_id` = 1";
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                vals[reader.GetString(0)] = reader.GetString(1);
+                stored = new ErpD365ConnectionSettings(
+                    reader.IsDBNull(0) ? null : reader.GetString(0),
+                    reader.IsDBNull(1) ? null : reader.GetString(1),
+                    reader.IsDBNull(2) ? null : reader.GetString(2),
+                    reader.IsDBNull(3) ? null : reader.GetString(3),
+                    reader.IsDBNull(4) ? null : reader.GetString(4),
+                    reader.IsDBNull(5) ? null : reader.GetString(5));
             }
         }
         // A non-empty page-entered value wins; empty falls back to the host env/config.
-        string? Pick(string key, string? envFallback)
-            => vals.TryGetValue(key, out var v) && v.Length > 0 ? v : envFallback;
+        string? Pick(string? pageValue, string? envFallback)
+            => !string.IsNullOrEmpty(pageValue) ? pageValue : envFallback;
         return new ErpD365ConnectionSettings(
-            NormalizeEnvUrl(Pick("environment_url", _environmentUrl)),
-            Pick("tenant_id", _tenantId),
-            Pick("client_id", _clientId),
-            Pick("client_secret", _clientSecret),
-            Pick("username", _username),
-            Pick("password", _password));
+            NormalizeEnvUrl(Pick(stored.EnvironmentUrl, _environmentUrl)),
+            Pick(stored.TenantId, _tenantId),
+            Pick(stored.ClientId, _clientId),
+            Pick(stored.ClientSecret, _clientSecret),
+            Pick(stored.Username, _username),
+            Pick(stored.Password, _password));
     }
 
     public async Task SaveConnectionSettingsAsync(DbConnection connection, ErpD365ConnectionSettings settings, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(connection);
-        await ErpLazySchema.EnsureD365ParametersAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureD365ConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        var pairs = new (string Key, string? Value)[]
-        {
-            ("environment_url", settings.EnvironmentUrl),
-            ("tenant_id", settings.TenantId),
-            ("client_id", settings.ClientId),
-            ("client_secret", settings.ClientSecret),
-            ("username", settings.Username),
-            ("password", settings.Password),
-        };
-        foreach (var (key, value) in pairs)
-        {
-            await ErpDb.ExecuteAsync(
-                connection,
-                null,
-                ErpDb.Positional(
-                    "INSERT INTO `epc_erp_d365_parameters` (`company_id`,`area`,`param_key`,`caption`,`param_value`,`value_kind`,`created_by`,`time_created`,`time_updated`) " +
-                    "VALUES (1,'connection',?, ?, ?,'text',0,?,?) " +
-                    "ON DUPLICATE KEY UPDATE `param_value`=VALUES(`param_value`),`time_updated`=VALUES(`time_updated`)"),
-                cancellationToken,
-                key,
-                "D365 " + key,
-                value ?? "",
-                now,
-                now).ConfigureAwait(false);
-        }
+        // Merge: a blank field keeps the stored value — editing the URL must not erase a saved
+        // password/secret. (To clear a credential deliberately, the row can be emptied directly.)
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "INSERT INTO `epc_erp_d365_connection` (`company_id`,`environment_url`,`tenant_id`,`client_id`,`client_secret`,`username`,`password`,`time_updated`) " +
+                "VALUES (1,?,?,?,?,?,?,?,?) " +
+                "ON DUPLICATE KEY UPDATE " +
+                "`environment_url`=IF(VALUES(`environment_url`)<>'',VALUES(`environment_url`),`environment_url`)," +
+                "`tenant_id`=IF(VALUES(`tenant_id`)<>'',VALUES(`tenant_id`),`tenant_id`)," +
+                "`client_id`=IF(VALUES(`client_id`)<>'',VALUES(`client_id`),`client_id`)," +
+                "`client_secret`=IF(VALUES(`client_secret`)<>'',VALUES(`client_secret`),`client_secret`)," +
+                "`username`=IF(VALUES(`username`)<>'',VALUES(`username`),`username`)," +
+                "`password`=IF(VALUES(`password`)<>'',VALUES(`password`),`password`)," +
+                "`time_updated`=VALUES(`time_updated`)"),
+            cancellationToken,
+            settings.EnvironmentUrl ?? "",
+            settings.TenantId ?? "",
+            settings.ClientId ?? "",
+            settings.ClientSecret ?? "",
+            settings.Username ?? "",
+            settings.Password ?? "",
+            now).ConfigureAwait(false);
         // A credential change invalidates any cached token minted under the previous settings.
         _cachedToken = null;
         _cachedTokenKey = null;

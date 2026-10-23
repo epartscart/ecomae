@@ -27610,9 +27610,17 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        // tenant_id becomes part of the Entra authority URL — restrict it to GUID/hostname
+        // characters so a hostile value can't redirect the credential request off login.microsoftonline.com.
+        var tenantId = AmlText(fields, "tenant_id");
+        if (tenantId.Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(tenantId, @"^[0-9A-Za-z.\-]+$"))
+        {
+            return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", false, "Tenant id may only contain letters, digits, dots and hyphens.", new { ok = false, writes = 0, message = "Invalid tenant id.", session = SessionPayload(session) });
+        }
+
         var settings = new EcomAE.Platform.Erp.ErpD365ConnectionSettings(
             AmlText(fields, "environment_url"),
-            AmlText(fields, "tenant_id"),
+            tenantId,
             AmlText(fields, "client_id"),
             AmlText(fields, "client_secret"),
             AmlText(fields, "username"),
