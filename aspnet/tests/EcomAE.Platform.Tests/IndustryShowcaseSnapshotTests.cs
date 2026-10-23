@@ -13,6 +13,8 @@ public sealed class IndustryShowcaseSnapshotTests
     [InlineData("automotive.ecomae.com", "automotive")]
     [InlineData("food.ecomae.com", "food")]
     [InlineData("technology.ecomae.com", "technology")]
+    [InlineData("industrial.ecomae.com", "manufacturing")]
+    [InlineData("industrial2.ecomae.com", "manufacturing")]
     [InlineData("www.ecomae.com", null)]
     [InlineData("www.epartscart.com", null)]
     public void TryResolveHostSlug_MatchesCatalog(string host, string? expected)
@@ -76,6 +78,27 @@ public sealed class IndustryShowcaseSnapshotTests
 
         Assert.Equal(TenantMode.IndustrySubdomain, tenant.Mode);
         Assert.Equal("industry-automotive", tenant.SiteKey);
+    }
+
+    [Theory]
+    [InlineData("taxofinca.ecomae.com", "taxofinca")]
+    [InlineData("electronicae.ecomae.com", "electronicae")]
+    [InlineData("stylenlook.ecomae.com", "stylenlook")]
+    [InlineData("jewellerytrend.ecomae.com", "thejewellerytrend")]
+    public async Task Resolver_BindsShopSubdomainsToSharedDocpartShops(string host, string siteKey)
+    {
+        var http = new DefaultHttpContext();
+        http.Request.Host = new HostString(host);
+        http.Request.Path = "/";
+        var resolver = new RouteTenantResolver(
+            Options.Create(new EcomAeOptions()),
+            new EmptyTenantRegistry());
+
+        var tenant = await resolver.ResolveAsync(http);
+
+        Assert.Equal(TenantMode.LiveTenant, tenant.Mode);
+        Assert.Equal(siteKey, tenant.SiteKey);
+        Assert.Equal("docpart", tenant.DatabaseName);
     }
 
 

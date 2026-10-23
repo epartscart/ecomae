@@ -36,6 +36,14 @@ public static class EcomaeIndustryShowcaseSnapshots
         }
 
         var candidate = normalized[..^".ecomae.com".Length];
+
+        // industrial.ecomae.com / industrial2.ecomae.com are legacy aliases for the
+        // "Manufacturing & Industrial" showcase hub.
+        if (candidate is "industrial" or "industrial2")
+        {
+            candidate = "manufacturing";
+        }
+
         if (string.IsNullOrWhiteSpace(candidate)
             || !EcomaeIndustryShowcaseHosts.Slugs.Contains(candidate, StringComparer.OrdinalIgnoreCase))
         {
