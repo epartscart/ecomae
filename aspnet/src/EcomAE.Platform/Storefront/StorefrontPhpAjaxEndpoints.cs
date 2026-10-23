@@ -503,13 +503,21 @@ public static class StorefrontPhpAjaxEndpoints
         var include = await FieldAsync(context, "include_crossbase", cancellationToken).ConfigureAwait(false);
         var wantCrossbase = include is "1" or "true" or "yes";
         var access = await priceAccess.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
+        var cacheKey = CatalogKey(context, "cross", article, brand, wantCrossbase, access.PricesVisible);
+        if (CatalogTryGet(cacheKey, out var cached))
+        {
+            return Php(cached!);
+        }
+
         var result = await dashboards.BuildStorefrontCrossSearchAsync(
             article,
             brand,
             LegacySurfaceDashboardSql.StorefrontCrossSearchMax,
             cancellationToken,
             includeCrossbase: wantCrossbase).ConfigureAwait(false);
-        return Php(StorefrontPhpAjax.CrossSearch(result, access.PricesVisible));
+        var payload = StorefrontPhpAjax.CrossSearch(result, access.PricesVisible);
+        CatalogSet(cacheKey, payload);
+        return Php(payload);
     }
 
     private static async Task<IResult> BunchesAsync(
@@ -519,8 +527,16 @@ public static class StorefrontPhpAjaxEndpoints
     {
         var article = await FieldAsync(context, "article", cancellationToken).ConfigureAwait(false);
         var brand = await BrandAsync(context, cancellationToken).ConfigureAwait(false);
+        var cacheKey = CatalogKey(context, "bunches", article, brand);
+        if (CatalogTryGet(cacheKey, out var cached))
+        {
+            return Php(cached!);
+        }
+
         var result = await dashboards.ListStorefrontOfficeStorageBunchesAsync(article, brand, cancellationToken).ConfigureAwait(false);
-        return Php(StorefrontPhpAjax.Bunches(result));
+        var payload = StorefrontPhpAjax.Bunches(result);
+        CatalogSet(cacheKey, payload);
+        return Php(payload);
     }
 
     private static async Task<IResult> BunchProductsAsync(
@@ -543,6 +559,12 @@ public static class StorefrontPhpAjaxEndpoints
         _ = int.TryParse(await FieldAsync(context, "geo_id", cancellationToken).ConfigureAwait(false), NumberStyles.Integer, CultureInfo.InvariantCulture, out var geoId);
         var query = await FieldAsync(context, "query", cancellationToken).ConfigureAwait(false);
         var access = await priceAccess.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
+        var cacheKey = CatalogKey(context, "bunch-products", article, brand, officeId, storageId, geoId, query, access.PricesVisible);
+        if (CatalogTryGet(cacheKey, out var cached))
+        {
+            return Php(cached!);
+        }
+
         var result = await dashboards.PollStorefrontProductsOfBunchAsync(
             article,
             brand,
@@ -551,7 +573,9 @@ public static class StorefrontPhpAjaxEndpoints
             string.IsNullOrWhiteSpace(query) ? null : query,
             geoId,
             cancellationToken).ConfigureAwait(false);
-        return Php(StorefrontPhpAjax.ProductsOfBunch(result, access.PricesVisible));
+        var payload = StorefrontPhpAjax.ProductsOfBunch(result, access.PricesVisible);
+        CatalogSet(cacheKey, payload);
+        return Php(payload);
     }
 
     private static Task<IResult> ManufacturersAsync(
@@ -664,7 +688,8 @@ public static class StorefrontPhpAjaxEndpoints
             connections,
             cancellationToken,
             (connection, ct) => StorefrontPhpAjax.ProductsOfBunch2Async(connection, article, officeId, storageId, query, 0, groupId, access.PricesVisible, ct),
-            StorefrontPhpAjax.NoDbConnect).ConfigureAwait(false);
+            StorefrontPhpAjax.NoDbConnect,
+            CatalogKey(context, "bunch2", article, officeId, storageId, groupId, query, access.PricesVisible)).ConfigureAwait(false);
     }
 
     private static async Task<IResult> SkuMediaAsync(
@@ -691,12 +716,19 @@ public static class StorefrontPhpAjaxEndpoints
             return Php(StorefrontPhpAjax.SkuMediaNoDatabase());
         }
 
+        var cacheKey = CatalogKey(context, "sku-media", brand, article, productId);
+        if (CatalogTryGet(cacheKey, out var cached))
+        {
+            return Emit(context, cached!);
+        }
+
         return await WithDbAsync(
             context,
             connections,
             cancellationToken,
             (connection, ct) => StorefrontPhpAjax.SkuMediaLookupAsync(connection, brand, article, productId, ct),
-            StorefrontPhpAjax.SkuMediaNoDatabase()).ConfigureAwait(false);
+            StorefrontPhpAjax.SkuMediaNoDatabase(),
+            cacheKey).ConfigureAwait(false);
     }
 
     private static async Task<IResult> AddToBasketAsync(
@@ -5137,7 +5169,8 @@ public static class StorefrontPhpAjaxEndpoints
         ITenantDbConnectionFactory connections,
         CancellationToken cancellationToken,
         Func<System.Data.Common.DbConnection, CancellationToken, Task<object>> body,
-        object fallback)
+        object fallback,
+        string? cacheKey = null)
     {
         if (!connections.IsConfigured)
         {
@@ -5149,12 +5182,58 @@ public static class StorefrontPhpAjaxEndpoints
             var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
             await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
             var payload = await body(connection, cancellationToken).ConfigureAwait(false);
+            if (cacheKey is not null && !ReferenceEquals(payload, fallback))
+            {
+                CatalogSet(cacheKey, payload);
+            }
+
             return Emit(context, payload);
         }
         catch (Exception)
         {
             return Fallback(context, fallback);
         }
+    }
+
+    // Short-lived read-mostly cache for the public catalog XHRs: identical
+    // scraper bursts then replay the stored JSON without touching MySQL.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (object Payload, long ExpiresTick)> s_catalogCache = new(StringComparer.Ordinal);
+    private const int CatalogCacheMaxEntries = 60_000;
+    private const long CatalogCacheTtlMs = 90_000;
+
+    private static string CatalogKey(HttpContext context, string endpoint, params object?[] parts)
+    {
+        var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        var scope = tenant?.DatabaseName ?? tenant?.Host ?? "-";
+        var sb = new System.Text.StringBuilder(scope).Append('|').Append(endpoint);
+        foreach (var part in parts)
+        {
+            sb.Append('\x1f').Append(part);
+        }
+
+        return sb.ToString();
+    }
+
+    private static bool CatalogTryGet(string key, out object? payload)
+    {
+        if (s_catalogCache.TryGetValue(key, out var entry) && entry.ExpiresTick > Environment.TickCount64)
+        {
+            payload = entry.Payload;
+            return true;
+        }
+
+        payload = null;
+        return false;
+    }
+
+    private static void CatalogSet(string key, object payload)
+    {
+        if (s_catalogCache.Count >= CatalogCacheMaxEntries)
+        {
+            s_catalogCache.Clear();
+        }
+
+        s_catalogCache[key] = (payload, Environment.TickCount64 + CatalogCacheTtlMs);
     }
 
     private static IResult Fallback(HttpContext? context, object fallback)
