@@ -310,6 +310,14 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             long? totalCount = null;
             while (nextLink is not null && fetched < top)
             {
+                // Re-check the persisted switch each page — switching sync off mid-pull stops
+                // further staging instead of letting the in-flight loop run to its page budget.
+                if (!await SyncEnabledAsync(connection, cancellationToken).ConfigureAwait(false))
+                {
+                    var offMsg = $"D365 sync switched off mid-pull — stopped after {fetched} row(s).";
+                    await FinishRunAsync(connection, runId, "cancelled", fetched, staged, offMsg, cancellationToken).ConfigureAwait(false);
+                    return new ErpD365PullResult(false, "sync_off", offMsg, fetched, staged, runId);
+                }
                 var skipMatch = System.Text.RegularExpressions.Regex.Match(nextLink, @"[$]skip=(\d+)");
                 if (skipMatch.Success)
                 {
