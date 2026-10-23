@@ -78,9 +78,9 @@
                         <div class="epc-dash-donut__center"><b>@_processTotal</b><span>cases</span></div>
                     </div>
                     <div class="epc-dash-legend">
-                        <div class="epc-dash-legend__row"><i class="epc-dash-legend__dot" style="--c:#2563eb"></i><span>Open cases</span><b>@_s.ProcessOpen</b></div>
-                        <div class="epc-dash-legend__row"><i class="epc-dash-legend__dot" style="--c:#0a7d33"></i><span>Completed</span><b>@_s.ProcessDone</b></div>
-                        <div class="epc-dash-legend__row"><i class="epc-dash-legend__dot" style="--c:#c0392b"></i><span>Overdue</span><b>@_s.ProcessOverdue</b></div>
+                        <a class="epc-dash-legend__row" href="@Go("/erp/process-flow-tasks-app")"><i class="epc-dash-legend__dot" style="--c:#2563eb"></i><span>Open cases</span><b>@_openNonOverdue</b></a>
+                        <a class="epc-dash-legend__row" href="@Go("/erp/process-flow-tasks-app?pf_view=monitor&f_status=done")"><i class="epc-dash-legend__dot" style="--c:#0a7d33"></i><span>Completed</span><b>@_s.ProcessDone</b></a>
+                        <a class="epc-dash-legend__row" href="@Go("/erp/process-flow-tasks-app")"><i class="epc-dash-legend__dot" style="--c:#c0392b"></i><span>Overdue</span><b>@_s.ProcessOverdue</b></a>
                     </div>
                 </div>
             </section>
@@ -165,6 +165,7 @@
     private string _donutP1 = "0deg";
     private string _donutP2 = "0deg";
     private string _processTotal = "0";
+    private int _openNonOverdue;
     private decimal _finMax = 1m;
     private decimal _wcMax = 1m;
     private ErpDashboardSummary _s = new(
@@ -241,15 +242,18 @@
         }
 
         BuildTiles();
-        var total = _s.ProcessOpen + _s.ProcessDone + _s.ProcessOverdue;
+        // Overdue cases are a subset of open cases in the summary counts.
+        _openNonOverdue = Math.Max(0, _s.ProcessOpen - _s.ProcessOverdue);
+        var openNonOverdue = _openNonOverdue;
+        var total = openNonOverdue + _s.ProcessDone + _s.ProcessOverdue;
         _processTotal = total.ToString("N0", CultureInfo.InvariantCulture);
         if (total > 0)
         {
-            _donutP1 = (_s.ProcessOpen * 360.0 / total).ToString("0.#", CultureInfo.InvariantCulture) + "deg";
-            _donutP2 = ((_s.ProcessOpen + _s.ProcessDone) * 360.0 / total).ToString("0.#", CultureInfo.InvariantCulture) + "deg";
+            _donutP1 = (openNonOverdue * 360.0 / total).ToString("0.#", CultureInfo.InvariantCulture) + "deg";
+            _donutP2 = ((openNonOverdue + _s.ProcessDone) * 360.0 / total).ToString("0.#", CultureInfo.InvariantCulture) + "deg";
         }
-        _finMax = Math.Max(1m, new[] { _s.Receivables, _s.Payables, _s.StockValue, _s.RevenueExVat, _s.VatNetPayable, _s.CashPosition }.Max());
-        _wcMax = Math.Max(1m, new[] { _s.SupplierCredit, _s.SupplierDebit, Math.Abs(_s.SupplierNet) }.Max());
+        _finMax = Math.Max(1m, new[] { Math.Abs(_s.Receivables), Math.Abs(_s.Payables), Math.Abs(_s.StockValue), Math.Abs(_s.RevenueExVat), Math.Abs(_s.VatNetPayable), Math.Abs(_s.CashPosition) }.Max());
+        _wcMax = Math.Max(1m, new[] { Math.Abs(_s.SupplierCredit), Math.Abs(_s.SupplierDebit), Math.Abs(_s.SupplierNet) }.Max());
     }
 
     private void BuildTiles()
