@@ -795,6 +795,10 @@
             // _tasks stays unfiltered for detail lookups, hierarchy, and tab counts.
             var filtered = await Dashboards.BuildErpProcessFlowTasksDigestAsync(300, ctx.RequestAborted, _status);
             _visible = filtered.Tasks.ToList();
+            if (_visible.Count == 0 && !string.IsNullOrWhiteSpace(filtered.Message))
+            {
+                _message = filtered.Message;
+            }
         }
         _detail = _pfCaseId > 0
             ? _tasks.FirstOrDefault(t => t.Id == _pfCaseId) ?? _visible.FirstOrDefault(t => t.Id == _pfCaseId)
