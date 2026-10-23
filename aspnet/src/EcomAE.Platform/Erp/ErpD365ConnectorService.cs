@@ -79,6 +79,8 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             ["GeneralLedgerBalanceCDREntities"] = "GL balances by dimension (trial balance source)",
             ["TrialBalanceFiscalYearSnapshots"] = "Trial balance snapshots (per dimension set)",
             ["WarehousesOnHandV2"] = "Inventory on-hand by warehouse",
+            ["GeneralJournalEntryBiEntities"] = "Posted GL vouchers — headers",
+            ["GeneralJournalAccountEntryBiEntities"] = "Posted GL entries — lines (TB detail)",
             ["CustTransBiEntities"] = "Posted customer transactions",
             ["VendTransBiEntities"] = "Posted vendor transactions",
             ["MainAccounts"] = "Chart of accounts (main accounts)",
@@ -612,7 +614,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             // Business keys — same document stays one staged row on re-pull.
             "dataAreaId", "ItemNumber", "CustomerAccount", "CustomerAccountNumber", "VendorAccount", "VendorAccountNumber", "SalesOrderNumber", "PurchaseOrderNumber", "InvoiceNumber", "JournalBatchNumber", "Voucher", "MainAccountId", "CompanyId",
             // Line/dimension/period discriminators — distinct rows sharing the same document key must not overwrite each other.
-            "LineNumber", "JournalLineNumber", "InvoiceLineNumber", "VoucherLineNumber", "LineRef", "RecId", "LineId",
+            "LineNumber", "JournalLineNumber", "InvoiceLineNumber", "VoucherLineNumber", "LineRef", "RecId", "LineId", "SourceKey",
             "InventorySiteId", "InventoryWarehouseId", "ProductColorId", "ProductSizeId", "ProductStyleId", "ProductVersionId", "ProductConfigurationId",
             "SnapshotHeader", "DimensionHierarchyId", "FocusDimensionHierarchy", "PostingLayer", "PeriodName", "PeriodType", "YearName", "LedgerRecId", "LedgerName",
             // TB snapshot grain is account × dimension values × period — without these every
