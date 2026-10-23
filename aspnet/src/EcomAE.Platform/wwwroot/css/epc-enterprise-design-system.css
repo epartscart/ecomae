@@ -2115,3 +2115,165 @@ a.epc-erp-global-search__hit {
     border-radius: 8px;
     background: #f8fbff;
 }
+
+/* D365 F&O list-page shell: action pane → left parameters pane → filter strip → display grid.
+   Entry lives on a separate view (?view=entry) — never mixed with the report/preview grid. */
+.epc-d365-lp {
+    display: grid;
+    grid-template-columns: minmax(15rem, 18.75rem) minmax(0, 1fr);
+    gap: 0;
+    border: 1px solid #d1d1d1;
+    border-radius: 4px;
+    background: #fff;
+    overflow: hidden;
+    margin: 0 0 1rem;
+}
+
+.epc-d365-lp-side {
+    min-width: 0;
+    border-right: 1px solid #e1dfdd;
+    background: #faf9f8;
+}
+
+.epc-d365-lp-side > .epc-d365-lp-heading {
+    padding: .6rem .8rem;
+    border-bottom: 1px solid #e1dfdd;
+    font-size: .8125rem;
+    font-weight: 700;
+    color: #323130;
+}
+
+.epc-d365-lpsect {
+    border-bottom: 1px solid #e1dfdd;
+    padding: .55rem .8rem .7rem;
+}
+
+.epc-d365-lpsect > .epc-d365-lp-cap {
+    margin: 0 0 .45rem;
+    font-size: .6875rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #605e5c;
+}
+
+.epc-d365-lpsect form,
+.epc-d365-lpsect .epc-d365-lp-fields {
+    display: flex;
+    flex-direction: column;
+    gap: .45rem;
+    margin: 0;
+}
+
+.epc-d365-lpsect label {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    font-size: .75rem;
+    font-weight: 600;
+    color: #323130;
+    margin: 0;
+}
+
+.epc-d365-lpsect label > input,
+.epc-d365-lpsect label > select,
+.epc-d365-lpsect label > textarea {
+    width: 100%;
+    box-sizing: border-box;
+    font-weight: 400;
+}
+
+.epc-d365-lpsect .epc-d365-lp-check {
+    flex-direction: row;
+    align-items: center;
+    gap: .4rem;
+    font-weight: 400;
+}
+
+.epc-d365-lpsect .epc-d365-lp-check > input {
+    width: auto;
+}
+
+.epc-d365-lpsect .form-actions {
+    margin: .15rem 0 0;
+}
+
+.epc-d365-lp-main {
+    min-width: 0;
+    padding: .6rem .8rem .8rem;
+}
+
+.epc-d365-filterbar {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .35rem .5rem;
+    border: 1px solid #d1d1d1;
+    border-radius: 2px;
+    background: #faf9f8;
+    margin: 0 0 .55rem;
+    font-size: .75rem;
+    color: #605e5c;
+}
+
+.epc-d365-filterbar input[type="search"] {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    font-size: .75rem;
+    padding: .15rem .25rem;
+}
+
+.epc-d365-lp-main .epc-erp-table-wrap {
+    margin-bottom: .6rem;
+}
+
+/* Entry view: a separate surface — list/parameters are not rendered beside it. */
+.epc-d365-entry {
+    border: 1px solid #d1d1d1;
+    border-radius: 4px;
+    background: #fff;
+    margin: 0 0 1rem;
+    overflow: hidden;
+}
+
+.epc-d365-entry > .epc-d365-entry-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
+    padding: .55rem .8rem;
+    border-bottom: 1px solid #e1dfdd;
+    background: #faf9f8;
+    font-size: .8125rem;
+    font-weight: 700;
+    color: #323130;
+}
+
+.epc-d365-entry > .epc-d365-entry-body {
+    padding: .7rem .8rem;
+}
+
+.epc-d365-entry .epc-erp-form-panel {
+    margin: 0 0 .7rem;
+    border: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border-bottom: 1px solid #e1dfdd !important;
+}
+
+.epc-d365-entry .epc-erp-form-panel:last-child {
+    border-bottom: 0 !important;
+    margin-bottom: 0;
+}
+
+@media (max-width: 56rem) {
+    .epc-d365-lp {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .epc-d365-lp-side {
+        border-right: 0;
+        border-bottom: 1px solid #e1dfdd;
+    }
+}

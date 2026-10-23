@@ -21,16 +21,25 @@
 
     <PhpErpModulePageHeader Title="Multi-currency GL" Subtitle="Open an FX rate for created time. Open a currency journal for the note and site. Set FX rate and post IAS-21 revaluation here." PhpTabHref="@_phpTab" />
 
-    <ErpD365ModuleArea Kind="fx" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    @if (!_entry)
+    {
+        <ErpD365ModuleArea Kind="fx" Part="grid" />
+    }
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" EntryHref="/erp/multi-currency-gl-app?view=entry" EntryLabel="New FX rate / revaluation" />
 
     @if (!string.IsNullOrWhiteSpace(_flash))
     {
         <div class="alert @(_flashOk ? "alert-success" : "alert-warning")" style="margin:0 0 12px">@_flash</div>
     }
 
-    @if (_isAdmin)
+    @if (_entry && _isAdmin)
     {
+        <div class="epc-d365-entry">
+            <div class="epc-d365-entry-head">
+                <span>Multi-currency GL entry</span>
+                <a class="btn btn-xs btn-default" href="/erp/multi-currency-gl-app">Back to list</a>
+            </div>
+            <div class="epc-d365-entry-body">
         <form method="post" action="/erp/multi-currency-gl/set-rate" class="form-inline" style="margin:0 0 12px;padding:10px;border:1px solid #c5d4de;background:#fff">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/multi-currency-gl-app" />
@@ -91,8 +100,13 @@
             </label>
             <button type="submit" class="btn btn-sm btn-primary">Post FX revaluation</button>
         </form>
+        <ErpD365ModuleArea Kind="fx" Part="entry" />
+            </div>
+        </div>
     }
 
+    @if (!_entry)
+    {
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Multi-currency GL KPIs">
         <div class="kpi"><div class="lbl">FX pairs</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Entries</div><div class="val">@_entryCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -280,15 +294,17 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Distinct from shop currency rates on <a href="/cp/currencies-app">currencies</a>. Digest: <code>/erp/multi-currency-gl</code>. FX revaluation posts here.
+        Source: @_source. Distinct from shop currency rates on <a href="/cp/currencies-app">currencies</a>. Digest: <code>/erp/multi-currency-gl</code>. FX revaluation posts on the entry view.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
+    }
 </PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=multi_currency_gl";
     private const string _listHref = "/erp/multi-currency-gl-app";
     private bool _isAdmin;
+    private bool _entry => string.Equals(Http.HttpContext?.Request.Query["view"].ToString(), "entry", StringComparison.OrdinalIgnoreCase);
     private IReadOnlyList<ErpFxRateDigest> _rates = [];
     private IReadOnlyList<ErpGlCurrencyEntryDigest> _entries = [];
     private int _count;

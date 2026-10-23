@@ -23,16 +23,25 @@
 
     <PhpErpModulePageHeader Title="Multi-entity consolidation" Subtitle="Open a group for created time and members. Open an inter-company row for the note. Group, member, inter-company, and eliminate write here. Consolidated trial balance lives at /erp/trial-balance-app?company=consolidation." PhpTabHref="@_phpTab" />
 
-    <ErpD365ModuleArea Kind="entity" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    @if (!_entry)
+    {
+        <ErpD365ModuleArea Kind="entity" Part="grid" />
+    }
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" EntryHref="/erp/multi-entity-app?view=entry" EntryLabel="New group / member" />
 
     @if (!string.IsNullOrWhiteSpace(_flash))
     {
         <div class="alert @(_flashOk ? "alert-success" : "alert-warning")" style="margin:0 0 12px">@_flash</div>
     }
 
-    @if (_isAdmin)
+    @if (_entry && _isAdmin)
     {
+        <div class="epc-d365-entry">
+            <div class="epc-d365-entry-head">
+                <span>Multi-entity entry</span>
+                <a class="btn btn-xs btn-default" href="/erp/multi-entity-app">Back to list</a>
+            </div>
+            <div class="epc-d365-entry-body">
         <form method="post" action="/erp/multi-entity/write" class="form-inline" style="margin:0 0 8px;padding:10px;border:1px solid #c5d4de;background:#fff">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/multi-entity-app" />
@@ -136,8 +145,13 @@
                 <span> · @_preferenceMessage</span>
             }
         </p>
+        <ErpD365ModuleArea Kind="entity" Part="entry" />
+            </div>
+        </div>
     }
 
+    @if (!_entry)
+    {
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Multi-entity KPIs">
         <div class="kpi"><div class="lbl">Groups</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Members</div><div class="val">@_members.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -348,12 +362,14 @@
         Source: @_source. Distinct from CP consolidations (<code>epc_cons_*</code>). Digest: <code>/erp/multi-entity</code>. Consolidated trial balance: <a href="/erp/trial-balance-app?company=consolidation">/erp/trial-balance-app?company=consolidation</a>.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
+    }
 </PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=multi_entity";
     private const string _listHref = "/erp/multi-entity-app";
     private bool _isAdmin;
+    private bool _entry => string.Equals(Http.HttpContext?.Request.Query["view"].ToString(), "entry", StringComparison.OrdinalIgnoreCase);
     private IReadOnlyList<ErpEntityGroupDigest> _groups = [];
     private IReadOnlyList<ErpIntercompanyTxnDigest> _ic = [];
     private int _count;

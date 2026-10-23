@@ -35,15 +35,15 @@ a.epc-d365-ap-btn.is-primary{font-weight:750;color:#0e7490}
         </div>
         <div class="epc-d365-ap-row is-active" data-aptab="@_active">
             <div class="epc-d365-actionpane" role="toolbar">
-                @if (!string.IsNullOrWhiteSpace(PhpTabHref))
+                @if (!string.IsNullOrWhiteSpace(EntryHref ?? PhpTabHref))
                 {
                     <div class="epc-d365-ap-group">
                         <div class="epc-d365-ap-buttons">
-                            <a class="epc-d365-ap-btn is-primary" href="@ErpRecordOpen.NewHref(PhpTabHref)">
-                                <i class="fa fa-plus" aria-hidden="true"></i><span>New</span>
+                            <a class="epc-d365-ap-btn is-primary" href="@(EntryHref ?? ErpRecordOpen.NewHref(PhpTabHref))">
+                                <i class="fa fa-plus" aria-hidden="true"></i>@if (EntryLabel is null) { <span>New</span> } else { <span>@EntryLabel</span> }
                             </a>
                         </div>
-                        <div class="epc-d365-ap-label">New</div>
+                        <div class="epc-d365-ap-label">@(EntryLabel ?? "New")</div>
                     </div>
                 }
                 <div class="epc-d365-ap-group">
@@ -66,6 +66,8 @@ a.epc-d365-ap-btn.is-primary{font-weight:750;color:#0e7490}
 
     [Parameter] public string? PhpTabHref { get; set; }
     [Parameter] public string RefreshHref { get; set; } = "?";
+    [Parameter] public string? EntryHref { get; set; }
+    [Parameter] public string? EntryLabel { get; set; }
 
     protected override void OnParametersSet()
     {

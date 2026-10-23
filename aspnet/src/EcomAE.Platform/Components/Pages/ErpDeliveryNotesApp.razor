@@ -22,10 +22,25 @@
 
     <PhpErpModulePageHeader Title="Delivery Notes" Subtitle="Create shipment notes with optional carrier, tracking, and shipped status." PhpTabHref="@_phpTab" />
 
-    <ErpD365ModuleArea Kind="delivery" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" EntryHref="/erp/delivery-notes-app?view=entry" EntryLabel="New delivery note" />
     <p class="text-muted" style="margin:0 0 10px;"><a href="/erp/invoices-app#shipping-documents">Several invoices in one shipment</a> become one shipping invoice and one packing slip.</p>
 
+    @if (_entry && _isAdmin)
+    {
+        <div class="epc-d365-entry">
+            <div class="epc-d365-entry-head">
+                <span>Delivery note entry</span>
+                <a class="btn btn-xs btn-default" href="/erp/delivery-notes-app">Back to list</a>
+            </div>
+            <div class="epc-d365-entry-body">
+                @DeliveryHeaderActions
+                <ErpD365ModuleArea Kind="delivery" Part="entry" />
+            </div>
+        </div>
+    }
+    else
+    {
+    <ErpD365ModuleArea Kind="delivery" Part="grid" />
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Delivery Notes KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_notes.Count</div></div>
         <div class="kpi"><div class="lbl">Digest source</div><div class="val">@_source</div></div>
@@ -53,8 +68,7 @@
                 Currency="—"
                 Fields="@DeliveryWorkspaceFields"
                 Tabs="@DeliveryWorkspaceTabs"
-                RelatedDocuments="@DeliveryRelatedDocuments"
-                HeaderActions="@DeliveryHeaderActions" />
+                RelatedDocuments="@DeliveryRelatedDocuments" />
             <p class="text-muted" style="margin:.85rem 0 0">This delivery-note read model exposes shipment header and tracking data; no line body is invented. The guarded document route remains available when a PDF has been generated.</p>
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <p class="text-muted" style="margin:.85rem 0 0">
@@ -160,6 +174,7 @@
     {
         <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">@_message</div>
     }
+    }
 
 </PhpErpDesktopChrome>
 
@@ -176,6 +191,7 @@
     private string _source = "n/a";
     private string _message = "";
     private long _openedId;
+    private bool _entry => string.Equals(Http.HttpContext?.Request.Query["view"].ToString(), "entry", StringComparison.OrdinalIgnoreCase);
     private ErpDeliveryNoteDetail? _opened;
     private IReadOnlyList<ErpDeliveryNoteDigest> _openedSiblings = [];
 

@@ -19,8 +19,11 @@
 
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
 
-    <ErpD365ModuleArea Kind="banks" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    @if (!_entry)
+    {
+        <ErpD365ModuleArea Kind="banks" Part="grid" />
+    }
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" EntryHref="/erp/bank-reconciliation-app?tab=entry" EntryLabel="New bank entry" />
 
     @if (!string.IsNullOrWhiteSpace(_flash))
     {
@@ -32,7 +35,106 @@
         · <a href="/erp/bank-reconciliation-app?tab=bank_instruments">Bank instruments</a>
     </p>
 
-    @if (_view == "bank_instruments")
+    @if (_entry)
+    {
+        <div class="epc-d365-entry">
+            <div class="epc-d365-entry-head">
+                <span>Bank entry — import, match, instruments</span>
+                <a class="btn btn-xs btn-default" href="/erp/bank-reconciliation-app">Back to list</a>
+            </div>
+            <div class="epc-d365-entry-body">
+    <ErpPhpCreateWell Title="Import statement CSV">
+<form method="post" action="/erp/bank-reconciliation/import" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                @if (ImportAccounts.Count > 0)
+                {
+                    <label>Account
+                        <select class="form-control input-sm" name="account_id">
+                            <option value="0">(select)</option>
+                            @foreach (var account in ImportAccounts)
+                            {
+                                <option value="@account.AccountId.ToString(CultureInfo.InvariantCulture)">@AccountLabel(account.AccountId, account.AccountName)</option>
+                            }
+                        </select>
+                    </label>
+                }
+                else
+                {
+                    <ErpMasterPicker Kind="account" FieldName="account_id" InputId="bank-import-account" Label="Cash account" Required="true" Min="1" />
+                }
+                <label>CSV
+                    <textarea class="form-control input-sm" name="csv_text" rows="4" required placeholder="date,description,reference,amount&#10;2026-10-01,Receipt,INV-1,150.00" style="width:22rem;"></textarea>
+                </label>
+                <button type="submit" class="btn btn-primary btn-sm">Import</button>
+            </form>
+            <p class="text-muted" style="margin:0">Columns: date, description, reference, amount. The first row is skipped when it looks like a header.</p>
+</ErpPhpCreateWell>
+
+<ErpPhpCreateWell Title="Match statement line">
+<form method="post" action="/erp/bank-reconciliation/match" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Line
+                    <select class="form-control input-sm" name="line_id">
+                        <option value="0">(select)</option>
+                        @foreach (var line in _lines)
+                        {
+                            <option value="@line.Id.ToString(CultureInfo.InvariantCulture)">#@line.Id.ToString(CultureInfo.InvariantCulture) @(string.IsNullOrWhiteSpace(line.Description) ? "" : line.Description)</option>
+                        }
+                    </select>
+                </label>
+                <label>Cash entry <input class="form-control input-sm" name="entry_id" type="number" min="1" style="width:8rem;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Match</button>
+            </form>
+</ErpPhpCreateWell>
+
+<ErpPhpCreateWell Title="Advance status">
+<form method="post" action="/erp/bank-instruments/status" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                    <input type="hidden" name="returnUrl" value="/erp/bank-reconciliation-app?tab=bank_instruments" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <label>Instrument id <input class="form-control input-sm" type="number" name="id" min="1" required style="width:80px;" /></label>
+                    <label>Status
+                        <select class="form-control input-sm" name="status">
+                            <option value="issued">issued</option>
+                            <option value="amended">amended</option>
+                            <option value="utilized">utilized</option>
+                            <option value="expired">expired</option>
+                            <option value="closed">closed</option>
+                            <option value="cancelled">cancelled</option>
+                        </select>
+                    </label>
+                    <label>Detail <input class="form-control input-sm" name="detail" placeholder="Event detail (optional)" style="width:180px;" /></label>
+                    <label>Amount <input class="form-control input-sm" type="number" step="0.01" name="amount" value="0" style="width:90px;" /></label>
+                    <button type="submit" class="btn btn-primary btn-sm">Move status</button>
+                </form>
+</ErpPhpCreateWell>
+
+<ErpPhpCreateWell Title="New instrument">
+<form method="post" action="/erp/bank-instruments/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                    <input type="hidden" name="returnUrl" value="/erp/bank-reconciliation-app?tab=bank_instruments" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <label>Type
+                        <select class="form-control input-sm" name="type">
+                            <option value="lc">Letter of credit</option>
+                            <option value="bg">Bank guarantee</option>
+                            <option value="sblc">Standby LC</option>
+                        </select>
+                    </label>
+                    <label>Reference <input class="form-control input-sm" name="ref" placeholder="auto if blank" style="width:140px;" /></label>
+                    <label>Beneficiary <input class="form-control input-sm" name="beneficiary" style="width:160px;" /></label>
+                    <label>Bank <input class="form-control input-sm" name="bank" style="width:140px;" /></label>
+                    <label>Amount <input class="form-control input-sm" type="number" step="0.01" name="amount" required style="width:90px;" /></label>
+                    <label>Currency <input class="form-control input-sm" name="currency" placeholder="AED" style="width:70px;" /></label>
+                    <label>Expiry <input class="form-control input-sm" type="date" name="expiry_date" /></label>
+                    <button type="submit" class="btn btn-success btn-sm">Create instrument</button>
+                </form>
+</ErpPhpCreateWell>
+                <ErpD365ModuleArea Kind="banks" Part="entry" />
+            </div>
+        </div>
+    }
+    else if (_view == "bank_instruments")
     {
         <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Bank instrument stats">
             <div class="kpi"><div class="lbl">Instruments</div><div class="val">@_instruments.Count.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -184,94 +286,6 @@
 
 </PhpErpDesktopChrome>
 
-<ErpPhpCreateWell Title="Import statement CSV">
-<form method="post" action="/erp/bank-reconciliation/import" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
-                <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
-                <input type="hidden" name="confirmWrites" value="true" />
-                @if (ImportAccounts.Count > 0)
-                {
-                    <label>Account
-                        <select class="form-control input-sm" name="account_id">
-                            <option value="0">(select)</option>
-                            @foreach (var account in ImportAccounts)
-                            {
-                                <option value="@account.AccountId.ToString(CultureInfo.InvariantCulture)">@AccountLabel(account.AccountId, account.AccountName)</option>
-                            }
-                        </select>
-                    </label>
-                }
-                else
-                {
-                    <ErpMasterPicker Kind="account" FieldName="account_id" InputId="bank-import-account" Label="Cash account" Required="true" Min="1" />
-                }
-                <label>CSV
-                    <textarea class="form-control input-sm" name="csv_text" rows="4" required placeholder="date,description,reference,amount&#10;2026-10-01,Receipt,INV-1,150.00" style="width:22rem;"></textarea>
-                </label>
-                <button type="submit" class="btn btn-primary btn-sm">Import</button>
-            </form>
-            <p class="text-muted" style="margin:0">Columns: date, description, reference, amount. The first row is skipped when it looks like a header.</p>
-</ErpPhpCreateWell>
-
-<ErpPhpCreateWell Title="Match statement line">
-<form method="post" action="/erp/bank-reconciliation/match" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
-                <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
-                <input type="hidden" name="confirmWrites" value="true" />
-                <label>Line
-                    <select class="form-control input-sm" name="line_id">
-                        <option value="0">(select)</option>
-                        @foreach (var line in _lines)
-                        {
-                            <option value="@line.Id.ToString(CultureInfo.InvariantCulture)">#@line.Id.ToString(CultureInfo.InvariantCulture) @(string.IsNullOrWhiteSpace(line.Description) ? "" : line.Description)</option>
-                        }
-                    </select>
-                </label>
-                <label>Cash entry <input class="form-control input-sm" name="entry_id" type="number" min="1" style="width:8rem;" /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Match</button>
-            </form>
-</ErpPhpCreateWell>
-
-<ErpPhpCreateWell Title="Advance status">
-<form method="post" action="/erp/bank-instruments/status" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
-                    <input type="hidden" name="returnUrl" value="/erp/bank-reconciliation-app?tab=bank_instruments" />
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <label>Instrument id <input class="form-control input-sm" type="number" name="id" min="1" required style="width:80px;" /></label>
-                    <label>Status
-                        <select class="form-control input-sm" name="status">
-                            <option value="issued">issued</option>
-                            <option value="amended">amended</option>
-                            <option value="utilized">utilized</option>
-                            <option value="expired">expired</option>
-                            <option value="closed">closed</option>
-                            <option value="cancelled">cancelled</option>
-                        </select>
-                    </label>
-                    <label>Detail <input class="form-control input-sm" name="detail" placeholder="Event detail (optional)" style="width:180px;" /></label>
-                    <label>Amount <input class="form-control input-sm" type="number" step="0.01" name="amount" value="0" style="width:90px;" /></label>
-                    <button type="submit" class="btn btn-primary btn-sm">Move status</button>
-                </form>
-</ErpPhpCreateWell>
-
-<ErpPhpCreateWell Title="New instrument">
-<form method="post" action="/erp/bank-instruments/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
-                    <input type="hidden" name="returnUrl" value="/erp/bank-reconciliation-app?tab=bank_instruments" />
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <label>Type
-                        <select class="form-control input-sm" name="type">
-                            <option value="lc">Letter of credit</option>
-                            <option value="bg">Bank guarantee</option>
-                            <option value="sblc">Standby LC</option>
-                        </select>
-                    </label>
-                    <label>Reference <input class="form-control input-sm" name="ref" placeholder="auto if blank" style="width:140px;" /></label>
-                    <label>Beneficiary <input class="form-control input-sm" name="beneficiary" style="width:160px;" /></label>
-                    <label>Bank <input class="form-control input-sm" name="bank" style="width:140px;" /></label>
-                    <label>Amount <input class="form-control input-sm" type="number" step="0.01" name="amount" required style="width:90px;" /></label>
-                    <label>Currency <input class="form-control input-sm" name="currency" placeholder="AED" style="width:70px;" /></label>
-                    <label>Expiry <input class="form-control input-sm" type="date" name="expiry_date" /></label>
-                    <button type="submit" class="btn btn-success btn-sm">Create instrument</button>
-                </form>
-</ErpPhpCreateWell>
-
 @code {
     private const string _listHref = "/erp/bank-reconciliation-app";
     private string _phpTab = "/ERP/?epc_erp_shell=1&area=banking&tab=bank_recon";
@@ -280,6 +294,7 @@
     private string _flash = "";
     private bool _flashOk;
     private string _view = "bank_recon";
+    private bool _entry => _view == "entry";
     private bool _isAdmin;
     private ErpBankReconciliationSummary _summary = new(0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<ErpBankStatementLineDigest> _lines = [];
@@ -322,14 +337,16 @@
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "recon_line_id");
         var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
         // Open a statement line even when the instruments tab is in the query.
-        _view = _openedId > 0 || tab != "bank_instruments" ? "bank_recon" : "bank_instruments";
+        _view = _openedId > 0 || (tab != "bank_instruments" && tab != "entry") ? "bank_recon" : tab;
         _phpTab = _view == "bank_instruments"
             ? "/ERP/?epc_erp_shell=1&area=banking&tab=bank_instruments"
             : "/ERP/?epc_erp_shell=1&area=banking&tab=bank_recon";
-        _title = _view == "bank_instruments" ? "Bank instruments" : "Bank reconciliation";
+        _title = _view == "bank_instruments" ? "Bank instruments" : (_view == "entry" ? "Bank entry" : "Bank reconciliation");
         _subtitle = _view == "bank_instruments"
             ? "Letters of credit, guarantees and SBLC with outstanding exposure."
-            : "Open a row for statement date and created time. Import, match, and instrument writes stay here.";
+            : (_view == "entry"
+                ? "Import a statement CSV, match lines, and maintain instruments on the entry surface."
+                : "Open a row for statement date and created time. Import, match, and instrument writes stay on the entry view.");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

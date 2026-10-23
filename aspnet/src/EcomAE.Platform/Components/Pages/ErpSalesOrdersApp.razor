@@ -23,7 +23,7 @@
 
     
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" EntryHref="/erp/sales-orders-app?tab=entry" EntryLabel="New sales order" />
 
     <ErpD365OrderPanel Kind="so" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/sales-orders-app" />
@@ -53,47 +53,7 @@
         }
         @if (_isAdmin)
         {
-            <form method="post" action="/erp/subscriptions/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/erp/sales-orders-app?tab=subscriptions" />
-                <label>Code <input name="code" required maxlength="40" style="width:7rem" /></label>
-                <label>Customer <input name="customer" required maxlength="200" style="width:10rem" /></label>
-                <label>Plan <input name="plan_name" maxlength="160" style="width:8rem" /></label>
-                <label>Amount <input type="number" name="amount" min="0" step="0.01" value="0" style="width:6rem" /></label>
-                <label>Cycle
-                    <select name="cycle">
-                        <option value="monthly" selected>monthly</option>
-                        <option value="quarterly">quarterly</option>
-                        <option value="annual">annual</option>
-                    </select>
-                </label>
-                <button type="submit">Save subscription</button>
-            </form>
-            <form method="post" action="/erp/subscriptions/status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/erp/sales-orders-app?tab=subscriptions" />
-                <label>Subscription id <input type="number" name="id" min="1" required style="width:6rem" /></label>
-                <label>Status
-                    <select name="status">
-                        <option value="active">active</option>
-                        <option value="paused">paused</option>
-                        <option value="cancelled">cancelled</option>
-                    </select>
-                </label>
-                <button type="submit">Set status</button>
-            </form>
-            <form method="post" action="/erp/subscriptions/generate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/erp/sales-orders-app?tab=subscriptions" />
-                <label>Subscription id <input type="number" name="id" min="1" required style="width:6rem" /></label>
-                <button type="submit">Generate cycle invoice</button>
-            </form>
-            <form method="post" action="/erp/ajax/sub-invoice-paid" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/erp/sales-orders-app?tab=subscriptions" />
-                <label>Invoice id <input type="number" name="id" min="1" required style="width:6rem" /></label>
-                <button type="submit">Mark invoice paid</button>
-            </form>
+            <p class="text-muted" style="margin:0 0 1rem">Subscription entry lives on the <a href="/erp/sales-orders-app?tab=entry">entry view</a>.</p>
         }
         <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Subscription KPIs">
             <div class="kpi"><div class="lbl">Active</div><div class="val">@_subs.Active.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -141,8 +101,14 @@
             </table>
         </div>
     }
-    else
+    else if (_view == "entry")
     {
+        <div class="epc-d365-entry">
+            <div class="epc-d365-entry-head">
+                <span>Sales order and subscription entry</span>
+                <a class="btn btn-xs btn-default" href="/erp/sales-orders-app">Back to list</a>
+            </div>
+            <div class="epc-d365-entry-body">
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
         <div class="alert alert-success" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
@@ -153,6 +119,81 @@
     }
     @if (_isAdmin)
     {
+        <div class="panel panel-default" id="erp-module-new">
+            <div class="panel-heading"><strong>New sales order</strong> <span class="text-muted">First click on an item reserves it for 30 minutes so other sales users cannot take the same qty.</span></div>
+            <div class="panel-body">
+                <div class="row" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:.65rem;align-items:end;padding:0 15px;">
+                    <ErpVoucherHeaderFields DateLabel="Order date" DateFieldName="order_date" NumberLabel="Sales order no" NumberPreview="Auto" />
+                </div>
+                <div class="row">
+                    <div class="col-sm-3"><ErpMasterPicker Kind="customer" FieldName="customer_user_id" InputId="so-customer" Label="Customer" Required="true" /></div>
+                    <div class="col-sm-4"><label for="so-title">Title</label><input id="so-title" class="form-control" type="text" maxlength="255" value="@_follow.Name" /></div>
+                    <div class="col-sm-2"><label for="so-amount">Amount (ex VAT)</label><input id="so-amount" class="form-control" type="number" min="0" step="0.01" readonly aria-describedby="so-amount-help" /><span id="so-amount-help" class="help-block small">Sum of lines</span></div>
+                    <div class="col-sm-3"><label for="so-notes">Notes</label><input id="so-notes" class="form-control" type="text" value="@_follow.Note" /></div>
+                    <div class="col-sm-1"><label for="so-save">&nbsp;</label><button id="so-save" type="button" class="btn btn-primary btn-block">Save</button></div>
+                </div>
+
+                <datalist id="erp-item-list">
+                    @foreach (var item in _items)
+                    {
+                        <option value="@item.Sku" label="@item.Name"></option>
+                    }
+                </datalist>
+
+                <div class="epc-erp-table-wrap" style="margin-top:10px">
+                    <table class="table table-bordered table-condensed table-epc" id="so-lines">
+                        <thead>
+                            <tr>
+                                <th style="width:22%">Item / SKU</th>
+                                <th>Description</th>
+                                <th style="width:12%">Qty</th>
+                                <th style="width:15%">Unit price (ex VAT)</th>
+                                <th style="width:15%">Line total</th>
+                                <th style="width:6%">&nbsp;</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" class="text-right"><strong>Total (ex VAT)</strong></td>
+                                <td id="so-lines-total">0.00</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <button id="so-line-add" type="button" class="btn btn-default btn-xs">Add line</button>
+                <select id="so-item-picker" class="form-control input-sm" style="display:inline-block;width:auto;margin-left:8px" aria-label="Reserve inventory item on the last line">
+                    <option value="">-- Reserve inventory item --</option>
+                    @foreach (var item in _items)
+                    {
+                        var price = item.SalesPrice.ToString("0.00", CultureInfo.InvariantCulture);
+                        var atp = AtpFor(item.Id);
+                        var available = atp?.Available ?? 0m;
+                        <option value="@item.Id.ToString(CultureInfo.InvariantCulture)"
+                                data-sku="@item.Sku"
+                                data-name="@item.Name"
+                                data-price="@price"
+                                data-available="@available.ToString("0.###", CultureInfo.InvariantCulture)"
+                                disabled="@(available <= 0)">@item.Sku — @item.Name · @available.ToString("0.###", CultureInfo.InvariantCulture) available</option>
+                    }
+                </select>
+                <input id="so-id" type="hidden" value="0" />
+                <p id="so-feedback" class="text-muted" role="status" aria-live="polite"></p>
+                @if (_holds.Count > 0)
+                {
+                    <div class="epc-erp-facts" style="margin-top:.6rem" aria-label="Open item holds">
+                        @foreach (var hold in _holds.Take(8))
+                        {
+                            <div>
+                                <dt>@hold.Sku</dt>
+                                <dd>@hold.Qty.ToString("0.###", CultureInfo.InvariantCulture) · @hold.SourceType #@hold.SourceId · @hold.Status</dd>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
         <form method="post" action="/erp/orders/settlement" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/sales-orders-app" />
@@ -174,6 +215,82 @@
             <label>Reference <input type="text" name="reference" placeholder="ORD-…" /></label>
             <button type="submit" class="btn btn-sm btn-primary">Post order settlement</button>
         </form>
+        <form method="post" action="/erp/edit-lock/heartbeat" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/sales-orders-app" />
+            <label>Entity type <input name="entity_type" maxlength="48" placeholder="sales_order" style="width:9rem" /></label>
+            <label>Entity id <input name="entity_id" maxlength="64" style="width:8rem" /></label>
+            <label>Lock token <input name="lock_token" maxlength="40" style="width:10rem" /></label>
+            <label>TTL <input type="number" name="ttl" value="120" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-default">Refresh edit lock</button>
+        </form>
+        <form method="post" action="/erp/edit-lock/release" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/sales-orders-app" />
+            <label>Entity type <input name="entity_type" maxlength="48" placeholder="sales_order" style="width:9rem" /></label>
+            <label>Entity id <input name="entity_id" maxlength="64" style="width:8rem" /></label>
+            <label>Lock token <input name="lock_token" maxlength="40" style="width:10rem" /></label>
+            <button type="submit" class="btn btn-sm btn-default">Release edit lock</button>
+        </form>
+        <p style="margin:1rem 0 .4rem"><strong>Subscriptions</strong> <span class="text-muted">Saved forms return to the subscriptions list.</span></p>
+        <form method="post" action="/erp/subscriptions/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/sales-orders-app?tab=subscriptions" />
+            <label>Code <input name="code" required maxlength="40" style="width:7rem" /></label>
+            <label>Customer <input name="customer" required maxlength="200" style="width:10rem" /></label>
+            <label>Plan <input name="plan_name" maxlength="160" style="width:8rem" /></label>
+            <label>Amount <input type="number" name="amount" min="0" step="0.01" value="0" style="width:6rem" /></label>
+            <label>Cycle
+                <select name="cycle">
+                    <option value="monthly" selected>monthly</option>
+                    <option value="quarterly">quarterly</option>
+                    <option value="annual">annual</option>
+                </select>
+            </label>
+            <button type="submit">Save subscription</button>
+        </form>
+        <form method="post" action="/erp/subscriptions/status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/sales-orders-app?tab=subscriptions" />
+            <label>Subscription id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="active">active</option>
+                    <option value="paused">paused</option>
+                    <option value="cancelled">cancelled</option>
+                </select>
+            </label>
+            <button type="submit">Set status</button>
+        </form>
+        <form method="post" action="/erp/subscriptions/generate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/sales-orders-app?tab=subscriptions" />
+            <label>Subscription id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <button type="submit">Generate cycle invoice</button>
+        </form>
+        <form method="post" action="/erp/ajax/sub-invoice-paid" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/sales-orders-app?tab=subscriptions" />
+            <label>Invoice id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <button type="submit">Mark invoice paid</button>
+        </form>
+    }
+    else
+    {
+        <p class="text-muted">Sign in with ERP capability for entry forms.</p>
+    }
+            </div>
+        </div>
+    }
+    else
+    {
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
     }
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Sales order KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_orders.Count</div></div>
@@ -394,102 +511,6 @@
                 <p class="text-muted">No same-status siblings yet.</p>
             }
         </div>
-    }
-
-    @if (_isAdmin)
-    {
-        <div class="panel panel-default" id="erp-module-new">
-            <div class="panel-heading"><strong>New sales order</strong> <span class="text-muted">First click on an item reserves it for 30 minutes so other sales users cannot take the same qty.</span></div>
-            <div class="panel-body">
-                <div class="row" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:.65rem;align-items:end;padding:0 15px;">
-                    <ErpVoucherHeaderFields DateLabel="Order date" DateFieldName="order_date" NumberLabel="Sales order no" NumberPreview="Auto" />
-                </div>
-                <div class="row">
-                    <div class="col-sm-3"><ErpMasterPicker Kind="customer" FieldName="customer_user_id" InputId="so-customer" Label="Customer" Required="true" /></div>
-                    <div class="col-sm-4"><label for="so-title">Title</label><input id="so-title" class="form-control" type="text" maxlength="255" value="@_follow.Name" /></div>
-                    <div class="col-sm-2"><label for="so-amount">Amount (ex VAT)</label><input id="so-amount" class="form-control" type="number" min="0" step="0.01" readonly aria-describedby="so-amount-help" /><span id="so-amount-help" class="help-block small">Sum of lines</span></div>
-                    <div class="col-sm-3"><label for="so-notes">Notes</label><input id="so-notes" class="form-control" type="text" value="@_follow.Note" /></div>
-                    <div class="col-sm-1"><label for="so-save">&nbsp;</label><button id="so-save" type="button" class="btn btn-primary btn-block">Save</button></div>
-                </div>
-
-                <datalist id="erp-item-list">
-                    @foreach (var item in _items)
-                    {
-                        <option value="@item.Sku" label="@item.Name"></option>
-                    }
-                </datalist>
-
-                <div class="epc-erp-table-wrap" style="margin-top:10px">
-                    <table class="table table-bordered table-condensed table-epc" id="so-lines">
-                        <thead>
-                            <tr>
-                                <th style="width:22%">Item / SKU</th>
-                                <th>Description</th>
-                                <th style="width:12%">Qty</th>
-                                <th style="width:15%">Unit price (ex VAT)</th>
-                                <th style="width:15%">Line total</th>
-                                <th style="width:6%">&nbsp;</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="4" class="text-right"><strong>Total (ex VAT)</strong></td>
-                                <td id="so-lines-total">0.00</td>
-                                <td>&nbsp;</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                <button id="so-line-add" type="button" class="btn btn-default btn-xs">Add line</button>
-                <select id="so-item-picker" class="form-control input-sm" style="display:inline-block;width:auto;margin-left:8px" aria-label="Reserve inventory item on the last line">
-                    <option value="">-- Reserve inventory item --</option>
-                    @foreach (var item in _items)
-                    {
-                        var price = item.SalesPrice.ToString("0.00", CultureInfo.InvariantCulture);
-                        var atp = AtpFor(item.Id);
-                        var available = atp?.Available ?? 0m;
-                        <option value="@item.Id.ToString(CultureInfo.InvariantCulture)"
-                                data-sku="@item.Sku"
-                                data-name="@item.Name"
-                                data-price="@price"
-                                data-available="@available.ToString("0.###", CultureInfo.InvariantCulture)"
-                                disabled="@(available <= 0)">@item.Sku — @item.Name · @available.ToString("0.###", CultureInfo.InvariantCulture) available</option>
-                    }
-                </select>
-                <input id="so-id" type="hidden" value="0" />
-                <p id="so-feedback" class="text-muted" role="status" aria-live="polite"></p>
-                @if (_holds.Count > 0)
-                {
-                    <div class="epc-erp-facts" style="margin-top:.6rem" aria-label="Open item holds">
-                        @foreach (var hold in _holds.Take(8))
-                        {
-                            <div>
-                                <dt>@hold.Sku</dt>
-                                <dd>@hold.Qty.ToString("0.###", CultureInfo.InvariantCulture) · @hold.SourceType #@hold.SourceId · @hold.Status</dd>
-                            </div>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-        <form method="post" action="/erp/edit-lock/heartbeat" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/sales-orders-app" />
-            <label>Entity type <input name="entity_type" maxlength="48" placeholder="sales_order" style="width:9rem" /></label>
-            <label>Entity id <input name="entity_id" maxlength="64" style="width:8rem" /></label>
-            <label>Lock token <input name="lock_token" maxlength="40" style="width:10rem" /></label>
-            <label>TTL <input type="number" name="ttl" value="120" style="width:5rem" /></label>
-            <button type="submit" class="btn btn-sm btn-default">Refresh edit lock</button>
-        </form>
-        <form method="post" action="/erp/edit-lock/release" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/sales-orders-app" />
-            <label>Entity type <input name="entity_type" maxlength="48" placeholder="sales_order" style="width:9rem" /></label>
-            <label>Entity id <input name="entity_id" maxlength="64" style="width:8rem" /></label>
-            <label>Lock token <input name="lock_token" maxlength="40" style="width:10rem" /></label>
-            <button type="submit" class="btn btn-sm btn-default">Release edit lock</button>
-        </form>
     }
 
     <div class="epc-erp-table-wrap">
@@ -724,7 +745,7 @@
 
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "so_id", "order_id");
         var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
-        _view = tab == "subscriptions" ? "subscriptions" : "sales_orders";
+        _view = tab == "subscriptions" ? "subscriptions" : (tab == "entry" ? "entry" : "sales_orders");
         _phpTab = _view == "subscriptions"
             ? "/ERP/?epc_erp_shell=1&area=sales&tab=subscriptions"
             : "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders";
