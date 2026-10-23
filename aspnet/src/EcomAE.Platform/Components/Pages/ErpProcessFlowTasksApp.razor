@@ -772,7 +772,8 @@
         _userId = session.UserId;
         if (!_isAdmin) return;
 
-        var result = await Dashboards.BuildErpProcessFlowTasksDigestAsync(300);
+        var result = await Dashboards.BuildErpProcessFlowTasksDigestAsync(
+            300, ctx.RequestAborted, _status is "all" ? null : _status);
         _summary = result.Summary;
         _tasks = result.Tasks;
         _steps = result.Steps;

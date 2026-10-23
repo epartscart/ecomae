@@ -13085,7 +13085,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     private static decimal ParseDecimal(string? value) =>
         decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var d) ? d : 0m;
 
-    public async Task<ErpProcessFlowTasksDigestResult> BuildErpProcessFlowTasksDigestAsync(int limit, CancellationToken cancellationToken = default)
+    public async Task<ErpProcessFlowTasksDigestResult> BuildErpProcessFlowTasksDigestAsync(int limit, CancellationToken cancellationToken = default, string? statusFilter = null)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
         var empty = new ErpProcessFlowTasksSummary(0, 0, 0, 0, 0, 0, 0m, "migration", "TenantRegistry DB is not configured.");
@@ -13118,7 +13118,25 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var rows = new List<ErpProcessFlowTaskDigest>();
             await using (var list = connection.CreateCommand())
             {
-                list.CommandText = LegacySurfaceDashboardSql.SelectErpProcessFlowTasks;
+                var filter = (statusFilter ?? string.Empty).Trim().ToLowerInvariant();
+                var tasksSql = LegacySurfaceDashboardSql.SelectErpProcessFlowTasks;
+                if (filter is "overdue")
+                {
+                    tasksSql = tasksSql.Replace(
+                        "ORDER BY FIELD(c.`status`",
+                        "WHERE c.`status` = 'open' AND c.`due_at` > 0 AND c.`due_at` < @now ORDER BY FIELD(c.`status`",
+                        StringComparison.Ordinal);
+                    AddParameter(list, "@now", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+                }
+                else if (filter is "open" or "done" or "rejected" or "cancelled")
+                {
+                    tasksSql = tasksSql.Replace(
+                        "ORDER BY FIELD(c.`status`",
+                        "WHERE c.`status` = @fstatus ORDER BY FIELD(c.`status`",
+                        StringComparison.Ordinal);
+                    AddParameter(list, "@fstatus", filter);
+                }
+                list.CommandText = tasksSql;
                 AddParameter(list, "@limit", safeLimit);
                 await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))

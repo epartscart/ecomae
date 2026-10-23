@@ -12576,6 +12576,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpProcessFlowTasks, async (
             HttpContext context,
             int? limit,
+            string? status,
             ILegacySessionValidator validator,
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
@@ -12586,7 +12587,7 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required for process-flow-tasks digest.");
             }
 
-            var result = await dashboards.BuildErpProcessFlowTasksDigestAsync(limit ?? 200, cancellationToken);
+            var result = await dashboards.BuildErpProcessFlowTasksDigestAsync(limit ?? 200, cancellationToken, status);
             return Results.Ok(new
             {
                 ok = true,
