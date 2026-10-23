@@ -312,13 +312,10 @@ public sealed class RouteTenantResolver : ITenantResolver
     /// shared <c>docpart</c> when no dedicated <c>epc_portal_tenants</c> database is stored.
     /// </summary>
     public static bool IsDegradedSharedShopHost(string host)
-    {
-        var h = BareHost(host);
-        return h is "electronicae.com" or "stylenlook.com" or "thejewellerytrend.com" or "taxofinca.com";
-    }
+        => SharedShopDomain(host) is not null;
 
     public static string DegradedShopSiteKey(string host)
-        => BareHost(host) switch
+        => SharedShopDomain(host) switch
         {
             "electronicae.com" => "electronicae",
             "stylenlook.com" => "stylenlook",
@@ -326,6 +323,26 @@ public sealed class RouteTenantResolver : ITenantResolver
             "taxofinca.com" => "taxofinca",
             _ => string.Empty,
         };
+
+    /// <summary>
+    /// Canonical shop domain for a named shop host. The wildcard vhost also serves the
+    /// <c>{shop}.ecomae.com</c> subdomain forms (<c>taxofinca.ecomae.com</c>,
+    /// <c>jewellerytrend.ecomae.com</c> → thejewellerytrend), which bind the same
+    /// shared-docpart shop rows as the brand domains.
+    /// </summary>
+    private static string? SharedShopDomain(string host)
+    {
+        var h = BareHost(host);
+        if (h.EndsWith(".ecomae.com", StringComparison.Ordinal))
+        {
+            var label = h[..^".ecomae.com".Length];
+            h = label is "jewellerytrend" ? "thejewellerytrend.com" : label + ".com";
+        }
+
+        return h is "electronicae.com" or "stylenlook.com" or "thejewellerytrend.com" or "taxofinca.com"
+            ? h
+            : null;
+    }
 
     private static string BareHost(string host)
     {
