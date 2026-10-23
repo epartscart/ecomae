@@ -25,10 +25,12 @@
 
     <PhpErpModulePageHeader Title="Product information" Subtitle="@(_jewellery ? "Jewellery item master: every jewellery master, metal-stock product, inventory, and stock report on one page." : "Open an item for track-expiry and same-type siblings. Field Open loads the 280-character options excerpt. Variant Open loads the 280-character combo excerpt. Create item writes here. Dimension-link save is not available on this page.")" PhpTabHref="@_phpTab" />
 
-    <ErpD365ModuleArea Kind="products" />
-    <PhpErpD365ActionPane PhpTabHref="@RibbonNewHref" RefreshHref="@Nav.Uri" />
+    <ErpD365ModuleArea Kind="products" Part="@(_entryView ? "entry" : "grid")" />
+    <PhpErpD365ActionPane PhpTabHref="@RibbonNewHref" RefreshHref="@Nav.Uri" EntryHref="@(_view == "pim_attrs" ? PimEntryHref : EntryItemHref)" EntryLabel="@(_view == "pim_attrs" ? "New attribute" : "New item")" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
+    @if (!_entryView)
+    {
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Product information KPIs">
         <div class="kpi"><div class="lbl">Items</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Active</div><div class="val">@_active.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -40,6 +42,7 @@
             <div class="kpi"><div class="lbl">Stock lines</div><div class="val">@_stockBalance.Count.ToString(CultureInfo.InvariantCulture)</div></div>
         }
     </div>
+    }
 
     <ErpPhpViewTabs QueryName="pm_view" Active="@_view" BaseHref="@ListHref" Tabs="@_views" />
 
@@ -60,6 +63,12 @@
 
     @if (_isAdmin && _view == "entry")
     {
+        <div class="epc-d365-entry">
+            <div class="epc-d365-entry-head">
+                <span>Item entry</span>
+                <a class="btn btn-xs btn-default" href="@_listHref">Back to list</a>
+            </div>
+            <div class="epc-d365-entry-body">
         <ErpPhpCreateWell Title="New inventory part or assembly">
             <form method="post" action="/erp/ajax/inv-create-item" class="epc-item-part" data-epc-item-part="1">
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -160,9 +169,11 @@
                 })();
             </script>
         </ErpPhpCreateWell>
+            </div>
+        </div>
     }
 
-    @if (_view != "entry" && _openedItem is not null)
+    @if (!_entryView && _openedItem is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedItemCaption</strong>
@@ -252,7 +263,7 @@
         </div>
     }
 
-    @if (_view != "entry" && _openedField is not null)
+    @if (!_entryView && _openedField is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedFieldCaption</strong>
@@ -306,7 +317,7 @@
         </div>
     }
 
-    @if (_view != "entry" && _openedVariant is not null)
+    @if (!_entryView && _openedVariant is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedVariantCaption</strong>
@@ -367,13 +378,20 @@
         {
             <h2 style="font-size:16px;">PIM attributes</h2>
             <p class="text-muted">Post a new attribute in the form. Dropdown and checkbox options are maintained on each row.</p>
+            <p style="margin:0 0 .8rem"><a class="btn btn-sm btn-primary" href="@PimEntryHref"><i class="fa fa-plus"></i> New attribute</a></p>
         }
-        @if (!_isAdmin)
+        @if (_view == "pim_entry" && !_isAdmin)
         {
             <p class="text-muted">Sign in to post a new attribute. Posted attributes stay on this list.</p>
         }
-        else
+        else if (_view == "pim_entry")
         {
+            <div class="epc-d365-entry">
+                <div class="epc-d365-entry-head">
+                    <span>Attribute entry</span>
+                    <a class="btn btn-xs btn-default" href="@PimListHref">Back to list</a>
+                </div>
+                <div class="epc-d365-entry-body">
             <ErpPhpCreateWell Title="New attribute">
                 <form id="erp-module-new" method="post" action="@EcomAeRoutes.ErpProductInfoPimAction" class="epc-pim-attr">
                     <input type="hidden" name="pinfo_action" value="pim_create_field" />
@@ -405,6 +423,8 @@
                     </fieldset>
                 </form>
             </ErpPhpCreateWell>
+                </div>
+            </div>
         }
         @if (_view == "pim_attrs")
         {
@@ -709,6 +729,7 @@
     private bool _jewellery;
     private int _company;
     private string _view = "all";
+    private bool _entryView => _view is "entry" or "pim_entry";
     private IReadOnlyList<ErpProductInfoItemDigest> _items = [];
     private IReadOnlyList<ErpProductInfoItemDigest> _shownItems = [];
     private IReadOnlyList<ErpProductInfoFieldDigest> _fields = [];
@@ -946,6 +967,8 @@
     private string AppHref => Href(ErpJewelleryModuleChrome.AppHref(_listHref, _company, ("pm_view", _view)));
     private string? RibbonNewHref => _view == "pim_attrs" ? null : _phpTab;
     private string PimListHref => Href(ErpJewelleryModuleChrome.AppHref(_listHref, _company, ("pm_view", "pim_attrs")));
+    private string EntryItemHref => Href(ErpJewelleryModuleChrome.AppHref(_listHref, _company, ("pm_view", "entry")));
+    private string PimEntryHref => Href(ErpJewelleryModuleChrome.AppHref(_listHref, _company, ("pm_view", "pim_entry")));
 
     private string StockReportHref => Href(ErpJewelleryModuleChrome.AppHref(
         "/erp/jewellery-stock-verification-app", _company, ("tab", "jw_stock_balance")));

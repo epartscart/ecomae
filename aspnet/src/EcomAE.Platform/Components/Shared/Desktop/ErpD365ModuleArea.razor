@@ -14,7 +14,7 @@
 
 <div class="epc-erp-table-wrap" style="margin-bottom:14px">
     <p style="margin:0 0 .4rem"><strong>@Title</strong>@foreach (var l in Links) { <a class="btn btn-xs btn-default" href="@l.Href" target="_blank">@l.Text</a> }</p>
-    @if (ShowGrid)
+    @if (ShowGrid && Part != "entry")
     {
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead><tr>@foreach (var c in GridCols) { <th>@c</th> }</tr></thead>
@@ -32,7 +32,7 @@
     }
 </div>
 
-@if (_isAdmin)
+@if (_isAdmin && Part != "grid")
 {
     <div class="epc-erp-table-wrap" style="margin-bottom:14px">
         <p style="margin:0 0 .4rem"><strong>@SaveTitle</strong></p>
@@ -132,13 +132,17 @@
     </div>
 }
 
-@foreach (var a in CsvAreas)
+@if (Part != "grid")
 {
-    <ErpD365CsvArea Area="@a.Key" Title="@a.Label" Placeholder="@a.Ph" />
+    foreach (var a in CsvAreas)
+    {
+        <ErpD365CsvArea Area="@a.Key" Title="@a.Label" Placeholder="@a.Ph" />
+    }
 }
 
 @code {
     [Parameter] public string Kind { get; set; } = "";
+    [Parameter] public string Part { get; set; } = "all";
 
     private string Title => Kind switch
     {

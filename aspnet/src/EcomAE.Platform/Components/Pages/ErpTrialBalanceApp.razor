@@ -15,7 +15,6 @@
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="@ErpTrialBalanceParameters.AppPath" IsAdmin="_isAdmin" />
     <PhpErpModulePageHeader Title="Trial balance" Subtitle="Account and dimension balances for a date range, posting layer, and opening/closing options." PhpTabHref="@_phpTab" />
 
-    <ErpD365ModuleArea Kind="tb" />
     <ErpManualProcessStrip Keys="gl" />
 
     <div class="epc-erp-d365" data-epc-aspnet-d365="1">
@@ -57,60 +56,72 @@
     <style>
         #tb-parameters button.btn{background:#1f4e79 !important;color:#fff !important;border:0}
     </style>
-    <section id="tb-parameters" class="epc-erp-form-panel" style="margin:0 0 1rem">
-        <div class="epc-erp-form-panel__head">
-            <strong>Parameters</strong>
-            <span class="text-muted">Date range, date interval, financial dimension set, and posting layer refresh the balances.</span>
+    <form method="get" action="@ErpTrialBalanceParameters.AppPath">
+    <div class="epc-d365-lp">
+        <div class="epc-d365-lp-side">
+            <div class="epc-d365-lp-heading">Parameters</div>
+            <div class="epc-d365-lpsect">
+                <p class="epc-d365-lp-cap">Date range</p>
+                <div class="epc-d365-lp-fields">
+                    <label>From date <input type="date" name="from" value="@_parameters.FromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" required /></label>
+                    <label>To date <input type="date" name="to" value="@_parameters.ToDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" required /></label>
+                    <label>Date interval
+                        <select name="interval">
+                            <option value="" selected="@string.IsNullOrWhiteSpace(_parameters.Interval)">Custom</option>
+                            <option value="this_month" selected="@(_parameters.Interval == "this_month")">This month</option>
+                            <option value="this_quarter" selected="@(_parameters.Interval == "this_quarter")">This quarter</option>
+                            <option value="this_year" selected="@(_parameters.Interval == "this_year")">This year</option>
+                            <option value="last_year" selected="@(_parameters.Interval == "last_year")">Last year</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+            <div class="epc-d365-lpsect">
+                <p class="epc-d365-lp-cap">Data to include</p>
+                <div class="epc-d365-lp-fields">
+                    <label>Financial dimension set
+                        <select name="dimension_set">
+                            <option value="main_account" selected="@(_parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccount)">Main account</option>
+                            <option value="company" selected="@(_parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountCompany)">Main account + company</option>
+                            <option value="business_unit" selected="@(_parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountBusinessUnit)">Main account + business unit</option>
+                        </select>
+                    </label>
+                    <label>Business unit
+                        <input type="number" name="bu" min="0" step="1" value="@(_parameters.BusinessUnitId > 0 ? _parameters.BusinessUnitId.ToString(CultureInfo.InvariantCulture) : "")" placeholder="All units" />
+                    </label>
+                    @if (_parameters.CompanyId > 0)
+                    {
+                        <input type="hidden" name="company" value="@_parameters.CompanyId.ToString(CultureInfo.InvariantCulture)" />
+                    }
+                    <label>Posting layer
+                        <select name="layer">
+                            <option value="current" selected="@(_parameters.PostingLayer == ErpTrialBalancePostingLayer.Current)">Current</option>
+                            <option value="operations" selected="@(_parameters.PostingLayer == ErpTrialBalancePostingLayer.Operations)">Operations</option>
+                            <option value="tax" selected="@(_parameters.PostingLayer == ErpTrialBalancePostingLayer.Tax)">Tax</option>
+                        </select>
+                    </label>
+                    <label>Opening balances
+                        <select name="opening">
+                            <option value="column" selected="@(_parameters.OpeningDisplay == ErpTrialBalanceOpeningDisplay.Column)">Opening balance column</option>
+                            <option value="include_in_period" selected="@(_parameters.OpeningDisplay == ErpTrialBalanceOpeningDisplay.IncludeInPeriod)">Include in period activity</option>
+                            <option value="exclude" selected="@(_parameters.OpeningDisplay == ErpTrialBalanceOpeningDisplay.Exclude)">Do not show opening</option>
+                        </select>
+                    </label>
+                    <label class="epc-d365-lp-check"><input type="hidden" name="include_closing" value="0" /><input type="checkbox" name="include_closing" value="1" checked="@_parameters.IncludeClosingTransactions" /> Include closing transactions</label>
+                    <label class="epc-d365-lp-check"><input type="hidden" name="include_closing_adj" value="0" /><input type="checkbox" name="include_closing_adj" value="1" checked="@_parameters.IncludeClosingAdjustments" /> Include closing adjustments</label>
+                    <label class="epc-d365-lp-check"><input type="hidden" name="separate_dims" value="0" /><input type="checkbox" name="separate_dims" value="1" checked="@_parameters.SeparateDimensionColumns" /> Separate dimension columns</label>
+                </div>
+            </div>
+            <div class="epc-d365-lpsect">
+                <div class="form-actions" style="margin:0"><button type="submit" class="btn btn-primary">Calculate balances</button></div>
+            </div>
         </div>
-        <form method="get" action="@ErpTrialBalanceParameters.AppPath">
-            <p class="text-muted" style="margin:0 0 .4rem"><strong>Date range</strong></p>
-            <label>From date <input type="date" name="from" value="@_parameters.FromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" required /></label>
-            <label>To date <input type="date" name="to" value="@_parameters.ToDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" required /></label>
-            <label>Date interval
-                <select name="interval">
-                    <option value="" selected="@string.IsNullOrWhiteSpace(_parameters.Interval)">Custom</option>
-                    <option value="this_month" selected="@(_parameters.Interval == "this_month")">This month</option>
-                    <option value="this_quarter" selected="@(_parameters.Interval == "this_quarter")">This quarter</option>
-                    <option value="this_year" selected="@(_parameters.Interval == "this_year")">This year</option>
-                    <option value="last_year" selected="@(_parameters.Interval == "last_year")">Last year</option>
-                </select>
-            </label>
-            <p class="text-muted" style="margin:.6rem 0 .4rem"><strong>Data to include</strong></p>
-            <label>Financial dimension set
-                <select name="dimension_set">
-                    <option value="main_account" selected="@(_parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccount)">Main account</option>
-                    <option value="company" selected="@(_parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountCompany)">Main account + company</option>
-                    <option value="business_unit" selected="@(_parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountBusinessUnit)">Main account + business unit</option>
-                </select>
-            </label>
-            <label>Business unit
-                <input type="number" name="bu" min="0" step="1" value="@(_parameters.BusinessUnitId > 0 ? _parameters.BusinessUnitId.ToString(CultureInfo.InvariantCulture) : "")" placeholder="All units" />
-            </label>
-            @if (_parameters.CompanyId > 0)
-            {
-                <input type="hidden" name="company" value="@_parameters.CompanyId.ToString(CultureInfo.InvariantCulture)" />
-            }
-            <label>Posting layer
-                <select name="layer">
-                    <option value="current" selected="@(_parameters.PostingLayer == ErpTrialBalancePostingLayer.Current)">Current</option>
-                    <option value="operations" selected="@(_parameters.PostingLayer == ErpTrialBalancePostingLayer.Operations)">Operations</option>
-                    <option value="tax" selected="@(_parameters.PostingLayer == ErpTrialBalancePostingLayer.Tax)">Tax</option>
-                </select>
-            </label>
-            <label>Opening balances
-                <select name="opening">
-                    <option value="column" selected="@(_parameters.OpeningDisplay == ErpTrialBalanceOpeningDisplay.Column)">Opening balance column</option>
-                    <option value="include_in_period" selected="@(_parameters.OpeningDisplay == ErpTrialBalanceOpeningDisplay.IncludeInPeriod)">Include in period activity</option>
-                    <option value="exclude" selected="@(_parameters.OpeningDisplay == ErpTrialBalanceOpeningDisplay.Exclude)">Do not show opening</option>
-                </select>
-            </label>
-            <label><input type="hidden" name="include_closing" value="0" /><input type="checkbox" name="include_closing" value="1" checked="@_parameters.IncludeClosingTransactions" /> Include closing transactions</label>
-            <label><input type="hidden" name="include_closing_adj" value="0" /><input type="checkbox" name="include_closing_adj" value="1" checked="@_parameters.IncludeClosingAdjustments" /> Include closing adjustments</label>
-            <label><input type="hidden" name="separate_dims" value="0" /><input type="checkbox" name="separate_dims" value="1" checked="@_parameters.SeparateDimensionColumns" /> Separate dimension columns</label>
-            <label>Filter <input type="search" name="q" value="@(_parameters.Filter ?? "")" placeholder="Main account or name" /></label>
-            <div class="form-actions"><button type="submit" class="btn btn-primary">Calculate balances</button></div>
-        </form>
-    </section>
+        <div class="epc-d365-lp-main">
+            <div class="epc-d365-filterbar">
+                <i class="fa fa-filter" aria-hidden="true"></i>
+                <input type="search" name="q" value="@(_parameters.Filter ?? "")" placeholder="Filter — main account or name" />
+            </div>
+            <ErpD365ModuleArea Kind="tb" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Income and profit">
         <div class="kpi"><div class="lbl">Income</div><div class="val">@_result.Income.ToString("N2", CultureInfo.InvariantCulture)</div></div>
@@ -228,14 +239,18 @@
             </tbody>
         </table>
     </div>
+        </div>
+    </div>
+    </form>
 
     @if (_isAdmin)
     {
-        <section id="tb-snapshots" class="epc-erp-form-panel" style="margin:1rem 0">
-            <div class="epc-erp-form-panel__head">
-                <strong>Trial balance snapshots</strong>
-                <span class="text-muted">Stores the current parameter set and balances with an external tracking id.</span>
+        <section id="tb-snapshots" class="epc-d365-entry" style="margin:1rem 0">
+            <div class="epc-d365-entry-head">
+                <span>Trial balance snapshots</span>
+                <span class="text-muted" style="font-weight:400">Stores the current parameter set and balances with an external tracking id.</span>
             </div>
+            <div class="epc-d365-entry-body">
             <form method="post" action="@ErpTrialBalanceParameters.SnapshotPath">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@_parameters.AppHref()" />
@@ -285,6 +300,7 @@
                         }
                     </tbody>
                 </table>
+            </div>
             </div>
         </section>
     }

@@ -25,8 +25,96 @@
     }
 
     <PhpErpModulePageHeader Title="Sales quotations" Subtitle="Save a CRM quote here with persisted line bodies, CRM context, notes excerpt, and financial totals. Accept, quote email, Convert and expiry are not available on this page. This page does not invent a send." PhpTabHref="@_phpTab" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" EntryHref="/erp/sales-quotations-app?view=entry" EntryLabel="New quotation" />
 
+    @if (_entry && _isAdmin)
+    {
+        <div class="epc-d365-entry">
+            <div class="epc-d365-entry-head">
+                <span>Quotation entry</span>
+                <a class="btn btn-xs btn-default" href="/erp/sales-quotations-app">Back to list</a>
+            </div>
+            <div class="epc-d365-entry-body">
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>New CRM quote</strong></p>
+            <form method="post" action="/cp/crm/quotes/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_listHref" />
+                <input type="hidden" name="action" value="save_quote" />
+                <input type="hidden" name="id" value="0" />
+                <label>Quote # <input type="text" name="quote_number" maxlength="32" placeholder="Auto" /></label>
+                <label>Opp <input type="text" name="opportunity_id" inputmode="numeric" value="0" /></label>
+                <label>Lead <input type="text" name="lead_id" inputmode="numeric" value="0" /></label>
+                <ErpMasterPicker Kind="customer" FieldName="customer_user_id" Label="Customer" />
+                <label>Status
+                    <select name="status">
+                        <option value="draft" selected>draft</option>
+                        <option value="sent">sent</option>
+                        <option value="accepted">accepted</option>
+                        <option value="rejected">rejected</option>
+                    </select>
+                </label>
+                <label>Notes <input type="text" name="notes" value="@_follow.Note" /></label>
+                <label>Item
+                    <select name="item_id" id="quote-item-picker">
+                        <option value="0">— pick to reserve —</option>
+                        @foreach (var item in _items)
+                        {
+                            var available = AtpFor(item.Id)?.Available ?? 0m;
+                            <option value="@item.Id.ToString(CultureInfo.InvariantCulture)"
+                                    data-sku="@item.Sku"
+                                    data-name="@item.Name"
+                                    data-price="@item.SalesPrice.ToString("0.00", CultureInfo.InvariantCulture)"
+                                    disabled="@(available <= 0)">@item.Sku — @item.Name · @available.ToString("0.###", CultureInfo.InvariantCulture) avail</option>
+                        }
+                    </select>
+                </label>
+                <input type="hidden" name="sku" id="quote-item-sku" />
+                <label>Line <input type="text" name="line_description" id="quote-line-description" maxlength="512" value="@_follow.Name" /></label>
+                <label>Qty <input type="text" name="line_qty" inputmode="decimal" value="@(_follow.Qty != 0 ? _follow.Qty.ToString(CultureInfo.InvariantCulture) : "1")" /></label>
+                <label>Price <input type="text" name="line_unit_price" id="quote-line-price" inputmode="decimal" value="@(_follow.Amount != 0 ? _follow.Amount.ToString("0.00", CultureInfo.InvariantCulture) : "0")" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Create quote</button>
+            </form>
+            <p class="help-block" style="margin:.75rem 0 0">Picking an item reserves it for 30 minutes. First click wins. Accept and quote email are not available on this page.</p>
+        </div>
+        <script>
+            (function () {
+                var picker = document.getElementById('quote-item-picker');
+                if (!picker) { return; }
+                picker.addEventListener('change', function () {
+                    var option = picker.options[picker.selectedIndex];
+                    if (!option || !option.value || option.value === '0') { return; }
+                    var sku = option.getAttribute('data-sku') || '';
+                    var name = option.getAttribute('data-name') || '';
+                    var price = option.getAttribute('data-price') || '0';
+                    var skuInput = document.getElementById('quote-item-sku');
+                    var desc = document.getElementById('quote-line-description');
+                    var priceInput = document.getElementById('quote-line-price');
+                    if (skuInput) { skuInput.value = sku; }
+                    if (desc && !desc.value) { desc.value = name; }
+                    if (priceInput && (!priceInput.value || priceInput.value === '0')) { priceInput.value = price; }
+                    fetch('/erp/ajax/item-reserve', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            confirmWrites: true,
+                            itemId: parseInt(option.value, 10) || 0,
+                            sku: sku,
+                            qty: 1,
+                            sourceType: 'quote',
+                            sourceId: 0,
+                            sourceLineKey: 'quote-pick-' + option.value
+                        })
+                    });
+                });
+            })();
+        </script>
+            </div>
+        </div>
+    }
+    else
+    {
     <ErpD365QuotationPanel />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Sales quotation stats">
@@ -112,52 +200,6 @@
         </div>
     }
 
-    @if (_isAdmin)
-    {
-        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
-            <p style="margin:0 0 .5rem"><strong>New CRM quote</strong></p>
-            <form method="post" action="/cp/crm/quotes/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_listHref" />
-                <input type="hidden" name="action" value="save_quote" />
-                <input type="hidden" name="id" value="0" />
-                <label>Quote # <input type="text" name="quote_number" maxlength="32" placeholder="Auto" /></label>
-                <label>Opp <input type="text" name="opportunity_id" inputmode="numeric" value="0" /></label>
-                <label>Lead <input type="text" name="lead_id" inputmode="numeric" value="0" /></label>
-                <ErpMasterPicker Kind="customer" FieldName="customer_user_id" Label="Customer" />
-                <label>Status
-                    <select name="status">
-                        <option value="draft" selected>draft</option>
-                        <option value="sent">sent</option>
-                        <option value="accepted">accepted</option>
-                        <option value="rejected">rejected</option>
-                    </select>
-                </label>
-                <label>Notes <input type="text" name="notes" value="@_follow.Note" /></label>
-                <label>Item
-                    <select name="item_id" id="quote-item-picker">
-                        <option value="0">— pick to reserve —</option>
-                        @foreach (var item in _items)
-                        {
-                            var available = AtpFor(item.Id)?.Available ?? 0m;
-                            <option value="@item.Id.ToString(CultureInfo.InvariantCulture)"
-                                    data-sku="@item.Sku"
-                                    data-name="@item.Name"
-                                    data-price="@item.SalesPrice.ToString("0.00", CultureInfo.InvariantCulture)"
-                                    disabled="@(available <= 0)">@item.Sku — @item.Name · @available.ToString("0.###", CultureInfo.InvariantCulture) avail</option>
-                        }
-                    </select>
-                </label>
-                <input type="hidden" name="sku" id="quote-item-sku" />
-                <label>Line <input type="text" name="line_description" id="quote-line-description" maxlength="512" value="@_follow.Name" /></label>
-                <label>Qty <input type="text" name="line_qty" inputmode="decimal" value="@(_follow.Qty != 0 ? _follow.Qty.ToString(CultureInfo.InvariantCulture) : "1")" /></label>
-                <label>Price <input type="text" name="line_unit_price" id="quote-line-price" inputmode="decimal" value="@(_follow.Amount != 0 ? _follow.Amount.ToString("0.00", CultureInfo.InvariantCulture) : "0")" /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Create quote</button>
-            </form>
-            <p class="help-block" style="margin:.75rem 0 0">Picking an item reserves it for 30 minutes. First click wins. Accept and quote email are not available on this page.</p>
-        </div>
-    }
-
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
@@ -204,41 +246,6 @@
             </tbody>
         </table>
     </div>
-    @if (_isAdmin)
-    {
-        <script>
-            (function () {
-                var picker = document.getElementById('quote-item-picker');
-                if (!picker) { return; }
-                picker.addEventListener('change', function () {
-                    var option = picker.options[picker.selectedIndex];
-                    if (!option || !option.value || option.value === '0') { return; }
-                    var sku = option.getAttribute('data-sku') || '';
-                    var name = option.getAttribute('data-name') || '';
-                    var price = option.getAttribute('data-price') || '0';
-                    var skuInput = document.getElementById('quote-item-sku');
-                    var desc = document.getElementById('quote-line-description');
-                    var priceInput = document.getElementById('quote-line-price');
-                    if (skuInput) { skuInput.value = sku; }
-                    if (desc && !desc.value) { desc.value = name; }
-                    if (priceInput && (!priceInput.value || priceInput.value === '0')) { priceInput.value = price; }
-                    fetch('/erp/ajax/item-reserve', {
-                        method: 'POST',
-                        credentials: 'same-origin',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            confirmWrites: true,
-                            itemId: parseInt(option.value, 10) || 0,
-                            sku: sku,
-                            qty: 1,
-                            sourceType: 'quote',
-                            sourceId: 0,
-                            sourceLineKey: 'quote-pick-' + option.value
-                        })
-                    });
-                });
-            })();
-        </script>
     }
 
 </PhpErpDesktopChrome>
@@ -260,6 +267,7 @@
     private IReadOnlyList<ErpItemAtp> _atp = [];
     private ErpD365FollowPrefill _follow = new("", 0, "", "", "", "", "", 0, 0, "");
     private static readonly string[] _statuses = ["draft", "sent", "accepted", "rejected"];
+    private bool _entry => string.Equals(Http.HttpContext?.Request.Query["view"].ToString(), "entry", StringComparison.OrdinalIgnoreCase);
 
     private IReadOnlyList<string> QuotationWorkspaceTabs =>
         ["General", "CRM context", "Notes", "Lines", "Financial"];

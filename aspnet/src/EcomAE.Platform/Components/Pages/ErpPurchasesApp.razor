@@ -21,10 +21,23 @@
 
     
     <PhpErpModulePageHeader Title="Purchases" Subtitle="Purchase invoices (PI) after LPO and PO. Official tax-invoice print preview opens once the bill is posted." PhpTabHref="@_phpTab" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" EntryHref="/erp/purchases-app?view=entry" EntryLabel="New supplier bill" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/purchases-app" />
 
-
+    @if (_entry && _isAdmin)
+    {
+        <div class="epc-d365-entry">
+            <div class="epc-d365-entry-head">
+                <span>Supplier bill entry</span>
+                <a class="btn btn-xs btn-default" href="/erp/purchases-app">Back to list</a>
+            </div>
+            <div class="epc-d365-entry-body">
+                <p class="text-muted" style="margin:0">Supplier bills are created from purchase orders and LPOs. Open a posted bill to amend, void, settle, or print it.</p>
+            </div>
+        </div>
+    }
+    else
+    {
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Purchase KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_purchases.Count</div></div>
         <div class="kpi"><div class="lbl">Non-closed in page</div><div class="val">@_open</div></div>
@@ -290,6 +303,7 @@
             </tbody>
         </table>
     </div>
+    }
 
 </PhpErpDesktopChrome>
 
@@ -317,6 +331,8 @@
     private IReadOnlyList<ErpAuditTrailRow> _openedAuditTrail = [];
     private IReadOnlyList<ErpDocumentAttachmentRow> _openedAttachments = [];
     private IReadOnlyList<ErpDocumentLineDigest> _openedLines = [];
+
+    private bool _entry => string.Equals(Http.HttpContext?.Request.Query["view"].ToString(), "entry", StringComparison.OrdinalIgnoreCase);
 
     private bool OpenedFound => _openedDetail is not null || _openedPurchase is not null;
 

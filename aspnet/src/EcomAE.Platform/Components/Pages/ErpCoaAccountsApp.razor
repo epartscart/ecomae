@@ -22,11 +22,16 @@
 
     <PhpErpModulePageHeader Title="Chart of Accounts" Subtitle="Create an account here. Open a row for the 280-character description excerpt, system flag, and created time." PhpTabHref="@_phpTab" />
 
-    <ErpD365ModuleArea Kind="coa" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" EntryHref="/erp/coa-accounts-app?view=entry" EntryLabel="New account" />
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
-    @if (_isAdmin)
+    @if (_entry && _isAdmin)
     {
+        <div class="epc-d365-entry">
+            <div class="epc-d365-entry-head">
+                <span>Account entry</span>
+                <a class="btn btn-xs btn-default" href="/erp/coa-accounts-app">Back to list</a>
+            </div>
+            <div class="epc-d365-entry-body">
         <form id="erp-module-new" method="post" action="@EcomAeRoutes.ErpCoaAccountsCreate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/coa-accounts-app" />
@@ -45,7 +50,13 @@
             <label>Description <input type="text" name="description" maxlength="255" /></label>
             <button type="submit" class="btn btn-primary">Create account</button>
         </form>
+        <ErpD365ModuleArea Kind="coa" Part="entry" />
+            </div>
+        </div>
     }
+    else
+    {
+    <ErpD365ModuleArea Kind="coa" Part="grid" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="COA KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_accounts.Count</div></div>
@@ -166,6 +177,7 @@
             </tbody>
         </table>
     </div>
+    }
 
 </PhpErpDesktopChrome>
 
@@ -173,6 +185,7 @@
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=coa";
     private const string _listHref = "/erp/coa-accounts-app";
     private bool _isAdmin;
+    private bool _entry => string.Equals(Http.HttpContext?.Request.Query["view"].ToString(), "entry", StringComparison.OrdinalIgnoreCase);
     private IReadOnlyList<ErpCoaAccountDigest> _accounts = [];
     private int _active;
     private int _types;

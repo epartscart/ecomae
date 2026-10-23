@@ -22,13 +22,18 @@
     
     <PhpErpModulePageHeader Title="General Ledger Journals" Subtitle="Create, inspect, and reverse posted journals with an auditable correction entry." PhpTabHref="@_phpTab" />
 
-    <ErpD365ModuleArea Kind="gl" />
     <ErpManualProcessStrip Keys="gl" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" EntryHref="/erp/gl-journals-app?view=entry" EntryLabel="New journal" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/gl-journals-app" />
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
-    @if (_isAdmin)
+    @if (_entry && _isAdmin)
     {
+        <div class="epc-d365-entry">
+            <div class="epc-d365-entry-head">
+                <span>Journal entry</span>
+                <a class="btn btn-xs btn-default" href="/erp/gl-journals-app">Back to list</a>
+            </div>
+            <div class="epc-d365-entry-body">
         <section class="epc-erp-form-panel" style="margin:0 0 1rem">
             <div class="epc-erp-form-panel__head">
                 <strong>Manual journal entry</strong>
@@ -87,8 +92,13 @@
             <label>Amount <input type="text" name="net_amount" value="0" style="width:6rem" /></label>
             <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save journal voucher</button></div>
         </form>
+        <ErpD365ModuleArea Kind="gl" Part="entry" />
+            </div>
+        </div>
     }
-
+    else
+    {
+    <ErpD365ModuleArea Kind="gl" Part="grid" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="GL KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_journals.Count</div></div>
@@ -210,6 +220,7 @@
             </tbody>
         </table>
     </div>
+    }
 
 </PhpErpDesktopChrome>
 
@@ -328,6 +339,8 @@
         : _openedJournal is null
             ? ""
             : (string.IsNullOrWhiteSpace(_openedJournal.JournalNo) ? $"Journal #{_openedJournal.Id}" : _openedJournal.JournalNo) + " · " + _openedJournal.Status;
+
+    private bool _entry => string.Equals(Http.HttpContext?.Request.Query["view"].ToString(), "entry", StringComparison.OrdinalIgnoreCase);
 
     protected override async Task OnInitializedAsync()
     {

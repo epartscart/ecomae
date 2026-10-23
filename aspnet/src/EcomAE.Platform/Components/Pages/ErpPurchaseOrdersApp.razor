@@ -37,7 +37,7 @@
     }
     @if (!_barcodePurchase)
     {
-        <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+        <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" EntryHref="/erp/purchase-orders-app?view=entry" EntryLabel="New purchase order" />
 
     <ErpD365OrderPanel Kind="po" />
     }
@@ -72,7 +72,81 @@
         </ErpPhpCreateWell>
     }
 
-    @if (!_barcodePurchase)
+    @if (_entry && !_barcodePurchase)
+    {
+        <div class="epc-d365-entry">
+            <div class="epc-d365-entry-head">
+                <span>New purchase order</span>
+                <a class="btn btn-xs btn-default" href="/erp/purchase-orders-app">Back to list</a>
+            </div>
+            <div class="epc-d365-entry-body">
+    @if (_isAdmin)
+    {
+        <div class="panel panel-default" id="erp-module-new">
+            <div class="panel-heading"><strong>New purchase order</strong> <span class="text-muted">PO number, VAT and totals follow the tenant jurisdiction kit.</span></div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-3"><ErpMasterPicker Kind="supplier" FieldName="supplier_id" InputId="po-supplier" Label="Supplier" Required="true" /></div>
+                    <div class="col-sm-4"><label for="po-title">Title</label><input id="po-title" class="form-control" type="text" maxlength="255" value="@_follow.Name" /></div>
+                    <div class="col-sm-2"><label for="po-amount">Amount (ex VAT)</label><input id="po-amount" class="form-control" type="number" min="0" step="0.01" readonly aria-describedby="po-amount-help" /><span id="po-amount-help" class="help-block small">Sum of lines</span></div>
+                    <div class="col-sm-3"><label for="po-notes">Notes</label><input id="po-notes" class="form-control" type="text" value="@_follow.Note" /></div>
+                    <div class="col-sm-1"><label for="po-save">&nbsp;</label><button id="po-save" type="button" class="btn btn-primary btn-block">Save</button></div>
+                </div>
+
+                <datalist id="erp-item-list">
+                    @foreach (var item in _items)
+                    {
+                        <option value="@item.Sku" label="@item.Name"></option>
+                    }
+                </datalist>
+
+                <div class="epc-erp-table-wrap" style="margin-top:10px">
+                    <table class="table table-bordered table-condensed table-epc" id="po-lines">
+                        <thead>
+                            <tr>
+                                <th style="width:22%">Item / SKU</th>
+                                <th>Description</th>
+                                <th style="width:12%">Qty</th>
+                                <th style="width:15%">Unit cost (ex VAT)</th>
+                                <th style="width:15%">Line total</th>
+                                <th style="width:6%">&nbsp;</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" class="text-right"><strong>Total (ex VAT)</strong></td>
+                                <td id="po-lines-total">0.00</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <button id="po-line-add" type="button" class="btn btn-default btn-xs">Add line</button>
+                <select id="po-item-picker" class="form-control input-sm" style="display:inline-block;width:auto;margin-left:8px" aria-label="Link inventory item to the last line">
+                    <option value="">-- Link Inventory Item --</option>
+                    @foreach (var item in _items)
+                    {
+                        var cost = item.PurchasePrice.ToString("0.00", CultureInfo.InvariantCulture);
+                        <option value="@item.Id.ToString(CultureInfo.InvariantCulture)"
+                                data-sku="@item.Sku"
+                                data-name="@item.Name"
+                                data-price="@cost">@item.Sku — @item.Name</option>
+                    }
+                </select>
+                <input id="po-id" type="hidden" value="0" />
+                <p id="po-feedback" class="text-muted" role="status" aria-live="polite"></p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted">Sign in with ERP capability for entry forms.</p>
+    }
+            </div>
+        </div>
+    }
+    else if (!_barcodePurchase)
     {
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Purchase order KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_orders.Count</div></div>
@@ -181,66 +255,6 @@
             {
                 <p class="text-muted">No same-status siblings yet.</p>
             }
-        </div>
-    }
-
-    @if (_isAdmin)
-    {
-        <div class="panel panel-default" id="erp-module-new">
-            <div class="panel-heading"><strong>New purchase order</strong> <span class="text-muted">PO number, VAT and totals follow the tenant jurisdiction kit.</span></div>
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-sm-3"><ErpMasterPicker Kind="supplier" FieldName="supplier_id" InputId="po-supplier" Label="Supplier" Required="true" /></div>
-                    <div class="col-sm-4"><label for="po-title">Title</label><input id="po-title" class="form-control" type="text" maxlength="255" value="@_follow.Name" /></div>
-                    <div class="col-sm-2"><label for="po-amount">Amount (ex VAT)</label><input id="po-amount" class="form-control" type="number" min="0" step="0.01" readonly aria-describedby="po-amount-help" /><span id="po-amount-help" class="help-block small">Sum of lines</span></div>
-                    <div class="col-sm-3"><label for="po-notes">Notes</label><input id="po-notes" class="form-control" type="text" value="@_follow.Note" /></div>
-                    <div class="col-sm-1"><label for="po-save">&nbsp;</label><button id="po-save" type="button" class="btn btn-primary btn-block">Save</button></div>
-                </div>
-
-                <datalist id="erp-item-list">
-                    @foreach (var item in _items)
-                    {
-                        <option value="@item.Sku" label="@item.Name"></option>
-                    }
-                </datalist>
-
-                <div class="epc-erp-table-wrap" style="margin-top:10px">
-                    <table class="table table-bordered table-condensed table-epc" id="po-lines">
-                        <thead>
-                            <tr>
-                                <th style="width:22%">Item / SKU</th>
-                                <th>Description</th>
-                                <th style="width:12%">Qty</th>
-                                <th style="width:15%">Unit cost (ex VAT)</th>
-                                <th style="width:15%">Line total</th>
-                                <th style="width:6%">&nbsp;</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="4" class="text-right"><strong>Total (ex VAT)</strong></td>
-                                <td id="po-lines-total">0.00</td>
-                                <td>&nbsp;</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                <button id="po-line-add" type="button" class="btn btn-default btn-xs">Add line</button>
-                <select id="po-item-picker" class="form-control input-sm" style="display:inline-block;width:auto;margin-left:8px" aria-label="Link inventory item to the last line">
-                    <option value="">-- Link Inventory Item --</option>
-                    @foreach (var item in _items)
-                    {
-                        var cost = item.PurchasePrice.ToString("0.00", CultureInfo.InvariantCulture);
-                        <option value="@item.Id.ToString(CultureInfo.InvariantCulture)"
-                                data-sku="@item.Sku"
-                                data-name="@item.Name"
-                                data-price="@cost">@item.Sku — @item.Name</option>
-                    }
-                </select>
-                <input id="po-id" type="hidden" value="0" />
-                <p id="po-feedback" class="text-muted" role="status" aria-live="polite"></p>
-            </div>
         </div>
     }
 
@@ -370,6 +384,7 @@
     private ErpD365FollowPrefill _follow = new("", 0, "", "", "", "", "", 0, 0, "");
     private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private bool _barcodePurchase;
+    private bool _entry => string.Equals(Http.HttpContext?.Request.Query["view"].ToString(), "entry", StringComparison.OrdinalIgnoreCase);
     private string _ok = "";
     private string _err = "";
     private IReadOnlyList<ErpPurchaseOrderDigest> _orders = [];

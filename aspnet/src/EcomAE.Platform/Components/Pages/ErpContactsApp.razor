@@ -22,8 +22,7 @@
 
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
 
-    <ErpD365ModuleArea Kind="customers" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" EntryHref="/erp/contacts-app?view=entry" EntryLabel="New contact" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -33,8 +32,14 @@
     {
         <div class="alert alert-danger" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
     }
-    @if (_isAdmin)
+    @if (_entry && _isAdmin)
     {
+        <div class="epc-d365-entry">
+            <div class="epc-d365-entry-head">
+                <span>Contact entry</span>
+                <a class="btn btn-xs btn-default" href="/erp/contacts-app">Back to list</a>
+            </div>
+            <div class="epc-d365-entry-body">
         <form method="post" action="/erp/customers/master-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
@@ -131,7 +136,13 @@
             <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
             <button type="submit" class="btn btn-sm btn-primary">Save party</button>
         </form>
+        <ErpD365ModuleArea Kind="customers" Part="entry" />
+            </div>
+        </div>
     }
+    else
+    {
+    <ErpD365ModuleArea Kind="customers" Part="grid" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Contacts KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_contacts.Count</div></div>
@@ -260,6 +271,7 @@
     {
         <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">@_message</div>
     }
+    }
 
 </PhpErpDesktopChrome>
 
@@ -269,6 +281,7 @@
     private string _subtitle = "Open a row for street address and the 280-character notes excerpt. Email/phone omitted. Customer master and address-book writes stay here.";
     private string _listHref = "/erp/contacts-app";
     private bool _isAdmin;
+    private bool _entry => string.Equals(Http.HttpContext?.Request.Query["view"].ToString(), "entry", StringComparison.OrdinalIgnoreCase);
     private IReadOnlyList<ErpContactDigest> _contacts = [];
     private IReadOnlyList<ErpDimensionCatalog> _dimensionCatalog = [];
     private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
