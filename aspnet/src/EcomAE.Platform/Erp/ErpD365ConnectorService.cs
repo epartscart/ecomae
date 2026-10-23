@@ -257,9 +257,16 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         try
         {
             using var client = _http.CreateClient(HttpClientName);
+            var envUri = new Uri(_environmentUrl!);
             var nextLink = !string.IsNullOrEmpty(resumeUrl)
                 ? resumeUrl
                 : $"{_environmentUrl}/data/{entitySet}?$top={PageSize}&$count=true";
+            // A stored cursor gets the same check as a fresh nextLink — the bearer token
+            // must never go to a destination we did not verify this run.
+            if (!IsSafeContinuation(envUri, nextLink))
+            {
+                nextLink = $"{_environmentUrl}/data/{entitySet}?$top={PageSize}&$count=true";
+            }
             long remaining = top;
             long skip = 0;
             long? totalCount = null;
@@ -295,11 +302,9 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                 var followLink = doc.RootElement.TryGetProperty("@odata.nextLink", out var nl) && nl.ValueKind == JsonValueKind.String
                     ? nl.GetString()
                     : null;
-                // Only follow links back to the configured F&O host — a hostile or
-                // buggy response must not redirect the bearer token elsewhere.
-                if (followLink is not null &&
-                    (!Uri.TryCreate(followLink, UriKind.Absolute, out var linkUri) ||
-                     !linkUri.Host.Equals(new Uri(_environmentUrl!).Host, StringComparison.OrdinalIgnoreCase)))
+                // Only follow a continuation back to the configured F&O endpoint — an
+                // off-host, non-https, or different-port link must not receive the token.
+                if (!IsSafeContinuation(envUri, followLink))
                 {
                     followLink = null;
                 }
@@ -636,7 +641,14 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(row.GetRawText())))[..40];
         }
         var key = string.Join('|', parts);
-        return key.Length > 200 ? key[..200] : key;
+        if (key.Length <= 200)
+        {
+            return key;
+        }
+        // Keep a hash suffix so over-width keys never collapse distinct rows (e.g. snapshot
+        // dimension sets whose trailing DimensionValueN differ past the 200-char cut).
+        var keyHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(key)))[..8].ToLowerInvariant();
+        return key[..191] + "|" + keyHash;
     }
 
     private async Task FinishRunAsync(DbConnection connection, long runId, string status, int fetched, int staged, string error, CancellationToken cancellationToken)
@@ -671,6 +683,14 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             : null;
         return (parts[0], at);
     }
+
+    /// <summary>Continuation URLs the bearer token may be sent to: absolute https on the configured host AND port.</summary>
+    private static bool IsSafeContinuation(Uri envUri, string? url)
+        => url is not null
+           && Uri.TryCreate(url, UriKind.Absolute, out var uri)
+           && uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
+           && uri.Host.Equals(envUri.Host, StringComparison.OrdinalIgnoreCase)
+           && uri.Port == envUri.Port;
 
     private static string? FirstNonEmpty(params string?[] values)
         => values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v))?.Trim();

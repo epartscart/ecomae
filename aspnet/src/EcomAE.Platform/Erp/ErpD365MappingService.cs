@@ -1264,7 +1264,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
     /// kind. Returns (legalEntityId, businessUnitId, dimTypeCode, dimValueCode).
     /// </summary>
     private static async Task<(long EntityId, long BuId, long CostCentreId, string TypeCode, string ValueCode)> ResolveDimensionsAsync(
-        DbConnection connection, DbTransaction tx, string accountDimensionString, string defaultDimensionString, JsonElement row, CancellationToken ct)
+        DbConnection connection, DbTransaction tx, string accountDimensionString, string defaultDimensionString, JsonElement row, CancellationToken ct, string accountSegment = "")
     {
         var entityId = 0L;
         var buId = 0L;
@@ -1277,7 +1277,19 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         var accSegs = accountDimensionString.Split('-', '|').Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
         if (accSegs.Count > 0)
         {
-            accSegs.RemoveAt(0);
+            accSegs.RemoveAt(0); // leading segment is the company or the account — never a dimension
+            // Company-prefixed strings still carry the main account inside the list: drop the
+            // resolved account segment too so it is not stored as a fake dimension value.
+            if (accountSegment.Length > 0)
+            {
+                // Only the account position is dropped — a later segment may be a genuine
+                // dimension value that happens to share the account's code.
+                var accountPos = accSegs.FindIndex(s => s.Equals(accountSegment, StringComparison.OrdinalIgnoreCase));
+                if (accountPos >= 0)
+                {
+                    accSegs.RemoveAt(accountPos);
+                }
+            }
             segments.AddRange(accSegs);
         }
         segments.AddRange(defaultDimensionString.Split('-', '|').Select(s => s.Trim()).Where(s => s.Length > 0));
@@ -1448,19 +1460,30 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         }
         refs.Add(lineRef);
 
-        // Resolve the COA row: a LedgerDimension display string is company--account--dims,
-        // so the main account is not always the first segment — take the segment that
-        // actually exists in the chart of accounts (index 1 first, the D365 convention).
+        // Resolve the COA row: a LedgerDimension display string is either
+        // company--account--dims (first segment is a legal-entity code — account at index 1)
+        // or account--dims (account at index 0). Pick by whether segment 0 is a known legal
+        // entity, so a dimension that happens to share a COA code can never steal the amount.
         var segments = accountCode.Split('-', '|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        var ordered = segments.Length > 1
-            ? new[] { segments[1], segments[0] }.Concat(segments.Skip(2)).ToArray()
-            : segments;
+        var accountIndex = 0;
+        if (segments.Length > 1)
+        {
+            var entityHit = await ErpDb.LongAsync(connection, tx,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `code` = ? LIMIT 1"), ct, Clip(segments[0], 40)).ConfigureAwait(false);
+            if (entityHit > 0)
+            {
+                accountIndex = 1;
+            }
+        }
+        var ordered = new[] { segments[accountIndex] }
+            .Concat(segments.Where((s, i) => i != accountIndex)).ToArray();
         var coaId = 0L;
+        var accountSegment = "";
         foreach (var seg in ordered)
         {
             coaId = await ErpDb.LongAsync(connection, tx,
                 ErpDb.Positional("SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = ? LIMIT 1"), ct, Clip(seg, 16)).ConfigureAwait(false);
-            if (coaId > 0) break;
+            if (coaId > 0) { accountSegment = seg; break; }
         }
         if (coaId <= 0)
         {
@@ -1476,7 +1499,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         var dimensionString = Str(row, "LedgerDimension", "AccountDisplayValue", "DimensionDisplayValue", "DefaultDimensionDisplayValue");
         var accountDimString = Str(row, "LedgerDimension", "AccountDisplayValue");
         var defaultDimString = Str(row, "DimensionDisplayValue", "DefaultDimensionDisplayValue");
-        var (dimEntityId, dimBuId, dimCostCentreId, dimTypeCode, dimValueCode) = await ResolveDimensionsAsync(connection, tx, accountDimString, defaultDimString, row, ct).ConfigureAwait(false);
+        var (dimEntityId, dimBuId, dimCostCentreId, dimTypeCode, dimValueCode) = await ResolveDimensionsAsync(connection, tx, accountDimString, defaultDimString, row, ct, accountSegment).ConfigureAwait(false);
         var legalEntityId = dimEntityId > 0 ? dimEntityId : await ResolveCompanyIdAsync(connection, tx, row, ct).ConfigureAwait(false);
         var hasDimString = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_string", ct, tx).ConfigureAwait(false);
         var hasVoucher = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "voucher", ct, tx).ConfigureAwait(false);
