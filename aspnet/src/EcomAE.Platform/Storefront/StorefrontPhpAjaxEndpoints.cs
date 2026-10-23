@@ -5196,7 +5196,14 @@ public static class StorefrontPhpAjaxEndpoints
                 flight = s_catalogFlights.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
                 if (s_catalogFlights.Count >= CatalogCacheMaxEntries)
                 {
-                    s_catalogFlights.Clear();
+                    // Evict only free flights; a held semaphore belongs to a live lookup.
+                    foreach (var kv in s_catalogFlights)
+                    {
+                        if (kv.Value.CurrentCount > 0)
+                        {
+                            s_catalogFlights.TryRemove(kv.Key, out _);
+                        }
+                    }
                 }
 
                 await flight.WaitAsync(cancellationToken).ConfigureAwait(false);
