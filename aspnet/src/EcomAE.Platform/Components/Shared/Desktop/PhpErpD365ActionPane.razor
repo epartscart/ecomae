@@ -39,7 +39,7 @@ a.epc-d365-ap-btn.is-primary{font-weight:750;color:#0e7490}
                 {
                     <div class="epc-d365-ap-group">
                         <div class="epc-d365-ap-buttons">
-                            <a class="epc-d365-ap-btn is-primary" href="@(EntryHref ?? ErpRecordOpen.NewHref(PhpTabHref))">
+                            <a class="epc-d365-ap-btn is-primary" href="@(EntryHref is null ? ErpRecordOpen.NewHref(PhpTabHref) : ErpRecordOpen.MergeEntryQuery(EntryHref, Http.HttpContext?.Request))">
                                 <i class="fa fa-plus" aria-hidden="true"></i>@if (EntryLabel is null) { <span>New</span> } else { <span>@EntryLabel</span> }
                             </a>
                         </div>

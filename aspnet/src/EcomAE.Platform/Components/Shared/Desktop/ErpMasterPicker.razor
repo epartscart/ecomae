@@ -94,7 +94,7 @@
     {
         get
         {
-            var href = WithCompany(MasterPath);
+            var href = WithCompany(ErpMasterLookupReadService.MasterEntryHref(ResolvedKind));
             return href.Contains('#', StringComparison.Ordinal) ? href : href + "#erp-module-new";
         }
     }
