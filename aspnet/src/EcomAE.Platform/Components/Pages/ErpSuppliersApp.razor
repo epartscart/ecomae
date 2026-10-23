@@ -903,7 +903,7 @@
     private string PmSaveAction => Prefixed("/erp/pm/save");
     private string VendorReturnHref => _view == "ap_setup" ? AppHref("ap_setup", "vendors") : AppHref();
 
-    private bool PmEntry => _view == "ap_setup" && _pmView is "methods" or "terms" or "groups";
+    private bool PmEntry => _pmView is "methods" or "terms" or "groups";
 
     private string EntryHref => PmEntry
         ? Prefixed("/erp/suppliers-app?tab=entry&pm_view=" + _pmView)

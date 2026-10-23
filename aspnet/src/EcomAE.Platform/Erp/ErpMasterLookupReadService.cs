@@ -157,6 +157,19 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             _ => MasterHref(kind),
         };
 
+    /// <summary>
+    /// Pages whose entry forms live on a separate D365-style entry view:
+    /// the "add new" shortcut must land there, not on the list page.
+    /// </summary>
+    public static string MasterEntryHref(string kind)
+        => kind switch
+        {
+            "supplier" => "/erp/suppliers-app?tab=entry",
+            "coa" => "/erp/coa-accounts-app?view=entry",
+            "warehouse" => "/erp/warehouses-app?tab=entry",
+            _ => MasterHref(kind),
+        };
+
     public static string RecordQueryKey(string kind)
         => kind switch
         {

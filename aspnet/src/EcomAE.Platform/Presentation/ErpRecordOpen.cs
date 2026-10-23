@@ -164,6 +164,45 @@ public static class ErpRecordOpen
         return mapped + ModuleNewHash;
     }
 
+    /// <summary>
+    /// Entry-view links must carry the current query forward (process-follow
+    /// prefill params, record ids, company/entity scope) — only the view keys
+    /// the entry href sets itself are dropped.
+    /// </summary>
+    public static string MergeEntryQuery(string entryHref, HttpRequest? request)
+    {
+        if (request is null || string.IsNullOrWhiteSpace(entryHref))
+        {
+            return entryHref;
+        }
+
+        var pairs = new List<string>();
+        foreach (var kv in request.Query)
+        {
+            if (kv.Key.Equals("view", StringComparison.OrdinalIgnoreCase)
+                || kv.Key.Equals("tab", StringComparison.OrdinalIgnoreCase)
+                || kv.Key.Equals("pim_view", StringComparison.OrdinalIgnoreCase)
+                || kv.Key.Equals("pm_view", StringComparison.OrdinalIgnoreCase)
+                || ExtractQuery(entryHref, kv.Key) is not null)
+            {
+                continue;
+            }
+
+            foreach (var value in kv.Value)
+            {
+                pairs.Add(Uri.EscapeDataString(kv.Key) + "=" + Uri.EscapeDataString(value ?? ""));
+            }
+        }
+
+        if (pairs.Count == 0)
+        {
+            return entryHref;
+        }
+
+        var sep = entryHref.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        return entryHref + sep + string.Join("&", pairs);
+    }
+
     public static string RowClass(long rowId, long openedId)
         => rowId > 0 && rowId == openedId ? "epc-erp-row-open" : "";
 

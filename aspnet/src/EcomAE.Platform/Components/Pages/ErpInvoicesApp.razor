@@ -57,9 +57,9 @@
     {
     <ErpShippingPackPanel OpenedInvoiceId="_openedId" />
     <ErpD365ModuleArea Kind="invoices" Part="grid" />
-    <form method="get" action="/erp/invoices-app">
     <div class="epc-d365-lp">
         <div class="epc-d365-lp-side">
+            <form method="get" action="/erp/invoices-app">
             <div class="epc-d365-lp-heading">Parameters</div>
             <div class="epc-d365-lpsect">
                 <p class="epc-d365-lp-cap">Show</p>
@@ -77,6 +77,7 @@
             <div class="epc-d365-lpsect">
                 <div class="form-actions" style="margin:0"><button type="submit" class="btn btn-primary">Apply filter</button></div>
             </div>
+            </form>
         </div>
         <div class="epc-d365-lp-main">
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Invoice KPIs">
@@ -314,7 +315,6 @@
     </div>
         </div>
     </div>
-    </form>
     }
 
 </PhpErpDesktopChrome>
