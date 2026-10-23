@@ -295,14 +295,17 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                 var followLink = doc.RootElement.TryGetProperty("@odata.nextLink", out var nl) && nl.ValueKind == JsonValueKind.String
                     ? nl.GetString()
                     : null;
-                // Only follow links back to the configured F&O host — a hostile or
-                // buggy response must not redirect the bearer token elsewhere.
-                if (followLink is not null &&
-                    (!Uri.TryCreate(followLink, UriKind.Absolute, out var linkUri) ||
-                     !linkUri.Host.Equals(new Uri(_environmentUrl!).Host, StringComparison.OrdinalIgnoreCase)))
+                // Only follow a continuation on the same host over https — anything else would
+                // leak the bearer token or strand the pull on a foreign endpoint.
+                if (followLink is not null
+                    && (!Uri.TryCreate(followLink, UriKind.Absolute, out var linkUri)
+                        || !linkUri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
+                        || !linkUri.Host.Equals(new Uri(_environmentUrl!).Host, StringComparison.OrdinalIgnoreCase)))
                 {
                     followLink = null;
                 }
+                // Only follow links back to the configured F&O host — a hostile or
+                // buggy response must not redirect the bearer token elsewhere.
                 // SHAM's F&O returns no @odata.nextLink at all and caps each page below
                 // our $top, so page manually with $skip while rows remain.
                 if (doc.RootElement.TryGetProperty("@odata.count", out var oc) && oc.ValueKind == JsonValueKind.Number)
@@ -636,7 +639,14 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(row.GetRawText())))[..40];
         }
         var key = string.Join('|', parts);
-        return key.Length > 200 ? key[..200] : key;
+        if (key.Length <= 200)
+        {
+            return key;
+        }
+        // Keep a hash suffix so over-width keys never collapse distinct rows (e.g. snapshot
+        // dimension sets whose trailing DimensionValueN differ past the 200-char cut).
+        var keyHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(key)))[..8].ToLowerInvariant();
+        return key[..191] + "|" + keyHash;
     }
 
     private async Task FinishRunAsync(DbConnection connection, long runId, string status, int fetched, int staged, string error, CancellationToken cancellationToken)
