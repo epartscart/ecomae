@@ -305,7 +305,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                     "CustomerPaymentJournalHeaders" or "VendorPaymentJournalHeaders" or "LedgerJournalHeaders" => await ApplyJournalHeaderAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
                     "CustomerPaymentJournalLines" or "VendorPaymentJournalLines" or "LedgerJournalLines" => await ApplyJournalLineAsync(connection, transaction, doc.RootElement, extKey, entity, appliedJournalLineRefs, cancellationToken).ConfigureAwait(false),
                     "GeneralJournalEntryBiEntities" => await ApplyGlEntryHeaderAsync(connection, transaction, doc.RootElement, adminId, cancellationToken).ConfigureAwait(false),
-                    "GeneralJournalAccountEntryBiEntities" => await ApplyGlAccountEntryAsync(connection, transaction, doc.RootElement, extKey, entity, cancellationToken).ConfigureAwait(false),
+                    "GeneralJournalAccountEntryBiEntities" => await ApplyGlAccountEntryAsync(connection, transaction, doc.RootElement, extKey, entity, appliedJournalLineRefs, cancellationToken).ConfigureAwait(false),
                     "MainAccounts" => await ApplyMainAccountAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     "LegalEntities" => await ApplyLegalEntityAsync(connection, transaction, doc.RootElement, cancellationToken).ConfigureAwait(false),
                     "TrialBalanceFiscalYearSnapshots" => true, // compare-card source; fields kept on the staged row
@@ -353,10 +353,22 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                 var otherFeedKeyed = await ErpDb.LongAsync(connection, transaction,
                     ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `line_ref` <> '' AND `ext_entity` <> ?"),
                     cancellationToken, journalId, Clip(entity, 64)).ConfigureAwait(false) > 0;
-                await ErpDb.ExecuteAsync(connection, transaction,
-                    "DELETE l FROM `epc_erp_gl_lines` l WHERE l.`journal_id` = ? AND l.`ext_entity` = ? AND l.`line_ref` <> '' " +
-                    "AND l.`line_ref` NOT IN (SELECT `line_ref` FROM `epc_d365_sync_objects` WHERE `entity` = ? AND `journal_no` = ? AND `line_ref` <> '')",
-                    cancellationToken, journalId, Clip(entity, 64), entity, journalScoped).ConfigureAwait(false);
+                // Posted-entry feed stages no journal_no/line_ref (they are recid-keyed) — reconcile it
+                // on the staged ext_key that both sides carry; journal feeds keep the line_ref join.
+                if (entity == "GeneralJournalAccountEntryBiEntities")
+                {
+                    await ErpDb.ExecuteAsync(connection, transaction,
+                        "DELETE l FROM `epc_erp_gl_lines` l WHERE l.`journal_id` = ? AND l.`ext_entity` = ? AND l.`line_ref` <> '' " +
+                        "AND l.`ext_key` NOT IN (SELECT `ext_key` FROM `epc_d365_sync_objects` WHERE `entity` = ?)",
+                        cancellationToken, journalId, Clip(entity, 64), entity).ConfigureAwait(false);
+                }
+                else
+                {
+                    await ErpDb.ExecuteAsync(connection, transaction,
+                        "DELETE l FROM `epc_erp_gl_lines` l WHERE l.`journal_id` = ? AND l.`ext_entity` = ? AND l.`line_ref` <> '' " +
+                        "AND l.`line_ref` NOT IN (SELECT `line_ref` FROM `epc_d365_sync_objects` WHERE `entity` = ? AND `journal_no` = ? AND `line_ref` <> '')",
+                        cancellationToken, journalId, Clip(entity, 64), entity, journalScoped).ConfigureAwait(false);
+                }
                 if (!otherFeedKeyed)
                 {
                     await ErpDb.ExecuteAsync(connection, transaction,
@@ -1622,7 +1634,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
     /// row carries LedgerDimensionValuesJson ({MAINACCOUNT, LEGALENTITY, BUSINESSUNIT, COSTCENTER, …})
     /// so the main account and each financial dimension land on the real master columns.
     /// </summary>
-    private static async Task<bool> ApplyGlAccountEntryAsync(DbConnection connection, DbTransaction tx, JsonElement row, string extKey, string entity, CancellationToken ct)
+    private static async Task<bool> ApplyGlAccountEntryAsync(DbConnection connection, DbTransaction tx, JsonElement row, string extKey, string entity, Dictionary<long, HashSet<string>> appliedRefsByJournal, CancellationToken ct)
     {
         var entryFk = Str(row, "GeneralJournalEntry");
         var journalNo = entryFk.Length > 0 ? Clip("gj|" + entryFk, 32) : ScopedKey(row, Str(row, "JournalNumber", "JournalBatchNumber"), 32);
@@ -1724,14 +1736,27 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             entityId = await ResolveCompanyIdAsync(connection, tx, row, ct).ConfigureAwait(false);
         }
 
+        // F&O signs credit amounts negative (a credit of 500 arrives as -500) and may send
+        // IsCredit as "Yes"/true. Credits therefore must be absoluted to the credit column;
+        // debits keep their sign — a negative debit is a reversal and must net the ledger down.
         var amount = Dec(row, "AccountingCurrencyAmount");
-        var isCredit = Str(row, "IsCredit").Equals("Yes", StringComparison.OrdinalIgnoreCase);
+        var isCreditRaw = row.TryGetProperty("IsCredit", out var ic) ? ic : default;
+        var isCredit = (isCreditRaw.ValueKind == JsonValueKind.True)
+            || (isCreditRaw.ValueKind == JsonValueKind.String
+                && isCreditRaw.GetString() is string icText
+                && (icText.Equals("Yes", StringComparison.OrdinalIgnoreCase) || icText.Equals("true", StringComparison.OrdinalIgnoreCase) || icText == "1"));
         var debit = isCredit ? 0m : amount;
-        var credit = isCredit ? amount : 0m;
+        var credit = isCredit ? Math.Abs(amount) : 0m;
         var note = Str(row, "Text", "PaymentReference", "Description");
         if (note.Length == 0) { note = voucher; }
         var lineRef = Clip(Str(row, "SourceKey", "RecId", "LedgerDimension"), 64);
         if (lineRef.Length == 0) { lineRef = "k:" + Clip(extKey, 60); }
+        if (!appliedRefsByJournal.TryGetValue(journalId, out var gjRefs))
+        {
+            gjRefs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            appliedRefsByJournal[journalId] = gjRefs;
+        }
+        gjRefs.Add(lineRef);
 
         var hasDimString = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_string", ct, tx).ConfigureAwait(false);
         var hasVoucher = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "voucher", ct, tx).ConfigureAwait(false);
