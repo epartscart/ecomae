@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 
 namespace EcomAE.Platform.Erp;
 
@@ -159,6 +160,120 @@ public static class ErpD365BulkCsv
         }
 
         return new ExportResult(true, area + "-" + DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmm", CultureInfo.InvariantCulture) + ".csv", sb.ToString(), rows.Count, "OK");
+    }
+
+    // ——— Synced D365 data: all-field template + export straight from staging ———
+
+    /// <summary>Entity sets currently staged from D365, with row counts, for the studio.</summary>
+    public static async Task<IReadOnlyList<(string Entity, long Rows)>> StagedEntitiesAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        var list = new List<(string, long)>();
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `entity`, COUNT(*) FROM `epc_d365_sync_objects` GROUP BY `entity` ORDER BY `entity`";
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                list.Add((reader.GetString(0), reader.GetInt64(1)));
+            }
+        }
+        catch (DbException)
+        {
+            // staging table not created yet — nothing synced
+        }
+        return list;
+    }
+
+    /// <summary>
+    /// Column set for a synced D365 entity: the union of every top-level payload field seen in
+    /// staging — a template built from this can never drop a field the connector captured.
+    /// </summary>
+    public static async Task<IReadOnlyList<string>> D365EntityColumnsAsync(DbConnection connection, string entitySet, CancellationToken cancellationToken)
+    {
+        var cols = new List<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT `payload` FROM `epc_d365_sync_objects` WHERE `entity` = @e ORDER BY `id` DESC LIMIT 2000";
+        var p = command.CreateParameter();
+        p.ParameterName = "@e";
+        p.Value = entitySet;
+        command.Parameters.Add(p);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            JsonDocument doc;
+            try { doc = JsonDocument.Parse(reader.GetString(0)); }
+            catch (JsonException) { continue; }
+            using (doc)
+            {
+                foreach (var prop in doc.RootElement.EnumerateObject())
+                {
+                    if (seen.Add(prop.Name))
+                    {
+                        cols.Add(prop.Name);
+                    }
+                }
+            }
+        }
+        return cols;
+    }
+
+    /// <summary>Template CSV for a synced D365 entity: ext_key + every staged payload field.</summary>
+    public static async Task<string> D365TemplateAsync(DbConnection connection, string entitySet, CancellationToken cancellationToken)
+    {
+        var cols = await D365EntityColumnsAsync(connection, entitySet, cancellationToken).ConfigureAwait(false);
+        return string.Join(",", new[] { "ext_key" }.Concat(cols).Select(Escape)) + "\n";
+    }
+
+    /// <summary>
+    /// Streams every staged row of an entity as CSV (ext_key + all payload fields; nested
+    /// values stay compact JSON). Streams so million-row entities never buffer in memory.
+    /// </summary>
+    public static async Task StreamD365CsvAsync(DbConnection connection, string entitySet, Stream output, CancellationToken cancellationToken)
+    {
+        var cols = await D365EntityColumnsAsync(connection, entitySet, cancellationToken).ConfigureAwait(false);
+        await using var writer = new StreamWriter(output, new UTF8Encoding(false), bufferSize: 64 * 1024, leaveOpen: true);
+        await writer.WriteLineAsync(string.Join(",", new[] { "ext_key" }.Concat(cols).Select(Escape))).ConfigureAwait(false);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT `ext_key`, `payload` FROM `epc_d365_sync_objects` WHERE `entity` = @e ORDER BY `id`";
+        command.CommandTimeout = 300;
+        var p = command.CreateParameter();
+        p.ParameterName = "@e";
+        p.Value = entitySet;
+        command.Parameters.Add(p);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        var sinceFlush = 0;
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            JsonDocument doc;
+            try { doc = JsonDocument.Parse(reader.GetString(1)); }
+            catch (JsonException) { continue; }
+            using (doc)
+            {
+                var line = new StringBuilder(Escape(reader.GetString(0)));
+                foreach (var c in cols)
+                {
+                    line.Append(',').Append(Escape(JsonCell(doc.RootElement, c)));
+                }
+                await writer.WriteLineAsync(line.ToString()).ConfigureAwait(false);
+            }
+            if (++sinceFlush >= 500)
+            {
+                await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                sinceFlush = 0;
+            }
+        }
+        await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private static string JsonCell(JsonElement root, string name)
+    {
+        if (!root.TryGetProperty(name, out var v) || v.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+        {
+            return "";
+        }
+        return v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : v.GetRawText();
     }
 
     private static string ExportSql(string area) => area switch

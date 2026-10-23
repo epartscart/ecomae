@@ -115,6 +115,34 @@
         </table>
     </div>
 
+    <h3 style="margin:18px 0 10px;color:#12324f">Synced D365 data — every field (from /erp/d365-sync)</h3>
+    <div class="tg-card">
+        <p>Live rows pulled from F&O into staging. The template lists <strong>every field the entity actually sent</strong> (e.g. all 326 released-product fields incl. ASAP_*); the export is the full grid — no field is dropped. Nested values stay as compact JSON.</p>
+        @if (_staged.Count == 0)
+        {
+            <p>No staged entities yet — pull one at <a href="@Get("/erp/d365-sync")">/erp/d365-sync</a>.</p>
+        }
+        else
+        {
+            <table class="tg-table">
+                <thead><tr><th>D365 entity</th><th class="text-right">Staged rows</th><th>Actions</th></tr></thead>
+                <tbody>
+                    @foreach (var e in _staged)
+                    {
+                        <tr>
+                            <td><code>@e.Entity</code></td>
+                            <td class="text-right">@e.Rows.ToString("N0")</td>
+                            <td class="tg-links">
+                                <a href="@Get("/erp/d365/csv-template")?d365=@e.Entity">template (all fields)</a>
+                                <a href="@Get("/erp/d365/csv-export")?d365=@e.Entity">export CSV (all fields)</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
     <div class="tg-card tg-form">
         <h3>Import CSV</h3>
         <form method="post" action="@Post("/erp/d365/csv-import")">
@@ -378,6 +406,7 @@
     private string _stmtEntity = "";
     private List<Dictionary<string, string?>> _prospects = [];
     private List<Dictionary<string, string?>> _warehouses = [];
+    private IReadOnlyList<(string Entity, long Rows)> _staged = [];
 
     private string P(string key) => _profile.TryGetValue(key, out var v) ? v ?? "" : "";
     private static string R(Dictionary<string, string?> row, string key) => row.TryGetValue(key, out var v) ? v ?? "" : "";
@@ -420,6 +449,7 @@
                 }
                 stmtSql += " GROUP BY c.`id` ORDER BY c.`name` LIMIT 200";
                 _stmtRows = await ErpD365DocCycleService.RowsAsync(conn, stmtSql, ctx.RequestAborted).ConfigureAwait(false);
+                _staged = await ErpD365BulkCsv.StagedEntitiesAsync(conn, ctx.RequestAborted).ConfigureAwait(false);
                 _warehouses = await ErpD365DocCycleService.RowsAsync(conn,
                     "SELECT `id`, `code`, `name`, `entity_id`, `site`, `type`, `cost_centre_id`, `business_unit_id` FROM `epc_erp_inv_warehouses` ORDER BY `code` LIMIT 200",
                     ctx.RequestAborted).ConfigureAwait(false);

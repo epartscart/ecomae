@@ -27649,12 +27649,26 @@ public sealed class ErpModule : ISurfaceModule
     private static async Task<IResult> HandleD365CsvTemplateAsync(
         HttpContext context,
         ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
             return Results.Redirect("/erp/login?returnUrl=/erp/d365-studio");
+        }
+
+        // Synced-entity template: ext_key + every field present in the staged payloads.
+        var d365 = context.Request.Query["d365"].ToString();
+        if (d365.Length > 0)
+        {
+            if (!System.Text.RegularExpressions.Regex.IsMatch(d365, "^[A-Za-z0-9_]+$"))
+            {
+                return Results.BadRequest("Bad entity name.");
+            }
+            await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var entityCsv = await ErpD365BulkCsv.D365TemplateAsync(conn, d365, cancellationToken).ConfigureAwait(false);
+            return Results.File(System.Text.Encoding.UTF8.GetBytes(entityCsv), "text/csv", "d365-" + d365 + "-template.csv");
         }
 
         var area = context.Request.Query["area"].ToString();
@@ -27707,6 +27721,23 @@ public sealed class ErpModule : ISurfaceModule
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
             return Results.Redirect("/erp/login?returnUrl=/erp/settings");
+        }
+
+        // Synced-entity export: streams ext_key + all staged fields — never buffers a
+        // million-row entity in memory.
+        var d365 = context.Request.Query["d365"].ToString();
+        if (d365.Length > 0)
+        {
+            if (!System.Text.RegularExpressions.Regex.IsMatch(d365, "^[A-Za-z0-9_]+$"))
+            {
+                return Results.BadRequest("Bad entity name.");
+            }
+            var fileName = "d365-" + d365 + "-" + DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmm", System.Globalization.CultureInfo.InvariantCulture) + ".csv";
+            return Results.Stream(async stream =>
+            {
+                await using var streamConn = await connections.OpenAsync(CancellationToken.None).ConfigureAwait(false);
+                await ErpD365BulkCsv.StreamD365CsvAsync(streamConn, d365, stream, CancellationToken.None).ConfigureAwait(false);
+            }, "text/csv", fileName);
         }
 
         var area = context.Request.Query["area"].ToString();
