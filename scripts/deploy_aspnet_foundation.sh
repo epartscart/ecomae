@@ -25,13 +25,22 @@ printf 'Release root: %s\n' "$RELEASE_ROOT"
 printf 'Systemd actions: %s\n' "$RUN_SYSTEMD"
 printf 'Nginx reload: %s\n' "$RUN_NGINX_RELOAD"
 
+# Keep deploy builds/tests off the production CPU path on the same VPS:
+# lower OS scheduling priority, cap MSBuild node parallelism, and disable the
+# shared compiler server + node reuse so no VBCSCompiler/dotnet build servers
+# linger after the deploy.
+export MSBUILDDISABLENODEREUSE=1
+export UseSharedCompilation=false
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+export MSBUILD_PARALLEL="${ECOMAE_DEPLOY_MAX_CPU:-2}"
+
 if [[ "${ECOMAE_EMERGENCY_PUBLISH:-0}" == "1" ]]; then
     printf 'WARN: ECOMAE_EMERGENCY_PUBLISH=1 — skipping detailed foundation tests + unit tests\n' >&2
-    dotnet restore "$ROOT/aspnet/EcomAE.AspNetCore.sln"
+    nice -n 15 dotnet restore "$ROOT/aspnet/EcomAE.AspNetCore.sln" -maxcpucount:"$MSBUILD_PARALLEL"
 else
     "$ROOT/tests/aspnet_migration/run_detailed_foundation_tests.sh"
-    dotnet restore "$ROOT/aspnet/EcomAE.AspNetCore.sln"
-    dotnet test "$ROOT/aspnet/tests/EcomAE.Platform.Tests"
+    nice -n 15 dotnet restore "$ROOT/aspnet/EcomAE.AspNetCore.sln" -maxcpucount:"$MSBUILD_PARALLEL"
+    nice -n 15 dotnet test "$ROOT/aspnet/tests/EcomAE.Platform.Tests" -maxcpucount:"$MSBUILD_PARALLEL"
 fi
 
 STAMP="$(date -u +%Y%m%d%H%M%S)"
@@ -41,8 +50,8 @@ WORKERS_DIR="$RELEASE_DIR/workers"
 
 install -d "$PLATFORM_DIR" "$WORKERS_DIR" "$RELEASE_ROOT/releases"
 
-dotnet publish "$ROOT/aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj" -c "$DOTNET_CONFIGURATION" -o "$PLATFORM_DIR"
-dotnet publish "$ROOT/aspnet/src/EcomAE.Workers/EcomAE.Workers.csproj" -c "$DOTNET_CONFIGURATION" -o "$WORKERS_DIR"
+nice -n 15 dotnet publish "$ROOT/aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj" -c "$DOTNET_CONFIGURATION" -o "$PLATFORM_DIR" -maxcpucount:"$MSBUILD_PARALLEL"
+nice -n 15 dotnet publish "$ROOT/aspnet/src/EcomAE.Workers/EcomAE.Workers.csproj" -c "$DOTNET_CONFIGURATION" -o "$WORKERS_DIR" -maxcpucount:"$MSBUILD_PARALLEL"
 git -C "$ROOT" rev-parse HEAD > "$PLATFORM_DIR/RELEASE_SHA"
 chmod 0644 "$PLATFORM_DIR/RELEASE_SHA"
 
