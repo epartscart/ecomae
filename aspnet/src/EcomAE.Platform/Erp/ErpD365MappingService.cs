@@ -584,14 +584,27 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         await ErpDb.ExecuteAsync(connection, tx,
             ErpDb.Positional("DELETE FROM `epc_d365_object_fields` WHERE `entity` = ? AND `ext_key` = ?"),
             ct, entity, extKey).ConfigureAwait(false);
+        // Multi-row INSERT — a released product carries ~326 fields, one round-trip
+        // per field made applies take minutes at 400-row batches.
+        var marks = new List<string>();
+        var tuples = new List<object?>();
         foreach (var property in row.EnumerateObject())
         {
             var text = property.Value.ValueKind == JsonValueKind.String
                 ? property.Value.GetString()
                 : property.Value.GetRawText();
+            marks.Add("(?, ?, ?, ?)");
+            tuples.Add(entity);
+            tuples.Add(extKey);
+            tuples.Add(Clip(property.Name, 191));
+            tuples.Add(Clip(text, 60000));
+        }
+        for (var off = 0; off < marks.Count; off += 200)
+        {
+            var take = Math.Min(200, marks.Count - off);
             await ErpDb.ExecuteAsync(connection, tx,
-                ErpDb.Positional("INSERT INTO `epc_d365_object_fields` (`entity`, `ext_key`, `field_name`, `field_value`) VALUES (?, ?, ?, ?)"),
-                ct, entity, extKey, Clip(property.Name, 191), Clip(text, 60000)).ConfigureAwait(false);
+                "INSERT INTO `epc_d365_object_fields` (`entity`, `ext_key`, `field_name`, `field_value`) VALUES " + string.Join(", ", marks.GetRange(off, take)),
+                ct, tuples.GetRange(off * 4, take * 4).ToArray()).ConfigureAwait(false);
         }
     }
 
@@ -712,11 +725,11 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         var company = Str(row, "dataAreaId", "CompanyId");
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-        var hasEmail = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "email", ct).ConfigureAwait(false);
-        var hasPhone = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "phone", ct).ConfigureAwait(false);
-        var hasCompany = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "company", ct).ConfigureAwait(false);
-        var hasTrn = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "trn", ct).ConfigureAwait(false);
-        var hasAccountCode = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "account_code", ct).ConfigureAwait(false);
+        var hasEmail = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "email", ct, tx).ConfigureAwait(false);
+        var hasPhone = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "phone", ct, tx).ConfigureAwait(false);
+        var hasCompany = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "company", ct, tx).ConfigureAwait(false);
+        var hasTrn = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "trn", ct, tx).ConfigureAwait(false);
+        var hasAccountCode = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "account_code", ct, tx).ConfigureAwait(false);
 
         // Upsert by customer account when available (global party identity), else by name.
         var existing = hasAccountCode && account.Length > 0
@@ -774,10 +787,10 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         var trn = Str(row, "TaxExemptNumber", "VATNum", "TaxRegistrationNumber");
         var currency = Str(row, "CurrencyCode", "Currency");
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        var hasVendorAccount = await ErpDb.ColumnKnownAsync(connection, "epc_erp_suppliers", "vendor_account", ct).ConfigureAwait(false);
-        var hasCurrency = await ErpDb.ColumnKnownAsync(connection, "epc_erp_suppliers", "currency_code", ct).ConfigureAwait(false);
-        var hasTrn = await ErpDb.ColumnKnownAsync(connection, "epc_erp_suppliers", "trn", ct).ConfigureAwait(false);
-        var hasPhone = await ErpDb.ColumnKnownAsync(connection, "epc_erp_suppliers", "contact_phone", ct).ConfigureAwait(false);
+        var hasVendorAccount = await ErpDb.ColumnKnownAsync(connection, "epc_erp_suppliers", "vendor_account", ct, tx).ConfigureAwait(false);
+        var hasCurrency = await ErpDb.ColumnKnownAsync(connection, "epc_erp_suppliers", "currency_code", ct, tx).ConfigureAwait(false);
+        var hasTrn = await ErpDb.ColumnKnownAsync(connection, "epc_erp_suppliers", "trn", ct, tx).ConfigureAwait(false);
+        var hasPhone = await ErpDb.ColumnKnownAsync(connection, "epc_erp_suppliers", "contact_phone", ct, tx).ConfigureAwait(false);
         var existing = hasVendorAccount && account.Length > 0
             ? await ErpDb.LongAsync(connection, tx,
                 ErpDb.Positional("SELECT `id` FROM `epc_erp_suppliers` WHERE `vendor_account` = ? LIMIT 1"), ct, account).ConfigureAwait(false)
@@ -1150,7 +1163,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             await ErpDb.ExecuteAsync(connection, tx,
                 ErpDb.Positional("UPDATE `epc_erp_gl_journals` SET `journal_no` = ? WHERE `journal_no` = ?"), ct, journalNo, naturalNo).ConfigureAwait(false);
         }
-        var hasCompany = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_journals", "company_id", ct).ConfigureAwait(false);
+        var hasCompany = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_journals", "company_id", ct, tx).ConfigureAwait(false);
         if (hasCompany)
         {
             await ErpDb.ExecuteAsync(connection, tx,
@@ -1443,13 +1456,13 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         var defaultDimString = Str(row, "DimensionDisplayValue", "DefaultDimensionDisplayValue");
         var (dimEntityId, dimBuId, dimCostCentreId, dimTypeCode, dimValueCode) = await ResolveDimensionsAsync(connection, tx, accountDimString, defaultDimString, row, ct).ConfigureAwait(false);
         var legalEntityId = dimEntityId > 0 ? dimEntityId : await ResolveCompanyIdAsync(connection, tx, row, ct).ConfigureAwait(false);
-        var hasDimString = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_string", ct).ConfigureAwait(false);
-        var hasVoucher = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "voucher", ct).ConfigureAwait(false);
-        var hasLegalEntity = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "legal_entity_id", ct).ConfigureAwait(false);
-        var hasBu = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "business_unit_id", ct).ConfigureAwait(false);
-        var hasDimType = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_type_code", ct).ConfigureAwait(false);
-        var hasDimValue = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_value_code", ct).ConfigureAwait(false);
-        var hasCostCentre = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "cost_centre_id", ct).ConfigureAwait(false);
+        var hasDimString = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_string", ct, tx).ConfigureAwait(false);
+        var hasVoucher = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "voucher", ct, tx).ConfigureAwait(false);
+        var hasLegalEntity = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "legal_entity_id", ct, tx).ConfigureAwait(false);
+        var hasBu = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "business_unit_id", ct, tx).ConfigureAwait(false);
+        var hasDimType = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_type_code", ct, tx).ConfigureAwait(false);
+        var hasDimValue = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "dimension_value_code", ct, tx).ConfigureAwait(false);
+        var hasCostCentre = await ErpDb.ColumnKnownAsync(connection, "epc_erp_gl_lines", "cost_centre_id", ct, tx).ConfigureAwait(false);
 
         var existing = await ErpDb.LongAsync(connection, tx,
             ErpDb.Positional("SELECT `id` FROM `epc_erp_gl_lines` WHERE `journal_id` = ? AND `line_ref` = ? AND `ext_entity` = ? LIMIT 1"),
