@@ -3054,6 +3054,8 @@ public static class EcomAeRoutes
     /// <summary>D365 live connector: pull one F&O data entity into staging.</summary>
     public const string ErpD365ConnectPull = "/erp/d365/connect-pull";
     public const string ErpD365ApplyStaged = "/erp/d365/apply-staged";
+    /// <summary>D365 live connector: persisted on/off switch for pulls and applies.</summary>
+    public const string ErpD365SyncToggle = "/erp/d365/sync-toggle";
     /// <summary>TOTP two-factor: confirm enrollment with a code from the authenticator app.</summary>
     public const string ErpMfaEnrollConfirm = "/erp/mfa/enroll-confirm";
     /// <summary>TOTP two-factor: disable with a current code.</summary>

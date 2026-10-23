@@ -68,16 +68,26 @@
             {
                 <p>
                     <span class="tg-pill @(_status.Configured ? "tg-pill-ok" : "tg-pill-warn")">@(_status.Configured ? "configured" : "missing secrets")</span>
+                    <span class="tg-pill @(_status.SyncEnabled ? "tg-pill-ok" : "tg-pill-err")">@(_status.SyncEnabled ? "sync on" : "sync off")</span>
                 </p>
                 <p>Environment: <strong>@(_status.EnvironmentUrl ?? "—")</strong></p>
                 <p>Last run: @(_status.LastRunStatus ?? "none yet")@(_status.LastRunAt is { } at ? $" · {at.UtcDateTime:yyyy-MM-dd HH:mm} UTC" : "")</p>
                 <p>Staged objects: <strong>@_status.StagedObjectCount</strong></p>
+                @if (!_status.SyncEnabled)
+                {
+                    <p>Pulls and applies are disabled — the connection stays configured.</p>
+                }
             }
             @if (_isAdmin)
             {
                 <form method="post" action="@Post("/erp/d365/connect-test")" class="tg-form">
                     @HiddenFields()
                     <button type="submit">Test connection</button>
+                </form>
+                <form method="post" action="@Post("/erp/d365/sync-toggle")" class="tg-form">
+                    @HiddenFields()
+                    <input type="hidden" name="enabled" value="@((_status?.SyncEnabled ?? false) ? "0" : "1")" />
+                    <button type="submit">@((_status?.SyncEnabled ?? false) ? "Switch sync off" : "Switch sync on")</button>
                 </form>
             }
         </div>
