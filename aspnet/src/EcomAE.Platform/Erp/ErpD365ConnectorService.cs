@@ -583,6 +583,10 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             "LineNumber", "JournalLineNumber", "InvoiceLineNumber", "VoucherLineNumber", "LineRef", "RecId", "LineId",
             "InventorySiteId", "InventoryWarehouseId", "ProductColorId", "ProductSizeId", "ProductStyleId", "ProductVersionId", "ProductConfigurationId",
             "SnapshotHeader", "DimensionHierarchyId", "FocusDimensionHierarchy", "PostingLayer", "PeriodName", "PeriodType", "YearName", "LedgerRecId", "LedgerName",
+            // TB snapshot grain is account × dimension values × period — without these every
+            // row in a period collapses onto one staged key (15k rows → 528 keys on SHAM).
+            "DimensionValue1", "DimensionValue2", "DimensionValue3", "DimensionValue4", "DimensionValue5",
+            "DimensionValue6", "DimensionValue7", "DimensionValue8", "DimensionValue9", "DimensionValue10", "DimensionValue11",
             "LedgerDimension", "Dimension", "DimensionSet", "AccountDisplayValue",
             "FiscalYear", "FiscalPeriod", "Period", "AccountingDate",
         })
