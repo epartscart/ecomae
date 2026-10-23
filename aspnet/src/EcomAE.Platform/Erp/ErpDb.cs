@@ -58,7 +58,8 @@ internal static class ErpDb
         DbConnection connection,
         string table,
         string column,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        DbTransaction? transaction = null)
     {
         var key = ErpSchemaMemo.Key(connection, "col:" + table + "." + column);
         if (ErpSchemaMemo.IsReady(key))
@@ -68,7 +69,7 @@ internal static class ErpDb
 
         var count = await LongAsync(
             connection,
-            null,
+            transaction,
             Positional("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?"),
             cancellationToken,
             table,
