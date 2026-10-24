@@ -789,7 +789,9 @@ public sealed record ErpGlJournalDetail(
     int DescriptionLen,
     int AdminId,
     long TimeCreated,
-    IReadOnlyList<ErpGlJournalLineDigest> Lines);
+    IReadOnlyList<ErpGlJournalLineDigest> Lines,
+    string CurrencyCode = "",
+    decimal ExchangeRate = 1m);
 
 public sealed record ErpGlJournalLineDigest(
     long CoaId,

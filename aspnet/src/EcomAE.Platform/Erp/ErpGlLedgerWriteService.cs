@@ -193,6 +193,19 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
             input.CompanyId,
             cancellationToken).ConfigureAwait(false);
         lines = prepared.Lines;
+        // gl_lines carries accounting-currency amounts (reports SUM them raw); convert
+        // transaction-currency entries at the entry boundary so balances stay correct.
+        var rate = input.ExchangeRate;
+        if (rate > 0m && rate != 1m)
+        {
+            lines = lines
+                .Select(l => l with
+                {
+                    Debit = ErpTaxAmountCalculator.Round2(l.Debit * rate),
+                    Credit = ErpTaxAmountCalculator.Round2(l.Credit * rate),
+                })
+                .ToList();
+        }
         ErpGlPostingService.Validate(lines);
         var idempotencyKey = input.IdempotencyKey.Trim();
         var claimedIdempotency = false;

@@ -47,9 +47,9 @@
                 <label>Journal date <input type="datetime-local" value="@JournalDateInput" data-date-input required /></label>
                 <label>Reference <input type="text" name="reference" required maxlength="80" /></label>
                 <label>Description <input type="text" name="description" required maxlength="255" /></label>
-                <label>Currency <input type="text" name="currency_code" maxlength="8" value="AED" style="width:5rem;text-transform:uppercase" /></label>
+                <label>Currency <input type="text" name="currency_code" maxlength="8" placeholder="accounting" style="width:6rem;text-transform:uppercase" /></label>
                 <label>Exchange rate <input type="number" name="exchange_rate" min="0" step="0.00000001" value="1" style="width:8rem" /></label>
-                <p class="text-muted">Voucher &amp; journal number: <strong>assigned automatically</strong> (GV-…) on posting — shown on the posted voucher and its print. Amounts above are in the voucher currency; the rate converts them to accounting currency.</p>
+                <p class="text-muted">Voucher &amp; journal number: <strong>assigned automatically</strong> (GV-…) on posting — shown on the posted voucher and its print. Leave currency blank for the tenant's accounting currency; enter a code (e.g. USD) + rate for a foreign-currency voucher — amounts post converted to accounting currency.</p>
                 <p class="text-muted">Put the debit and the credit on different business units or legal entities when the entry crosses them. The books add the intercompany receivable and payable so each unit still tallies. The same TRN is not a tax invoice. A different TRN charges VAT.</p>
                 <div class="epc-erp-table-wrap">
                     <table class="table table-bordered table-condensed table-epc epc-erp-table" id="gl-journal-lines">
@@ -122,7 +122,7 @@
                     tbody.addEventListener('input',totals);
                     tbody.addEventListener('click',function(e){var b=e.target.closest('.gl-line-del');if(!b)return;if(tbody.querySelectorAll('tr').length<=2)return alert('A journal needs at least two lines');b.closest('tr').remove();names();totals()});
                     var add=document.getElementById('gl-add-line');
-                    if(add)add.addEventListener('click',function(){var last=tbody.querySelector('tr:last-child');var tr=last.cloneNode(true);tr.querySelectorAll('input').forEach(function(i){i.value=i.type==='number'?'0':''});tbody.appendChild(tr);names();totals()});
+                    if(add)add.addEventListener('click',function(){var last=tbody.querySelector('tr:last-child');var tr=last.cloneNode(true);tr.querySelectorAll('input').forEach(function(i){i.value=i.type==='number'?'0':''});tr.querySelectorAll('[data-erp-bound]').forEach(function(el){el.removeAttribute('data-erp-bound')});tbody.appendChild(tr);names();totals();if(window.ErpMasterPickerRefresh)window.ErpMasterPickerRefresh()});
                     totals();
                 })();
                 </script>
@@ -180,6 +180,7 @@
                 HeaderActions="@GeneralJournalHeaderActions" />
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <p class="text-muted" style="margin:.85rem 0 0">Journal identity, source, status, balanced debit/credit totals, and persisted lines are presented in the shared finance workspace.</p>
+            <p style="margin:.5rem 0 0"><a class="btn btn-sm btn-default" href="/erp/gl-journals-app?journal_id=@_openedDetail.Id&print=1" target="_blank" rel="noopener"><i class="fa fa-print"></i> Print voucher</a></p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.DescriptionExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">note excerpt</p>
