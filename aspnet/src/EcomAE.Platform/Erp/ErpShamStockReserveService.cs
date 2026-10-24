@@ -12,7 +12,7 @@ namespace EcomAE.Platform.Erp;
 ///
 /// 1. Entity resolves in <c>epc_erp_pm_legal_entities</c> and is active — its id
 ///    becomes <c>OwnerCompanyId</c>, so holds are scoped to the legal entity.
-/// 2. BU resolves inside that entity in <c>epc_erp_org_business_units</c>; its
+/// 2. BU resolves inside that entity in <c>epc_erp_pm_business_units</c>; its
 ///    <c>default_warehouse_id</c> (seeded SHAM-&lt;short&gt; warehouses) becomes the
 ///    hold's warehouse — fail-closed when the BU has none.
 /// 3. <see cref="IErpShamFoundationService.AccessAllowedAsync"/> proves the caller's
@@ -180,7 +180,7 @@ public sealed class ErpShamStockReserveService : IErpShamStockReserveService
             if (holdWarehouseId != 0 && holdWarehouseId != scope.WarehouseId)
             {
                 var otherBu = await ErpDb.LongAsync(connection, null,
-                    ErpDb.Positional("SELECT `id` FROM `epc_erp_org_business_units` WHERE `entity_id`=? AND `default_warehouse_id`=? AND `status`='active' LIMIT 1"),
+                    ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_business_units` WHERE `legal_entity_id`=? AND `default_warehouse_id`=? AND `active`=1 LIMIT 1"),
                     cancellationToken, scope.EntityId, holdWarehouseId).ConfigureAwait(false);
                 if (otherBu != 0)
                 {
@@ -237,7 +237,7 @@ public sealed class ErpShamStockReserveService : IErpShamStockReserveService
             await using (var buCommand = connection.CreateCommand())
             {
                 buCommand.CommandText = ErpDb.Positional(
-                    "SELECT `default_warehouse_id` FROM `epc_erp_org_business_units` WHERE `code`=? AND `entity_id`=? AND `status`='active' LIMIT 1");
+                    "SELECT `default_warehouse_id` FROM `epc_erp_pm_business_units` WHERE `code`=? AND `legal_entity_id`=? AND `active`=1 LIMIT 1");
                 var p0 = buCommand.CreateParameter(); p0.ParameterName = "@p0"; p0.Value = bu; buCommand.Parameters.Add(p0);
                 var p1 = buCommand.CreateParameter(); p1.ParameterName = "@p1"; p1.Value = entityId; buCommand.Parameters.Add(p1);
                 var raw = await buCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);

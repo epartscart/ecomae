@@ -258,7 +258,7 @@ public sealed class ErpShamIntercompanyPostService : IErpShamIntercompanyPostSer
         }
 
         var orgBuId = await ErpDb.LongAsync(connection, null,
-            ErpDb.Positional("SELECT `id` FROM `epc_erp_org_business_units` WHERE `code`=? AND `entity_id`=? AND `status`='active' LIMIT 1"),
+            ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_business_units` WHERE `code`=? AND `legal_entity_id`=? AND `active`=1 LIMIT 1"),
             cancellationToken, bu, entityId).ConfigureAwait(false);
         if (orgBuId == 0)
         {
