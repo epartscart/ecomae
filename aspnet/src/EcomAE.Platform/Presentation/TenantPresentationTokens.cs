@@ -109,7 +109,8 @@ public sealed record TenantPresentation(
         }
         else if (formLayout is "two_column")
         {
-            sb.AppendLine(".epc-tenant-tokens[data-epc-form-layout='two_column'] .form-group,.epc-tenant-tokens[data-epc-form-layout='two_column'] .epc-erp-field{margin-bottom:.5rem}");
+            sb.AppendLine(".epc-tenant-tokens[data-epc-form-layout='two_column'] .epc-erp-form-row{display:flex;flex-wrap:wrap;gap:0 1rem}");
+            sb.AppendLine(".epc-tenant-tokens[data-epc-form-layout='two_column'] .epc-erp-form-row .form-group,.epc-tenant-tokens[data-epc-form-layout='two_column'] .epc-erp-form-row .epc-erp-field{flex:1 1 46%;min-width:240px;margin-bottom:.5rem}");
         }
 
         if (Get("ui_show_status_legend") is "0" or "false")
@@ -197,7 +198,7 @@ public sealed record TenantPresentation(
     // URLs may not contain quotes, whitespace, or angle brackets — any of those
     // would break out of the css string / style block (stored-XSS vector).
     private static readonly Regex UrlPattern = new(
-        @"^(https://|/)[A-Za-z0-9\-._~:/?#@!$&()*+,;=%]+$",
+        @"^(https://|/(?!/))[A-Za-z0-9\-._~:/?#@!$&()*+,;=%]+$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
     private static readonly Regex FontPattern = new(
