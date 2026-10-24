@@ -121,7 +121,8 @@ public sealed record TenantPresentation(
         var logo = Get("brand_logo_url");
         if (logo is not null && IsSafeUrl(logo))
         {
-            sb.AppendLine(".epc-tenant-tokens .epc-surface-host-logo__img{content:url('").Append(EscapeCssString(logo)).AppendLine("')}");
+            // Snapshot packages render the logo under different classes; cover them all.
+            sb.AppendLine(".epc-tenant-tokens .epc-surface-host-logo__img,.epc-tenant-tokens .epc-sf-logo,.epc-tenant-tokens .tenant-brand__logo,.epc-tenant-tokens .brand-logo{content:url('").Append(EscapeCssString(logo)).AppendLine("')}");
         }
 
         return sb.ToString();
