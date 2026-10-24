@@ -8321,6 +8321,32 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    /// <inheritdoc cref="ISurfaceDashboardSummaryReporter.BuildErpMobileAppsDigestAsync"/>
+    public async Task<CpMobileAppsDigestResult> BuildErpMobileAppsDigestAsync(CancellationToken cancellationToken = default)
+    {
+        var empty = new CpMobileAppsSummary(
+            false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty,
+            string.Empty, string.Empty, true, string.Empty, false,
+            "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var raw = await ReadMobileAppsIntegrationsJsonAsync(connection, cancellationToken).ConfigureAwait(false);
+            var summary = ParseMobileAppsSummary(raw, "database", string.Empty, "mobile_erp");
+            return new(summary, summary.Source, summary.Message);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, "database-error", ex.Message);
+        }
+    }
+
     /// <summary>PHP loads the settings row for the current host and only falls back to the single tenant row.</summary>
     private async Task<string> ReadMobileAppsIntegrationsJsonAsync(
         DbConnection connection,
@@ -18236,7 +18262,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    private static CpMobileAppsSummary ParseMobileAppsSummary(string integrationsJson, string source, string message)
+    private static CpMobileAppsSummary ParseMobileAppsSummary(
+        string integrationsJson, string source, string message, string scope = "mobile")
     {
         var enabled = false;
         var appName = string.Empty;
@@ -18256,7 +18283,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 using var doc = System.Text.Json.JsonDocument.Parse(integrationsJson);
                 if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object
-                    && doc.RootElement.TryGetProperty("mobile", out var mobile)
+                    && doc.RootElement.TryGetProperty(scope, out var mobile)
                     && mobile.ValueKind == System.Text.Json.JsonValueKind.Object)
                 {
                     enabled = ReadJsonBool(mobile, "enabled");
@@ -18277,7 +18304,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 return new(
                     false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty,
                     string.Empty, string.Empty, true, string.Empty, false,
-                    "database-error", $"integrations_json.mobile parse failed: {ex.Message}");
+                    "database-error", $"integrations_json.{scope} parse failed: {ex.Message}");
             }
         }
 

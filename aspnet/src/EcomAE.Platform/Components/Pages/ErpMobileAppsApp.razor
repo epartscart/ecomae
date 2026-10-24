@@ -67,7 +67,7 @@
             <div class="hpanel">
                 <div class="panel-heading hbuilt">Save ERP mobile app settings</div>
                 <div class="panel-body">
-                    <form method="post" action="/cp/mobile-apps/write" class="well">
+                    <form method="post" action="/erp/mobile-apps/write" class="well">
                         <input type="hidden" name="confirmWrites" value="true" />
                         <input type="hidden" name="returnUrl" value="/erp/mobile-apps-app" />
                         <input type="hidden" name="action" value="save_mobile" />
@@ -152,7 +152,7 @@
                         </div>
                         <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Save ERP mobile settings</button>
                     </form>
-                    <p class="help-block" style="margin:.75rem 0 0">Saved into <code>epc_portal_site_settings.integrations_json</code> for <strong>@_host</strong>. Push template settings stay platform-controlled.</p>
+                    <p class="help-block" style="margin:.75rem 0 0">Saved into <code>epc_portal_site_settings.integrations_json.mobile_erp</code> for <strong>@_host</strong> — the CP app's <code>mobile</code> key is never touched. Push template settings stay platform-controlled.</p>
                 </div>
             </div>
         </div>
@@ -206,7 +206,7 @@
             return;
         }
 
-        var result = await Dashboards.BuildCpMobileAppsDigestAsync(ctx.RequestAborted);
+        var result = await Dashboards.BuildErpMobileAppsDigestAsync(ctx.RequestAborted);
         _summary = result.Summary;
     }
 }

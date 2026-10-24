@@ -103,6 +103,92 @@ public sealed class ErpModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        // ERP-scoped save_mobile — ERP tenant admins manage their own ERP mobile app under ERP Setup.
+        // Writes integrations_json.mobile_erp so the CP app's "mobile" key is never touched.
+        endpoints.MapPost(EcomAeRoutes.ErpMobileAppsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpMobileAppsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/mobile-apps-app", "Admin ERP capability required for ERP mobile-apps write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpMobileAppsWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var enabled = body.Enabled;
+            var appName = body.AppName;
+            var bundleId = body.BundleId;
+            var deepLinkScheme = body.DeepLinkScheme;
+            var deepLinkDomain = body.DeepLinkDomain;
+            var apiBaseUrl = body.ApiBaseUrl;
+            var playStoreUrl = body.PlayStoreUrl;
+            var appStoreUrl = body.AppStoreUrl;
+            var pwaEnabled = body.PwaEnabled;
+            var firebaseProjectId = body.FirebaseProjectId;
+            var pushEnabled = body.PushEnabled;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                enabled = LiveWriteFormBinder.Flag(form, "enabled");
+                appName = LiveWriteFormBinder.Text(form, "app_name", "appName");
+                bundleId = LiveWriteFormBinder.Text(form, "bundle_id", "bundleId");
+                deepLinkScheme = LiveWriteFormBinder.Text(form, "deep_link_scheme", "deepLinkScheme");
+                deepLinkDomain = LiveWriteFormBinder.Text(form, "deep_link_domain", "deepLinkDomain");
+                apiBaseUrl = LiveWriteFormBinder.Text(form, "api_base_url", "apiBaseUrl");
+                playStoreUrl = LiveWriteFormBinder.Text(form, "play_store_url", "playStoreUrl");
+                appStoreUrl = LiveWriteFormBinder.Text(form, "app_store_url", "appStoreUrl");
+                pwaEnabled = LiveWriteFormBinder.Flag(form, "pwa_enabled", "pwaEnabled");
+                firebaseProjectId = LiveWriteFormBinder.Text(form, "firebase_project_id", "firebaseProjectId");
+                pushEnabled = LiveWriteFormBinder.Flag(form, "push_enabled", "pushEnabled");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = "save_mobile";
+            }
+
+            if (confirm && key is "save_mobile" or "mobile_save")
+            {
+                var written = await writes.SaveMobileAsync(
+                    new CpMobileAppsSaveRequest(
+                        enabled, appName, bundleId, deepLinkScheme, deepLinkDomain,
+                        apiBaseUrl, playStoreUrl, appStoreUrl, pwaEnabled, firebaseProjectId, pushEnabled,
+                        "mobile_erp"),
+                    context.Request.Host.Host,
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/mobile-apps-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = true, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save_mobile" or "mobile_save",
+                writesBlocked = confirm,
+                cutoverAllowed = true,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Unknown mobile action."
+                    : "Dry-run. Set confirmWrites=true to save ERP mobile settings.",
+                phpAuthoritative = false,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.ErpAjaxWriteRegistryDryRun, async (
             string action,
             ErpAjaxWriteRegistryBody? body,
@@ -35386,6 +35472,21 @@ public sealed class ErpModule : ISurfaceModule
         string? PreferredVendor = null);
     private sealed record ErpProcReqConvertBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpLandedCostBody(long Id = 0, bool ConfirmWrites = false);
+
+    private sealed record CpMobileAppsWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        bool Enabled = false,
+        string? AppName = null,
+        string? BundleId = null,
+        string? DeepLinkScheme = null,
+        string? DeepLinkDomain = null,
+        string? ApiBaseUrl = null,
+        string? PlayStoreUrl = null,
+        string? AppStoreUrl = null,
+        bool PwaEnabled = false,
+        string? FirebaseProjectId = null,
+        bool PushEnabled = false);
     private sealed record ErpBplanSaveBody(
         long Id = 0,
         long CompanyId = 0,
