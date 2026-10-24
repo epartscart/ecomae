@@ -3090,6 +3090,7 @@ public static class EcomAeRoutes
     public const string ErpAutoPartsDemoClear = "/erp/autoparts/demo-clear";
     /// <summary>Auto-parts month-end bridge: posts trading journals into the GL.</summary>
     public const string ErpAutoPartsGlPost = "/erp/autoparts/gl-post";
+    public const string ErpMfgGlPost = "/erp/manufacturing/gl-post";
     /// <summary>Auto-parts sales order → UAE FTA tax invoice build + print link.</summary>
     public const string ErpAutoPartsIssueInvoice = "/erp/autoparts/issue-invoice";
 

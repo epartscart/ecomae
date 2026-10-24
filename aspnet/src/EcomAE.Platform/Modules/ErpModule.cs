@@ -436,6 +436,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpShamTransferPriceView, HandleShamTransferPriceViewAsync);
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpMfgGlPost, HandleMfgGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpCoreDemoSeed, HandleCoreDemoSeedAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpCoreDemoClear, HandleCoreDemoClearAsync).DisableAntiforgery();
@@ -28647,6 +28648,38 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/autoparts/workspace?tab=month-end",
+            ok,
+            message,
+            new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>Manufacturing work orders → GL (material issue, conversion, finished goods).</summary>
+    private static async Task<IResult> HandleMfgGlPostAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpMfgGlPostWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/production-overview-app", "Admin ERP capability required for GL posting.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to post the manufacturing journals to the GL.", session = SessionPayload(session) });
+        }
+
+        long.TryParse(context.Request.Form["work_order"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var workOrderId);
+        var period = context.Request.Form["period"].ToString() ?? string.Empty;
+        var message = await writes.PostAsync(workOrderId, period, cancellationToken);
+        var ok = !message.StartsWith("TenantRegistry DB is not configured", StringComparison.Ordinal)
+                 && !message.StartsWith("Invalid period", StringComparison.Ordinal);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/production-overview-app",
             ok,
             message,
             new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
