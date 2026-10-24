@@ -25,6 +25,7 @@ public static class PhpLegacyAssetBridge
         ["/content/general_pages/epc_ecomae_hub_logo_css.php"] = "content/general_pages/epc_ecomae_hub_logo.css",
         ["/content/general_pages/epc_ecomae_platform_marketing_css.php"] = "content/general_pages/epc_ecomae_platform_marketing.css",
         ["/content/shop/finance/epc_erp_portal_css.php"] = "content/shop/finance/epc_erp_portal.css",
+        ["/content/shop/finance/epc_erp_portal_inline_css_serve.php"] = "content/shop/finance/epc_erp_portal.css",
         ["/content/shop/finance/epc_erp_ui_css.php"] = "content/shop/finance/epc_erp_ui.css",
         ["/content/shop/finance/epc_erp_professional_css.php"] = "content/shop/finance/epc_erp_professional.css",
     };
