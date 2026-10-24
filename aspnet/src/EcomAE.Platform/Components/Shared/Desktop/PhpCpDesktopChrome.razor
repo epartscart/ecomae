@@ -6,6 +6,7 @@
 @inject IHttpContextAccessor Http
 @inject ILegacySessionValidator Sessions
 @inject ICpNavMenuService NavMenu
+@inject ITenantPresentationProvider TenantPresentation
 @*
   Mirrors cp/templates/bootstrap_admin/desktop.php + epc_cp_top_nav.php.
   Topnav typography/panels come from epc_cp_professional.css (px sizes).
@@ -109,7 +110,11 @@ else
     .epc-cp-top-connectivity a { display:inline-flex; align-items:center; gap:.25rem; padding:.25rem .45rem; color:#334155 !important; }
 </style>
 
-<div class="@ShellClass">
+@if (!string.IsNullOrWhiteSpace(_tenantCss))
+{
+    <style>@((MarkupString)_tenantCss)</style>
+}
+<div class="@ShellClass"@attributes="_tenantAttrs">
     <div class="splash">
         <div class="color-line"></div>
         <div class="splash-title">
@@ -493,9 +498,17 @@ else
                 cls += " epc-cp--" + _industryCode;
             }
 
+            if (_tenantAttrs is not null)
+            {
+                cls += " epc-tenant-tokens";
+            }
+
             return cls;
         }
     }
+
+    private string? _tenantCss;
+    private IReadOnlyDictionary<string, object>? _tenantAttrs;
 
     protected override async Task OnInitializedAsync()
     {
@@ -535,6 +548,14 @@ else
         {
             _signedIn = IsAdmin;
             return;
+        }
+
+        var presentation = await TenantPresentation.GetAsync(ctx, ctx.RequestAborted);
+        var css = presentation.BuildCss();
+        if (!string.IsNullOrWhiteSpace(css) || presentation.Values.Count > 0)
+        {
+            _tenantCss = css;
+            _tenantAttrs = presentation.Attributes();
         }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);

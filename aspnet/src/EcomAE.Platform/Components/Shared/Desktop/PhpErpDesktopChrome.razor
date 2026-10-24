@@ -14,6 +14,7 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IErpNavTenantRules NavTenantRules
 @inject ITenantRegistry Registry
+@inject ITenantPresentationProvider TenantPresentation
 @*
   Mirrors erp_desktop.php + epc_erp_render_top_nav mega chrome.
   Topnav typography/panels come from epc_erp_professional.css (px sizes).
@@ -180,12 +181,17 @@
     .epc-erp-landing button { height:28px; border:0; border-radius:6px; background:#fff; color:#0f172a; font-size:12px; font-weight:700; padding:0 .55rem; cursor:pointer; }
 </style>
 
-<div class="epc-erp-standalone epc-erp-cp-shell epc-cp-shell epc-cp--blue-theme epc-cp-modern epc-php-font-root"
+@if (!string.IsNullOrWhiteSpace(_tenantCss))
+{
+    <style>@((MarkupString)_tenantCss)</style>
+}
+<div class="epc-erp-standalone epc-erp-cp-shell epc-cp-shell epc-cp--blue-theme epc-cp-modern epc-php-font-root @(_tenantAttrs is not null ? "epc-tenant-tokens" : null)"
      data-epc-industry="@_industryCode"
      data-epc-erp-tenant="@_homeBrand"
      data-epc-erp-company="@_activeCompanyId"
      data-epc-erp-jewellery="@(_jewellery ? "1" : "0")"
-     data-epc-dash-home="@(IsDashboardHome ? "1" : "0")">
+     data-epc-dash-home="@(IsDashboardHome ? "1" : "0")"
+     @attributes="_tenantAttrs">
     @if (_sandbox)
     {
         <div class="epc-erp-sandbox-banner" role="status" aria-label="Sandbox environment">
@@ -1156,6 +1162,9 @@
         }
     }
 
+    private string? _tenantCss;
+    private IReadOnlyDictionary<string, object>? _tenantAttrs;
+
     protected override async Task OnInitializedAsync()
     {
         var host = Http.HttpContext?.Request.Host.Host;
@@ -1169,6 +1178,17 @@
         _industryLabel = _ctx.IndustryLabel;
 
         var ctx = Http.HttpContext;
+        if (ctx is not null)
+        {
+            var presentation = await TenantPresentation.GetAsync(ctx, ctx.RequestAborted);
+            var css = presentation.BuildCss();
+            if (!string.IsNullOrWhiteSpace(css) || presentation.Values.Count > 0)
+            {
+                _tenantCss = css;
+                _tenantAttrs = presentation.Attributes();
+            }
+        }
+
         if (ctx is null)
         {
             _signedIn = IsAdmin;
