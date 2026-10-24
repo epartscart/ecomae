@@ -23,6 +23,10 @@ public sealed class TenantHostHomeRoutingTests
         "www.stylenlook.com",
         "thejewellerytrend.com",
         "www.thejewellerytrend.com",
+        "electronicae.ecomae.com",
+        "stylenlook.ecomae.com",
+        "jewellerytrend.ecomae.com",
+        "taxofinca.ecomae.com",
         "taxofinca.com",
         "www.taxofinca.com",
     ];

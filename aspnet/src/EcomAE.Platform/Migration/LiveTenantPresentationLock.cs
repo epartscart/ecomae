@@ -12,10 +12,10 @@ public static class LiveTenantPresentationLock
     public static readonly IReadOnlyList<LockedTenant> Tenants =
     [
         new("epartscart", "ePartsCart", ["epartscart.com", "www.epartscart.com"]),
-        new("electronicae", "Electronicae", ["www.electronicae.com", "electronicae.com"]),
-        new("stylenlook", "StyleNLook", ["www.stylenlook.com", "stylenlook.com"]),
-        new("thejewellerytrend", "The Jewellery Trend", ["www.thejewellerytrend.com", "thejewellerytrend.com"]),
-        new("taxofinca", "Taxofinca", ["www.taxofinca.com", "taxofinca.com"]),
+        new("electronicae", "Electronicae", ["www.electronicae.com", "electronicae.com", "electronicae.ecomae.com"]),
+        new("stylenlook", "StyleNLook", ["www.stylenlook.com", "stylenlook.com", "stylenlook.ecomae.com"]),
+        new("thejewellerytrend", "The Jewellery Trend", ["www.thejewellerytrend.com", "thejewellerytrend.com", "jewellerytrend.ecomae.com"]),
+        new("taxofinca", "Taxofinca", ["www.taxofinca.com", "taxofinca.com", "taxofinca.ecomae.com"]),
     ];
 
     public static IReadOnlyList<string> AllHosts { get; } =
