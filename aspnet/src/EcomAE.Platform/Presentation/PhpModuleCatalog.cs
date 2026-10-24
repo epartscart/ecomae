@@ -70,6 +70,8 @@ public static partial class PhpModuleCatalog
             "Document profiles, fields, CSV import and export", false, false, "Setup"),
         new("setup/security_mfa", "Security (MFA / 2FA)", "/erp/security-mfa", "fa-shield", "setup",
             "Authenticator-app two-factor enrollment for this account", false, false, "Security"),
+        new("setup/tenant_guide", "Tenant guide", "/erp/tenant-guide", "fa-map-signs", "setup",
+            "Organisation structure, tenant setup guide and how ecom works", false, false, "Setup"),
         new("projects/real_estate", "Real estate investment", "/erp/real-estate-app", "fa-building", "projects",
             "Property register, pipeline, leases, development and construction", false, false, "Common"),
         new("projects/real_estate_guide", "Real estate guide", "/erp/real-estate-app?tab=guide", "fa-map-signs", "projects",
