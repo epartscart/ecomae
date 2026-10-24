@@ -28,6 +28,7 @@ public static class PhpLegacyAssetBridge
         ["/content/shop/finance/epc_erp_portal_inline_css_serve.php"] = "content/shop/finance/epc_erp_portal.css",
         ["/content/shop/finance/epc_erp_ui_css.php"] = "content/shop/finance/epc_erp_ui.css",
         ["/content/shop/finance/epc_erp_professional_css.php"] = "content/shop/finance/epc_erp_professional.css",
+        ["/content/shop/finance/epc_erp_aspnet_module_parity_css.php"] = "content/shop/finance/epc_erp_aspnet_module_parity.css",
     };
 
     private static readonly string[] StaticAllowPrefixes =
