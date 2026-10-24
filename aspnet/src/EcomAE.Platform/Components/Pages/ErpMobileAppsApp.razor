@@ -1,0 +1,212 @@
+@page "/erp/mobile-apps-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Mobile apps · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Mobile apps" BreadcrumbArea="Setup" BreadcrumbTab="Mobile apps">
+
+    <TenantCustomizationGuideBoard Slug="mobile-apps" />
+
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                <span class="label label-primary">@(_canCp ? "Full tenant" : "ERP tenant")</span>
+                ERP mobile app (Android / iOS / PWA)
+                @if (_canCp)
+                {
+                    <a class="btn btn-xs btn-default pull-right" href="/cp/mobile-apps-app"><i class="fa fa-mobile"></i> CP mobile app settings</a>
+                }
+            </div>
+            <div class="panel-body">
+                <p>ERP tenant admin controls the ERP mobile app here — inside ERP Setup, not the Control Panel. An ERP-only tenant manages the ERP app; a full tenant manages the ERP app here and the CP app from <a href="/cp/mobile-apps-app">CP → Mobile apps</a>.</p>
+                <p>Capacitor shell + installable PWA. Configure store links, bundle ID, and deep links per tenant.</p>
+            </div>
+        </div>
+    </div>
+
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12">
+            <div class="alert alert-warning" role="status">ERP admin login required. <a href="/erp/login">Sign in</a>.</div>
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
+
+    <div class="epc-mapp-grid" aria-label="ERP mobile app config">
+        <div class="epc-mapp-card"><span>Enabled</span><strong>@(_summary.Enabled ? "yes" : "no")</strong></div>
+        <div class="epc-mapp-card"><span>App name</span><strong>@(string.IsNullOrWhiteSpace(_summary.AppName) ? "—" : _summary.AppName)</strong></div>
+        <div class="epc-mapp-card"><span>Bundle id</span><strong>@(string.IsNullOrWhiteSpace(_summary.BundleId) ? "—" : _summary.BundleId)</strong></div>
+        <div class="epc-mapp-card"><span>PWA</span><strong>@(_summary.PwaEnabled ? "yes" : "no")</strong></div>
+        <div class="epc-mapp-card"><span>Deep link scheme</span><strong>@(string.IsNullOrWhiteSpace(_summary.DeepLinkScheme) ? "—" : _summary.DeepLinkScheme)</strong></div>
+        <div class="epc-mapp-card"><span>Deep link domain</span><strong>@(string.IsNullOrWhiteSpace(_summary.DeepLinkDomain) ? "—" : _summary.DeepLinkDomain)</strong></div>
+        <div class="epc-mapp-card"><span>API base URL</span><strong>@(string.IsNullOrWhiteSpace(_summary.ApiBaseUrl) ? "—" : _summary.ApiBaseUrl)</strong></div>
+        <div class="epc-mapp-card"><span>Push</span><strong>@(_summary.PushEnabled ? "yes" : "no")</strong></div>
+        <div class="epc-mapp-card"><span>Play Store</span><strong>@(string.IsNullOrWhiteSpace(_summary.PlayStoreUrl) ? "—" : _summary.PlayStoreUrl)</strong></div>
+        <div class="epc-mapp-card"><span>App Store</span><strong>@(string.IsNullOrWhiteSpace(_summary.AppStoreUrl) ? "—" : _summary.AppStoreUrl)</strong></div>
+        <div class="epc-mapp-card"><span>Firebase project</span><strong>@(string.IsNullOrWhiteSpace(_summary.FirebaseProjectId) ? "—" : _summary.FirebaseProjectId)</strong></div>
+    </div>
+
+    @if (_isAdmin)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Save ERP mobile app settings</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/mobile-apps/write" class="well">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="/erp/mobile-apps-app" />
+                        <input type="hidden" name="action" value="save_mobile" />
+                        <div class="checkbox">
+                            <label>
+                                @if (_summary.Enabled)
+                                {
+                                    <input type="checkbox" name="enabled" value="1" checked />
+                                }
+                                else
+                                {
+                                    <input type="checkbox" name="enabled" value="1" />
+                                }
+                                Mobile app enabled for this tenant
+                            </label>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>App display name</label>
+                                    <input type="text" class="form-control" name="app_name" value="@_summary.AppName" placeholder="eParts Cart ERP" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Bundle / package ID</label>
+                                    <input type="text" class="form-control" name="bundle_id" value="@_summary.BundleId" placeholder="com.epartscart.erp" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>ERP API base URL</label>
+                                    <input type="url" class="form-control" name="api_base_url" value="@ApiBaseUrlValue" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Deep link scheme</label>
+                                    <input type="text" class="form-control" name="deep_link_scheme" value="@DeepLinkSchemeValue" placeholder="epartscart-erp://" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Universal link domain</label>
+                                    <input type="text" class="form-control" name="deep_link_domain" value="@_summary.DeepLinkDomain" placeholder="@_host" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Google Play store URL</label>
+                                    <input type="url" class="form-control" name="play_store_url" value="@_summary.PlayStoreUrl" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Apple App Store URL</label>
+                                    <input type="url" class="form-control" name="app_store_url" value="@_summary.AppStoreUrl" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="firebase_project_id" value="@_summary.FirebaseProjectId" />
+                        @if (_summary.PushEnabled)
+                        {
+                            <input type="hidden" name="push_enabled" value="1" />
+                        }
+                        <div class="checkbox">
+                            <label>
+                                @if (_summary.PwaEnabled)
+                                {
+                                    <input type="checkbox" name="pwa_enabled" value="1" checked />
+                                }
+                                else
+                                {
+                                    <input type="checkbox" name="pwa_enabled" value="1" />
+                                }
+                                PWA manifest + service worker
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Save ERP mobile settings</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">Saved into <code>epc_portal_site_settings.integrations_json</code> for <strong>@_host</strong>. Push template settings stay platform-controlled.</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt"><i class="fa fa-book"></i> Publish guide</div>
+            <div class="panel-body">
+                <p><strong>Android:</strong> <code>cd mobile/epartscart-app &amp;&amp; npm install &amp;&amp; npx cap sync &amp;&amp; npx cap open android</code> — Build APK in Android Studio.</p>
+                <p><strong>iOS:</strong> Requires macOS + Xcode. Run <code>npx cap add ios</code> once, then <code>npx cap sync ios &amp;&amp; npx cap open ios</code>.</p>
+                <p><strong>Connect to tenant:</strong> Set <em>API base URL</em> above to this ERP host (e.g. @ErpUrl). Capacitor loads the live ERP in WebView.</p>
+            </div>
+        </div>
+    </div>
+
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private bool _canErp;
+    private bool _canCp;
+    private CpMobileAppsSummary _summary = new(false, "", "", "", "", "", "", "", true, "", false, "n/a", "");
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private string _host = "";
+
+    private string ErpUrl => _host.Length == 0 ? "" : "https://" + _host + "/erp";
+
+    private string ApiBaseUrlValue =>
+        string.IsNullOrWhiteSpace(_summary.ApiBaseUrl) ? ErpUrl : _summary.ApiBaseUrl;
+
+    private string DeepLinkSchemeValue =>
+        string.IsNullOrWhiteSpace(_summary.DeepLinkScheme) ? "epartscart-erp://" : _summary.DeepLinkScheme;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        _host = PlatformHostPolicy.NormalizeHost(ctx.Request.Host.Host);
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _canErp = session.Capabilities?.Contains("erp") ?? false;
+        _canCp = session.Capabilities?.Contains("cp") ?? false;
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session) && _canErp;
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        var result = await Dashboards.BuildCpMobileAppsDigestAsync(ctx.RequestAborted);
+        _summary = result.Summary;
+    }
+}

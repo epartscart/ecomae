@@ -47,5 +47,16 @@ public sealed class TenantCustomizationGuideTests
         {
             Assert.StartsWith("/", link.Href);
         }
+
+        foreach (var (slug, area) in TenantCustomizationGuide.Areas)
+        {
+            foreach (var step in area.Steps)
+            {
+                if (step.Href is not null)
+                {
+                    Assert.StartsWith("/", step.Href); // no in-page fragments — they must be real destinations
+                }
+            }
+        }
     }
 }
