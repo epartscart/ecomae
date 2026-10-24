@@ -27,7 +27,9 @@ public sealed record ErpMfgBomSaveWriteRequest(
     decimal OutputQty = 1,
     decimal LabourCost = 0,
     decimal OverheadCost = 0,
-    IReadOnlyList<ErpMfgBomLine>? Lines = null);
+    IReadOnlyList<ErpMfgBomLine>? Lines = null,
+    string? LabourFieldMode = null,
+    string? OverheadFieldMode = null);
 
 public sealed class ErpMfgBomSaveWriteService : IErpMfgBomSaveWriteService
 {
@@ -67,6 +69,8 @@ public sealed class ErpMfgBomSaveWriteService : IErpMfgBomSaveWriteService
         var outputQty = decimal.Round(request.OutputQty, 4, MidpointRounding.AwayFromZero);
         var labour = decimal.Round(request.LabourCost, 2, MidpointRounding.AwayFromZero);
         var overhead = decimal.Round(request.OverheadCost, 2, MidpointRounding.AwayFromZero);
+        var labourMode = NormalizeFieldMode(request.LabourFieldMode);
+        var overheadMode = NormalizeFieldMode(request.OverheadFieldMode);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -82,6 +86,38 @@ public sealed class ErpMfgBomSaveWriteService : IErpMfgBomSaveWriteService
         try
         {
             var id = request.Id;
+            // Field-level rules: hidden = keep the stored value (the field is not on the
+            // user's form, so its value must never be rewritten); readonly = reject when
+            // the submitted value differs from the stored one. New records treat the
+            // stored value as zero.
+            if (labourMode is not null || overheadMode is not null)
+            {
+                var existingLabour = 0m;
+                var existingOverhead = 0m;
+                if (id > 0)
+                {
+                    await using var read = connection.CreateCommand();
+                    read.Transaction = transaction;
+                    read.CommandText = ErpDb.Positional(
+                        "SELECT `labour_cost`,`overhead_cost` FROM `epc_mfg_bom` WHERE `id`=?");
+                    ErpDb.AddParameters(read, id);
+                    await using var reader = await read.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                    if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        existingLabour = reader.GetDecimal(0);
+                        existingOverhead = reader.GetDecimal(1);
+                    }
+                }
+
+                if (!ApplyFieldMode(ref labour, existingLabour, labourMode)
+                    || !ApplyFieldMode(ref overhead, existingOverhead, overheadMode))
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return ErpSimpleWriteResult.Fail(
+                        "field_rule",
+                        "A field rule on this form blocks changing the BOM cost fields.");
+                }
+            }
             if (id > 0)
             {
                 await ErpDb.ExecuteAsync(
@@ -291,6 +327,26 @@ public sealed class ErpMfgBomSaveWriteService : IErpMfgBomSaveWriteService
         }
 
         return 0;
+    }
+
+    private static string? NormalizeFieldMode(string? mode)
+        => string.Equals(mode, "hidden", StringComparison.Ordinal)
+            || string.Equals(mode, "readonly", StringComparison.Ordinal)
+            ? mode
+            : null;
+
+    private static bool ApplyFieldMode(ref decimal value, decimal existing, string? mode)
+    {
+        switch (mode)
+        {
+            case "hidden":
+                value = existing;
+                return true;
+            case "readonly":
+                return value == existing;
+            default:
+                return true;
+        }
     }
 
     private static string Clip(string value, int max)

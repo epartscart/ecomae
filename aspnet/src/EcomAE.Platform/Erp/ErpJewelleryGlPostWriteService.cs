@@ -55,6 +55,7 @@ public sealed class ErpJewelleryGlPostWriteService : IErpJewelleryGlPostWriteSer
         var purchases = 0;
         var sales = 0;
         var skipped = 0;
+        var failed = 0;
 
         var vouchers = new List<(long Id, string Type, decimal Net, decimal Vat, decimal Gross, long Date, long CompanyId)>();
         await using (var command = connection.CreateCommand())
@@ -76,6 +77,8 @@ public sealed class ErpJewelleryGlPostWriteService : IErpJewelleryGlPostWriteSer
 
         foreach (var v in vouchers)
         {
+            try
+            {
             if (purchaseTypes.Contains(v.Type))
             {
                 var reference = "JW-V-" + v.Id.ToString(CultureInfo.InvariantCulture) + "-PUR";
@@ -108,10 +111,16 @@ public sealed class ErpJewelleryGlPostWriteService : IErpJewelleryGlPostWriteSer
                     }
                 }
             }
+            }
+            catch (Exception)
+            {
+                failed++;
+            }
         }
 
         return "Posted to GL: " + purchases + " metal purchase journals, " + sales + " sale journals"
             + (skipped > 0 ? " (" + skipped + " already posted skipped)" : "")
+            + (failed > 0 ? " (" + failed + " failed — retry on next save)" : "")
             + " — income statement, balance sheet and dashboard figures now include the jewellery numbers.";
     }
 

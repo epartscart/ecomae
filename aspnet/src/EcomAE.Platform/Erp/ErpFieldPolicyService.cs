@@ -78,6 +78,8 @@ public sealed class ErpFieldPolicyService : IErpFieldPolicyService
             }
 
             // Group rules first (least specific), then the user's own rules override.
+            // Across groups the most restrictive mode wins (hidden > readonly) so a
+            // conflicting membership can never expose a field another group hides.
             var keyList = keys.Where(k => !string.IsNullOrWhiteSpace(k)).Select(k => k.Trim()).Distinct(StringComparer.Ordinal).ToList();
             var groupClause = keyList.Count == 0
                 ? "1=0"
@@ -86,15 +88,35 @@ public sealed class ErpFieldPolicyService : IErpFieldPolicyService
             command.CommandText = ErpDb.Positional(
                 "SELECT `field_key`,`mode`,`user_id` FROM `epc_erp_field_rule`"
                 + " WHERE `area`=? AND ((`user_id`=0 AND " + groupClause + ") OR `user_id`=?)"
-                + " ORDER BY `user_id` ASC");
+                + " ORDER BY `user_id` ASC, `field_key` ASC");
             var parameters = new List<object?> { area.Trim() };
             parameters.AddRange(keyList);
             parameters.Add(userId);
             ErpDb.AddParameters(command, parameters.ToArray());
+            var groupRules = new Dictionary<string, string>(StringComparer.Ordinal);
+            var userRules = new Dictionary<string, string>(StringComparer.Ordinal);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                resolved[reader.GetString(0)] = reader.GetString(1);
+                var fieldKey = reader.GetString(0);
+                var mode = reader.GetString(1);
+                var isUserRow = reader.GetInt64(2) != 0;
+                var target = isUserRow ? userRules : groupRules;
+                if (!target.TryGetValue(fieldKey, out var current)
+                    || string.Equals(mode, "hidden", StringComparison.Ordinal)
+                    || !string.Equals(current, "hidden", StringComparison.Ordinal))
+                {
+                    target[fieldKey] = mode;
+                }
+            }
+
+            foreach (var pair in groupRules)
+            {
+                resolved[pair.Key] = pair.Value;
+            }
+            foreach (var pair in userRules)
+            {
+                resolved[pair.Key] = pair.Value;
             }
         }
         catch (DbException)

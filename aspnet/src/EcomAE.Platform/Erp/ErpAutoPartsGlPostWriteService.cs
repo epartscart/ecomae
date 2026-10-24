@@ -52,6 +52,7 @@ public sealed class ErpAutoPartsGlPostWriteService : IErpAutoPartsGlPostWriteSer
         var cogs = 0;
         var receipts = 0;
         var skipped = 0;
+        var failed = 0;
 
         var orders = new List<(long Id, string No, string Type, string Status, decimal Subtotal, decimal Vat, decimal Total, long Date)>();
         await using (var command = connection.CreateCommand())
@@ -71,6 +72,8 @@ public sealed class ErpAutoPartsGlPostWriteService : IErpAutoPartsGlPostWriteSer
 
         foreach (var o in orders)
         {
+            try
+            {
             if (o.Type == "purchase" && o.Status is "received")
             {
                 var reference = "AP-PO-" + o.Id.ToString(CultureInfo.InvariantCulture) + "-RCV";
@@ -127,11 +130,17 @@ public sealed class ErpAutoPartsGlPostWriteService : IErpAutoPartsGlPostWriteSer
                     receipts++;
                 }
             }
+            }
+            catch (Exception)
+            {
+                failed++;
+            }
         }
 
         return "Posted to GL: " + purchases + " purchase journals, " + invoices + " sales invoice journals, "
             + cogs + " COGS journals, " + receipts + " receipt journals"
             + (skipped > 0 ? " (" + skipped + " already posted skipped)" : "")
+            + (failed > 0 ? " (" + failed + " failed — retry on next save)" : "")
             + " — income statement, balance sheet and dashboard figures now include the auto-parts numbers.";
     }
 

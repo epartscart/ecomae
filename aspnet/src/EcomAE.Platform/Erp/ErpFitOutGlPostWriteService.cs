@@ -50,6 +50,7 @@ public sealed class ErpFitOutGlPostWriteService : IErpFitOutGlPostWriteService
         var revenuePosted = 0;
         var claimsPosted = 0;
         var skipped = 0;
+        var failed = 0;
 
         await using (var command = connection.CreateCommand())
         {
@@ -76,6 +77,8 @@ public sealed class ErpFitOutGlPostWriteService : IErpFitOutGlPostWriteService
 
             foreach (var row in rows)
             {
+                try
+                {
                 var kind = row.Type is "cost" ? "cost" : row.Type is "billing" ? "bill" : "rev";
                 var reference = "FO-P" + row.ProjectId.ToString(CultureInfo.InvariantCulture) + "-TXN-" + row.Id.ToString(CultureInfo.InvariantCulture);
                 if (await ErpFitOutGl.PostedJournalIdAsync(connection, reference, cancellationToken).ConfigureAwait(false) > 0)
@@ -111,6 +114,11 @@ public sealed class ErpFitOutGlPostWriteService : IErpFitOutGlPostWriteService
                 {
                     revenuePosted++;
                 }
+                }
+                catch (Exception)
+                {
+                    failed++;
+                }
             }
         }
 
@@ -120,6 +128,7 @@ public sealed class ErpFitOutGlPostWriteService : IErpFitOutGlPostWriteService
                + costPosted + " cost journals, " + revenuePosted + " POC revenue journals, "
                + claimsPosted + " certification journals"
                + (skipped > 0 ? " (" + skipped + " already posted skipped)" : "")
+            + (failed > 0 ? " (" + failed + " failed — retry on next save)" : "")
                + " — income statement, balance sheet and dashboard figures now include the fit-out numbers.";
     }
 
@@ -160,18 +169,25 @@ public sealed class ErpFitOutGlPostWriteService : IErpFitOutGlPostWriteService
         foreach (var row in rows)
         {
             var reference = "FO-P" + row.ProjectId.ToString(CultureInfo.InvariantCulture) + "-IPC-" + row.Id.ToString(CultureInfo.InvariantCulture);
-            if (await ErpFitOutGl.PostedJournalIdAsync(connection, reference, cancellationToken).ConfigureAwait(false) > 0)
+            try
+            {
+                if (await ErpFitOutGl.PostedJournalIdAsync(connection, reference, cancellationToken).ConfigureAwait(false) > 0)
+                {
+                    continue;
+                }
+
+                var journalId = await ErpFitOutGl.PostAsync(
+                    _gl, connection, null, 0, row.CompanyId > 0 ? row.CompanyId : fallbackCompanyId, row.Id, reference,
+                    "Certified client progress claim — " + row.Description,
+                    ErpFitOutIfrs.ClaimCertified(row.Amount, ExtractAmount(row.Description, "VAT")), row.Date, cancellationToken).ConfigureAwait(false);
+                if (journalId > 0)
+                {
+                    count++;
+                }
+            }
+            catch (Exception)
             {
                 continue;
-            }
-
-            var journalId = await ErpFitOutGl.PostAsync(
-                _gl, connection, null, 0, row.CompanyId > 0 ? row.CompanyId : fallbackCompanyId, row.Id, reference,
-                "Certified client progress claim — " + row.Description,
-                ErpFitOutIfrs.ClaimCertified(row.Amount, ExtractAmount(row.Description, "VAT")), row.Date, cancellationToken).ConfigureAwait(false);
-            if (journalId > 0)
-            {
-                count++;
             }
         }
         return count;
