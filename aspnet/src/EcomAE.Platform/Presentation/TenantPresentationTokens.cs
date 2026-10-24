@@ -263,7 +263,7 @@ public sealed class TenantPresentationProvider : ITenantPresentationProvider
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText =
-                "SELECT `site_key`, `setting_key`, `setting_value` FROM `epc_settings` WHERE (`site_key` IS NULL OR `site_key` = '' OR `site_key` = ? OR `site_key` = ?) AND (`setting_key` LIKE 'brand_%' OR `setting_key` LIKE 'ui_%' OR `setting_key` = 'white_label_login') ORDER BY CHAR_LENGTH(IFNULL(`site_key`,'')) ASC";
+                "SELECT `site_key`, `setting_key`, `setting_value` FROM `epc_settings` WHERE (`site_key` IS NULL OR `site_key` = '' OR `site_key` = ? OR `site_key` = ?) AND (`setting_key` LIKE 'brand_%' OR `setting_key` LIKE 'ui_%' OR `setting_key` = 'white_label_login') ORDER BY CASE WHEN `site_key` IS NULL OR `site_key` = '' THEN 0 WHEN `site_key` LIKE 'industry:%' THEN 1 ELSE 2 END ASC";
             var parameter = command.CreateParameter();
             parameter.Value = industryKey ?? siteKey;
             command.Parameters.Add(parameter);
