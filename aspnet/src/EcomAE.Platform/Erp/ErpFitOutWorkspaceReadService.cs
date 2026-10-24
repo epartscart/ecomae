@@ -342,7 +342,7 @@ public sealed class ErpFitOutWorkspaceReadService : IErpFitOutWorkspaceReadServi
             WHERE `status`='pending' AND `record_type` IN
             ('approval_request','site_engineer_approval','project_manager_approval','variation_approval',
              'subcontract_payment_certificate','client_payment_certificate','retention_release',
-             'final_settlement','work_completion_certificate','vendor_bill','payment_voucher')
+             'final_settlement','work_completion_certificate','vendor_bill','payment_voucher','client_progress_claim','subcontractor_progress_claim')
             """
             + (projectId > 0 ? " AND `project_id`=" + projectId.ToString(CultureInfo.InvariantCulture) : string.Empty),
             ct).ConfigureAwait(false);
