@@ -3093,6 +3093,8 @@ public static class EcomAeRoutes
     public const string ErpMfgGlPost = "/erp/manufacturing/gl-post";
     /// <summary>Per-user personalization: hide/show a dashboard widget.</summary>
     public const string ErpUserPrefSet = "/erp/user-pref";
+    /// <summary>Tenant-admin field-level rule set: POST {scope,area,field,mode} — hidden/readonly per user or group.</summary>
+    public const string ErpFieldRuleSet = "/erp/field-rule";
     /// <summary>Auto-parts sales order → UAE FTA tax invoice build + print link.</summary>
     public const string ErpAutoPartsIssueInvoice = "/erp/autoparts/issue-invoice";
 

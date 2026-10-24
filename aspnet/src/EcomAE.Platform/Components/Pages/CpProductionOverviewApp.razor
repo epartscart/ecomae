@@ -7,6 +7,7 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject EcomAE.Platform.Erp.IErpFieldPolicyService FieldRules
 
 <PageTitle>Production Overview · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -206,8 +207,8 @@
             <ErpMasterPicker Kind="item" FieldName="product_item_id" InputId="bom-product-item" Label="Product item" Required="true" Min="1" />
             <label>Name <input type="text" name="name" /></label>
             <label>Output qty <input type="number" name="output_qty" step="0.0001" value="1" style="width:6rem" /></label>
-            <label>Labour <input type="number" name="labour_cost" step="0.01" style="width:6rem" /></label>
-            <label>Overhead <input type="number" name="overhead_cost" step="0.01" style="width:6rem" /></label>
+            @if (!FieldHidden("labour_cost")) { <label>Labour <input type="number" name="labour_cost" step="0.01" readonly="@FieldReadonly("labour_cost")" style="width:6rem" /></label> }
+            @if (!FieldHidden("overhead_cost")) { <label>Overhead <input type="number" name="overhead_cost" step="0.01" readonly="@FieldReadonly("overhead_cost")" style="width:6rem" /></label> }
             <ErpMasterPicker Kind="item" FieldName="component_item_id" InputId="bom-component-item" Label="Component item" Required="true" Min="1" />
             <label>Qty per <input type="number" name="qty_per" step="0.0001" value="1" style="width:6rem" /></label>
             <label>Scrap % <input type="number" name="scrap_percent" step="0.001" style="width:6rem" /></label>
@@ -225,6 +226,11 @@
     private long _openedId;
     private CpProductionWorkOrderDetail? _openedWo;
     private IReadOnlyList<CpProductionBomLineDigest> _openedBomLines = [];
+    private IReadOnlyDictionary<string, string> _fieldRules = new Dictionary<string, string>();
+
+    // Field-level rules (tenant admin: hidden/readonly, area 'production').
+    private bool FieldHidden(string field) => _fieldRules.TryGetValue(field, out var m) && m == "hidden";
+    private bool FieldReadonly(string field) => _fieldRules.TryGetValue(field, out var m) && m == "readonly";
 
     private string OpenedCaption => _openedWo is null
         ? ""
@@ -248,6 +254,8 @@
         {
             return; // guest browse — Sign in for live data
         }
+
+        _fieldRules = await FieldRules.ResolveAsync((int)session.UserId, session.AreaGrants?.FirstOrDefault()?.GroupKey ?? string.Empty, "production", ctx.RequestAborted);
 
         var result = await Dashboards.BuildCpProductionOverviewDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;

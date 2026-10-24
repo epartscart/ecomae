@@ -438,6 +438,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpMfgGlPost, HandleMfgGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUserPrefSet, HandleUserPrefSetAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFieldRuleSet, HandleFieldRuleSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpCoreDemoSeed, HandleCoreDemoSeedAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpCoreDemoClear, HandleCoreDemoClearAsync).DisableAntiforgery();
@@ -28777,6 +28778,58 @@ public sealed class ErpModule : ISurfaceModule
             string.IsNullOrWhiteSpace(returnUrl) ? "/erp/dashboard-app" : returnUrl,
             ok,
             ok ? "Widget preference saved." : "Unknown widget or database unavailable.",
+            new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, session = SessionPayload(session) });
+    }
+
+    /// <summary>Tenant-admin field rule: {scope,area,field,mode,user_id,group_key} — hidden/readonly on a field for a user or a group.</summary>
+    private static async Task<IResult> HandleFieldRuleSetAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFieldPolicyService rules,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/dashboard-app", "ERP admin session required to set field-level rules.");
+        }
+
+        // CSRF: cookie-auth endpoint — reject cross-site browser posts.
+        var fetchSite = context.Request.Headers["Sec-Fetch-Site"].ToString();
+        var origin = context.Request.Headers["Origin"].ToString();
+        if (string.Equals(fetchSite, "cross-site", StringComparison.OrdinalIgnoreCase)
+            || (origin.Length > 0 && Uri.TryCreate(origin, UriKind.Absolute, out var originUri)
+                && !string.Equals(originUri.Host, context.Request.Host.Host, StringComparison.OrdinalIgnoreCase)))
+        {
+            return Results.Json(new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "cross_site_denied", message = "Cross-site form post rejected." }, statusCode: 403);
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save the field rule.", session = SessionPayload(session) });
+        }
+
+        var scope = context.Request.Form["scope"].ToString();
+        var userId = 0;
+        if (!string.Equals(scope, "group", StringComparison.OrdinalIgnoreCase))
+        {
+            long.TryParse(context.Request.Form["user_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedUser);
+            userId = (int)parsedUser;
+        }
+        var ok = await rules.SetRuleAsync(
+            userId,
+            context.Request.Form["group_key"].ToString() ?? string.Empty,
+            context.Request.Form["area"].ToString() ?? string.Empty,
+            context.Request.Form["field"].ToString() ?? string.Empty,
+            context.Request.Form["mode"].ToString() ?? string.Empty,
+            cancellationToken);
+        var returnUrl = context.Request.Form["returnUrl"].ToString();
+        return LiveWriteFormBinder.Complete(
+            context,
+            string.IsNullOrWhiteSpace(returnUrl) ? "/erp/user-control-app" : returnUrl,
+            ok,
+            ok ? "Field rule saved." : "Invalid rule (area/field/mode or target missing).",
             new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, session = SessionPayload(session) });
     }
 
