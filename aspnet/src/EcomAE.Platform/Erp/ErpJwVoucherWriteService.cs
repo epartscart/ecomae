@@ -336,7 +336,7 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                 placeOfSupply,
                 shipment,
                 port,
-                "draft").ConfigureAwait(false);
+                "posted").ConfigureAwait(false);
 
             var id = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
             if (id <= 0)

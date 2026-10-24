@@ -16675,6 +16675,7 @@ public sealed class ErpModule : ISurfaceModule
         HttpContext context,
         ILegacySessionValidator validator,
         IErpFitOutDeliveryRecordWriteService writes,
+        IErpFitOutGlPostWriteService glPost,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -16706,18 +16707,24 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var written = await writes.DecideApprovalAsync(id, status, session.UserId, cancellationToken);
+        var approvalMessage = written.Message;
+        if (written.Succeeded && string.Equals(status, "approved", StringComparison.OrdinalIgnoreCase))
+        {
+            // Approved records (e.g. client progress claims) post to GL on approval.
+            approvalMessage += " " + await TryPostGlAsync(() => glPost.PostAsync(0, null, cancellationToken)).ConfigureAwait(false);
+        }
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/project-accounting-app",
             written.Succeeded,
-            written.Message,
+            approvalMessage,
             new
             {
                 ok = written.Succeeded,
                 writes = written.Writes,
                 phpAuthoritative = false,
                 validation_code = written.Code,
-                message = written.Message,
+                message = approvalMessage,
                 id = written.Id,
                 session = SessionPayload(session)
             });
@@ -17802,28 +17809,18 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         // Field-level rules (area 'production') are enforced server-side too:
-        // hidden/readonly cost fields are rejected when supplied.
+        // hidden fields keep their stored value; readonly fields may only be
+        // submitted unchanged. The write service applies both inside its tx.
         var rules = await fieldRules.ResolveAsync(
             (int)session.UserId,
             session.AreaGrants?.Select(g => g.GroupKey).Where(k => !string.IsNullOrWhiteSpace(k)).ToList() ?? new List<string>(),
             "production",
             cancellationToken).ConfigureAwait(false);
-        var labourSupplied = labourCost != 0m || (form is not null && (form.ContainsKey("labour_cost") || form.ContainsKey("labourCost")));
-        var overheadSupplied = overheadCost != 0m || (form is not null && (form.ContainsKey("overhead_cost") || form.ContainsKey("overheadCost")));
-        if ((rules.TryGetValue("labour_cost", out var labourRule) && labourSupplied)
-            || (rules.TryGetValue("overhead_cost", out var overheadRule) && overheadSupplied))
-        {
-            const string ruleMessage = "A field rule on this form blocks editing the BOM cost fields.";
-            return LiveWriteFormBinder.Complete(
-                context,
-                "/erp/production-overview-app",
-                false,
-                ruleMessage,
-                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "field_rule", message = ruleMessage, session = SessionPayload(session) });
-        }
+        var labourMode = rules.TryGetValue("labour_cost", out var labourRule) ? labourRule : null;
+        var overheadMode = rules.TryGetValue("overhead_cost", out var overheadRule) ? overheadRule : null;
 
         var written = await writes.SaveAsync(
-            new ErpMfgBomSaveWriteRequest(id, productItemId, name, outputQty, labourCost, overheadCost, lines),
+            new ErpMfgBomSaveWriteRequest(id, productItemId, name, outputQty, labourCost, overheadCost, lines, labourMode, overheadMode),
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
