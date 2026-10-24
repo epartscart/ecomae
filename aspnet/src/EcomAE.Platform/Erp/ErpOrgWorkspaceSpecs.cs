@@ -21,15 +21,6 @@ public static class ErpOrgWorkspaceSpecs
                 Companies,
                 ErpShamFoundationService.EnsureSchemaAsync),
 
-            ["org_business_units"] = new(
-                ["Entity", "BU code", "Business unit", "Branch", "Manager", "Cost centre", "Status"],
-                "SELECT IFNULL(e.`code`,'(none)'), b.`code`, b.`name`, b.`branch`, b.`manager_name`, b.`cost_centre`, b.`status`" +
-                " FROM `epc_erp_org_business_units` b LEFT JOIN `epc_erp_pm_legal_entities` e ON e.`id` = b.`entity_id`" +
-                " ORDER BY b.`entity_id`, b.`id` LIMIT 200",
-                "No business units defined.",
-                Companies,
-                ErpShamFoundationService.EnsureSchemaAsync),
-
             ["org_group_members"] = new(
                 ["Group", "Entity", "Name", "Ownership %", "Currency", "Method"],
                 "SELECT g.`group_name`, m.`site_key`, m.`entity_name`, m.`ownership_pct`, m.`local_currency`, m.`consolidation`" +
@@ -56,7 +47,7 @@ public static class ErpOrgWorkspaceSpecs
                 "SELECT u.`user_email`, IFNULL(e.`code`,'(group-wide)'), IFNULL(b.`code`,'(entity-wide)'), u.`role`, u.`actions_csv`, u.`status`" +
                 " FROM `epc_erp_org_user_access` u" +
                 " LEFT JOIN `epc_erp_pm_legal_entities` e ON e.`id` = u.`entity_id`" +
-                " LEFT JOIN `epc_erp_org_business_units` b ON b.`id` = u.`bu_id`" +
+                " LEFT JOIN `epc_erp_pm_business_units` b ON b.`id` = u.`bu_id`" +
                 " ORDER BY u.`user_email` LIMIT 400",
                 "No access grants yet — grant users entity x BU access here.",
                 Companies,

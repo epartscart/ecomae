@@ -14,7 +14,7 @@ namespace EcomAE.Platform.Erp;
 /// - Consolidation perimeter: group <c>SHAM</c> in <c>epc_entity_groups</c> /
 ///   <c>epc_entity_members</c> (existing consolidation engine — 'full' members are
 ///   consolidated, 'excluded' appear in management reporting only).
-/// - Business units: <c>epc_erp_org_business_units</c> (entity × BU, e.g. ASAPL-WSL).
+/// - Business units: <c>epc_erp_pm_business_units</c> (entity × BU, e.g. ASAPL-WSL).
 /// - Access: <c>epc_erp_org_user_access</c> — user × entity × BU × role × action,
 ///   checked by <see cref="AccessAllowedAsync"/> on the backend (never UI-only).
 ///
@@ -122,7 +122,7 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
             "ALTER TABLE `epc_entity_members` ADD COLUMN `effective_from` int(11) NOT NULL DEFAULT 0",
             "ALTER TABLE `epc_entity_members` ADD COLUMN `effective_to` int(11) NOT NULL DEFAULT 0",
             "ALTER TABLE `epc_entity_members` ADD COLUMN `approval_status` varchar(16) NOT NULL DEFAULT ''",
-            "UPDATE `epc_erp_inv_warehouses` `w` JOIN `epc_erp_org_business_units` `bu` ON `bu`.`default_warehouse_id`=`w`.`id` SET `w`.`cost_centre`=`bu`.`cost_centre` WHERE `w`.`cost_centre`='' AND `bu`.`cost_centre`<>''",
+            "UPDATE `epc_erp_inv_warehouses` `w` JOIN `epc_erp_pm_business_units` `bu` ON `bu`.`default_warehouse_id`=`w`.`id` SET `w`.`cost_centre`=`bu`.`cost_centre` WHERE `w`.`cost_centre`='' AND `bu`.`cost_centre`<>''",
             "ALTER TABLE `epc_erp_pm_legal_entities` ADD COLUMN `consolidated` tinyint(1) NOT NULL DEFAULT 0",
             "ALTER TABLE `epc_erp_pm_legal_entities` ADD COLUMN `legal_reg_no` varchar(60) NOT NULL DEFAULT ''",
             "ALTER TABLE `epc_erp_pm_legal_entities` ADD COLUMN `entity_kind` varchar(24) NOT NULL DEFAULT 'llc'",
@@ -237,15 +237,9 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
 
                 await ErpDb.ExecuteAsync(connection, null,
                     ErpDb.Positional(
-                        "INSERT INTO `epc_erp_org_business_units` (`entity_id`,`code`,`name`,`cost_centre`,`status`,`time_created`,`time_updated`) "
-                        + "VALUES (?,?,?,?,'active',?,?) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), `cost_centre`=VALUES(`cost_centre`), `status`='active', `time_updated`=VALUES(`time_updated`)"),
-                    cancellationToken, entityId, buCode, buName, costCentre, now, now).ConfigureAwait(false);
-                // Operational mirror: journal BU dimensions read epc_erp_pm_business_units.
-                await ErpDb.ExecuteAsync(connection, null,
-                    ErpDb.Positional(
-                        "INSERT INTO `epc_erp_pm_business_units` (`code`,`name`,`legal_entity_id`,`note`,`active`,`time_created`,`time_updated`) "
-                        + "SELECT ?,?,?,?,1,?,? FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `epc_erp_pm_business_units` WHERE `code`=? AND `legal_entity_id`=?)"),
-                    cancellationToken, buCode, buName, entityId, costCentre, now, now, buCode, entityId).ConfigureAwait(false);
+                        "INSERT INTO `epc_erp_pm_business_units` (`code`,`name`,`legal_entity_id`,`cost_centre`,`note`,`active`,`time_created`,`time_updated`) "
+                        + "VALUES (?,?,?,?,?,1,?,?) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), `cost_centre`=VALUES(`cost_centre`), `active`=1, `time_updated`=VALUES(`time_updated`)"),
+                    cancellationToken, buCode, buName, entityId, costCentre, costCentre, now, now).ConfigureAwait(false);
 
                 // Phase-3 hook: one default warehouse per BU — codes are SHAM-<short>
                 // so an unrelated tenant's WH-*/existing row can never be renamed,
@@ -266,10 +260,10 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
                 {
                     await ErpDb.ExecuteAsync(connection, null,
                         ErpDb.Positional(
-                            "UPDATE `epc_erp_org_business_units` `bu`"
+                            "UPDATE `epc_erp_pm_business_units` `bu`"
                             + " LEFT JOIN `epc_erp_inv_warehouses` `w` ON `bu`.`default_warehouse_id` = `w`.`id`"
                             + " SET `bu`.`default_warehouse_id`=?"
-                            + " WHERE `bu`.`entity_id`=? AND `bu`.`code`=?"
+                            + " WHERE `bu`.`legal_entity_id`=? AND `bu`.`code`=?"
                             + " AND (`bu`.`default_warehouse_id`=0 OR `w`.`code`=?)"),
                         cancellationToken, whId, entityId, buCode, legacyWhCode).ConfigureAwait(false);
                 }
@@ -435,7 +429,7 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             var code = await ErpDb.StringAsync(connection, null,
-                ErpDb.Positional("SELECT `code` FROM `epc_erp_org_business_units` WHERE `id`=? AND `entity_id`=? LIMIT 1"),
+                ErpDb.Positional("SELECT `code` FROM `epc_erp_pm_business_units` WHERE `id`=? AND `legal_entity_id`=? LIMIT 1"),
                 cancellationToken, numericId, entityId).ConfigureAwait(false);
             return string.IsNullOrWhiteSpace(code) ? value : code.Trim();
         }
@@ -485,11 +479,11 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
                 var buIsNumeric = long.TryParse(buCode.Trim(), out var buNumeric);
                 var buSql = entityId != 0
                     ? buIsNumeric
-                        ? "SELECT `id`,`entity_id` FROM `epc_erp_org_business_units` WHERE `id`=? AND `entity_id`=? LIMIT 1"
-                        : "SELECT `id`,`entity_id` FROM `epc_erp_org_business_units` WHERE `code`=? AND `entity_id`=? LIMIT 1"
+                        ? "SELECT `id`,`legal_entity_id` FROM `epc_erp_pm_business_units` WHERE `id`=? AND `entity_id`=? LIMIT 1"
+                        : "SELECT `id`,`legal_entity_id` FROM `epc_erp_pm_business_units` WHERE `code`=? AND `entity_id`=? LIMIT 1"
                     : buIsNumeric
-                        ? "SELECT `id`,`entity_id` FROM `epc_erp_org_business_units` WHERE `id`=? LIMIT 1"
-                        : "SELECT `id`,`entity_id` FROM `epc_erp_org_business_units` WHERE `code`=? LIMIT 1";
+                        ? "SELECT `id`,`legal_entity_id` FROM `epc_erp_pm_business_units` WHERE `id`=? LIMIT 1"
+                        : "SELECT `id`,`legal_entity_id` FROM `epc_erp_pm_business_units` WHERE `code`=? LIMIT 1";
                 await using (var command = connection.CreateCommand())
                 {
                     command.CommandText = ErpDb.Positional(buSql);

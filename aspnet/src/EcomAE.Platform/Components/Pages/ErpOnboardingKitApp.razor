@@ -95,17 +95,56 @@ else
             .okb .sign .line { border-top:1px solid #33465c; padding-top:4px; font-size:11px; color:#55677d; }
             .okb .note { font-size:11px; color:#6b7d90; }
             .okb .toc td { border:0; border-bottom:1px dotted #c8d6e2; padding:4px 2px; }
+            .okb .cover .c-logos { display:flex; align-items:center; justify-content:center; gap:26px; margin-bottom:30px; }
+            .okb .cover .c-logos img { height:56px; object-fit:contain; }
+            .okb .cover .c-x { font-size:22px; color:#94a3b8; font-weight:300; }
+            .okb .cover .c-tenant { font-size:34px; font-weight:800; color:#12324f; }
+            .okb .cover .c-rule { height:3px; width:120px; margin:14px auto; border-radius:99px; background:linear-gradient(90deg,#14b8a6,#0ea5e9); }
+            .okb .lane { margin:10px 0 14px; border:1px solid #d5e3f2; border-radius:10px; overflow:hidden; }
+            .okb .lane-h { padding:7px 12px; font-weight:800; color:#fff; font-size:12.5px;
+                background:linear-gradient(160deg,#0f766e,#12324f); }
+            .okb .lane-h i { margin-right:6px; }
+            .okb .steps { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); }
+            .okb .step { padding:8px 10px; border-right:1px solid #eef3f8; border-bottom:1px solid #eef3f8; }
+            .okb .step .n { display:inline-block; min-width:22px; height:22px; line-height:22px; text-align:center;
+                border-radius:999px; background:#14b8a6; color:#fff; font-weight:800; font-size:11px; margin-right:6px; }
+            .okb .step .t { font-weight:700; color:#12324f; font-size:11.5px; }
+            .okb .step .d { display:block; margin-top:3px; color:#5b6b7c; font-size:10.5px; }
+            .okb .step a { color:#0f766e; font-size:10.5px; }
+            .okb .gcard { margin:0 0 14px; border:1px solid #d5e3f2; border-radius:10px; overflow:hidden; page-break-inside:avoid; }
+            .okb .gcard-h { display:flex; align-items:center; gap:8px; padding:8px 12px;
+                background:linear-gradient(160deg,#12324f,#0f766e); color:#fff; font-weight:800; font-size:12.5px; }
+            .okb .gcard-h i { font-size:14px; }
+            .okb .gcard .glead { padding:6px 12px; color:#5b6b7c; font-size:11px; background:#f6fafd; }
+            .okb .gcard .ch { padding:8px 12px 4px; }
+            .okb .gcard .ch h4 { margin:0 0 4px; font-size:11.5px; color:#0f766e; }
+            .okb .gcard .ch ol { margin:0 0 6px 18px; padding:0; font-size:11px; }
+            .okb .gcard .ch .lead { font-size:10.5px; color:#6b7d90; }
+            .okb .tier { display:flex; gap:8px; margin:10px 0; }
+            .okb .tier div { flex:1; text-align:center; padding:8px 6px; border-radius:8px; font-size:10.5px; font-weight:700; }
         </style>
 
         <div class="cover">
-            <div class="brand">ecom</div>
-            <div class="sub">Enterprise ERP &amp; Business Operating System</div>
+            <div class="c-logos">
+                <img src="@ErpAppAssets.PlatformLogoUrl" alt="ecom" />
+                <span class="c-x">&#215;</span>
+                @if (!string.IsNullOrEmpty(_tenantLogoUrl))
+                {
+                    <img src="@_tenantLogoUrl" alt="@_tenantName" />
+                }
+                else
+                {
+                    <span class="c-tenant">@_tenantName</span>
+                }
+            </div>
+            <h1>@_tenantName</h1>
+            <div class="c-rule"></div>
+            <div class="sub">Enterprise ERP &amp; Business Operating System — Client Handover Book</div>
             <div class="type">@TenantTypeLabel — Onboarding Kit</div>
-            <h1 style="margin-top:26px">Client Handover Book</h1>
-            <p class="sub">Everything your admin team needs to run ecom: access, credentials, module map, customization map and go-live checklist.</p>
+            <p class="sub" style="margin-top:22px">The complete operating book for this tenant: access &amp; admin credentials, how ecom is organized and who controls what, the full module map, your industry workspace guide, every admin &amp; operations guide in the system, the customization map and the go-live checklist.</p>
             <div class="meta">
-                Tenant: <strong>@_host</strong><br/>
-                Prepared: @DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) UTC · Kit v1.0
+                Tenant: <strong>@_host</strong> &nbsp;·&nbsp; Industry: <strong>@IndustryLabel</strong><br/>
+                Prepared: @DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) UTC · Kit v2.0 · Confidential — tenant internal use only
             </div>
         </div>
 
@@ -113,17 +152,15 @@ else
             <h2>Contents</h2>
             <table class="toc">
                 <tr><td>1 · Access &amp; admin credentials</td></tr>
-                <tr><td>2 · How ecom is organized</td></tr>
+                <tr><td>2 · How ecom is organized &amp; your admin authority</td></tr>
                 <tr><td>3 · ERP module map</td></tr>
-                <tr><td>4 · Industry workspaces — guides &amp; process</td></tr>
-                @if (_canCp)
-                {
-                    <tr><td>5 · Control Panel &amp; storefront (full tenant)</td></tr>
-                }
-                <tr><td>@SectionNum(6) · Customization map</td></tr>
-                <tr><td>@SectionNum(7) · Go-live checklist</td></tr>
-                <tr><td>@SectionNum(8) · House rules</td></tr>
-                <tr><td>@SectionNum(9) · Handover sign-off</td></tr>
+                <tr><td>4 · @IndustryLabel workspace — guide &amp; process</td></tr>
+                <tr><td>5 · Admin &amp; customization guides (step-by-step)</td></tr>
+                <tr><td>6 · Operations guides (module by module)</td></tr>
+                <tr><td>7 · Customization map</td></tr>
+                <tr><td>8 · Go-live checklist</td></tr>
+                <tr><td>9 · House rules</td></tr>
+                <tr><td>10 · Handover sign-off</td></tr>
             </table>
         </section>
 
@@ -208,6 +245,15 @@ else
                 }
             </table>
             <p class="note">Workspace documents (invoices, vouchers, work orders, claims) post to the General Ledger automatically — there is no month-end posting step. Dashboards, P&amp;L, Balance Sheet and reports always read live workspace data.</p>
+            <h3>Your authority over users (tenant admin)</h3>
+            <p>As tenant admin you control every user's reach — per module, per page, per field — without asking the platform:</p>
+            <div class="tier">
+                <div style="background:#e0f2f1;color:#0f766e">1 · Role<br/><span style="font-weight:400">the job function</span></div>
+                <div style="background:#e8f0fe;color:#1d4ed8">2 · Duties &amp; privileges<br/><span style="font-weight:400">what the role can open &amp; do</span></div>
+                <div style="background:#fef3e2;color:#b45309">3 · Field rules<br/><span style="font-weight:400">hide / read-only per field</span></div>
+                <div style="background:#fde8ef;color:#be185d">4 · Dashboard<br/><span style="font-weight:400">widgets per user / group</span></div>
+            </div>
+            <p class="note">All of it lives in ERP → Setup → Tenant config &amp; security (/erp/tenant-config-app → Security roles) and Dashboards (/erp/dashboard-app). Changes apply instantly to that user's next page load.</p>
         </section>
 
         <section class="brk">
@@ -233,33 +279,67 @@ else
         </section>
 
         <section class="brk">
-            <h2>@SectionNum(4) · Industry workspaces — guides &amp; process</h2>
-            <p>ecom ships a full workspace per industry vertical. @(_canCp ? "Enable your pack in Industry settings (/cp/industry-settings-app)" : "Your industry pack is applied by the platform team"); each workspace carries its own graphical step guide on the page. The process tracks below are the same guides, printed for the kit.</p>
-            @IndustrySection("Auto parts", "fa-car", "/erp/autoparts/workspace", ErpAutoPartsGuide.Lanes.Select(l => (l.Title, l.Icon, l.Steps.Select(s => (s.Number, s.Icon, s.Label, s.Detail, s.Href)))))
-            @IndustrySection("Jewellery", "fa-diamond", "/erp/jewellery/workspace", ErpJewelleryGuide.Lanes.Select(l => (l.Title, l.Icon, l.Steps.Select(s => (s.Number, s.Icon, s.Label, s.Detail, s.Href)))))
-            @IndustrySection("Real estate", "fa-building", "/erp/real-estate-app", ErpRealEstateGuide.Lanes.Select(l => (l.Title, l.Icon, l.Steps.Select(s => (Number: s.Number, Icon: s.Icon, Label: s.Label, Detail: "", Href: s.Href)))))
-            @IndustrySection("Fit-out / contracting", "fa-hard-hat", "/erp/fitout/workspace", ErpFitOutGuide.Lanes.Select(l => (l.Title, l.Icon, l.Steps.Select(s => (s.Number, s.Icon, s.Label, s.Detail, s.Href)))))
+            <h2>4 · @IndustryLabel workspace — guide &amp; process</h2>
+            <p>Your tenant runs the <strong>@IndustryLabel</strong> workspace — the same graphical process track you see at the top of the workspace page (<a href="https://@(_host + IndustryWorkspaceHref)">@IndustryWorkspaceHref</a>), printed here for handover.@(_canCp ? " Industry packs are enabled in Industry settings (/cp/industry-settings-app)." : "")</p>
+            @IndustryLanes()
         </section>
 
-        @if (_canCp)
-        {
-            <section class="brk">
-                <h2>@SectionNum(5) · Control Panel &amp; storefront (full tenant)</h2>
-                <p>Full tenants run the storefront and the Control Panel on top of ERP. The storefront's branding, menus and content are tenant-controlled.</p>
-                <table>
-                    <tr><th>Destination</th><th>Path</th></tr>
-                    <tr><td>Brand &amp; theme tokens (colors, logo, density — repaint CP/ERP/storefront)</td><td>/cp/design-tokens-app</td></tr>
-                    <tr><td>Menus &amp; navigation (site + CP menus)</td><td>/cp/menus-app</td></tr>
-                    <tr><td>Industry settings</td><td>/cp/industry-settings-app</td></tr>
-                    <tr><td>Custom fields</td><td>/cp/vin-fields-app</td></tr>
-                    <tr><td>Mobile apps (CP app)</td><td>/cp/mobile-apps-app</td></tr>
-                    <tr><td>Storefront admin app</td><td>/storefront/app</td></tr>
-                </table>
-            </section>
-        }
+        <section class="brk">
+            <h2>5 · Admin &amp; customization guides</h2>
+            <p>Every customization page in ecom opens with a step-by-step graphical guide — collected here in full so the book stands alone. @( _canCp ? "" : "CP-level areas (branding, menus, industry pack, custom fields) are applied by the platform team for ERP-only tenants and are omitted.")</p>
+            @foreach (var (slug, label, href, icon) in TenantCustomizationGuide.RelatedLinks)
+            {
+                if (!AreaVisible(slug)) { continue; }
+                var area = TenantCustomizationGuide.Areas[slug];
+                <div class="gcard">
+                    <div class="gcard-h"><i class="fa @icon"></i> @label <span style="margin-left:auto;font-weight:400;font-size:10.5px">@href</span></div>
+                    <div class="glead">@area.Intro</div>
+                    <div class="steps">
+                        @foreach (var st in area.Steps)
+                        {
+                            <div class="step"><span class="n">@st.Number</span> <i class="fa @st.Icon"></i> <span class="t">@st.Label</span><span class="d">@st.Detail</span>@if (!string.IsNullOrEmpty(st.Href)) { <a href="https://@(_host + st.Href)">@st.Href</a> }</div>
+                        }
+                    </div>
+                </div>
+            }
+        </section>
 
         <section class="brk">
-            <h2>@SectionNum(6) · Customization map</h2>
+            <h2>6 · Operations guides — module by module</h2>
+            @if (_canCp)
+            {
+                <p>The in-app operator guides (CP → Guides) reproduced as print chapters — follow each numbered chapter end-to-end for that module's daily process.</p>
+            }
+            else
+            {
+                <p>Module operation guides for your tenant are embedded in each workspace page (section 4 covers your industry process end-to-end). CP operator guides apply to full tenants only.</p>
+            }
+            @foreach (var g in OperatorGuidesCatalog.All)
+            {
+                if (!_canCp) { break; }
+                if (string.Equals(g.Surface, "super", StringComparison.Ordinal)) { continue; }
+                <div class="gcard">
+                    <div class="gcard-h"><i class="fa @g.Icon"></i> @g.Title <span style="margin-left:auto;font-weight:400;font-size:10.5px">@g.Href</span></div>
+                    <div class="glead">@g.Summary</div>
+                    @foreach (var ch in g.Chapters)
+                    {
+                        <div class="ch">
+                            <h4>@ch.Title</h4>
+                            <div class="lead">@ch.Lead</div>
+                            <ol>
+                                @foreach (var st in ch.Steps)
+                                {
+                                    <li>@st</li>
+                                }
+                            </ol>
+                        </div>
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="brk">
+            <h2>7 · Customization map</h2>
             <p>Everything a tenant admin can customize, and where:</p>
             <table>
                 <tr><th>What</th><th>Where</th><th>Scope</th></tr>
@@ -284,7 +364,7 @@ else
         </section>
 
         <section class="brk">
-            <h2>@SectionNum(7) · Go-live checklist</h2>
+            <h2>8 · Go-live checklist</h2>
             <ol>
                 <li><strong>Sign in</strong> at /erp/login with the issued admin credential; change the temporary password and enroll 2FA (ERP → Setup → Security MFA).</li>
                 <li><strong>Review the org map</strong> — ERP → Setup → Tenant guide shows legal entities, business units, warehouses.</li>
@@ -308,7 +388,7 @@ else
         </section>
 
         <section>
-            <h2>@SectionNum(8) · House rules</h2>
+            <h2>9 · House rules</h2>
             <ul>
                 <li><strong>Sandbox vs operations:</strong> demo/sample data runs only on sandbox tenants — it is blocked on operation tenants by design.</li>
                 <li><strong>No month-end posting:</strong> documents post to GL/COA automatically when saved/approved.</li>
@@ -319,8 +399,8 @@ else
         </section>
 
         <section>
-            <h2>@SectionNum(9) · Handover sign-off</h2>
-            <p class="note">Signatures confirm the tenant admin received this kit, the credentials listed in section 1, and a walkthrough of sections 2–4.</p>
+            <h2>10 · Handover sign-off</h2>
+            <p class="note">Signatures confirm the tenant admin received this kit, the credentials listed in section 1, and a walkthrough of sections 2–6.</p>
             <div class="sign">
                 <div class="line">Delivered by (name, role, date)</div>
                 <div class="line">Received by — tenant admin (name, date)</div>
@@ -333,6 +413,10 @@ else
     private bool _canErp;
     private bool _canCp;
     private string _host = "";
+    private string _industryCode = "";
+    private string _tenantName = "";
+    private string _tenantLogoUrl = "";
+    private LoginHostBrand.Brand _brand = null!;
     private IReadOnlyList<ErpStaffProfileDigest> _staff = [];
     private IReadOnlyList<CpUserDigest> _cpUsers = [];
     private int _staffCount;
@@ -340,41 +424,80 @@ else
 
     private string TenantTypeLabel => _canCp ? "Full tenant (ERP + CP + storefront)" : "ERP tenant";
 
-    /// <summary>Section number: CP section 5 only exists for full tenants, so later numbers shift.</summary>
-    private string SectionNum(int full)
-        => (_canCp ? full : full - 1).ToString(CultureInfo.InvariantCulture);
+    private string IndustryLabel => _industryCode switch
+    {
+        "auto_parts" => "Auto parts",
+        "jewellery" => "Jewellery",
+        "real_estate" => "Real estate",
+        "fit_out" => "Fit-out / contracting",
+        _ => "Industry",
+    };
+
+    private string IndustryWorkspaceHref => _industryCode switch
+    {
+        "auto_parts" => "/erp/autoparts/workspace",
+        "jewellery" => "/erp/jewellery/workspace",
+        "real_estate" => "/erp/real-estate-app",
+        "fit_out" => "/erp/fitout/workspace",
+        _ => "/erp",
+    };
 
     private static string Html(string? value) => HtmlEncoder.Default.Encode(value ?? "");
 
-    private MarkupString IndustrySection(
-        string name,
-        string icon,
-        string href,
-        IEnumerable<(string Title, string Icon, IEnumerable<(int Number, string Icon, string Label, string Detail, string Href)> Steps)> lanes)
+    /// <summary>CP-surface customization areas are only shown to full tenants.</summary>
+    private bool AreaVisible(string slug) => slug switch
     {
-        var sb = new StringBuilder("<div style=\"margin-top:10px\">");
-        sb.Append("<h3><i class=\"fa ").Append(Html(icon)).Append("\" aria-hidden=\"true\"></i> ")
-            .Append(Html(name)).Append(" — <a href=\"https://").Append(Html(_host)).Append(Html(href)).Append("\">")
-            .Append(Html(href)).Append("</a></h3>");
-        foreach (var lane in lanes)
+        "design-tokens" or "menus" or "industry-settings" or "custom-fields" => _canCp,
+        _ => true,
+    };
+
+    /// <summary>Renders only this tenant's industry pack lanes as graphical step tracks.</summary>
+    private MarkupString IndustryLanes()
+    {
+        var sb = new StringBuilder();
+        void Lane(string title, string icon, IEnumerable<(int Number, string Icon, string Label, string Detail, string? Href)> steps)
         {
-            sb.Append("<h3 style=\"color:#0f766e\"><i class=\"fa ").Append(Html(lane.Icon)).Append("\" aria-hidden=\"true\"></i> ")
-                .Append(Html(lane.Title)).Append("</h3>");
-            sb.Append("<table><tr><th style=\"width:34px\">#</th><th>Step</th><th>What to do</th></tr>");
-            foreach (var step in lane.Steps)
+            sb.Append("<div class=\"lane\"><div class=\"lane-h\"><i class=\"fa ").Append(Html(icon))
+                .Append("\" aria-hidden=\"true\"></i> ").Append(Html(title)).Append("</div><div class=\"steps\">");
+            foreach (var st in steps)
             {
-                sb.Append("<tr><td>").Append(step.Number).Append("</td><td><i class=\"fa ")
-                    .Append(Html(step.Icon)).Append("\" aria-hidden=\"true\"></i> ");
-                if (string.IsNullOrWhiteSpace(step.Href))
-                    sb.Append(Html(step.Label));
-                else
-                    sb.Append("<a href=\"https://").Append(Html(_host)).Append(Html(step.Href)).Append("\">")
-                        .Append(Html(step.Label)).Append("</a>");
-                sb.Append("</td><td>").Append(Html(step.Detail)).Append("</td></tr>");
+                sb.Append("<div class=\"step\"><span class=\"n\">").Append(st.Number)
+                    .Append("</span> <i class=\"fa ").Append(Html(st.Icon)).Append("\" aria-hidden=\"true\"></i> ")
+                    .Append("<span class=\"t\">").Append(Html(st.Label)).Append("</span>");
+                if (!string.IsNullOrWhiteSpace(st.Detail))
+                    sb.Append("<span class=\"d\">").Append(Html(st.Detail)).Append("</span>");
+                if (!string.IsNullOrWhiteSpace(st.Href))
+                    sb.Append("<a href=\"https://").Append(Html(_host)).Append(Html(st.Href)).Append("\">").Append(Html(st.Href)).Append("</a>");
+                sb.Append("</div>");
             }
-            sb.Append("</table>");
+            sb.Append("</div></div>");
         }
-        sb.Append("</div>");
+
+        var codes = _industryCode is "auto_parts" or "jewellery" or "real_estate" or "fit_out"
+            ? new[] { _industryCode }
+            : new[] { "auto_parts", "jewellery", "real_estate", "fit_out" };
+        foreach (var code in codes)
+        {
+            switch (code)
+            {
+                case "auto_parts":
+                    foreach (var l in ErpAutoPartsGuide.Lanes)
+                        Lane(l.Title, l.Icon, l.Steps.Select(x => (x.Number, x.Icon, x.Label, x.Detail, (string?)x.Href)));
+                    break;
+                case "jewellery":
+                    foreach (var l in ErpJewelleryGuide.Lanes)
+                        Lane(l.Title, l.Icon, l.Steps.Select(x => (x.Number, x.Icon, x.Label, x.Detail, (string?)x.Href)));
+                    break;
+                case "real_estate":
+                    foreach (var l in ErpRealEstateGuide.Lanes)
+                        Lane(l.Title, l.Icon, l.Steps.Select(x => (x.Number, x.Icon, x.Label, "", (string?)x.Href)));
+                    break;
+                case "fit_out":
+                    foreach (var l in ErpFitOutGuide.Lanes)
+                        Lane(l.Title, l.Icon, l.Steps.Select(x => (x.Number, x.Icon, x.Label, x.Detail, (string?)x.Href)));
+                    break;
+            }
+        }
         return new MarkupString(sb.ToString());
     }
 
@@ -385,6 +508,11 @@ else
 
         _print = string.Equals(ctx.Request.Query["print"], "1", StringComparison.Ordinal);
         _host = PlatformHostPolicy.NormalizeHost(ctx.Request.Host.Host);
+        _brand = LoginHostBrand.Resolve(_host, "erp");
+        var tenant = ctx.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        _industryCode = tenant?.IndustryCode ?? "";
+        _tenantName = _brand.Label;
+        _tenantLogoUrl = _brand.LogoUrl ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _canErp = session.Capabilities?.Contains("erp") ?? false;

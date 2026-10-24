@@ -131,12 +131,12 @@ public sealed class ErpTenantGuideReadService : IErpTenantGuideReadService
         {
             await using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = "SELECT bu.`id`, bu.`entity_id`, bu.`code`, bu.`name`, bu.`cost_centre`, "
+                cmd.CommandText = "SELECT bu.`id`, bu.`legal_entity_id`, bu.`code`, bu.`name`, bu.`cost_centre`, "
                     + (hasWarehouses ? "COALESCE(w.`name`,''), " : "'', ")
                     + (hasWarehouseCc ? "COALESCE(NULLIF(w.`cost_centre`,''), bu.`cost_centre`) " : "bu.`cost_centre` ")
-                    + "FROM `epc_erp_org_business_units` bu "
+                    + "FROM `epc_erp_pm_business_units` bu "
                     + (hasWarehouses ? "LEFT JOIN `epc_erp_inv_warehouses` w ON w.`id` = bu.`default_warehouse_id` " : string.Empty)
-                    + "WHERE bu.`status`='active' ORDER BY bu.`entity_id`, bu.`code`";
+                    + "WHERE bu.`active`=1 ORDER BY bu.`legal_entity_id`, bu.`code`";
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
