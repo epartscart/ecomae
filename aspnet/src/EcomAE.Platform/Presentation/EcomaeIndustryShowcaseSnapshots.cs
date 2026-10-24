@@ -44,6 +44,19 @@ public static class EcomaeIndustryShowcaseSnapshots
             candidate = "manufacturing";
         }
 
+        if (candidate is "food-beverage")
+        {
+            candidate = "food";
+        }
+        else if (candidate is "furniture")
+        {
+            candidate = "homeliving";
+        }
+        else if (candidate is "real-estate")
+        {
+            candidate = "construction";
+        }
+
         if (string.IsNullOrWhiteSpace(candidate)
             || !EcomaeIndustryShowcaseHosts.Slugs.Contains(candidate, StringComparer.OrdinalIgnoreCase))
         {
