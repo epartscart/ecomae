@@ -22,6 +22,9 @@ public sealed record ErpManualJournalInput
     public long BusinessUnitId { get; init; }
 
     public string CurrencyCode { get; init; } = string.Empty;
+
+    /// <summary>Units of accounting currency per 1 transaction currency; 0 stores as 1.</summary>
+    public decimal ExchangeRate { get; init; } = 1m;
 }
 
 /// <summary>PHP <c>epc_erp_gl_create_coa</c> payload.</summary>
@@ -225,6 +228,7 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
                     CompanyId = prepared.HeaderLegalEntityId,
                     BusinessUnitId = prepared.HeaderBusinessUnitId,
                     CurrencyCode = input.CurrencyCode,
+                    ExchangeRate = input.ExchangeRate,
                 },
                 lines,
                 adminId,

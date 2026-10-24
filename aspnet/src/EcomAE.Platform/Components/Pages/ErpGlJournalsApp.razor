@@ -47,10 +47,13 @@
                 <label>Journal date <input type="datetime-local" value="@JournalDateInput" data-date-input required /></label>
                 <label>Reference <input type="text" name="reference" required maxlength="80" /></label>
                 <label>Description <input type="text" name="description" required maxlength="255" /></label>
+                <label>Currency <input type="text" name="currency_code" maxlength="8" value="AED" style="width:5rem;text-transform:uppercase" /></label>
+                <label>Exchange rate <input type="number" name="exchange_rate" min="0" step="0.00000001" value="1" style="width:8rem" /></label>
+                <p class="text-muted">Voucher &amp; journal number: <strong>assigned automatically</strong> (GV-…) on posting — shown on the posted voucher and its print. Amounts above are in the voucher currency; the rate converts them to accounting currency.</p>
                 <p class="text-muted">Put the debit and the credit on different business units or legal entities when the entry crosses them. The books add the intercompany receivable and payable so each unit still tallies. The same TRN is not a tax invoice. A different TRN charges VAT.</p>
                 <div class="epc-erp-table-wrap">
-                    <table class="table table-bordered table-condensed table-epc epc-erp-table">
-                        <thead><tr><th>COA account</th><th>Legal entity</th><th>Business unit</th><th>Debit</th><th>Credit</th><th>Line note</th></tr></thead>
+                    <table class="table table-bordered table-condensed table-epc epc-erp-table" id="gl-journal-lines">
+                        <thead><tr><th>COA account</th><th>Legal entity</th><th>Business unit</th><th style="width:7rem">Debit</th><th style="width:7rem">Credit</th><th>Line note</th><th style="width:2.2rem"></th></tr></thead>
                         <tbody>
                             <tr>
                                 <td><ErpMasterPicker Kind="coa" FieldName="lines[0].coaId" InputId="gl-line-0" Label="Account" Required="true" /></td>
@@ -59,6 +62,7 @@
                                 <td><input type="number" name="lines[0].debit" min="0" step="0.01" value="0" required /></td>
                                 <td><input type="number" name="lines[0].credit" min="0" step="0.01" value="0" required /></td>
                                 <td><input type="text" name="lines[0].lineNote" maxlength="255" /></td>
+                                <td><button type="button" class="btn btn-xs btn-default gl-line-del" title="Remove line">&times;</button></td>
                             </tr>
                             <tr>
                                 <td><ErpMasterPicker Kind="coa" FieldName="lines[1].coaId" InputId="gl-line-1" Label="Account" Required="true" /></td>
@@ -67,6 +71,7 @@
                                 <td><input type="number" name="lines[1].debit" min="0" step="0.01" value="0" required /></td>
                                 <td><input type="number" name="lines[1].credit" min="0" step="0.01" value="0" required /></td>
                                 <td><input type="text" name="lines[1].lineNote" maxlength="255" /></td>
+                                <td><button type="button" class="btn btn-xs btn-default gl-line-del" title="Remove line">&times;</button></td>
                             </tr>
                             <tr>
                                 <td><ErpMasterPicker Kind="coa" FieldName="lines[2].coaId" InputId="gl-line-2" Label="Account" /></td>
@@ -75,10 +80,52 @@
                                 <td><input type="number" name="lines[2].debit" min="0" step="0.01" value="0" /></td>
                                 <td><input type="number" name="lines[2].credit" min="0" step="0.01" value="0" /></td>
                                 <td><input type="text" name="lines[2].lineNote" maxlength="255" /></td>
+                                <td><button type="button" class="btn btn-xs btn-default gl-line-del" title="Remove line">&times;</button></td>
+                            </tr>
+                            <tr>
+                                <td><ErpMasterPicker Kind="coa" FieldName="lines[3].coaId" InputId="gl-line-3" Label="Account" /></td>
+                                <td><ErpMasterPicker Kind="legal-entity" FieldName="lines[3].legalEntityId" InputId="gl-line-3-le" Label="Legal entity" /></td>
+                                <td><ErpMasterPicker Kind="business-unit" FieldName="lines[3].businessUnitId" InputId="gl-line-3-bu" Label="Business unit" /></td>
+                                <td><input type="number" name="lines[3].debit" min="0" step="0.01" value="0" /></td>
+                                <td><input type="number" name="lines[3].credit" min="0" step="0.01" value="0" /></td>
+                                <td><input type="text" name="lines[3].lineNote" maxlength="255" /></td>
+                                <td><button type="button" class="btn btn-xs btn-default gl-line-del" title="Remove line">&times;</button></td>
+                            </tr>
+                            <tr>
+                                <td><ErpMasterPicker Kind="coa" FieldName="lines[4].coaId" InputId="gl-line-4" Label="Account" /></td>
+                                <td><ErpMasterPicker Kind="legal-entity" FieldName="lines[4].legalEntityId" InputId="gl-line-4-le" Label="Legal entity" /></td>
+                                <td><ErpMasterPicker Kind="business-unit" FieldName="lines[4].businessUnitId" InputId="gl-line-4-bu" Label="Business unit" /></td>
+                                <td><input type="number" name="lines[4].debit" min="0" step="0.01" value="0" /></td>
+                                <td><input type="number" name="lines[4].credit" min="0" step="0.01" value="0" /></td>
+                                <td><input type="text" name="lines[4].lineNote" maxlength="255" /></td>
+                                <td><button type="button" class="btn btn-xs btn-default gl-line-del" title="Remove line">&times;</button></td>
                             </tr>
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="text-align:right;font-weight:700">Totals</td>
+                                <td id="gl-tot-dr" style="font-weight:700">0.00</td>
+                                <td id="gl-tot-cr" style="font-weight:700">0.00</td>
+                                <td id="gl-tot-bal" colspan="2" class="text-muted">difference 0.00</td>
+                            </tr>
+                        </tfoot>
                     </table>
+                    <button type="button" class="btn btn-default btn-sm" id="gl-add-line"><i class="fa fa-plus"></i> Add line</button>
                 </div>
+                <script>
+                (function(){
+                    var table=document.getElementById('gl-journal-lines');
+                    if(!table)return;
+                    var tbody=table.querySelector('tbody');
+                    function names(){var n=0;tbody.querySelectorAll('tr').forEach(function(tr){tr.querySelectorAll('[name]').forEach(function(el){el.name=el.name.replace(/lines\[\d+\]/,'lines['+n+']')});n++})}
+                    function totals(){var d=0,c=0;tbody.querySelectorAll('tr').forEach(function(tr){var di=tr.querySelector('[name$=".debit"]'),ci=tr.querySelector('[name$=".credit"]');if(di)d+=parseFloat(di.value)||0;if(ci)c+=parseFloat(ci.value)||0});var t=document.getElementById('gl-tot-dr'),u=document.getElementById('gl-tot-cr'),b=document.getElementById('gl-tot-bal');if(t)t.textContent=d.toFixed(2);if(u)u.textContent=c.toFixed(2);if(b){var v=Math.abs(d-c);b.textContent=v<0.005?'balanced':'difference '+v.toFixed(2);b.style.color=v<0.005?'#0f766e':'#b45309'}}
+                    tbody.addEventListener('input',totals);
+                    tbody.addEventListener('click',function(e){var b=e.target.closest('.gl-line-del');if(!b)return;if(tbody.querySelectorAll('tr').length<=2)return alert('A journal needs at least two lines');b.closest('tr').remove();names();totals()});
+                    var add=document.getElementById('gl-add-line');
+                    if(add)add.addEventListener('click',function(){var last=tbody.querySelector('tr:last-child');var tr=last.cloneNode(true);tr.querySelectorAll('input').forEach(function(i){i.value=i.type==='number'?'0':''});tbody.appendChild(tr);names();totals()});
+                    totals();
+                })();
+                </script>
                 <div class="form-actions"><button type="submit" class="btn btn-primary">Validate and post journal</button></div>
             </form>
         </section>
@@ -342,6 +389,8 @@
 
     private bool _entry => string.Equals(Http.HttpContext?.Request.Query["view"].ToString(), "entry", StringComparison.OrdinalIgnoreCase);
 
+    private bool _print => string.Equals(Http.HttpContext?.Request.Query["print"].ToString(), "1", StringComparison.Ordinal);
+
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
@@ -391,3 +440,20 @@
         return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     }
 }
+<style scoped>
+.glv-print{max-width:820px;margin:1.5rem auto;background:#fff;color:#111;padding:2rem 2.25rem;font-family:'Inter','Segoe UI',sans-serif}
+.glv-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0f172a;padding-bottom:.9rem;margin-bottom:1.1rem}
+.glv-head h1{margin:0;font-size:1.5rem;letter-spacing:.02em}
+.glv-meta{width:100%;border-collapse:collapse;margin-bottom:1.1rem}
+.glv-meta td{border:1px solid #d8dde6;padding:.4rem .55rem;font-size:.85rem}
+.glv-meta td:nth-child(odd){background:#f4f6fa;font-weight:600;width:9rem}
+.glv-lines{width:100%;border-collapse:collapse}
+.glv-lines th,.glv-lines td{border:1px solid #d8dde6;padding:.45rem .55rem;font-size:.85rem}
+.glv-lines th{background:#0f172a;color:#fff;text-align:left}
+.glv-lines td.r{text-align:right;font-variant-numeric:tabular-nums}
+.glv-lines tfoot td{font-weight:700;background:#f4f6fa}
+.glv-sign{display:flex;gap:2rem;margin-top:2.6rem}
+.glv-sign div{flex:1;border-top:1px solid #444;padding-top:.35rem;font-size:.8rem;color:#444;text-align:center}
+.glv-note{margin-top:1.6rem;font-size:.72rem;color:#777}
+@@media print{.glv-noprint{display:none}@@page{size:A4;margin:12mm}}
+</style>

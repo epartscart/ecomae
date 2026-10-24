@@ -12128,6 +12128,7 @@ public sealed class ErpModule : ISurfaceModule
                         CompanyId = body.CompanyId,
                         BusinessUnitId = body.BusinessUnitId,
                         CurrencyCode = body.CurrencyCode ?? string.Empty,
+                        ExchangeRate = body.ExchangeRate,
                     },
                     session.UserId,
                     cancellationToken);
@@ -33220,7 +33221,8 @@ public sealed class ErpModule : ISurfaceModule
             LiveWriteFormBinder.Text(form, "idempotencyKey", "idempotency_key", "idem_key"),
             LiveWriteFormBinder.Long(form, "legal_entity_id", "company_id"),
             LiveWriteFormBinder.Long(form, "business_unit_id"),
-            LiveWriteFormBinder.Text(form, "currency_code", "currency"));
+            LiveWriteFormBinder.Text(form, "currency_code", "currency"),
+            LiveWriteFormBinder.Dec(form, "exchange_rate", "rate"));
     }
 
     private sealed record ErpGlManualLineBody(
@@ -33239,7 +33241,8 @@ public sealed class ErpModule : ISurfaceModule
         string? IdempotencyKey = null,
         long CompanyId = 0,
         long BusinessUnitId = 0,
-        string? CurrencyCode = null);
+        string? CurrencyCode = null,
+        decimal ExchangeRate = 1m);
     private sealed record ErpGlReverseJournalBody(
         long JournalId,
         string? Note,
