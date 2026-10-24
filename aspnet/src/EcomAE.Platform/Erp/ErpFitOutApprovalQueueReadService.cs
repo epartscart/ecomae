@@ -59,7 +59,7 @@ public sealed class ErpFitOutApprovalQueueReadService
                   'approval_request','site_engineer_approval','project_manager_approval',
                   'variation_approval','final_settlement','work_completion_certificate',
                   'subcontract_payment_certificate','client_payment_certificate',
-                  'retention_release','vendor_bill','payment_voucher'
+                  'retention_release','vendor_bill','payment_voucher','client_progress_claim','subcontractor_progress_claim'
               ){projectFilter}
             ORDER BY `event_date`,`id`
             """);

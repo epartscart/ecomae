@@ -87,7 +87,7 @@ public sealed class ErpFitOutContractClosureReadService
                                           'final_settlement','work_completion_certificate',
                                           'subcontract_payment_certificate',
                                           'client_payment_certificate','retention_release',
-                                          'vendor_bill','payment_voucher')
+                                          'vendor_bill','payment_voucher','client_progress_claim','subcontractor_progress_claim')
                                       THEN 1 ELSE 0 END),0),
                     COALESCE(SUM(CASE WHEN `status`='pending'
                                       AND `record_type` IN (
@@ -96,7 +96,7 @@ public sealed class ErpFitOutContractClosureReadService
                                           'final_settlement','work_completion_certificate',
                                           'subcontract_payment_certificate',
                                           'client_payment_certificate','retention_release',
-                                          'vendor_bill','payment_voucher')
+                                          'vendor_bill','payment_voucher','client_progress_claim','subcontractor_progress_claim')
                                       THEN `amount` ELSE 0 END),0),
                     COALESCE(SUM(CASE WHEN `record_type`='work_completion_certificate'
                                       AND `status`='approved' THEN 1 ELSE 0 END),0),

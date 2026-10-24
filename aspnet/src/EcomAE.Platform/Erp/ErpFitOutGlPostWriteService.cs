@@ -187,6 +187,10 @@ public sealed class ErpFitOutGlPostWriteService : IErpFitOutGlPostWriteService
                 {
                     count++;
                 }
+                else
+                {
+                    failed++;
+                }
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
