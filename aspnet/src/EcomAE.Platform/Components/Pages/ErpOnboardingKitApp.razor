@@ -145,7 +145,7 @@ else
             <div class="cred">
                 <div class="grid2">
                     <div><label>Admin login</label><input type="text" autocomplete="off" /></div>
-                    <div><label>Temporary password</label><input type="text" autocomplete="off" /></div>
+                    <div><label>Temporary password</label><input type="password" autocomplete="new-password" /></div>
                     <div><label>Issued by</label><input type="text" autocomplete="off" /></div>
                     <div><label>Date issued</label><input type="text" autocomplete="off" /></div>
                 </div>
@@ -173,7 +173,8 @@ else
 
             @if (_canCp)
             {
-                <h3>Control Panel users (@_cpUserCount)</h3>
+                <h3>Storefront / portal user accounts (@_cpUserCount)</h3>
+                <p class="note">These are storefront &amp; portal user accounts (customers and portal users) — admin access is granted through the ERP staff table above plus CP admin roles, not through this list.</p>
                 @if (_cpUsers.Count == 0)
                 {
                     <p class="note">No CP users returned.</p>
@@ -233,11 +234,11 @@ else
 
         <section class="brk">
             <h2>@SectionNum(4) · Industry workspaces — guides &amp; process</h2>
-            <p>ecom ships a full workspace per industry vertical. Enable your pack in <a href="https://@_host/cp/industry-settings-app">Industry settings</a>; each workspace carries its own graphical step guide on the page. The process tracks below are the same guides, printed for the kit.</p>
+            <p>ecom ships a full workspace per industry vertical. @(_canCp ? "Enable your pack in Industry settings (/cp/industry-settings-app)" : "Your industry pack is applied by the platform team"); each workspace carries its own graphical step guide on the page. The process tracks below are the same guides, printed for the kit.</p>
             @IndustrySection("Auto parts", "fa-car", "/erp/autoparts/workspace", ErpAutoPartsGuide.Lanes.Select(l => (l.Title, l.Icon, l.Steps.Select(s => (s.Number, s.Icon, s.Label, s.Detail, s.Href)))))
-            @IndustrySection("Jewellery", "fa-diamond", "/erp/jewellery-retail-app", ErpJewelleryGuide.Lanes.Select(l => (l.Title, l.Icon, l.Steps.Select(s => (s.Number, s.Icon, s.Label, s.Detail, s.Href)))))
+            @IndustrySection("Jewellery", "fa-diamond", "/erp/jewellery/workspace", ErpJewelleryGuide.Lanes.Select(l => (l.Title, l.Icon, l.Steps.Select(s => (s.Number, s.Icon, s.Label, s.Detail, s.Href)))))
             @IndustrySection("Real estate", "fa-building", "/erp/real-estate-app", ErpRealEstateGuide.Lanes.Select(l => (l.Title, l.Icon, l.Steps.Select(s => (Number: s.Number, Icon: s.Icon, Label: s.Label, Detail: "", Href: s.Href)))))
-            @IndustrySection("Fit-out / contracting", "fa-hard-hat", "/erp/fitout-workspace-app", ErpFitOutGuide.Lanes.Select(l => (l.Title, l.Icon, l.Steps.Select(s => (s.Number, s.Icon, s.Label, s.Detail, s.Href)))))
+            @IndustrySection("Fit-out / contracting", "fa-hard-hat", "/erp/fitout/workspace", ErpFitOutGuide.Lanes.Select(l => (l.Title, l.Icon, l.Steps.Select(s => (s.Number, s.Icon, s.Label, s.Detail, s.Href)))))
         </section>
 
         @if (_canCp)
@@ -262,14 +263,21 @@ else
             <p>Everything a tenant admin can customize, and where:</p>
             <table>
                 <tr><th>What</th><th>Where</th><th>Scope</th></tr>
-                <tr><td>Branding, colors, logo, theme</td><td>/cp/design-tokens-app</td><td>Tenant (overrides industry &amp; super)</td></tr>
+                @if (_canCp)
+                {
+                    <tr><td>Branding, colors, logo, theme</td><td>/cp/design-tokens-app</td><td>Tenant (overrides industry &amp; super)</td></tr>
+                    <tr><td>Menus</td><td>/cp/menus-app</td><td>Tenant</td></tr>
+                    <tr><td>Industry pack &amp; terminology</td><td>/cp/industry-settings-app</td><td>Tenant</td></tr>
+                    <tr><td>Custom fields</td><td>/cp/vin-fields-app</td><td>Tenant</td></tr>
+                }
+                else
+                {
+                    <tr><td>Tenant branding, menus, industry pack, custom fields</td><td>Managed by the platform team for ERP-only tenants</td><td>Platform</td></tr>
+                }
                 <tr><td>Dashboard widgets per user / group</td><td>/erp/dashboard-app</td><td>Per user + tenant defaults</td></tr>
-                <tr><td>Menus</td><td>/cp/menus-app</td><td>Tenant</td></tr>
-                <tr><td>Industry pack &amp; terminology</td><td>/cp/industry-settings-app</td><td>Tenant</td></tr>
-                <tr><td>Custom fields</td><td>/cp/vin-fields-app</td><td>Tenant</td></tr>
                 <tr><td>Field-level security (hide / read-only)</td><td>/erp/tenant-config-app → Security roles</td><td>Per user + per group</td></tr>
                 <tr><td>Roles, duties, privileges</td><td>/erp/tenant-config-app</td><td>Tenant</td></tr>
-                <tr><td>Mobile apps</td><td>/erp/mobile-apps-app (ERP) · /cp/mobile-apps-app (CP)</td><td>Tenant</td></tr>
+                <tr><td>Mobile apps</td><td>/erp/mobile-apps-app (ERP)@(_canCp ? " · /cp/mobile-apps-app (CP)" : "")</td><td>Tenant</td></tr>
                 <tr><td>Print / document design</td><td>/erp/print-designer-app</td><td>Tenant</td></tr>
             </table>
             <p class="note">Every customization page opens with a step-by-step graphical guide and a preview of where the change lands.</p>
@@ -284,9 +292,16 @@ else
                 <li><strong>Define security</strong> — ERP → Setup → Tenant config &amp; security → Security roles: create roles, attach duties and privileges, add field rules (hide/read-only) where needed.</li>
                 <li><strong>Set up finance</strong> — Chart of accounts, fiscal calendar, currencies and exchange rates under Record to Report.</li>
                 <li><strong>Load master data</strong> — customers, vendors, products, warehouses via CSV import (ecom studio) or the module forms.</li>
-                <li><strong>Brand the platform</strong> — design tokens (colors/logo), menus, dashboard defaults.</li>
-                <li><strong>Industry pack</strong> — enable the vertical pack so workspaces and terminology match your business.</li>
-                <li><strong>Mobile app</strong> — configure the ERP app (and CP app for full tenants) under Setup → Mobile apps.</li>
+                @if (_canCp)
+                {
+                    <li><strong>Brand the platform</strong> — design tokens (colors/logo), menus, dashboard defaults.</li>
+                    <li><strong>Industry pack</strong> — enable the vertical pack in Industry settings so workspaces and terminology match your business.</li>
+                }
+                else
+                {
+                    <li><strong>Branding &amp; industry pack</strong> — applied by the platform team for ERP-only tenants; confirm the vertical pack on the dashboard.</li>
+                }
+                <li><strong>Mobile app</strong> — configure the ERP app under Setup → Mobile apps@( _canCp ? " (and the CP app under CP → Mobile apps)" : "").</li>
                 <li><strong>Verify reports</strong> — Trial Balance, P&amp;L, Balance Sheet read live workspace data; run a test document end-to-end.</li>
                 <li><strong>Handover</strong> — print this kit, fill the credential box, collect signatures below.</li>
             </ol>
