@@ -157,10 +157,11 @@ else
                 <tr><td>4 · @IndustryLabel workspace — guide &amp; process</td></tr>
                 <tr><td>5 · Admin &amp; customization guides (step-by-step)</td></tr>
                 <tr><td>6 · Operations guides (module by module)</td></tr>
-                <tr><td>7 · Customization map</td></tr>
-                <tr><td>8 · Go-live checklist</td></tr>
-                <tr><td>9 · House rules</td></tr>
-                <tr><td>10 · Handover sign-off</td></tr>
+                <tr><td>7 · AI, voice &amp; system capabilities</td></tr>
+                <tr><td>8 · Customization map</td></tr>
+                <tr><td>9 · Go-live checklist</td></tr>
+                <tr><td>10 · House rules</td></tr>
+                <tr><td>11 · Handover sign-off</td></tr>
             </table>
         </section>
 
@@ -339,7 +340,57 @@ else
         </section>
 
         <section class="brk">
-            <h2>7 · Customization map</h2>
+            <h2>7 · AI, voice &amp; system capabilities</h2>
+            <p>Share this section with every user — it is what your team can actually do in ecom day to day, beyond menus and forms.</p>
+
+            <div class="gcard">
+                <div class="gcard-h"><i class="fa fa-microphone"></i> Voice command — talk to the ERP <span style="margin-left:auto;font-weight:400;font-size:10.5px">mic widget, ERP header</span></div>
+                <div class="glead">A microphone widget sits in the ERP shell. Tap it and speak — the ERP navigates or answers from live data. Runs in the browser (Chrome/Edge speech recognition); nothing to install, no extra licence, and it follows the signed-in user's permissions.</div>
+                <div class="steps">
+                    <div class="step"><span class="n">1</span> <span class="t">Navigate by voice</span><span class="d">"Open sales orders", "show invoices", "open payroll", "chart of accounts", "P&amp;L", "balance sheet", "CRM", "workflow" — the matching module opens.</span></div>
+                    <div class="step"><span class="n">2</span> <span class="t">Ask for numbers</span><span class="d">"Today's sales", "stock value", "who is busy?", "performance", "today's report", "inventory by gram" — live figures answered on screen.</span></div>
+                    <div class="step"><span class="n">3</span> <span class="t">Open a form</span><span class="d">"New invoice", "new sales order" — jumps to the entry form with the first field focused.</span></div>
+                    <div class="step"><span class="n">4</span> <span class="t">Help</span><span class="d">Say "help" or tap the mic's ? — the widget lists every command it understands.</span></div>
+                </div>
+            </div>
+
+            <div class="gcard">
+                <div class="gcard-h"><i class="fa fa-robot"></i> AI assistant — ask your ERP questions <span style="margin-left:auto;font-weight:400;font-size:10.5px">/erp/guide-app?tab=ai_assistant</span></div>
+                <div class="glead">Setup → Devin AI assistant. Type a question in natural language — the assistant reads live workspace data and answers: sales today/period, stock value, staff workload, performance KPIs, gap analysis, daily report. Read-only: it never writes or changes a record, and it only sees what the signed-in user is allowed to see.</div>
+                <div class="steps">
+                    <div class="step"><span class="n">1</span> <span class="t">Ask in plain English</span><span class="d">"What did we sell today?", "stock value by warehouse", "who is busiest this week?"</span></div>
+                    <div class="step"><span class="n">2</span> <span class="t">Answers from live data</span><span class="d">Figures come from the same workspace tables as your reports — never demo numbers on operations tenants.</span></div>
+                    <div class="step"><span class="n">3</span> <span class="t">Admin-level answers</span><span class="d">The assistant requires an admin ERP sign-in and answers from live data — decide which admin users should reach it via Security roles.</span></div>
+                    <div class="step"><span class="n">4</span> <span class="t">Read-only</span><span class="d">The assistant cannot post, edit, or delete anything. Data-entry stays gated behind confirmWrites.</span></div>
+                </div>
+            </div>
+
+            <h3>Platform capability register — for the admin to brief users</h3>
+            <table>
+                <tr><th>Capability</th><th>What it means for users</th><th>Where</th></tr>
+                <tr><td>Voice command</td><td>Navigate modules &amp; ask live figures by speaking</td><td>ERP header mic</td></tr>
+                <tr><td>AI assistant</td><td>Natural-language answers from live ERP data (read-only)</td><td>Setup → AI assistant</td></tr>
+                <tr><td>Automatic GL posting</td><td>Documents post to the ledger on save/approve — no month-end step</td><td>Every workspace</td></tr>
+                <tr><td>Field-level security</td><td>Hide or lock individual fields per user or group, instantly</td><td>Tenant config → Security roles</td></tr>
+                <tr><td>Roles → duties → privileges</td><td>Per-user reach into every module, page and field</td><td>Tenant config &amp; security</td></tr>
+                <tr><td>Personal dashboards</td><td>Each user/group shows &amp; hides their own widgets</td><td>Dashboard → personalize</td></tr>
+                <tr><td>CSV import / export</td><td>Bulk-load masters, export any list to Excel</td><td>Module pages · ecom studio</td></tr>
+                <tr><td>Print &amp; document designer</td><td>Tenant-branded invoice/voucher layouts</td><td>/erp/print-designer-app</td></tr>
+                <tr><td>E-invoicing &amp; UAE VAT</td><td>FTA-aligned invoices, VAT return workspace</td><td>Tax workspace</td></tr>
+                <tr><td>Audit trail</td><td>Every write logged with user + time — compliance test runner</td><td>/erp/audit-trail-app</td></tr>
+                <tr><td>Mobile app</td><td>Your ERP in an Android/iOS/PWA shell you configure</td><td>Setup → Mobile apps</td></tr>
+                <tr><td>Guides everywhere</td><td>Step-by-step graphical guide at the top of every admin page</td><td>All admin pages</td></tr>
+                @if (_canCp)
+                {
+                    <tr><td>Control Panel + storefront</td><td>Catalog, menus, branding, orders, portal users — tenant-controlled</td><td>/cp/* · /storefront</td></tr>
+                    <tr><td>Storefront AI parts expert</td><td>AI-assisted part/answers on the storefront</td><td>Storefront</td></tr>
+                }
+            </table>
+            <p class="note">Admin takeaway: voice + AI are already on for every entitled user — no setup needed. Use Security roles to decide <em>which</em> data each user's questions and voice answers can reach.</p>
+        </section>
+
+        <section class="brk">
+            <h2>8 · Customization map</h2>
             <p>Everything a tenant admin can customize, and where:</p>
             <table>
                 <tr><th>What</th><th>Where</th><th>Scope</th></tr>
@@ -364,7 +415,7 @@ else
         </section>
 
         <section class="brk">
-            <h2>8 · Go-live checklist</h2>
+            <h2>9 · Go-live checklist</h2>
             <ol>
                 <li><strong>Sign in</strong> at /erp/login with the issued admin credential; change the temporary password and enroll 2FA (ERP → Setup → Security MFA).</li>
                 <li><strong>Review the org map</strong> — ERP → Setup → Tenant guide shows legal entities, business units, warehouses.</li>
@@ -388,7 +439,7 @@ else
         </section>
 
         <section>
-            <h2>9 · House rules</h2>
+            <h2>10 · House rules</h2>
             <ul>
                 <li><strong>Sandbox vs operations:</strong> demo/sample data runs only on sandbox tenants — it is blocked on operation tenants by design.</li>
                 <li><strong>No month-end posting:</strong> documents post to GL/COA automatically when saved/approved.</li>
@@ -399,8 +450,8 @@ else
         </section>
 
         <section>
-            <h2>10 · Handover sign-off</h2>
-            <p class="note">Signatures confirm the tenant admin received this kit, the credentials listed in section 1, and a walkthrough of sections 2–6.</p>
+            <h2>11 · Handover sign-off</h2>
+            <p class="note">Signatures confirm the tenant admin received this kit, the credentials listed in section 1, and a walkthrough of sections 2–7.</p>
             <div class="sign">
                 <div class="line">Delivered by (name, role, date)</div>
                 <div class="line">Received by — tenant admin (name, date)</div>
