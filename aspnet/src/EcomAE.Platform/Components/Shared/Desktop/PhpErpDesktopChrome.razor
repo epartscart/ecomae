@@ -328,7 +328,17 @@
                     <ul class="epc-erp-topnav-list" role="menubar">
                         @foreach (var group in _nav)
                         {
-                            var columns = group.Columns ?? Array.Empty<LegacyDesktopChromeCatalog.MegaAreaColumn>();
+                            var columns = (group.Columns ?? Array.Empty<LegacyDesktopChromeCatalog.MegaAreaColumn>())
+                                .Where(col => col.Tabs.Count > 0)
+                                .ToArray();
+                            var hubHref = group.HubHref
+                                ?? group.Links.FirstOrDefault()?.Href
+                                ?? columns.FirstOrDefault()?.Tabs[0].Href;
+                            if (string.IsNullOrWhiteSpace(hubHref))
+                            {
+                                continue;
+                            }
+
                             var shortLabel = string.IsNullOrWhiteSpace(group.ShortLabel) ? group.Label : group.ShortLabel;
                             var itemClass = GroupIsActive(group) ? "epc-erp-topnav-item is-active" : "epc-erp-topnav-item";
                             <li class="@itemClass" data-category="@group.Id" role="none">
@@ -355,7 +365,7 @@
                                             }
                                             @group.Label
                                         </div>
-                                        <a class="epc-erp-topnav-panel-hub" href="@ModuleHref(group.HubHref ?? group.Links[0].Href)">
+                                        <a class="epc-erp-topnav-panel-hub" href="@ModuleHref(hubHref)">
                                             Open first module <i class="fa fa-arrow-right"></i>
                                         </a>
                                     </div>

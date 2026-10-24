@@ -233,6 +233,11 @@ else
             <ul class="epc-cp-topnav-list" role="menubar">
                 @foreach (var group in _navGroups)
                 {
+                    if (group.Items.Count == 0)
+                    {
+                        continue;
+                    }
+
                     var itemClass = "epc-cp-topnav-item";
                     if (GroupIsActive(group)) { itemClass += " is-active"; }
                     if (group.IsAdvanced) { itemClass += " epc-cp-topnav-item--advanced"; }
