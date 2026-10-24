@@ -1,10 +1,15 @@
 @namespace EcomAE.Platform.Components.Shared
 @using EcomAE.Platform.Presentation
 @inject IHttpContextAccessor Http
+@inject ITenantPresentationProvider TenantPresentation
 
+@if (!string.IsNullOrWhiteSpace(_tenantCss))
+{
+    <style>@((MarkupString)_tenantCss)</style>
+}
 @if (!string.IsNullOrEmpty(_headerHtml))
 {
-    <div class="epc-php-font-root">
+    <div class="epc-php-font-root @(_tenantAttrs is not null ? "epc-tenant-tokens" : null)"@attributes="_tenantAttrs">
         @((MarkupString)_headerHtml)
         @ChildContent
         @((MarkupString)_footerHtml)
@@ -31,9 +36,23 @@ else
     private string _headerHtml = string.Empty;
     private string _footerHtml = string.Empty;
     private bool _showAgent;
+    private string? _tenantCss;
+    private IReadOnlyDictionary<string, object>? _tenantAttrs;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        var ctx = Http.HttpContext;
+        if (ctx is not null)
+        {
+            var presentation = await TenantPresentation.GetAsync(ctx, ctx.RequestAborted);
+            var css = presentation.BuildCss();
+            if (!string.IsNullOrWhiteSpace(css) || presentation.Values.Count > 0)
+            {
+                _tenantCss = css;
+                _tenantAttrs = presentation.Attributes();
+            }
+        }
+
         var host = Http.HttpContext?.Request.Host.Host ?? string.Empty;
         _showAgent = StorefrontIndustryHostResolver.ResolveIndustryCode(host) is "auto_parts";
         var package = StorefrontIndustryHostResolver.Resolve(host).StorefrontPackage;

@@ -5,6 +5,7 @@
 @inject IHttpContextAccessor Http
 @inject ILegacySessionValidator Sessions
 @inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
+@inject ITenantPresentationProvider TenantPresentation
 @*
   PHP nero storefront chrome on ASP.NET (same-to-same vs templates/nero/desktop.php).
   Interim: catalog/search/cart/login point at working PHP /en/… pages (tenant /storefront/*
@@ -346,7 +347,11 @@
     }
 </style>
 
-<div class="epc-nero-shell epc-php-font-root">
+@if (!string.IsNullOrWhiteSpace(_tenantCss))
+{
+    <style>@((MarkupString)_tenantCss)</style>
+}
+<div class="epc-nero-shell epc-php-font-root @(_tenantAttrs is not null ? "epc-tenant-tokens" : null)"@attributes="_tenantAttrs">
     @* PHP templates/nero/desktop.php — google_translate_top.php above header *@
     <PhpGoogleTranslateTop />
     <header class="hidden-xs epc-nero-header">
@@ -881,12 +886,23 @@
     private string _addedLabel = "";
     private string _cartScript = StorefrontBottomPanelCart.Script(string.Empty, false, false);
 
+    private string? _tenantCss;
+    private IReadOnlyDictionary<string, object>? _tenantAttrs;
+
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null)
         {
             return;
+        }
+
+        var presentation = await TenantPresentation.GetAsync(ctx, ctx.RequestAborted);
+        var css = presentation.BuildCss();
+        if (!string.IsNullOrWhiteSpace(css) || presentation.Values.Count > 0)
+        {
+            _tenantCss = css;
+            _tenantAttrs = presentation.Attributes();
         }
 
         _bookmarkCount = StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.BookmarksName, StorefrontIntListCookie.BookmarksMax).Count;
