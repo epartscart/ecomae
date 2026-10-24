@@ -48,7 +48,7 @@ public sealed class TenantPresentationTokensTests
         {
             ["ui_density"] = "compact",
             ["ui_nav_label_mode"] = "short",
-            ["ui_form_layout"] = "split",
+            ["ui_form_layout"] = "two_column",
             ["ui_show_help"] = "0",
             ["ui_dashboard_style"] = "executive",
         });
@@ -59,7 +59,7 @@ public sealed class TenantPresentationTokensTests
         Assert.Contains("data-epc-density='compact'", css, StringComparison.Ordinal);
         Assert.Contains("epc-help", css, StringComparison.Ordinal);
         Assert.Equal("compact", attrs["data-epc-density"]);
-        Assert.Equal("split", attrs["data-epc-form-layout"]);
+        Assert.Equal("two_column", attrs["data-epc-form-layout"]);
         Assert.Equal("short", attrs["data-epc-nav-labels"]);
         Assert.Equal("executive", attrs["data-epc-dash-style"]);
     }

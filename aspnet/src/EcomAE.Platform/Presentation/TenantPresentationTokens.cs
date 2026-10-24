@@ -46,7 +46,18 @@ public sealed record TenantPresentation(
         MapColor(vars, "brand_login_bg", "--epc-login-bg");
         MapColor(vars, "ui_accent", "--epc-blue-500", "--epc-accent");
 
-        var radius = Get("brand_radius") ?? Get("ui_radius");
+        var radius = Get("brand_radius");
+        if (!IsSafeLength(radius))
+        {
+            // ui_radius is the stored enum (sharp|soft|rounded) — map to a length.
+            radius = Get("ui_radius") switch
+            {
+                "sharp" => "2px",
+                "rounded" => "12px",
+                _ => null,
+            };
+        }
+
         if (IsSafeLength(radius))
         {
             vars.Append("--epc-radius:").Append(radius).Append(';');
@@ -92,13 +103,13 @@ public sealed record TenantPresentation(
         }
 
         var formLayout = Get("ui_form_layout");
-        if (formLayout is "compact")
+        if (formLayout is "single_column")
         {
-            sb.AppendLine(".epc-tenant-tokens[data-epc-form-layout='compact'] .form-group,.epc-tenant-tokens[data-epc-form-layout='compact'] .epc-erp-field{margin-bottom:.35rem}");
+            sb.AppendLine(".epc-tenant-tokens[data-epc-form-layout='single_column'] .form-inline .form-group,.epc-tenant-tokens[data-epc-form-layout='single_column'] .epc-erp-form-row{display:block;width:100%}");
         }
-        else if (formLayout is "stacked")
+        else if (formLayout is "two_column")
         {
-            sb.AppendLine(".epc-tenant-tokens[data-epc-form-layout='stacked'] .form-inline .form-group,.epc-tenant-tokens[data-epc-form-layout='stacked'] .epc-erp-form-row{display:block;width:100%}");
+            sb.AppendLine(".epc-tenant-tokens[data-epc-form-layout='two_column'] .form-group,.epc-tenant-tokens[data-epc-form-layout='two_column'] .epc-erp-field{margin-bottom:.5rem}");
         }
 
         if (Get("ui_show_status_legend") is "0" or "false")
@@ -109,7 +120,7 @@ public sealed record TenantPresentation(
         var logo = Get("brand_logo_url");
         if (logo is not null && IsSafeUrl(logo))
         {
-            sb.AppendLine(".epc-tenant-tokens .epc-erp-topnav-brand img,.epc-tenant-tokens .epc-cp-topnav-brand img{content:url('").Append(EscapeCssString(logo)).AppendLine("')}");
+            sb.AppendLine(".epc-tenant-tokens .epc-surface-host-logo__img{content:url('").Append(EscapeCssString(logo)).AppendLine("')}");
         }
 
         return sb.ToString();
@@ -126,19 +137,19 @@ public sealed record TenantPresentation(
         }
 
         var layout = Get("ui_form_layout");
-        if (layout is "d365" or "split" or "stacked" or "compact")
+        if (layout is "d365" or "two_column" or "single_column")
         {
             attrs["data-epc-form-layout"] = layout;
         }
 
         var navMode = Get("ui_nav_label_mode");
-        if (navMode is "short" or "full")
+        if (navMode is "short" or "full" or "adaptive")
         {
             attrs["data-epc-nav-labels"] = navMode;
         }
 
         var dash = Get("ui_dashboard_style");
-        if (dash is "executive" or "classic" or "compact")
+        if (dash is "executive" or "operations" or "minimal")
         {
             attrs["data-epc-dash-style"] = dash;
         }
@@ -170,8 +181,7 @@ public sealed record TenantPresentation(
         => !string.IsNullOrWhiteSpace(value) && FontPattern.IsMatch(value.Trim());
 
     private static bool IsSafeUrl(string? value)
-        => !string.IsNullOrWhiteSpace(value)
-           && (value.StartsWith("https://", StringComparison.OrdinalIgnoreCase) || value.StartsWith('/'));
+        => !string.IsNullOrWhiteSpace(value) && UrlPattern.IsMatch(value.Trim());
 
     private static string EscapeCssString(string value)
         => value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("'", "\\'", StringComparison.Ordinal);
@@ -183,6 +193,12 @@ public sealed record TenantPresentation(
     private static readonly Regex LengthPattern = new(
         @"^\d{1,3}(\.\d{1,2})?(px|em|rem|%)$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    // URLs may not contain quotes, whitespace, or angle brackets — any of those
+    // would break out of the css string / style block (stored-XSS vector).
+    private static readonly Regex UrlPattern = new(
+        @"^(https://|/)[A-Za-z0-9\-._~:/?#@!$&()*+,;=%]+$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
     private static readonly Regex FontPattern = new(
         @"^[a-zA-Z0-9\s\-',\.]{2,80}$",
@@ -222,7 +238,9 @@ public sealed class TenantPresentationProvider : ITenantPresentationProvider
         }
 
         siteKey = siteKey.Trim().ToLowerInvariant();
-        var cacheKey = "tenant-presentation:" + siteKey;
+        // Database scopes the cache — sandbox and live can share a site_key but
+        // hold different settings, so each environment must see its own tokens.
+        var cacheKey = "tenant-presentation:" + (tenant?.DatabaseName ?? "registry") + ":" + siteKey;
         if (_cache.TryGetValue(cacheKey, out TenantPresentation? cached) && cached is not null)
         {
             return cached;
