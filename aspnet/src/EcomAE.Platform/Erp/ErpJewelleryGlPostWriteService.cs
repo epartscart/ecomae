@@ -112,7 +112,7 @@ public sealed class ErpJewelleryGlPostWriteService : IErpJewelleryGlPostWriteSer
                 }
             }
             }
-            catch (Exception)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 failed++;
             }

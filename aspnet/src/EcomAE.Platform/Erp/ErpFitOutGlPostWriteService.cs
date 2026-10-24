@@ -115,14 +115,16 @@ public sealed class ErpFitOutGlPostWriteService : IErpFitOutGlPostWriteService
                     revenuePosted++;
                 }
                 }
-                catch (Exception)
+                catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     failed++;
                 }
             }
         }
 
-        claimsPosted += await PostApprovedClaimsAsync(connection, projectId, fromUtc, toUtc, fallbackCompanyId, cancellationToken).ConfigureAwait(false);
+        var (claimsPostedNow, claimsFailed) = await PostApprovedClaimsAsync(connection, projectId, fromUtc, toUtc, fallbackCompanyId, cancellationToken).ConfigureAwait(false);
+        claimsPosted += claimsPostedNow;
+        failed += claimsFailed;
 
         return "Posted to GL (IFRS 15): "
                + costPosted + " cost journals, " + revenuePosted + " POC revenue journals, "
@@ -133,7 +135,7 @@ public sealed class ErpFitOutGlPostWriteService : IErpFitOutGlPostWriteService
     }
 
     /// <summary>Approved client progress claims → Dr AR / Cr contract asset (+ output VAT when the claim payload carries it).</summary>
-    private async Task<int> PostApprovedClaimsAsync(
+    private async Task<(int Posted, int Failed)> PostApprovedClaimsAsync(
         DbConnection connection,
         long projectId,
         long fromUtc,
@@ -142,6 +144,7 @@ public sealed class ErpFitOutGlPostWriteService : IErpFitOutGlPostWriteService
         CancellationToken cancellationToken)
     {
         var count = 0;
+        var failed = 0;
         await using var command = connection.CreateCommand();
         command.CommandText = ErpDb.Positional(
             "SELECT r.`id`, r.`project_id`, r.`amount`, r.`description`, UNIX_TIMESTAMP(r.`event_date`),"
@@ -185,12 +188,12 @@ public sealed class ErpFitOutGlPostWriteService : IErpFitOutGlPostWriteService
                     count++;
                 }
             }
-            catch (Exception)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                continue;
+                failed++;
             }
         }
-        return count;
+        return (count, failed);
     }
 
     private static decimal ExtractAmount(string description, string label)
