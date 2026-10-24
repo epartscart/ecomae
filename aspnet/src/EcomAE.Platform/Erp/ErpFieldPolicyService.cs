@@ -13,7 +13,7 @@ namespace EcomAE.Platform.Erp;
 public interface IErpFieldPolicyService
 {
     /// <summary>field_key → mode ("hidden" | "readonly") resolved for this user in an area.</summary>
-    Task<IReadOnlyDictionary<string, string>> ResolveAsync(int userId, string groupKey, string area, CancellationToken cancellationToken = default);
+    Task<IReadOnlyDictionary<string, string>> ResolveAsync(int userId, IReadOnlyCollection<string> groupKeys, string area, CancellationToken cancellationToken = default);
 
     /// <summary>Writes one rule. userId=0 + groupKey targets a user group.</summary>
     Task<bool> SetRuleAsync(int userId, string groupKey, string area, string fieldKey, string mode, CancellationToken cancellationToken = default);
@@ -60,13 +60,14 @@ public sealed class ErpFieldPolicyService : IErpFieldPolicyService
         return connection;
     }
 
-    public async Task<IReadOnlyDictionary<string, string>> ResolveAsync(int userId, string groupKey, string area, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyDictionary<string, string>> ResolveAsync(int userId, IReadOnlyCollection<string> groupKeys, string area, CancellationToken cancellationToken = default)
     {
         var resolved = new Dictionary<string, string>(StringComparer.Ordinal);
         if (string.IsNullOrWhiteSpace(area))
         {
             return resolved;
         }
+        var keys = groupKeys is null ? Array.Empty<string>() : groupKeys;
 
         try
         {
@@ -76,13 +77,20 @@ public sealed class ErpFieldPolicyService : IErpFieldPolicyService
                 return resolved;
             }
 
-            await using var command = connection.CreateCommand();
             // Group rules first (least specific), then the user's own rules override.
+            var keyList = keys.Where(k => !string.IsNullOrWhiteSpace(k)).Select(k => k.Trim()).Distinct(StringComparer.Ordinal).ToList();
+            var groupClause = keyList.Count == 0
+                ? "1=0"
+                : "`group_key` IN (" + string.Join(",", Enumerable.Repeat("?", keyList.Count)) + ")";
+            await using var command = connection.CreateCommand();
             command.CommandText = ErpDb.Positional(
                 "SELECT `field_key`,`mode`,`user_id` FROM `epc_erp_field_rule`"
-                + " WHERE `area`=? AND ((`user_id`=0 AND `group_key`=?) OR `user_id`=?)"
+                + " WHERE `area`=? AND ((`user_id`=0 AND " + groupClause + ") OR `user_id`=?)"
                 + " ORDER BY `user_id` ASC");
-            ErpDb.AddParameters(command, area.Trim(), (groupKey ?? string.Empty).Trim(), userId);
+            var parameters = new List<object?> { area.Trim() };
+            parameters.AddRange(keyList);
+            parameters.Add(userId);
+            ErpDb.AddParameters(command, parameters.ToArray());
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {

@@ -50,8 +50,8 @@
                     <p>Planned @_openedWo.QtyPlanned.ToString("N2", CultureInfo.InvariantCulture)
                         · Produced @_openedWo.QtyProduced.ToString("N2", CultureInfo.InvariantCulture)</p>
                     <p>Material @_openedWo.MaterialCost.ToString("0.00", CultureInfo.InvariantCulture)
-                        · Labour @_openedWo.LabourCost.ToString("0.00", CultureInfo.InvariantCulture)
-                        · Overhead @_openedWo.OverheadCost.ToString("0.00", CultureInfo.InvariantCulture)</p>
+                        @if (!FieldHidden("labour_cost")) { <text>· Labour @_openedWo.LabourCost.ToString("0.00", CultureInfo.InvariantCulture) </text> }
+                        @if (!FieldHidden("overhead_cost")) { <text>· Overhead @_openedWo.OverheadCost.ToString("0.00", CultureInfo.InvariantCulture)</text> }</p>
                     <div class="table-responsive">
                         <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
                             <thead>
@@ -255,7 +255,9 @@
             return; // guest browse — Sign in for live data
         }
 
-        _fieldRules = await FieldRules.ResolveAsync((int)session.UserId, session.AreaGrants?.FirstOrDefault()?.GroupKey ?? string.Empty, "production", ctx.RequestAborted);
+        _fieldRules = await FieldRules.ResolveAsync((int)session.UserId,
+            session.AreaGrants?.Select(g => g.GroupKey).Where(k => !string.IsNullOrWhiteSpace(k)).ToList() ?? [],
+            "production", ctx.RequestAborted);
 
         var result = await Dashboards.BuildCpProductionOverviewDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;

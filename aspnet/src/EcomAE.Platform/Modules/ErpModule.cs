@@ -17761,6 +17761,7 @@ public sealed class ErpModule : ISurfaceModule
         ILegacySessionValidator validator,
         IErpMfgBomSaveDryRun dryRun,
         IErpMfgBomSaveWriteService writes,
+        IErpFieldPolicyService fieldRules,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -17798,6 +17799,27 @@ public sealed class ErpModule : ISurfaceModule
         if (!confirm)
         {
             return Results.Ok(dryRun.Evaluate(new ErpMfgBomSaveRequest(id, productItemId, lines.Count, false)).ToPayload(SessionPayload(session)));
+        }
+
+        // Field-level rules (area 'production') are enforced server-side too:
+        // hidden/readonly cost fields are rejected when supplied.
+        var rules = await fieldRules.ResolveAsync(
+            (int)session.UserId,
+            session.AreaGrants?.Select(g => g.GroupKey).Where(k => !string.IsNullOrWhiteSpace(k)).ToList() ?? new List<string>(),
+            "production",
+            cancellationToken).ConfigureAwait(false);
+        var labourSupplied = labourCost != 0m || (form is not null && (form.ContainsKey("labour_cost") || form.ContainsKey("labourCost")));
+        var overheadSupplied = overheadCost != 0m || (form is not null && (form.ContainsKey("overhead_cost") || form.ContainsKey("overheadCost")));
+        if ((rules.TryGetValue("labour_cost", out var labourRule) && labourSupplied)
+            || (rules.TryGetValue("overhead_cost", out var overheadRule) && overheadSupplied))
+        {
+            const string ruleMessage = "A field rule on this form blocks editing the BOM cost fields.";
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/production-overview-app",
+                false,
+                ruleMessage,
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "field_rule", message = ruleMessage, session = SessionPayload(session) });
         }
 
         var written = await writes.SaveAsync(
@@ -28838,27 +28860,28 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Json(new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "cross_site_denied", message = "Cross-site form post rejected." }, statusCode: 403);
         }
 
-        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "Edit")
+            && !ErpCapabilityCatalog.CanAction(session, "administration", "New"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/user-control-app", "Administration edit is required to set field-level rules.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
         if (!confirm)
         {
             return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save the field rule.", session = SessionPayload(session) });
         }
 
-        var scope = context.Request.Form["scope"].ToString();
-        var userId = 0;
-        if (!string.Equals(scope, "group", StringComparison.OrdinalIgnoreCase))
-        {
-            long.TryParse(context.Request.Form["user_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedUser);
-            userId = (int)parsedUser;
-        }
-        var ok = await rules.SetRuleAsync(
-            userId,
-            context.Request.Form["group_key"].ToString() ?? string.Empty,
-            context.Request.Form["area"].ToString() ?? string.Empty,
-            context.Request.Form["field"].ToString() ?? string.Empty,
-            context.Request.Form["mode"].ToString() ?? string.Empty,
-            cancellationToken);
-        var returnUrl = context.Request.Form["returnUrl"].ToString();
+        fields.TryGetValue("scope", out var scope);
+        var isGroup = string.Equals(scope, "group", StringComparison.OrdinalIgnoreCase);
+        var userId = isGroup ? 0 : (int)AmlLong(fields, "user_id", "userId");
+        fields.TryGetValue("group_key", out var groupKey);
+        fields.TryGetValue("area", out var area);
+        fields.TryGetValue("field", out var fieldKey);
+        fields.TryGetValue("mode", out var mode);
+        var ok = (isGroup ? !string.IsNullOrWhiteSpace(groupKey) : userId > 0)
+            && await rules.SetRuleAsync(userId, groupKey ?? string.Empty, area ?? string.Empty, fieldKey ?? string.Empty, mode ?? string.Empty, cancellationToken);
+        fields.TryGetValue("returnUrl", out var returnUrl);
         return LiveWriteFormBinder.Complete(
             context,
             string.IsNullOrWhiteSpace(returnUrl) ? "/erp/user-control-app" : returnUrl,
