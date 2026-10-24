@@ -1,0 +1,224 @@
+@using System.Globalization
+@using EcomAE.Platform.Presentation
+
+@* Shared step-by-step graphical guide for tenant customization pages.
+   Renders a colorful numbered step track plus a mini visual preview of
+   where the settings surface in CP / ERP / storefront chrome. *@
+
+@if (Area is not null)
+{
+    <section class="tcg" aria-label="@Area.Title guide">
+        <div class="tcg__head">
+            <p class="tcg__eyebrow"><i class="fa fa-map-signs" aria-hidden="true"></i> Step-by-step guide</p>
+            <h3 class="tcg__title">@Area.Title</h3>
+            <p class="tcg__intro">@Area.Intro</p>
+        </div>
+
+        <div class="tcg__body">
+            <ol class="tcg__track">
+                @for (var i = 0; i < Area.Steps.Count; i++)
+                {
+                    var step = Area.Steps[i];
+                    var paint = "tcg-tone-" + (i % 5).ToString(CultureInfo.InvariantCulture);
+                    <li class="tcg__step @paint">
+                        @if (step.Href is not null)
+                        {
+                            <a href="@step.Href" title="@step.Detail">
+                                <span class="tcg__badge">@step.Number</span>
+                                <span class="tcg__icon" aria-hidden="true"><i class="fa @step.Icon"></i></span>
+                                <span class="tcg__name">@step.Label</span>
+                                <span class="tcg__detail">@step.Detail</span>
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="tcg__static" title="@step.Detail">
+                                <span class="tcg__badge">@step.Number</span>
+                                <span class="tcg__icon" aria-hidden="true"><i class="fa @step.Icon"></i></span>
+                                <span class="tcg__name">@step.Label</span>
+                                <span class="tcg__detail">@step.Detail</span>
+                            </div>
+                        }
+                    </li>
+                    @if (i < Area.Steps.Count - 1)
+                    {
+                        <li class="tcg__join" aria-hidden="true">
+                            <svg class="tcg__svg" viewBox="0 0 56 16" focusable="false">
+                                <line class="tcg__line" x1="2" y1="8" x2="44" y2="8" />
+                                <polyline class="tcg__head" points="36,3 48,8 36,13" />
+                            </svg>
+                        </li>
+                    }
+                }
+            </ol>
+
+            <div class="tcg__preview" role="img" aria-label="@Area.PreviewCaption">
+                <p class="tcg__preview-cap"><i class="fa fa-eye" aria-hidden="true"></i> @Area.PreviewCaption</p>
+                @switch (Area.PreviewKind)
+                {
+                    case "theme":
+                        <div class="tcg-mock tcg-mock--theme">
+                            <div class="tcg-mock__bar"><span class="dot dot--r"></span><span class="dot dot--y"></span><span class="dot dot--g"></span></div>
+                            <div class="tcg-mock__chrome">
+                                <span class="tcg-mock__logo">ecom</span>
+                                <span class="tcg-mock__navpill"></span><span class="tcg-mock__navpill"></span><span class="tcg-mock__navpill"></span>
+                            </div>
+                            <div class="tcg-mock__swatches">
+                                <span class="sw sw--a"></span><span class="sw sw--b"></span><span class="sw sw--c"></span><span class="sw sw--d"></span>
+                            </div>
+                            <div class="tcg-mock__panelrow"><span class="pl"></span><span class="pl pl--short"></span></div>
+                        </div>
+                        break;
+                    case "settings":
+                        <div class="tcg-mock">
+                            <div class="tcg-mock__bar"><span class="dot dot--r"></span><span class="dot dot--y"></span><span class="dot dot--g"></span></div>
+                            <div class="tcg-mock__rows">
+                                <span class="row"><i class="fa fa-toggle-on on"></i> Enable feature<b>On</b></span>
+                                <span class="row"><i class="fa fa-toggle-on"></i> Portal language<b>EN</b></span>
+                                <span class="row"><i class="fa fa-toggle-on on"></i> Customer portal<b>On</b></span>
+                            </div>
+                        </div>
+                        break;
+                    case "menu":
+                        <div class="tcg-mock">
+                            <div class="tcg-mock__bar"><span class="dot dot--r"></span><span class="dot dot--y"></span><span class="dot dot--g"></span></div>
+                            <div class="tcg-mock__tree">
+                                <span class="node node--l0"><i class="fa fa-bars"></i> Home</span>
+                                <span class="node node--l1"><i class="fa fa-angle-right"></i> Shop</span>
+                                <span class="node node--l2"><i class="fa fa-angle-right"></i> By vehicle</span>
+                                <span class="node node--l1"><i class="fa fa-angle-right"></i> About</span>
+                            </div>
+                        </div>
+                        break;
+                    case "industry":
+                        <div class="tcg-mock">
+                            <div class="tcg-mock__bar"><span class="dot dot--r"></span><span class="dot dot--y"></span><span class="dot dot--g"></span></div>
+                            <div class="tcg-mock__tiles">
+                                <span class="tile t--a"><i class="fa fa-car"></i> Workspace</span>
+                                <span class="tile t--b"><i class="fa fa-diamond"></i> Masters</span>
+                                <span class="tile t--c"><i class="fa fa-building"></i> Sites</span>
+                            </div>
+                        </div>
+                        break;
+                    case "fields":
+                        <div class="tcg-mock">
+                            <div class="tcg-mock__bar"><span class="dot dot--r"></span><span class="dot dot--y"></span><span class="dot dot--g"></span></div>
+                            <div class="tcg-mock__form">
+                                <span class="ff"><label>Your field label</label><span class="fin"></span></span>
+                                <span class="ff"><label>Dropdown field</label><span class="fin fin--opt"></span></span>
+                            </div>
+                        </div>
+                        break;
+                    case "security":
+                        <div class="tcg-mock">
+                            <div class="tcg-mock__bar"><span class="dot dot--r"></span><span class="dot dot--y"></span><span class="dot dot--g"></span></div>
+                            <div class="tcg-mock__chain">
+                                <span class="chip c--a">Role</span><i class="fa fa-arrow-right"></i>
+                                <span class="chip c--b">Duty</span><i class="fa fa-arrow-right"></i>
+                                <span class="chip c--c">Privilege</span><i class="fa fa-arrow-right"></i>
+                                <span class="chip c--d">Field</span>
+                            </div>
+                        </div>
+                        break;
+                }
+            </div>
+        </div>
+
+        <div class="tcg__related">
+            <span class="tcg__related-label"><i class="fa fa-external-link" aria-hidden="true"></i> Customize more:</span>
+            @foreach (var link in TenantCustomizationGuide.RelatedLinks)
+            {
+                var cls = string.Equals(link.Slug, Slug, StringComparison.OrdinalIgnoreCase) ? "tcg__rel tcg__rel--active" : "tcg__rel";
+                <a class="@cls" href="@link.Href"><i class="fa @link.Icon" aria-hidden="true"></i> @link.Label</a>
+            }
+        </div>
+    </section>
+}
+
+<style>
+    .tcg { margin: 0 0 16px; border: 1px solid #d5e3f2; border-radius: 16px; overflow: hidden;
+        background: radial-gradient(720px 120px at 8% 0%, rgba(13,148,136,.10), transparent 60%), linear-gradient(180deg,#f8fbff 0%,#f3f7fb 100%); }
+    .tcg__head { padding: 16px 18px 0; }
+    .tcg__eyebrow { margin: 0 0 4px; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #0f766e; }
+    .tcg__title { margin: 0 0 6px; font-size: 18px; color: #12324f; }
+    .tcg__intro { margin: 0; font-size: 12.5px; color: #40566c; line-height: 1.55; max-width: 900px; }
+    .tcg__body { display: flex; flex-wrap: wrap; gap: 16px; padding: 14px 18px 8px; align-items: stretch; }
+    .tcg__track { list-style: none; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 0; margin: 0; padding: 0; flex: 1 1 560px; }
+    .tcg__step { display: flex; align-items: center; }
+    .tcg__step a, .tcg__static { position: relative; display: flex; flex-direction: column; align-items: center; width: 160px; text-decoration: none; color: #1e3a5f; }
+    .tcg__step a:hover .tcg__icon, .tcg__step a:focus-visible .tcg__icon { transform: translateY(-2px); }
+    .tcg__step a:focus-visible { outline: 2px solid #0f766e; outline-offset: 3px; border-radius: 12px; }
+    .tcg__badge { position: absolute; top: -2px; left: 20px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; background: #fff; border: 1px solid #d5e3f2; color: #3d4f66; font-size: 10px; font-weight: 800; line-height: 16px; text-align: center; z-index: 1; }
+    .tcg__icon { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 8px 16px rgba(15,39,68,.14); transition: transform .16s ease; }
+    .tcg__icon i { font-size: 21px; }
+    .tcg__name { margin-top: 8px; font-size: 12px; font-weight: 700; line-height: 1.25; text-align: center; }
+    .tcg__detail { margin-top: 4px; font-size: 11px; line-height: 1.4; text-align: center; color: #55677d; }
+    .tcg-tone-0 .tcg__icon { background: linear-gradient(160deg,#14b8a6,#0f766e); }
+    .tcg-tone-1 .tcg__icon { background: linear-gradient(160deg,#3b82f6,#1d4ed8); }
+    .tcg-tone-2 .tcg__icon { background: linear-gradient(160deg,#f59e0b,#b45309); }
+    .tcg-tone-3 .tcg__icon { background: linear-gradient(160deg,#8b5cf6,#6d28d9); }
+    .tcg-tone-4 .tcg__icon { background: linear-gradient(160deg,#fb7185,#be123c); }
+    .tcg__join { display: flex; align-items: center; justify-content: center; width: 38px; margin-top: 18px; }
+    .tcg__svg { display: block; width: 44px; height: 16px; }
+    .tcg__line { fill: none; stroke: #14b8a6; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 5 7; animation: tcg-dash 1.05s linear infinite; }
+    .tcg__head-line { fill: none; }
+    .tcg__head { fill: none; stroke: #0f766e; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    @@keyframes tcg-dash { to { stroke-dashoffset: -12; } }
+
+    .tcg__preview { flex: 0 1 300px; min-width: 260px; padding: 10px 12px 12px; border-radius: 14px; background: #fff; border: 1px dashed #b8cbe0; }
+    .tcg__preview-cap { margin: 0 0 8px; font-size: 11px; font-weight: 700; color: #3d4f66; display: flex; gap: 6px; align-items: center; }
+    .tcg-mock { border: 1px solid #e2eaf2; border-radius: 10px; overflow: hidden; background: #fbfdff; }
+    .tcg-mock__bar { display: flex; gap: 5px; padding: 6px 8px; background: #eef3f8; border-bottom: 1px solid #e2eaf2; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .dot--r { background: #fb7185; } .dot--y { background: #fbbf24; } .dot--g { background: #34d399; }
+    .tcg-mock__chrome { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: linear-gradient(160deg,#14b8a6,#0f766e); }
+    .tcg-mock__logo { color: #fff; font-weight: 800; font-size: 12px; letter-spacing: .05em; }
+    .tcg-mock__navpill { width: 34px; height: 8px; border-radius: 999px; background: rgba(255,255,255,.55); }
+    .tcg-mock__swatches { display: flex; gap: 8px; padding: 10px; }
+    .sw { width: 30px; height: 30px; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
+    .sw--a { background: linear-gradient(160deg,#14b8a6,#0f766e); }
+    .sw--b { background: linear-gradient(160deg,#3b82f6,#1d4ed8); }
+    .sw--c { background: linear-gradient(160deg,#f59e0b,#b45309); }
+    .sw--d { background: linear-gradient(160deg,#8b5cf6,#6d28d9); }
+    .tcg-mock__panelrow { display: flex; flex-direction: column; gap: 6px; padding: 0 10px 10px; }
+    .pl { height: 9px; border-radius: 6px; background: #dce7f2; }
+    .pl--short { width: 60%; }
+    .tcg-mock__rows { display: flex; flex-direction: column; }
+    .tcg-mock__rows .row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; font-size: 11.5px; color: #33465c; border-bottom: 1px solid #eef3f8; }
+    .tcg-mock__rows .row:last-child { border-bottom: 0; }
+    .tcg-mock__rows .row b { margin-left: auto; color: #0f766e; }
+    .tcg-mock__rows .on { color: #0f766e; }
+    .tcg-mock__tree { display: flex; flex-direction: column; padding: 8px 10px; }
+    .node { font-size: 11.5px; color: #33465c; padding: 4px 0; }
+    .node--l1 { padding-left: 18px; } .node--l2 { padding-left: 36px; }
+    .tcg-mock__tiles { display: flex; gap: 8px; padding: 12px; }
+    .tile { flex: 1; text-align: center; padding: 12px 6px; border-radius: 10px; color: #fff; font-size: 11px; font-weight: 700; }
+    .tile i { display: block; font-size: 16px; margin-bottom: 4px; }
+    .t--a { background: linear-gradient(160deg,#3b82f6,#1d4ed8); }
+    .t--b { background: linear-gradient(160deg,#8b5cf6,#6d28d9); }
+    .t--c { background: linear-gradient(160deg,#14b8a6,#0f766e); }
+    .tcg-mock__form { display: flex; flex-direction: column; gap: 8px; padding: 10px; }
+    .ff label { display: block; font-size: 10px; color: #4a627a; margin-bottom: 3px; }
+    .fin { display: block; height: 20px; border: 1px solid #c3d3de; border-radius: 6px; background: #fff; }
+    .fin--opt { background: linear-gradient(90deg,#fff 85%,#e8f0f7 85%); }
+    .tcg-mock__chain { display: flex; align-items: center; gap: 8px; padding: 16px 12px; font-size: 11px; color: #94a7bb; }
+    .chip { padding: 6px 10px; border-radius: 999px; color: #fff; font-weight: 700; font-size: 10.5px; }
+    .c--a { background: linear-gradient(160deg,#14b8a6,#0f766e); }
+    .c--b { background: linear-gradient(160deg,#3b82f6,#1d4ed8); }
+    .c--c { background: linear-gradient(160deg,#f59e0b,#b45309); }
+    .c--d { background: linear-gradient(160deg,#fb7185,#be123c); }
+
+    .tcg__related { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 18px 14px; border-top: 1px dashed #cfdeeb; margin-top: 6px; }
+    .tcg__related-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #3d4f66; margin-right: 4px; }
+    .tcg__rel { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: #1d4ed8; text-decoration: none; padding: 4px 10px; border-radius: 999px; border: 1px solid #cfe0f2; background: #fff; }
+    .tcg__rel:hover { border-color: #14b8a6; color: #0f766e; }
+    .tcg__rel--active { border-color: #0f766e; color: #0f766e; background: #ecfdf9; }
+</style>
+
+@code {
+    /// <summary>Area slug from <see cref="TenantCustomizationGuide.Areas"/>.</summary>
+    [Parameter] public string Slug { get; set; } = "";
+
+    private TenantCustomizationGuide.Area? Area =>
+        TenantCustomizationGuide.Areas.TryGetValue(Slug ?? "", out var a) ? a : null;
+}

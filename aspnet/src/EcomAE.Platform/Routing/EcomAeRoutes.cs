@@ -151,6 +151,8 @@ public static class EcomAeRoutes
     public const string ControlPanelMobileAppsApp = "/cp/mobile-apps-app";
     /// <summary>Tenant CP save_mobile. <c>confirmWrites=true</c> twins PHP ajax_integrations.php. Schema-ensure stays Classic.</summary>
     public const string CpMobileAppsWrite = "/cp/mobile-apps/write";
+    /// <summary>ERP-scoped save_mobile — ERP tenant admins write integrations_json.mobile_erp (never the CP app's mobile key).</summary>
+    public const string ErpMobileAppsWrite = "/erp/mobile-apps/write";
 
     /// <summary>CP industry settings Blazor twin of PHP cp/content/control/portal/industry_settings.php.</summary>
     public const string ControlPanelIndustrySettingsApp = "/cp/industry-settings-app";

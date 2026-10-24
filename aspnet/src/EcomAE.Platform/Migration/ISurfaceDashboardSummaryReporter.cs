@@ -173,6 +173,8 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Read-only mobile apps integrations_json.mobile (save_mobile writes remain PHP).</summary>
     Task<CpMobileAppsDigestResult> BuildCpMobileAppsDigestAsync(CancellationToken cancellationToken = default);
+    /// <summary>ERP-scoped variant: reads integrations_json.mobile_erp instead of .mobile.</summary>
+    Task<CpMobileAppsDigestResult> BuildErpMobileAppsDigestAsync(CancellationToken cancellationToken = default);
 
     /// <summary>Read-only Metabase config + dashboards (secret_key never returned).</summary>
     Task<CpMetabaseDigestResult> BuildCpMetabaseDigestAsync(

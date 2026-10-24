@@ -30,7 +30,9 @@ public sealed record CpMobileAppsSaveRequest(
     string? AppStoreUrl,
     bool PwaEnabled,
     string? FirebaseProjectId,
-    bool PushEnabled);
+    bool PushEnabled,
+    /// <summary>JSON key inside integrations_json: "mobile" (CP app) or "mobile_erp" (ERP app).</summary>
+    string? Scope = null);
 
 public sealed class CpMobileAppsWriteService : ICpMobileAppsWriteService
 {
@@ -56,7 +58,8 @@ public sealed class CpMobileAppsWriteService : ICpMobileAppsWriteService
     public static JsonObject MergeMobile(JsonNode? root, CpMobileAppsSaveRequest request)
     {
         var obj = root as JsonObject ?? new JsonObject();
-        obj["mobile"] = new JsonObject
+        var scope = string.IsNullOrWhiteSpace(request.Scope) ? "mobile" : request.Scope.Trim();
+        obj[scope] = new JsonObject
         {
             ["enabled"] = request.Enabled,
             ["app_name"] = Clip(request.AppName, 120),
