@@ -1180,6 +1180,11 @@ internal static class ErpLazySchema
             await ErpDb.TryExecuteAsync(c, addCol, ct).ConfigureAwait(false);
         }
         // Backfill rich fields + any org-only rows, then remap user grants onto pm ids.
+        // migrated_to_pm marks rows already moved so a repeated ensure can never
+        // re-match a pm id against a legacy org id and reassign a grant twice.
+        await ErpDb.TryExecuteAsync(c,
+            "ALTER TABLE `epc_erp_org_business_units` ADD `migrated_to_pm` tinyint(1) NOT NULL DEFAULT 0",
+            ct).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(c,
             "UPDATE `epc_erp_pm_business_units` `p` JOIN `epc_erp_org_business_units` `b`"
             + " ON `p`.`legal_entity_id`=`b`.`entity_id` AND `p`.`code`=`b`.`code`"
@@ -1187,18 +1192,22 @@ internal static class ErpLazySchema
             + " `p`.`default_warehouse_id`=`b`.`default_warehouse_id`,"
             + " `p`.`cost_centre`=IF(`b`.`cost_centre`<>'',`b`.`cost_centre`,`p`.`cost_centre`),"
             + " `p`.`profit_centre`=`b`.`profit_centre`, `p`.`price_group`=`b`.`price_group`,"
-            + " `p`.`manager`=IF(`p`.`manager`='',`b`.`manager_name`,`p`.`manager`)",
+            + " `p`.`manager`=IF(`p`.`manager`='',`b`.`manager_name`,`p`.`manager`)"
+            + " WHERE `b`.`migrated_to_pm`=0",
             ct).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(c,
             "INSERT INTO `epc_erp_pm_business_units` (`legal_entity_id`,`code`,`name`,`activity`,`branch`,`parent_id`,`manager`,`default_warehouse_id`,`cost_centre`,`profit_centre`,`price_group`,`active`,`time_created`,`time_updated`)"
             + " SELECT `b`.`entity_id`,`b`.`code`,`b`.`name`,`b`.`activity`,`b`.`branch`,`b`.`parent_bu_id`,`b`.`manager_name`,`b`.`default_warehouse_id`,`b`.`cost_centre`,`b`.`profit_centre`,`b`.`price_group`,IF(`b`.`status`='active',1,0),`b`.`time_created`,`b`.`time_updated`"
             + " FROM `epc_erp_org_business_units` `b`"
-            + " WHERE NOT EXISTS (SELECT 1 FROM `epc_erp_pm_business_units` `p` WHERE `p`.`legal_entity_id`=`b`.`entity_id` AND `p`.`code`=`b`.`code`)",
+            + " WHERE `b`.`migrated_to_pm`=0 AND NOT EXISTS (SELECT 1 FROM `epc_erp_pm_business_units` `p` WHERE `p`.`legal_entity_id`=`b`.`entity_id` AND `p`.`code`=`b`.`code`)",
             ct).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(c,
-            "UPDATE `epc_erp_org_user_access` `u` JOIN `epc_erp_org_business_units` `b` ON `b`.`id`=`u`.`bu_id`"
+            "UPDATE `epc_erp_org_user_access` `u` JOIN `epc_erp_org_business_units` `b` ON `b`.`id`=`u`.`bu_id` AND `b`.`migrated_to_pm`=0"
             + " JOIN `epc_erp_pm_business_units` `p` ON `p`.`legal_entity_id`=`b`.`entity_id` AND `p`.`code`=`b`.`code`"
             + " SET `u`.`bu_id`=`p`.`id`",
+            ct).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(c,
+            "UPDATE `epc_erp_org_business_units` SET `migrated_to_pm`=1 WHERE `migrated_to_pm`=0",
             ct).ConfigureAwait(false);
 
         // epc_erp_pm_seed_defaults: editable defaults so masters screens aren't empty.

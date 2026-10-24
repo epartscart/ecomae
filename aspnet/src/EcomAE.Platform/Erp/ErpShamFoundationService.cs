@@ -479,8 +479,8 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
                 var buIsNumeric = long.TryParse(buCode.Trim(), out var buNumeric);
                 var buSql = entityId != 0
                     ? buIsNumeric
-                        ? "SELECT `id`,`legal_entity_id` FROM `epc_erp_pm_business_units` WHERE `id`=? AND `entity_id`=? LIMIT 1"
-                        : "SELECT `id`,`legal_entity_id` FROM `epc_erp_pm_business_units` WHERE `code`=? AND `entity_id`=? LIMIT 1"
+                        ? "SELECT `id`,`legal_entity_id` FROM `epc_erp_pm_business_units` WHERE `id`=? AND `legal_entity_id`=? LIMIT 1"
+                        : "SELECT `id`,`legal_entity_id` FROM `epc_erp_pm_business_units` WHERE `code`=? AND `legal_entity_id`=? LIMIT 1"
                     : buIsNumeric
                         ? "SELECT `id`,`legal_entity_id` FROM `epc_erp_pm_business_units` WHERE `id`=? LIMIT 1"
                         : "SELECT `id`,`legal_entity_id` FROM `epc_erp_pm_business_units` WHERE `code`=? LIMIT 1";

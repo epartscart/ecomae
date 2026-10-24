@@ -290,7 +290,7 @@ else
             @foreach (var (slug, label, href, icon) in TenantCustomizationGuide.RelatedLinks)
             {
                 if (!AreaVisible(slug)) { continue; }
-                var area = TenantCustomizationGuide.Areas[slug];
+                if (!TenantCustomizationGuide.Areas.TryGetValue(slug, out var area)) { continue; }
                 <div class="gcard">
                     <div class="gcard-h"><i class="fa @icon"></i> @label <span style="margin-left:auto;font-weight:400;font-size:10.5px">@href</span></div>
                     <div class="glead">@area.Intro</div>
