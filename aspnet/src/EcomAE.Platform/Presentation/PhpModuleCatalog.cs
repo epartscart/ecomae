@@ -74,6 +74,8 @@ public static partial class PhpModuleCatalog
             "Organisation structure, tenant setup guide and how ecom works", false, false, "Setup"),
         new("setup/mobile_apps", "Mobile apps", "/erp/mobile-apps-app", "fa-mobile", "setup",
             "ERP mobile app (Android / iOS / PWA) — tenant-controlled app name, bundle id, deep links and store links", false, false, "Setup"),
+        new("setup/onboarding_kit", "Onboarding kit", "/erp/onboarding-kit-app", "fa-book", "setup",
+            "Printable client handover book — access & admin credentials, module map, customization map and go-live checklist", false, false, "Setup"),
         new("projects/real_estate", "Real estate investment", "/erp/real-estate-app", "fa-building", "projects",
             "Property register, pipeline, leases, development and construction", false, false, "Common"),
         new("projects/real_estate_guide", "Real estate guide", "/erp/real-estate-app?tab=guide", "fa-map-signs", "projects",

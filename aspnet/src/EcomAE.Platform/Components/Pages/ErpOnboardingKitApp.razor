@@ -1,0 +1,394 @@
+@page "/erp/onboarding-kit-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using System.Text
+@using System.Text.Encodings.Web
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Middleware
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+@* Tenant Onboarding Kit — printable handover book for a new client (ERP-only or full tenant).
+   ?print=1 renders the book without chrome so it saves cleanly as PDF via the browser. *@
+
+@if (!_print)
+{
+    <PageTitle>Onboarding kit · ERP · eParts Cart</PageTitle>
+    <PhpChromeStyles Surface="erp" />
+    <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Onboarding kit" BreadcrumbArea="Setup" BreadcrumbTab="Onboarding kit">
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    <span class="label label-primary">@TenantTypeLabel</span>
+                    Tenant onboarding kit — printable handover book
+                </div>
+                <div class="panel-body">
+                    <p>A complete handover book for this tenant: access &amp; admin credentials, how ecom is organized, the full module map, the customization map, and the go-live checklist. Open the print view and use your browser's <em>Save as PDF</em> to produce the PDF kit.</p>
+                    <p>
+                        <a class="btn btn-primary" href="/erp/onboarding-kit-app?print=1" target="_blank" rel="noopener"><i class="fa fa-print"></i> Open print view (Save as PDF)</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel"><div class="panel-body">
+                @BookBody()
+            </div></div>
+        </div>
+
+    </PhpErpDesktopChrome>
+}
+else
+{
+    <PageTitle>@TenantTypeLabel onboarding kit · @_host</PageTitle>
+    <style>
+        @@page { size: A4; margin: 14mm; }
+        body { font-family: "Segoe UI", Arial, sans-serif; color:#1c2b39; }
+        .okb-printbar { position:sticky; top:0; padding:8px 12px; background:#12324f; color:#fff; text-align:center; z-index:10; }
+        .okb-printbar button { background:#14b8a6; color:#fff; border:0; border-radius:6px; padding:6px 16px; font-weight:700; cursor:pointer; }
+        @@media print { .okb-printbar { display:none !important; } }
+        @@media screen { .okb { max-width: 190mm; margin: 0 auto; } }
+    </style>
+    <div class="okb-printbar no-print">
+        <button type="button" onclick="window.print()">Print / Save as PDF</button>
+    </div>
+    @BookBody()
+}
+
+@code {
+    private RenderFragment BookBody() => @<div class="okb">
+        <style>
+            .okb { font-size: 12.5px; line-height: 1.5; }
+            .okb h1 { font-size: 30px; margin: 0 0 4px; color:#0f2f4d; }
+            .okb h2 { font-size: 17px; margin: 0 0 8px; color:#0f766e; border-bottom: 2px solid #14b8a6; padding-bottom: 4px; }
+            .okb h3 { font-size: 13px; margin: 12px 0 6px; color:#12324f; }
+            .okb p { margin: 0 0 8px; }
+            .okb .cover { text-align:center; padding: 60px 20px 50px; page-break-after: always;
+                border: 3px solid #0f766e; border-radius: 14px; margin-bottom: 18px;
+                background: linear-gradient(160deg, #f0fdfa 0%, #ffffff 55%, #eff6ff 100%); }
+            .okb .cover .brand { font-size: 44px; font-weight: 800; color:#0f766e; letter-spacing:.06em; }
+            .okb .cover .sub { font-size: 15px; color:#3d4f66; margin-top: 8px; }
+            .okb .cover .type { display:inline-block; margin-top: 18px; padding: 8px 22px; border-radius:999px;
+                background: linear-gradient(160deg,#14b8a6,#0f766e); color:#fff; font-weight:700; font-size: 14px; }
+            .okb .cover .meta { margin-top: 26px; font-size: 12px; color:#55677d; }
+            .okb section { page-break-inside: avoid; margin: 0 0 18px; padding: 14px 16px; border:1px solid #d5e3f2; border-radius: 12px; }
+            .okb section.brk { page-break-before: always; }
+            .okb table { width:100%; border-collapse: collapse; font-size: 11.5px; }
+            .okb th, .okb td { border:1px solid #dde7f0; padding: 5px 8px; text-align:left; }
+            .okb th { background:#f1f7fb; color:#12324f; }
+            .okb .cred { border:1.5px dashed #0f766e; border-radius:10px; padding:10px 12px; margin:8px 0; background:#f6fefc; }
+            .okb .cred label { display:block; font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:#0f766e; font-weight:800; margin-bottom:2px; }
+            .okb .cred input { width:100%; border:0; border-bottom:1px solid #94b8b0; background:transparent; font-size:13px; padding:4px 2px; }
+            .okb .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+            .okb ol li, .okb ul li { margin: 3px 0; }
+            .okb .tag { display:inline-block; padding:1px 8px; border-radius:999px; font-size:10px; font-weight:700; margin-right:4px; }
+            .okb .tag.erp { background:#e0f2f1; color:#0f766e; }
+            .okb .tag.cp { background:#e8f0fe; color:#1d4ed8; }
+            .okb .tag.sf { background:#fef3e2; color:#b45309; }
+            .okb .sign { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:14px; }
+            .okb .sign .line { border-top:1px solid #33465c; padding-top:4px; font-size:11px; color:#55677d; }
+            .okb .note { font-size:11px; color:#6b7d90; }
+            .okb .toc td { border:0; border-bottom:1px dotted #c8d6e2; padding:4px 2px; }
+        </style>
+
+        <div class="cover">
+            <div class="brand">ecom</div>
+            <div class="sub">Enterprise ERP &amp; Business Operating System</div>
+            <div class="type">@TenantTypeLabel — Onboarding Kit</div>
+            <h1 style="margin-top:26px">Client Handover Book</h1>
+            <p class="sub">Everything your admin team needs to run ecom: access, credentials, module map, customization map and go-live checklist.</p>
+            <div class="meta">
+                Tenant: <strong>@_host</strong><br/>
+                Prepared: @DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) UTC · Kit v1.0
+            </div>
+        </div>
+
+        <section>
+            <h2>Contents</h2>
+            <table class="toc">
+                <tr><td>1 · Access &amp; admin credentials</td></tr>
+                <tr><td>2 · How ecom is organized</td></tr>
+                <tr><td>3 · ERP module map</td></tr>
+                <tr><td>4 · Industry workspaces — guides &amp; process</td></tr>
+                @if (_canCp)
+                {
+                    <tr><td>5 · Control Panel &amp; storefront (full tenant)</td></tr>
+                }
+                <tr><td>@SectionNum(6) · Customization map</td></tr>
+                <tr><td>@SectionNum(7) · Go-live checklist</td></tr>
+                <tr><td>@SectionNum(8) · House rules</td></tr>
+                <tr><td>@SectionNum(9) · Handover sign-off</td></tr>
+            </table>
+        </section>
+
+        <section class="brk">
+            <h2>1 · Access &amp; admin credentials</h2>
+            <h3>Sign-in URLs</h3>
+            <table>
+                <tr><th>Area</th><th>URL</th></tr>
+                <tr><td><span class="tag erp">ERP</span> ERP sign-in</td><td>https://@_host/erp/login</td></tr>
+                @if (_canCp)
+                {
+                    <tr><td><span class="tag cp">CP</span> Control Panel sign-in</td><td>https://@_host/cp/login</td></tr>
+                    <tr><td><span class="tag sf">SF</span> Storefront</td><td>https://@_host/storefront/app</td></tr>
+                }
+                <tr><td><span class="tag erp">ERP</span> ERP home</td><td>https://@_host/erp</td></tr>
+            </table>
+
+            <h3>Issued admin credentials (fill at handover)</h3>
+            <div class="cred">
+                <div class="grid2">
+                    <div><label>Admin login</label><input type="text" autocomplete="off" /></div>
+                    <div><label>Temporary password</label><input type="text" autocomplete="off" /></div>
+                    <div><label>Issued by</label><input type="text" autocomplete="off" /></div>
+                    <div><label>Date issued</label><input type="text" autocomplete="off" /></div>
+                </div>
+                <p class="note" style="margin-top:6px">Passwords are never stored in this kit — write them here only at the moment of handover, then advise the admin to change the password at first sign-in (ERP → Setup → Security (MFA / 2FA) for two-factor enrollment).</p>
+            </div>
+
+            <h3>ERP staff accounts (@_staffCount)</h3>
+            @if (_staff.Count == 0)
+            {
+                <p class="note">No staff accounts yet — create them in ERP → Setup → Users &amp; credentials, then assign roles in ERP → Setup → Tenant config &amp; security.</p>
+            }
+            else
+            {
+                <table>
+                    <tr><th>Name</th><th>Email</th><th>Job title</th><th>Department</th><th>Status</th></tr>
+                    @foreach (var s in _staff)
+                    {
+                        <tr>
+                            <td>@s.DisplayName</td><td>@s.Email</td><td>@s.JobTitle</td><td>@s.DepartmentCode</td>
+                            <td>@(s.Active ? "Active" : "Inactive")</td>
+                        </tr>
+                    }
+                </table>
+            }
+
+            @if (_canCp)
+            {
+                <h3>Control Panel users (@_cpUserCount)</h3>
+                @if (_cpUsers.Count == 0)
+                {
+                    <p class="note">No CP users returned.</p>
+                }
+                else
+                {
+                    <table>
+                        <tr><th>Name</th><th>Email</th><th>Phone</th><th>Status</th></tr>
+                        @foreach (var u in _cpUsers)
+                        {
+                            <tr>
+                                <td>@u.DisplayName</td><td>@u.Email</td><td>@u.Phone</td>
+                                <td>@(u.Unlocked != 0 ? "Unlocked" : "Locked")</td>
+                            </tr>
+                        }
+                    </table>
+                }
+            }
+        </section>
+
+        <section class="brk">
+            <h2>2 · How ecom is organized</h2>
+            <p>ecom runs as layered customization: <strong>Super platform → Industry pack → Tenant</strong>. Industry and super defaults cascade down; anything the tenant sets always wins. Your admin team controls the tenant layer — nothing at super level is required for daily work.</p>
+            <table>
+                <tr><th>Layer</th><th>What it covers</th><th>Who controls it</th></tr>
+                <tr><td><span class="tag erp">ERP</span> ERP</td><td>Finance, GL/COA, sales, purchasing, inventory, projects, HR, reports</td><td>Tenant ERP admin (this kit)</td></tr>
+                @if (_canCp)
+                {
+                    <tr><td><span class="tag cp">CP</span> Control Panel</td><td>Storefront catalog, menus, branding, portal settings, orders</td><td>Tenant CP admin</td></tr>
+                    <tr><td><span class="tag sf">SF</span> Storefront</td><td>Customer-facing shop, account, checkout</td><td>Driven by CP + design tokens</td></tr>
+                }
+            </table>
+            <p class="note">Workspace documents (invoices, vouchers, work orders, claims) post to the General Ledger automatically — there is no month-end posting step. Dashboards, P&amp;L, Balance Sheet and reports always read live workspace data.</p>
+        </section>
+
+        <section class="brk">
+            <h2>3 · ERP module map</h2>
+            <p>Every area below is in the ERP top menu (Setup → under the matching area). Open ERP → <a href="https://@_host/erp/tenant-guide">Tenant guide</a> for the live org map.</p>
+            <table>
+                <tr><th>Area</th><th>What it does</th></tr>
+                @foreach (var c in PhpModuleCatalog.ErpCategories)
+                {
+                    <tr><td>@c.Label</td><td>@c.Description</td></tr>
+                }
+            </table>
+            <h3>Key admin destinations</h3>
+            <table>
+                <tr><th>Destination</th><th>Path</th></tr>
+                <tr><td>Tenant config &amp; security (roles → duties → privileges → field rules)</td><td>/erp/tenant-config-app</td></tr>
+                <tr><td>Users &amp; credentials</td><td>/erp/users-app</td></tr>
+                <tr><td>Tenant guide (live org map)</td><td>/erp/tenant-guide</td></tr>
+                <tr><td>Mobile apps (ERP app under ERP admin)</td><td>/erp/mobile-apps-app</td></tr>
+                <tr><td>Dashboards (per-user &amp; group personalize)</td><td>/erp/dashboard-app</td></tr>
+                <tr><td>This onboarding kit</td><td>/erp/onboarding-kit-app</td></tr>
+            </table>
+        </section>
+
+        <section class="brk">
+            <h2>@SectionNum(4) · Industry workspaces — guides &amp; process</h2>
+            <p>ecom ships a full workspace per industry vertical. Enable your pack in <a href="https://@_host/cp/industry-settings-app">Industry settings</a>; each workspace carries its own graphical step guide on the page. The process tracks below are the same guides, printed for the kit.</p>
+            @IndustrySection("Auto parts", "fa-car", "/erp/autoparts/workspace", ErpAutoPartsGuide.Lanes.Select(l => (l.Title, l.Icon, l.Steps.Select(s => (s.Number, s.Icon, s.Label, s.Detail, s.Href)))))
+            @IndustrySection("Jewellery", "fa-diamond", "/erp/jewellery-retail-app", ErpJewelleryGuide.Lanes.Select(l => (l.Title, l.Icon, l.Steps.Select(s => (s.Number, s.Icon, s.Label, s.Detail, s.Href)))))
+            @IndustrySection("Real estate", "fa-building", "/erp/real-estate-app", ErpRealEstateGuide.Lanes.Select(l => (l.Title, l.Icon, l.Steps.Select(s => (Number: s.Number, Icon: s.Icon, Label: s.Label, Detail: "", Href: s.Href)))))
+            @IndustrySection("Fit-out / contracting", "fa-hard-hat", "/erp/fitout-workspace-app", ErpFitOutGuide.Lanes.Select(l => (l.Title, l.Icon, l.Steps.Select(s => (s.Number, s.Icon, s.Label, s.Detail, s.Href)))))
+        </section>
+
+        @if (_canCp)
+        {
+            <section class="brk">
+                <h2>@SectionNum(5) · Control Panel &amp; storefront (full tenant)</h2>
+                <p>Full tenants run the storefront and the Control Panel on top of ERP. The storefront's branding, menus and content are tenant-controlled.</p>
+                <table>
+                    <tr><th>Destination</th><th>Path</th></tr>
+                    <tr><td>Brand &amp; theme tokens (colors, logo, density — repaint CP/ERP/storefront)</td><td>/cp/design-tokens-app</td></tr>
+                    <tr><td>Menus &amp; navigation (site + CP menus)</td><td>/cp/menus-app</td></tr>
+                    <tr><td>Industry settings</td><td>/cp/industry-settings-app</td></tr>
+                    <tr><td>Custom fields</td><td>/cp/vin-fields-app</td></tr>
+                    <tr><td>Mobile apps (CP app)</td><td>/cp/mobile-apps-app</td></tr>
+                    <tr><td>Storefront admin app</td><td>/storefront/app</td></tr>
+                </table>
+            </section>
+        }
+
+        <section class="brk">
+            <h2>@SectionNum(6) · Customization map</h2>
+            <p>Everything a tenant admin can customize, and where:</p>
+            <table>
+                <tr><th>What</th><th>Where</th><th>Scope</th></tr>
+                <tr><td>Branding, colors, logo, theme</td><td>/cp/design-tokens-app</td><td>Tenant (overrides industry &amp; super)</td></tr>
+                <tr><td>Dashboard widgets per user / group</td><td>/erp/dashboard-app</td><td>Per user + tenant defaults</td></tr>
+                <tr><td>Menus</td><td>/cp/menus-app</td><td>Tenant</td></tr>
+                <tr><td>Industry pack &amp; terminology</td><td>/cp/industry-settings-app</td><td>Tenant</td></tr>
+                <tr><td>Custom fields</td><td>/cp/vin-fields-app</td><td>Tenant</td></tr>
+                <tr><td>Field-level security (hide / read-only)</td><td>/erp/tenant-config-app → Security roles</td><td>Per user + per group</td></tr>
+                <tr><td>Roles, duties, privileges</td><td>/erp/tenant-config-app</td><td>Tenant</td></tr>
+                <tr><td>Mobile apps</td><td>/erp/mobile-apps-app (ERP) · /cp/mobile-apps-app (CP)</td><td>Tenant</td></tr>
+                <tr><td>Print / document design</td><td>/erp/print-designer-app</td><td>Tenant</td></tr>
+            </table>
+            <p class="note">Every customization page opens with a step-by-step graphical guide and a preview of where the change lands.</p>
+        </section>
+
+        <section class="brk">
+            <h2>@SectionNum(7) · Go-live checklist</h2>
+            <ol>
+                <li><strong>Sign in</strong> at /erp/login with the issued admin credential; change the temporary password and enroll 2FA (ERP → Setup → Security MFA).</li>
+                <li><strong>Review the org map</strong> — ERP → Setup → Tenant guide shows legal entities, business units, warehouses.</li>
+                <li><strong>Create users</strong> — ERP → Setup → Users &amp; credentials; assign each a department.</li>
+                <li><strong>Define security</strong> — ERP → Setup → Tenant config &amp; security → Security roles: create roles, attach duties and privileges, add field rules (hide/read-only) where needed.</li>
+                <li><strong>Set up finance</strong> — Chart of accounts, fiscal calendar, currencies and exchange rates under Record to Report.</li>
+                <li><strong>Load master data</strong> — customers, vendors, products, warehouses via CSV import (ecom studio) or the module forms.</li>
+                <li><strong>Brand the platform</strong> — design tokens (colors/logo), menus, dashboard defaults.</li>
+                <li><strong>Industry pack</strong> — enable the vertical pack so workspaces and terminology match your business.</li>
+                <li><strong>Mobile app</strong> — configure the ERP app (and CP app for full tenants) under Setup → Mobile apps.</li>
+                <li><strong>Verify reports</strong> — Trial Balance, P&amp;L, Balance Sheet read live workspace data; run a test document end-to-end.</li>
+                <li><strong>Handover</strong> — print this kit, fill the credential box, collect signatures below.</li>
+            </ol>
+        </section>
+
+        <section>
+            <h2>@SectionNum(8) · House rules</h2>
+            <ul>
+                <li><strong>Sandbox vs operations:</strong> demo/sample data runs only on sandbox tenants — it is blocked on operation tenants by design.</li>
+                <li><strong>No month-end posting:</strong> documents post to GL/COA automatically when saved/approved.</li>
+                <li><strong>Field security is real:</strong> hidden fields keep stored values; read-only fields reject changed values server-side.</li>
+                <li><strong>Writes are gated:</strong> admin saves require confirmWrites — nothing mutates silently.</li>
+                <li><strong>Guides everywhere:</strong> each admin/customization page carries a step-by-step graphical guide at the top.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>@SectionNum(9) · Handover sign-off</h2>
+            <p class="note">Signatures confirm the tenant admin received this kit, the credentials listed in section 1, and a walkthrough of sections 2–4.</p>
+            <div class="sign">
+                <div class="line">Delivered by (name, role, date)</div>
+                <div class="line">Received by — tenant admin (name, date)</div>
+            </div>
+        </section>
+    </div>;
+
+    private bool _print;
+    private bool _isAdmin;
+    private bool _canErp;
+    private bool _canCp;
+    private string _host = "";
+    private IReadOnlyList<ErpStaffProfileDigest> _staff = [];
+    private IReadOnlyList<CpUserDigest> _cpUsers = [];
+    private int _staffCount;
+    private int _cpUserCount;
+
+    private string TenantTypeLabel => _canCp ? "Full tenant (ERP + CP + storefront)" : "ERP tenant";
+
+    /// <summary>Section number: CP section 5 only exists for full tenants, so later numbers shift.</summary>
+    private string SectionNum(int full)
+        => (_canCp ? full : full - 1).ToString(CultureInfo.InvariantCulture);
+
+    private static string Html(string? value) => HtmlEncoder.Default.Encode(value ?? "");
+
+    private MarkupString IndustrySection(
+        string name,
+        string icon,
+        string href,
+        IEnumerable<(string Title, string Icon, IEnumerable<(int Number, string Icon, string Label, string Detail, string Href)> Steps)> lanes)
+    {
+        var sb = new StringBuilder("<div style=\"margin-top:10px\">");
+        sb.Append("<h3><i class=\"fa ").Append(Html(icon)).Append("\" aria-hidden=\"true\"></i> ")
+            .Append(Html(name)).Append(" — <a href=\"https://").Append(Html(_host)).Append(Html(href)).Append("\">")
+            .Append(Html(href)).Append("</a></h3>");
+        foreach (var lane in lanes)
+        {
+            sb.Append("<h3 style=\"color:#0f766e\"><i class=\"fa ").Append(Html(lane.Icon)).Append("\" aria-hidden=\"true\"></i> ")
+                .Append(Html(lane.Title)).Append("</h3>");
+            sb.Append("<table><tr><th style=\"width:34px\">#</th><th>Step</th><th>What to do</th></tr>");
+            foreach (var step in lane.Steps)
+            {
+                sb.Append("<tr><td>").Append(step.Number).Append("</td><td><i class=\"fa ")
+                    .Append(Html(step.Icon)).Append("\" aria-hidden=\"true\"></i> ");
+                if (string.IsNullOrWhiteSpace(step.Href))
+                    sb.Append(Html(step.Label));
+                else
+                    sb.Append("<a href=\"https://").Append(Html(_host)).Append(Html(step.Href)).Append("\">")
+                        .Append(Html(step.Label)).Append("</a>");
+                sb.Append("</td><td>").Append(Html(step.Detail)).Append("</td></tr>");
+            }
+            sb.Append("</table>");
+        }
+        sb.Append("</div>");
+        return new MarkupString(sb.ToString());
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        _print = string.Equals(ctx.Request.Query["print"], "1", StringComparison.Ordinal);
+        _host = PlatformHostPolicy.NormalizeHost(ctx.Request.Host.Host);
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _canErp = session.Capabilities?.Contains("erp") ?? false;
+        _canCp = session.Capabilities?.Contains("cp") ?? false;
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session) && (_canErp || _canCp);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        var staff = await Dashboards.ListErpStaffAsync(50, ctx.RequestAborted);
+        _staff = staff.Staff;
+        _staffCount = staff.Count;
+
+        if (_canCp)
+        {
+            var users = await Dashboards.ListCpUsersAsync(50, ctx.RequestAborted);
+            _cpUsers = users.Users;
+            _cpUserCount = users.Count;
+        }
+    }
+}
