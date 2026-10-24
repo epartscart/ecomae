@@ -9,7 +9,7 @@ using Microsoft.Extensions.Caching.Memory;
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
-/// Tenant personalization layer (D365-style): every allowlisted
+/// Tenant personalization layer (ecom-style): every allowlisted
 /// <c>epc_settings</c> token saved via CP "Organization presentation settings"
 /// is resolved per tenant site_key and emitted into the chrome as scoped CSS
 /// variables + data attributes. The super layer (base markup, routes,

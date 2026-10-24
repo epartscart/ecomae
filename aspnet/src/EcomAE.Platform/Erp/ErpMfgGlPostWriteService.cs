@@ -132,48 +132,30 @@ public sealed class ErpMfgGlPostWriteService : IErpMfgGlPostWriteService
 
             if (wo.Material > 0)
             {
-                var issueRef = baseRef + "-ISS";
-                if (await ErpAutoPartsGl.PostedJournalIdAsync(connection, issueRef, cancellationToken).ConfigureAwait(false) > 0)
-                {
-                    skipped++;
-                }
-                else if (await ErpAutoPartsGl.PostAsync(_gl, connection, null, 0, companyId, wo.Id, issueRef,
-                    "Material issued — " + wo.No, ErpMfgIfrs.MaterialIssue(wo.Material), wo.Date, cancellationToken).ConfigureAwait(false) > 0)
-                {
-                    issued++;
-                }
+                var outcome = await PostOrRefreshAsync(connection, companyId, wo, baseRef + "-ISS",
+                    "Material issued — " + wo.No, ErpMfgIfrs.MaterialIssue(wo.Material), cancellationToken).ConfigureAwait(false);
+                if (outcome == PostOutcome.Posted) issued++;
+                else if (outcome == PostOutcome.Skipped) skipped++;
             }
 
             if (wo.Status == "completed")
             {
-                var convRef = baseRef + "-CONV";
                 var convRecipe = ErpMfgIfrs.ConversionCost(wo.Labour, wo.Overhead);
                 if (convRecipe.Count > 0)
                 {
-                    if (await ErpAutoPartsGl.PostedJournalIdAsync(connection, convRef, cancellationToken).ConfigureAwait(false) > 0)
-                    {
-                        skipped++;
-                    }
-                    else if (await ErpAutoPartsGl.PostAsync(_gl, connection, null, 0, companyId, wo.Id, convRef,
-                        "Conversion cost — " + wo.No, convRecipe, wo.Date, cancellationToken).ConfigureAwait(false) > 0)
-                    {
-                        conversion++;
-                    }
+                    var outcome = await PostOrRefreshAsync(connection, companyId, wo, baseRef + "-CONV",
+                        "Conversion cost — " + wo.No, convRecipe, cancellationToken).ConfigureAwait(false);
+                    if (outcome == PostOutcome.Posted) conversion++;
+                    else if (outcome == PostOutcome.Skipped) skipped++;
                 }
 
                 var total = wo.Material + wo.Labour + wo.Overhead;
-                var fgRef = baseRef + "-FG";
                 if (total > 0)
                 {
-                    if (await ErpAutoPartsGl.PostedJournalIdAsync(connection, fgRef, cancellationToken).ConfigureAwait(false) > 0)
-                    {
-                        skipped++;
-                    }
-                    else if (await ErpAutoPartsGl.PostAsync(_gl, connection, null, 0, companyId, wo.Id, fgRef,
-                        "Finished goods receipt — " + wo.No, ErpMfgIfrs.FinishedReceipt(total), wo.Date, cancellationToken).ConfigureAwait(false) > 0)
-                    {
-                        finished++;
-                    }
+                    var outcome = await PostOrRefreshAsync(connection, companyId, wo, baseRef + "-FG",
+                        "Finished goods receipt — " + wo.No, ErpMfgIfrs.FinishedReceipt(total), cancellationToken).ConfigureAwait(false);
+                    if (outcome == PostOutcome.Posted) finished++;
+                    else if (outcome == PostOutcome.Skipped) skipped++;
                 }
             }
         }
@@ -182,6 +164,82 @@ public sealed class ErpMfgGlPostWriteService : IErpMfgGlPostWriteService
             + finished + " finished-goods journals"
             + (skipped > 0 ? " (" + skipped + " already posted skipped)" : "")
             + " — income statement, balance sheet and dashboard figures now include the manufacturing numbers.";
+    }
+
+    private enum PostOutcome { Posted, Skipped, Failed }
+
+    /// <summary>
+    /// Idempotent with amount awareness: an existing journal with matching totals is skipped,
+    /// but a re-issued / re-completed work order that changed its costs gets the stale journal
+    /// deactivated and reposted with the new amounts.
+    /// </summary>
+    private async Task<PostOutcome> PostOrRefreshAsync(
+        DbConnection connection,
+        long companyId,
+        (long Id, string No, string Status, decimal Material, decimal Labour, decimal Overhead, long Date) wo,
+        string reference,
+        string description,
+        IReadOnlyList<ErpAutoPartsIfrs.JournalLine> recipe,
+        CancellationToken cancellationToken)
+    {
+        var existing = await ErpAutoPartsGl.PostedJournalIdAsync(connection, reference, cancellationToken).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            // Compare per-account amounts, not just totals — a labour/overhead
+            // re-allocation with the same sum must still repost.
+            var posted = new Dictionary<string, (decimal Debit, decimal Credit)>(StringComparer.Ordinal);
+            await using (var read = connection.CreateCommand())
+            {
+                read.CommandText = ErpDb.Positional(
+                    "SELECT a.`code`, IFNULL(SUM(l.`debit`),0), IFNULL(SUM(l.`credit`),0)"
+                    + " FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.`id`=l.`coa_id`"
+                    + " WHERE l.`journal_id`=? GROUP BY a.`code`");
+                ErpDb.AddParameters(read, existing);
+                await using var reader = await read.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    posted[reader.GetString(0)] = (reader.GetDecimal(1), reader.GetDecimal(2));
+                }
+            }
+
+            var expected = new Dictionary<string, (decimal Debit, decimal Credit)>(StringComparer.Ordinal);
+            foreach (var line in recipe)
+            {
+                expected.TryGetValue(line.Code, out var acc);
+                expected[line.Code] = (acc.Debit + line.Debit, acc.Credit + line.Credit);
+            }
+
+            var same = posted.Count == expected.Count;
+            if (same)
+            {
+                foreach (var pair in expected)
+                {
+                    if (!posted.TryGetValue(pair.Key, out var amounts)
+                        || Math.Abs(amounts.Debit - pair.Value.Debit) >= 0.005m
+                        || Math.Abs(amounts.Credit - pair.Value.Credit) >= 0.005m)
+                    {
+                        same = false;
+                        break;
+                    }
+                }
+            }
+            if (same)
+            {
+                return PostOutcome.Skipped;
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `epc_erp_gl_journals` SET `active`=0 WHERE `id`=?"),
+                cancellationToken,
+                existing).ConfigureAwait(false);
+        }
+
+        return await ErpAutoPartsGl.PostAsync(_gl, connection, null, 0, companyId, wo.Id, reference,
+            description, recipe, wo.Date, cancellationToken).ConfigureAwait(false) > 0
+            ? PostOutcome.Posted
+            : PostOutcome.Failed;
     }
 
     private static async Task EnsureCoaAsync(DbConnection connection, CancellationToken cancellationToken)

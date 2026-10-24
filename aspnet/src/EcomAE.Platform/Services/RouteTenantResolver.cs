@@ -45,7 +45,7 @@ public sealed class RouteTenantResolver : ITenantResolver
 
         var registryRecord = await _tenantRegistry.FindByHostAsync(host, cancellationToken);
 
-        // D365-style dedicated tenant hosts: {site_key}.operations.{country3}.ecomae.com.
+        // ecom-style dedicated tenant hosts: {site_key}.operations.{country3}.ecomae.com.
         // The hostname binds the tenant exactly like /cp/client-erp/{key} does on the
         // Super host, so the tenant lands on its own industry ERP with no CP path.
         if (ErpOperationsHost.TryParse(host, out var operationsKey, out _))
@@ -58,7 +58,7 @@ public sealed class RouteTenantResolver : ITenantResolver
             // Unknown slug: fall through to the normal host/registry resolution.
         }
 
-        // UAT tier (D365 sandbox): {site_key}-sandbox-{country3}.ecomae.com binds the
+        // UAT tier (ecom sandbox): {site_key}-sandbox-{country3}.ecomae.com binds the
         // same registry row but opens {database}_sandbox instead of the live DB.
         if (ErpOperationsHost.TryParseSandbox(host, out var sandboxKey, out _))
         {

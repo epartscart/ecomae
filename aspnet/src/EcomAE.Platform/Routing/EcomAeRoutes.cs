@@ -3039,43 +3039,43 @@ public static class EcomAeRoutes
     public const string ErpShamTreasury = "/erp/sham/treasury";
     /// <summary>SHAM §13: list an entity's treasury instruments + open exposure.</summary>
     public const string ErpShamTreasuryView = "/erp/sham/treasury-view";
-    /// <summary>D365 doc-cycle: upsert a legal entity's document header/footer profile.</summary>
+    /// <summary>ecom doc-cycle: upsert a legal entity's document header/footer profile.</summary>
     public const string ErpD365DocProfileSet = "/erp/d365/doc-profile-set";
-    /// <summary>D365 doc-cycle: sales-invoice PDF (wholesale layout, per-entity chrome).</summary>
+    /// <summary>ecom doc-cycle: sales-invoice PDF (wholesale layout, per-entity chrome).</summary>
     public const string ErpD365InvoicePdf = "/erp/d365/invoice-pdf";
-    /// <summary>D365 doc-cycle: delivery-note PDF (per-entity chrome).</summary>
+    /// <summary>ecom doc-cycle: delivery-note PDF (per-entity chrome).</summary>
     public const string ErpD365DeliveryPdf = "/erp/d365/delivery-pdf";
-    /// <summary>D365 doc-cycle: save D365 fields on an existing document (so|po|dn|customer|vendor|product).</summary>
+    /// <summary>ecom doc-cycle: save ecom fields on an existing document (so|po|dn|customer|vendor|product).</summary>
     public const string ErpD365FieldsSave = "/erp/d365/fields-save";
-    /// <summary>D365 bulk: CSV template download for an opening-data area.</summary>
+    /// <summary>ecom bulk: CSV template download for an opening-data area.</summary>
     public const string ErpD365CsvTemplate = "/erp/d365/csv-template";
-    /// <summary>D365 live connector: test the Entra/OData connection (admin only).</summary>
+    /// <summary>ecom live connector: test the Entra/OData connection (admin only).</summary>
     public const string ErpD365ConnectTest = "/erp/d365/connect-test";
-    /// <summary>D365 live connector: pull one F&O data entity into staging.</summary>
+    /// <summary>ecom live connector: pull one F&O data entity into staging.</summary>
     public const string ErpD365ConnectPull = "/erp/d365/connect-pull";
     public const string ErpD365ApplyStaged = "/erp/d365/apply-staged";
-    /// <summary>D365 live connector: persisted on/off switch for pulls and applies.</summary>
+    /// <summary>ecom live connector: persisted on/off switch for pulls and applies.</summary>
     public const string ErpD365SyncToggle = "/erp/d365/sync-toggle";
     public const string ErpD365SaveConnection = "/erp/d365/save-connection";
     /// <summary>TOTP two-factor: confirm enrollment with a code from the authenticator app.</summary>
     public const string ErpMfaEnrollConfirm = "/erp/mfa/enroll-confirm";
     /// <summary>TOTP two-factor: disable with a current code.</summary>
     public const string ErpMfaDisable = "/erp/mfa/disable";
-    /// <summary>D365 bulk: CSV upload → validate → commit for an opening-data area.</summary>
+    /// <summary>ecom bulk: CSV upload → validate → commit for an opening-data area.</summary>
     public const string ErpD365CsvImport = "/erp/d365/csv-import";
-    /// <summary>D365 bulk: CSV export of a grid/report area.</summary>
+    /// <summary>ecom bulk: CSV export of a grid/report area.</summary>
     public const string ErpD365CsvExport = "/erp/d365/csv-export";
-    /// <summary>D365 quotation lifecycle: set status (sent|confirmed|rejected|expired).</summary>
+    /// <summary>ecom quotation lifecycle: set status (sent|confirmed|rejected|expired).</summary>
     public const string ErpD365QuoteStatus = "/erp/d365/quote-status";
-    /// <summary>D365 quotation print view (PDF, SALES QUOTATION chrome).</summary>
+    /// <summary>ecom quotation print view (PDF, SALES QUOTATION chrome).</summary>
     public const string ErpD365QuotePdf = "/erp/d365/quote-pdf";
-    /// <summary>D365 GL foundation save: kind=dim_type|dim_value|dim_set|fiscal_calendar|fx_rate|bank|journal_dims|coa.</summary>
+    /// <summary>ecom GL foundation save: kind=dim_type|dim_value|dim_set|fiscal_calendar|fx_rate|bank|journal_dims|coa.</summary>
     public const string ErpD365GlSave = "/erp/d365/gl-save";
-    /// <summary>D365 bank reconciliation mark/unmark a cash-bank entry.</summary>
+    /// <summary>ecom bank reconciliation mark/unmark a cash-bank entry.</summary>
     public const string ErpD365BankRecon = "/erp/d365/bank-recon";
-    /// <summary>D365 trial balance pivoted by a financial dimension set. ?set=set id.</summary>
+    /// <summary>ecom trial balance pivoted by a financial dimension set. ?set=set id.</summary>
     public const string ErpD365TbSet = "/erp/d365/tb-set";
-    /// <summary>D365 journals: post a journal (general|customer_payment|vendor_payment) with dimensioned lines.</summary>
+    /// <summary>ecom journals: post a journal (general|customer_payment|vendor_payment) with dimensioned lines.</summary>
     public const string ErpD365JournalPost = "/erp/d365/journal-post";
 
     /// <summary>POST prospect (epc_crm_leads) → customer/vendor conversion.</summary>
@@ -3091,6 +3091,10 @@ public static class EcomAeRoutes
     /// <summary>Auto-parts month-end bridge: posts trading journals into the GL.</summary>
     public const string ErpAutoPartsGlPost = "/erp/autoparts/gl-post";
     public const string ErpMfgGlPost = "/erp/manufacturing/gl-post";
+    /// <summary>Per-user personalization: hide/show a dashboard widget.</summary>
+    public const string ErpUserPrefSet = "/erp/user-pref";
+    /// <summary>Tenant-admin field-level rule set: POST {scope,area,field,mode} — hidden/readonly per user or group.</summary>
+    public const string ErpFieldRuleSet = "/erp/field-rule";
     /// <summary>Auto-parts sales order → UAE FTA tax invoice build + print link.</summary>
     public const string ErpAutoPartsIssueInvoice = "/erp/autoparts/issue-invoice";
 
@@ -3276,7 +3280,7 @@ public static class EcomAeRoutes
     public const string ErpEditLockHeartbeat = "/erp/edit-lock/heartbeat";
     /// <summary>HTML form POST for PHP cs_delete_declaration. confirmWrites=true writes via IErpCsDeleteDeclarationWriteService.</summary>
     public const string ErpCsDeleteDeclaration = "/erp/custom-shipping/delete";
-    /// <summary>Dynamics-style workspace save for leave, planning, equipment, organization, payroll, and procurement pages.</summary>
+    /// <summary>ecom workspace save for leave, planning, equipment, organization, payroll, and procurement pages.</summary>
     public const string ErpD365WorkspaceSave = "/erp/d365-workspace/save";
     /// <summary>New-entry post for list-only ERP pages. intent=validate checks only. intent=post with confirmWrites writes the existing table.</summary>
     public const string ErpSheetEntry = "/erp/sheet-entry";

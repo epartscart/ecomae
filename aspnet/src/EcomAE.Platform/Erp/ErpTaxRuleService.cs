@@ -4,7 +4,7 @@ using System.Text;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Effective-dated tax rules (D365-style "sales tax group / item group"
+/// Effective-dated tax rules (ecom-style "sales tax group / item group"
 /// resolution reduced to what our tenants need): a rule maps a supply
 /// scenario — supply kind (goods/services/real_estate), location pair
 /// (mainland/designated_zone/export), optional designated-zone flags and
@@ -71,7 +71,7 @@ public sealed class ErpTaxRuleService : IErpTaxRuleService
               `time_created` int(11) NOT NULL DEFAULT 0,
               PRIMARY KEY (`id`),
               KEY `x_scope` (`entity_id`,`supply_kind`,`valid_from`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Effective-dated tax rules (D365 tax-group model, §8)'
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Effective-dated tax rules (ecom tax-group model, §8)'
             """, cancellationToken).ConfigureAwait(false);
 
     public async Task<ErpTaxRuleResult> SetAsync(string entityCode, string scopeCode, string supplyKind, string fromLocation, string toLocation, string treatment, decimal vatRate, string docClass, long validFromUnix, long validToUnix, string? note, string userEmail, CancellationToken cancellationToken = default)

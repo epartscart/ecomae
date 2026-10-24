@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Presentation;
 
-/// <summary>D365 F&amp;O-style page search over ERP workspaces and industry modules.</summary>
+/// <summary>ecom F&amp;O-style page search over ERP workspaces and industry modules.</summary>
 public static class ErpGlobalSearchCatalog
 {
     public sealed record Entry(string Label, string Href, string Group, string Icon, string Keywords = "");
@@ -80,7 +80,7 @@ public static class ErpGlobalSearchCatalog
         }
 
         rows.Add(new("Tenant guide — organisation structure & how it works", "/erp/tenant-guide", "administration", "fa-map-signs"));
-        rows.Add(new("D365 studio — document profiles, fields, CSV import/export", "/erp/d365-studio", "administration", "fa-magic"));
+        rows.Add(new("ecom studio — document profiles, fields, CSV import/export", "/erp/d365-studio", "administration", "fa-magic"));
         rows.Add(new("Master lookup (customers, suppliers, items, projects)", "/erp/lookups?kind=customer", "masters", "fa-search"));
         rows.Add(new("Users & credentials (department users, login logs, audit)", "/erp/users-app", "administration", "fa-users"));
 

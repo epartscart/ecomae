@@ -112,7 +112,7 @@ public sealed class ErpShamFoundationService : IErpShamFoundationService
 
         foreach (var sql in new[]
         {
-            // D365 F&O: a warehouse carries a financial cost centre; the BU's default
+            // ecom F&O: a warehouse carries a financial cost centre; the BU's default
             // warehouse inherits the BU cost centre on link.
             "ALTER TABLE `epc_erp_inv_warehouses` ADD COLUMN `cost_centre` varchar(40) NOT NULL DEFAULT ''",
             // §2 GroupMembership register: control basis, accounting method,

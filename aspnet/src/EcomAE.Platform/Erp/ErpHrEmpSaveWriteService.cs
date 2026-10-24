@@ -7,7 +7,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_hr_employee_save</c> twin. INSERT/UPDATE <c>epc_hr_employees</c>.
-/// Schema ensure stays PHP. Does not CREATE or ALTER tables. Optional D365-depth
+/// Schema ensure stays PHP. Does not CREATE or ALTER tables. Optional ecom-depth
 /// columns are written only when the request provided them and the live table
 /// already has that column.
 /// </summary>

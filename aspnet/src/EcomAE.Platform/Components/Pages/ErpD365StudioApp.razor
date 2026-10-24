@@ -14,7 +14,7 @@
 @inject IErpD365DocCycleService D365
 @inject IErpD365GlService Gl
 
-<PageTitle>D365 studio · ERP · eParts Cart</PageTitle>
+<PageTitle>ecom studio · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <style>
     .tg-card { background:#fff; border:1px solid #dde6ee; border-radius:10px; padding:16px 18px; margin:0 0 16px; box-shadow:0 1px 2px rgba(16,42,66,.05); }
@@ -34,10 +34,10 @@
     .tg-links a { margin-right:12px; font-size:12px; }
 </style>
 
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="D365 studio" BreadcrumbArea="Organization" BreadcrumbTab="D365 studio">
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="ecom studio" BreadcrumbArea="Organization" BreadcrumbTab="ecom studio">
     <PhpErpModulePageHeader
-        Title="D365 studio"
-        Subtitle="Per-legal-entity document header/footer (used by every PDF), D365 field saves on documents and masters, and CSV bulk load/export for opening data — the same shapes as Finance and Operations."
+        Title="ecom studio"
+        Subtitle="Per-legal-entity document header/footer (used by every PDF), ecom field saves on documents and masters, and CSV bulk load/export for opening data — the same shapes as Finance and Operations."
         PhpTabHref="/erp/d365-studio" />
 
     @if (_flashOk.Length > 0)
@@ -71,7 +71,7 @@
         </div>
 
         <div class="tg-card tg-form">
-            <h3>Save D365 fields on a record</h3>
+            <h3>Save ecom fields on a record</h3>
             <p>Writes any captured F&O fields onto an existing row — unknown names are ignored, so paste field=value pairs straight from the study list.</p>
             <form method="post" action="@Post("/erp/d365/fields-save")">
                 @HiddenFields()
@@ -115,11 +115,11 @@
         </table>
     </div>
 
-    <h3 style="margin:18px 0 10px;color:#12324f">D365 entity templates — every field (upload-ready)</h3>
+    <h3 style="margin:18px 0 10px;color:#12324f">ecom entity templates — every field (upload-ready)</h3>
     <div class="tg-card">
-        <p>Each template carries the <strong>complete field schema</strong> of the D365 entity (e.g. all 326 released-product fields incl. ASAP_* SHAM customs) — fill any columns you have and import; every column is preserved in the ERP field store, nothing is dropped. Templates are always available, synced or not.</p>
+        <p>Each template carries the <strong>complete field schema</strong> of the ecom entity (e.g. all 326 released-product fields incl. ASAP_* SHAM customs) — fill any columns you have and import; every column is preserved in the ERP field store, nothing is dropped. Templates are always available, synced or not.</p>
         <table class="tg-table">
-            <thead><tr><th>D365 entity</th><th class="text-right">Fields</th><th>Actions</th></tr></thead>
+            <thead><tr><th>ecom entity</th><th class="text-right">Fields</th><th>Actions</th></tr></thead>
             <tbody>
                 @foreach (var e in ErpD365EntityFieldCatalog.Entities)
                 {
@@ -148,7 +148,7 @@
         else
         {
             <table class="tg-table">
-                <thead><tr><th>D365 entity</th><th class="text-right">Staged rows</th><th>Actions</th></tr></thead>
+                <thead><tr><th>ecom entity</th><th class="text-right">Staged rows</th><th>Actions</th></tr></thead>
                 <tbody>
                     @foreach (var e in _staged)
                     {
@@ -292,7 +292,7 @@
 
     <div class="tg-card">
         <h3>Warehouses (InventLocations)</h3>
-        <p>Fields saved via the D365 field form above (kind=warehouse): site, type, entity, cost centre (SHAM links warehouses to cost centres), business unit, allow-negative, cycle counting, retail flags.</p>
+        <p>Fields saved via the ecom field form above (kind=warehouse): site, type, entity, cost centre (SHAM links warehouses to cost centres), business unit, allow-negative, cycle counting, retail flags.</p>
         <table class="tg-table">
             <thead><tr><th>Id</th><th>Code</th><th>Name</th><th>Entity</th><th>Site</th><th>Type</th><th>Cost centre</th><th>BU</th></tr></thead>
             <tbody>
@@ -306,7 +306,7 @@
 
     <div class="tg-card">
         <h3>Prospects → customer / vendor (smmBusinessRelations)</h3>
-        <p>Convert a qualified prospect into a customer or vendor master — the D365 prospect conversion flow. Already-converted prospects show their party id.</p>
+        <p>Convert a qualified prospect into a customer or vendor master — the ecom prospect conversion flow. Already-converted prospects show their party id.</p>
         <table class="tg-table">
             <thead><tr><th>#</th><th>Company</th><th>Contact</th><th>Email</th><th>Phone</th><th>Status</th><th>Convert</th></tr></thead>
             <tbody>

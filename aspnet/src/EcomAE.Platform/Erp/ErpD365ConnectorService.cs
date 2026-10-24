@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// One-way Microsoft Dynamics 365 Finance &amp; Operations → EcomAE connector.
+/// One-way Microsoft ecom Finance &amp; Operations → EcomAE connector.
 /// Authenticates via Entra ID client-credentials (app registration) and pulls
 /// data-entity rows over the F&amp;O OData endpoint into <c>epc_d365_sync_*</c>
 /// staging tables; mapping into the operational masters happens per entity on
@@ -298,7 +298,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             null,
             ErpDb.Positional(
                 "INSERT INTO `epc_erp_d365_parameters` (`company_id`,`area`,`param_key`,`caption`,`param_value`,`value_kind`,`created_by`,`time_created`,`time_updated`) " +
-                "VALUES (1,'sync','enabled','D365 sync enabled',?,'flag',0,?,?) " +
+                "VALUES (1,'sync','enabled','ecom sync enabled',?,'flag',0,?,?) " +
                 "ON DUPLICATE KEY UPDATE `param_value`=VALUES(`param_value`),`time_updated`=VALUES(`time_updated`)"),
             cancellationToken,
             enabled ? "1" : "0",
@@ -313,7 +313,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             : await ResolveSettingsAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!settings.IsConfigured)
         {
-            return ErpSimpleWriteResult.Fail("not_configured", "D365 connection is not configured — enter the environment URL and credentials in the Connection card on this page (or set the ECOMAE_D365_* env vars).");
+            return ErpSimpleWriteResult.Fail("not_configured", "ecom connection is not configured — enter the environment URL and credentials in the Connection card on this page (or set the ECOMAE_D365_* env vars).");
         }
 
         var token = await AcquireTokenAsync(settings, cancellationToken).ConfigureAwait(false);
@@ -354,7 +354,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         var settings = await ResolveSettingsAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!settings.IsConfigured)
         {
-            return new ErpD365PullResult(false, "not_configured", "D365 connection is not configured — enter credentials on this page.", 0, 0, 0);
+            return new ErpD365PullResult(false, "not_configured", "ecom connection is not configured — enter credentials on this page.", 0, 0, 0);
         }
 
         if (!KnownEntities.TryGetValue(entitySet, out var label))
@@ -422,7 +422,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
                 // further staging instead of letting the in-flight loop run to its page budget.
                 if (!await SyncEnabledAsync(connection, cancellationToken).ConfigureAwait(false))
                 {
-                    var offMsg = $"D365 sync switched off mid-pull — stopped after {fetched} row(s).";
+                    var offMsg = $"ecom sync switched off mid-pull — stopped after {fetched} row(s).";
                     await FinishRunAsync(connection, runId, "cancelled", fetched, staged, offMsg, cancellationToken).ConfigureAwait(false);
                     return new ErpD365PullResult(false, "sync_off", offMsg, fetched, staged, runId);
                 }
@@ -734,12 +734,12 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
             // endpoint tried to move the request — refuse instead of leaking the grant body cross-host.
             if ((int)response.StatusCode is >= 300 and < 400)
             {
-                _logger.LogWarning("D365 token request was redirected ({Status}) — refusing to follow", (int)response.StatusCode);
+                _logger.LogWarning("ecom token request was redirected ({Status}) — refusing to follow", (int)response.StatusCode);
                 return null;
             }
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("D365 token request failed: {Status}", (int)response.StatusCode);
+                _logger.LogWarning("ecom token request failed: {Status}", (int)response.StatusCode);
                 return null;
             }
 
@@ -754,7 +754,7 @@ public sealed class ErpD365ConnectorService : IErpD365ConnectorService
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException)
         {
-            _logger.LogWarning(ex, "D365 token request errored");
+            _logger.LogWarning(ex, "ecom token request errored");
             return null;
         }
     }

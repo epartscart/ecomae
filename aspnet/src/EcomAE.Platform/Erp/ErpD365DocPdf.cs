@@ -6,7 +6,7 @@ using SkiaSharp;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Renders the D365-style wholesale "TAX INVOICE" and delivery-note PDFs for any tenant.
+/// Renders the ecom-style wholesale "TAX INVOICE" and delivery-note PDFs for any tenant.
 /// The chrome comes from the per-legal-entity document profile
 /// (<see cref="IErpD365DocCycleService.EntityDocProfileAsync"/>, falling back to the
 /// tenant-wide row 0) so every legal entity can carry its own legal name, TRN, address,
@@ -86,7 +86,7 @@ public static class ErpD365DocPdf
         return ErpRealEstateReportVisual.ToPdf(jpegs);
     }
 
-    /// <summary>Quotation print = invoice layout with quotation chrome (D365 print view).</summary>
+    /// <summary>Quotation print = invoice layout with quotation chrome (ecom print view).</summary>
     public static byte[] QuotationPdf(InvoiceModel m) => InvoicePdf(m, "SALES QUOTATION", "Quotation Number");
 
     public static byte[] DeliveryNotePdf(DeliveryModel m)

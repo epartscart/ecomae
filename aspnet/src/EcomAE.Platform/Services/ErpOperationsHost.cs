@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 namespace EcomAE.Platform.Services;
 
 /// <summary>
-/// D365-style dedicated tenant hosts:
+/// ecom-style dedicated tenant hosts:
 /// <c>{site_key}.operations.{country3}.ecomae.com</c> — e.g.
 /// <c>indj.operations.uae.ecomae.com/?cmp=indj</c>.
 /// The host binds the tenant exactly like Super-CP <c>/cp/client-erp/{key}</c>
@@ -28,7 +28,7 @@ public static class ErpOperationsHost
         @"^(?<slug>[a-z0-9]+)-operations-(?<country>[a-z]{3})\.ecomae\.com$",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
-    // UAT tier (D365 sandbox): {key}-sandbox-{country3}.ecomae.com binds the same
+    // UAT tier (ecom sandbox): {key}-sandbox-{country3}.ecomae.com binds the same
     // tenant registry row but resolves {db}_sandbox instead of the live database.
     private static readonly Regex FlatSandboxPattern = new(
         @"^(?<slug>[a-z0-9]+)-sandbox-(?<country>[a-z]{3})\.ecomae\.com$",

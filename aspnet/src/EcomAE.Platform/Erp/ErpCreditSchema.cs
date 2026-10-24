@@ -35,7 +35,7 @@ internal static class ErpCreditSchema
         ("country_code", "varchar(8) DEFAULT NULL"),
     };
 
-    /// <summary>epc_credit_profiles plus the D365 customer-master columns.</summary>
+    /// <summary>epc_credit_profiles plus the ecom customer-master columns.</summary>
     public static async Task EnsureAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         await ErpDb.TryExecuteAsync(connection,

@@ -4,7 +4,7 @@ using System.Linq;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Canonical full field list per D365 public entity — the complete schema (standard fields +
+/// Canonical full field list per ecom public entity — the complete schema (standard fields +
 /// SHAM ASAP_* customs + dataAreaId), sourced from the published F&O entity metadata, NOT
 /// from staged rows. Templates must cover every field so uploads can carry all data even
 /// when staging is empty; staged rows still union on top so nothing new is ever dropped.

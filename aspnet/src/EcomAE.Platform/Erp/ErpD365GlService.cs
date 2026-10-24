@@ -5,7 +5,7 @@ using System.Text;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// D365 F&O general-ledger foundation, tenant-generic:
+/// ecom F&O general-ledger foundation, tenant-generic:
 /// financial dimension types (legal entity, business unit, cost centre + tenant-defined),
 /// dimension values, dimension sets (ordered compositions like "MA>BU>CC"), fiscal
 /// calendars with year/period structure, exchange-rate pairs with dated rates, bank
@@ -34,7 +34,7 @@ public interface IErpD365GlService
     Task<List<Dictionary<string, string?>>> BankAccountsAsync(DbConnection connection, CancellationToken cancellationToken = default);
     Task<ErpSimpleWriteResult> SetBankReconciledAsync(DbConnection connection, long entryId, bool reconciled, int adminId, CancellationToken cancellationToken = default);
 
-    /// <summary>Attach D365 dimension columns onto epc_erp_gl_lines + journal metadata columns.</summary>
+    /// <summary>Attach ecom dimension columns onto epc_erp_gl_lines + journal metadata columns.</summary>
     Task<ErpSimpleWriteResult> SaveJournalLineDimsAsync(DbConnection connection, long lineId, IReadOnlyDictionary<string, string?> fields, int adminId, CancellationToken cancellationToken = default);
 
     /// <summary>Trial balance pivoted by a dimension set: rows = set members, col pairs = debit/credit totals.</summary>
@@ -104,7 +104,7 @@ public sealed class ErpD365GlService : IErpD365GlService
             + " `time_created` int(11) NOT NULL DEFAULT 0,"
             + " `time_updated` int(11) NOT NULL DEFAULT 0,"
             + " PRIMARY KEY (`id`), UNIQUE KEY `x_code` (`code`)"
-            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='D365 financial dimension types'",
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ecom financial dimension types'",
             cancellationToken).ConfigureAwait(false);
 
         await ErpDb.TryExecuteAsync(
@@ -119,7 +119,7 @@ public sealed class ErpD365GlService : IErpD365GlService
             + " `admin_id` int(11) NOT NULL DEFAULT 0,"
             + " `time_created` int(11) NOT NULL DEFAULT 0,"
             + " PRIMARY KEY (`id`), UNIQUE KEY `x_type_val` (`type_id`,`value_code`)"
-            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='D365 financial dimension values'",
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ecom financial dimension values'",
             cancellationToken).ConfigureAwait(false);
 
         await ErpDb.TryExecuteAsync(
@@ -133,7 +133,7 @@ public sealed class ErpD365GlService : IErpD365GlService
             + " `admin_id` int(11) NOT NULL DEFAULT 0,"
             + " `time_created` int(11) NOT NULL DEFAULT 0,"
             + " PRIMARY KEY (`id`), UNIQUE KEY `x_code` (`code`)"
-            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='D365 financial dimension sets'",
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ecom financial dimension sets'",
             cancellationToken).ConfigureAwait(false);
 
         await ErpDb.TryExecuteAsync(
@@ -150,7 +150,7 @@ public sealed class ErpD365GlService : IErpD365GlService
             + " `admin_id` int(11) NOT NULL DEFAULT 0,"
             + " `time_created` int(11) NOT NULL DEFAULT 0,"
             + " PRIMARY KEY (`id`), UNIQUE KEY `x_cal_year` (`code`,`year`,`period_type`)"
-            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='D365 fiscal calendars'",
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ecom fiscal calendars'",
             cancellationToken).ConfigureAwait(false);
 
         await ErpDb.TryExecuteAsync(
@@ -166,7 +166,7 @@ public sealed class ErpD365GlService : IErpD365GlService
             + " `time_created` int(11) NOT NULL DEFAULT 0,"
             + " PRIMARY KEY (`id`),"
             + " KEY `x_pair_date` (`from_currency`,`to_currency`,`rate_date`)"
-            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='D365 currency exchange rates'",
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ecom currency exchange rates'",
             cancellationToken).ConfigureAwait(false);
 
         await ErpDb.TryExecuteAsync(
@@ -178,7 +178,7 @@ public sealed class ErpD365GlService : IErpD365GlService
             + " `time_created` int(11) NOT NULL DEFAULT 0,"
             + " `time_updated` int(11) NOT NULL DEFAULT 0,"
             + " PRIMARY KEY (`id`), UNIQUE KEY `x_bank_account` (`bank_account`)"
-            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='D365 bank accounts'",
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ecom bank accounts'",
             cancellationToken).ConfigureAwait(false);
         foreach (var col in BankAccountColumns)
         {

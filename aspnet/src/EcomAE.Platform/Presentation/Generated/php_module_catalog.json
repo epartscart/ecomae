@@ -3971,7 +3971,7 @@
     {
       "id": "business-unit-financial-dimensions",
       "name": "Business unit & financial dimensions",
-      "does": "D365-style financial dimensions \u2014 business unit, cost centre, department, project and custom tenant dimensions \u2014 selectable on\u2026",
+      "does": "ecom-style financial dimensions \u2014 business unit, cost centre, department, project and custom tenant dimensions \u2014 selectable on\u2026",
       "href": "/CP/shop/finance/erp?area=enterprise&tab=business_units&epc_erp_shell=1",
       "scope": "client",
       "category": "ERP / Finance"
@@ -4018,7 +4018,7 @@
     },
     {
       "id": "enterprise-modules-d365-style",
-      "name": "Enterprise modules (D365-style)",
+      "name": "Enterprise modules (ecom-style)",
       "does": "Fourteen config-driven enterprise modules with sub-modules \u2014 Business unit, Listing, Product information, Inventory, AP, AR,\u2026",
       "href": "/CP/shop/finance/erp?epc_erp_shell=1",
       "scope": "client",
@@ -4074,8 +4074,8 @@
     },
     {
       "id": "netsuite-dashboard-d365-forms",
-      "name": "NetSuite dashboard + D365 forms",
-      "does": "NetSuite-style role dashboard (tiles, KPI gauge, aging chart, quick actions) with Dynamics 365 Finance & Operations inner\u2026",
+      "name": "NetSuite dashboard + ecom forms",
+      "does": "NetSuite-style role dashboard (tiles, KPI gauge, aging chart, quick actions) with ecom Finance & Operations inner\u2026",
       "href": "/CP/shop/finance/erp?epc_erp_shell=1",
       "scope": "client",
       "category": "ERP / Finance"

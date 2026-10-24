@@ -16,7 +16,7 @@ public sealed record ErpWorkspaceSpec(
     Func<DbConnection, CancellationToken, Task>? Ensure = null);
 
 /// <summary>
-/// Real read model for EVERY generic D365 workspace tab. Merges the per-area
+/// Real read model for EVERY generic ecom workspace tab. Merges the per-area
 /// spec maps (PIM, purchasing, warehouse, ...) — tabs without a spec keep the
 /// legacy generic workspace grid (cases, setup masters, scratch actions).
 /// </summary>

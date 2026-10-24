@@ -24,7 +24,7 @@ public sealed class ErpShamTreasuryService : IErpShamTreasuryService
     private static readonly HashSet<string> Kinds = new(StringComparer.OrdinalIgnoreCase) { "lc", "cad", "fx" };
     private static readonly HashSet<string> Transitions = new(StringComparer.OrdinalIgnoreCase) { "receive", "negotiate", "pay", "settle", "expire", "cancel" };
 
-    /// <summary>D365-style lifecycle: an LC moves open → received (docs) →
+    /// <summary>ecom-style lifecycle: an LC moves open → received (docs) →
     /// negotiated → settled (paid). CAD goes open → paid. FX goes open →
     /// settled/expired. Every hop lands in the events log.</summary>
     private static readonly Dictionary<string, (string From, string To)> Steps = new(StringComparer.OrdinalIgnoreCase)

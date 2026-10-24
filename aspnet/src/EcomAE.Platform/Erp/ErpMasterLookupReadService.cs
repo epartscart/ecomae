@@ -158,7 +158,7 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
         };
 
     /// <summary>
-    /// Pages whose entry forms live on a separate D365-style entry view:
+    /// Pages whose entry forms live on a separate ecom-style entry view:
     /// the "add new" shortcut must land there, not on the list page.
     /// </summary>
     public static string MasterEntryHref(string kind)
