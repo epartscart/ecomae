@@ -1002,12 +1002,22 @@ internal static class ErpLazySchema
         await ErpDb.TryExecuteAsync(c,
             "ALTER TABLE `epc_erp_pm_legal_entities` ADD `consolidated` tinyint(1) NOT NULL DEFAULT 0",
             ct).ConfigureAwait(false);
+        // LEFT(site_key,40): pm code is varchar(40) — a longer member key would fail the
+        // whole batch on strict SQL; GROUP BY also dedupes the same key across groups so
+        // NOT EXISTS cannot admit two members of one insert.
         await ErpDb.TryExecuteAsync(c,
             "INSERT INTO `epc_erp_pm_legal_entities` (`code`,`name`,`country_code`,`currency_code`,`consolidated`,`active`,`time_created`,`time_updated`)"
-            + " SELECT `m`.`site_key`, `m`.`entity_name`, 'AE', IFNULL(NULLIF(`m`.`local_currency`,''),'AED'), IF(`m`.`consolidation`='full',1,0), 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()"
+            + " SELECT LEFT(`m`.`site_key`,40), MAX(`m`.`entity_name`), 'AE', IFNULL(NULLIF(MAX(`m`.`local_currency`),''),'AED'), IF(MAX(`m`.`consolidation`)='full',1,0), 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()"
             + " FROM `epc_entity_members` `m`"
             + " WHERE `m`.`site_key`<>''"
-            + " AND NOT EXISTS (SELECT 1 FROM `epc_erp_pm_legal_entities` `e` WHERE `e`.`code`=`m`.`site_key`)",
+            + " AND NOT EXISTS (SELECT 1 FROM `epc_erp_pm_legal_entities` `e` WHERE `e`.`code`=LEFT(`m`.`site_key`,40))"
+            + " GROUP BY LEFT(`m`.`site_key`,40)",
+            ct).ConfigureAwait(false);
+        // Propagate the consolidation flag onto pre-existing legal-entity rows too.
+        await ErpDb.TryExecuteAsync(c,
+            "UPDATE `epc_erp_pm_legal_entities` `e` JOIN `epc_entity_members` `m`"
+            + " ON `e`.`code`=LEFT(`m`.`site_key`,40) AND `m`.`consolidation`='full'"
+            + " SET `e`.`consolidated`=1 WHERE `e`.`consolidated`=0",
             ct).ConfigureAwait(false);
         await SeedDefaultHqOrganizationAsync(c, ct).ConfigureAwait(false);
     }
