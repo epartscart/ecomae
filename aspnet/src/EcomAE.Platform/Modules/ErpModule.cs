@@ -17872,7 +17872,7 @@ public sealed class ErpModule : ISurfaceModule
                 ok = result.Ok,
                 writes = result.Ok ? 1 : 0,
                 phpAuthoritative = false,
-                message = result.Message,
+                message = message,
                 work_order_id = result.WorkOrderId,
                 material_cost = result.MaterialCost,
                 issued = result.Issued.Select(l => new { component_item_id = l.ComponentItemId, qty = l.Qty, unit_cost = l.UnitCost }),
@@ -17925,7 +17925,7 @@ public sealed class ErpModule : ISurfaceModule
                 ok = result.Ok,
                 writes = result.Ok ? 1 : 0,
                 phpAuthoritative = false,
-                message = result.Message,
+                message = message,
                 work_order_id = result.WorkOrderId,
                 qty_produced = result.QtyProduced,
                 material_cost = result.MaterialCost,
@@ -26542,7 +26542,9 @@ public sealed class ErpModule : ISurfaceModule
     {
         var tenant = context.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey]
             as EcomAE.Platform.Services.TenantContext;
-        if (tenant is not null && !tenant.IsSandbox && tenant.IsTenant)
+        // Demo seeds are sandbox-only: block live tenants and the platform host
+        // (platform context is also not a sandbox).
+        if (tenant is not null && !tenant.IsSandbox)
         {
             const string message = "Test on sandbox — demo sample data cannot be loaded on a live tenant.";
             return LiveWriteFormBinder.Complete(
@@ -28737,6 +28739,16 @@ public sealed class ErpModule : ISurfaceModule
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/dashboard-app", "ERP session required to personalize the dashboard.");
+        }
+
+        // CSRF: the endpoint runs on cookies, so reject cross-site browser posts.
+        var fetchSite = context.Request.Headers["Sec-Fetch-Site"].ToString();
+        var origin = context.Request.Headers["Origin"].ToString();
+        if (string.Equals(fetchSite, "cross-site", StringComparison.OrdinalIgnoreCase)
+            || (origin.Length > 0 && Uri.TryCreate(origin, UriKind.Absolute, out var originUri)
+                && !string.Equals(originUri.Host, context.Request.Host.Host, StringComparison.OrdinalIgnoreCase)))
+        {
+            return Results.Json(new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "cross_site_denied", message = "Cross-site form post rejected." }, statusCode: 403);
         }
 
         var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
@@ -31378,8 +31390,6 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpAmlSeedRulesRequest(0, null, false)).ToPayload(SessionPayload(session)));
         }
 
-        var sandboxBlock = DemoSandboxGuard(context, "/erp");
-        if (sandboxBlock is not null) { return sandboxBlock; }
         var result = await writes.SeedAsync(AmlLong(fields, "company_id"), cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
