@@ -10494,6 +10494,7 @@ public sealed class ErpModule : ISurfaceModule
             HttpContext context,
             ILegacySessionValidator validator,
             IErpJwModuleSaveDryRun dryRun,
+            IErpJewelleryGlPostWriteService glPost,
             IErpJwVoucherWriteService writes,
             CancellationToken cancellationToken) =>
         {
@@ -10730,11 +10731,17 @@ public sealed class ErpModule : ISurfaceModule
                     OtherAmount: otherAmount,
                     ActorUserId: session.UserId),
                 cancellationToken);
+            var voucherMessage = written.Message;
+            if (written.Succeeded)
+            {
+                // Direct GL linkage: vouchers post at save time — no month-end step.
+                voucherMessage += " " + await TryPostGlAsync(() => glPost.PostAsync(written.Id, null, cancellationToken)).ConfigureAwait(false);
+            }
             return LiveWriteFormBinder.Complete(
                 context,
                 returnApp,
                 written.Succeeded,
-                written.Message,
+                voucherMessage,
                 new
                 {
                     ok = written.Succeeded,
@@ -10742,7 +10749,7 @@ public sealed class ErpModule : ISurfaceModule
                     writes = written.Writes,
                     phpAuthoritative = false,
                     validation_code = written.Code,
-                    message = written.Message,
+                    message = voucherMessage,
                     id = written.Id,
                     voc_type = resolvedType,
                     session = SessionPayload(session)
@@ -16143,6 +16150,7 @@ public sealed class ErpModule : ISurfaceModule
     private static async Task<IResult> HandleFitOutDeliveryRecordSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
+        IErpFitOutGlPostWriteService glPost,
         IErpFitOutDeliveryRecordWriteService writes,
         CancellationToken cancellationToken)
     {
@@ -16221,18 +16229,24 @@ public sealed class ErpModule : ISurfaceModule
                 status,
                 photoUrl),
             cancellationToken);
+        var deliveryMessage = written.Message;
+        if (written.Succeeded)
+        {
+            // Direct GL linkage: cost/delivery records post at save time.
+            deliveryMessage += " " + await TryPostGlAsync(() => glPost.PostAsync(projectId, null, cancellationToken)).ConfigureAwait(false);
+        }
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/project-accounting-app",
             written.Succeeded,
-            written.Message,
+            deliveryMessage,
             new
             {
                 ok = written.Succeeded,
                 writes = written.Writes,
                 phpAuthoritative = false,
                 validation_code = written.Code,
-                message = written.Message,
+                message = deliveryMessage,
                 id = written.Id,
                 session = SessionPayload(session)
             });
@@ -16241,6 +16255,7 @@ public sealed class ErpModule : ISurfaceModule
     private static async Task<IResult> HandleFitOutInvoiceBridgeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
+        IErpFitOutGlPostWriteService glPost,
         IErpFitOutInvoiceBridgeWriteService writes,
         CancellationToken cancellationToken)
     {
@@ -16287,18 +16302,24 @@ public sealed class ErpModule : ISurfaceModule
                 reference,
                 confirm),
             cancellationToken);
+        var bridgeMessage = written.Message;
+        if (written.Succeeded)
+        {
+            // Direct GL linkage: invoice links post at save time.
+            bridgeMessage += " " + await TryPostGlAsync(() => glPost.PostAsync(projectId, null, cancellationToken)).ConfigureAwait(false);
+        }
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/project-accounting-app",
             written.Succeeded,
-            written.Message,
+            bridgeMessage,
             new
             {
                 ok = written.Succeeded,
                 writes = written.Writes,
                 phpAuthoritative = false,
                 validation_code = written.Code,
-                message = written.Message,
+                message = bridgeMessage,
                 id = written.Id,
                 session = SessionPayload(session)
             });
@@ -17861,7 +17882,7 @@ public sealed class ErpModule : ISurfaceModule
         if (result.Ok)
         {
             // Direct GL linkage: material issue posts at save time — no month-end step.
-            message += " " + await glPost.PostAsync(woId, null, cancellationToken).ConfigureAwait(false);
+            message += " " + await TryPostGlAsync(() => glPost.PostAsync(woId, null, cancellationToken)).ConfigureAwait(false);
         }
         return LiveWriteFormBinder.Complete(
             context,
@@ -17914,7 +17935,7 @@ public sealed class ErpModule : ISurfaceModule
         if (result.Ok)
         {
             // Direct GL linkage: conversion + finished-goods receipt post at completion.
-            message += " " + await glPost.PostAsync(woId, null, cancellationToken).ConfigureAwait(false);
+            message += " " + await TryPostGlAsync(() => glPost.PostAsync(woId, null, cancellationToken)).ConfigureAwait(false);
         }
         return LiveWriteFormBinder.Complete(
             context,
@@ -26539,6 +26560,19 @@ public sealed class ErpModule : ISurfaceModule
 
     /// <summary>Fit-out workspace demo seed: inserts DEMO-tagged rows across the fit-out tables.</summary>
     /// <summary>Demo sample data is sandbox-only — live/operation tenants error immediately.</summary>
+    /// <summary>Auto-post helper: a GL failure is reported, never aborts the document save that triggered it.</summary>
+    private static async Task<string> TryPostGlAsync(Func<Task<string>> post)
+    {
+        try
+        {
+            return await post().ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return "GL post deferred — " + ex.Message;
+        }
+    }
+
     private static IResult? DemoSandboxGuard(HttpContext context, string returnUrl)
     {
         var tenant = context.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey]
@@ -26801,7 +26835,7 @@ public sealed class ErpModule : ISurfaceModule
         if (ok)
         {
             // Direct GL linkage: claim invoices post at issue time — no month-end step.
-            message += " " + await glPost.PostAsync(0, null, cancellationToken).ConfigureAwait(false);
+            message += " " + await TryPostGlAsync(() => glPost.PostAsync(0, null, cancellationToken)).ConfigureAwait(false);
         }
 
         return LiveWriteFormBinder.Complete(
@@ -28870,7 +28904,7 @@ public sealed class ErpModule : ISurfaceModule
         if (ok)
         {
             // Direct GL linkage: invoices post at issue time — no month-end step.
-            message += " " + await glPost.PostAsync(0, null, cancellationToken).ConfigureAwait(false);
+            message += " " + await TryPostGlAsync(() => glPost.PostAsync(0, null, cancellationToken)).ConfigureAwait(false);
         }
 
         return LiveWriteFormBinder.Complete(
@@ -29009,7 +29043,7 @@ public sealed class ErpModule : ISurfaceModule
         if (ok)
         {
             // Direct GL linkage: invoices post at issue time — no month-end step.
-            message += " " + await glPost.PostAsync(0, null, cancellationToken).ConfigureAwait(false);
+            message += " " + await TryPostGlAsync(() => glPost.PostAsync(0, null, cancellationToken)).ConfigureAwait(false);
         }
 
         return LiveWriteFormBinder.Complete(
