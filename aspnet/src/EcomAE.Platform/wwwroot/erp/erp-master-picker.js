@@ -591,6 +591,8 @@
         });
     }
 
+    // Re-run binding on dynamically added picker roots (e.g. cloned journal lines).
+    window.ErpMasterPickerRefresh = bindAll;
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', bindAll);
     } else {

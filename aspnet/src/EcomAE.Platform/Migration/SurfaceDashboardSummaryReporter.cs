@@ -3343,7 +3343,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         ReadI32(reader, "description_len"),
                         ReadI32(reader, "admin_id"),
                         ReadI64(reader, "time_created"),
-                        []);
+                        [],
+                        ReadStr(reader, "currency_code"),
+                        ReadDec(reader, "exchange_rate"));
                 }
             }
 

@@ -1361,6 +1361,8 @@ public static class LegacySurfaceDashboardSql
                IFNULL(j.`reference`, '') AS reference,
                LEFT(IFNULL(j.`description`, ''), 280) AS description_excerpt,
                CHAR_LENGTH(IFNULL(j.`description`, '')) AS description_len,
+               IFNULL(j.`currency_code`, '') AS currency_code,
+               IFNULL(j.`exchange_rate`, 1) AS exchange_rate,
                IFNULL(j.`admin_id`, 0) AS admin_id,
                IFNULL(j.`time_created`, 0) AS time_created
         FROM `epc_erp_gl_journals` j
