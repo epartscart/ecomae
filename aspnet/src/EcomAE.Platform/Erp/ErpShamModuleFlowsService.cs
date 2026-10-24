@@ -23,7 +23,7 @@ public sealed class ErpShamModuleFlowsService : IErpShamModuleFlowsService
     private static readonly (string Module, string Table, string Feeds)[] Probes =
     {
         ("organisation",    "epc_erp_pm_legal_entities",        "entity/BU scope for every module"),
-        ("business-units",  "epc_erp_org_business_units",       "cost centres, default warehouses"),
+        ("business-units",  "epc_erp_pm_business_units",       "cost centres, default warehouses"),
         ("access-control",  "epc_erp_org_user_access",          "entity×BU×action grants on all writes"),
         ("chart-of-accounts","epc_erp_gl_coa",                  "postings, VAT, statements"),
         ("general-ledger",  "epc_erp_gl_journals",              "TB, P&L/BS, VAT summary, eliminations"),

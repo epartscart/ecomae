@@ -1,3 +1,4 @@
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Services;
@@ -213,6 +214,19 @@ public static class LoginHostBrand
             return tenant;
         }
 
+        // Operations / sandbox tenant hosts ({key}-operations-ccc / {key}-sandbox-ccc)
+        // carry the launch catalog's industry branding — the tenant's own trade name,
+        // logo mark and palette, never the platform "ecom" brand.
+        if (siteKey is not null)
+        {
+            var launch = ErpOnlyLaunchClients.All.FirstOrDefault(c =>
+                string.Equals(c.SiteKey, siteKey, StringComparison.OrdinalIgnoreCase));
+            if (launch is not null)
+            {
+                return ForErpOnly(launch.SiteKey, launch.TradeName, launch.IndustryCode);
+            }
+        }
+
         var locked = LiveTenantPresentationLock.Tenants.FirstOrDefault(t =>
             t.Hosts.Any(h => StripWww(PlatformHostPolicy.NormalizeHost(h)) == normalized));
         if (locked is not null && TenantCatalog.TryGetValue(locked.Id, out var byId))
@@ -272,9 +286,12 @@ public static class LoginHostBrand
             "bos-login--cp"),
     };
 
+    private static IEnumerable<string> KnownSiteKeys()
+        => TenantCatalog.Keys.Concat(ErpOnlyLaunchClients.All.Select(c => c.SiteKey));
+
     private static string? SiteKeyFor(string normalized)
     {
-        foreach (var key in TenantCatalog.Keys)
+        foreach (var key in KnownSiteKeys())
         {
             if (normalized == key + ".com" || normalized == key)
             {
@@ -292,12 +309,13 @@ public static class LoginHostBrand
             && normalized.Length > suffix.Length)
         {
             var slug = normalized[..^suffix.Length];
-            if (TenantCatalog.ContainsKey(slug))
+            if (TenantCatalog.ContainsKey(slug)
+                || ErpOnlyLaunchClients.All.Any(c => string.Equals(c.SiteKey, slug, StringComparison.OrdinalIgnoreCase)))
             {
                 return slug;
             }
 
-            foreach (var key in TenantCatalog.Keys)
+            foreach (var key in KnownSiteKeys())
             {
                 if (slug.StartsWith(key + "-operations-", StringComparison.Ordinal)
                     || slug.StartsWith(key + "-sandbox-", StringComparison.Ordinal)

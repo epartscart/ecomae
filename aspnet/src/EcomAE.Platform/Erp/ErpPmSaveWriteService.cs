@@ -27,7 +27,7 @@ public sealed class ErpPmSaveWriteService : IErpPmSaveWriteService
     public static readonly IReadOnlyDictionary<string, string[]> Registry =
         new Dictionary<string, string[]>(StringComparer.Ordinal)
         {
-            ["epc_erp_pm_business_units"] = ["code", "name", "legal_entity_id", "parent_id", "manager", "trn", "note"],
+            ["epc_erp_pm_business_units"] = ["code", "name", "legal_entity_id", "parent_id", "manager", "trn", "note", "activity", "branch", "default_warehouse_id", "cost_centre", "profit_centre", "price_group"],
             ["epc_erp_pm_class_units"] = ["code", "name", "class_type", "note"],
             ["epc_erp_pm_legal_entities"] = ["code", "name", "country_code", "currency_code", "trn", "note"],
             ["epc_erp_pm_dimensions"] = ["code", "name", "dim_type", "note"],

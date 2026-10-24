@@ -84,7 +84,7 @@ public sealed class ErpShamFoundationTests
         Assert.Contains("AccessAllowedAsync", service, StringComparison.Ordinal);
         Assert.Contains("AccountActiveForEntityAsync", service, StringComparison.Ordinal);
         Assert.Contains("journal-post", service, StringComparison.Ordinal);
-        Assert.Contains("`entity_id`=?", service, StringComparison.Ordinal);
+        Assert.Contains("`legal_entity_id`=?", service, StringComparison.Ordinal);
         Assert.Contains("BusinessUnitId = buId", service, StringComparison.Ordinal);
         Assert.Contains("LegalEntityId", service, StringComparison.Ordinal);
     }
@@ -142,7 +142,7 @@ public sealed class ErpShamFoundationTests
     [Fact]
     public void Org_tabs_registered_in_catalog_and_workspace_specs()
     {
-        foreach (var tab in new[] { "org_entities", "org_business_units", "org_group_members", "org_user_access", "org_entity_accounts" })
+        foreach (var tab in new[] { "org_entities", "org_group_members", "org_user_access", "org_entity_accounts" })
         {
             Assert.True(ErpD365WorkspaceCatalog.TryGet(tab, out var page), tab);
             Assert.Equal("enterprise", page.Area);
@@ -155,8 +155,8 @@ public sealed class ErpShamFoundationTests
     {
         var entities = ErpOrgWorkspaceSpecs.Tabs["org_entities"];
         Assert.Contains("epc_erp_pm_legal_entities", entities.Sql, StringComparison.Ordinal);
-        var bus = ErpOrgWorkspaceSpecs.Tabs["org_business_units"];
-        Assert.Contains("epc_erp_org_business_units", bus.Sql, StringComparison.Ordinal);
+        var accessJoin = ErpOrgWorkspaceSpecs.Tabs["org_user_access"];
+        Assert.Contains("epc_erp_pm_business_units", accessJoin.Sql, StringComparison.Ordinal);
         var access = ErpOrgWorkspaceSpecs.Tabs["org_user_access"];
         Assert.Contains("epc_erp_org_user_access", access.Sql, StringComparison.Ordinal);
         var members = ErpOrgWorkspaceSpecs.Tabs["org_group_members"];

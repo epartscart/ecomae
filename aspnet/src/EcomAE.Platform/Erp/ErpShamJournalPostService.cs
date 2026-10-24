@@ -9,7 +9,7 @@ namespace EcomAE.Platform.Erp;
 /// (<see cref="IErpGlPostingService.PostJournalAsync"/>):
 ///
 /// 1. Entity resolves in <c>epc_erp_pm_legal_entities</c> and is active.
-/// 2. BU resolves inside that entity in <c>epc_erp_org_business_units</c> — a BU code
+/// 2. BU resolves inside that entity in <c>epc_erp_pm_business_units</c> — a BU code
 ///    that exists under a different entity is rejected (no cross-entity pairing).
 /// 3. <see cref="IErpShamFoundationService.AccessAllowedAsync"/> proves the caller's
 ///    grant for entity × BU × action <c>journal-post</c> — group-wide
@@ -105,22 +105,12 @@ public sealed class ErpShamJournalPostService : IErpShamJournalPostService
             var buId = 0L;
             if (bu.Length > 0)
             {
-                var orgBuId = await ErpDb.LongAsync(connection, null,
-                    ErpDb.Positional("SELECT `id` FROM `epc_erp_org_business_units` WHERE `code`=? AND `entity_id`=? AND `status`='active' LIMIT 1"),
-                    cancellationToken, bu, entityId).ConfigureAwait(false);
-                if (orgBuId == 0)
-                {
-                    return new(false, "Business unit '" + bu + "' does not exist under entity " + entity + " (or is disabled).", 0);
-                }
-
-                // GL dimensions use the operational pm BU id, not the org BU id —
-                // the two tables number rows independently.
                 buId = await ErpDb.LongAsync(connection, null,
                     ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_business_units` WHERE `code`=? AND `legal_entity_id`=? AND `active`=1 LIMIT 1"),
                     cancellationToken, bu, entityId).ConfigureAwait(false);
                 if (buId == 0)
                 {
-                    return new(false, "Business unit '" + bu + "' has no active operational record (epc_erp_pm_business_units) — re-run the foundation seed.", 0);
+                    return new(false, "Business unit '" + bu + "' does not exist under entity " + entity + " (or is disabled).", 0);
                 }
             }
 
