@@ -64,14 +64,7 @@
                     <input type="hidden" name="returnUrl" value="@(SelfHref + "?tab=" + _tab + QuerySuffix)" />
                     <button class="btn btn-sm fo-board-btn fo-board-btn--danger" type="submit"><i class="fa fa-trash"></i> Remove sample data</button>
                 </form>
-                <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/fitout/gl-post")" class="fo-inline">
-                    <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
-                    <input type="hidden" name="confirmWrites" value="1" />
-                    <input type="hidden" name="project" value="@_projectId" />
-                    <input type="hidden" name="period" value="@_period" />
-                    <input type="hidden" name="returnUrl" value="@(SelfHref + "?tab=" + _tab + QuerySuffix)" />
-                    <button class="btn btn-sm fo-board-btn" type="submit"><i class="fa fa-book"></i> Post to GL</button>
-                </form>
+                                <a class="btn btn-sm fo-board-btn" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/gl-journals")"><i class="fa fa-book"></i> GL journals</a>
                 <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/fitout/claim-invoice")" class="fo-inline">
                     <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
                     <input type="hidden" name="confirmWrites" value="1" />

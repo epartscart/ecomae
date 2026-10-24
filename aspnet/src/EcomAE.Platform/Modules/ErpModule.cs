@@ -26767,6 +26767,7 @@ public sealed class ErpModule : ISurfaceModule
         HttpContext context,
         ILegacySessionValidator validator,
         IErpFitOutClaimInvoiceWriteService writes,
+        IErpFitOutGlPostWriteService glPost,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -26794,6 +26795,12 @@ public sealed class ErpModule : ISurfaceModule
         else
         {
             message = await writes.CreatePendingAsync(projectId, session.UserId, cancellationToken);
+        }
+
+        if (ok)
+        {
+            // Direct GL linkage: claim invoices post at issue time — no month-end step.
+            message += " " + await glPost.PostAsync(0, null, cancellationToken).ConfigureAwait(false);
         }
 
         return LiveWriteFormBinder.Complete(
@@ -28759,7 +28766,11 @@ public sealed class ErpModule : ISurfaceModule
 
         var widget = context.Request.Form["widget"].ToString() ?? string.Empty;
         var hidden = context.Request.Form["hidden"].ToString() is "1" or "true";
-        var ok = await prefs.SetWidgetHiddenAsync(session.UserId, widget, hidden, cancellationToken);
+        var scope = context.Request.Form["scope"].ToString();
+        // scope=group → tenant-wide admin default (user_id=0); otherwise the signed-in user's own preference.
+        var ok = string.Equals(scope, "group", StringComparison.OrdinalIgnoreCase)
+            ? await prefs.SetGroupDefaultHiddenAsync(widget, hidden, cancellationToken)
+            : await prefs.SetWidgetHiddenAsync(session.UserId, widget, hidden, cancellationToken);
         var returnUrl = context.Request.Form["returnUrl"].ToString();
         return LiveWriteFormBinder.Complete(
             context,
@@ -28774,6 +28785,7 @@ public sealed class ErpModule : ISurfaceModule
         HttpContext context,
         ILegacySessionValidator validator,
         IErpAutoPartsInvoiceWriteService writes,
+        IErpAutoPartsGlPostWriteService glPost,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -28800,6 +28812,12 @@ public sealed class ErpModule : ISurfaceModule
         else
         {
             message = await writes.CreatePendingAsync(session.UserId, cancellationToken);
+        }
+
+        if (ok)
+        {
+            // Direct GL linkage: invoices post at issue time — no month-end step.
+            message += " " + await glPost.PostAsync(0, null, cancellationToken).ConfigureAwait(false);
         }
 
         return LiveWriteFormBinder.Complete(
@@ -28906,6 +28924,7 @@ public sealed class ErpModule : ISurfaceModule
         HttpContext context,
         ILegacySessionValidator validator,
         IErpJewelleryInvoiceWriteService writes,
+        IErpJewelleryGlPostWriteService glPost,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -28932,6 +28951,12 @@ public sealed class ErpModule : ISurfaceModule
         else
         {
             message = await writes.CreatePendingAsync(session.UserId, cancellationToken);
+        }
+
+        if (ok)
+        {
+            // Direct GL linkage: invoices post at issue time — no month-end step.
+            message += " " + await glPost.PostAsync(0, null, cancellationToken).ConfigureAwait(false);
         }
 
         return LiveWriteFormBinder.Complete(

@@ -185,16 +185,45 @@ public sealed class ErpMfgGlPostWriteService : IErpMfgGlPostWriteService
         var existing = await ErpAutoPartsGl.PostedJournalIdAsync(connection, reference, cancellationToken).ConfigureAwait(false);
         if (existing > 0)
         {
-            var postedTotal = await ErpDb.DecimalAsync(
-                connection,
-                null,
-                ErpDb.Positional("SELECT IFNULL(SUM(`debit`),0) FROM `epc_erp_gl_lines` WHERE `journal_id`=?"),
-                cancellationToken,
-                existing).ConfigureAwait(false);
-            var expectedTotal = 0m;
-            foreach (var line in recipe) { expectedTotal += line.Debit; }
+            // Compare per-account amounts, not just totals — a labour/overhead
+            // re-allocation with the same sum must still repost.
+            var posted = new Dictionary<string, (decimal Debit, decimal Credit)>(StringComparer.Ordinal);
+            await using (var read = connection.CreateCommand())
+            {
+                read.CommandText = ErpDb.Positional(
+                    "SELECT a.`code`, IFNULL(SUM(l.`debit`),0), IFNULL(SUM(l.`credit`),0)"
+                    + " FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.`id`=l.`coa_id`"
+                    + " WHERE l.`journal_id`=? GROUP BY a.`code`");
+                ErpDb.AddParameters(read, existing);
+                await using var reader = await read.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    posted[reader.GetString(0)] = (reader.GetDecimal(1), reader.GetDecimal(2));
+                }
+            }
 
-            if (Math.Abs(postedTotal - expectedTotal) < 0.005m)
+            var expected = new Dictionary<string, (decimal Debit, decimal Credit)>(StringComparer.Ordinal);
+            foreach (var line in recipe)
+            {
+                expected.TryGetValue(line.Code, out var acc);
+                expected[line.Code] = (acc.Debit + line.Debit, acc.Credit + line.Credit);
+            }
+
+            var same = posted.Count == expected.Count;
+            if (same)
+            {
+                foreach (var pair in expected)
+                {
+                    if (!posted.TryGetValue(pair.Key, out var amounts)
+                        || Math.Abs(amounts.Debit - pair.Value.Debit) >= 0.005m
+                        || Math.Abs(amounts.Credit - pair.Value.Credit) >= 0.005m)
+                    {
+                        same = false;
+                        break;
+                    }
+                }
+            }
+            if (same)
             {
                 return PostOutcome.Skipped;
             }

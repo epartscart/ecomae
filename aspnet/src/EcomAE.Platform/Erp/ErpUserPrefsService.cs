@@ -12,8 +12,11 @@ namespace EcomAE.Platform.Erp;
 /// </summary>
 public interface IErpUserPrefsService
 {
+    /// <summary>User-hidden ∪ group-default-hidden — read order: user row wins, then group row.</summary>
     Task<IReadOnlySet<string>> HiddenWidgetsAsync(int userId, CancellationToken cancellationToken = default);
     Task<bool> SetWidgetHiddenAsync(int userId, string widgetKey, bool hidden, CancellationToken cancellationToken = default);
+    /// <summary>Tenant-admin group default (user_id=0 row): applies to users with no own row.</summary>
+    Task<bool> SetGroupDefaultHiddenAsync(string widgetKey, bool hidden, CancellationToken cancellationToken = default);
 }
 
 public sealed class ErpUserPrefsService : IErpUserPrefsService
@@ -74,18 +77,30 @@ public sealed class ErpUserPrefsService : IErpUserPrefsService
                 return hidden;
             }
 
+            // Read order: user row wins; a group default (user_id=0) applies only
+            // when the user has no row of their own for that widget.
             await using var command = connection.CreateCommand();
             command.CommandText = ErpDb.Positional(
-                "SELECT `pref_key` FROM `epc_erp_user_prefs` WHERE `user_id`=? AND `pref_key` LIKE 'dash.hide:%' AND `pref_value`='1'");
+                "SELECT `user_id`,`pref_key`,`pref_value` FROM `epc_erp_user_prefs`"
+                + " WHERE `user_id` IN (0,?) AND `pref_key` LIKE 'dash.hide:%'");
             ErpDb.AddParameters(command, userId);
+            var own = new Dictionary<string, string>(StringComparer.Ordinal);
+            var group = new Dictionary<string, string>(StringComparer.Ordinal);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                var key = reader.GetString(0);
-                if (key.StartsWith(PrefPrefix, StringComparison.Ordinal))
-                {
-                    hidden.Add(key[PrefPrefix.Length..]);
-                }
+                var key = reader.GetString(1);
+                if (!key.StartsWith(PrefPrefix, StringComparison.Ordinal)) { continue; }
+                var widget = key[PrefPrefix.Length..];
+                var value = reader.GetString(2);
+                if (reader.GetInt32(0) == 0) { group[widget] = value; }
+                else { own[widget] = value; }
+            }
+            foreach (var pair in group) { if (pair.Value == "1") { hidden.Add(pair.Key); } }
+            foreach (var pair in own)
+            {
+                if (pair.Value == "1") { hidden.Add(pair.Key); }
+                else { hidden.Remove(pair.Key); }
             }
         }
         catch (DbException)
@@ -111,6 +126,41 @@ public sealed class ErpUserPrefsService : IErpUserPrefsService
                 return false;
             }
 
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "INSERT INTO `epc_erp_user_prefs` (`user_id`,`pref_key`,`pref_value`,`time_updated`) VALUES (?,?,?,?)"
+                    + " ON DUPLICATE KEY UPDATE `pref_value`=VALUES(`pref_value`), `time_updated`=VALUES(`time_updated`)"),
+                cancellationToken,
+                userId,
+                PrefPrefix + widgetKey.Trim(),
+                hidden ? "1" : "0",
+                DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
+            return true;
+        }
+        catch (DbException)
+        {
+            return false;
+        }
+    }
+
+    public Task<bool> SetGroupDefaultHiddenAsync(string widgetKey, bool hidden, CancellationToken cancellationToken = default)
+    {
+        // Group defaults live on the synthetic user_id=0 row.
+        return WriteRowAsync(0, widgetKey, hidden, cancellationToken);
+    }
+
+    private async Task<bool> WriteRowAsync(int userId, string widgetKey, bool hidden, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(widgetKey) || !WidgetKeys.Contains(widgetKey.Trim()))
+        {
+            return false;
+        }
+        try
+        {
+            await using var connection = await OpenAsync(cancellationToken).ConfigureAwait(false);
+            if (connection is null) { return false; }
             await ErpDb.ExecuteAsync(
                 connection,
                 null,
