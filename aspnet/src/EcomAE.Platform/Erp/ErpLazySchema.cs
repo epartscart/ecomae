@@ -996,6 +996,19 @@ internal static class ErpLazySchema
     {
         await EnsurePmMastersAsync(c, ct).ConfigureAwait(false);
         await EnsureCostCentersAsync(c, ct).ConfigureAwait(false);
+        // Mirror the consolidation-group entity register (epc_entity_members, used by
+        // SHAM perimeter/TB) into the legal-entity register so every entity created
+        // through either surface is visible in the legal entities list. Idempotent.
+        await ErpDb.TryExecuteAsync(c,
+            "ALTER TABLE `epc_erp_pm_legal_entities` ADD `consolidated` tinyint(1) NOT NULL DEFAULT 0",
+            ct).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(c,
+            "INSERT INTO `epc_erp_pm_legal_entities` (`code`,`name`,`country_code`,`currency_code`,`consolidated`,`active`,`time_created`,`time_updated`)"
+            + " SELECT `m`.`site_key`, `m`.`entity_name`, 'AE', IFNULL(NULLIF(`m`.`local_currency`,''),'AED'), IF(`m`.`consolidation`='full',1,0), 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()"
+            + " FROM `epc_entity_members` `m`"
+            + " WHERE `m`.`site_key`<>''"
+            + " AND NOT EXISTS (SELECT 1 FROM `epc_erp_pm_legal_entities` `e` WHERE `e`.`code`=`m`.`site_key`)",
+            ct).ConfigureAwait(false);
         await SeedDefaultHqOrganizationAsync(c, ct).ConfigureAwait(false);
     }
 

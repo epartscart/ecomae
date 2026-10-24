@@ -28278,8 +28278,12 @@ public sealed class ErpModule : ISurfaceModule
 
         // Access matrix: the poster needs a 'journal-post' grant for the entity/BU being posted to
         // (fail-closed — a blank entity still needs a grant somewhere).
-        var entityCode = header.CompanyId > 0
-            ? (await ErpDb.StringAsync(conn, null, ErpDb.Positional("SELECT `code` FROM `epc_erp_pm_legal_entities` WHERE `id`=? LIMIT 1"), cancellationToken, header.CompanyId).ConfigureAwait(false)) ?? ""
+        // CompanyId=0 resolves to the default active entity, same as posting.
+        var effectiveCompanyId = header.CompanyId > 0
+            ? header.CompanyId
+            : await ErpDb.LongAsync(conn, null, ErpDb.Positional("SELECT MIN(`id`) FROM `epc_erp_pm_legal_entities` WHERE `active`=1"), cancellationToken).ConfigureAwait(false);
+        var entityCode = effectiveCompanyId > 0
+            ? (await ErpDb.StringAsync(conn, null, ErpDb.Positional("SELECT `code` FROM `epc_erp_pm_legal_entities` WHERE `id`=? LIMIT 1"), cancellationToken, effectiveCompanyId).ConfigureAwait(false)) ?? ""
             : "";
         if (header.CompanyId > 0 && entityCode.Length == 0)
         {
@@ -28288,7 +28292,7 @@ public sealed class ErpModule : ISurfaceModule
         // Resolve the BU code inside the header's entity — a BU id from another
         // entity that happens to share a code must not label the journal.
         var buCode = header.BusinessUnitId > 0
-            ? (await ErpDb.StringAsync(conn, null, ErpDb.Positional("SELECT `code` FROM `epc_erp_pm_business_units` WHERE `id`=? AND `legal_entity_id`=? LIMIT 1"), cancellationToken, header.BusinessUnitId, header.CompanyId).ConfigureAwait(false)) ?? ""
+            ? (await ErpDb.StringAsync(conn, null, ErpDb.Positional("SELECT `code` FROM `epc_erp_pm_business_units` WHERE `id`=? AND `legal_entity_id`=? LIMIT 1"), cancellationToken, header.BusinessUnitId, effectiveCompanyId).ConfigureAwait(false)) ?? ""
             : "";
         if (header.BusinessUnitId > 0 && buCode.Length == 0)
         {
