@@ -22,7 +22,8 @@ public sealed record CpDesignTokenSaveRequest(
 
 public sealed class CpDesignTokensWriteService : ICpDesignTokensWriteService
 {
-    private static readonly Regex SiteKeySafe = new("[^a-z0-9_-]", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    // ':' allowed so Super CP can write industry-layer rows as site_key "industry:<code>".
+    private static readonly Regex SiteKeySafe = new("[^a-z0-9_:-]", RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
     public static readonly IReadOnlyList<string> AllowedKeys =
     [
