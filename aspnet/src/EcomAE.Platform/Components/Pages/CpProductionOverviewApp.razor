@@ -199,14 +199,6 @@
             <button type="submit">Create work order</button>
         </form>
 
-<form method="post" action="/erp/manufacturing/gl-post" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/production-overview-app")" />
-            <label>Work order id (blank = all) <input type="number" name="work_order" min="0" value="0" style="width:7rem" /></label>
-            <label>Period <input type="text" name="period" placeholder="YYYY-MM" style="width:8rem" /></label>
-            <button type="submit" class="btn btn-primary btn-sm">Post WOs to GL</button>
-            <small class="text-muted">Posts material issue (Dr WIP / Cr raw material), conversion cost (Dr WIP / Cr labour + overhead applied) and finished-goods receipt (Dr FG / Cr WIP) into the GL — so P&amp;L, balance sheet and dashboard insights include production. Already-posted orders are skipped.</small>
-        </form>
 
 <form method="post" action="/erp/manufacturing/bom/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />

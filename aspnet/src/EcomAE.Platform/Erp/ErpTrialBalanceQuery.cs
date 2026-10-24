@@ -3,7 +3,7 @@ using System.Globalization;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Dynamics LedgerTrialBalanceListPage parameters and signed-balance math.
+/// ecom LedgerTrialBalanceListPage parameters and signed-balance math.
 /// Official fields: from/to date, date interval, posting layer, opening display,
 /// closing transaction types, dimension set, Amount, posting-layer column, voucher drill.
 /// </summary>

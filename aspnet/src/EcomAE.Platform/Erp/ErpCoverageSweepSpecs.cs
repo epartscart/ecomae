@@ -2,7 +2,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Coverage sweep: every remaining generic workspace tab gets a real-table
-/// read spec mapped from its D365 module meaning onto the ensured schema.
+/// read spec mapped from its ecom module meaning onto the ensured schema.
 /// Where a dedicated entity table doesn't exist for a tab, the view falls
 /// back to the tenant audit log (recent actions), so the grid always shows
 /// real rows instead of the empty generic workspace.

@@ -157,14 +157,14 @@
         </div>
 
         <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1.1rem 1.15rem">
-            <h3 style="margin:0 0 .5rem;font-size:1.05rem"><i class="fa fa-flask" aria-hidden="true"></i> Sandbox / UAT tier (D365 F&amp;O model)</h3>
+            <h3 style="margin:0 0 .5rem;font-size:1.05rem"><i class="fa fa-flask" aria-hidden="true"></i> Sandbox / UAT tier (ecom F&amp;O model)</h3>
             <p class="text-muted" style="margin:0;line-height:1.55">
-                Every ERP-only tenant has two environments on one codebase, exactly like D365 F&amp;O production + sandbox:
+                Every ERP-only tenant has two environments on one codebase, exactly like ecom F&amp;O production + sandbox:
             </p>
             <ul class="text-muted" style="margin:.4rem 0 .2rem;line-height:1.6">
                 <li><strong>Production</strong> — <code>{key}-operations-{ccc}.ecomae.com</code> bound to the live tenant database.</li>
                 <li><strong>Sandbox / UAT</strong> — <code>{key}-sandbox-{ccc}.ecomae.com</code> bound to <code>{db}_sandbox</code>, a separate copy. Same build, host-scoped sessions, amber UAT banner inside the ERP.</li>
-                <li><strong>Refresh</strong> is prod → sandbox only (D365 "copy production to sandbox"): <code>bash scripts/cloudpanel_sandbox_db_refresh.sh &lt;live_db&gt; &lt;db_user&gt;</code> — staged swap, live stays readable, interrupted refresh never leaves a half-copied sandbox. Never copy sandbox data up to production.</li>
+                <li><strong>Refresh</strong> is prod → sandbox only (ecom "copy production to sandbox"): <code>bash scripts/cloudpanel_sandbox_db_refresh.sh &lt;live_db&gt; &lt;db_user&gt;</code> — staged swap, live stays readable, interrupted refresh never leaves a half-copied sandbox. Never copy sandbox data up to production.</li>
                 <li><strong>Provision a new tenant's tier:</strong> <code>bash scripts/cloudpanel_ops_host_provision.sh &lt;key&gt; &lt;ccc&gt; --sandbox</code>, then run the refresh once to seed UAT.</li>
                 <li><strong>Security:</strong> the sandbox host proxies only ERP routes (CP/BOS/storefront 404), cookies are host-scoped (a UAT session can never reach live data), writes resolve <code>{db}_sandbox</code> end-to-end — ePartsCart shared-docpart fallbacks are disabled on sandbox hosts — and each sandbox authenticates with a dedicated <code>{db_user}_uat</code> MySQL account granted on <code>{db}_sandbox</code> only (<code>epc_portal_tenants.db_uat_user/db_uat_pass</code>; provision with <code>bash scripts/cloudpanel_sandbox_uat_user.sh &lt;site_key&gt; &lt;live_db&gt; &lt;db_user&gt;</code>).</li>
             </ul>
@@ -173,7 +173,7 @@
         <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1.1rem 1.15rem">
             <h3 style="margin:0 0 .5rem;font-size:1.05rem"><i class="fa fa-code-fork" aria-hidden="true"></i> Production releases</h3>
             <p class="text-muted" style="margin:0 0 .55rem;line-height:1.55">
-                Every gated deploy writes one entry here (<code>release-history.jsonl</code>) — the current production version and the one it replaced, D365-style. Promotion order: deploy → verify on <code>-sandbox</code> hosts → confirm on <code>-operations</code> hosts.
+                Every gated deploy writes one entry here (<code>release-history.jsonl</code>) — the current production version and the one it replaced, ecom-style. Promotion order: deploy → verify on <code>-sandbox</code> hosts → confirm on <code>-operations</code> hosts.
             </p>
             @if (_releases.Count == 0)
             {

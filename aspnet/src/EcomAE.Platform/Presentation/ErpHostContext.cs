@@ -72,7 +72,7 @@ public static class ErpHostContext
             return company;
         }
 
-        // D365 parity: ?cmp= is the legal-entity selector on operations hosts
+        // ecom parity: ?cmp= is the legal-entity selector on operations hosts
         // (tenant.operations.uae.ecomae.com/?cmp=indj). Named keys also work, so
         // ?cmp=asag and ?cmp=2 both resolve a legal entity.
         if (request.Query.TryGetValue("cmp", out var cmpVals)
@@ -94,7 +94,7 @@ public static class ErpHostContext
 
     /// <summary>
     /// Resolve the active legal entity honouring <c>?company=</c>/<c>?companyId=</c> ids
-    /// and the D365-style <c>?cmp=</c> selector — numeric values match the entity id,
+    /// and the ecom-style <c>?cmp=</c> selector — numeric values match the entity id,
     /// anything else matches the entity code (<c>cmp=indj</c>, <c>cmp=asag</c>).
     /// Falls back to the lowest-id entity, like PHP.
     /// </summary>

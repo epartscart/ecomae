@@ -1653,7 +1653,7 @@ a.ns-tile.orange { background: linear-gradient(145deg, #c2410c, #9a3412) !import
     color: #0f172a !important;
 }
 
-/* Dynamics 365 F&O Workspaces page — compact icon + label tiles */
+/* ecom F&O Workspaces page — compact icon + label tiles */
 .epc-moddir {
     margin-top: 1.35rem;
 }
@@ -2116,7 +2116,7 @@ a.epc-erp-global-search__hit {
     background: #f8fbff;
 }
 
-/* D365 F&O list-page shell: action pane → left parameters pane → filter strip → display grid.
+/* ecom F&O list-page shell: action pane → left parameters pane → filter strip → display grid.
    Entry lives on a separate view (?view=entry) — never mixed with the report/preview grid. */
 .epc-d365-lp {
     display: grid;
@@ -2544,7 +2544,7 @@ a.epc-dash-legend__row:hover { color: #0e7490; }
     .epc-dash-bar__row { grid-template-columns: 6rem 1fr 4.5rem; }
 }
 
-/* ===== Premium D365 menubar + boxed module shell ===== */
+/* ===== Premium ecom menubar + boxed module shell ===== */
 .epc-erp-cp-shell .epc-erp-topnav {
     background: linear-gradient(90deg, #ffffff 0%, #f4f9fc 55%, #eef7fb 100%) !important;
     border-bottom: 2px solid #0e7490 !important;
@@ -2645,7 +2645,7 @@ a.epc-dash-legend__row:hover { color: #0e7490; }
     padding-left: .8rem;
 }
 
-/* Boxed D365 inside-form shell */
+/* Boxed ecom inside-form shell */
 .epc-d365-lp { gap: 1rem; }
 .epc-d365-lp-side {
     background: #fff;

@@ -1773,7 +1773,7 @@ internal static class ErpLazySchema
         await AddColumnIfMissingAsync(c, "epc_erp_audit_log", "user_agent", "varchar(255) DEFAULT NULL", ct).ConfigureAwait(false);
     }
 
-    /// <summary>Workspace rows for Dynamics-style leave, planning, equipment, organization, payroll, and procurement pages.</summary>
+    /// <summary>Workspace rows for ecom leave, planning, equipment, organization, payroll, and procurement pages.</summary>
     public static async Task EnsureD365WorkspaceAsync(DbConnection c, CancellationToken ct)
     {
         await ErpDb.TryExecuteAsync(
@@ -1803,7 +1803,7 @@ internal static class ErpLazySchema
             "PRIMARY KEY (`id`)," +
             "KEY `x_area_tab` (`area`,`tab`)," +
             "KEY `x_status` (`status`)" +
-            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Dynamics-style workspace rows'",
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ecom workspace rows'",
             ct).ConfigureAwait(false);
         await AddColumnIfMissingAsync(c, "epc_erp_d365_workspace", "fields_json", "text", ct).ConfigureAwait(false);
     }
@@ -1829,7 +1829,7 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Official process parameter values'",
             ct);
 
-    /// <summary>D365 connector credentials entered on the sync page — a dedicated table (not the
+    /// <summary>ecom connector credentials entered on the sync page — a dedicated table (not the
     /// shared parameter store, whose readers are broader) with TEXT columns so long secrets fit.</summary>
     public static Task EnsureD365ConnectionAsync(DbConnection c, CancellationToken ct) =>
         ErpDb.TryExecuteAsync(
@@ -1844,7 +1844,7 @@ internal static class ErpLazySchema
             "`password` text NULL," +
             "`time_updated` int(11) NOT NULL DEFAULT 0," +
             "PRIMARY KEY (`company_id`)" +
-            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='D365 connector credentials'",
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ecom connector credentials'",
             ct);
 
     /// <summary>Document interlinks that follow official process edges.</summary>
@@ -1916,7 +1916,7 @@ internal static class ErpLazySchema
             "PRIMARY KEY (`id`)," +
             "KEY `x_tracking` (`tracking_id`)," +
             "KEY `x_dates` (`date_from`,`date_to`)" +
-            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Dynamics-style trial balance snapshots'",
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ecom trial balance snapshots'",
             ct);
 
     /// <summary>

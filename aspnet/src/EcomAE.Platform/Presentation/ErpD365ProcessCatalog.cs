@@ -4,7 +4,7 @@ namespace EcomAE.Platform.Presentation;
 
 /// <summary>
 /// Official process lanes, document interlinks, and company-parameter keys
-/// taken from the shared Dynamics module trees. Steps and edges only reference
+/// taken from the shared ecom module trees. Steps and edges only reference
 /// existing workspace tabs. Parameter captions are official form labels.
 /// Field maps use the workspace writer fields already on those pages.
 /// </summary>

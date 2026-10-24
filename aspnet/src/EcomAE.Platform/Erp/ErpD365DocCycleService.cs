@@ -5,7 +5,7 @@ using System.Text;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// D365 F&O document-cycle fields: per-legal-entity document profiles (header/footer/TRN/logo
+/// ecom F&O document-cycle fields: per-legal-entity document profiles (header/footer/TRN/logo
 /// used by invoice + delivery-note PDFs), the SalesTableDetails header columns, the
 /// PurchTableListPage header columns, the ASAP_* delivery-note fields, the released-product
 /// SHAM attributes, and the customer/vendor master fields. Schema evolution uses the
@@ -30,7 +30,7 @@ public interface IErpD365DocCycleService
         int adminId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Save D365 header fields onto an existing sales order row.</summary>
+    /// <summary>Save ecom header fields onto an existing sales order row.</summary>
     Task<ErpSimpleWriteResult> SaveSalesOrderHeaderAsync(
         DbConnection connection,
         long salesOrderId,
@@ -44,13 +44,13 @@ public interface IErpD365DocCycleService
     /// <summary>List prospects with their conversion state.</summary>
     Task<IReadOnlyList<IReadOnlyDictionary<string, string?>>> ProspectsAsync(DbConnection connection, CancellationToken cancellationToken = default);
 
-    /// <summary>Read the D365 header field values currently stored on an so|po row (allowlisted columns only).</summary>
+    /// <summary>Read the ecom header field values currently stored on an so|po row (allowlisted columns only).</summary>
     Task<IReadOnlyDictionary<string, string?>> DocumentHeaderAsync(DbConnection connection, string kind, long id, CancellationToken cancellationToken = default);
 
-    /// <summary>Read the D365 line field values for an so|po (allowlisted columns only).</summary>
+    /// <summary>Read the ecom line field values for an so|po (allowlisted columns only).</summary>
     Task<IReadOnlyList<IReadOnlyDictionary<string, string?>>> DocumentD365LinesAsync(DbConnection connection, string kind, long id, CancellationToken cancellationToken = default);
 
-    /// <summary>Save D365 header fields onto an existing purchase order row.</summary>
+    /// <summary>Save ecom header fields onto an existing purchase order row.</summary>
     Task<ErpSimpleWriteResult> SavePurchaseOrderHeaderAsync(
         DbConnection connection,
         long purchaseOrderId,
@@ -98,7 +98,7 @@ public interface IErpD365DocCycleService
         int adminId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Create or update a D365 sales-quotation header (epc_erp_sales_quotations).</summary>
+    /// <summary>Create or update a ecom sales-quotation header (epc_erp_sales_quotations).</summary>
     Task<ErpSimpleWriteResult> SaveQuotationHeaderAsync(
         DbConnection connection,
         long quotationId,
@@ -114,7 +114,7 @@ public interface IErpD365DocCycleService
         int adminId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Transition quotation status: created|sent|confirmed|rejected|expired (D365 lifecycle).</summary>
+    /// <summary>Transition quotation status: created|sent|confirmed|rejected|expired (ecom lifecycle).</summary>
     Task<ErpSimpleWriteResult> SetQuotationStatusAsync(
         DbConnection connection,
         long quotationId,
@@ -128,7 +128,7 @@ public interface IErpD365DocCycleService
         long quotationId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>D365 quotation list (epc_erp_sales_quotations, newest first) for module-page grids.</summary>
+    /// <summary>ecom quotation list (epc_erp_sales_quotations, newest first) for module-page grids.</summary>
     Task<List<Dictionary<string, string?>>> QuotationsListAsync(
         DbConnection connection,
         int limit,
@@ -419,7 +419,7 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
             + " PRIMARY KEY (`id`),"
             + " UNIQUE KEY `x_quote_no` (`quote_no`),"
             + " KEY `x_entity` (`entity_id`,`status`)"
-            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='D365 sales quotations'",
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ecom sales quotations'",
             cancellationToken).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(
             connection,
@@ -432,7 +432,7 @@ public sealed class ErpD365DocCycleService : IErpD365DocCycleService
             + " `time_updated` int(11) NOT NULL DEFAULT 0,"
             + " PRIMARY KEY (`id`),"
             + " KEY `x_quote` (`quotation_id`,`line_no`)"
-            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='D365 sales quotation lines'",
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ecom sales quotation lines'",
             cancellationToken).ConfigureAwait(false);
         foreach (var col in QuotationHeaderColumns)
         {

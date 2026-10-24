@@ -1,7 +1,7 @@
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
-/// Dynamics-style workspace pages taken from the Accounts payable, Accounts receivable,
+/// ecom workspace pages taken from the Accounts payable, Accounts receivable,
 /// Asset management, Audit workbench, Budgeting, Cash and bank, Common, Consolidations,
 /// Cost accounting, Cost management, Credit and collections, Expense, Fixed assets,
 /// General ledger, Human resources, Inventory, and Landed cost module menus.

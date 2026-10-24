@@ -9,7 +9,7 @@ namespace EcomAE.Platform.Erp;
 /// Tenant-generic CSV bulk load / export for opening data (items, stock, customers, vendors,
 /// COA, sales/purchase orders incl. lines, quotations). Import is upload → header-validate →
 /// commit (insert-or-update on natural keys); export emits the same columns so a tenant can
-/// round-trip data. Everything is entity/BU-scoped like D365 data packages.
+/// round-trip data. Everything is entity/BU-scoped like ecom data packages.
 /// </summary>
 public static class ErpD365BulkCsv
 {
@@ -162,9 +162,9 @@ public static class ErpD365BulkCsv
         return new ExportResult(true, area + "-" + DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmm", CultureInfo.InvariantCulture) + ".csv", sb.ToString(), rows.Count, "OK");
     }
 
-    // ——— Synced D365 data: all-field template + export straight from staging ———
+    // ——— Synced ecom data: all-field template + export straight from staging ———
 
-    /// <summary>Entity sets currently staged from D365, with row counts, for the studio.</summary>
+    /// <summary>Entity sets currently staged from ecom, with row counts, for the studio.</summary>
     public static async Task<IReadOnlyList<(string Entity, long Rows)>> StagedEntitiesAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         var list = new List<(string, long)>();
@@ -186,7 +186,7 @@ public static class ErpD365BulkCsv
     }
 
     /// <summary>
-    /// Column set for a synced D365 entity: the canonical full schema (every field the entity
+    /// Column set for a synced ecom entity: the canonical full schema (every field the entity
     /// can carry, from ErpD365EntityFieldCatalog — templates are complete even with staging
     /// empty), unioned with every top-level payload field seen in staging.
     /// </summary>
@@ -257,7 +257,7 @@ public static class ErpD365BulkCsv
         return cols;
     }
 
-    /// <summary>Template CSV for a synced D365 entity: ext_key + every staged payload field.</summary>
+    /// <summary>Template CSV for a synced ecom entity: ext_key + every staged payload field.</summary>
     public static async Task<string> D365TemplateAsync(DbConnection connection, string entitySet, CancellationToken cancellationToken)
     {
         var cols = await D365EntityColumnsAsync(connection, entitySet, cancellationToken).ConfigureAwait(false);
@@ -566,7 +566,7 @@ public static class ErpD365BulkCsv
         }
         else upd = 1;
 
-        // D365 header fields (allowlisted by the doc-cycle service) — only known columns are written.
+        // ecom header fields (allowlisted by the doc-cycle service) — only known columns are written.
         var d365 = new ErpD365DocCycleService();
         var hdr = m.Where(kv => kv.Value.Length > 0).ToDictionary(kv => kv.Key, kv => (string?)kv.Value, StringComparer.Ordinal);
         if (area == "sales_orders")

@@ -1,7 +1,7 @@
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
-/// Union of Dynamics-style workspace catalogs (part 1 finance/ops, part 2
+/// Union of ecom workspace catalogs (part 1 finance/ops, part 2
 /// procure-to-warehouse trees, and part 3 leave/planning/equipment/org/payroll).
 /// </summary>
 public static class ErpD365WorkspaceCatalog

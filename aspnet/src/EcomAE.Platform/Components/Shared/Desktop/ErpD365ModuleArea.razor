@@ -1,4 +1,4 @@
-@* D365 module-area panel: embeds the per-area D365 grid + save forms + CSV inside each module page. *@
+@* ecom module-area panel: embeds the per-area ecom grid + save forms + CSV inside each module page. *@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Presentation
@@ -46,7 +46,7 @@
                 @Hidden()
                 <input type="hidden" name="kind" value="@SaveKind" />
                 <label>Id (0 = create)</label><input name="id" type="number" min="0" value="0" />
-                <label>Fields (name=value per line — all D365 fields)</label>
+                <label>Fields (name=value per line — all ecom fields)</label>
                 <textarea name="fields_kv" rows="3" style="width:100%" placeholder="@SavePlaceholder"></textarea>
                 <button type="submit" class="btn btn-primary btn-sm" style="margin-top:8px">Save</button>
             </form>
@@ -57,7 +57,7 @@
                 @Hidden()
                 <input type="hidden" name="kind" value="@(Kind == "delivery" ? "dn" : Kind)" />
                 <label>Record id</label><input name="id" type="number" min="1" required />
-                <label>Fields (name=value per line — all D365 fields)</label>
+                <label>Fields (name=value per line — all ecom fields)</label>
                 <textarea name="fields_kv" rows="3" style="width:100%"></textarea>
                 <button type="submit" class="btn btn-primary btn-sm" style="margin-top:8px">Save fields</button>
             </form>
@@ -146,21 +146,21 @@
 
     private string Title => Kind switch
     {
-        "invoices" => "Invoice journals — CustInvoiceJournal / VendInvoiceJournal (D365)",
-        "warehouses" => "Warehouses — InventLocations (D365)",
-        "coa" => "Main accounts — MainAccountDetails fields (D365)",
-        "gl" => "GL setup — dimensions, sets, fiscal calendars, journals (D365)",
-        "banks" => "Bank accounts — BankAccountTableListPage + reconciliation (D365)",
-        "fx" => "Exchange rates — ExchangeRate (D365)",
-        "tb" => "Trial balance by financial dimension set (D365)",
-        "products" => "Released products — EcoResProductDetailsExtendedGrid fields (D365)",
-        "reports" => "D365 reports — customer account statement (entity wise) + sales analysis by invoice",
-        "customers" => "Customers — CustTableListPage fields (D365)",
-        "vendors" => "Vendors — VendTableListPage fields (D365)",
-        "prospects" => "Prospects — smmBusinessRelationsListPage + prospect→customer/vendor conversion (D365)",
-        "delivery" => "Delivery notes — D365 consignment/packing/delivery fields",
-        "entity" => "Legal entity document profile — PDF letterhead/TRN/footer (D365)",
-        _ => "D365"
+        "invoices" => "Invoice journals — CustInvoiceJournal / VendInvoiceJournal (ecom)",
+        "warehouses" => "Warehouses — InventLocations (ecom)",
+        "coa" => "Main accounts — MainAccountDetails fields (ecom)",
+        "gl" => "GL setup — dimensions, sets, fiscal calendars, journals (ecom)",
+        "banks" => "Bank accounts — BankAccountTableListPage + reconciliation (ecom)",
+        "fx" => "Exchange rates — ExchangeRate (ecom)",
+        "tb" => "Trial balance by financial dimension set (ecom)",
+        "products" => "Released products — EcoResProductDetailsExtendedGrid fields (ecom)",
+        "reports" => "ecom reports — customer account statement (entity wise) + sales analysis by invoice",
+        "customers" => "Customers — CustTableListPage fields (ecom)",
+        "vendors" => "Vendors — VendTableListPage fields (ecom)",
+        "prospects" => "Prospects — smmBusinessRelationsListPage + prospect→customer/vendor conversion (ecom)",
+        "delivery" => "Delivery notes — ecom consignment/packing/delivery fields",
+        "entity" => "Legal entity document profile — PDF letterhead/TRN/footer (ecom)",
+        _ => "ecom"
     };
     private string SaveTitle => Kind switch
     {

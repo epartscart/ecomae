@@ -437,6 +437,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoClear, HandleAutoPartsDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsGlPost, HandleAutoPartsGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpMfgGlPost, HandleMfgGlPostAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpUserPrefSet, HandleUserPrefSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsIssueInvoice, HandleAutoPartsIssueInvoiceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpCoreDemoSeed, HandleCoreDemoSeedAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpCoreDemoClear, HandleCoreDemoClearAsync).DisableAntiforgery();
@@ -17838,6 +17839,7 @@ public sealed class ErpModule : ISurfaceModule
         ILegacySessionValidator validator,
         IErpMfgWoIssueDryRun dryRun,
         IErpMfgWriteService writes,
+        IErpMfgGlPostWriteService glPost,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -17854,11 +17856,17 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var result = await writes.IssueMaterialsAsync(woId, session.UserId, cancellationToken);
+        var message = result.Message;
+        if (result.Ok)
+        {
+            // Direct GL linkage: material issue posts at save time — no month-end step.
+            message += " " + await glPost.PostAsync(woId, null, cancellationToken).ConfigureAwait(false);
+        }
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/production-overview-app",
             result.Ok,
-            result.Message,
+            message,
             new
             {
                 ok = result.Ok,
@@ -17877,6 +17885,7 @@ public sealed class ErpModule : ISurfaceModule
         ILegacySessionValidator validator,
         IErpMfgWoCompleteDryRun dryRun,
         IErpMfgWriteService writes,
+        IErpMfgGlPostWriteService glPost,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -17900,11 +17909,17 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var result = await writes.CompleteAsync(woId, qtyProduced, session.UserId, labour, overhead, cancellationToken);
+        var message = result.Message;
+        if (result.Ok)
+        {
+            // Direct GL linkage: conversion + finished-goods receipt post at completion.
+            message += " " + await glPost.PostAsync(woId, null, cancellationToken).ConfigureAwait(false);
+        }
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/production-overview-app",
             result.Ok,
-            result.Message,
+            message,
             new
             {
                 ok = result.Ok,
@@ -21987,6 +22002,8 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpOplSeedDemoRequest(false)).ToPayload(SessionPayload(session)));
         }
 
+        var sandboxBlock = DemoSandboxGuard(context, "/erp");
+        if (sandboxBlock is not null) { return sandboxBlock; }
         var result = await writes.SeedDemoAsync(warehouseId, cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
@@ -25617,7 +25634,7 @@ public sealed class ErpModule : ISurfaceModule
             source = result.Source,
             message = result.Message,
             session = SessionPayload(session),
-            note = "Dynamics-style trial balance. Click an account on /erp/trial-balance-app to drill to voucher transactions.",
+            note = "ecom trial balance. Click an account on /erp/trial-balance-app to drill to voucher transactions.",
         });
     }
 
@@ -26520,6 +26537,24 @@ public sealed class ErpModule : ISurfaceModule
     }
 
     /// <summary>Fit-out workspace demo seed: inserts DEMO-tagged rows across the fit-out tables.</summary>
+    /// <summary>Demo sample data is sandbox-only — live/operation tenants error immediately.</summary>
+    private static IResult? DemoSandboxGuard(HttpContext context, string returnUrl)
+    {
+        var tenant = context.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey]
+            as EcomAE.Platform.Services.TenantContext;
+        if (tenant is not null && !tenant.IsSandbox && tenant.IsTenant)
+        {
+            const string message = "Test on sandbox — demo sample data cannot be loaded on a live tenant.";
+            return LiveWriteFormBinder.Complete(
+                context,
+                returnUrl,
+                false,
+                message,
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "sandbox_only", message });
+        }
+        return null;
+    }
+
     private static async Task<IResult> HandleFitOutDemoSeedAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -26538,6 +26573,8 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to load the DEMO-tagged fit-out sample data.", session = SessionPayload(session) });
         }
 
+        var sandboxBlock = DemoSandboxGuard(context, "/erp");
+        if (sandboxBlock is not null) { return sandboxBlock; }
         var message = await writes.SeedDemoAsync(cancellationToken);
         var ok = !message.StartsWith("TenantRegistry DB is not configured", StringComparison.Ordinal);
         return LiveWriteFormBinder.Complete(
@@ -26567,6 +26604,8 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to load the DEMO-tagged sample data.", session = SessionPayload(session) });
         }
 
+        var sandboxBlock = DemoSandboxGuard(context, "/erp");
+        if (sandboxBlock is not null) { return sandboxBlock; }
         var message = await writes.SeedAsync(cancellationToken);
         var ok = !message.StartsWith("TenantRegistry DB is not configured", StringComparison.Ordinal);
         return LiveWriteFormBinder.Complete(
@@ -27338,7 +27377,7 @@ public sealed class ErpModule : ISurfaceModule
         return Results.Ok(new { ok = res.Ok, message = res.Message, entity = res.Entity, bu = res.Bu, item = res.Item, version = res.Version, unit = res.Unit, offer = res.Offer, actual = res.Actual, msp = res.Msp, pending = res.Pending, history = res.History });
     }
 
-    /// <summary>D365 doc-cycle: upsert a legal entity's document header/footer profile.</summary>
+    /// <summary>ecom doc-cycle: upsert a legal entity's document header/footer profile.</summary>
     private static async Task<IResult> HandleD365DocProfileSetAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -27374,7 +27413,7 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(context, "/erp/documents-app", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
     }
 
-    /// <summary>D365 live connector: probe Entra token + OData reachability (admin; read-only outside).</summary>
+    /// <summary>ecom live connector: probe Entra token + OData reachability (admin; read-only outside).</summary>
     private static async Task<IResult> HandleD365ConnectTestAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -27386,7 +27425,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-sync", "Admin ERP capability required to test the D365 connection.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-sync", "Admin ERP capability required to test the ecom connection.");
         }
 
         var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
@@ -27471,7 +27510,7 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(context, "/erp/security-mfa", ok, msg, new { ok, writes = ok ? 1 : 0, message = msg, session = SessionPayload(session) });
     }
 
-    /// <summary>D365 live connector: pull an F&O OData data entity into epc_d365_sync_objects staging.</summary>
+    /// <summary>ecom live connector: pull an F&O OData data entity into epc_d365_sync_objects staging.</summary>
     private static async Task<IResult> HandleD365ConnectPullAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -27483,13 +27522,13 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-sync", "Admin ERP capability required to pull D365 data.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-sync", "Admin ERP capability required to pull ecom data.");
         }
 
         var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
         if (!confirm)
         {
-            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to pull a D365 entity into staging. Fields: entity (ReleasedProductsV2|CustomersV3|VendorsV2|SalesOrderHeadersV2|PurchaseOrderHeadersV2|SalesInvoiceHeadersV2|MainAccounts|LegalEntities), top (1-5000).", session = SessionPayload(session) });
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to pull a ecom entity into staging. Fields: entity (ReleasedProductsV2|CustomersV3|VendorsV2|SalesOrderHeadersV2|PurchaseOrderHeadersV2|SalesInvoiceHeadersV2|MainAccounts|LegalEntities), top (1-5000).", session = SessionPayload(session) });
         }
 
         var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
@@ -27503,13 +27542,13 @@ public sealed class ErpModule : ISurfaceModule
         await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         if (!await d365connect.SyncEnabledAsync(conn, cancellationToken).ConfigureAwait(false))
         {
-            return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", false, "D365 sync is off — switch it on with the toggle on the connection card first.", new { ok = false, writes = 0, message = "D365 sync is off — switch it on first.", session = SessionPayload(session) });
+            return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", false, "ecom sync is off — switch it on with the toggle on the connection card first.", new { ok = false, writes = 0, message = "ecom sync is off — switch it on first.", session = SessionPayload(session) });
         }
         var res = await d365connect.PullEntityAsync(conn, entity, top, session.UserId, cancellationToken).ConfigureAwait(false);
         return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Staged, fetched = res.Fetched, staged = res.Staged, run_id = res.RunId, message = res.Message, session = SessionPayload(session) });
     }
 
-    /// <summary>D365 live connector: apply staged rows for one entity into its operational master.</summary>
+    /// <summary>ecom live connector: apply staged rows for one entity into its operational master.</summary>
     private static async Task<IResult> HandleD365ApplyStagedAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -27522,7 +27561,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-sync", "Admin ERP capability required to apply D365 staged data.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-sync", "Admin ERP capability required to apply ecom staged data.");
         }
 
         var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
@@ -27541,14 +27580,14 @@ public sealed class ErpModule : ISurfaceModule
         await using var conn = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         if (!await d365connect.SyncEnabledAsync(conn, cancellationToken).ConfigureAwait(false))
         {
-            return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", false, "D365 sync is off — switch it on with the toggle on the connection card first.", new { ok = false, writes = 0, message = "D365 sync is off — switch it on first.", session = SessionPayload(session) });
+            return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", false, "ecom sync is off — switch it on with the toggle on the connection card first.", new { ok = false, writes = 0, message = "ecom sync is off — switch it on first.", session = SessionPayload(session) });
         }
         var res = await d365map.ApplyAsync(conn, entity, session.UserId, cancellationToken,
             (tx, ct) => d365connect.SyncEnabledAsync(conn, ct, tx)).ConfigureAwait(false);
         return LiveWriteFormBinder.Complete(context, "/erp/d365-sync?entity=" + Uri.EscapeDataString(entity), res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Mapped, mapped = res.Mapped, skipped = res.Skipped, message = res.Message, session = SessionPayload(session) });
     }
 
-    /// <summary>D365 live connector: persisted on/off switch — pulls and applies refuse while off.</summary>
+    /// <summary>ecom live connector: persisted on/off switch — pulls and applies refuse while off.</summary>
     private static async Task<IResult> HandleD365SyncToggleAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -27560,13 +27599,13 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-sync", "Admin ERP capability required to switch the D365 connection.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-sync", "Admin ERP capability required to switch the ecom connection.");
         }
 
         var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
         if (!confirm)
         {
-            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to toggle the D365 connection. Fields: enabled (0|1).", session = SessionPayload(session) });
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to toggle the ecom connection. Fields: enabled (0|1).", session = SessionPayload(session) });
         }
 
         var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
@@ -27579,12 +27618,12 @@ public sealed class ErpModule : ISurfaceModule
         var enable = AmlText(fields, "enabled") == "1";
         await d365connect.SetSyncEnabledAsync(conn, enable, cancellationToken).ConfigureAwait(false);
         var msg = enable
-            ? "D365 sync switched on — pulls and applies are enabled."
-            : "D365 sync switched off — pulls and applies are disabled; the connection stays configured.";
+            ? "ecom sync switched on — pulls and applies are enabled."
+            : "ecom sync switched off — pulls and applies are disabled; the connection stays configured.";
         return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", true, msg, new { ok = true, writes = 1, enabled = enable, message = msg, session = SessionPayload(session) });
     }
 
-    /// <summary>D365 live connector: save the credentials entered on the sync page (params override the host env).</summary>
+    /// <summary>ecom live connector: save the credentials entered on the sync page (params override the host env).</summary>
     private static async Task<IResult> HandleD365SaveConnectionAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -27596,13 +27635,13 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-sync", "Admin ERP capability required to save the D365 connection.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/d365-sync", "Admin ERP capability required to save the ecom connection.");
         }
 
         var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
         if (!confirm)
         {
-            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save the D365 connection settings. Fields: environment_url, tenant_id, client_id, client_secret, username, password (blank = use the host env value).", session = SessionPayload(session) });
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save the ecom connection settings. Fields: environment_url, tenant_id, client_id, client_secret, username, password (blank = use the host env value).", session = SessionPayload(session) });
         }
 
         var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
@@ -27630,12 +27669,12 @@ public sealed class ErpModule : ISurfaceModule
         await d365connect.SaveConnectionSettingsAsync(conn, settings, cancellationToken).ConfigureAwait(false);
         var resolved = await d365connect.ResolveSettingsAsync(conn, cancellationToken).ConfigureAwait(false);
         var msg = resolved.IsConfigured
-            ? "D365 credentials saved — connection is configured; switch sync on to enable pulls."
-            : "D365 credentials saved — still incomplete: need environment URL plus either username+password or tenant id + client id + client secret.";
+            ? "ecom credentials saved — connection is configured; switch sync on to enable pulls."
+            : "ecom credentials saved — still incomplete: need environment URL plus either username+password or tenant id + client id + client secret.";
         return LiveWriteFormBinder.Complete(context, "/erp/d365-sync", resolved.IsConfigured, msg, new { ok = resolved.IsConfigured, writes = 1, configured = resolved.IsConfigured, message = msg, session = SessionPayload(session) });
     }
 
-    /// <summary>D365 doc-cycle: save D365 fields on an existing so|po|dn|customer|vendor|product row.</summary>
+    /// <summary>ecom doc-cycle: save ecom fields on an existing so|po|dn|customer|vendor|product row.</summary>
     private static async Task<IResult> HandleD365FieldsSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -27647,13 +27686,13 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/sales-orders", "Admin ERP capability required to save D365 fields.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/sales-orders", "Admin ERP capability required to save ecom fields.");
         }
 
         var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
         if (!confirm)
         {
-            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save D365 fields. Fields: kind=so|po|dn|customer|vendor|product|quote|quote_line, id, then any D365 field names for that kind (unknown fields are ignored).", session = SessionPayload(session) });
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save ecom fields. Fields: kind=so|po|dn|customer|vendor|product|quote|quote_line, id, then any ecom field names for that kind (unknown fields are ignored).", session = SessionPayload(session) });
         }
 
         var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
@@ -27696,7 +27735,7 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(context, "/erp/sales-orders", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
     }
 
-    /// <summary>D365 doc-cycle: sales-invoice PDF (wholesale layout + entity chrome). ?id=invoice id.</summary>
+    /// <summary>ecom doc-cycle: sales-invoice PDF (wholesale layout + entity chrome). ?id=invoice id.</summary>
     private static async Task<IResult> HandleD365InvoicePdfAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -27722,7 +27761,7 @@ public sealed class ErpModule : ISurfaceModule
         return Results.File(pdf, "application/pdf", "invoice-" + model.InvoiceNumber + ".pdf");
     }
 
-    /// <summary>D365 doc-cycle: delivery-note PDF. ?id=note id.</summary>
+    /// <summary>ecom doc-cycle: delivery-note PDF. ?id=note id.</summary>
     private static async Task<IResult> HandleD365DeliveryPdfAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -27748,7 +27787,7 @@ public sealed class ErpModule : ISurfaceModule
         return Results.File(pdf, "application/pdf", "delivery-note-" + model.DocumentNo + ".pdf");
     }
 
-    /// <summary>D365 bulk: CSV template for an area. ?area=items|stock|customers|vendors|coa|sales_orders|purchase_orders|quotations|gl_opening</summary>
+    /// <summary>ecom bulk: CSV template for an area. ?area=items|stock|customers|vendors|coa|sales_orders|purchase_orders|quotations|gl_opening</summary>
     private static async Task<IResult> HandleD365CsvTemplateAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -27780,7 +27819,7 @@ public sealed class ErpModule : ISurfaceModule
         return Results.File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv", area + "-template.csv");
     }
 
-    /// <summary>D365 bulk: CSV upload → validate → commit (form fields 'area' + 'csv').</summary>
+    /// <summary>ecom bulk: CSV upload → validate → commit (form fields 'area' + 'csv').</summary>
     private static async Task<IResult> HandleD365CsvImportAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -27813,7 +27852,7 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(context, "/erp/settings", res.Ok, res.Message, new { ok = res.Ok, inserted = res.Inserted, updated = res.Updated, skipped = res.Skipped, errors = res.Errors, message = res.Message, session = SessionPayload(session) });
     }
 
-    /// <summary>D365 bulk: CSV export of an area's current rows. ?area=...</summary>
+    /// <summary>ecom bulk: CSV export of an area's current rows. ?area=...</summary>
     private static async Task<IResult> HandleD365CsvExportAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -27851,7 +27890,7 @@ public sealed class ErpModule : ISurfaceModule
         return Results.File(System.Text.Encoding.UTF8.GetBytes(res.Csv), "text/csv", res.FileName);
     }
 
-    /// <summary>D365 quotation lifecycle: ?id=&amp;status= sent|confirmed|rejected|expired.</summary>
+    /// <summary>ecom quotation lifecycle: ?id=&amp;status= sent|confirmed|rejected|expired.</summary>
     private static async Task<IResult> HandleD365QuoteStatusAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -27884,7 +27923,7 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(context, "/erp/d365-studio", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
     }
 
-    /// <summary>D365 quotation print view → SALES QUOTATION PDF. ?id=quotation id.</summary>
+    /// <summary>ecom quotation print view → SALES QUOTATION PDF. ?id=quotation id.</summary>
     private static async Task<IResult> HandleD365QuotePdfAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -27909,7 +27948,7 @@ public sealed class ErpModule : ISurfaceModule
         return Results.File(ErpD365DocPdf.QuotationPdf(model), "application/pdf", "quotation-" + model.InvoiceNumber + ".pdf");
     }
 
-    /// <summary>D365 GL foundation: generic save. kind=dim_type|dim_value|dim_set|fiscal_calendar|fx_rate|bank|journal_dims|coa.</summary>
+    /// <summary>ecom GL foundation: generic save. kind=dim_type|dim_value|dim_set|fiscal_calendar|fx_rate|bank|journal_dims|coa.</summary>
     private static async Task<IResult> HandleD365GlSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -27971,7 +28010,7 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(context, "/erp/d365-studio", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
     }
 
-    /// <summary>D365 bank reconciliation: mark/unmark a cash-bank entry. Fields: entry_id, reconciled=1|0.</summary>
+    /// <summary>ecom bank reconciliation: mark/unmark a cash-bank entry. Fields: entry_id, reconciled=1|0.</summary>
     private static async Task<IResult> HandleD365BankReconAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -28004,7 +28043,7 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(context, "/erp/d365-studio", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, message = res.Message, session = SessionPayload(session) });
     }
 
-    /// <summary>D365 trial balance pivoted by a financial dimension set. ?set=&lt;dim set id&gt;.</summary>
+    /// <summary>ecom trial balance pivoted by a financial dimension set. ?set=&lt;dim set id&gt;.</summary>
     private static async Task<IResult> HandleD365TbSetAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -28029,7 +28068,7 @@ public sealed class ErpModule : ISurfaceModule
     }
 
     /// <summary>
-    /// D365 journals (LedgerJournalTable3 / _CustPaym / Table5): post a journal with
+    /// ecom journals (LedgerJournalTable3 / _CustPaym / Table5): post a journal with
     /// dimensioned lines. Header fields: journal_type=general|customer_payment|vendor_payment,
     /// description, reference, currency_code, entity/company_id, business_unit_id.
     /// Lines textarea `lines`: one per row "account_code|debit|credit|note|bu_id|cc_id|le_id".
@@ -28258,7 +28297,7 @@ public sealed class ErpModule : ISurfaceModule
     /// <summary>valid_from/valid_to accept a unix number or YYYY-MM-DD
     /// (from = start of day UTC, to = end of day UTC).</summary>
 
-    /// <summary>D365 prospect→customer/vendor conversion (smmBusinessRelations → CustTable/VendTable). Fields: lead_id, party=customer|vendor.</summary>
+    /// <summary>ecom prospect→customer/vendor conversion (smmBusinessRelations → CustTable/VendTable). Fields: lead_id, party=customer|vendor.</summary>
     private static async Task<IResult> HandleD365ProspectConvertAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -28290,7 +28329,7 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(context, "/erp/d365-studio", res.Succeeded, res.Message, new { ok = res.Succeeded, writes = res.Writes, id = res.Id, message = res.Message, session = SessionPayload(session) });
     }
 
-    /// <summary>CSRF guard for the D365 write endpoints (DisableAntiforgery + confirmWrites flow).</summary>
+    /// <summary>CSRF guard for the ecom write endpoints (DisableAntiforgery + confirmWrites flow).</summary>
     private static async Task<IResult?> D365CsrfAsync(
         HttpContext context,
         EcomAE.Platform.Cp.ICpCsrfGuard csrf,
@@ -28583,6 +28622,8 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to load the DEMO-tagged auto-parts sample data.", session = SessionPayload(session) });
         }
 
+        var sandboxBlock = DemoSandboxGuard(context, "/erp");
+        if (sandboxBlock is not null) { return sandboxBlock; }
         var message = await writes.SeedDemoAsync(cancellationToken);
         var ok = !message.StartsWith("TenantRegistry DB is not configured", StringComparison.Ordinal);
         return LiveWriteFormBinder.Complete(
@@ -28685,6 +28726,37 @@ public sealed class ErpModule : ISurfaceModule
             new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
     }
 
+    /// <summary>Per-user dashboard widget hide/show — the signed-in user's own preference only.</summary>
+    private static async Task<IResult> HandleUserPrefSetAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpUserPrefsService prefs,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/dashboard-app", "ERP session required to personalize the dashboard.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to save the widget preference.", session = SessionPayload(session) });
+        }
+
+        var widget = context.Request.Form["widget"].ToString() ?? string.Empty;
+        var hidden = context.Request.Form["hidden"].ToString() is "1" or "true";
+        var ok = await prefs.SetWidgetHiddenAsync(session.UserId, widget, hidden, cancellationToken);
+        var returnUrl = context.Request.Form["returnUrl"].ToString();
+        return LiveWriteFormBinder.Complete(
+            context,
+            string.IsNullOrWhiteSpace(returnUrl) ? "/erp/dashboard-app" : returnUrl,
+            ok,
+            ok ? "Widget preference saved." : "Unknown widget or database unavailable.",
+            new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, session = SessionPayload(session) });
+    }
+
     /// <summary>Auto-parts sales orders → UAE FTA tax invoices via the shared e-invoice writer.</summary>
     private static async Task<IResult> HandleAutoPartsIssueInvoiceAsync(
         HttpContext context,
@@ -28745,6 +28817,8 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to load the DEMO-tagged jewellery sample data.", session = SessionPayload(session) });
         }
 
+        var sandboxBlock = DemoSandboxGuard(context, "/erp");
+        if (sandboxBlock is not null) { return sandboxBlock; }
         var message = await writes.SeedDemoAsync(cancellationToken);
         var ok = !message.StartsWith("TenantRegistry DB is not configured", StringComparison.Ordinal);
         return LiveWriteFormBinder.Complete(
@@ -31304,6 +31378,8 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpAmlSeedRulesRequest(0, null, false)).ToPayload(SessionPayload(session)));
         }
 
+        var sandboxBlock = DemoSandboxGuard(context, "/erp");
+        if (sandboxBlock is not null) { return sandboxBlock; }
         var result = await writes.SeedAsync(AmlLong(fields, "company_id"), cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
@@ -31665,6 +31741,8 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpDemoSeedSalesRequest(false)).ToPayload(SessionPayload(session)));
         }
 
+        var sandboxBlock = DemoSandboxGuard(context, "/erp");
+        if (sandboxBlock is not null) { return sandboxBlock; }
         var res = await writes.SeedAsync(ErpDemoSalesWriteService.DefaultMonths, cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
@@ -31735,6 +31813,8 @@ public sealed class ErpModule : ISurfaceModule
         ErpPfDemoSyncResult res;
         try
         {
+        var sandboxBlock = DemoSandboxGuard(context, "/erp");
+        if (sandboxBlock is not null) { return sandboxBlock; }
             res = await writes.SeedDemoAsync((int)session.UserId, cancellationToken);
         }
         catch (ErpWriteException ex)
@@ -32332,6 +32412,8 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpJwSeedSampleDataRequest(0, null, false)).ToPayload(SessionPayload(session)));
         }
 
+        var sandboxBlock = DemoSandboxGuard(context, "/erp");
+        if (sandboxBlock is not null) { return sandboxBlock; }
         var seeded = await writes.SeedAsync((int)session.UserId, cancellationToken);
         return Results.Ok(new
         {

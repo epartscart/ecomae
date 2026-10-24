@@ -209,7 +209,7 @@
             }
             @if (_d365Header.Count > 0)
             {
-                <p class="text-muted" style="margin:.6rem 0 .3rem">D365 header</p>
+                <p class="text-muted" style="margin:.6rem 0 .3rem">ecom header</p>
                 <dl class="epc-erp-facts">
                     @foreach (var kv in _d365Header)
                     {
@@ -221,7 +221,7 @@
             @if (_d365Lines.Count > 0)
             {
                 var d365Cols = _d365Lines.SelectMany(r => r.Keys).Distinct().ToList();
-                <p class="text-muted" style="margin:1rem 0 .4rem">D365 lines view</p>
+                <p class="text-muted" style="margin:1rem 0 .4rem">ecom lines view</p>
                 <table class="table table-bordered table-condensed table-epc epc-erp-table">
                     <thead><tr>@foreach (var col in d365Cols) { <th>@col.Replace('_', ' ')</th> }</tr></thead>
                     <tbody>
@@ -527,7 +527,7 @@
                     _d365Lines = await D365.DocumentD365LinesAsync(conn, "po", _openedId, ctx.RequestAborted).ConfigureAwait(false);
                 }
             }
-            catch { /* D365 overlay is best-effort */ }
+            catch { /* ecom overlay is best-effort */ }
             _openedDimensionLinks = await DimensionLinks.LoadAsync("purchase_order", _openedId, ctx.RequestAborted);
             _openedSiblings = detail.Siblings;
             _openedAuditTrail = detail.AuditTrail;

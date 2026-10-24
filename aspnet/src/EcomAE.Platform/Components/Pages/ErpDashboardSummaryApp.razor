@@ -12,6 +12,7 @@
 @inject IHttpContextAccessor Http
 @inject IErpLandlordBook LandlordBook
 @inject IErpIndustryPulseReadService IndustryPulse
+@inject IErpUserPrefsService UserPrefs
 
 <PageTitle>@_pageTitle</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -20,6 +21,25 @@
 
     <div class="epc-dash" aria-label="@_boardTitle">
 
+        @if (_isAdmin && _userId > 0)
+        {
+            <div class="epc-dash-sec" style="display:flex;flex-wrap:wrap;gap:.35rem;align-items:center">
+                <span class="text-muted" style="font-size:.85em">Personalize:</span>
+                @foreach (var w in ErpUserPrefsService.WidgetKeys)
+                {
+                    <form method="post" action="/erp/user-pref" style="display:inline">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="/erp/dashboard-app" />
+                        <input type="hidden" name="widget" value="@w" />
+                        <input type="hidden" name="hidden" value="@(_hidden.Contains(w) ? "0" : "1")" />
+                        <button type="submit" class="btn btn-xs @(_hidden.Contains(w) ? "btn-default" : "btn-primary")" title="@(_hidden.Contains(w) ? "Show" : "Hide") @w">@w</button>
+                    </form>
+                }
+            </div>
+        }
+
+        @if (!Hidden("hero"))
+        {
         <section class="epc-dash-hero" data-industry="@_kind">
             <div class="epc-dash-hero__eyebrow">@_companyLabel · @_industryLabel</div>
             <h2 class="epc-dash-hero__title">@_boardTitle</h2>
@@ -31,7 +51,10 @@
                 <span class="epc-dash-hero__chip"><i class="fa fa-circle" style="color:#f87171"></i> Action</span>
             </div>
         </section>
+        }
 
+        @if (!Hidden("industry-kpis"))
+        {
         <h5 class="epc-dash-sec"><i class="fa fa-industry"></i> @_industryLabel KPIs</h5>
         <div class="epc-dash-grid" aria-label="Industry KPIs">
             @foreach (var tile in _industryTiles)
@@ -39,7 +62,10 @@
                 @ExecTile(tile.Label, tile.Value, tile.Href, tile.Color, tile.Hint)
             }
         </div>
+        }
 
+        @if (!Hidden("exec-kpis"))
+        {
         <h5 class="epc-dash-sec"><i class="fa fa-book"></i> Executive dashboard</h5>
         <div class="epc-dash-grid" aria-label="Executive KPIs">
             @ExecTile("Cash position", Money(_s.CashPosition), Go("/erp/cash-accounts-app"), "#2bb3c0", "Cash & bank")
@@ -51,8 +77,11 @@
             @ExecTile("VAT net payable", Money(_s.VatNetPayable), Go("/erp/vat-app"), Health(_s.VatNetPayable, warnAbove: true), "Current return")
             @ExecTile("Period status", _s.PeriodStatus, Go("/erp/period-close-app"), string.Equals(_s.PeriodStatus, "open", StringComparison.OrdinalIgnoreCase) ? "#0a7d33" : "#c98a00", "Fiscal period")
         </div>
+        }
 
         <div class="epc-dash-cards">
+            @if (!Hidden("financial-position"))
+            {
             <section class="epc-dash-card" aria-label="Financial position">
                 <div class="epc-dash-card__hd">
                     <h4><i class="fa fa-bar-chart" style="color:#0e7490"></i> Financial position</h4>
@@ -67,7 +96,10 @@
                     @BarRow("Cash position", _s.CashPosition, "#1d4f91", Go("/erp/cash-accounts-app"))
                 </div>
             </section>
+            }
 
+            @if (!Hidden("process-flow"))
+            {
             <section class="epc-dash-card" aria-label="Process flow">
                 <div class="epc-dash-card__hd">
                     <h4><i class="fa fa-sitemap" style="color:#0e7490"></i> Process flow</h4>
@@ -84,7 +116,10 @@
                     </div>
                 </div>
             </section>
+            }
 
+            @if (!Hidden("working-capital"))
+            {
             <section class="epc-dash-card" aria-label="Working capital">
                 <div class="epc-dash-card__hd">
                     <h4><i class="fa fa-truck" style="color:#0e7490"></i> Working capital</h4>
@@ -101,8 +136,11 @@
                     @ExecTile("Active items", _s.InventoryItems.ToString(CultureInfo.InvariantCulture), Go("/erp/inventory-stock-app"), "#0a7d33", "SKU count")
                 </div>
             </section>
+            }
         </div>
 
+        @if (!Hidden("approval-queue"))
+        {
         <section class="epc-dash-card epc-dash-card--table" aria-label="Approval queue">
             <div class="epc-dash-card__hd">
                 <h4><i class="fa fa-check-square-o" style="color:#0e7490"></i> Approval queue</h4>
@@ -135,6 +173,7 @@
                 </table>
             </div>
         </section>
+        }
 
     </div>
 
@@ -151,6 +190,9 @@
 
 @code {
     private bool _isAdmin;
+    private int _userId;
+    private IReadOnlySet<string> _hidden = new HashSet<string>(StringComparer.Ordinal);
+    private bool Hidden(string widget) => _hidden.Contains(widget);
     private string _kind = ErpIndustryDashboardCatalog.Trading;
     private string _boardTitle = ErpIndustryDashboardCatalog.Title(ErpIndustryDashboardCatalog.Trading);
     private string _boardLead = ErpIndustryDashboardCatalog.Lead(ErpIndustryDashboardCatalog.Trading);
@@ -234,6 +276,8 @@
             var result = await Dashboards.BuildErpAsync(ctx.RequestAborted);
             _s = result.Summary;
             _queue = result.ApprovalQueue;
+            _userId = session.UserId;
+            _hidden = await UserPrefs.HiddenWidgetsAsync(session.UserId, ctx.RequestAborted);
             _pulse = await IndustryPulse.ReadAsync((int)_activeCompanyId, ctx.RequestAborted);
             if (_kind == ErpIndustryDashboardCatalog.RealEstate)
             {

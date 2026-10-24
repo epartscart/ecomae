@@ -171,7 +171,7 @@ public sealed class ErpCoreDemoSeedWriteService : IErpCoreDemoSeedWriteService
             await Exec(c, p("INSERT INTO `epc_erp_pm_budget_lines` (`budget_id`,`account_code`,`account_name`,`month_no`,`amount`,`time_updated`) VALUES (?,?,?,?,?,?)"), budId, "6000", "Demo cost", 10, 90000m, now);
         }
         await Exec(c, p("INSERT INTO `epc_prja_budget` (`company_id`,`project_id`,`category`,`cost_budget`,`revenue_budget`,`time_created`) VALUES (0,900001,'DEMO-project',75000,120000,?)"), now);
-        // Org-model + HR + periods + legal entities so D365-style module screens show rows.
+        // Org-model + HR + periods + legal entities so ecom-style module screens show rows.
         for (var d = 1; d <= 3; d++)
         {
             var dcode = d == 1 ? "FIN" : d == 2 ? "OPS" : "SAL";

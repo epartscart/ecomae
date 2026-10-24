@@ -1,4 +1,4 @@
-@* D365 SalesQuotationListPage + SalesQuotationDetails parity: list grid, header/lines detail, lifecycle, print, CSV. *@
+@* ecom SalesQuotationListPage + SalesQuotationDetails parity: list grid, header/lines detail, lifecycle, print, CSV. *@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Presentation
@@ -12,7 +12,7 @@
 @inject IErpD365DocCycleService D365
 
 <div class="epc-erp-table-wrap" style="margin-bottom:14px">
-    <p style="margin:0 0 .4rem"><strong>All quotations — D365 (SalesQuotationListPage)</strong>
+    <p style="margin:0 0 .4rem"><strong>All quotations — ecom (SalesQuotationListPage)</strong>
         <a class="btn btn-xs btn-default" href="@Get("/erp/d365/quote-pdf")" target="_blank">print view</a>
     </p>
     <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
@@ -25,7 +25,7 @@
         <tbody>
             @if (_list.Count == 0)
             {
-                <tr><td colspan="11">No D365 quotations yet — create below or import the CSV.</td></tr>
+                <tr><td colspan="11">No ecom quotations yet — create below or import the CSV.</td></tr>
             }
             @foreach (var q in _list)
             {
@@ -117,7 +117,7 @@
 @if (_isAdmin)
 {
     <div class="epc-erp-table-wrap" style="margin-bottom:14px">
-        <p style="margin:0 0 .4rem"><strong>New quotation — full D365 header fields</strong></p>
+        <p style="margin:0 0 .4rem"><strong>New quotation — full ecom header fields</strong></p>
         <form method="post" action="@Post("/erp/d365/fields-save")">
             @Hidden()
             <input type="hidden" name="kind" value="quote" />

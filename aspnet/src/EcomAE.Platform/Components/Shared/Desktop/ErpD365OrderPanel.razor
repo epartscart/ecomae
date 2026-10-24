@@ -1,4 +1,4 @@
-@* D365 order parity panel: SalesTableDetails / PurchTableListPage — list grid, header+lines detail, print, CSV. *@
+@* ecom order parity panel: SalesTableDetails / PurchTableListPage — list grid, header+lines detail, print, CSV. *@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Presentation
@@ -12,7 +12,7 @@
 @inject IErpD365DocCycleService D365
 
 <div class="epc-erp-table-wrap" style="margin-bottom:14px">
-    <p style="margin:0 0 .4rem"><strong>@Title — D365</strong>
+    <p style="margin:0 0 .4rem"><strong>@Title — ecom</strong>
         @if (Kind == "so")
         {
             <a class="btn btn-xs btn-default" href="@Get("/erp/d365/invoice-pdf")" target="_blank">invoice PDF</a>
@@ -29,7 +29,7 @@
         <tbody>
             @if (_list.Count == 0)
             {
-                <tr><td colspan="@(ListCols.Length + 1)">No D365 rows yet — create below or import the CSV.</td></tr>
+                <tr><td colspan="@(ListCols.Length + 1)">No ecom rows yet — create below or import the CSV.</td></tr>
             }
             @foreach (var r in _list)
             {
@@ -78,7 +78,7 @@
 @if (_isAdmin)
 {
     <div class="epc-erp-table-wrap" style="margin-bottom:14px">
-        <p style="margin:0 0 .4rem"><strong>Save @Title fields — all D365 header fields</strong></p>
+        <p style="margin:0 0 .4rem"><strong>Save @Title fields — all ecom header fields</strong></p>
         <form method="post" action="@Post("/erp/d365/fields-save")">
             @Hidden()
             <input type="hidden" name="kind" value="@Kind" />

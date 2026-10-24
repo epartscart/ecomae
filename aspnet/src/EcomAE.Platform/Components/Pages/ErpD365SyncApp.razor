@@ -14,7 +14,7 @@
 @inject IErpD365ConnectorService D365
 @inject IErpD365MappingService D365Map
 
-<PageTitle>D365 sync · ERP · eParts Cart</PageTitle>
+<PageTitle>ecom sync · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <style>
     .tg-card { background:#fff; border:1px solid #dde6ee; border-radius:10px; padding:16px 18px; margin:0 0 16px; box-shadow:0 1px 2px rgba(16,42,66,.05); }
@@ -41,10 +41,10 @@
     .tg-field-value { color:#40566c; padding:2px 0; vertical-align:top; word-break:break-word; }
 </style>
 
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="D365 sync" BreadcrumbArea="Organization" BreadcrumbTab="D365 sync">
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="ecom sync" BreadcrumbArea="Organization" BreadcrumbTab="ecom sync">
     <PhpErpModulePageHeader
-        Title="D365 sync"
-        Subtitle="Live Finance &amp; Operations connection — Entra client-credentials token, OData data-entity pulls into staging, one-way D365 → EcomAE."
+        Title="ecom sync"
+        Subtitle="Live Finance &amp; Operations connection — Entra client-credentials token, OData data-entity pulls into staging, one-way ecom → EcomAE."
         PhpTabHref="/erp/d365-sync" />
 
     @if (_flashOk.Length > 0)
@@ -232,8 +232,8 @@
     </div>
 
     <div class="tg-card">
-        <h3>Trial balance — EcomAE vs D365 F&amp;O</h3>
-        <p>Live compare per account + dimension. Pull <code>TrialBalanceFiscalYearSnapshots</code> (the F&amp;O TB source) to refresh the D365 side; every row must show <em>match</em> for the books to reconcile.</p>
+        <h3>Trial balance — EcomAE vs ecom F&amp;O</h3>
+        <p>Live compare per account + dimension. Pull <code>TrialBalanceFiscalYearSnapshots</code> (the F&amp;O TB source) to refresh the ecom side; every row must show <em>match</em> for the books to reconcile.</p>
         @if (_tb.Rows.Count == 0)
         {
             <p>Nothing to compare yet — pull <code>TrialBalanceFiscalYearSnapshots</code> and the journal feeds (headers + lines), apply them, then reload.</p>
@@ -246,7 +246,7 @@
                 <span class="tg-pill @(_tb.TotalsMatch ? "tg-pill-ok" : "tg-pill-err")">@(_tb.TotalsMatch ? "debit + credit totals match" : "totals differ")</span>
             </p>
             <table class="tg-table">
-                <thead><tr><th>Account</th><th>Name</th><th>Dimension</th><th style="text-align:right">EcomAE</th><th style="text-align:right">D365</th><th style="text-align:right">Diff</th><th></th></tr></thead>
+                <thead><tr><th>Account</th><th>Name</th><th>Dimension</th><th style="text-align:right">EcomAE</th><th style="text-align:right">ecom</th><th style="text-align:right">Diff</th><th></th></tr></thead>
                 <tbody>
                 @foreach (var r in _tb.Rows)
                 {
@@ -279,8 +279,8 @@
     </div>
 
     <div class="tg-card">
-        <h3>Inventory on-hand — EcomAE vs D365 F&amp;O</h3>
-        <p>Per warehouse: our stock qty + value vs D365 <code>WarehousesOnHandV2</code> (pull + apply it). Value on the D365 side reconciles through the inventory GL accounts in the TB above.</p>
+        <h3>Inventory on-hand — EcomAE vs ecom F&amp;O</h3>
+        <p>Per warehouse: our stock qty + value vs ecom <code>WarehousesOnHandV2</code> (pull + apply it). Value on the ecom side reconciles through the inventory GL accounts in the TB above.</p>
         @if (_inv.Count == 0)
         {
             <p>No on-hand data yet — pull and apply <code>WarehousesOnHandV2</code>.</p>
@@ -290,7 +290,7 @@
             var invMatch = _inv.Count(r => r.QtyMatches);
             <p><span class="tg-pill @(invMatch == _inv.Count ? "tg-pill-ok" : "tg-pill-warn")">@invMatch / @_inv.Count warehouses match on qty</span></p>
             <table class="tg-table">
-                <thead><tr><th>Warehouse</th><th style="text-align:right">EcomAE qty</th><th style="text-align:right">EcomAE value</th><th style="text-align:right">D365 qty</th><th style="text-align:right">D365 available</th><th></th></tr></thead>
+                <thead><tr><th>Warehouse</th><th style="text-align:right">EcomAE qty</th><th style="text-align:right">EcomAE value</th><th style="text-align:right">ecom qty</th><th style="text-align:right">ecom available</th><th></th></tr></thead>
                 <tbody>
                 @foreach (var r in _inv)
                 {

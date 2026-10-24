@@ -1,7 +1,7 @@
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
-/// Dynamics-style workspace pages taken from the Leave, Master planning, Material handling,
+/// ecom workspace pages taken from the Leave, Master planning, Material handling,
 /// Organization administration, Payroll, and Procurement module menus.
 /// Existing dedicated apps stay linked; missing pages land on the workspace writer.
 /// </summary>

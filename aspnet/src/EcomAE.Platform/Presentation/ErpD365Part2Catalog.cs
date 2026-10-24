@@ -1,7 +1,7 @@
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
-/// Dynamics-style workspace pages taken from the Procurement, Product information,
+/// ecom workspace pages taken from the Procurement, Product information,
 /// Production, Project, Questionnaire, Rebate, Retail, Sales, Service, System
 /// administration, Tax, Time and attendance, Transportation, and Warehouse module menus.
 /// Existing dedicated apps stay linked; missing pages land on the workspace writer.

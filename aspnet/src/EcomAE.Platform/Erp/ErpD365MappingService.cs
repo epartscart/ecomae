@@ -6,10 +6,10 @@ using System.Text.Json;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Applies staged D365 F&amp;O payloads to the operational masters — this is where
+/// Applies staged ecom F&amp;O payloads to the operational masters — this is where
 /// the pull becomes visible data: customers land on the customer master, released
 /// products on inventory items, sales/purchase order headers on the document tables,
-/// main accounts on the chart of accounts. Upserts keep a D365-side unique key so a
+/// main accounts on the chart of accounts. Upserts keep a ecom-side unique key so a
 /// re-pull refreshes rather than duplicates.
 /// </summary>
 public interface IErpD365MappingService
@@ -18,7 +18,7 @@ public interface IErpD365MappingService
     IReadOnlyDictionary<string, string> MappedEntities { get; }
     Task<ErpD365ApplyResult> ApplyAsync(DbConnection connection, string entity, long adminId, CancellationToken cancellationToken = default, Func<DbTransaction, CancellationToken, Task<bool>>? syncGate = null);
 
-    /// <summary>Live trial-balance compare: our GL balances per account vs balances aggregated from staged D365 posted transactions (GeneralLedgerBalanceCDREntities), keyed by dimension string for the dimension-set pivot — plus total debit/credit both sides must agree on.</summary>
+    /// <summary>Live trial-balance compare: our GL balances per account vs balances aggregated from staged ecom posted transactions (GeneralLedgerBalanceCDREntities), keyed by dimension string for the dimension-set pivot — plus total debit/credit both sides must agree on.</summary>
     Task<ErpD365TbCompare> TrialBalanceCompareAsync(DbConnection connection, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ErpD365InvCompareRow>> InventoryCompareAsync(DbConnection connection, CancellationToken cancellationToken = default);
 }
@@ -181,12 +181,12 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         await ErpSalesWorkspaceSpecs.EnsureSalesAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpPurchasingWorkspaceSpecs.EnsurePurchasingAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpGlChartOfAccountsSeeder.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
-        // Base GL tables first (gl journals + lines) — the D365 GL service only adds columns and
+        // Base GL tables first (gl journals + lines) — the ecom GL service only adds columns and
         // dimension tables on top of them, so a fresh tenant needs the base ensure.
         await glPosting.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await glService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
-        // Stable D365 identity columns on GL lines — added here (pre-transaction) because ALTER
-        // implicitly commits any open MySQL transaction. line_ref carries the D365 line number
+        // Stable ecom identity columns on GL lines — added here (pre-transaction) because ALTER
+        // implicitly commits any open MySQL transaction. line_ref carries the ecom line number
         // (stable across amount/note/dimension edits); ext_entity scopes a line to its feed.
         await ErpDb.TryExecuteAsync(connection,
             "ALTER TABLE `epc_erp_gl_lines` ADD `ext_key` varchar(255) NOT NULL DEFAULT ''",
@@ -212,7 +212,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             "CREATE TABLE IF NOT EXISTS `epc_erp_pm_cost_centres` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `legal_entity_id` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_cc_code` (`code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
             cancellationToken).ConfigureAwait(false);
 
-        // Warehouse stock positions pulled from D365 (WarehousesOnHandV2).
+        // Warehouse stock positions pulled from ecom (WarehousesOnHandV2).
         await ErpDb.TryExecuteAsync(connection,
             "CREATE TABLE IF NOT EXISTS `epc_erp_inv_onhand` (" +
             "id INT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
@@ -427,7 +427,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             // GL not initialized yet — our side is simply zero.
         }
 
-        // D365 side: prefer staged TrialBalanceFiscalYearSnapshots (the actual F&O TB source —
+        // ecom side: prefer staged TrialBalanceFiscalYearSnapshots (the actual F&O TB source —
         // debit/credit/ending balance per dimension value set per period); fall back to
         // GeneralLedgerBalanceCDREntities when snapshots were never pulled.
         var theirs = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
@@ -558,14 +558,14 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
     }
 
     /// <summary>
-    /// Inventory on-hand compare: our stock positions (epc_erp_inv_stock) vs D365 WarehousesOnHandV2
+    /// Inventory on-hand compare: our stock positions (epc_erp_inv_stock) vs ecom WarehousesOnHandV2
     /// (epc_erp_inv_onhand, applied). Warehouse key join is on the warehouse CODE — our warehouses are
-    /// matched to their D365 id via epc_erp_inv_warehouses.code when present, else the numeric id.
+    /// matched to their ecom id via epc_erp_inv_warehouses.code when present, else the numeric id.
     /// </summary>
     public async Task<IReadOnlyList<ErpD365InvCompareRow>> InventoryCompareAsync(DbConnection connection, CancellationToken cancellationToken = default)
     {
         var rows = new List<ErpD365InvCompareRow>();
-        // D365 side: on-hand per warehouse code (from the applied positions table).
+        // ecom side: on-hand per warehouse code (from the applied positions table).
         var theirs = new Dictionary<string, (decimal Qty, decimal Avail)>(StringComparer.OrdinalIgnoreCase);
         try
         {
@@ -1139,7 +1139,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         {
             await ErpDb.ExecuteAsync(connection, tx,
                 ErpDb.Positional("INSERT INTO `epc_erp_purchases` (`invoice_number`, `purchase_date`, `amount_ex_vat`, `vat_amount`, `total_amount`, `status`, `note`, `admin_id`, `time_created`) VALUES (?, ?, ?, ?, ?, 'confirmed', ?, ?, ?)"),
-                ct, invoiceNo, purchaseDate, total - tax, tax, total, Clip("D365 vendor " + vendorAccount, 500), adminId, now).ConfigureAwait(false);
+                ct, invoiceNo, purchaseDate, total - tax, tax, total, Clip("ecom vendor " + vendorAccount, 500), adminId, now).ConfigureAwait(false);
         }
         return true;
     }
@@ -1283,7 +1283,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
     /// <summary>
     /// Parses the F&O dimension string (e.g. "501100-BU01-CC01") into structured line columns.
     /// Each non-account segment is looked up in BOTH master tables — a code can be a business unit
-    /// in D365 and a legal entity here, or vice versa, so whichever table contains it decides the
+    /// in ecom and a legal entity here, or vice versa, so whichever table contains it decides the
     /// mapping. Unmatched segments are kept as dimension values, never force-created as the wrong
     /// kind. Returns (legalEntityId, businessUnitId, dimTypeCode, dimValueCode).
     /// </summary>
@@ -1334,7 +1334,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
             {
                 continue; // same code in both strings — a repeat is not a new dimension
             }
-            // Classify by what EXISTS in our masters — a D365 code can be a BU here and a legal
+            // Classify by what EXISTS in our masters — a ecom code can be a BU here and a legal
             // entity there (or vice versa); whichever table contains it wins.
             if (buId == 0)
             {
@@ -1472,7 +1472,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
         {
             return false;
         }
-        // The D365 line number is the stable identity of this line — amount, note, voucher and
+        // The ecom line number is the stable identity of this line — amount, note, voucher and
         // dimension edits all keep it, so matching on it updates in place (no duplicates, no collapse).
         var lineRef = Str(row, "LineNumber", "JournalLineNumber", "VoucherLineNumber", "LineRef", "RecId");
         if (lineRef.Length == 0) lineRef = "k:" + extKey; // no line id in payload — fall back to the staged key
@@ -1709,7 +1709,7 @@ public sealed class ErpD365MappingService(IErpD365DocCycleService docCycle, IErp
                                 costCentreId = costCentreId > 0 ? costCentreId : await ResolveCostCentreIdAsync(connection, tx, val, ct).ConfigureAwait(false);
                                 break;
                             default:
-                                // Any other D365 dimension (WORKER, DEPARTMENT, projects, …): provision a
+                                // Any other ecom dimension (WORKER, DEPARTMENT, projects, …): provision a
                                 // value under a type named after the dimension so nothing is dropped.
                                 var (_, valType) = await EnsureDimValueAsync(connection, tx, val, prop.Name.ToLowerInvariant(), ct).ConfigureAwait(false);
                                 if (dimValueCode.Length == 0)

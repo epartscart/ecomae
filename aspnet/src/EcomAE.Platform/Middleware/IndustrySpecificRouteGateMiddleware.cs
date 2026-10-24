@@ -64,7 +64,7 @@ public sealed class IndustrySpecificRouteGateMiddleware(
                     ?? await _dashboards.BuildErpCompanyDigestAsync(requested.Value, context.RequestAborted);
             }
 
-            // PHP epc_erp_active_company_id / D365 ?cmp=: no selector → lowest-id entity.
+            // PHP epc_erp_active_company_id / ecom ?cmp=: no selector → lowest-id entity.
             return ErpHostContext.ActiveCompanyFromQuery(companies, context.Request);
         }
         catch
