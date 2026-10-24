@@ -37,9 +37,9 @@ public sealed record TenantPresentation(
         var sb = new StringBuilder();
         var vars = new StringBuilder();
 
-        MapColor(vars, "brand_primary", "--epc-erp-primary", "--epc-blue-600", "--ep-accent");
-        MapColor(vars, "brand_secondary", "--epc-blue-700");
-        MapColor(vars, "brand_accent", "--epc-blue-400", "--epc-sidebar-hover");
+        MapColor(vars, "brand_primary", "--epc-erp-primary", "--epc-blue-600", "--ep-accent", "--red", "--red-dark", "--epc-cp-primary");
+        MapColor(vars, "brand_secondary", "--epc-blue-700", "--epc-cp-primary-dark");
+        MapColor(vars, "brand_accent", "--epc-blue-400", "--epc-sidebar-hover", "--nero-accent", "--red-hot");
         MapColor(vars, "brand_bg_dark", "--epc-blue-950", "--epc-bg-dark");
         MapColor(vars, "brand_sidebar_bg", "--epc-sidebar-from", "--epc-sidebar-to");
         MapColor(vars, "brand_header_bg", "--epc-header-bg");
@@ -239,20 +239,23 @@ public sealed class TenantPresentationProvider : ITenantPresentationProvider
         }
 
         siteKey = siteKey.Trim().ToLowerInvariant();
+        var industryKey = string.IsNullOrWhiteSpace(tenant?.IndustryCode)
+            ? null
+            : "industry:" + tenant!.IndustryCode!.Trim().ToLowerInvariant();
         // Database scopes the cache — sandbox and live can share a site_key but
         // hold different settings, so each environment must see its own tokens.
-        var cacheKey = "tenant-presentation:" + (tenant?.DatabaseName ?? "registry") + ":" + siteKey;
+        var cacheKey = "tenant-presentation:" + (tenant?.DatabaseName ?? "registry") + ":" + (industryKey ?? "") + ":" + siteKey;
         if (_cache.TryGetValue(cacheKey, out TenantPresentation? cached) && cached is not null)
         {
             return cached;
         }
 
-        var tokens = await LoadAsync(siteKey, cancellationToken).ConfigureAwait(false);
+        var tokens = await LoadAsync(siteKey, industryKey, cancellationToken).ConfigureAwait(false);
         _cache.Set(cacheKey, tokens, CacheLifetime);
         return tokens;
     }
 
-    private async Task<TenantPresentation> LoadAsync(string siteKey, CancellationToken cancellationToken)
+    private async Task<TenantPresentation> LoadAsync(string siteKey, string? industryKey, CancellationToken cancellationToken)
     {
         var values = new Dictionary<string, string>(StringComparer.Ordinal);
         try
@@ -260,22 +263,25 @@ public sealed class TenantPresentationProvider : ITenantPresentationProvider
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText =
-                "SELECT `setting_key`, `setting_value` FROM `epc_settings` WHERE (`site_key` IS NULL OR `site_key` = '' OR `site_key` = ?) AND (`setting_key` LIKE 'brand_%' OR `setting_key` LIKE 'ui_%' OR `setting_key` = 'white_label_login') ORDER BY IFNULL(`site_key`,'') ASC";
+                "SELECT `site_key`, `setting_key`, `setting_value` FROM `epc_settings` WHERE (`site_key` IS NULL OR `site_key` = '' OR `site_key` = ? OR `site_key` = ?) AND (`setting_key` LIKE 'brand_%' OR `setting_key` LIKE 'ui_%' OR `setting_key` = 'white_label_login') ORDER BY CHAR_LENGTH(IFNULL(`site_key`,'')) ASC";
             var parameter = command.CreateParameter();
-            parameter.Value = siteKey;
+            parameter.Value = industryKey ?? siteKey;
             command.Parameters.Add(parameter);
+            var parameter2 = command.CreateParameter();
+            parameter2.Value = siteKey;
+            command.Parameters.Add(parameter2);
 
-            // Global (empty site_key) rows load first, tenant rows overwrite — tenant wins.
+            // Layer order global → industry → tenant (ascending site_key length): the tenant layer always wins.
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                var key = reader.IsDBNull(0) ? null : reader.GetString(0);
+                var key = reader.IsDBNull(1) ? null : reader.GetString(1);
                 if (string.IsNullOrWhiteSpace(key))
                 {
                     continue;
                 }
 
-                values[key.Trim()] = reader.IsDBNull(1) ? string.Empty : reader.GetString(1) ?? string.Empty;
+                values[key.Trim()] = reader.IsDBNull(2) ? string.Empty : reader.GetString(2) ?? string.Empty;
             }
         }
         catch
