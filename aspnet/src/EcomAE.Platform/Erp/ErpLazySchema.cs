@@ -1206,8 +1206,14 @@ internal static class ErpLazySchema
             + " JOIN `epc_erp_pm_business_units` `p` ON `p`.`legal_entity_id`=`b`.`entity_id` AND `p`.`code`=`b`.`code`"
             + " SET `u`.`bu_id`=`p`.`id`",
             ct).ConfigureAwait(false);
+        // Mark rows migrated ONLY once they truly are: their pm twin exists and no
+        // grant still references the legacy id — so any swallowed failure above is
+        // retried on the next ensure instead of becoming permanent.
         await ErpDb.TryExecuteAsync(c,
-            "UPDATE `epc_erp_org_business_units` SET `migrated_to_pm`=1 WHERE `migrated_to_pm`=0",
+            "UPDATE `epc_erp_org_business_units` `b` SET `b`.`migrated_to_pm`=1"
+            + " WHERE `b`.`migrated_to_pm`=0"
+            + " AND EXISTS (SELECT 1 FROM `epc_erp_pm_business_units` `p` WHERE `p`.`legal_entity_id`=`b`.`entity_id` AND `p`.`code`=`b`.`code`)"
+            + " AND NOT EXISTS (SELECT 1 FROM `epc_erp_org_user_access` `u` WHERE `u`.`bu_id`=`b`.`id`)",
             ct).ConfigureAwait(false);
 
         // epc_erp_pm_seed_defaults: editable defaults so masters screens aren't empty.

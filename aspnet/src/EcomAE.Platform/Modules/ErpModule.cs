@@ -28290,6 +28290,10 @@ public sealed class ErpModule : ISurfaceModule
         var buCode = header.BusinessUnitId > 0
             ? (await ErpDb.StringAsync(conn, null, ErpDb.Positional("SELECT `code` FROM `epc_erp_pm_business_units` WHERE `id`=? AND `legal_entity_id`=? LIMIT 1"), cancellationToken, header.BusinessUnitId, header.CompanyId).ConfigureAwait(false)) ?? ""
             : "";
+        if (header.BusinessUnitId > 0 && buCode.Length == 0)
+        {
+            return Results.Ok(new { ok = false, writes = 0, validation_code = "unknown_business_unit", message = "Business unit id " + header.BusinessUnitId + " does not belong to entity " + header.CompanyId + " — posting refused.", session = SessionPayload(session) });
+        }
         var granted = await foundation.AccessAllowedAsync(
             session.Email ?? string.Empty,
             entityCode.Length > 0 ? entityCode : null,
