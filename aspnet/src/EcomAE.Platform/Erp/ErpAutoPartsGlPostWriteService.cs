@@ -131,7 +131,7 @@ public sealed class ErpAutoPartsGlPostWriteService : IErpAutoPartsGlPostWriteSer
                 }
             }
             }
-            catch (Exception)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 failed++;
             }
