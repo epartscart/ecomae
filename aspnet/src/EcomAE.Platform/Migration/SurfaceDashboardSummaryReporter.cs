@@ -5059,6 +5059,13 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     private bool IsEpartsCartRequest()
     {
         var tenant = _httpContextAccessor?.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        // Sandbox hosts bind {db}_sandbox — never read live `docpart` or saved
+        // sandbox data would be invisible next to the sandbox banner.
+        if (tenant?.IsSandbox == true)
+        {
+            return false;
+        }
+
         if (tenant is not null && RouteTenantResolver.IsEpartsCartHost(tenant.Host, tenant.SiteKey))
         {
             return true;
