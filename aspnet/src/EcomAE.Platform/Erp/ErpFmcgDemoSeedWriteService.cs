@@ -290,8 +290,8 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
 
         var bomId = await InsertIfAbsentAsync(connection,
             "SELECT `id` FROM `" + ErpFmcgWorkspaceSchema.Boms + "` WHERE `bom_code`='BOM-JCE1000'",
-            "INSERT INTO `" + ErpFmcgWorkspaceSchema.Boms + "` (`site_key`,`company_id`,`bom_code`,`name`,`finished_item_id`,`output_qty`,`output_uom`,`wip_coa_id`,`variance_coa_id`,`active`,`time_created`,`time_modified`)"
-            + " VALUES ('site','1','BOM-JCE1000','Orange juice 1L — fill & pack',@p0,1000,'bottle',@p1,@p2,1,@p3,@p3)",
+            "INSERT INTO `" + ErpFmcgWorkspaceSchema.Boms + "` (`bom_code`,`name`,`finished_item_id`,`output_qty`,`output_uom`,`wip_coa_id`,`variance_coa_id`,`active`,`time_created`,`time_modified`)"
+            + " VALUES ('BOM-JCE1000','Orange juice 1L — fill & pack',@p0,1000,'bottle',@p1,@p2,1,@p3,@p3)",
             cancellationToken, itemIds[0], wipCoa, pvarCoa, now);
         await MarkAsync(connection, ErpFmcgWorkspaceSchema.Boms, bomId, cancellationToken).ConfigureAwait(false);
 
@@ -306,8 +306,8 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
         {
             var blId = await InsertIfAbsentAsync(connection,
                 "SELECT `id` FROM `" + ErpFmcgWorkspaceSchema.BomLines + "` WHERE `bom_id`=@p0 AND `line_no`=@p1",
-                "INSERT INTO `" + ErpFmcgWorkspaceSchema.BomLines + "` (`site_key`,`bom_id`,`line_no`,`component_name`,`qty_per`,`uom`,`waste_pct`,`std_cost`,`time_created`)"
-                + " VALUES ('site',@p0,@p1,@p2,@p3,@p4,@p5,@p6,@p7)",
+                "INSERT INTO `" + ErpFmcgWorkspaceSchema.BomLines + "` (`bom_id`,`line_no`,`component_name`,`qty_per`,`uom`,`waste_pct`,`std_cost`,`time_created`)"
+                + " VALUES (@p0,@p1,@p2,@p3,@p4,@p5,@p6,@p7)",
                 cancellationToken, bomId, bl.No, bl.Comp, bl.Qty, bl.Uom, bl.Waste, bl.Cost, now);
             await MarkAsync(connection, ErpFmcgWorkspaceSchema.BomLines, blId, cancellationToken).ConfigureAwait(false);
         }
@@ -326,8 +326,8 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
             var act = po.Status == "completed" ? std * po.ActFactor : 0m;
             var orderId = await InsertIfAbsentAsync(connection,
                 "SELECT `id` FROM `" + ErpFmcgWorkspaceSchema.ProductionOrders + "` WHERE `order_no`=@p0",
-                "INSERT INTO `" + ErpFmcgWorkspaceSchema.ProductionOrders + "` (`site_key`,`company_id`,`order_no`,`bom_id`,`finished_item_id`,`legal_entity_id`,`business_unit_id`,`qty_planned`,`qty_produced`,`std_cost`,`actual_cost`,`variance`,`status`,`scheduled_date`,`completed_date`,`time_created`,`time_modified`)"
-                + " VALUES ('site','1',@p0,@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@p9,@p10,@p11,@p12,@p13,@p13)",
+                "INSERT INTO `" + ErpFmcgWorkspaceSchema.ProductionOrders + "` (`order_no`,`bom_id`,`finished_item_id`,`legal_entity_id`,`business_unit_id`,`qty_planned`,`qty_produced`,`std_cost`,`actual_cost`,`variance`,`status`,`scheduled_date`,`completed_date`,`time_created`,`time_modified`)"
+                + " VALUES (@p0,@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@p9,@p10,@p11,@p12,@p13,@p13)",
                 cancellationToken, po.No, bomId, itemIds[0], mfgEnt, mfgBu,
                 po.Planned, po.Produced, Math.Round(std, 2), Math.Round(act, 2), Math.Round(act - std, 2),
                 po.Status, po.Sched, po.Done, now);
@@ -371,8 +371,8 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
         {
             var clId = await InsertIfAbsentAsync(connection,
                 "SELECT `id` FROM `" + ErpFmcgWorkspaceSchema.Claims + "` WHERE `claim_no`=@p0",
-                "INSERT INTO `" + ErpFmcgWorkspaceSchema.Claims + "` (`site_key`,`company_id`,`claim_no`,`customer_name`,`item_id`,`claim_type`,`qty`,`credit_amount`,`status`,`claim_date`,`resolution`,`time_created`,`time_modified`)"
-                + " VALUES ('site','1',@p0,@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@p9,@p9)",
+                "INSERT INTO `" + ErpFmcgWorkspaceSchema.Claims + "` (`claim_no`,`customer_name`,`item_id`,`claim_type`,`qty`,`credit_amount`,`status`,`claim_date`,`resolution`,`time_created`,`time_modified`)"
+                + " VALUES (@p0,@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@p9,@p9)",
                 cancellationToken, cl.No, cl.Cust, itemIds[cl.ItemIdx], cl.Type, cl.Qty, cl.Credit, cl.Status, cl.D, cl.Res, now);
             await MarkAsync(connection, ErpFmcgWorkspaceSchema.Claims, clId, cancellationToken).ConfigureAwait(false);
         }
