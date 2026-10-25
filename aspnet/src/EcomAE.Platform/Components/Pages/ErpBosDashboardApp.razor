@@ -19,6 +19,7 @@
 @inject IErpLandlordBook LandlordBook
 @inject IErpOrganizationMasterReadService OrgMaster
 @inject IErpBosWfRequestReadService Workflows
+@inject IErpWriteConnectionFactory ErpConnections
 
 <PageTitle>@_pageTitle</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -270,14 +271,17 @@
             <h4><i class="fa fa-cogs"></i> Workflow &amp; automation</h4>
             <div class="bd">
                 <div class="epc-org-tree">
+                    @if (_isAdmin)
+                    {
                     <div class="epc-org-node">
                         <div class="epc-org-entity"><i class="fa fa-tasks"></i> <strong>Approval workflow</strong></div>
                         <ul class="epc-org-children">
-                            <li><i class="fa fa-inbox"></i> @(_wf?.Pending ?? 0) pending — <a href="@WithCompany("/erp/workflow-app")">open queue</a></li>
+                            <li><i class="fa fa-inbox"></i> @(_wf?.Pending ?? 0) pending — <a href="@WithCompany("/erp/approvals-app")">open queue</a></li>
                             <li><i class="fa fa-check-circle"></i> @(_wf?.Approved ?? 0) approved · @(_wf?.Rejected ?? 0) rejected</li>
-                            <li><i class="fa fa-list-ol"></i> @(_wf?.Rules ?? 0) approval rules active — <a href="@WithCompany("/erp/workflows-app")">manage rules</a></li>
+                            <li><i class="fa fa-list-ol"></i> @(_wf?.Rules ?? 0) approval rules active — <a href="@WithCompany("/erp/approvals-app")">manage rules</a></li>
                         </ul>
                     </div>
+                    }
                     <div class="epc-org-node">
                         <div class="epc-org-entity"><i class="fa fa-magic"></i> <strong>Auto posting</strong></div>
                         <ul class="epc-org-children">
@@ -296,6 +300,52 @@
                     </div>
                 </div>
                 <p class="ns-fitout-scope-note"><i class="fa fa-map-signs"></i> The <strong>Process flow</strong> map above walks each chain step-by-step; approval state is live from the workflow engine.</p>
+            </div>
+        </div>
+
+        <div class="ns-port" aria-label="Industrial law and statutory compliance">
+            <h4><i class="fa fa-gavel"></i> Industrial law &amp; statutory compliance</h4>
+            <div class="bd">
+                @if (_pack is not null)
+                {
+                    <div class="epc-org-tree">
+                        <div class="epc-org-node">
+                            <div class="epc-org-entity"><i class="fa fa-flag"></i> <strong>@_pack.Name</strong> — registered country pack</div>
+                            <ul class="epc-org-children">
+                                <li><i class="fa fa-money"></i> Currency: @_pack.CurrencyCode (@_pack.CurrencyName)</li>
+                                <li><i class="fa fa-percent"></i> VAT: @_pack.VatStatus@(_pack.VatRate > 0 ? $" — {_pack.VatRate.ToString("N1", CultureInfo.InvariantCulture)}%" : "")</li>
+                                <li><i class="fa fa-building"></i> Corporate tax: @_pack.CorporateTax</li>
+                                <li><i class="fa fa-hand-paper-o"></i> Withholding: @_pack.WithholdingTax</li>
+                                <li><i class="fa fa-exclamation-triangle"></i> Excise: @_pack.Excise</li>
+                                <li><i class="fa fa-ship"></i> Customs: @_pack.Customs</li>
+                            </ul>
+                        </div>
+                        <div class="epc-org-node">
+                            <div class="epc-org-entity"><i class="fa fa-book"></i> <strong>Rules &amp; regulations</strong></div>
+                            <ul class="epc-org-children">
+                                @foreach (var note in _pack.LegalNotes.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                {
+                                    <li><i class="fa fa-gavel"></i> @note</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                    @if (_pack.Code == "QA")
+                    {
+                        <p class="ns-fitout-scope-note">
+                            <i class="fa fa-external-link"></i> Statutory portals:
+                            <a href="https://www.gta.gov.qa" target="_blank" rel="noopener">GTA / Dhareeba tax</a> ·
+                            <a href="https://www.customs.gov.qa" target="_blank" rel="noopener">Qatar Customs</a> ·
+                            <a href="https://www.moph.gov.qa" target="_blank" rel="noopener">MoPH food control</a> ·
+                            <a href="https://www.moci.gov.qa" target="_blank" rel="noopener">MOCI</a> ·
+                            <a href="https://www.qfc.qa" target="_blank" rel="noopener">QFC</a>
+                        </p>
+                    }
+                }
+                else
+                {
+                    <p class="ns-fitout-scope-note"><i class="fa fa-flag"></i> Compliance follows the tenant's registered country on the company profile — statutory packs resolve per tenant.</p>
+                }
             </div>
         </div>
 
@@ -1031,6 +1081,7 @@
     private IReadOnlyList<PhpModuleCatalog.ModuleLink> _directoryTabs = PhpModuleCatalog.ErpTabs;
     private ErpOrganizationMasterSnapshot? _org;
     private ErpBosWfSummary? _wf;
+    private ErpGccCountryPack? _pack;
     private bool _fitOut;
     private bool _realEstate;
     private bool _autoParts;
@@ -1200,8 +1251,27 @@
         ApplyProfile(_hasFullErpAccess, ctx.Request.Query["dash_profile"].ToString(), session);
         try { _org = await OrgMaster.LoadAsync(200, ctx.RequestAborted); }
         catch { _org = null; }
-        try { _wf = (await Workflows.ReadAsync(ctx.RequestAborted)).Summary; }
-        catch { _wf = null; }
+        if (_isAdmin)
+        {
+            try
+            {
+                var wf = await Workflows.ReadAsync(ctx.RequestAborted);
+                _wf = wf.Source == "database" ? wf.Summary : null;
+            }
+            catch { _wf = null; }
+        }
+        try
+        {
+            if (ErpConnections.IsConfigured)
+            {
+                await using var conn = await ErpConnections.OpenAsync(ctx.RequestAborted);
+                var cc = await ErpDb.StringAsync(conn, null,
+                    "SELECT `setting_value` FROM `epc_price_settings` WHERE `setting_key`='company_country_code' LIMIT 1",
+                    ctx.RequestAborted);
+                _pack = ErpGccLocalizationCatalog.Resolve(string.IsNullOrWhiteSpace(cc) ? null : cc);
+            }
+        }
+        catch { _pack = null; }
         var powerTask = PowerBi.LoadAsync(null, ctx.Request.Host.Host, ctx.RequestAborted);
         if (_isAdmin)
         {

@@ -78,6 +78,7 @@ public static class ErpFmcgWorkspaceSchema
         + " `warehouse` varchar(80) NOT NULL DEFAULT '',"
         + " `status` varchar(20) NOT NULL DEFAULT 'available',"
         + " `recall_flag` tinyint(1) NOT NULL DEFAULT 0,"
+        + " `quality_status` varchar(20) NOT NULL DEFAULT 'released',"
         + " `time_created` bigint(20) NOT NULL DEFAULT 0,"
         + " `time_modified` bigint(20) NOT NULL DEFAULT 0,"
         + " PRIMARY KEY (`id`),"
@@ -177,6 +178,76 @@ public static class ErpFmcgWorkspaceSchema
         + " `time_modified` bigint(20) NOT NULL DEFAULT 0,"
         + " PRIMARY KEY (`id`),"
         + " KEY `ix_fmcg_recon_route` (`route_id`,`recon_date`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        // Existing deployments: add the quarantine flag to batches created before it shipped.
+        "ALTER TABLE `epc_erp_fmcg_batches` ADD COLUMN `quality_status` varchar(20) NOT NULL DEFAULT 'released'",
+
+        // Manufacturing/repacking: bill of materials — one finished SKU per BOM.
+        "CREATE TABLE IF NOT EXISTS `epc_erp_fmcg_boms` ("
+        + " `id` bigint(20) NOT NULL AUTO_INCREMENT,"
+        + " `bom_code` varchar(40) NOT NULL,"
+        + " `name` varchar(255) NOT NULL DEFAULT '',"
+        + " `finished_item_id` bigint(20) NOT NULL DEFAULT 0,"
+        + " `output_qty` decimal(16,4) NOT NULL DEFAULT 1,"
+        + " `output_uom` varchar(20) NOT NULL DEFAULT 'ea',"
+        + " `wip_coa_id` bigint(20) NOT NULL DEFAULT 0,"
+        + " `variance_coa_id` bigint(20) NOT NULL DEFAULT 0,"
+        + " `active` tinyint(1) NOT NULL DEFAULT 1,"
+        + " `time_created` bigint(20) NOT NULL DEFAULT 0,"
+        + " `time_modified` bigint(20) NOT NULL DEFAULT 0,"
+        + " PRIMARY KEY (`id`), UNIQUE KEY `uq_fmcg_boms_code` (`bom_code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        // BOM component lines: qty per, waste %, standard cost.
+        "CREATE TABLE IF NOT EXISTS `epc_erp_fmcg_bom_lines` ("
+        + " `id` bigint(20) NOT NULL AUTO_INCREMENT,"
+        + " `bom_id` bigint(20) NOT NULL,"
+        + " `line_no` int(11) NOT NULL DEFAULT 0,"
+        + " `component_name` varchar(255) NOT NULL DEFAULT '',"
+        + " `qty_per` decimal(16,4) NOT NULL DEFAULT 1,"
+        + " `uom` varchar(20) NOT NULL DEFAULT 'ea',"
+        + " `waste_pct` decimal(8,4) NOT NULL DEFAULT 0,"
+        + " `std_cost` decimal(16,4) NOT NULL DEFAULT 0,"
+        + " `time_created` bigint(20) NOT NULL DEFAULT 0,"
+        + " PRIMARY KEY (`id`),"
+        + " KEY `ix_fmcg_boml_bom` (`bom_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        // Production orders: planned vs produced, std vs actual, variance, status.
+        "CREATE TABLE IF NOT EXISTS `epc_erp_fmcg_production_orders` ("
+        + " `id` bigint(20) NOT NULL AUTO_INCREMENT,"
+        + " `order_no` varchar(40) NOT NULL,"
+        + " `bom_id` bigint(20) NOT NULL DEFAULT 0,"
+        + " `finished_item_id` bigint(20) NOT NULL DEFAULT 0,"
+        + " `output_batch_id` bigint(20) NOT NULL DEFAULT 0,"
+        + " `legal_entity_id` bigint(20) NOT NULL DEFAULT 0,"
+        + " `business_unit_id` bigint(20) NOT NULL DEFAULT 0,"
+        + " `qty_planned` decimal(16,4) NOT NULL DEFAULT 0,"
+        + " `qty_produced` decimal(16,4) NOT NULL DEFAULT 0,"
+        + " `std_cost` decimal(16,2) NOT NULL DEFAULT 0,"
+        + " `actual_cost` decimal(16,2) NOT NULL DEFAULT 0,"
+        + " `variance` decimal(16,2) NOT NULL DEFAULT 0,"
+        + " `status` varchar(20) NOT NULL DEFAULT 'planned',"
+        + " `scheduled_date` bigint(20) NOT NULL DEFAULT 0,"
+        + " `completed_date` bigint(20) NOT NULL DEFAULT 0,"
+        + " `time_created` bigint(20) NOT NULL DEFAULT 0,"
+        + " `time_modified` bigint(20) NOT NULL DEFAULT 0,"
+        + " PRIMARY KEY (`id`), UNIQUE KEY `uq_fmcg_prod_order` (`order_no`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        // Customer claims & returns: quality, shortage, damage → credit note.
+        "CREATE TABLE IF NOT EXISTS `epc_erp_fmcg_claims` ("
+        + " `id` bigint(20) NOT NULL AUTO_INCREMENT,"
+        + " `claim_no` varchar(40) NOT NULL,"
+        + " `customer_name` varchar(255) NOT NULL DEFAULT '',"
+        + " `item_id` bigint(20) NOT NULL DEFAULT 0,"
+        + " `batch_id` bigint(20) NOT NULL DEFAULT 0,"
+        + " `claim_type` varchar(30) NOT NULL DEFAULT 'quality',"
+        + " `qty` decimal(16,4) NOT NULL DEFAULT 0,"
+        + " `credit_amount` decimal(16,2) NOT NULL DEFAULT 0,"
+        + " `status` varchar(20) NOT NULL DEFAULT 'open',"
+        + " `claim_date` bigint(20) NOT NULL DEFAULT 0,"
+        + " `resolution` varchar(255) NOT NULL DEFAULT '',"
+        + " `time_created` bigint(20) NOT NULL DEFAULT 0,"
+        + " `time_modified` bigint(20) NOT NULL DEFAULT 0,"
+        + " PRIMARY KEY (`id`), UNIQUE KEY `uq_fmcg_claims_no` (`claim_no`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 
         // Demo registry so sample data can be removed row-for-row (sandbox only).
         "CREATE TABLE IF NOT EXISTS `ecomae_fmcg_demo_registry` ("
