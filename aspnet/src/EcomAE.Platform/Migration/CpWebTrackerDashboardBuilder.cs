@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Migration;
 
@@ -173,6 +174,7 @@ public static class CpWebTrackerDashboardBuilder
         try
         {
             await using var connection = await OpenTrackerConnectionAsync(connections, fromUnix, toUnix, cancellationToken).ConfigureAwait(false);
+            await EnsureTrackerIndexesAsync(connection, cancellationToken).ConfigureAwait(false);
             const string dbLabel = "tracker";
 
             var allSites = filters.IsSuper && (filters.SiteKey is "" or "_all");
@@ -610,6 +612,52 @@ public static class CpWebTrackerDashboardBuilder
         }
 
         return sql.ToString();
+    }
+
+    /// <summary>
+    /// Tracker reads timed out on production-sized tables (full scans on
+    /// last_seen_at/site_key). Ensure the indexes the dashboard queries need;
+    /// guarded per-index so an existing schema or a busy ALTER never breaks the page.
+    /// </summary>
+    private static async Task EnsureTrackerIndexesAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        (string Table, string Name, string Columns)[] wanted =
+        [
+            ("epc_web_tracker_sessions", "ix_wt_sessions_seen", "(`last_seen_at`)"),
+            ("epc_web_tracker_sessions", "ix_wt_sessions_site_seen", "(`site_key`,`last_seen_at`)"),
+            ("epc_web_tracker_sessions", "ix_wt_sessions_uid", "(`session_uid`)"),
+            ("epc_web_tracker_pageviews", "ix_wt_pv_session", "(`session_id`)"),
+            ("epc_web_tracker_pageviews", "ix_wt_pv_ts", "(`ts`)"),
+            ("epc_web_tracker_pageviews", "ix_wt_pv_site_ts", "(`site_key`,`ts`)"),
+            ("epc_web_tracker_events", "ix_wt_ev_session", "(`session_id`)"),
+            ("epc_web_tracker_events", "ix_wt_ev_ts", "(`ts`)"),
+            ("epc_web_tracker_events", "ix_wt_ev_site_ts", "(`site_key`,`ts`)"),
+        ];
+        foreach (var (table, name, columns) in wanted)
+        {
+            try
+            {
+                var present = await ErpDb.LongAsync(
+                    connection, null,
+                    ErpDb.Positional(
+                        "SELECT COUNT(*) FROM information_schema.statistics "
+                        + "WHERE table_schema=DATABASE() AND table_name=? AND index_name=?"),
+                    cancellationToken, table, name).ConfigureAwait(false);
+                if (present > 0)
+                {
+                    continue;
+                }
+
+                await ErpDb.TryExecuteAsync(
+                    connection,
+                    "ALTER TABLE `" + table + "` ADD INDEX `" + name + "` " + columns,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                // index ensure is best-effort — the dashboard must still render
+            }
+        }
     }
 
     private static async Task<CpWebTrackerDashSummary> ReadSummaryAsync(
