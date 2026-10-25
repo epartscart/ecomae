@@ -307,11 +307,15 @@ public sealed class CpTenantControlCenterService : ICpTenantControlCenterService
             var demoExpired = isDemo && expires > 0 && expires < now;
             var status = Text(reader, "status");
             var (storefront, cp, erp) = Urls(type, siteKey, hostname);
+            var launchCountry = type == "erp_only" && siteKey.Length > 0
+                ? ErpOnlyLaunchClients.All.FirstOrDefault(
+                    c => string.Equals(c.SiteKey, siteKey, StringComparison.OrdinalIgnoreCase))?.Country3
+                : null;
             var operationsUrl = type == "erp_only" && siteKey.Length > 0
-                ? ErpOperationsHost.CanonicalUrl(siteKey, null, "/")
+                ? ErpOperationsHost.CanonicalUrl(siteKey, launchCountry, "/")
                 : string.Empty;
             var sandboxUrl = type == "erp_only" && siteKey.Length > 0
-                ? ErpOperationsHost.SandboxCanonicalUrl(siteKey, null, "/")
+                ? ErpOperationsHost.SandboxCanonicalUrl(siteKey, launchCountry, "/")
                 : string.Empty;
 
             rows.Add(new CpTenantControlRow(
