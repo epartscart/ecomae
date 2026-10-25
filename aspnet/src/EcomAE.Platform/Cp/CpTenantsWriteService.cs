@@ -257,11 +257,16 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
                 var launch = ErpOnlyLaunchClients.All.FirstOrDefault(c =>
                     string.Equals(c.SiteKey, siteKey, StringComparison.OrdinalIgnoreCase));
                 var launchIndustry = NormalizeIndustry(launch?.IndustryCode);
+                var erpOnlyRow = await ErpDb.LongAsync(
+                    connection, null,
+                    ErpDb.Positional("SELECT IFNULL(`erp_only_shared`,0) FROM `epc_portal_tenants` WHERE `id`=? LIMIT 1"),
+                    cancellationToken, existing).ConfigureAwait(false);
                 var storedIndustry = NormalizeIndustry(await ErpDb.StringAsync(
                     connection, null,
                     ErpDb.Positional("SELECT `industry_code` FROM `epc_portal_tenants` WHERE `id`=? LIMIT 1"),
                     cancellationToken, existing).ConfigureAwait(false));
-                if (launch is not null && !string.Equals(storedIndustry, launchIndustry, StringComparison.OrdinalIgnoreCase))
+                if (launch is not null && erpOnlyRow == 1
+                    && !string.Equals(storedIndustry, launchIndustry, StringComparison.OrdinalIgnoreCase))
                 {
                     await ErpDb.ExecuteAsync(
                         connection, null,
