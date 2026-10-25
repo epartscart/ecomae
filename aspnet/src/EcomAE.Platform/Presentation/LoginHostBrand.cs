@@ -168,6 +168,7 @@ public static class LoginHostBrand
             "auto_parts" or "autoparts" => "Automotive spare parts ERP",
             "fit_out" or "fitout" or "fit-out" => "Fit-out ERP",
             "tax_advisory" or "finance" => "Tax & advisory ERP",
+            "fmcg" or "fmcg_wholesale" or "food_beverage" or "food-beverage" or "consumer_goods" => "FMCG — manufacturing, distribution, wholesale & retail ERP",
             _ => "Company ERP",
         };
 
@@ -195,6 +196,7 @@ public static class LoginHostBrand
             "fit_out" or "fitout" or "fit-out" => "fa-building",
             "real_estate" or "realestate" => "fa-home",
             "tax_advisory" or "finance" => "fa-balance-scale",
+            "fmcg" or "fmcg_wholesale" or "food_beverage" or "food-beverage" or "consumer_goods" => "fa-shopping-basket",
             _ => "fa-university",
         };
 
