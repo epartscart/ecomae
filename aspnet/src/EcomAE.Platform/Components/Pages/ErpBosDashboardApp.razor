@@ -276,9 +276,16 @@
                     <div class="epc-org-node">
                         <div class="epc-org-entity"><i class="fa fa-tasks"></i> <strong>Approval workflow</strong></div>
                         <ul class="epc-org-children">
-                            <li><i class="fa fa-inbox"></i> @(_wf?.Pending ?? 0) pending — <a href="@WithCompany("/erp/approvals-app")">open queue</a></li>
-                            <li><i class="fa fa-check-circle"></i> @(_wf?.Approved ?? 0) approved · @(_wf?.Rejected ?? 0) rejected</li>
-                            <li><i class="fa fa-list-ol"></i> @(_wf?.Rules ?? 0) approval rules active — <a href="@WithCompany("/erp/approvals-app")">manage rules</a></li>
+                            @if (_wf is null)
+                            {
+                                <li><i class="fa fa-exclamation-triangle"></i> Approval data unavailable — <a href="@WithCompany("/erp/approvals-app")">open queue</a></li>
+                            }
+                            else
+                            {
+                                <li><i class="fa fa-inbox"></i> @_wf.Pending pending — <a href="@WithCompany("/erp/approvals-app")">open queue</a></li>
+                                <li><i class="fa fa-check-circle"></i> @_wf.Approved approved · @_wf.Rejected rejected</li>
+                                <li><i class="fa fa-list-ol"></i> @_wf.Rules approval rules active — <a href="@WithCompany("/erp/approvals-app")">manage rules</a></li>
+                            }
                         </ul>
                     </div>
                     }
@@ -1268,7 +1275,9 @@
                 var cc = await ErpDb.StringAsync(conn, null,
                     "SELECT `setting_value` FROM `epc_price_settings` WHERE `setting_key`='company_country_code' LIMIT 1",
                     ctx.RequestAborted);
-                _pack = ErpGccLocalizationCatalog.Resolve(string.IsNullOrWhiteSpace(cc) ? null : cc);
+                _pack = string.IsNullOrWhiteSpace(cc) ? null
+                    : ErpGccLocalizationCatalog.All.FirstOrDefault(p =>
+                        string.Equals(p.Code, cc.Trim(), StringComparison.OrdinalIgnoreCase));
             }
         }
         catch { _pack = null; }
