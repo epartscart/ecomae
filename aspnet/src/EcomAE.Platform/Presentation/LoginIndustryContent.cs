@@ -38,6 +38,7 @@ public static class LoginIndustryContent
             "thejewellerytrend" => Jewellery(brand, surfaceKey),
             "taxofinca" => FinanceTax(brand, surfaceKey),
             "real" => RealEstate(brand, surfaceKey),
+            "fmcg" => Fmcg(brand, surfaceKey),
             _ => ForIndustryTheme(brand, surfaceKey),
         };
     }
@@ -364,6 +365,62 @@ public static class LoginIndustryContent
                 "Filing calendars",
                 "Task & SLA automation",
                 "Team roles & access",
+            ]);
+
+    private static Content Fmcg(LoginHostBrand.Brand brand, string surface) => surface == "erp"
+        ? new(
+            "fmcg_wholesale",
+            brand.Label,
+            "FMCG ERP \u00b7 manufacturing to retail",
+            "Sign in to FMCG ERP",
+            "Manufacturing, distribution, wholesale and retail finance for your FMCG business",
+            "Enter FMCG ERP",
+            "Tenant-isolated \u00b7 GCC packs \u00b7 Batch & expiry control",
+            [
+                new("fa-industry", "Manufacturing", "BOM, production orders & variance"),
+                new("fa-cubes", "Batch & expiry", "FEFO picking, quarantine & recalls"),
+                new("fa-truck", "Van sales & routes", "Route plans, recon & claims"),
+                new("fa-line-chart", "Channels & margin", "Wholesale, retail & promotions"),
+            ],
+            [
+                new(2, "Legal entities"),
+                new(3, "Business units"),
+                new(14, "Workspace lanes"),
+                new(6, "GCC country packs"),
+            ],
+            [
+                "Multi-entity structure with cost centres",
+                "BOM production with WIP & variance journals",
+                "Batch expiry, quarantine & recall control",
+                "Van-sales reconciliation & claims register",
+                "Qatar & GCC tax packs on the workspace",
+            ])
+        : new(
+            "fmcg_wholesale",
+            brand.Label,
+            "Control panel \u00b7 FMCG group",
+            "Sign in to Control Panel",
+            "Tenant settings, branding and group automation",
+            "Enter Control Panel",
+            "Tenant-isolated \u00b7 Brand controls \u00b7 Automation",
+            [
+                new("fa-id-card", "Tenant settings", "Portal, branding & menus"),
+                new("fa-sitemap", "Group structure", "Entities, units & centres"),
+                new("fa-bell", "Automation", "Approvals, alerts & workflows"),
+                new("fa-cogs", "Field controls", "Custom fields & rules"),
+            ],
+            [
+                new(2, "Legal entities"),
+                new(3, "Business units"),
+                new(14, "Workspace lanes"),
+                new(6, "GCC packs"),
+            ],
+            [
+                "Tenant branding & menu controls",
+                "Group org structure overview",
+                "Approval & workflow automation",
+                "Field-level access rules",
+                "Industry workspace guides",
             ]);
 
     private static Content RealEstate(LoginHostBrand.Brand brand, string surface) => surface == "erp"

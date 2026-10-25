@@ -25,7 +25,7 @@ public static class ErpOnlyLaunchClients
         new("indj", "INDJ Jewellery", "jewellery", "indj@ecomae.com", "/cp/client-erp/indj/"),
         new("fito", "FITO Fit-out", "fit_out", "fito@ecomae.com", "/cp/client-erp/fito/"),
         new("real", "REAL Real Estate", "real_estate", "real@ecomae.com", "/cp/client-erp/real/"),
-        new("fmcg", "Qatar FMCG Group", "fmcg", "fmcg@ecomae.com", "/cp/client-erp/fmcg/"),
+        new("fmcg", "Qatar FMCG Group", "fmcg_wholesale", "fmcg@ecomae.com", "/cp/client-erp/fmcg/"),
     ];
 
     public static bool IsLaunchKey(string? siteKey)
