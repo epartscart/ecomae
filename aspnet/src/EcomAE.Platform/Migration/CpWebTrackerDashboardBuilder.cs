@@ -174,7 +174,6 @@ public static class CpWebTrackerDashboardBuilder
         try
         {
             await using var connection = await OpenTrackerConnectionAsync(connections, fromUnix, toUnix, cancellationToken).ConfigureAwait(false);
-            await EnsureTrackerIndexesAsync(connection, cancellationToken).ConfigureAwait(false);
             const string dbLabel = "tracker";
 
             var allSites = filters.IsSuper && (filters.SiteKey is "" or "_all");
@@ -459,6 +458,7 @@ public static class CpWebTrackerDashboardBuilder
             {
                 var conn = await open(cancellationToken).ConfigureAwait(false);
                 opened.Add(conn);
+                await EnsureTrackerIndexesAsync(conn, cancellationToken).ConfigureAwait(false);
                 probes.Add(await ProbeSessionsSafeAsync(conn, fromUnix, toUnix, cancellationToken).ConfigureAwait(false));
             }
             catch
@@ -619,6 +619,9 @@ public static class CpWebTrackerDashboardBuilder
     /// last_seen_at/site_key). Ensure the indexes the dashboard queries need;
     /// guarded per-index so an existing schema or a busy ALTER never breaks the page.
     /// </summary>
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> _indexAttempts =
+        new(StringComparer.OrdinalIgnoreCase);
+
     private static async Task EnsureTrackerIndexesAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         (string Table, string Name, string Columns)[] wanted =
@@ -633,8 +636,15 @@ public static class CpWebTrackerDashboardBuilder
             ("epc_web_tracker_events", "ix_wt_ev_ts", "(`ts`)"),
             ("epc_web_tracker_events", "ix_wt_ev_site_ts", "(`site_key`,`ts`)"),
         ];
+        var dbKey = string.IsNullOrEmpty(connection.Database) ? "?" : connection.Database;
         foreach (var (table, name, columns) in wanted)
         {
+            var attemptKey = dbKey + "." + table + "." + name;
+            if (!_indexAttempts.TryAdd(attemptKey, 1))
+            {
+                continue;
+            }
+
             try
             {
                 var present = await ErpDb.LongAsync(

@@ -63,7 +63,7 @@ public sealed class ErpPmSavePhpParityTests
     {
         Assert.Equal(11, ErpPmSaveWriteService.Registry.Count);
         Assert.Equal(
-            new[] { "code", "name", "legal_entity_id", "parent_id", "manager", "trn", "note" },
+            new[] { "code", "name", "legal_entity_id", "parent_id", "manager", "trn", "note", "activity", "branch", "default_warehouse_id", "cost_centre", "profit_centre", "price_group" },
             ErpPmSaveWriteService.Registry["epc_erp_pm_business_units"]);
         Assert.Equal(
             new[] { "dimension_id", "code", "name", "note" },
