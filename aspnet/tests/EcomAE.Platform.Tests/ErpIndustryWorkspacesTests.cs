@@ -112,6 +112,53 @@ public sealed class ErpIndustryWorkspacesTests
     }
 
     [Fact]
+    public void FmcgWorkspaceIsWired()
+    {
+        var page = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpFmcgWorkspaceApp.razor"));
+        Assert.Contains("@page \"/erp/fmcg/workspace\"", page, StringComparison.Ordinal);
+        Assert.Contains("ErpGccLocalizationCatalog", page, StringComparison.Ordinal);
+        Assert.Contains("name=\"country\"", page, StringComparison.Ordinal);
+        Assert.Contains("Load sample data", page, StringComparison.Ordinal);
+        Assert.Contains("Remove sample data", page, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", page, StringComparison.Ordinal);
+
+        var routes = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs"));
+        Assert.Contains("/erp/fmcg/demo-seed", routes, StringComparison.Ordinal);
+        Assert.Contains("/erp/fmcg/demo-clear", routes, StringComparison.Ordinal);
+
+        var module = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
+        Assert.Contains("HandleFmcgDemoSeedAsync", module, StringComparison.Ordinal);
+        Assert.Contains("HandleFmcgDemoClearAsync", module, StringComparison.Ordinal);
+
+        var program = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Program.cs"));
+        Assert.Contains("IErpFmcgWorkspaceReadService", program, StringComparison.Ordinal);
+        Assert.Contains("IErpFmcgDemoSeedWriteService", program, StringComparison.Ordinal);
+
+        var dashboard = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"));
+        Assert.Contains("/erp/fmcg/workspace", dashboard, StringComparison.Ordinal);
+        var search = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Presentation/ErpGlobalSearchCatalog.cs"));
+        Assert.Contains("/erp/fmcg/workspace", search, StringComparison.Ordinal);
+
+        var nav = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Presentation/ErpIndustryNav.cs"));
+        Assert.Contains("IsFmcgIndustry", nav, StringComparison.Ordinal);
+        Assert.Contains("ShowFmcgModules", nav, StringComparison.Ordinal);
+        Assert.Contains("IsFmcgCompany", nav, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GccCatalogResolvesQatarAndFallsBack()
+    {
+        var qa = EcomAE.Platform.Erp.ErpGccLocalizationCatalog.Resolve("QA");
+        Assert.Equal("QAR", qa.CurrencyCode);
+        Assert.True(qa.Enabled);
+        Assert.Equal("QA", EcomAE.Platform.Erp.ErpGccLocalizationCatalog.Resolve(null).Code);
+        Assert.Equal("QA", EcomAE.Platform.Erp.ErpGccLocalizationCatalog.Resolve("XX").Code);
+        Assert.Equal("SAR", EcomAE.Platform.Erp.ErpGccLocalizationCatalog.Resolve("sa").CurrencyCode);
+        Assert.Contains(EcomAE.Platform.Erp.ErpGccLocalizationCatalog.All, p => p.Code == "AE");
+        Assert.Contains(EcomAE.Platform.Erp.ErpGccLocalizationCatalog.All, p => p.Code == "OM");
+    }
+
+    [Fact]
     public void IndustryGateCoversAutopartsAndJewellery()
     {
         var gate = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Middleware/IndustrySpecificRouteGateMiddleware.cs"));

@@ -195,6 +195,39 @@ public static class ErpIndustryNav
             || name.Contains("sparepart", StringComparison.Ordinal);
     }
 
+    public static bool IsFmcgIndustry(string? industryCode)
+    {
+        var code = (industryCode ?? string.Empty).Trim().ToLowerInvariant();
+        return code.Contains("fmcg", StringComparison.Ordinal)
+            || code.Contains("fmcg_wholesale", StringComparison.Ordinal)
+            || code.Contains("food_beverage", StringComparison.Ordinal)
+            || code.Contains("food-beverage", StringComparison.Ordinal)
+            || code is "fmcg" or "food" or "food_beverage" or "consumer_goods";
+    }
+
+    /// <summary>FMCG modules are allowed by the host industry, tenant industry, or the active company's pack/code/name.</summary>
+    public static bool ShowFmcgModules(string? hostIndustryCode, ErpCompanyDigest? company, string? tenantIndustry = null)
+        => IsFmcgIndustry(hostIndustryCode) || IsFmcgIndustry(tenantIndustry) || IsFmcgCompany(company);
+
+    public static bool IsFmcgCompany(ErpCompanyDigest? company)
+    {
+        if (company is null)
+        {
+            return false;
+        }
+
+        var pack = (company.IndustryPack ?? string.Empty).Trim().ToLowerInvariant();
+        var code = (company.Code ?? string.Empty).Trim().ToLowerInvariant();
+        var name = (company.Name ?? string.Empty).Trim().ToLowerInvariant();
+        return pack.Contains("fmcg", StringComparison.Ordinal)
+            || pack.Contains("food_beverage", StringComparison.Ordinal)
+            || pack.Contains("consumer_goods", StringComparison.Ordinal)
+            || code is "fmcg" or "food"
+            || name.Contains("fmcg", StringComparison.Ordinal)
+            || name.Contains("food", StringComparison.Ordinal)
+            || name.Contains("beverage", StringComparison.Ordinal);
+    }
+
     /// <summary>
     /// Product jewellery tenants (thejewellerytrend.com) always get jewellery
     /// modules — even when legal entity 1 is coded MAIN with an empty pack.
