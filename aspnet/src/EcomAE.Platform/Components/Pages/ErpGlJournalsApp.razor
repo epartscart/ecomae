@@ -122,7 +122,7 @@
                     tbody.addEventListener('input',totals);
                     tbody.addEventListener('click',function(e){var b=e.target.closest('.gl-line-del');if(!b)return;if(tbody.querySelectorAll('tr').length<=2)return alert('A journal needs at least two lines');b.closest('tr').remove();names();totals()});
                     var add=document.getElementById('gl-add-line');
-                    if(add)add.addEventListener('click',function(){var last=tbody.querySelector('tr:last-child');var tr=last.cloneNode(true);tr.querySelectorAll('input').forEach(function(i){i.value=i.type==='number'?'0':''});tr.querySelectorAll('[data-erp-bound]').forEach(function(el){el.removeAttribute('data-erp-bound')});tbody.appendChild(tr);names();totals();if(window.ErpMasterPickerRefresh)window.ErpMasterPickerRefresh()});
+                    if(add)add.addEventListener('click',function(){var last=tbody.querySelector('tr:last-child');var tr=last.cloneNode(true);tr.querySelectorAll('input').forEach(function(i){i.value=i.type==='number'?'0':''});tr.querySelectorAll('*').forEach(function(el){Array.from(el.attributes).forEach(function(a){if(/^data-erp-.*bound$/.test(a.name))el.removeAttribute(a.name)})});tbody.appendChild(tr);names();totals();if(window.ErpMasterPickerRefresh)window.ErpMasterPickerRefresh()});
                     totals();
                 })();
                 </script>
@@ -154,7 +154,41 @@
         <div class="kpi"><div class="lbl">Page total debit</div><div class="val">@_totalDebit.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    @if (_openedDetail is not null)
+    @if (_openedDetail is not null && _print)
+    {
+        <div class="glv-print">
+            <div class="glv-head">
+                <div>
+                    <h1>Journal voucher</h1>
+                    <p class="text-muted">Voucher no: <strong>@_openedDetail.JournalNo</strong> &nbsp;·&nbsp; Journal no: <strong>@_openedDetail.JournalNo</strong></p>
+                </div>
+                <button type="button" class="btn btn-default glv-noprint" onclick="window.print()">Print / Save PDF</button>
+            </div>
+            <table class="glv-meta">
+                <tr><td>Journal date</td><td>@FormatTime(_openedDetail.JournalDate)</td><td>Status</td><td>@_openedDetail.Status</td></tr>
+                <tr><td>Reference</td><td>@_openedDetail.Reference</td><td>Source</td><td>@_openedDetail.SourceType</td></tr>
+                <tr><td>Currency</td><td>@(string.IsNullOrWhiteSpace(_openedDetail.CurrencyCode) ? "Accounting currency" : _openedDetail.CurrencyCode)</td><td>Exchange rate</td><td>@_openedDetail.ExchangeRate.ToString("0.########", CultureInfo.InvariantCulture)</td></tr>
+                <tr><td>Description</td><td colspan="3">@_openedDetail.DescriptionExcerpt</td></tr>
+            </table>
+            <table class="glv-lines">
+                <thead><tr><th>#</th><th>Account</th><th>Account name</th><th>Debit</th><th>Credit</th><th>Note</th></tr></thead>
+                <tbody>
+                    @{
+                        var rn = 0;
+                    }
+                    @foreach (var line in _openedDetail.Lines)
+                    {
+                        rn++;
+                        <tr><td>@rn</td><td>@line.AccountCode</td><td>@line.AccountName</td><td class="r">@line.Debit</td><td class="r">@line.Credit</td><td>@line.LineNote</td></tr>
+                    }
+                </tbody>
+                <tfoot><tr><td colspan="3">Totals (accounting currency)</td><td class="r">@_openedDetail.TotalDebit</td><td class="r">@_openedDetail.TotalCredit</td><td></td></tr></tfoot>
+            </table>
+            <div class="glv-sign"><div>Prepared by</div><div>Checked by</div><div>Approved by</div></div>
+            <p class="glv-note">Printed from ecom ERP · @DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm 'UTC'", CultureInfo.InvariantCulture)</p>
+        </div>
+    }
+    else if (_openedDetail is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
