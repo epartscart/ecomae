@@ -18,6 +18,10 @@ public static class ErpFmcgWorkspaceSchema
     public const string LandedCosts = "epc_erp_fmcg_landed_costs";
     public const string WriteDowns = "epc_erp_fmcg_writedowns";
     public const string RouteRecon = "epc_erp_fmcg_route_recon";
+    public const string Boms = "epc_erp_fmcg_boms";
+    public const string BomLines = "epc_erp_fmcg_bom_lines";
+    public const string ProductionOrders = "epc_erp_fmcg_production_orders";
+    public const string Claims = "epc_erp_fmcg_claims";
     public const string DemoRegistry = "ecomae_fmcg_demo_registry";
 
     public static async Task EnsureAsync(DbConnection connection, CancellationToken cancellationToken = default)

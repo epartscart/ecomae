@@ -311,6 +311,57 @@
             @if (_snap.Promotions.Count == 0) { <p class="text-muted">No promotions yet — load the sample data.</p> }
         </div>
     }
+    else if (_tab == "manufacturing")
+    {
+        <div class="fo-card">
+            <h3>Bills of materials &amp; production orders</h3>
+            @foreach (var bom in _snap.Boms)
+            {
+                <div class="fo-card" style="margin-bottom:10px">
+                    <h4>@bom.Code — @bom.Name <span class="text-muted">(@bom.FinishedSku · yields @bom.OutputQty.ToString("N0") @bom.OutputUom)</span></h4>
+                    <table class="fo">
+                        <tr><th>Component</th></tr>
+                        @foreach (var comp in bom.Components) { <tr><td>@comp</td></tr> }
+                    </table>
+                </div>
+            }
+            @if (_snap.Boms.Count == 0) { <p class="text-muted">No BOMs yet — load the sample data.</p> }
+            <table class="fo" style="margin-top:10px">
+                <tr><th>Order</th><th>BOM</th><th>Finished SKU</th><th class="num">Planned</th><th class="num">Produced</th><th class="num">Std cost</th><th class="num">Actual cost</th><th class="num">Variance</th><th>Scheduled</th><th>Completed</th><th>Status</th></tr>
+                @foreach (var o in _snap.ProductionOrders)
+                {
+                    <tr>
+                        <td>@o.OrderNo</td><td>@o.BomCode</td><td>@o.FinishedSku</td>
+                        <td class="num">@o.QtyPlanned.ToString("N0")</td><td class="num">@o.QtyProduced.ToString("N0")</td>
+                        <td class="num">@o.StdCost.ToString("N2")</td><td class="num">@o.ActualCost.ToString("N2")</td>
+                        <td class="num">@o.Variance.ToString("N2")</td>
+                        <td>@FormatDate(o.ScheduledDate)</td><td>@FormatDate(o.CompletedDate)</td>
+                        <td><span class="fmcg-pill @(o.Status == "completed" ? "fmcg-pill--ok" : "fmcg-pill--warn")">@o.Status.Replace('_',' ')</span></td>
+                    </tr>
+                }
+            </table>
+            @if (_snap.ProductionOrders.Count == 0 && _snap.Boms.Count > 0) { <p class="text-muted">No production orders yet.</p> }
+        </div>
+    }
+    else if (_tab == "claims")
+    {
+        <div class="fo-card">
+            <h3>Customer claims &amp; returns</h3>
+            <table class="fo">
+                <tr><th>Claim</th><th>Customer</th><th>SKU</th><th>Batch</th><th>Type</th><th class="num">Qty</th><th class="num">Credit (QAR)</th><th>Date</th><th>Status</th></tr>
+                @foreach (var c in _snap.Claims)
+                {
+                    <tr>
+                        <td>@c.ClaimNo</td><td>@c.CustomerName</td><td>@c.Sku</td><td>@c.BatchNo</td><td>@c.ClaimType</td>
+                        <td class="num">@c.Qty.ToString("N0")</td><td class="num">@c.CreditAmount.ToString("N2")</td>
+                        <td>@FormatDate(c.ClaimDate)</td>
+                        <td><span class="fmcg-pill @(c.Status == "open" ? "fmcg-pill--warn" : "fmcg-pill--ok")">@c.Status</span></td>
+                    </tr>
+                }
+            </table>
+            @if (_snap.Claims.Count == 0) { <p class="text-muted">No claims yet — load the sample data.</p> }
+        </div>
+    }
     else if (_tab == "tax")
     {
         <div class="fo-card">
@@ -326,6 +377,17 @@
                 <tr><td>Business law</td><td>@_pack.LegalNotes</td></tr>
             </table>
             <p class="text-muted" style="margin-top:8px">Compliance follows the tenant's registered country on the company profile; the selector above is a preview of the other GCC packs.</p>
+        </div>
+        <div class="fo-card" style="margin-top:12px">
+            <h3>Qatar statutory portals &amp; external reports</h3>
+            <table class="fo">
+                <tr><th>Portal / report</th><th>Used for</th><th></th></tr>
+                <tr><td>General Tax Authority (GTA) — Dhareeba</td><td>Corporate income tax filing, WHT returns, excise registration &amp; returns</td><td><a href="https://www.gta.gov.qa" target="_blank" rel="noopener">gta.gov.qa</a></td></tr>
+                <tr><td>Qatar Customs (Al Nadeeb)</td><td>Import declarations, GCC CET duty, food import clearance</td><td><a href="https://www.customs.gov.qa" target="_blank" rel="noopener">customs.gov.qa</a></td></tr>
+                <tr><td>Ministry of Public Health — food control</td><td>Food product registration, labelling (batch + mfg/expiry), recalls</td><td><a href="https://www.moph.gov.qa" target="_blank" rel="noopener">moph.gov.qa</a></td></tr>
+                <tr><td>Ministry of Commerce &amp; Industry</td><td>Commercial registration, trade licences, consumer protection</td><td><a href="https://www.moci.gov.qa" target="_blank" rel="noopener">moci.gov.qa</a></td></tr>
+                <tr><td>Qatar Financial Centre (if QFC entity)</td><td>Separate QFC tax regime — flat 10% on local-source profits</td><td><a href="https://www.qfc.qa" target="_blank" rel="noopener">qfc.qa</a></td></tr>
+            </table>
         </div>
     }
     else if (_tab == "reports")
@@ -358,7 +420,7 @@
 </PhpErpDesktopChrome>
 
 @code {
-    private ErpFmcgWorkspaceSnapshot _snap = new([], [], [], [], [], [], [], [], 0, 0, 0, "QA", "none", "");
+    private ErpFmcgWorkspaceSnapshot _snap = new([], [], [], [], [], [], [], [], [], [], [], 0, 0, 0, "QA", "none", "");
     private ErpGccCountryPack _pack = ErpGccLocalizationCatalog.Qatar;
     private string _tab = ErpFmcgWorkspace.GuideTab;
     private string _tabLabel = "Guide";

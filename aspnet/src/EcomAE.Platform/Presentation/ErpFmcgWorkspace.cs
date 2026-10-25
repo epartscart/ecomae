@@ -19,6 +19,8 @@ public static class ErpFmcgWorkspace
         ("promotions", "Promotions & free goods"),
         ("landed", "Landed cost"),
         ("writedowns", "Write-downs"),
+        ("manufacturing", "Manufacturing & repacking"),
+        ("claims", "Claims & returns"),
         ("tax", "Tax & compliance"),
         ("reports", "Reports to P&L / BS"),
     ];
@@ -44,6 +46,8 @@ public static class ErpFmcgWorkspace
         ("Sell across channels", "Modern trade, HORECA, wholesale, van-sales routes and own retail each carry their own sales account so channel P&L rolls straight into the GL."),
         ("Run trade promotions", "Free-goods (10+1), bonus quantity, off-invoice discount and rebate accruals post against a promotion accrual COA so trade spend is visible in the P&L."),
         ("Post to the general ledger", "Invoices post AR→Revenue; COGS posts Inventory→COGS; excise posts Excise expense→Excise payable. Every FMCG amount reaches the COA — trial balance, income statement and balance sheet pick it up unmodified."),
+        ("Manufacture and repack", "Bills of materials define components per finished SKU (qty per, waste %, std cost). Production orders track planned vs produced, post output to finished goods and variances (material/labour) to the production-variance COA — manufacturing BU optional, same flow handles repacking."),
+        ("Handle claims and returns", "Customer claims (quality, shortage, damage) track quantity and credit amount per claim; resolved claims issue credit notes. Quarantined batches stay blocked for sale until released."),
         ("Report IFRS", "IFRS presentation: revenue → COGS → gross profit → channel trade spend → operating result → corporate income tax accrual (10% on the foreign-owned share for Qatar). Balance-sheet mapping: inventory, receivables, accruals, tax payables."),
     ];
 }

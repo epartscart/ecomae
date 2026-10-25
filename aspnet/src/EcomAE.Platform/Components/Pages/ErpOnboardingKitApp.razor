@@ -481,6 +481,7 @@ else
         "jewellery" => "Jewellery",
         "real_estate" => "Real estate",
         "fit_out" => "Fit-out / contracting",
+        var c when EcomAE.Platform.Presentation.ErpIndustryNav.IsFmcgIndustry(c) => "FMCG",
         _ => "Industry",
     };
 
@@ -490,6 +491,7 @@ else
         "jewellery" => "/erp/jewellery/workspace",
         "real_estate" => "/erp/real-estate-app",
         "fit_out" => "/erp/fitout/workspace",
+        var c when EcomAE.Platform.Presentation.ErpIndustryNav.IsFmcgIndustry(c) => "/erp/fmcg/workspace",
         _ => "/erp",
     };
 
@@ -524,9 +526,12 @@ else
             sb.Append("</div></div>");
         }
 
+        var isFmcg = EcomAE.Platform.Presentation.ErpIndustryNav.IsFmcgIndustry(_industryCode);
         var codes = _industryCode is "auto_parts" or "jewellery" or "real_estate" or "fit_out"
             ? new[] { _industryCode }
-            : new[] { "auto_parts", "jewellery", "real_estate", "fit_out" };
+            : isFmcg
+                ? new[] { "fmcg" }
+                : new[] { "auto_parts", "jewellery", "real_estate", "fit_out", "fmcg" };
         foreach (var code in codes)
         {
             switch (code)
@@ -546,6 +551,12 @@ else
                 case "fit_out":
                     foreach (var l in ErpFitOutGuide.Lanes)
                         Lane(l.Title, l.Icon, l.Steps.Select(x => (x.Number, x.Icon, x.Label, x.Detail, (string?)x.Href)));
+                    break;
+                case "fmcg":
+                    Lane("FMCG — items, batches, channels, GCC tax pack", "fa-shopping-basket",
+                        EcomAE.Platform.Presentation.ErpFmcgWorkspace.GuideSteps
+                            .Select((g, i) => (i + 1, "fa-chevron-right", g.Title, g.Detail, (string?)null))
+                            .Append((10, "fa-map-signs", "Open the workspace", "/erp/fmcg/workspace — guide, items, batches, channels, routes, promotions, tax, reports", (string?)"/erp/fmcg/workspace")));
                     break;
             }
         }

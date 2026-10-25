@@ -284,7 +284,100 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
             cancellationToken, wdBatch, wdAmount, wdCoa, j3, now);
         await MarkAsync(connection, ErpFmcgWorkspaceSchema.WriteDowns, wdId, cancellationToken).ConfigureAwait(false);
 
-        return $"FMCG demo data loaded: {entities.Length} entities, {bus.Length} BUs, {ccs.Length} cost centres, {items.Length} SKUs, batches/channels/routes/promotion, 3 GL journals incl. a write-down (QAR).";
+        // --- Manufacturing: one BOM, two production orders, variance journal ---
+        var wipCoa = await EnsureCoaAsync(connection, "1320", "Work-in-progress — production", "asset", "debit", cancellationToken);
+        var pvarCoa = await EnsureCoaAsync(connection, "5300", "Production variance — materials/labour", "expense", "debit", cancellationToken);
+
+        var bomId = await InsertIfAbsentAsync(connection,
+            "SELECT `id` FROM `" + ErpFmcgWorkspaceSchema.Boms + "` WHERE `bom_code`='BOM-JCE1000'",
+            "INSERT INTO `" + ErpFmcgWorkspaceSchema.Boms + "` (`site_key`,`company_id`,`bom_code`,`name`,`finished_item_id`,`output_qty`,`output_uom`,`wip_coa_id`,`variance_coa_id`,`active`,`time_created`,`time_modified`)"
+            + " VALUES ('site','1','BOM-JCE1000','Orange juice 1L — fill & pack',@p0,1000,'bottle',@p1,@p2,1,@p3,@p3)",
+            cancellationToken, itemIds[0], wipCoa, pvarCoa, now);
+        await MarkAsync(connection, ErpFmcgWorkspaceSchema.Boms, bomId, cancellationToken).ConfigureAwait(false);
+
+        var bomLines = new (int No, string Comp, decimal Qty, string Uom, decimal Waste, decimal Cost)[]
+        {
+            (1, "Orange concentrate (bulk)", 0.12m, "kg", 2m, 3.85m),
+            (2, "Purified water", 0.88m, "l", 0m, 0.02m),
+            (3, "PET bottle 1L + cap", 1m, "ea", 1m, 0.32m),
+            (4, "Label + carton (per 12)", 0.09m, "ea", 0m, 0.15m),
+        };
+        foreach (var bl in bomLines)
+        {
+            var blId = await InsertIfAbsentAsync(connection,
+                "SELECT `id` FROM `" + ErpFmcgWorkspaceSchema.BomLines + "` WHERE `bom_id`=@p0 AND `line_no`=@p1",
+                "INSERT INTO `" + ErpFmcgWorkspaceSchema.BomLines + "` (`site_key`,`bom_id`,`line_no`,`component_name`,`qty_per`,`uom`,`waste_pct`,`std_cost`,`time_created`)"
+                + " VALUES ('site',@p0,@p1,@p2,@p3,@p4,@p5,@p6,@p7)",
+                cancellationToken, bomId, bl.No, bl.Comp, bl.Qty, bl.Uom, bl.Waste, bl.Cost, now);
+            await MarkAsync(connection, ErpFmcgWorkspaceSchema.BomLines, blId, cancellationToken).ConfigureAwait(false);
+        }
+
+        var stdCostPerBottle = bomLines.Sum(x => x.Qty * x.Cost); // ~0.52 QAR/bottle
+        var mfgBu = await ScalarAsync(connection, "SELECT `id` FROM `epc_erp_pm_business_units` WHERE `code`='FMCG-MFG'", cancellationToken);
+        var mfgEnt = await ScalarAsync(connection, "SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `code`='QFMCG'", cancellationToken);
+        var prodRows = new (string No, decimal Planned, decimal Produced, decimal ActFactor, string Status, long Sched, long Done)[]
+        {
+            ("PO-0001", 12000m, 11850m, 1.04m, "completed", now - 14 * day, now - 12 * day),
+            ("PO-0002", 15000m, 0m, 0m, "in_progress", now + 3 * day, 0),
+        };
+        foreach (var po in prodRows)
+        {
+            var std = po.Produced * stdCostPerBottle;
+            var act = po.Status == "completed" ? std * po.ActFactor : 0m;
+            var orderId = await InsertIfAbsentAsync(connection,
+                "SELECT `id` FROM `" + ErpFmcgWorkspaceSchema.ProductionOrders + "` WHERE `order_no`=@p0",
+                "INSERT INTO `" + ErpFmcgWorkspaceSchema.ProductionOrders + "` (`site_key`,`company_id`,`order_no`,`bom_id`,`finished_item_id`,`legal_entity_id`,`business_unit_id`,`qty_planned`,`qty_produced`,`std_cost`,`actual_cost`,`variance`,`status`,`scheduled_date`,`completed_date`,`time_created`,`time_modified`)"
+                + " VALUES ('site','1',@p0,@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@p9,@p10,@p11,@p12,@p13,@p13)",
+                cancellationToken, po.No, bomId, itemIds[0], mfgEnt, mfgBu,
+                po.Planned, po.Produced, Math.Round(std, 2), Math.Round(act, 2), Math.Round(act - std, 2),
+                po.Status, po.Sched, po.Done, now);
+            await MarkAsync(connection, ErpFmcgWorkspaceSchema.ProductionOrders, orderId, cancellationToken).ConfigureAwait(false);
+        }
+
+        // Production variance journal: unfavourable material usage on PO-0001.
+        var po1Variance = 11850m * stdCostPerBottle * 0.04m;
+        var j4 = await _gl.PostJournalAsync(connection,
+            new ErpGlJournalHeader
+            {
+                JournalDate = now - 12 * day,
+                Reference = "FMCG-DEMO-PROD",
+                Description = "Production order PO-0001 — output + unfavourable usage variance (demo, QAR)",
+                SourceType = "manual",
+                CurrencyCode = "QAR",
+                ExchangeRate = 1m,
+            },
+            new List<ErpGlLine>
+            {
+                new(invCoa, Math.Round(11850m * stdCostPerBottle, 2), 0m, "Finished goods from production — PO-0001"),
+                new(pvarCoa, Math.Round(po1Variance, 2), 0m, "Unfavourable material/labour variance — PO-0001"),
+                new(wipCoa, 0m, Math.Round(11850m * stdCostPerBottle + po1Variance, 2), "WIP relieved — PO-0001"),
+            },
+            0, cancellationToken).ConfigureAwait(false);
+        await MarkAsync(connection, "epc_erp_gl_journals", j4, cancellationToken).ConfigureAwait(false);
+
+        // Quarantine one yoghurt batch for inspection.
+        await ErpDb.ExecuteAsync(connection, null,
+            "UPDATE `" + ErpFmcgWorkspaceSchema.Batches + "` b JOIN `" + ErpFmcgWorkspaceSchema.Items + "` i ON i.`id`=b.`item_id`"
+            + " SET b.`quality_status`='quarantine' WHERE i.`sku`='FM-YGT-PLN170' LIMIT 1",
+            cancellationToken).ConfigureAwait(false);
+
+        // --- Customer claims: quality return + shortage credit ---
+        var claimRows = new (string No, string Cust, int ItemIdx, string Type, decimal Qty, decimal Credit, string Status, long D, string Res)[]
+        {
+            ("CLM-0001", "Al Meera Consumer Goods", 3, "quality", 24m, 156m, "open", now - 5 * day, ""),
+            ("CLM-0002", "Lulu Hypermarket", 0, "shortage", 60m, 288m, "resolved", now - 9 * day, "Credit note CN-220 issued"),
+        };
+        foreach (var cl in claimRows)
+        {
+            var clId = await InsertIfAbsentAsync(connection,
+                "SELECT `id` FROM `" + ErpFmcgWorkspaceSchema.Claims + "` WHERE `claim_no`=@p0",
+                "INSERT INTO `" + ErpFmcgWorkspaceSchema.Claims + "` (`site_key`,`company_id`,`claim_no`,`customer_name`,`item_id`,`claim_type`,`qty`,`credit_amount`,`status`,`claim_date`,`resolution`,`time_created`,`time_modified`)"
+                + " VALUES ('site','1',@p0,@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@p9,@p9)",
+                cancellationToken, cl.No, cl.Cust, itemIds[cl.ItemIdx], cl.Type, cl.Qty, cl.Credit, cl.Status, cl.D, cl.Res, now);
+            await MarkAsync(connection, ErpFmcgWorkspaceSchema.Claims, clId, cancellationToken).ConfigureAwait(false);
+        }
+
+        return $"FMCG demo data loaded: {entities.Length} entities, {bus.Length} BUs, {ccs.Length} cost centres, {items.Length} SKUs, batches/channels/routes/promotion, BOM + production orders + claims, 4 GL journals incl. write-down & production variance (QAR).";
     }
 
     public async Task<string> ClearDemoAsync(CancellationToken cancellationToken = default)
