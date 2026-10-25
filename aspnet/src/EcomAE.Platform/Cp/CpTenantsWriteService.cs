@@ -254,6 +254,25 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
                 cancellationToken, siteKey).ConfigureAwait(false);
             if (existing > 0)
             {
+                var launch = ErpOnlyLaunchClients.All.FirstOrDefault(c =>
+                    string.Equals(c.SiteKey, siteKey, StringComparison.OrdinalIgnoreCase));
+                var launchIndustry = NormalizeIndustry(launch?.IndustryCode);
+                var storedIndustry = NormalizeIndustry(await ErpDb.StringAsync(
+                    connection, null,
+                    ErpDb.Positional("SELECT `industry_code` FROM `epc_portal_tenants` WHERE `id`=? LIMIT 1"),
+                    cancellationToken, existing).ConfigureAwait(false));
+                if (launch is not null && !string.Equals(storedIndustry, launchIndustry, StringComparison.OrdinalIgnoreCase))
+                {
+                    await ErpDb.ExecuteAsync(
+                        connection, null,
+                        ErpDb.Positional(
+                            "UPDATE `epc_portal_tenants` SET `industry_code`=?, "
+                            + "`intro_json`=JSON_SET(IFNULL(`intro_json`,'{}'),'$.industry_code',?), `updated_at`=? WHERE `id`=?"),
+                        cancellationToken, launchIndustry, launchIndustry, now, existing).ConfigureAwait(false);
+                    return ErpSimpleWriteResult.Ok(
+                        "ERP-only tenant " + siteKey + " industry updated " + storedIndustry + " -> " + launchIndustry + ".", 0);
+                }
+
                 return ErpSimpleWriteResult.Fail("exists", "Site key already exists. Delete the old standalone row first, or pick another key.");
             }
 
