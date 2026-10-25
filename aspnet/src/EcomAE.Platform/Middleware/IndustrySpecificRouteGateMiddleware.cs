@@ -136,6 +136,11 @@ public static class IndustrySpecificRoutePolicy
             return "auto_parts";
         }
 
+        if (path.StartsWith("/erp/fmcg/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "fmcg";
+        }
+
         return null;
     }
 
@@ -185,6 +190,11 @@ public static class IndustrySpecificRoutePolicy
             return ErpIndustryNav.IsAutoPartsCompany(company);
         }
 
+        if (requiredIndustry.Equals("fmcg", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErpIndustryNav.IsFmcgCompany(company);
+        }
+
         return false;
     }
 
@@ -221,6 +231,15 @@ public static class IndustrySpecificRoutePolicy
                 || value.Contains("auto-part", StringComparison.Ordinal)
                 || value.Contains("spare_part", StringComparison.Ordinal)
                 || value.Contains("sparepart", StringComparison.Ordinal);
+        }
+
+        if (required is "fmcg")
+        {
+            return value is "fmcg" or "fmcg_wholesale" or "food_beverage" or "food-beverage" or "food" or "consumer_goods"
+                || value.Contains("fmcg", StringComparison.Ordinal)
+                || value.Contains("food_beverage", StringComparison.Ordinal)
+                || value.Contains("food-beverage", StringComparison.Ordinal)
+                || value.Contains("consumer_goods", StringComparison.Ordinal);
         }
 
         if (required is "real_estate" or "realestate")

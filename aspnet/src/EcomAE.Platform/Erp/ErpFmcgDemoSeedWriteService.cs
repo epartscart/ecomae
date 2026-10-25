@@ -50,7 +50,7 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
         {
             var id = await InsertIfAbsentAsync(connection,
                 "SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `code`=@p0",
-                "INSERT INTO `epc_erp_pm_legal_entities` (`code`,`name`,`country_code`,`currency_code`,`active`,`time_created`,`time_modified`) VALUES (@p0,@p1,@p2,@p3,1,@p4,@p4)",
+                "INSERT INTO `epc_erp_pm_legal_entities` (`code`,`name`,`country_code`,`currency_code`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,@p3,1,@p4,@p4)",
                 cancellationToken, code, name, country, ccy, now);
             await MarkAsync(connection, "epc_erp_pm_legal_entities", id, cancellationToken).ConfigureAwait(false);
         }
@@ -66,7 +66,7 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
             var entId = await ScalarAsync(connection, "SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `code`='" + ent + "'", cancellationToken);
             var id = await InsertIfAbsentAsync(connection,
                 "SELECT `id` FROM `epc_erp_pm_business_units` WHERE `code`=@p0",
-                "INSERT INTO `epc_erp_pm_business_units` (`legal_entity_id`,`code`,`name`,`active`,`time_created`,`time_modified`) VALUES (@p0,@p1,@p2,1,@p3,@p3)",
+                "INSERT INTO `epc_erp_pm_business_units` (`legal_entity_id`,`code`,`name`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,1,@p3,@p3)",
                 cancellationToken, entId, code, name, now);
             await MarkAsync(connection, "epc_erp_pm_business_units", id, cancellationToken).ConfigureAwait(false);
         }
@@ -76,7 +76,7 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
         {
             var id = await InsertIfAbsentAsync(connection,
                 "SELECT `id` FROM `epc_erp_pm_cost_centres` WHERE `code`=@p0",
-                "INSERT INTO `epc_erp_pm_cost_centres` (`code`,`name`,`active`,`time_created`,`time_modified`) VALUES (@p0,@p1,1,@p2,@p2)",
+                "INSERT INTO `epc_erp_pm_cost_centres` (`code`,`name`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,1,@p2,@p2)",
                 cancellationToken, code, name, now);
             await MarkAsync(connection, "epc_erp_pm_cost_centres", id, cancellationToken).ConfigureAwait(false);
         }
@@ -223,7 +223,7 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
                 JournalDate = now,
                 Reference = "FMCG-DEMO-SALES",
                 Description = "Demo FMCG sales across channels (QAR)",
-                SourceType = "fmcg_demo",
+                SourceType = "manual",
                 CurrencyCode = "QAR",
                 ExchangeRate = 1m,
             },
@@ -241,7 +241,7 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
                 JournalDate = now,
                 Reference = "FMCG-DEMO-COGS",
                 Description = "Demo COGS + excise accrual (QAR)",
-                SourceType = "fmcg_demo",
+                SourceType = "manual",
                 CurrencyCode = "QAR",
                 ExchangeRate = 1m,
             },
@@ -266,7 +266,7 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
                 JournalDate = now,
                 Reference = "FMCG-DEMO-WD",
                 Description = "Expiry write-down — yoghurt batch (demo, QAR)",
-                SourceType = "fmcg_demo",
+                SourceType = "manual",
                 CurrencyCode = "QAR",
                 ExchangeRate = 1m,
             },
@@ -297,15 +297,18 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await ErpFmcgWorkspaceSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         var removed = 0;
+        var rows = new List<(string T, long Id)>();
         await using (var cmd = connection.CreateCommand())
         {
             cmd.CommandText = "SELECT `table_name`,`row_id` FROM `" + ErpFmcgWorkspaceSchema.DemoRegistry + "`";
             await using var r = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            var rows = new List<(string T, long Id)>();
             while (await r.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 rows.Add((Convert.ToString(r.GetValue(0)) ?? "", Convert.ToInt64(r.GetValue(1))));
             }
+        }
+
+        {
             foreach (var (t, id) in rows)
             {
                 if (t is "epc_erp_gl_journals")
@@ -325,12 +328,12 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
 
     private static async Task<long> EnsureCoaAsync(DbConnection c, string code, string name, string type, string side, CancellationToken ct)
     {
-        var id = await ScalarAsync(c, "SELECT `id` FROM `epc_erp_gl_coa` WHERE `code`='" + code + "'", ct);
+        var id = await ScalarAsync(c, "SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code`='" + code + "'", ct);
         if (id > 0) return id;
         await ErpDb.ExecuteAsync(c, null,
-            "INSERT INTO `epc_erp_gl_coa` (`code`,`name`,`account_type`,`normal_side`,`active`,`time_created`,`time_modified`) VALUES (@p0,@p1,@p2,@p3,1,@p4,@p4)",
+            "INSERT INTO `epc_erp_coa_accounts` (`code`,`name`,`account_type`,`normal_side`,`active`,`time_created`) VALUES (@p0,@p1,@p2,@p3,1,@p4)",
             ct, code, name, type, side, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-        return await ScalarAsync(c, "SELECT `id` FROM `epc_erp_gl_coa` WHERE `code`='" + code + "'", ct);
+        return await ScalarAsync(c, "SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code`='" + code + "'", ct);
     }
 
     private static async Task<long> InsertIfAbsentAsync(DbConnection c, string existsSql, string insertSql, CancellationToken ct, params object[] args)
