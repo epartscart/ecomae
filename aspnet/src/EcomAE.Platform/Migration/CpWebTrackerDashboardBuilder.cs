@@ -653,29 +653,31 @@ public static class CpWebTrackerDashboardBuilder
                     continue;
                 }
 
-                // skip index builds on databases that hold no tracker rows at all
-                var rows = await ErpDb.LongAsync(
+                // skip index builds on databases whose tracker table is empty —
+                // a real LIMIT 1 probe, not the InnoDB table_rows estimate
+                var hasRows = await ErpDb.LongAsync(
                     connection, null,
-                    ErpDb.Positional(
-                        "SELECT IFNULL(table_rows,0) FROM information_schema.tables "
-                        + "WHERE table_schema=DATABASE() AND table_name=?"),
-                    cancellationToken, table).ConfigureAwait(false);
-                if (rows <= 0)
+                    "SELECT EXISTS(SELECT 1 FROM `" + table + "`)",
+                    cancellationToken).ConfigureAwait(false);
+                if (hasRows <= 0)
                 {
                     continue;
                 }
 
                 // throttle ALTER attempts per database+index so a failed or busy
-                // build isn't retried every request, but can self-heal later
+                // build isn't retried every request, but can self-heal later;
+                // TryAdd/TryUpdate claims the slot atomically so concurrent
+                // requests can't both build the same index
                 var attemptKey = dbKey + "." + table + "." + name;
                 var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                if (_indexAttempts.TryGetValue(attemptKey, out var last)
-                    && now - last < IndexAttemptCooldownSeconds)
+                if (!_indexAttempts.TryAdd(attemptKey, now)
+                    && (!_indexAttempts.TryGetValue(attemptKey, out var last)
+                        || now - last < IndexAttemptCooldownSeconds
+                        || !_indexAttempts.TryUpdate(attemptKey, now, last)))
                 {
                     continue;
                 }
 
-                _indexAttempts[attemptKey] = now;
                 await ErpDb.TryExecuteAsync(
                     connection,
                     "ALTER TABLE `" + table + "` ADD INDEX `" + name + "` " + columns,
