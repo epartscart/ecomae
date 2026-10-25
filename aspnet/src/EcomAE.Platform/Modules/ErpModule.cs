@@ -28828,6 +28828,7 @@ public sealed class ErpModule : ISurfaceModule
     private static async Task<IResult> HandleFmcgDemoSeedAsync(
         HttpContext context,
         ILegacySessionValidator validator,
+        EcomAE.Platform.Cp.ICpCsrfGuard csrf,
         IErpFmcgDemoSeedWriteService writes,
         CancellationToken cancellationToken)
     {
@@ -28837,7 +28838,12 @@ public sealed class ErpModule : ISurfaceModule
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fmcg/workspace", "Admin ERP capability required for demo seeding.");
         }
 
-        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
+        }
         if (!confirm)
         {
             return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to load the DEMO-tagged FMCG sample data.", session = SessionPayload(session) });
@@ -28859,6 +28865,7 @@ public sealed class ErpModule : ISurfaceModule
     private static async Task<IResult> HandleFmcgDemoClearAsync(
         HttpContext context,
         ILegacySessionValidator validator,
+        EcomAE.Platform.Cp.ICpCsrfGuard csrf,
         IErpFmcgDemoSeedWriteService writes,
         CancellationToken cancellationToken)
     {
@@ -28868,7 +28875,12 @@ public sealed class ErpModule : ISurfaceModule
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fmcg/workspace", "Admin ERP capability required for demo clearing.");
         }
 
-        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var csrfBlock = await D365CsrfAsync(context, csrf, session, fields, cancellationToken).ConfigureAwait(false);
+        if (csrfBlock is not null)
+        {
+            return csrfBlock;
+        }
         if (!confirm)
         {
             return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to remove the DEMO-tagged FMCG sample data.", session = SessionPayload(session) });

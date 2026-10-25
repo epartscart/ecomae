@@ -12,7 +12,7 @@ public sealed record ErpFmcgItemDigest(
 public sealed record ErpFmcgBatchDigest(
     long Id, long ItemId, string Sku, string ItemName, string BatchNo,
     long MfgDate, long ExpiryDate, decimal QtyOnHand, string Warehouse,
-    string Status, bool RecallFlag, int DaysToExpiry);
+    string Status, bool RecallFlag, int DaysToExpiry, string QualityStatus);
 
 public sealed record ErpFmcgChannelDigest(long Id, string Code, string Name, string Kind, long SalesAccountId);
 public sealed record ErpFmcgPromotionDigest(
@@ -28,6 +28,19 @@ public sealed record ErpFmcgRouteReconDigest(
     long Id, string RouteCode, string RouteName, long ReconDate,
     decimal QtyLoaded, decimal QtySold, decimal QtyReturned, decimal CashCollected, decimal ExpectedCash, decimal Variance);
 
+public sealed record ErpFmcgBomDigest(
+    long Id, string Code, string Name, string FinishedSku, string FinishedName,
+    decimal OutputQty, string OutputUom, IReadOnlyList<string> Components);
+
+public sealed record ErpFmcgProductionOrderDigest(
+    long Id, string OrderNo, string BomCode, string FinishedSku, string FinishedName,
+    decimal QtyPlanned, decimal QtyProduced, decimal StdCost, decimal ActualCost,
+    decimal Variance, string Status, long ScheduledDate, long CompletedDate);
+
+public sealed record ErpFmcgClaimDigest(
+    long Id, string ClaimNo, string CustomerName, string Sku, string BatchNo,
+    string ClaimType, decimal Qty, decimal CreditAmount, string Status, long ClaimDate);
+
 public sealed record ErpFmcgWorkspaceSnapshot(
     IReadOnlyList<ErpFmcgItemDigest> Items,
     IReadOnlyList<ErpFmcgBatchDigest> Batches,
@@ -37,6 +50,9 @@ public sealed record ErpFmcgWorkspaceSnapshot(
     IReadOnlyList<ErpFmcgLandedCostDigest> LandedCosts,
     IReadOnlyList<ErpFmcgWriteDownDigest> WriteDowns,
     IReadOnlyList<ErpFmcgRouteReconDigest> RouteRecon,
+    IReadOnlyList<ErpFmcgBomDigest> Boms,
+    IReadOnlyList<ErpFmcgProductionOrderDigest> ProductionOrders,
+    IReadOnlyList<ErpFmcgClaimDigest> Claims,
     long LegalEntityCount,
     long BusinessUnitCount,
     long CostCentreCount,
@@ -58,7 +74,7 @@ public sealed class ErpFmcgWorkspaceReadService : IErpFmcgWorkspaceReadService
     public async Task<ErpFmcgWorkspaceSnapshot> SnapshotAsync(string countryCode, CancellationToken cancellationToken = default)
     {
         var pack = ErpGccLocalizationCatalog.Resolve(countryCode);
-        var empty = new ErpFmcgWorkspaceSnapshot([], [], [], [], [], [], [], [], 0, 0, 0, pack.Code, "none", "");
+        var empty = new ErpFmcgWorkspaceSnapshot([], [], [], [], [], [], [], [], [], [], [], 0, 0, 0, pack.Code, "none", "");
         if (!_connections.IsConfigured)
         {
             return empty with { Source = "config", Message = "TenantRegistry DB is not configured." };
@@ -96,14 +112,14 @@ public sealed class ErpFmcgWorkspaceReadService : IErpFmcgWorkspaceReadService
             var batches = new List<ErpFmcgBatchDigest>();
             await ReadAsync(connection, cancellationToken,
                 "SELECT b.`id`,b.`item_id`,i.`sku`,i.`name`,b.`batch_no`,b.`mfg_date`,b.`expiry_date`,"
-                + "b.`qty_on_hand`,b.`warehouse`,b.`status`,b.`recall_flag`"
+                + "b.`qty_on_hand`,b.`warehouse`,b.`status`,b.`recall_flag`,IFNULL(b.`quality_status`,'released')"
                 + " FROM `" + ErpFmcgWorkspaceSchema.Batches + "` b"
                 + " LEFT JOIN `" + ErpFmcgWorkspaceSchema.Items + "` i ON i.`id`=b.`item_id`"
                 + " ORDER BY b.`expiry_date`,b.`batch_no` LIMIT 500",
                 r => batches.Add(new ErpFmcgBatchDigest(
                     I64(r, 0), I64(r, 1), S(r, 2), S(r, 3), S(r, 4), I64(r, 5), I64(r, 6),
                     D(r, 7), S(r, 8), S(r, 9), I32(r, 10) == 1,
-                    (int)((I64(r, 6) - now) / 86400))));
+                    (int)((I64(r, 6) - now) / 86400), S(r, 11))));
 
             var channels = new List<ErpFmcgChannelDigest>();
             await ReadAsync(connection, cancellationToken,
@@ -157,8 +173,52 @@ public sealed class ErpFmcgWorkspaceReadService : IErpFmcgWorkspaceReadService
                 r => recon.Add(new ErpFmcgRouteReconDigest(
                     I64(r, 0), S(r, 1), S(r, 2), I64(r, 3), D(r, 4), D(r, 5), D(r, 6), D(r, 7), D(r, 8), D(r, 9))));
 
+            var boms = new List<ErpFmcgBomDigest>();
+            var bomComponents = new Dictionary<long, List<string>>();
+            await ReadAsync(connection, cancellationToken,
+                "SELECT `bom_id`,`component_name`,`qty_per`,`uom`,`waste_pct` FROM `" + ErpFmcgWorkspaceSchema.BomLines + "` ORDER BY `bom_id`,`line_no`",
+                r =>
+                {
+                    var bid = I64(r, 0);
+                    if (!bomComponents.TryGetValue(bid, out var list)) bomComponents[bid] = list = new List<string>();
+                    list.Add($"{S(r, 1)} x{D(r, 2):0.##} {S(r, 3)}" + (D(r, 4) > 0 ? $" (+{D(r, 4):0.##}% waste)" : ""));
+                });
+            await ReadAsync(connection, cancellationToken,
+                "SELECT b.`id`,b.`bom_code`,b.`name`,IFNULL(i.`sku`,''),IFNULL(i.`name`,''),b.`output_qty`,b.`output_uom`"
+                + " FROM `" + ErpFmcgWorkspaceSchema.Boms + "` b"
+                + " LEFT JOIN `" + ErpFmcgWorkspaceSchema.Items + "` i ON i.`id`=b.`finished_item_id`"
+                + " ORDER BY b.`bom_code`",
+                r => boms.Add(new ErpFmcgBomDigest(
+                    I64(r, 0), S(r, 1), S(r, 2), S(r, 3), S(r, 4), D(r, 5), S(r, 6),
+                    bomComponents.TryGetValue(I64(r, 0), out var cl) ? cl : new List<string>())));
+
+            var orders = new List<ErpFmcgProductionOrderDigest>();
+            await ReadAsync(connection, cancellationToken,
+                "SELECT o.`id`,o.`order_no`,IFNULL(b.`bom_code`,''),IFNULL(i.`sku`,''),IFNULL(i.`name`,''),"
+                + "o.`qty_planned`,o.`qty_produced`,o.`std_cost`,o.`actual_cost`,o.`variance`,o.`status`,"
+                + "o.`scheduled_date`,o.`completed_date`"
+                + " FROM `" + ErpFmcgWorkspaceSchema.ProductionOrders + "` o"
+                + " LEFT JOIN `" + ErpFmcgWorkspaceSchema.Boms + "` b ON b.`id`=o.`bom_id`"
+                + " LEFT JOIN `" + ErpFmcgWorkspaceSchema.Items + "` i ON i.`id`=o.`finished_item_id`"
+                + " ORDER BY o.`order_no` DESC LIMIT 300",
+                r => orders.Add(new ErpFmcgProductionOrderDigest(
+                    I64(r, 0), S(r, 1), S(r, 2), S(r, 3), S(r, 4), D(r, 5), D(r, 6), D(r, 7), D(r, 8), D(r, 9),
+                    S(r, 10), I64(r, 11), I64(r, 12))));
+
+            var claims = new List<ErpFmcgClaimDigest>();
+            await ReadAsync(connection, cancellationToken,
+                "SELECT c.`id`,c.`claim_no`,c.`customer_name`,IFNULL(i.`sku`,''),IFNULL(b.`batch_no`,''),"
+                + "c.`claim_type`,c.`qty`,c.`credit_amount`,c.`status`,c.`claim_date`"
+                + " FROM `" + ErpFmcgWorkspaceSchema.Claims + "` c"
+                + " LEFT JOIN `" + ErpFmcgWorkspaceSchema.Items + "` i ON i.`id`=c.`item_id`"
+                + " LEFT JOIN `" + ErpFmcgWorkspaceSchema.Batches + "` b ON b.`id`=c.`batch_id`"
+                + " ORDER BY c.`claim_date` DESC LIMIT 300",
+                r => claims.Add(new ErpFmcgClaimDigest(
+                    I64(r, 0), S(r, 1), S(r, 2), S(r, 3), S(r, 4), S(r, 5), D(r, 6), D(r, 7), S(r, 8), I64(r, 9))));
+
             return new ErpFmcgWorkspaceSnapshot(
-                items, batches, channels, promotions, routes, landed, writedowns, recon, entities, bus, ccs,
+                items, batches, channels, promotions, routes, landed, writedowns, recon,
+                boms, orders, claims, entities, bus, ccs,
                 pack.Code, "database", string.Empty);
         }
         catch (Exception ex)

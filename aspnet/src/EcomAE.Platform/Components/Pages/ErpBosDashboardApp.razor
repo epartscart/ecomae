@@ -17,6 +17,7 @@
 @inject ICpPowerBiService PowerBi
 @inject IHttpContextAccessor Http
 @inject IErpLandlordBook LandlordBook
+@inject IErpOrganizationMasterReadService OrgMaster
 
 <PageTitle>@_pageTitle</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -25,6 +26,13 @@
         .ns-fitout-module-grid { grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); }
         .ns-fitout-scope-note { margin:.75rem 0 0; color:#64748b; font-size:11px; }
         .ns-fitout-scope-note i { color:#166534; margin-right:.25rem; }
+        .epc-org-tree { display:flex; flex-wrap:wrap; gap:14px; }
+        .epc-org-node { min-width:220px; flex:1 1 240px; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px; background:linear-gradient(180deg,#f8fafc,#fff); }
+        .epc-org-entity { font-size:13px; color:#0f172a; }
+        .epc-org-entity i { color:#1d4f91; margin-right:6px; }
+        .epc-org-children { list-style:none; margin:8px 0 0; padding:0 0 0 18px; border-left:2px solid #dbe4f0; }
+        .epc-org-children li { font-size:12px; color:#334155; padding:3px 0 3px 8px; }
+        .epc-org-children i { color:#64748b; margin-right:5px; font-size:11px; }
     </style>
 </HeadContent>
 <style data-epc-dash="color-tiles">
@@ -207,6 +215,56 @@
         </div>
 
         <ErpHomeProcessMap CompanyId="@_activeCompanyId" ShowJewellery="@_jewellery" />
+
+        @if (_org is not null && (_org.LegalEntities.Count > 0 || _org.BusinessUnits.Count > 0))
+        {
+            <div class="ns-port" aria-label="Organisation structure">
+                <h4><i class="fa fa-sitemap"></i> Organisation structure</h4>
+                <div class="bd">
+                    <div class="epc-org-tree">
+                        @foreach (var ent in _org.LegalEntities.Where(e => e.Active).OrderBy(e => e.Code))
+                        {
+                            var units = _org.BusinessUnits.Where(u => u.LegalEntityId == ent.Id && u.Active).OrderBy(u => u.Code).ToList();
+                            <div class="epc-org-node">
+                                <div class="epc-org-entity"><i class="fa fa-building"></i> <strong>@ent.Code</strong> · @ent.Name</div>
+                                @if (units.Count > 0)
+                                {
+                                    <ul class="epc-org-children">
+                                        @foreach (var u in units)
+                                        {
+                                            <li><i class="fa fa-briefcase"></i> @u.Code — @u.Name</li>
+                                        }
+                                    </ul>
+                                }
+                            </div>
+                        }
+                        @{
+                            var sharedUnits = _org.BusinessUnits.Where(u => u.Active && !_org.LegalEntities.Any(e => e.Id == u.LegalEntityId)).OrderBy(u => u.Code).ToList();
+                        }
+                        @if (sharedUnits.Count > 0)
+                        {
+                            <div class="epc-org-node">
+                                <div class="epc-org-entity"><i class="fa fa-share-alt"></i> <strong>Shared</strong> · business units</div>
+                                <ul class="epc-org-children">
+                                    @foreach (var u in sharedUnits)
+                                    {
+                                        <li><i class="fa fa-briefcase"></i> @u.Code — @u.Name</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                    </div>
+                    @if (_org.CostCentres.Count > 0)
+                    {
+                        <p class="ns-fitout-scope-note">
+                            <i class="fa fa-crosshairs"></i> Cost centres:
+                            @string.Join(" · ", _org.CostCentres.Where(c => c.Active).OrderBy(c => c.Code).Select(c => c.Code + " " + c.Name))
+                        </p>
+                    }
+                    <p class="ns-fitout-scope-note"><i class="fa fa-cog"></i> Manage the structure in <a href="@WithCompany("/erp/organization-app")">Organization setup</a> — legal entities, business units, cost centres and departments.</p>
+                </div>
+            </div>
+        }
         <ErpHomeInsights
             CompanyId="@_activeCompanyId"
             BooksYear="@_figureYear"
@@ -937,6 +995,7 @@
     private bool _isSuperHost;
     private bool _jewellery;
     private IReadOnlyList<PhpModuleCatalog.ModuleLink> _directoryTabs = PhpModuleCatalog.ErpTabs;
+    private ErpOrganizationMasterSnapshot? _org;
     private bool _fitOut;
     private bool _realEstate;
     private bool _autoParts;
@@ -1104,6 +1163,8 @@
         _hasFullErpAccess = _isSuperHost
             || session.Permissions.Contains(EcomAePermissions.SuperErpAccess);
         ApplyProfile(_hasFullErpAccess, ctx.Request.Query["dash_profile"].ToString(), session);
+        try { _org = await OrgMaster.LoadAsync(200, ctx.RequestAborted); }
+        catch { _org = null; }
         var powerTask = PowerBi.LoadAsync(null, ctx.Request.Host.Host, ctx.RequestAborted);
         if (_isAdmin)
         {
