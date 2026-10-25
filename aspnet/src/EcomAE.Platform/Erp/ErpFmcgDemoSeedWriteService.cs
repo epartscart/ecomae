@@ -431,7 +431,7 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
 
     private static async Task<long> InsertIfAbsentAsync(DbConnection c, string existsSql, string insertSql, CancellationToken ct, params object[] args)
     {
-        var existing = await ErpDb.ScalarAsync(c, null, existsSql, ct, args[0]).ConfigureAwait(false);
+        var existing = await ErpDb.ScalarAsync(c, null, existsSql, ct, args).ConfigureAwait(false);
         if (existing is not null) return Convert.ToInt64(existing);
         await ErpDb.ExecuteAsync(c, null, insertSql, ct, args).ConfigureAwait(false);
         await using var idCmd = c.CreateCommand();
