@@ -205,6 +205,23 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
                     Credit = ErpTaxAmountCalculator.Round2(l.Credit * rate),
                 })
                 .ToList();
+            // Keep the persisted intercompany invoices in the same accounting
+            // currency as the posted lines, or they disagree with the ledger.
+            prepared = new ErpIcPreparedJournal
+            {
+                Lines = prepared.Lines,
+                HeaderBusinessUnitId = prepared.HeaderBusinessUnitId,
+                HeaderLegalEntityId = prepared.HeaderLegalEntityId,
+                Note = prepared.Note,
+                Invoices = prepared.Invoices
+                    .Select(inv => inv with
+                    {
+                        Net = ErpTaxAmountCalculator.Round2(inv.Net * rate),
+                        Vat = ErpTaxAmountCalculator.Round2(inv.Vat * rate),
+                        Gross = ErpTaxAmountCalculator.Round2(inv.Gross * rate),
+                    })
+                    .ToList(),
+            };
         }
         ErpGlPostingService.Validate(lines);
         var idempotencyKey = input.IdempotencyKey.Trim();
