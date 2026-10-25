@@ -619,8 +619,9 @@ public static class CpWebTrackerDashboardBuilder
     /// last_seen_at/site_key). Ensure the indexes the dashboard queries need;
     /// guarded per-index so an existing schema or a busy ALTER never breaks the page.
     /// </summary>
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> _indexAttempts =
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, long> _indexAttempts =
         new(StringComparer.OrdinalIgnoreCase);
+    private const long IndexAttemptCooldownSeconds = 600;
 
     private static async Task EnsureTrackerIndexesAsync(DbConnection connection, CancellationToken cancellationToken)
     {
@@ -639,12 +640,6 @@ public static class CpWebTrackerDashboardBuilder
         var dbKey = string.IsNullOrEmpty(connection.Database) ? "?" : connection.Database;
         foreach (var (table, name, columns) in wanted)
         {
-            var attemptKey = dbKey + "." + table + "." + name;
-            if (!_indexAttempts.TryAdd(attemptKey, 1))
-            {
-                continue;
-            }
-
             try
             {
                 var present = await ErpDb.LongAsync(
@@ -658,6 +653,29 @@ public static class CpWebTrackerDashboardBuilder
                     continue;
                 }
 
+                // skip index builds on databases that hold no tracker rows at all
+                var rows = await ErpDb.LongAsync(
+                    connection, null,
+                    ErpDb.Positional(
+                        "SELECT IFNULL(table_rows,0) FROM information_schema.tables "
+                        + "WHERE table_schema=DATABASE() AND table_name=?"),
+                    cancellationToken, table).ConfigureAwait(false);
+                if (rows <= 0)
+                {
+                    continue;
+                }
+
+                // throttle ALTER attempts per database+index so a failed or busy
+                // build isn't retried every request, but can self-heal later
+                var attemptKey = dbKey + "." + table + "." + name;
+                var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                if (_indexAttempts.TryGetValue(attemptKey, out var last)
+                    && now - last < IndexAttemptCooldownSeconds)
+                {
+                    continue;
+                }
+
+                _indexAttempts[attemptKey] = now;
                 await ErpDb.TryExecuteAsync(
                     connection,
                     "ALTER TABLE `" + table + "` ADD INDEX `" + name + "` " + columns,
