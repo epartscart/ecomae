@@ -223,6 +223,73 @@
             @if (_snap.Routes.Count == 0) { <p class="text-muted">No routes yet — load the sample data.</p> }
         </div>
     }
+    else if (_tab == "recon")
+    {
+        <div class="fo-card">
+            <h3>Van-route reconciliation — loaded vs sold vs returned, expected vs collected cash</h3>
+            <table class="fo">
+                <tr><th>Route</th><th>Name</th><th>Date</th><th class="num">Loaded</th><th class="num">Sold</th><th class="num">Returned</th><th class="num">Cash collected</th><th class="num">Expected</th><th class="num">Variance</th></tr>
+                @foreach (var r in _snap.RouteRecon)
+                {
+                    <tr>
+                        <td>@r.RouteCode</td><td>@r.RouteName</td><td>@FormatDate(r.ReconDate)</td>
+                        <td class="num">@r.QtyLoaded.ToString("N0", CultureInfo.InvariantCulture)</td>
+                        <td class="num">@r.QtySold.ToString("N0", CultureInfo.InvariantCulture)</td>
+                        <td class="num">@r.QtyReturned.ToString("N0", CultureInfo.InvariantCulture)</td>
+                        <td class="num">@r.CashCollected.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="num">@r.ExpectedCash.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="num">
+                            @if (r.Variance < 0) { <span class="fmcg-pill fmcg-pill--bad">@r.Variance.ToString("N2", CultureInfo.InvariantCulture)</span> }
+                            else { <span class="fmcg-pill fmcg-pill--ok">@r.Variance.ToString("N2", CultureInfo.InvariantCulture)</span> }
+                        </td>
+                    </tr>
+                }
+            </table>
+            @if (_snap.RouteRecon.Count == 0) { <p class="text-muted">No reconciliations yet — load the sample data.</p> }
+        </div>
+    }
+    else if (_tab == "landed")
+    {
+        <div class="fo-card">
+            <h3>Landed cost — supplier price + freight + customs + insurance</h3>
+            <table class="fo">
+                <tr><th>Shipment</th><th>SKU</th><th>Item</th><th class="num">Qty</th><th class="num">Unit cost</th><th class="num">Freight</th><th class="num">Customs</th><th class="num">Insurance</th><th class="num">Landed unit</th></tr>
+                @foreach (var l in _snap.LandedCosts)
+                {
+                    <tr>
+                        <td>@l.Shipment</td><td>@l.Sku</td><td>@l.ItemName</td>
+                        <td class="num">@l.Qty.ToString("N0", CultureInfo.InvariantCulture)</td>
+                        <td class="num">@l.UnitCost.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="num">@l.Freight.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="num">@l.Customs.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="num">@l.Insurance.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="num"><strong>@l.LandedUnitCost.ToString("N4", CultureInfo.InvariantCulture)</strong></td>
+                    </tr>
+                }
+            </table>
+            @if (_snap.LandedCosts.Count == 0) { <p class="text-muted">No shipments yet — load the sample data.</p> }
+        </div>
+    }
+    else if (_tab == "writedowns")
+    {
+        <div class="fo-card">
+            <h3>Expiry / damage / shrinkage write-downs — posted to the GL</h3>
+            <table class="fo">
+                <tr><th>Batch</th><th>SKU</th><th>Reason</th><th class="num">Qty</th><th class="num">Amount</th><th>Date</th><th>GL journal</th></tr>
+                @foreach (var w in _snap.WriteDowns)
+                {
+                    <tr>
+                        <td>@w.BatchNo</td><td>@w.Sku</td><td>@w.Reason</td>
+                        <td class="num">@w.Qty.ToString("N0", CultureInfo.InvariantCulture)</td>
+                        <td class="num">@w.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td>@FormatDate(w.WriteDate)</td>
+                        <td>@(w.GlJournalId > 0 ? w.GlJournalId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                    </tr>
+                }
+            </table>
+            @if (_snap.WriteDowns.Count == 0) { <p class="text-muted">No write-downs yet — load the sample data.</p> }
+        </div>
+    }
     else if (_tab == "promotions")
     {
         <div class="fo-card">
@@ -291,7 +358,7 @@
 </PhpErpDesktopChrome>
 
 @code {
-    private ErpFmcgWorkspaceSnapshot _snap = new([], [], [], [], [], 0, 0, 0, "QA", "none", "");
+    private ErpFmcgWorkspaceSnapshot _snap = new([], [], [], [], [], [], [], [], 0, 0, 0, "QA", "none", "");
     private ErpGccCountryPack _pack = ErpGccLocalizationCatalog.Qatar;
     private string _tab = ErpFmcgWorkspace.GuideTab;
     private string _tabLabel = "Guide";

@@ -148,12 +148,14 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
             ("R-01", "Doha central", "Ahmed K.", "Van QA-1021"),
             ("R-02", "Al Rayyan / Al Wakrah", "Salim H.", "Van QA-2044"),
         };
+        var routeIds = new List<long>();
         foreach (var (code, name, sp, veh) in routes)
         {
             var id = await InsertIfAbsentAsync(connection,
                 "SELECT `id` FROM `" + ErpFmcgWorkspaceSchema.Routes + "` WHERE `code`=@p0",
                 "INSERT INTO `" + ErpFmcgWorkspaceSchema.Routes + "` (`code`,`name`,`salesperson`,`vehicle`,`warehouse`,`active`,`time_created`,`time_modified`) VALUES (@p0,@p1,@p2,@p3,'DC-Doha',1,@p4,@p4)",
                 cancellationToken, code, name, sp, veh, now);
+            routeIds.Add(id);
             await MarkAsync(connection, ErpFmcgWorkspaceSchema.Routes, id, cancellationToken).ConfigureAwait(false);
         }
 
@@ -164,6 +166,43 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
             cancellationToken, "PROMO-WTR-10+1", "Water case 10+1 free", itemIds[0], now - 7 * day, now + 60 * day, now);
         await MarkAsync(connection, ErpFmcgWorkspaceSchema.Promotions, promoId, cancellationToken).ConfigureAwait(false);
 
+        // --- Landed cost shipments: supplier price + freight + customs + insurance → landed unit cost ---
+        var landed = new (string Ship, int ItemIdx, decimal Qty, decimal Unit, decimal Freight, decimal Customs, decimal Ins)[]
+        {
+            ("SHP-QA-001", 4, 500, 38.00m, 950m, 950m, 120m),   // rice — GCC CET 5%
+            ("SHP-QA-002", 5, 300, 24.00m, 620m, 360m, 80m),    // oil
+        };
+        foreach (var l in landed)
+        {
+            var it = items[l.ItemIdx];
+            var landedUnit = l.Unit + (l.Freight + l.Customs + l.Ins) / l.Qty;
+            var id = await InsertIfAbsentAsync(connection,
+                "SELECT `id` FROM `" + ErpFmcgWorkspaceSchema.LandedCosts + "` WHERE `shipment`=@p0 AND `item_id`=@p1",
+                "INSERT INTO `" + ErpFmcgWorkspaceSchema.LandedCosts + "` (`shipment`,`item_id`,`qty`,`unit_cost`,`freight`,`customs`,`insurance`,`landed_unit_cost`,`time_created`,`time_modified`)"
+                + " VALUES (@p0,@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@p8)",
+                cancellationToken, l.Ship, itemIds[l.ItemIdx], l.Qty, l.Unit, l.Freight, l.Customs, l.Ins, landedUnit, now);
+            await MarkAsync(connection, ErpFmcgWorkspaceSchema.LandedCosts, id, cancellationToken).ConfigureAwait(false);
+        }
+
+        // --- Route reconciliation: two days on route R-01 ---
+        if (routeIds.Count > 0)
+        {
+            var reconRows = new (long D, decimal Load, decimal Sold, decimal Ret, decimal Cash, decimal Expect)[]
+            {
+                (now - day, 200m, 168m, 12m, 3696m, 3696m),
+                (now, 200m, 171m, 9m, 3542m, 3762m), // cash short — variance flags shrinkage
+            };
+            foreach (var rc in reconRows)
+            {
+                var id = await InsertIfAbsentAsync(connection,
+                    "SELECT `id` FROM `" + ErpFmcgWorkspaceSchema.RouteRecon + "` WHERE `route_id`=@p0 AND `recon_date`=@p1",
+                    "INSERT INTO `" + ErpFmcgWorkspaceSchema.RouteRecon + "` (`route_id`,`recon_date`,`qty_loaded`,`qty_sold`,`qty_returned`,`cash_collected`,`expected_cash`,`variance`,`time_created`,`time_modified`)"
+                    + " VALUES (@p0,@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@p8)",
+                    cancellationToken, routeIds[0], rc.D, rc.Load, rc.Sold, rc.Ret, rc.Cash, rc.Expect, rc.Cash - rc.Expect, now);
+                await MarkAsync(connection, ErpFmcgWorkspaceSchema.RouteRecon, id, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
         // --- Demo GL: sales + COGS so TB / P&L / BS carry the numbers ---
         var salesCoa = await EnsureCoaAsync(connection, "4000", "Revenue — FMCG sales", "revenue", "credit", cancellationToken);
         var cogsCoa = await EnsureCoaAsync(connection, "5000", "Cost of goods sold — FMCG", "expense", "debit", cancellationToken);
@@ -171,6 +210,7 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
         var invCoa = await EnsureCoaAsync(connection, "1300", "Finished-goods inventory — FMCG", "asset", "debit", cancellationToken);
         var exciseCoa = await EnsureCoaAsync(connection, "6100", "Excise tax expense", "expense", "debit", cancellationToken);
         var excisePay = await EnsureCoaAsync(connection, "2200", "Excise tax payable", "liability", "credit", cancellationToken);
+        var wdCoa = await EnsureCoaAsync(connection, "6200", "Inventory write-down loss — expiry/damage/shrinkage", "expense", "debit", cancellationToken);
 
         var sales = items.Sum(i => i.Price * 20m);
         var cogs = items.Sum(i => i.Cost * 20m);
@@ -215,7 +255,36 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
             0, cancellationToken).ConfigureAwait(false);
         await MarkAsync(connection, "epc_erp_gl_journals", j2, cancellationToken).ConfigureAwait(false);
 
-        return $"FMCG demo data loaded: {entities.Length} entities, {bus.Length} BUs, {ccs.Length} cost centres, {items.Length} SKUs, batches/channels/routes/promotion, 2 GL journals (QAR).";
+        // Write-down demo: 12 cases of the near-expiry yoghurt batch written off.
+        var wdBatch = await ScalarAsync(connection,
+            "SELECT b.`id` FROM `" + ErpFmcgWorkspaceSchema.Batches + "` b JOIN `" + ErpFmcgWorkspaceSchema.Items + "` i ON i.`id`=b.`item_id`"
+            + " WHERE i.`sku`='FM-YGT-PLN170' ORDER BY b.`expiry_date` LIMIT 1", cancellationToken);
+        var wdAmount = 12m * items[3].Cost;
+        var j3 = await _gl.PostJournalAsync(connection,
+            new ErpGlJournalHeader
+            {
+                JournalDate = now,
+                Reference = "FMCG-DEMO-WD",
+                Description = "Expiry write-down — yoghurt batch (demo, QAR)",
+                SourceType = "fmcg_demo",
+                CurrencyCode = "QAR",
+                ExchangeRate = 1m,
+            },
+            new List<ErpGlLine>
+            {
+                new(wdCoa, wdAmount, 0m, "Expiry write-down — demo"),
+                new(invCoa, 0m, wdAmount, "Inventory relieved — expiry write-down"),
+            },
+            0, cancellationToken).ConfigureAwait(false);
+        await MarkAsync(connection, "epc_erp_gl_journals", j3, cancellationToken).ConfigureAwait(false);
+        var wdId = await InsertIfAbsentAsync(connection,
+            "SELECT `id` FROM `" + ErpFmcgWorkspaceSchema.WriteDowns + "` WHERE `batch_id`=@p0 AND `reason`='expiry'",
+            "INSERT INTO `" + ErpFmcgWorkspaceSchema.WriteDowns + "` (`batch_id`,`reason`,`qty`,`amount`,`loss_account_id`,`gl_journal_id`,`write_date`,`time_created`,`time_modified`)"
+            + " VALUES (@p0,'expiry',12,@p1,@p2,@p3,@p4,@p4,@p4)",
+            cancellationToken, wdBatch, wdAmount, wdCoa, j3, now);
+        await MarkAsync(connection, ErpFmcgWorkspaceSchema.WriteDowns, wdId, cancellationToken).ConfigureAwait(false);
+
+        return $"FMCG demo data loaded: {entities.Length} entities, {bus.Length} BUs, {ccs.Length} cost centres, {items.Length} SKUs, batches/channels/routes/promotion, 3 GL journals incl. a write-down (QAR).";
     }
 
     public async Task<string> ClearDemoAsync(CancellationToken cancellationToken = default)

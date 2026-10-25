@@ -19,6 +19,14 @@ public sealed record ErpFmcgPromotionDigest(
     long Id, string Code, string Name, string Kind, string ItemSku,
     decimal BuyQty, decimal FreeQty, decimal DiscountPct, long StartDate, long EndDate, bool Active);
 public sealed record ErpFmcgRouteDigest(long Id, string Code, string Name, string Salesperson, string Vehicle, string Warehouse);
+public sealed record ErpFmcgLandedCostDigest(
+    long Id, string Shipment, string Sku, string ItemName, decimal Qty,
+    decimal UnitCost, decimal Freight, decimal Customs, decimal Insurance, decimal LandedUnitCost);
+public sealed record ErpFmcgWriteDownDigest(
+    long Id, string BatchNo, string Sku, string Reason, decimal Qty, decimal Amount, long WriteDate, long GlJournalId);
+public sealed record ErpFmcgRouteReconDigest(
+    long Id, string RouteCode, string RouteName, long ReconDate,
+    decimal QtyLoaded, decimal QtySold, decimal QtyReturned, decimal CashCollected, decimal ExpectedCash, decimal Variance);
 
 public sealed record ErpFmcgWorkspaceSnapshot(
     IReadOnlyList<ErpFmcgItemDigest> Items,
@@ -26,6 +34,9 @@ public sealed record ErpFmcgWorkspaceSnapshot(
     IReadOnlyList<ErpFmcgChannelDigest> Channels,
     IReadOnlyList<ErpFmcgPromotionDigest> Promotions,
     IReadOnlyList<ErpFmcgRouteDigest> Routes,
+    IReadOnlyList<ErpFmcgLandedCostDigest> LandedCosts,
+    IReadOnlyList<ErpFmcgWriteDownDigest> WriteDowns,
+    IReadOnlyList<ErpFmcgRouteReconDigest> RouteRecon,
     long LegalEntityCount,
     long BusinessUnitCount,
     long CostCentreCount,
@@ -47,7 +58,7 @@ public sealed class ErpFmcgWorkspaceReadService : IErpFmcgWorkspaceReadService
     public async Task<ErpFmcgWorkspaceSnapshot> SnapshotAsync(string countryCode, CancellationToken cancellationToken = default)
     {
         var pack = ErpGccLocalizationCatalog.Resolve(countryCode);
-        var empty = new ErpFmcgWorkspaceSnapshot([], [], [], [], [], 0, 0, 0, pack.Code, "none", "");
+        var empty = new ErpFmcgWorkspaceSnapshot([], [], [], [], [], [], [], [], 0, 0, 0, pack.Code, "none", "");
         if (!_connections.IsConfigured)
         {
             return empty with { Source = "config", Message = "TenantRegistry DB is not configured." };
@@ -118,8 +129,36 @@ public sealed class ErpFmcgWorkspaceReadService : IErpFmcgWorkspaceReadService
             var bus = await ScalarAsync(connection, "SELECT COUNT(*) FROM `epc_erp_pm_business_units`", cancellationToken);
             var ccs = await ScalarAsync(connection, "SELECT COUNT(*) FROM `epc_erp_pm_cost_centres`", cancellationToken);
 
+            var landed = new List<ErpFmcgLandedCostDigest>();
+            await ReadAsync(connection, cancellationToken,
+                "SELECT l.`id`,l.`shipment`,i.`sku`,i.`name`,l.`qty`,l.`unit_cost`,l.`freight`,l.`customs`,l.`insurance`,l.`landed_unit_cost`"
+                + " FROM `" + ErpFmcgWorkspaceSchema.LandedCosts + "` l"
+                + " LEFT JOIN `" + ErpFmcgWorkspaceSchema.Items + "` i ON i.`id`=l.`item_id`"
+                + " ORDER BY l.`shipment` LIMIT 300",
+                r => landed.Add(new ErpFmcgLandedCostDigest(
+                    I64(r, 0), S(r, 1), S(r, 2), S(r, 3), D(r, 4), D(r, 5), D(r, 6), D(r, 7), D(r, 8), D(r, 9))));
+
+            var writedowns = new List<ErpFmcgWriteDownDigest>();
+            await ReadAsync(connection, cancellationToken,
+                "SELECT w.`id`,b.`batch_no`,i.`sku`,w.`reason`,w.`qty`,w.`amount`,w.`write_date`,w.`gl_journal_id`"
+                + " FROM `" + ErpFmcgWorkspaceSchema.WriteDowns + "` w"
+                + " LEFT JOIN `" + ErpFmcgWorkspaceSchema.Batches + "` b ON b.`id`=w.`batch_id`"
+                + " LEFT JOIN `" + ErpFmcgWorkspaceSchema.Items + "` i ON i.`id`=b.`item_id`"
+                + " ORDER BY w.`write_date` DESC LIMIT 300",
+                r => writedowns.Add(new ErpFmcgWriteDownDigest(
+                    I64(r, 0), S(r, 1), S(r, 2), S(r, 3), D(r, 4), D(r, 5), I64(r, 6), I64(r, 7))));
+
+            var recon = new List<ErpFmcgRouteReconDigest>();
+            await ReadAsync(connection, cancellationToken,
+                "SELECT rc.`id`,rt.`code`,rt.`name`,rc.`recon_date`,rc.`qty_loaded`,rc.`qty_sold`,rc.`qty_returned`,rc.`cash_collected`,rc.`expected_cash`,rc.`variance`"
+                + " FROM `" + ErpFmcgWorkspaceSchema.RouteRecon + "` rc"
+                + " LEFT JOIN `" + ErpFmcgWorkspaceSchema.Routes + "` rt ON rt.`id`=rc.`route_id`"
+                + " ORDER BY rc.`recon_date` DESC LIMIT 300",
+                r => recon.Add(new ErpFmcgRouteReconDigest(
+                    I64(r, 0), S(r, 1), S(r, 2), I64(r, 3), D(r, 4), D(r, 5), D(r, 6), D(r, 7), D(r, 8), D(r, 9))));
+
             return new ErpFmcgWorkspaceSnapshot(
-                items, batches, channels, promotions, routes, entities, bus, ccs,
+                items, batches, channels, promotions, routes, landed, writedowns, recon, entities, bus, ccs,
                 pack.Code, "database", string.Empty);
         }
         catch (Exception ex)
