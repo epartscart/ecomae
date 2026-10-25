@@ -89,7 +89,7 @@ public sealed class CpTenantsWriteTests
         Assert.Equal("jewellery", CpTenantsWriteService.NormalizeIndustry("jewellery"));
         Assert.Equal("fito@ecomae.com", CpTenantsWriteService.OperatorEmailFor("FITO"));
         Assert.Equal("real@ecomae.com", CpTenantsWriteService.OperatorEmailFor("real"));
-        Assert.Equal(4, ErpOnlyLaunchClients.All.Count);
+        Assert.Equal(5, ErpOnlyLaunchClients.All.Count);
         Assert.Equal("yawer@ecomae.com", ErpOnlyLaunchClients.SuperMailbox);
         // asap offboarded — no longer a launch client; its DB is retained off-catalog.
         Assert.DoesNotContain(ErpOnlyLaunchClients.All, c => c.SiteKey == "asap");
@@ -97,6 +97,7 @@ public sealed class CpTenantsWriteTests
         Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "indj");
         Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "fito");
         Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "real");
+        Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "fmcg" && c.IndustryCode == "fmcg_wholesale");
         Assert.False(CpTenantsWriteService.IsDroppableDatabase("ecomae"));
         Assert.True(CpTenantsWriteService.IsDroppableDatabase("asap"));
     }
