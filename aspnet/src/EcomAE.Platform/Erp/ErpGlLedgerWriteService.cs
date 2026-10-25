@@ -214,14 +214,15 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
                 HeaderLegalEntityId = prepared.HeaderLegalEntityId,
                 Note = prepared.Note,
                 Invoices = prepared.Invoices
-                    .Select(inv => inv with
+                    // Gross must equal the posted receivable line (built from
+                    // gross before conversion), so convert gross first; VAT is
+                    // then the remainder so gross == net + vat holds exactly.
+                    .Select(inv =>
                     {
-                        Net = ErpTaxAmountCalculator.Round2(inv.Net * rate),
-                        Vat = ErpTaxAmountCalculator.Round2(inv.Vat * rate),
+                        var gross = ErpTaxAmountCalculator.Round2(inv.Gross * rate);
+                        var net = ErpTaxAmountCalculator.Round2(inv.Net * rate);
+                        return inv with { Net = net, Vat = gross - net, Gross = gross };
                     })
-                    // Recompute gross from the rounded net + VAT so the persisted
-                    // invoice totals stay internally consistent at rounding edges.
-                    .Select(inv => inv with { Gross = ErpTaxAmountCalculator.Round2(inv.Net + inv.Vat) })
                     .ToList(),
             };
         }
