@@ -1,0 +1,341 @@
+@page "/erp/fmcg/workspace"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject ICpCsrfGuard Csrf
+@inject IHttpContextAccessor Http
+@inject IErpFmcgWorkspaceReadService Workspace
+
+<PageTitle>FMCG workspace · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="FMCG workspace" BreadcrumbArea="Industry" BreadcrumbTab="@_tabLabel">
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/fmcg/workspace" IsAdmin="_isAdmin" />
+    <PhpErpModulePageHeader
+        Title="@(_tab == ErpFmcgWorkspace.GuideTab ? "FMCG, step by step" : "FMCG workspace")"
+        Subtitle="FMCG industry layer: SKU + GTIN catalogue, pack conversions, batch/lot with manufacturing and expiry dates, FEFO picking, recalls, channels, van sales, trade promotions — all COA-linked to the trial balance, income statement and balance sheet, with the GCC country tax pack."
+        PhpTabHref="/erp/fmcg/workspace" />
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
+
+    <div class="fo-board-dock" aria-label="Workspace actions">
+        <div class="fo-board-dock__col">
+            <strong>FMCG workspace · @_pack.Name (@_pack.CurrencyCode)</strong>
+            <form class="fo-filter" method="get" action="@SelfHref">
+                <input type="hidden" name="tab" value="@_tab" />
+                <label>
+                    <span>Country pack (preview)</span>
+                    <select name="country">
+                        @foreach (var p in ErpGccLocalizationCatalog.All)
+                        {
+                            <option value="@p.Code" selected="@(string.Equals(_country, p.Code, StringComparison.OrdinalIgnoreCase))">@p.Name (@p.CurrencyCode)</option>
+                        }
+                    </select>
+                </label>
+                <button class="btn btn-sm fo-board-btn" type="submit">Apply</button>
+            </form>
+        </div>
+        <div class="fo-board-dock__actions">
+            @if (_isAdmin)
+            {
+                <form method="post" action="@DemoHref("seed")" class="fo-inline">
+                    <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
+                    <input type="hidden" name="confirmWrites" value="1" />
+                    <input type="hidden" name="returnUrl" value="@(SelfHref + "?tab=" + _tab + QuerySuffix)" />
+                    <button class="btn btn-sm fo-board-btn" type="submit"><i class="fa fa-cloud-download"></i> Load sample data</button>
+                </form>
+                <form method="post" action="@DemoHref("clear")" class="fo-inline">
+                    <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
+                    <input type="hidden" name="confirmWrites" value="1" />
+                    <input type="hidden" name="returnUrl" value="@(SelfHref + "?tab=" + _tab + QuerySuffix)" />
+                    <button class="btn btn-sm fo-board-btn fo-board-btn--danger" type="submit"><i class="fa fa-trash"></i> Remove sample data</button>
+                </form>
+                <a class="btn btn-sm fo-board-btn" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/gl-journals-app")"><i class="fa fa-book"></i> GL journals</a>
+            }
+            <a class="btn btn-sm fo-board-btn" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/reports/income-statement")" target="_blank" rel="noopener">Income statement</a>
+            <a class="btn btn-sm fo-board-btn" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/reports/balance-sheet")" target="_blank" rel="noopener">Balance sheet</a>
+            <a class="btn btn-sm fo-board-btn" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/reports/trial-balance")" target="_blank" rel="noopener">Trial balance</a>
+        </div>
+    </div>
+
+    <style>
+        .fo-board-dock { position: sticky; top: 0; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 14px; padding: 10px 14px; background: linear-gradient(90deg, #4a1d06, #c2410c); color: #ffedd5; border-bottom: 3px solid #fb923c; border-radius: 6px; box-shadow: 0 8px 24px rgba(74,29,6,.22); }
+        .fo-board-dock strong { color: #fdba74; }
+        .fo-board-dock__col { display: flex; flex-direction: column; gap: 6px; }
+        .fo-board-dock__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .fo-board-btn { background: #fdba74 !important; color: #4a1d06 !important; border: 0 !important; font-weight: 600; }
+        .fo-board-btn--danger { background: #fda4af !important; color: #4c0519 !important; }
+        .fo-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+        .fo-filter label { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: #fed7aa; }
+        .fo-filter select { font-size: 13px; padding: 4px 8px; border: 1px solid #fdba74; border-radius: 6px; background: #fff7ed; color: #4a1d06; min-width: 200px; }
+        .fo-inline { display: inline; margin: 0; }
+        .fo-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; }
+        .fo-card { background: #fff; border: 1px solid #d5e3f2; border-radius: 10px; padding: 12px 14px; }
+        .fo-card h3 { margin: 0 0 8px; font-size: 14px; color: #c2410c; }
+        table.fo { border-collapse: collapse; width: 100%; font-size: 12px; }
+        table.fo th, table.fo td { border: 1px solid #e2e8f0; padding: 4px 8px; text-align: left; }
+        table.fo th { background: #fff7ed; color: #c2410c; }
+        table.fo td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .fmcg-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+        .fmcg-step { background: #fff; border: 1px solid #e2e8f0; border-left: 4px solid #fb923c; border-radius: 8px; padding: 10px 12px; }
+        .fmcg-step b { display: block; color: #4a1d06; margin-bottom: 4px; }
+        .fmcg-step span.n { display: inline-block; min-width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; background: #fb923c; color: #fff; font-size: 11px; font-weight: 700; margin-right: 6px; }
+        .fmcg-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+        .fmcg-pill--ok { background: #dcfce7; color: #14532d; }
+        .fmcg-pill--warn { background: #fef9c3; color: #713f12; }
+        .fmcg-pill--bad { background: #fee2e2; color: #7f1d1d; }
+    </style>
+
+    <nav class="epc-erp-tabs" aria-label="FMCG workspace tabs">
+        @foreach (var (key, label) in ErpFmcgWorkspace.Tabs)
+        {
+            <a class="epc-erp-tab @(key == _tab ? "active" : "")" href="@TabHref(key)">@label</a>
+        }
+    </nav>
+
+    @if (!string.IsNullOrWhiteSpace(_snap.Message))
+    {
+        <p class="text-muted">@_snap.Message</p>
+    }
+
+    @if (_tab == ErpFmcgWorkspace.GuideTab)
+    {
+        <div class="fo-card" style="margin-bottom:12px">
+            <h3>FMCG workspace — the whole flow, step by step</h3>
+            <div class="fmcg-steps">
+                @{ var n = 0; }
+                @foreach (var (title, detail) in ErpFmcgWorkspace.GuideSteps)
+                {
+                    n++;
+                    <div class="fmcg-step"><b><span class="n">@n</span>@title</b>@detail</div>
+                }
+            </div>
+        </div>
+        <div class="fo-card">
+            <h3>What lives where (no duplicate fields)</h3>
+            <table class="fo">
+                <tr><th>FMCG concept</th><th>Stored in</th></tr>
+                <tr><td>Legal entities, business units, cost centres, departments, dimensions</td><td>Existing core registers (epc_erp_pm_*) — shared with every vertical</td></tr>
+                <tr><td>Chart of accounts, journals, trial balance, P&amp;L, balance sheet</td><td>Existing GL (epc_erp_gl_*) — FMCG posts standard journals</td></tr>
+                <tr><td>Customers, suppliers, warehouses, price lists</td><td>Existing masters — no FMCG copy</td></tr>
+                <tr><td>GTIN, pack conversions, shelf life, FEFO, excise category, COA links</td><td>FMCG item extension table (epc_erp_fmcg_items)</td></tr>
+                <tr><td>Batch/lot, mfg + expiry dates, quarantine, recall genealogy</td><td>FMCG batches (epc_erp_fmcg_batches)</td></tr>
+                <tr><td>Channels, van-sale routes, trade promotions</td><td>epc_erp_fmcg_channels / routes / promotions</td></tr>
+                <tr><td>Qatar / GCC tax + legal rules</td><td>Country pack catalog (code, not duplicated fields)</td></tr>
+            </table>
+        </div>
+    }
+    else if (_tab == "structure")
+    {
+        <div class="epc-erp-kpi epc-erp-stat-row">
+            <div class="kpi"><div class="lbl">Legal entities</div><div class="val">@_snap.LegalEntityCount</div></div>
+            <div class="kpi"><div class="lbl">Business units</div><div class="val">@_snap.BusinessUnitCount</div></div>
+            <div class="kpi"><div class="lbl">Cost centres</div><div class="val">@_snap.CostCentreCount</div></div>
+            <div class="kpi"><div class="lbl">Country pack</div><div class="val">@_pack.Code</div><div class="text-muted" style="font-size:11px">@_pack.CurrencyName</div></div>
+        </div>
+        <div class="fo-card">
+            <h3>Structure lives in the shared organization registers</h3>
+            <p class="text-muted" style="margin:0">Legal entities, business units, cost centres and departments are managed once for every industry in <a href="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/organization-app")">Organization setup</a>. The demo seed creates a two-entity Qatar FMCG group (holding + distribution/retail) with three business units and four cost centres.</p>
+        </div>
+    }
+    else if (_tab == "items")
+    {
+        <div class="fo-card">
+            <h3>FMCG items — GTIN, packs, shelf life, COA links</h3>
+            <table class="fo">
+                <tr><th>SKU</th><th>Item</th><th>Brand</th><th>Category</th><th>GTIN</th><th>Base UOM</th><th class="num">Units/case</th><th class="num">Cases/pallet</th><th class="num">Shelf days</th><th>Flags</th><th>Excise</th><th>COA (S/COGS/Inv)</th><th class="num">Cost</th><th class="num">Price</th><th>Channel</th></tr>
+                @foreach (var i in _snap.Items)
+                {
+                    <tr>
+                        <td>@i.Sku</td><td>@i.Name</td><td>@i.Brand</td><td>@i.Category</td><td>@i.Gtin</td><td>@i.BaseUom</td>
+                        <td class="num">@i.UnitsPerCase</td><td class="num">@i.CasesPerPallet</td><td class="num">@i.ShelfLifeDays</td>
+                        <td>
+                            @if (i.BatchTracked) { <span class="fmcg-pill fmcg-pill--ok">batch</span> }
+                            @if (i.ExpiryTracked) { <span class="fmcg-pill fmcg-pill--ok">expiry</span> }
+                            @if (i.Fefo) { <span class="fmcg-pill fmcg-pill--ok">FEFO</span> }
+                        </td>
+                        <td>@(i.ExciseCategory.Length > 0 ? i.ExciseCategory : "—")</td>
+                        <td>@i.CoaSalesId / @i.CoaCogsId / @i.CoaInventoryId</td>
+                        <td class="num">@i.Cost.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="num">@i.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td>@i.Channel</td>
+                    </tr>
+                }
+            </table>
+            @if (_snap.Items.Count == 0) { <p class="text-muted">No FMCG items yet — load the sample data.</p> }
+        </div>
+    }
+    else if (_tab == "batches")
+    {
+        <div class="fo-card">
+            <h3>Batches, expiry &amp; FEFO</h3>
+            <table class="fo">
+                <tr><th>Batch</th><th>SKU</th><th>Item</th><th class="num">Qty on hand</th><th>Warehouse</th><th>Mfg date</th><th>Expiry</th><th class="num">Days left</th><th>Status</th></tr>
+                @foreach (var b in _snap.Batches)
+                {
+                    <tr>
+                        <td>@b.BatchNo</td><td>@b.Sku</td><td>@b.ItemName</td>
+                        <td class="num">@b.QtyOnHand.ToString("N0", CultureInfo.InvariantCulture)</td>
+                        <td>@b.Warehouse</td>
+                        <td>@FormatDate(b.MfgDate)</td><td>@FormatDate(b.ExpiryDate)</td>
+                        <td class="num">@b.DaysToExpiry</td>
+                        <td>
+                            @if (b.RecallFlag) { <span class="fmcg-pill fmcg-pill--bad">recall</span> }
+                            else if (b.DaysToExpiry <= 30) { <span class="fmcg-pill fmcg-pill--warn">near expiry</span> }
+                            else { <span class="fmcg-pill fmcg-pill--ok">@b.Status</span> }
+                        </td>
+                    </tr>
+                }
+            </table>
+            @if (_snap.Batches.Count == 0) { <p class="text-muted">No batches yet — load the sample data.</p> }
+        </div>
+    }
+    else if (_tab == "channels")
+    {
+        <div class="fo-card">
+            <h3>Sales channels</h3>
+            <table class="fo">
+                <tr><th>Code</th><th>Channel</th><th>Kind</th><th>Sales COA</th></tr>
+                @foreach (var c in _snap.Channels)
+                {
+                    <tr><td>@c.Code</td><td>@c.Name</td><td>@c.Kind</td><td>@(c.SalesAccountId > 0 ? c.SalesAccountId.ToString(CultureInfo.InvariantCulture) : "default")</td></tr>
+                }
+            </table>
+            @if (_snap.Channels.Count == 0) { <p class="text-muted">No channels yet — load the sample data.</p> }
+        </div>
+    }
+    else if (_tab == "routes")
+    {
+        <div class="fo-card">
+            <h3>Van sales routes</h3>
+            <table class="fo">
+                <tr><th>Code</th><th>Route</th><th>Salesperson</th><th>Vehicle</th><th>Warehouse</th></tr>
+                @foreach (var r in _snap.Routes)
+                {
+                    <tr><td>@r.Code</td><td>@r.Name</td><td>@r.Salesperson</td><td>@r.Vehicle</td><td>@r.Warehouse</td></tr>
+                }
+            </table>
+            @if (_snap.Routes.Count == 0) { <p class="text-muted">No routes yet — load the sample data.</p> }
+        </div>
+    }
+    else if (_tab == "promotions")
+    {
+        <div class="fo-card">
+            <h3>Trade promotions &amp; free goods</h3>
+            <table class="fo">
+                <tr><th>Code</th><th>Name</th><th>Kind</th><th>SKU</th><th class="num">Buy qty</th><th class="num">Free qty</th><th class="num">Discount %</th><th>Start</th><th>End</th><th>Status</th></tr>
+                @foreach (var p in _snap.Promotions)
+                {
+                    <tr>
+                        <td>@p.Code</td><td>@p.Name</td><td>@p.Kind</td><td>@p.ItemSku</td>
+                        <td class="num">@p.BuyQty.ToString("N0", CultureInfo.InvariantCulture)</td>
+                        <td class="num">@p.FreeQty.ToString("N0", CultureInfo.InvariantCulture)</td>
+                        <td class="num">@p.DiscountPct.ToString("N1", CultureInfo.InvariantCulture)</td>
+                        <td>@FormatDate(p.StartDate)</td><td>@FormatDate(p.EndDate)</td>
+                        <td>@(p.Active ? "active" : "ended")</td>
+                    </tr>
+                }
+            </table>
+            @if (_snap.Promotions.Count == 0) { <p class="text-muted">No promotions yet — load the sample data.</p> }
+        </div>
+    }
+    else if (_tab == "tax")
+    {
+        <div class="fo-card">
+            <h3>@_pack.Name country pack — tax &amp; legal</h3>
+            <table class="fo">
+                <tr><th>Rule</th><th>@_pack.Name</th></tr>
+                <tr><td>Currency</td><td>@_pack.CurrencyCode — @_pack.CurrencyName</td></tr>
+                <tr><td>VAT</td><td>@_pack.VatStatus@( _pack.VatRate > 0 ? $" ({_pack.VatRate.ToString("N1", CultureInfo.InvariantCulture)}%)" : "")</td></tr>
+                <tr><td>Corporate tax</td><td>@_pack.CorporateTax</td></tr>
+                <tr><td>Withholding tax</td><td>@_pack.WithholdingTax</td></tr>
+                <tr><td>Excise</td><td>@_pack.Excise</td></tr>
+                <tr><td>Customs</td><td>@_pack.Customs</td></tr>
+                <tr><td>Business law</td><td>@_pack.LegalNotes</td></tr>
+            </table>
+            <p class="text-muted" style="margin-top:8px">Compliance follows the tenant's registered country on the company profile; the selector above is a preview of the other GCC packs.</p>
+        </div>
+    }
+    else if (_tab == "reports")
+    {
+        <div class="fo-grid2">
+            <div class="fo-card">
+                <h3>Field → COA → statement traceability (IFRS)</h3>
+                <table class="fo">
+                    <tr><th>FMCG event</th><th>Journal</th><th>Statement line</th></tr>
+                    <tr><td>Channel sale</td><td>Dr Trade receivables / Cr Revenue — FMCG</td><td>P&amp;L revenue; BS receivables</td></tr>
+                    <tr><td>Goods issue (FEFO batch)</td><td>Dr COGS / Cr Finished-goods inventory</td><td>P&amp;L COGS; BS inventory</td></tr>
+                    <tr><td>Excise on excisable SKUs</td><td>Dr Excise expense / Cr Excise payable</td><td>P&amp;L duties; BS tax payable</td></tr>
+                    <tr><td>Free goods / promo accrual</td><td>Dr Promotion expense / Cr Accrual</td><td>P&amp;L trade spend; BS accruals</td></tr>
+                    <tr><td>Expiry / damage write-down</td><td>Dr Write-down loss / Cr Inventory</td><td>P&amp;L other expense; BS inventory</td></tr>
+                    <tr><td>Corporate income tax (QA)</td><td>Dr Tax expense / Cr Income tax payable</td><td>P&amp;L tax; BS liabilities</td></tr>
+                </table>
+            </div>
+            <div class="fo-card">
+                <h3>Open the statements</h3>
+                <p class="text-muted">All FMCG postings reach the shared GL, so the standard IFRS statements pick them up unchanged:</p>
+                <p>
+                    <a href="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/reports/trial-balance")">Trial balance</a> ·
+                    <a href="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/reports/income-statement")">Income statement (P&amp;L)</a> ·
+                    <a href="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/reports/balance-sheet")">Balance sheet</a> ·
+                    <a href="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/gl-journals-app")">GL journals</a>
+                </p>
+            </div>
+        </div>
+    }
+</PhpErpDesktopChrome>
+
+@code {
+    private ErpFmcgWorkspaceSnapshot _snap = new([], [], [], [], [], 0, 0, 0, "QA", "none", "");
+    private ErpGccCountryPack _pack = ErpGccLocalizationCatalog.Qatar;
+    private string _tab = ErpFmcgWorkspace.GuideTab;
+    private string _tabLabel = "Guide";
+    private string _country = string.Empty;
+    private bool _isAdmin;
+    private string _csrf = string.Empty;
+    private string _flashOk = string.Empty;
+    private string _flashErr = string.Empty;
+
+    private string QuerySuffix => _country.Length > 0 ? "&country=" + Uri.EscapeDataString(_country) : string.Empty;
+
+    private string SelfHref
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/fmcg/workspace");
+
+    private string TabHref(string key)
+        => SelfHref + "?tab=" + key + QuerySuffix;
+
+    private string DemoHref(string action)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/fmcg/demo-" + action);
+
+    private static string FormatDate(long unix)
+        => unix <= 0 ? "—" : DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? string.Empty;
+        _flashErr = ctx.Request.Query["err"].ToString() ?? string.Empty;
+        _tab = ErpFmcgWorkspace.Normalize(ctx.Request.Query["tab"].ToString());
+        _tabLabel = ErpFmcgWorkspace.Label(_tab);
+        _country = (ctx.Request.Query["country"].ToString() ?? string.Empty).Trim();
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (_isAdmin)
+        {
+            _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
+        }
+
+        _snap = await Workspace.SnapshotAsync(_country, ctx.RequestAborted);
+        _pack = ErpGccLocalizationCatalog.Resolve(_snap.CountryCode);
+    }
+}

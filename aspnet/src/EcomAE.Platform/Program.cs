@@ -1244,6 +1244,8 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutGlPostWriteService, Eco
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutClaimInvoiceWriteService, EcomAE.Platform.Erp.ErpFitOutClaimInvoiceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAutoPartsWorkspaceReadService, EcomAE.Platform.Erp.ErpAutoPartsWorkspaceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAutoPartsDemoSeedWriteService, EcomAE.Platform.Erp.ErpAutoPartsDemoSeedWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFmcgWorkspaceReadService, EcomAE.Platform.Erp.ErpFmcgWorkspaceReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFmcgDemoSeedWriteService, EcomAE.Platform.Erp.ErpFmcgDemoSeedWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAutoPartsGlPostWriteService, EcomAE.Platform.Erp.ErpAutoPartsGlPostWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMfgGlPostWriteService, EcomAE.Platform.Erp.ErpMfgGlPostWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpUserPrefsService, EcomAE.Platform.Erp.ErpUserPrefsService>();

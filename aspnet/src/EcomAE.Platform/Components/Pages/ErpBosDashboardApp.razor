@@ -98,6 +98,22 @@
                 </div>
             </div>
         }
+        @if (_fmcg)
+        {
+            <div class="ns-port ns-fmcg-pack" data-epc-industry-pack="fmcg" data-epc-industry-first="fmcg">
+                <h4><i class="fa fa-shopping-basket"></i> FMCG — manufacturing to distribution, wholesale &amp; retail</h4>
+                <div class="bd">
+                    <div class="ns-tiles ns-fitout-module-grid" style="margin:0">
+                        <a class="ns-tile teal" href="@WithCompany("/erp/fmcg/workspace")"><i class="fa fa-map-signs ic"></i><span class="tl">FMCG workspace &amp; guide</span></a>
+                        <a class="ns-tile green" href="@WithCompany("/erp/fmcg/workspace?tab=items")"><i class="fa fa-barcode ic"></i><span class="tl">Items, GTIN &amp; packs</span></a>
+                        <a class="ns-tile blue" href="@WithCompany("/erp/fmcg/workspace?tab=batches")"><i class="fa fa-clock-o ic"></i><span class="tl">Batches, expiry &amp; FEFO</span></a>
+                        <a class="ns-tile slate" href="@WithCompany("/erp/fmcg/workspace?tab=channels")"><i class="fa fa-sitemap ic"></i><span class="tl">Channels &amp; van routes</span></a>
+                        <a class="ns-tile gold" href="@WithCompany("/erp/fmcg/workspace?tab=promotions")"><i class="fa fa-gift ic"></i><span class="tl">Promotions &amp; free goods</span></a>
+                        <a class="ns-tile rust" href="@WithCompany("/erp/fmcg/workspace?tab=tax")"><i class="fa fa-balance-scale ic"></i><span class="tl">GCC tax &amp; compliance</span></a>
+                    </div>
+                </div>
+            </div>
+        }
         @if (_fitOut)
         {
             <div class="ns-port ns-fitout-pack" data-epc-industry-pack="fitout_contracting" data-epc-industry-first="fitout">
@@ -924,6 +940,7 @@
     private bool _fitOut;
     private bool _realEstate;
     private bool _autoParts;
+    private bool _fmcg;
     private ErpLandlordMeasure _yearBook = ErpLandlordMeasure.Empty;
     private int _figureYear;
     private long _activeCompanyId;
@@ -1057,6 +1074,7 @@
                 _fitOut = ErpIndustryNav.ShowFitOutModules(tenantIndustry, active, tenantIndustry);
                 _realEstate = ErpIndustryNav.ShowRealEstateModules(tenantIndustry, active, tenantIndustry);
                 _autoParts = ErpIndustryNav.ShowAutoPartsModules(tenantIndustry, active, tenantIndustry);
+                _fmcg = ErpIndustryNav.ShowFmcgModules(tenantIndustry, active, tenantIndustry);
                 _industryCode = _jewellery ? "jewellery"
                     : _realEstate ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "real_estate" : active.IndustryPack)
                     : _fitOut ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "fit_out" : active.IndustryPack)

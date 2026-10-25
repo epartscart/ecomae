@@ -41,6 +41,10 @@ public static class ErpGlobalSearchCatalog
             rows.InsertRange(0,
             [
                 new("Auto-parts workspace & guide", "/erp/autoparts/workspace", "industry", "fa-map-signs"),
+                new("FMCG workspace & guide", "/erp/fmcg/workspace", "industry", "fa-shopping-basket"),
+                new("FMCG items, GTIN & packs", "/erp/fmcg/workspace?tab=items", "industry", "fa-barcode"),
+                new("FMCG batches, expiry & FEFO", "/erp/fmcg/workspace?tab=batches", "industry", "fa-clock-o"),
+                new("FMCG GCC tax & compliance", "/erp/fmcg/workspace?tab=tax", "industry", "fa-balance-scale"),
                 new("Parts catalogue", "/erp/autoparts/workspace?tab=catalogue", "industry", "fa-cogs"),
                 new("Parts stock & movements", "/erp/autoparts/workspace?tab=stock", "industry", "fa-cubes"),
                 new("Parts sales & invoices", "/erp/autoparts/workspace?tab=sales", "industry", "fa-car"),

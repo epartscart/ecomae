@@ -476,6 +476,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutGlPost, HandleFitOutGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutClaimInvoice, HandleFitOutClaimInvoiceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutoPartsDemoSeed, HandleAutoPartsDemoSeedAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFmcgDemoSeed, HandleFmcgDemoSeedAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFmcgDemoClear, HandleFmcgDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamFoundationSeed, HandleShamFoundationSeedAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamJournalPost, HandleShamJournalPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpShamStockReserve, HandleShamStockReserveAsync).DisableAntiforgery();
@@ -28817,6 +28819,65 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/autoparts/workspace?tab=guide",
+            true,
+            message,
+            new { ok = true, writes = 1, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>FMCG workspace demo seed: inserts DEMO-tagged rows only (sandbox-routed).</summary>
+    private static async Task<IResult> HandleFmcgDemoSeedAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFmcgDemoSeedWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fmcg/workspace", "Admin ERP capability required for demo seeding.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to load the DEMO-tagged FMCG sample data.", session = SessionPayload(session) });
+        }
+
+        var sandboxBlock = DemoSandboxGuard(context, "/erp");
+        if (sandboxBlock is not null) { return sandboxBlock; }
+        var message = await writes.SeedDemoAsync(cancellationToken);
+        var ok = !message.StartsWith("TenantRegistry DB is not configured", StringComparison.Ordinal);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/fmcg/workspace?tab=guide",
+            ok,
+            message,
+            new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    /// <summary>FMCG workspace demo clear: deletes only DEMO-tagged rows.</summary>
+    private static async Task<IResult> HandleFmcgDemoClearAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFmcgDemoSeedWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fmcg/workspace", "Admin ERP capability required for demo clearing.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to remove the DEMO-tagged FMCG sample data.", session = SessionPayload(session) });
+        }
+
+        var message = await writes.ClearDemoAsync(cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/fmcg/workspace?tab=guide",
             true,
             message,
             new { ok = true, writes = 1, phpAuthoritative = false, message, session = SessionPayload(session) });

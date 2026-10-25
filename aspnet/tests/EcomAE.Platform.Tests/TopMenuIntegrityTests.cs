@@ -25,7 +25,7 @@ public sealed class TopMenuIntegrityTests
         "CpLoginApp.razor", "ErpLoginApp.razor", "ErpModuleApp.razor",
         // Linked from other pages, not from the top menu.
         "CpDashboardSummaryApp.razor", "ErpNavigationCoverageApp.razor", "ErpFitOutWorkspaceApp.razor",
-        "ErpAutoPartsWorkspaceApp.razor", "ErpJewelleryWorkspaceApp.razor",
+        "ErpAutoPartsWorkspaceApp.razor", "ErpJewelleryWorkspaceApp.razor", "ErpFmcgWorkspaceApp.razor",
         "CpPriceListsApp.razor", "CpPricesEditApp.razor", "CpPoApprovalsApp.razor", "CpCrmActivitiesApp.razor",
         "CpAdminSessionsApp.razor", "CpPrintDocsApp.razor", "CpBulkUploadApp.razor", "CpFinanceCloseApp.razor",
     ];

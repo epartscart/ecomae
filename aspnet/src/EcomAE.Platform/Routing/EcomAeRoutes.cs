@@ -3001,6 +3001,7 @@ public static class EcomAeRoutes
 
     /// <summary>Auto-parts workspace demo seed: inserts DEMO-tagged rows only.</summary>
     public const string ErpAutoPartsDemoSeed = "/erp/autoparts/demo-seed";
+    public const string ErpFmcgDemoSeed = "/erp/fmcg/demo-seed";
     /// <summary>SHAM Phase-1 foundation seed: 11 legal entities, group membership, ASAPL BUs.</summary>
     public const string ErpShamFoundationSeed = "/erp/sham/foundation-seed";
     /// <summary>SHAM Phase-2: entity×BU-scoped manual journal post (access matrix + COA activation gated).</summary>
@@ -3090,6 +3091,7 @@ public static class EcomAeRoutes
     public const string ErpShamTransferPriceView = "/erp/sham/transfer-price-view";
     /// <summary>Auto-parts workspace demo clear: deletes only DEMO-tagged rows.</summary>
     public const string ErpAutoPartsDemoClear = "/erp/autoparts/demo-clear";
+    public const string ErpFmcgDemoClear = "/erp/fmcg/demo-clear";
     /// <summary>Auto-parts month-end bridge: posts trading journals into the GL.</summary>
     public const string ErpAutoPartsGlPost = "/erp/autoparts/gl-post";
     public const string ErpMfgGlPost = "/erp/manufacturing/gl-post";
