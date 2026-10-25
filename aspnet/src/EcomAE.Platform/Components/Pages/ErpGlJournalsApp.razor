@@ -182,7 +182,7 @@
                         <tr><td>@rn</td><td>@line.AccountCode</td><td>@line.AccountName</td><td class="r">@line.Debit</td><td class="r">@line.Credit</td><td>@line.LineNote</td></tr>
                     }
                 </tbody>
-                <tfoot><tr><td colspan="3">Totals (@(string.IsNullOrWhiteSpace(_openedDetail.CurrencyCode) ? "accounting currency" : _openedDetail.CurrencyCode))</td><td class="r">@_openedDetail.TotalDebit</td><td class="r">@_openedDetail.TotalCredit</td><td></td></tr></tfoot>
+                <tfoot><tr><td colspan="3">Totals (accounting currency)</td><td class="r">@_openedDetail.TotalDebit</td><td class="r">@_openedDetail.TotalCredit</td><td></td></tr></tfoot>
             </table>
             <div class="glv-sign"><div>Prepared by</div><div>Checked by</div><div>Approved by</div></div>
             <p class="glv-note">Printed from ecom ERP · @DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm 'UTC'", CultureInfo.InvariantCulture)</p>

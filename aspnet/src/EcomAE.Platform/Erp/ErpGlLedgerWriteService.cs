@@ -218,8 +218,10 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
                     {
                         Net = ErpTaxAmountCalculator.Round2(inv.Net * rate),
                         Vat = ErpTaxAmountCalculator.Round2(inv.Vat * rate),
-                        Gross = ErpTaxAmountCalculator.Round2(inv.Gross * rate),
                     })
+                    // Recompute gross from the rounded net + VAT so the persisted
+                    // invoice totals stay internally consistent at rounding edges.
+                    .Select(inv => inv with { Gross = ErpTaxAmountCalculator.Round2(inv.Net + inv.Vat) })
                     .ToList(),
             };
         }
