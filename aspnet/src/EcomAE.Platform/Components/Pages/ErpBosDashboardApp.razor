@@ -35,6 +35,60 @@
         .epc-org-children { list-style:none; margin:8px 0 0; padding:0 0 0 18px; border-left:2px solid #dbe4f0; }
         .epc-org-children li { font-size:12px; color:#334155; padding:3px 0 3px 8px; }
         .epc-org-children i { color:#64748b; margin-right:5px; font-size:11px; }
+        .epc-orgchart { display:flex; flex-direction:column; align-items:center; padding:10px 4px 4px; }
+        .epc-orgchart-root { display:inline-flex; align-items:center; gap:8px; padding:8px 18px; border-radius:999px; background:linear-gradient(145deg,#1d4f91,#163a6b); color:#fff; font-size:13px; font-weight:700; box-shadow:0 6px 14px rgba(15,39,68,.18); }
+        .epc-orgchart-root i { font-size:14px; }
+        .epc-orgchart-spine { width:2px; height:18px; background:#c3d4e8; }
+        .epc-orgchart-entities { position:relative; display:flex; flex-wrap:wrap; justify-content:center; gap:16px; width:100%; padding-top:18px; }
+        .epc-orgchart-entities::before { content:""; position:absolute; top:0; left:8%; right:8%; height:2px; background:#c3d4e8; }
+        .epc-orgchart-ent { position:relative; flex:1 1 230px; min-width:210px; max-width:340px; padding-top:18px; }
+        .epc-orgchart-ent::before { content:""; position:absolute; top:0; left:50%; width:2px; height:18px; background:#c3d4e8; }
+        .epc-orgchart-entcard { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:12px; background:linear-gradient(145deg,#eef6ff,#fff); border:1px solid #d5e3f2; border-left:4px solid #1d4f91; box-shadow:0 4px 10px rgba(15,39,68,.08); }
+        .epc-orgchart-entcard i { font-size:18px; color:#1d4f91; }
+        .epc-orgchart-entcard strong { display:block; font-size:13px; color:#0f2744; }
+        .epc-orgchart-entcard span { display:block; font-size:11px; color:#5b6b82; }
+        .epc-orgchart-ent.is-shared .epc-orgchart-entcard { border-left-color:#64748b; }
+        .epc-orgchart-ent.is-shared .epc-orgchart-entcard i { color:#64748b; }
+        .epc-orgchart-bulist { list-style:none; margin:10px 0 0; padding:0 0 0 16px; border-left:2px solid #dbe4f0; display:flex; flex-direction:column; gap:6px; }
+        .epc-orgchart-bulist li { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:9px; background:#f8fafc; border:1px solid #e7eef7; font-size:12px; color:#334155; }
+        .epc-orgchart-bulist li i { color:#0f766e; font-size:12px; }
+        .epc-orgchart-bulist li strong { color:#0f2744; }
+        .epc-ccrow { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 0; }
+        .epc-ccrow .epc-cc { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background:#f1f5f9; border:1px solid #e2e8f0; font-size:11px; font-weight:600; color:#334155; }
+        .epc-ccrow .epc-cc i { color:#b45309; }
+        .epc-wfrow { display:flex; flex-wrap:wrap; gap:14px; }
+        .epc-wfcol { flex:1 1 240px; min-width:220px; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px; background:linear-gradient(180deg,#f8fafc,#fff); }
+        .epc-wfcol-head { display:flex; align-items:center; gap:8px; font-size:13px; color:#0f172a; font-weight:700; margin-bottom:10px; }
+        .epc-wfcol-head i { color:#1d4f91; }
+        .epc-wfstats { display:flex; flex-wrap:wrap; gap:8px; }
+        .epc-wfstat { display:flex; align-items:center; gap:8px; flex:1 1 100px; padding:8px 10px; border-radius:10px; border:1px solid #e2e8f0; background:#fff; text-decoration:none; color:#334155; }
+        .epc-wfstat.is-warn { border-color:#fcd9a8; background:#fffbeb; }
+        .epc-wfstat.is-ok { border-color:#bbf7d0; background:#f0fdf4; }
+        .epc-wfstat.is-bad { border-color:#fecaca; background:#fef2f2; }
+        .epc-wfstat.is-slate { border-color:#dbe4f0; background:#f8fafc; }
+        .epc-wfstat i { font-size:15px; }
+        .epc-wfstat.is-warn i { color:#d97706; }
+        .epc-wfstat.is-ok i { color:#15803d; }
+        .epc-wfstat.is-bad i { color:#b91c1c; }
+        .epc-wfstat.is-slate i { color:#475569; }
+        .epc-wfstat b { display:block; font-size:15px; color:#0f172a; line-height:1.1; }
+        .epc-wfstat span { font-size:10.5px; color:#64748b; }
+        .epc-wfchain { list-style:none; display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin:0 0 10px; padding:0; }
+        .epc-wfchain li { display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:999px; font-size:11px; font-weight:700; color:#fff; box-shadow:0 3px 8px rgba(15,39,68,.12); }
+        .epc-wfchain li i { font-size:11px; }
+        .epc-wfchain li.tone-a { background:linear-gradient(145deg,#3b82f6,#1d4ed8); }
+        .epc-wfchain li.tone-b { background:linear-gradient(145deg,#14b8a6,#0f766e); }
+        .epc-wfchain li.tone-c { background:linear-gradient(145deg,#f59e0b,#b45309); }
+        .epc-wfchain li.tone-d { background:linear-gradient(145deg,#8b5cf6,#6d28d9); }
+        .epc-wfchain li.tone-e { background:linear-gradient(145deg,#64748b,#334155); }
+        .epc-wfchain li.epc-wfjoin { background:none; box-shadow:none; color:#94a3b8; padding:5px 2px; font-size:10px; }
+        .epc-wfauto { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:7px; }
+        .epc-wfauto li { display:flex; align-items:flex-start; gap:9px; font-size:12px; color:#334155; line-height:1.35; }
+        .epc-wfauto li i { margin-top:2px; font-size:13px; }
+        .epc-wfauto li i.fa-file-text-o { color:#1d4f91; }
+        .epc-wfauto li i.fa-refresh { color:#0f766e; }
+        .epc-wfauto li i.fa-balance-scale { color:#6d28d9; }
+        @@media (max-width:720px) { .epc-orgchart-entities::before { left:50%; right:auto; width:2px; height:100%; } }
     </style>
 </HeadContent>
 <style data-epc-dash="color-tiles">
@@ -223,45 +277,57 @@
             <div class="ns-port" aria-label="Organisation structure">
                 <h4><i class="fa fa-sitemap"></i> Organisation structure</h4>
                 <div class="bd">
-                    <div class="epc-org-tree">
-                        @foreach (var ent in _org.LegalEntities.Where(e => e.Active).OrderBy(e => e.Code))
-                        {
-                            var units = _org.BusinessUnits.Where(u => u.LegalEntityId == ent.Id && u.Active).OrderBy(u => u.Code).ToList();
-                            <div class="epc-org-node">
-                                <div class="epc-org-entity"><i class="fa fa-building"></i> <strong>@ent.Code</strong> · @ent.Name</div>
-                                @if (units.Count > 0)
-                                {
-                                    <ul class="epc-org-children">
-                                        @foreach (var u in units)
+                    <div class="epc-orgchart">
+                        <div class="epc-orgchart-root"><i class="fa fa-flag"></i> @_companyLabel</div>
+                        <div class="epc-orgchart-spine" aria-hidden="true"></div>
+                        <div class="epc-orgchart-entities">
+                            @foreach (var ent in _org.LegalEntities.Where(e => e.Active).OrderBy(e => e.Code))
+                            {
+                                var units = _org.BusinessUnits.Where(u => u.LegalEntityId == ent.Id && u.Active).OrderBy(u => u.Code).ToList();
+                                <div class="epc-orgchart-ent">
+                                    <div class="epc-orgchart-entcard">
+                                        <i class="fa fa-building"></i>
+                                        <div><strong>@ent.Code</strong><span>@ent.Name</span></div>
+                                    </div>
+                                    @if (units.Count > 0)
+                                    {
+                                        <ul class="epc-orgchart-bulist">
+                                            @foreach (var u in units)
+                                            {
+                                                <li><i class="fa fa-briefcase"></i> <strong>@u.Code</strong> @u.Name</li>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+                            }
+                            @{
+                                var sharedUnits = _org.BusinessUnits.Where(u => u.Active && !_org.LegalEntities.Any(e => e.Id == u.LegalEntityId)).OrderBy(u => u.Code).ToList();
+                            }
+                            @if (sharedUnits.Count > 0)
+                            {
+                                <div class="epc-orgchart-ent is-shared">
+                                    <div class="epc-orgchart-entcard">
+                                        <i class="fa fa-share-alt"></i>
+                                        <div><strong>Shared</strong><span>Business units</span></div>
+                                    </div>
+                                    <ul class="epc-orgchart-bulist">
+                                        @foreach (var u in sharedUnits)
                                         {
-                                            <li><i class="fa fa-briefcase"></i> @u.Code — @u.Name</li>
+                                            <li><i class="fa fa-briefcase"></i> <strong>@u.Code</strong> @u.Name</li>
                                         }
                                     </ul>
-                                }
-                            </div>
-                        }
-                        @{
-                            var sharedUnits = _org.BusinessUnits.Where(u => u.Active && !_org.LegalEntities.Any(e => e.Id == u.LegalEntityId)).OrderBy(u => u.Code).ToList();
-                        }
-                        @if (sharedUnits.Count > 0)
-                        {
-                            <div class="epc-org-node">
-                                <div class="epc-org-entity"><i class="fa fa-share-alt"></i> <strong>Shared</strong> · business units</div>
-                                <ul class="epc-org-children">
-                                    @foreach (var u in sharedUnits)
-                                    {
-                                        <li><i class="fa fa-briefcase"></i> @u.Code — @u.Name</li>
-                                    }
-                                </ul>
-                            </div>
-                        }
+                                </div>
+                            }
+                        </div>
                     </div>
                     @if (_org.CostCentres.Count > 0)
                     {
-                        <p class="ns-fitout-scope-note">
-                            <i class="fa fa-crosshairs"></i> Cost centres:
-                            @string.Join(" · ", _org.CostCentres.Where(c => c.Active).OrderBy(c => c.Code).Select(c => c.Code + " " + c.Name))
-                        </p>
+                        <div class="epc-ccrow" aria-label="Cost centres">
+                            @foreach (var c in _org.CostCentres.Where(c => c.Active).OrderBy(c => c.Code))
+                            {
+                                <span class="epc-cc"><i class="fa fa-crosshairs"></i> @c.Code @c.Name</span>
+                            }
+                        </div>
                     }
                     <p class="ns-fitout-scope-note"><i class="fa fa-cog"></i> Manage the structure in <a href="@WithCompany("/erp/organization-app")">Organization setup</a> — legal entities, business units, cost centres and departments.</p>
                 </div>
@@ -270,39 +336,64 @@
         <div class="ns-port" aria-label="Workflow and automation">
             <h4><i class="fa fa-cogs"></i> Workflow &amp; automation</h4>
             <div class="bd">
-                <div class="epc-org-tree">
+                <div class="epc-wfrow">
                     @if (_isAdmin)
                     {
-                    <div class="epc-org-node">
-                        <div class="epc-org-entity"><i class="fa fa-tasks"></i> <strong>Approval workflow</strong></div>
-                        <ul class="epc-org-children">
-                            @if (_wf is null)
-                            {
-                                <li><i class="fa fa-exclamation-triangle"></i> Approval data unavailable — <a href="@WithCompany("/erp/approvals-app")">open queue</a></li>
-                            }
-                            else
-                            {
-                                <li><i class="fa fa-inbox"></i> @_wf.Pending pending — <a href="@WithCompany("/erp/approvals-app")">open queue</a></li>
-                                <li><i class="fa fa-check-circle"></i> @_wf.Approved approved · @_wf.Rejected rejected</li>
-                                <li><i class="fa fa-list-ol"></i> @_wf.Rules approval rules active — <a href="@WithCompany("/erp/approvals-app")">manage rules</a></li>
-                            }
-                        </ul>
+                    <div class="epc-wfcol">
+                        <div class="epc-wfcol-head"><i class="fa fa-tasks"></i> Approval workflow</div>
+                        @if (_wf is null)
+                        {
+                            <div class="epc-wfstats">
+                                <a class="epc-wfstat is-warn" href="@WithCompany("/erp/approvals-app")"><i class="fa fa-exclamation-triangle"></i><div><b>—</b><span>Approval data unavailable — open queue</span></div></a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="epc-wfstats">
+                                <a class="epc-wfstat is-warn" href="@WithCompany("/erp/approvals-app")"><i class="fa fa-inbox"></i><div><b>@_wf.Pending</b><span>pending — open queue</span></div></a>
+                                <a class="epc-wfstat is-ok" href="@WithCompany("/erp/approvals-app")"><i class="fa fa-check-circle"></i><div><b>@_wf.Approved</b><span>approved</span></div></a>
+                                <a class="epc-wfstat is-bad" href="@WithCompany("/erp/approvals-app")"><i class="fa fa-times-circle"></i><div><b>@_wf.Rejected</b><span>rejected</span></div></a>
+                                <a class="epc-wfstat is-slate" href="@WithCompany("/erp/approvals-app")"><i class="fa fa-list-ol"></i><div><b>@_wf.Rules</b><span>rules — manage</span></div></a>
+                            </div>
+                        }
                     </div>
                     }
-                    <div class="epc-org-node">
-                        <div class="epc-org-entity"><i class="fa fa-magic"></i> <strong>Auto posting</strong></div>
-                        <ul class="epc-org-children">
+                    <div class="epc-wfcol">
+                        <div class="epc-wfcol-head"><i class="fa fa-magic"></i> Auto posting</div>
+                        <ul class="epc-wfauto">
                             <li><i class="fa fa-file-text-o"></i> Invoices, receipts &amp; vouchers auto-post to the GL on approval</li>
                             <li><i class="fa fa-refresh"></i> Post sweeps re-check unposted documents and report failures</li>
                             <li><i class="fa fa-balance-scale"></i> Every entry lands in TB → P&amp;L → balance sheet</li>
                         </ul>
                     </div>
-                    <div class="epc-org-node">
-                        <div class="epc-org-entity"><i class="fa fa-random"></i> <strong>Process chains</strong></div>
-                        <ul class="epc-org-children">
-                            <li><i class="fa fa-shopping-cart"></i> Procure → receive → invoice → pay</li>
-                            <li><i class="fa fa-truck"></i> Order → deliver → invoice → collect</li>
-                            <li><i class="fa fa-industry"></i> BOM → production → variance → GL</li>
+                    <div class="epc-wfcol">
+                        <div class="epc-wfcol-head"><i class="fa fa-random"></i> Process chains</div>
+                        <ul class="epc-wfchain" aria-label="Procure to pay">
+                            <li class="tone-a"><i class="fa fa-shopping-cart"></i> Procure</li>
+                            <li class="epc-wfjoin"><i class="fa fa-chevron-right"></i></li>
+                            <li class="tone-b"><i class="fa fa-truck"></i> Receive</li>
+                            <li class="epc-wfjoin"><i class="fa fa-chevron-right"></i></li>
+                            <li class="tone-c"><i class="fa fa-file-text-o"></i> Invoice</li>
+                            <li class="epc-wfjoin"><i class="fa fa-chevron-right"></i></li>
+                            <li class="tone-d"><i class="fa fa-money"></i> Pay</li>
+                        </ul>
+                        <ul class="epc-wfchain" aria-label="Order to cash">
+                            <li class="tone-a"><i class="fa fa-tag"></i> Order</li>
+                            <li class="epc-wfjoin"><i class="fa fa-chevron-right"></i></li>
+                            <li class="tone-b"><i class="fa fa-truck"></i> Deliver</li>
+                            <li class="epc-wfjoin"><i class="fa fa-chevron-right"></i></li>
+                            <li class="tone-c"><i class="fa fa-file-text-o"></i> Invoice</li>
+                            <li class="epc-wfjoin"><i class="fa fa-chevron-right"></i></li>
+                            <li class="tone-d"><i class="fa fa-money"></i> Collect</li>
+                        </ul>
+                        <ul class="epc-wfchain" aria-label="Manufacture to GL">
+                            <li class="tone-e"><i class="fa fa-industry"></i> BOM</li>
+                            <li class="epc-wfjoin"><i class="fa fa-chevron-right"></i></li>
+                            <li class="tone-b"><i class="fa fa-cogs"></i> Production</li>
+                            <li class="epc-wfjoin"><i class="fa fa-chevron-right"></i></li>
+                            <li class="tone-c"><i class="fa fa-random"></i> Variance</li>
+                            <li class="epc-wfjoin"><i class="fa fa-chevron-right"></i></li>
+                            <li class="tone-d"><i class="fa fa-book"></i> GL</li>
                         </ul>
                     </div>
                 </div>
