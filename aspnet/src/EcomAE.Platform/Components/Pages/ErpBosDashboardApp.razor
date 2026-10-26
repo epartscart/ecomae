@@ -278,7 +278,7 @@
                 <h4><i class="fa fa-sitemap"></i> Organisation structure</h4>
                 <div class="bd">
                     <div class="epc-orgchart">
-                        <div class="epc-orgchart-root"><i class="fa fa-flag"></i> @_companyLabel</div>
+                        <div class="epc-orgchart-root"><i class="fa fa-flag"></i> @(string.IsNullOrWhiteSpace(_ctx.BrandLabel) ? "Group" : _ctx.BrandLabel)</div>
                         <div class="epc-orgchart-spine" aria-hidden="true"></div>
                         <div class="epc-orgchart-entities">
                             @foreach (var ent in _org.LegalEntities.Where(e => e.Active).OrderBy(e => e.Code))
