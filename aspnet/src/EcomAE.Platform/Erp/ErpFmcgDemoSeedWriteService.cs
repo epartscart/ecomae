@@ -335,7 +335,10 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
         }
 
         // Production variance journal: unfavourable material usage on PO-0001.
+        // Round each line to fils first, then credit the rounded sum so the journal balances.
         var po1Variance = 11850m * stdCostPerBottle * 0.04m;
+        var fgOut = Math.Round(11850m * stdCostPerBottle, 2);
+        var pvar = Math.Round(po1Variance, 2);
         var j4 = await _gl.PostJournalAsync(connection,
             new ErpGlJournalHeader
             {
@@ -348,9 +351,9 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
             },
             new List<ErpGlLine>
             {
-                new(invCoa, Math.Round(11850m * stdCostPerBottle, 2), 0m, "Finished goods from production — PO-0001"),
-                new(pvarCoa, Math.Round(po1Variance, 2), 0m, "Unfavourable material/labour variance — PO-0001"),
-                new(wipCoa, 0m, Math.Round(11850m * stdCostPerBottle + po1Variance, 2), "WIP relieved — PO-0001"),
+                new(invCoa, fgOut, 0m, "Finished goods from production — PO-0001"),
+                new(pvarCoa, pvar, 0m, "Unfavourable material/labour variance — PO-0001"),
+                new(wipCoa, 0m, fgOut + pvar, "WIP relieved — PO-0001"),
             },
             0, cancellationToken).ConfigureAwait(false);
         await MarkAsync(connection, "epc_erp_gl_journals", j4, cancellationToken).ConfigureAwait(false);
