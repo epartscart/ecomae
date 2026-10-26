@@ -655,7 +655,14 @@ else
             return;
         }
 
-        _guide = await Guide.ReadAsync(ctx.RequestAborted).ConfigureAwait(false);
+        try
+        {
+            _guide = await Guide.ReadAsync(ctx.RequestAborted).ConfigureAwait(false);
+        }
+        catch
+        {
+            // Tenant DB unreachable — the kit still renders, without the org chart.
+        }
 
         var staff = await Dashboards.ListErpStaffAsync(50, ctx.RequestAborted);
         _staff = staff.Staff;
