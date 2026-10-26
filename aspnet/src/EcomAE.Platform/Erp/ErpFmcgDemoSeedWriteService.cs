@@ -335,10 +335,11 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
         }
 
         // Production variance journal: unfavourable material usage on PO-0001.
-        // Round each line to fils first, then credit the rounded sum so the journal balances.
-        var po1Variance = 11850m * stdCostPerBottle * 0.04m;
+        // Round to fils like the production-order row does (actual = Round(std*1.04)),
+        // and derive variance as actual-std so journal and order agree to the fil.
         var fgOut = Math.Round(11850m * stdCostPerBottle, 2);
-        var pvar = Math.Round(po1Variance, 2);
+        var po1Actual = Math.Round(11850m * stdCostPerBottle * 1.04m, 2);
+        var pvar = po1Actual - fgOut;
         var j4 = await _gl.PostJournalAsync(connection,
             new ErpGlJournalHeader
             {
