@@ -827,20 +827,6 @@ internal static class ErpLazySchema
             "PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
             ct).ConfigureAwait(false);
 
-        // epc_erp_pm_cost_centres: only the D365 mapping path used to create it —
-        // FMCG demo seed and org admin need it on fresh/copied tenant DBs too.
-        await ErpDb.TryExecuteAsync(c,
-            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_cost_centres` (" +
-            "`id` int(11) NOT NULL AUTO_INCREMENT," +
-            "`code` varchar(40) NOT NULL DEFAULT ''," +
-            "`name` varchar(190) NOT NULL DEFAULT ''," +
-            "`legal_entity_id` int(11) NOT NULL DEFAULT 0," +
-            "`active` tinyint(1) NOT NULL DEFAULT 1," +
-            "`time_created` int(11) NOT NULL DEFAULT 0," +
-            "`time_updated` int(11) NOT NULL DEFAULT 0," +
-            "PRIMARY KEY (`id`), UNIQUE KEY `ux_cc_code` (`code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
-            ct).ConfigureAwait(false);
-
         try
         {
             var count = await ErpDb.LongAsync(c, null,
@@ -1178,6 +1164,7 @@ internal static class ErpLazySchema
         string[] ddls =
         {
             "CREATE TABLE IF NOT EXISTS `epc_erp_pm_legal_entities` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `country_code` varchar(4) NOT NULL DEFAULT '', `currency_code` varchar(8) NOT NULL DEFAULT '', `trn` varchar(40) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_cost_centres` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `legal_entity_id` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_cc_code` (`code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
             "CREATE TABLE IF NOT EXISTS `epc_erp_pm_business_units` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `legal_entity_id` int(11) NOT NULL DEFAULT 0, `parent_id` int(11) NOT NULL DEFAULT 0, `manager` varchar(120) NOT NULL DEFAULT '', `activity` varchar(80) NOT NULL DEFAULT '', `branch` varchar(80) NOT NULL DEFAULT '', `default_warehouse_id` int(11) NOT NULL DEFAULT 0, `cost_centre` varchar(40) NOT NULL DEFAULT '', `profit_centre` varchar(40) NOT NULL DEFAULT '', `price_group` varchar(40) NOT NULL DEFAULT '', `trn` varchar(40) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
             "CREATE TABLE IF NOT EXISTS `epc_erp_pm_class_units` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `class_type` varchar(60) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
             "CREATE TABLE IF NOT EXISTS `epc_erp_pm_dimensions` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `dim_type` varchar(60) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",

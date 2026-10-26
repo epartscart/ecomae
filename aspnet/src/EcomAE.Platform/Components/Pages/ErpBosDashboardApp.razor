@@ -784,7 +784,12 @@
                             <p class="text-muted" style="margin:0 0 10px;">No monthly revenue recorded yet. The chart stays at zero until completed orders land in the period.</p>
                         }
                         <div class="ns-chart-wrap tall"><canvas id="nsChartTrend" aria-label="Revenue trend"></canvas></div>
-                        <div class="ns-leg"><span class="sq" style="background:#1d4f91;"></span>Revenue@if (ErpNetsuiteDashboardCatalog.Can(_profile, "profit")) { <text>&nbsp; <span class="sq" style="background:#0f766e;"></span>Profit (ex-VAT)</text> }</div>
+                        <div class="ns-leg"><span class="sq" style="background:#1d4f91;"></span>Revenue
+                            @if (ErpNetsuiteDashboardCatalog.Can(_profile, "profit"))
+                            {
+                                <text>&nbsp;<span class="sq" style="background:#0f766e;"></span>Profit (ex-VAT)</text>
+                            }
+                        </div>
                     </div>
                 </div>
                 <div class="ns-port">
