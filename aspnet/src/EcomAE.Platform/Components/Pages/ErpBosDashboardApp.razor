@@ -1200,7 +1200,8 @@
         // the registry trade name is the tenant's own group label on
         // operations/sandbox hosts; platform hosts fall back to the brand.
         if (Http.HttpContext?.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey]
-            is EcomAE.Platform.Services.TenantContext tenant)
+            is EcomAE.Platform.Services.TenantContext tenant
+            && tenant.IsTenant)
         {
             if (!string.IsNullOrWhiteSpace(tenant.DisplayName))
             {
