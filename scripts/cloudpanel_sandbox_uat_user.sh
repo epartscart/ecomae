@@ -57,8 +57,14 @@ for col in "db_uat_user VARCHAR(64) NULL" "db_uat_pass VARCHAR(128) NULL"; do
   fi
 done
 
-# 2. Resolve or mint the password.
+# 2. Resolve or mint the password. The UAT account is SHARED across tenants
+#    ({db_user}_uat), so when this row has no stored password reuse the one
+#    another tenant row already holds — minting a new password here would
+#    ALTER the shared account and silently break every other tenant's login.
 EXISTING=$($MYSQL_BIN -N -e "SELECT IFNULL(db_uat_pass,'') FROM $REG_DB WHERE site_key='$SITE_KEY' LIMIT 1")
+if [[ -z "$EXISTING" ]]; then
+  EXISTING=$($MYSQL_BIN -N -e "SELECT IFNULL(db_uat_pass,'') FROM $REG_DB WHERE db_uat_user='$UAT_USER' AND db_uat_pass<>'' LIMIT 1")
+fi
 if [[ -n "$EXISTING" ]]; then
   PASS="$EXISTING"
 else
@@ -75,8 +81,11 @@ $MYSQL_BIN -N -e "SELECT DISTINCT host FROM mysql.user WHERE user='$DB_USER'" \
     done
 $MYSQL_BIN -e "FLUSH PRIVILEGES;"
 
-# 4. Persist on the registry row — RouteTenantResolver swaps to these
-#    credentials for sandbox host contexts.
-$MYSQL_BIN -e "UPDATE $REG_DB SET db_uat_user='$UAT_USER', db_uat_pass='$PASS' WHERE site_key='$SITE_KEY';"
+# 4. Persist on the registry rows — RouteTenantResolver swaps to these
+#    credentials for sandbox host contexts. The UAT account is shared, so
+#    every row naming this user must hold the same password: rows left with a
+#    stale one get Access denied when ALTER USER rotates the account.
+$MYSQL_BIN -e "UPDATE $REG_DB SET db_uat_pass='$PASS' WHERE db_uat_user='$UAT_USER';
+  UPDATE $REG_DB SET db_uat_user='$UAT_USER', db_uat_pass='$PASS' WHERE site_key='$SITE_KEY';"
 
 echo "OK — $UAT_USER provisioned on $SANDBOX_DB only; registry row '$SITE_KEY' updated"
