@@ -11,6 +11,7 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject IErpTenantGuideReadService Guide
 
 @* Tenant Onboarding Kit — printable handover book for a new client (ERP-only or full tenant).
    ?print=1 renders the book without chrome so it saves cleanly as PDF via the browser. *@
@@ -108,6 +109,30 @@ else
             .okb .step { padding:8px 10px; border-right:1px solid #eef3f8; border-bottom:1px solid #eef3f8; }
             .okb .step .n { display:inline-block; min-width:22px; height:22px; line-height:22px; text-align:center;
                 border-radius:999px; background:#14b8a6; color:#fff; font-weight:800; font-size:11px; margin-right:6px; }
+            .okb .epc-orgchart { display:flex; flex-direction:column; align-items:center; padding:8px 2px 2px; }
+            .okb .epc-orgchart-root { display:inline-flex; align-items:center; gap:8px; padding:7px 16px; border-radius:999px; background:#163a6b; color:#fff; font-size:12px; font-weight:700; }
+            .okb .epc-orgchart-spine { width:2px; height:14px; background:#c3d4e8; }
+            .okb .epc-orgchart-entities { position:relative; display:flex; flex-wrap:wrap; justify-content:center; gap:12px; width:100%; padding-top:14px; }
+            .okb .epc-orgchart-entities::before { content:""; position:absolute; top:0; left:8%; right:8%; height:2px; background:#c3d4e8; }
+            .okb .epc-orgchart-ent { position:relative; flex:1 1 200px; min-width:180px; max-width:300px; padding-top:14px; }
+            .okb .epc-orgchart-ent::before { content:""; position:absolute; top:0; left:50%; width:2px; height:14px; background:#c3d4e8; }
+            .okb .epc-orgchart-entcard { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; background:#eef6ff; border:1px solid #d5e3f2; border-left:4px solid #1d4f91; }
+            .okb .epc-orgchart-entcard i { font-size:15px; color:#1d4f91; }
+            .okb .epc-orgchart-entcard strong { display:block; font-size:12px; color:#0f2744; }
+            .okb .epc-orgchart-entcard span { display:block; font-size:10.5px; color:#5b6b82; }
+            .okb .epc-orgchart-ent.is-shared .epc-orgchart-entcard { border-left-color:#64748b; }
+            .okb .epc-orgchart-ent.is-shared .epc-orgchart-entcard i { color:#64748b; }
+            .okb .epc-orgchart-bulist { list-style:none; margin:8px 0 0; padding:0 0 0 14px; border-left:2px solid #dbe4f0; }
+            .okb .epc-orgchart-bulist li { padding:4px 8px; border-radius:8px; background:#f8fafc; border:1px solid #e7eef7; font-size:11px; color:#334155; margin-bottom:4px; }
+            .okb .epc-orgchart-bulist li i { color:#0f766e; font-size:11px; margin-right:4px; }
+            .okb .epc-wfchain { list-style:none; display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin:0 0 10px; padding:0; }
+            .okb .epc-wfchain li { display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:999px; font-size:10.5px; font-weight:700; color:#fff; }
+            .okb .epc-wfchain li.tone-a { background:#1d4ed8; }
+            .okb .epc-wfchain li.tone-b { background:#0f766e; }
+            .okb .epc-wfchain li.tone-c { background:#b45309; }
+            .okb .epc-wfchain li.tone-d { background:#6d28d9; }
+            .okb .epc-wfchain li.tone-e { background:#334155; }
+            .okb .epc-wfchain li.epc-wfjoin { background:none; color:#94a3b8; padding:4px 2px; font-size:10px; }
             .okb .step .t { font-weight:700; color:#12324f; font-size:11.5px; }
             .okb .step .d { display:block; margin-top:3px; color:#5b6b7c; font-size:10.5px; }
             .okb .step a { color:#0f766e; font-size:10.5px; }
@@ -246,6 +271,40 @@ else
                 }
             </table>
             <p class="note">Workspace documents (invoices, vouchers, work orders, claims) post to the General Ledger automatically — there is no month-end posting step. Dashboards, P&amp;L, Balance Sheet and reports always read live workspace data.</p>
+            @if (_guide.HasOrgData)
+            {
+                <h3>Your organisation structure</h3>
+                <div class="epc-orgchart">
+                    <div class="epc-orgchart-root"><i class="fa fa-flag"></i> @OrgRootLabel()</div>
+                    <div class="epc-orgchart-spine"></div>
+                    <div class="epc-orgchart-entities">
+                        @foreach (var ent in _guide.Entities.OrderBy(e => e.Code))
+                        {
+                            var units = _guide.BusinessUnits.Where(b => b.EntityId == ent.Id).OrderBy(b => b.Code).ToList();
+                            <div class="epc-orgchart-ent @(ent.Consolidated ? "" : "is-shared")">
+                                <div class="epc-orgchart-entcard">
+                                    <i class="fa fa-building"></i>
+                                    <div><strong>@ent.Code</strong><span>@ent.Name · @ent.Currency</span></div>
+                                </div>
+                                @if (units.Count > 0)
+                                {
+                                    <ul class="epc-orgchart-bulist">
+                                        @foreach (var u in units)
+                                        {
+                                            <li><i class="fa fa-briefcase"></i> <strong>@u.Code</strong> @u.Name</li>
+                                        }
+                                    </ul>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+                <p class="note">@_guide.Entities.Count legal entit@(_guide.Entities.Count == 1 ? "y" : "ies") · @_guide.BusinessUnits.Count business unit@(_guide.BusinessUnits.Count == 1 ? "" : "s") · @_guide.WarehouseCount warehouse@(_guide.WarehouseCount == 1 ? "" : "s"). The tenant admin workspace (Organization admin) keeps this tree editable.</p>
+            }
+            <h3>How work flows</h3>
+            <ul class="epc-wfchain"><li class="tone-a"><i class="fa fa-shopping-cart"></i> Procure</li><li class="epc-wfjoin"><i class="fa fa-angle-right"></i></li><li class="tone-b"><i class="fa fa-truck"></i> Receive</li><li class="epc-wfjoin"><i class="fa fa-angle-right"></i></li><li class="tone-c"><i class="fa fa-file-text-o"></i> Invoice</li><li class="epc-wfjoin"><i class="fa fa-angle-right"></i></li><li class="tone-d"><i class="fa fa-credit-card"></i> Pay</li></ul>
+            <ul class="epc-wfchain"><li class="tone-a"><i class="fa fa-tag"></i> Order</li><li class="epc-wfjoin"><i class="fa fa-angle-right"></i></li><li class="tone-b"><i class="fa fa-cube"></i> Deliver</li><li class="epc-wfjoin"><i class="fa fa-angle-right"></i></li><li class="tone-c"><i class="fa fa-file-text-o"></i> Invoice</li><li class="epc-wfjoin"><i class="fa fa-angle-right"></i></li><li class="tone-d"><i class="fa fa-money"></i> Collect</li></ul>
+            <p class="note">Every step posts to the General Ledger automatically — journals, approvals and the audit trail are built in.</p>
             <h3>Your authority over users (tenant admin)</h3>
             <p>As tenant admin you control every user's reach — per module, per page, per field — without asking the platform:</p>
             <div class="tier">
@@ -470,6 +529,17 @@ else
     private LoginHostBrand.Brand _brand = null!;
     private IReadOnlyList<ErpStaffProfileDigest> _staff = [];
     private IReadOnlyList<CpUserDigest> _cpUsers = [];
+    private ErpTenantGuideModel _guide = new();
+
+    private string OrgRootLabel()
+    {
+        var tenant = Http.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        if (tenant?.IsTenant == true)
+        {
+            return !string.IsNullOrWhiteSpace(tenant.DisplayName) ? tenant.DisplayName! : (tenant.SiteKey ?? "Tenant");
+        }
+        return string.IsNullOrWhiteSpace(_tenantName) ? "Group" : _tenantName;
+    }
     private int _staffCount;
     private int _cpUserCount;
 
@@ -584,6 +654,8 @@ else
         {
             return;
         }
+
+        _guide = await Guide.ReadAsync(ctx.RequestAborted).ConfigureAwait(false);
 
         var staff = await Dashboards.ListErpStaffAsync(50, ctx.RequestAborted);
         _staff = staff.Staff;

@@ -3,6 +3,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Cp
 @using EcomAE.Platform.Erp
+@using EcomAE.Platform.Middleware
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
 @using System.Text
@@ -63,12 +64,45 @@
     {
         <div class="tg-card" style="overflow-x:auto">
             <h3>Organisation structure</h3>
-            @((MarkupString)BuildSvg())
+            <div class="epc-orgchart">
+                <div class="epc-orgchart-root"><i class="fa fa-flag"></i> @OrgRootLabel()</div>
+                <div class="epc-orgchart-spine" aria-hidden="true"></div>
+                <div class="epc-orgchart-entities">
+                    @foreach (var ent in _model.Entities.OrderBy(e => e.Code))
+                    {
+                        var units = _model.BusinessUnits.Where(b => b.EntityId == ent.Id).OrderBy(b => b.Code).ToList();
+                        <div class="epc-orgchart-ent @(ent.Consolidated ? "" : "is-shared")" title="@(ent.Consolidated ? "" : "Off group statements")">
+                            <div class="epc-orgchart-entcard">
+                                <i class="fa fa-building"></i>
+                                <div><strong>@ent.Code</strong><span>@ent.Name · @ent.Currency</span></div>
+                            </div>
+                            @if (units.Count > 0)
+                            {
+                                <ul class="epc-orgchart-bulist">
+                                    @foreach (var u in units)
+                                    {
+                                        <li><i class="fa fa-briefcase"></i> <strong>@u.Code</strong> @u.Name
+                                            @if (!string.IsNullOrWhiteSpace(u.Warehouse))
+                                            {
+                                                <span style="color:#64748b"> · @u.Warehouse</span>
+                                            }
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
             <p style="color:#4a627a;font-size:12px;margin:6px 0 0">
                 @_model.Entities.Count legal entit@(_model.Entities.Count == 1 ? "y" : "ies") ·
                 @_model.BusinessUnits.Count business unit@(_model.BusinessUnits.Count == 1 ? "" : "s") ·
                 @_model.WarehouseCount warehouse@(_model.WarehouseCount == 1 ? "" : "s")
             </p>
+            <details style="margin-top:10px">
+                <summary style="cursor:pointer;color:#12324f;font-size:12px;font-weight:600">Detailed map (group-statement scope)</summary>
+                <div style="margin-top:8px">@((MarkupString)BuildSvg())</div>
+            </details>
         </div>
 
         <div class="tg-grid">
@@ -369,6 +403,16 @@
     private string _flashErr = string.Empty;
     private ErpShamModuleFlowsResult? _flows;
     private ErpTenantGuideModel _model = new();
+
+    private string OrgRootLabel()
+    {
+        var tenant = Http.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        if (tenant?.IsTenant == true)
+        {
+            return !string.IsNullOrWhiteSpace(tenant.DisplayName) ? tenant.DisplayName! : (tenant.SiteKey ?? "Tenant");
+        }
+        return "Group";
+    }
 
     private const int EntityWidth = 200;
     private const int EntityGap = 30;
