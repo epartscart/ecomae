@@ -324,22 +324,24 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
         {
             var std = po.Produced * stdCostPerBottle;
             var act = po.Status == "completed" ? std * po.ActFactor : 0m;
+            // actual = std + variance after fil rounding, so order and GL journal agree to the fil.
+            var stdR = Math.Round(std, 2);
+            var varR = Math.Round(act - std, 2);
+            var actR = stdR + varR;
             var orderId = await InsertIfAbsentAsync(connection,
                 "SELECT `id` FROM `" + ErpFmcgWorkspaceSchema.ProductionOrders + "` WHERE `order_no`=@p0",
                 "INSERT INTO `" + ErpFmcgWorkspaceSchema.ProductionOrders + "` (`order_no`,`bom_id`,`finished_item_id`,`legal_entity_id`,`business_unit_id`,`qty_planned`,`qty_produced`,`std_cost`,`actual_cost`,`variance`,`status`,`scheduled_date`,`completed_date`,`time_created`,`time_modified`)"
                 + " VALUES (@p0,@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@p9,@p10,@p11,@p12,@p13,@p13)",
                 cancellationToken, po.No, bomId, itemIds[0], mfgEnt, mfgBu,
-                po.Planned, po.Produced, Math.Round(std, 2), Math.Round(act, 2), Math.Round(act - std, 2),
+                po.Planned, po.Produced, stdR, actR, varR,
                 po.Status, po.Sched, po.Done, now);
             await MarkAsync(connection, ErpFmcgWorkspaceSchema.ProductionOrders, orderId, cancellationToken).ConfigureAwait(false);
         }
 
         // Production variance journal: unfavourable material usage on PO-0001.
-        // Round to fils like the production-order row does (actual = Round(std*1.04)),
-        // and derive variance as actual-std so journal and order agree to the fil.
+        // Same fil rounding as the order row: variance = Round(act-std), WIP credit = std + variance.
         var fgOut = Math.Round(11850m * stdCostPerBottle, 2);
-        var po1Actual = Math.Round(11850m * stdCostPerBottle * 1.04m, 2);
-        var pvar = po1Actual - fgOut;
+        var pvar = Math.Round(11850m * stdCostPerBottle * 0.04m, 2);
         var j4 = await _gl.PostJournalAsync(connection,
             new ErpGlJournalHeader
             {
