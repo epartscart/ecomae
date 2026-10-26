@@ -362,10 +362,16 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
         await MarkAsync(connection, "epc_erp_gl_journals", j4, cancellationToken).ConfigureAwait(false);
 
         // Quarantine one yoghurt batch for inspection.
-        await ErpDb.ExecuteAsync(connection, null,
-            "UPDATE `" + ErpFmcgWorkspaceSchema.Batches + "` b JOIN `" + ErpFmcgWorkspaceSchema.Items + "` i ON i.`id`=b.`item_id`"
-            + " SET b.`quality_status`='quarantine' WHERE i.`sku`='FM-YGT-PLN170' LIMIT 1",
-            cancellationToken).ConfigureAwait(false);
+        // (single-table UPDATE — MariaDB rejects LIMIT on multi-table UPDATE.)
+        var ygtBatch = await ScalarAsync(connection,
+            "SELECT b.`id` FROM `" + ErpFmcgWorkspaceSchema.Batches + "` b JOIN `" + ErpFmcgWorkspaceSchema.Items + "` i ON i.`id`=b.`item_id`"
+            + " WHERE i.`sku`='FM-YGT-PLN170' ORDER BY b.`id` LIMIT 1", cancellationToken);
+        if (ygtBatch > 0)
+        {
+            await ErpDb.ExecuteAsync(connection, null,
+                "UPDATE `" + ErpFmcgWorkspaceSchema.Batches + "` SET `quality_status`='quarantine' WHERE `id`=@p0",
+                cancellationToken, ygtBatch).ConfigureAwait(false);
+        }
 
         // --- Customer claims: quality return + shortage credit ---
         var claimRows = new (string No, string Cust, int ItemIdx, string Type, decimal Qty, decimal Credit, string Status, long D, string Res)[]
