@@ -278,7 +278,7 @@
                 <h4><i class="fa fa-sitemap"></i> Organisation structure</h4>
                 <div class="bd">
                     <div class="epc-orgchart">
-                        <div class="epc-orgchart-root"><i class="fa fa-flag"></i> @_companyLabel</div>
+                        <div class="epc-orgchart-root"><i class="fa fa-flag"></i> @OrgRootLabel()</div>
                         <div class="epc-orgchart-spine" aria-hidden="true"></div>
                         <div class="epc-orgchart-entities">
                             @foreach (var ent in _org.LegalEntities.Where(e => e.Active).OrderBy(e => e.Code))
@@ -1193,6 +1193,27 @@
     private string _industryCode = "core";
     private string _industryLabel = "Core / multi-industry";
     private ErpHostContext.Context _ctx = ErpHostContext.Resolve(null);
+
+    private string OrgRootLabel()
+    {
+        // The org chart roots at the tenant group, not the selected company —
+        // the registry trade name is the tenant's own group label on
+        // operations/sandbox hosts; platform hosts fall back to the brand.
+        if (Http.HttpContext?.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey]
+            is EcomAE.Platform.Services.TenantContext tenant
+            && tenant.IsTenant)
+        {
+            if (!string.IsNullOrWhiteSpace(tenant.DisplayName))
+            {
+                return tenant.DisplayName.Trim();
+            }
+            if (!string.IsNullOrWhiteSpace(tenant.SiteKey))
+            {
+                return tenant.SiteKey.Trim();
+            }
+        }
+        return string.IsNullOrWhiteSpace(_ctx.BrandLabel) ? "Group" : _ctx.BrandLabel;
+    }
     private string _pageTitle = "ERP Finance";
     private string _periodFrom = DateTime.UtcNow.ToString("yyyy-MM-01");
     private string _periodTo = DateTime.UtcNow.ToString("yyyy-MM-dd");
