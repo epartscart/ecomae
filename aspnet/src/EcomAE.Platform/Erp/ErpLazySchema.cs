@@ -827,6 +827,20 @@ internal static class ErpLazySchema
             "PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
             ct).ConfigureAwait(false);
 
+        // epc_erp_pm_cost_centres: only the D365 mapping path used to create it —
+        // FMCG demo seed and org admin need it on fresh/copied tenant DBs too.
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_cost_centres` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`code` varchar(40) NOT NULL DEFAULT ''," +
+            "`name` varchar(190) NOT NULL DEFAULT ''," +
+            "`legal_entity_id` int(11) NOT NULL DEFAULT 0," +
+            "`active` tinyint(1) NOT NULL DEFAULT 1," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`), UNIQUE KEY `ux_cc_code` (`code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            ct).ConfigureAwait(false);
+
         try
         {
             var count = await ErpDb.LongAsync(c, null,
