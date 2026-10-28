@@ -14,6 +14,7 @@
 <PageTitle>Expense Reports · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Expense Reports" BreadcrumbArea="People" BreadcrumbTab="Expenses">
+<ErpPrintDesignerLink Kind="posted_report" />
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/expense-reports-app" IsAdmin="_isAdmin" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
