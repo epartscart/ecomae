@@ -107,7 +107,7 @@ step,template,csv_column,indus_field,ecomae_table_column,module,workflow,require
 09,designs,category,Category,epc_jewel_design.category,Masters / Manufacture,"Design → tag, manufacture",,
 09,designs,sub_category,Sub category,epc_jewel_design.sub_category,Masters / Manufacture,"Design → tag, manufacture",,
 09,designs,brand,Brand,epc_jewel_design.brand,Masters / Manufacture,"Design → tag, manufacture",,
-09,designs,metal_and_stone,Metal & stone,epc_jewel_design.metal_and_stone,Masters / Manufacture,"Design → tag, manufacture",,
+09,designs,metal_and_stone,Metal & stone (Y/N),epc_jewel_design.metal_and_stone,Masters / Manufacture,"Design → tag, manufacture",,
 09,designs,type,Type,epc_jewel_design.type,Masters / Manufacture,"Design → tag, manufacture",,
 09,designs,vendor,Vendor,epc_jewel_design.vendor,Masters / Manufacture,"Design → tag, manufacture",,
 09,designs,cost_amount,Cost amount,epc_jewel_design.cost_amount,Masters / Manufacture,"Design → tag, manufacture",,

@@ -126,7 +126,7 @@ public static class ErpJewelleryGl
     /// value, sales issue at average cost (line cost_amount → COGS), returns come
     /// back at average cost. Tags flip sold / in_stock. Returns lines moved.
     /// </summary>
-    public static async Task<int> ApplyStockAsync(DbConnection connection, long voucherId, List<string> notes, CancellationToken ct)
+    public static async Task<int> ApplyStockAsync(DbConnection connection, long voucherId, List<string> notes, CancellationToken ct, IReadOnlySet<long>? onlyLineIds = null)
     {
         string type;
         long companyId;
@@ -166,6 +166,7 @@ public static class ErpJewelleryGl
         var moved = 0;
         foreach (var line in lines)
         {
+            if (onlyLineIds is not null && !onlyLineIds.Contains(line.Id)) continue;
             long stockId = 0;
             int pcs = 0;
             decimal gms = 0, value = 0, costGms = 0;

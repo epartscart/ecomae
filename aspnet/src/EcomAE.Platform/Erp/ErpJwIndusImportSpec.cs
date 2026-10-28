@@ -195,7 +195,7 @@ public static class ErpJwIndusImportSpec
             [
                 S("design_code", 20, "Design code", "", true), S("description", 120, "Description", "", true),
                 S("category", 30, "Category"), S("sub_category", 30, "Sub category"), S("brand", 30, "Brand"),
-                S("metal_and_stone", 10, "Metal & stone"), S("type", 30, "Type"), S("vendor", 30, "Vendor"),
+                F("metal_and_stone", "Metal & stone (Y/N)"), S("type", 30, "Type"), S("vendor", 30, "Vendor"),
                 N("cost_amount", "Cost amount"), N("price1_lc", "Price 1 (LC)"), S("image_path", 250, "Picture path"),
             ]),
         new("diamonds", 10, "Diamond jewellery master", "epc_jewel_diamond_master", "Masters › Diamond", "Masters / Diamond", "Diamond item → diamond purchase & sale",
