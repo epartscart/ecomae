@@ -167,6 +167,12 @@ public sealed class ErpJwIndusImportWriteService : IErpJwIndusImportWriteService
             foreach (var row in rows)
             {
                 total++;
+                if (pendingParents.Contains(template.Key + "|" + row.SourceRef))
+                {
+                    issues.Add(new(template.Key, row.Line, "Duplicate source_ref '" + row.SourceRef + "' across uploaded files."));
+                    continue;
+                }
+
                 if (await RegistryIdAsync(connection, null, template.Key, row.SourceRef, cancellationToken).ConfigureAwait(false) > 0)
                 {
                     row.AlreadyImported = true;
@@ -385,14 +391,22 @@ public sealed class ErpJwIndusImportWriteService : IErpJwIndusImportWriteService
             if (recipe.Count > 0)
             {
                 var reference = "JW-OPEN-TB-" + coaRows[0].RegistryId.ToString(CultureInfo.InvariantCulture);
-                if (await ErpAutoPartsGl.PostedJournalIdAsync(connection, reference, ct).ConfigureAwait(false) <= 0)
+                var jid = await ErpAutoPartsGl.PostedJournalIdAsync(connection, reference, ct).ConfigureAwait(false);
+                if (jid <= 0)
                 {
-                    var jid = await ErpAutoPartsGl.PostAsync(_gl, connection, null, 0, companyId, 0, reference, "INDUS opening trial balance", recipe, date, ct).ConfigureAwait(false);
-                    notes.Add(jid > 0 ? "Opening trial balance posted (" + reference + ")." : "Opening trial balance NOT posted — check account codes.");
+                    jid = await ErpAutoPartsGl.PostAsync(_gl, connection, null, 0, companyId, 0, reference, "INDUS opening trial balance", recipe, date, ct).ConfigureAwait(false);
+                    notes.Add(jid > 0 ? "Opening trial balance posted (" + reference + ")." : "Opening trial balance NOT posted — check account codes; it is retried on the next import.");
+                }
+
+                if (jid > 0)
+                {
+                    await MarkPostedAsync(connection, coaRows.Select(r => r.RegistryId), ct).ConfigureAwait(false);
                 }
             }
-
-            await MarkPostedAsync(connection, coaRows.Select(r => r.RegistryId), ct).ConfigureAwait(false);
+            else
+            {
+                await MarkPostedAsync(connection, coaRows.Select(r => r.RegistryId), ct).ConfigureAwait(false);
+            }
         }
 
         // 2. Opening stock value → Dr 1300 inventory / Cr 3900 opening balance equity.
@@ -420,14 +434,25 @@ public sealed class ErpJwIndusImportWriteService : IErpJwIndusImportWriteService
         }
 
         // 3. Stock weight/value movement per voucher line.
-        var voucherRows = await RegistryPendingAsync(connection, "vouchers", ct).ConfigureAwait(false);
+        // Keyed on line rows so lines imported after their header still move stock exactly once.
+        var lineRows = await RegistryPendingAsync(connection, "voucher_lines", ct).ConfigureAwait(false);
         var moved = 0;
-        foreach (var r in voucherRows)
+        var byVoucher = new Dictionary<long, HashSet<long>>();
+        foreach (var r in lineRows)
         {
-            moved += await ErpJewelleryGl.ApplyStockAsync(connection, r.RowId, notes, ct).ConfigureAwait(false);
+            var voucherId = await ErpDb.LongAsync(connection, null, ErpDb.Positional("SELECT `voucher_id` FROM `epc_jewel_voucher_lines` WHERE `id`=?"), ct, r.RowId).ConfigureAwait(false);
+            if (voucherId <= 0) continue;
+            if (!byVoucher.TryGetValue(voucherId, out var set)) byVoucher[voucherId] = set = [];
+            set.Add(r.RowId);
         }
 
-        await MarkPostedAsync(connection, voucherRows.Select(r => r.RegistryId), ct).ConfigureAwait(false);
+        foreach (var (voucherId, ids) in byVoucher)
+        {
+            moved += await ErpJewelleryGl.ApplyStockAsync(connection, voucherId, notes, ct, ids).ConfigureAwait(false);
+        }
+
+        await MarkPostedAsync(connection, lineRows.Select(r => r.RegistryId), ct).ConfigureAwait(false);
+        await MarkPostedAsync(connection, (await RegistryPendingAsync(connection, "vouchers", ct).ConfigureAwait(false)).Select(r => r.RegistryId), ct).ConfigureAwait(false);
         if (moved > 0)
         {
             notes.Add("Stock moved for " + moved + " voucher line(s) (weight + value, COGS at average cost).");
@@ -478,7 +503,7 @@ public sealed class ErpJwIndusImportWriteService : IErpJwIndusImportWriteService
                 case "vouchers": refs.Add("JW-V-" + id + "-%"); break;
                 case "petty_cash": refs.Add("JW-PC-" + id); break;
                 case "metal_stock": refs.Add("JW-OPEN-STK-" + id); break;
-                case "coa": refs.Add("JW-OPEN-TB-%"); break;
+                case "coa": refs.Add("JW-OPEN-TB-" + r.Id.ToString(CultureInfo.InvariantCulture)); break;
             }
         }
 

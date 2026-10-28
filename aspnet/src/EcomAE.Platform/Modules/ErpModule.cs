@@ -29275,6 +29275,12 @@ public sealed class ErpModule : ISurfaceModule
         var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
         var template = form["template"].ToString().Trim();
         var files = new List<ErpJwIndusImportFile>();
+        const long maxBytes = 20L * 1024 * 1024;
+        if (form.Files.Sum(f => f.Length) > maxBytes)
+        {
+            return LiveWriteFormBinder.Complete(context, IndusReturnUrl, false, "Upload too large — split the INDUS export into files under 20 MB in total.", new { ok = false, writes = 0, validation_code = "too_large" });
+        }
+
         foreach (var file in form.Files)
         {
             if (file.Length == 0) { continue; }
