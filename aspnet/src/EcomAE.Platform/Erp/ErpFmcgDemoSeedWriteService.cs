@@ -410,7 +410,7 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
             "CREATE TABLE IF NOT EXISTS `epc_invoices` (`id` int(11) NOT NULL AUTO_INCREMENT, `invoice_number` varchar(40) NOT NULL DEFAULT '', `customer_name` varchar(190) NOT NULL DEFAULT '', `total_amount` decimal(14,2) NOT NULL DEFAULT 0, `paid_amount` decimal(14,2) NOT NULL DEFAULT 0, `status` varchar(20) NOT NULL DEFAULT 'sent', `currency_code` varchar(8) NOT NULL DEFAULT 'QAR', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_inv_no` (`invoice_number`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
             "CREATE TABLE IF NOT EXISTS `epc_bills` (`id` int(11) NOT NULL AUTO_INCREMENT, `bill_number` varchar(40) NOT NULL DEFAULT '', `supplier_name` varchar(190) NOT NULL DEFAULT '', `total_amount` decimal(14,2) NOT NULL DEFAULT 0, `paid_amount` decimal(14,2) NOT NULL DEFAULT 0, `status` varchar(20) NOT NULL DEFAULT 'received', `currency_code` varchar(8) NOT NULL DEFAULT 'QAR', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_bill_no` (`bill_number`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
             "CREATE TABLE IF NOT EXISTS `shop_users_accounting` (`id` int(11) NOT NULL AUTO_INCREMENT, `user_id` int(11) NOT NULL DEFAULT 0, `order_id` int(11) NOT NULL DEFAULT 0, `income` tinyint(1) NOT NULL DEFAULT 0, `amount` decimal(14,2) NOT NULL DEFAULT 0, `operation_code` varchar(40) NOT NULL DEFAULT '', `office_id` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, `time` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `ix_sua_u` (`user_id`), KEY `ix_sua_o` (`order_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
-            "CREATE TABLE IF NOT EXISTS `epc_einvoice_documents` (`id` int(11) NOT NULL AUTO_INCREMENT, `uuid` varchar(64) NOT NULL DEFAULT '', `invoice_number` varchar(40) NOT NULL DEFAULT '', `doc_category` varchar(32) NOT NULL DEFAULT 'tax_invoice', `issue_date` int(11) NOT NULL DEFAULT 0, `payment_due_date` int(11) NOT NULL DEFAULT 0, `currency_code` varchar(8) NOT NULL DEFAULT 'QAR', `subtotal_ex_vat` decimal(14,2) NOT NULL DEFAULT 0, `total_vat` decimal(14,2) NOT NULL DEFAULT 0, `total_incl_vat` decimal(14,2) NOT NULL DEFAULT 0, `paid_amount` decimal(14,2) NOT NULL DEFAULT 0, `status` varchar(20) NOT NULL DEFAULT 'draft', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_ein_no` (`invoice_number`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_einvoice_documents` (`id` int(11) NOT NULL AUTO_INCREMENT, `uuid` char(36) NOT NULL, `invoice_number` varchar(64) NOT NULL DEFAULT '', `order_id` int(11) NOT NULL DEFAULT 0, `user_id` int(11) NOT NULL DEFAULT 0, `doc_category` varchar(32) NOT NULL DEFAULT 'tax_invoice', `issue_date` int(11) NOT NULL DEFAULT 0, `payment_due_date` int(11) NOT NULL DEFAULT 0, `currency_code` varchar(8) NOT NULL DEFAULT 'QAR', `seller_json` mediumtext, `buyer_json` mediumtext, `subtotal_ex_vat` decimal(14,2) NOT NULL DEFAULT 0, `total_vat` decimal(14,2) NOT NULL DEFAULT 0, `total_incl_vat` decimal(14,2) NOT NULL DEFAULT 0, `paid_amount` decimal(14,2) NOT NULL DEFAULT 0, `amount_due` decimal(14,2) NOT NULL DEFAULT 0, `status` varchar(20) NOT NULL DEFAULT 'draft', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_ein_no` (`invoice_number`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
         };
         foreach (var sql in ddl)
         {
@@ -547,26 +547,27 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
         }
 
         // AR e-invoice documents (open balances feed the receivables tile + due count).
-        var invs = new (string No, string Cust, decimal Total, decimal PaidAmt, string St, string DocSt, int DaysAgo)[]
+        var invs = new (string No, int Cust, string CustName, decimal Total, decimal PaidAmt, string St, string DocSt, int DaysAgo)[]
         {
-            ("INV-D-1001", "Lulu Hypermarket", 14175.00m, 0m, "sent", "submitted", 6),
-            ("INV-D-1002", "Carrefour Qatar", 9828.00m, 0m, "issued", "submitted", 10),
-            ("INV-D-1003", "Al Meera Retail", 7455.00m, 4000m, "part_paid", "accepted", 16),
-            ("INV-D-1004", "Monoprix Qatar", 5428.50m, 0m, "overdue", "accepted", 34),
+            ("INV-D-1001", 0, "Lulu Hypermarket", 14175.00m, 0m, "sent", "submitted", 6),
+            ("INV-D-1002", 1, "Carrefour Qatar", 9828.00m, 0m, "issued", "submitted", 10),
+            ("INV-D-1003", 2, "Al Meera Retail", 7455.00m, 4000m, "part_paid", "accepted", 16),
+            ("INV-D-1004", 3, "Monoprix Qatar", 5428.50m, 0m, "overdue", "accepted", 34),
         };
         foreach (var v in invs)
         {
             var vid = await InsertIfAbsentAsync(connection,
                 "SELECT `id` FROM `epc_invoices` WHERE `invoice_number`=@p0",
                 "INSERT INTO `epc_invoices` (`invoice_number`,`customer_name`,`total_amount`,`paid_amount`,`status`,`currency_code`,`active`,`time_created`) VALUES (@p0,@p1,@p2,@p3,@p4,'QAR',1,@p5)",
-                cancellationToken, v.No, v.Cust, v.Total, v.PaidAmt, v.St, now - v.DaysAgo * day);
+                cancellationToken, v.No, v.CustName, v.Total, v.PaidAmt, v.St, now - v.DaysAgo * day);
             await MarkAsync(connection, "epc_invoices", vid, cancellationToken).ConfigureAwait(false);
 
             var eid = await InsertIfAbsentAsync(connection,
                 "SELECT `id` FROM `epc_einvoice_documents` WHERE `invoice_number`=@p0",
-                "INSERT INTO `epc_einvoice_documents` (`uuid`,`invoice_number`,`doc_category`,`issue_date`,`payment_due_date`,`currency_code`,`subtotal_ex_vat`,`total_vat`,`total_incl_vat`,`paid_amount`,`status`,`active`) VALUES (UUID(),@p0,'tax_invoice',@p1,@p2,'QAR',@p3,@p4,@p5,@p6,@p7,1)",
-                cancellationToken, v.No, now - v.DaysAgo * day, now - v.DaysAgo * day + 30 * day,
-                v.Total / 1.05m, v.Total - v.Total / 1.05m, v.Total, v.PaidAmt, v.DocSt);
+                "INSERT INTO `epc_einvoice_documents` (`uuid`,`invoice_number`,`user_id`,`doc_category`,`issue_date`,`payment_due_date`,`currency_code`,`buyer_json`,`subtotal_ex_vat`,`total_vat`,`total_incl_vat`,`paid_amount`,`amount_due`,`status`,`active`) VALUES (UUID(),@p0,@p1,'tax_invoice',@p2,@p3,'QAR',@p4,@p5,@p6,@p7,@p8,@p9,@p10,1)",
+                cancellationToken, v.No, custIds[v.Cust], now - v.DaysAgo * day, now - v.DaysAgo * day + 30 * day,
+                "{\"name\":\"" + v.CustName + "\"}",
+                v.Total / 1.05m, v.Total - v.Total / 1.05m, v.Total, v.PaidAmt, v.Total - v.PaidAmt, v.DocSt);
             await MarkAsync(connection, "epc_einvoice_documents", eid, cancellationToken).ConfigureAwait(false);
         }
 

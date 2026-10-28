@@ -22,7 +22,7 @@ public static class ErpAppAssets
 
     public const string LoginBrandPrefix = "/platform-assets/login-brand";
 
-    public const string PlatformLogoUrl = LoginBrandPrefix + "/ecomae-fze.png";
+    public const string PlatformLogoUrl = LoginBrandPrefix + "/ecomae-fze.png?v=group";
 
     // ECOM GROUP FZE LLC owns the ecomae.com brand; the licence line travels
     // with every "design and build by" credit across BOS / CP / ERP surfaces.
