@@ -38,7 +38,7 @@ public sealed class LifeOsLegalFooterTests
         Assert.Equal("https://www.ecomae.com/privacy", LifeOsLegalCatalog.FooterLegalLinks.Single(l => l.Key == "privacy").Href);
         Assert.Equal("https://www.ecomae.com/copyright", LifeOsLegalCatalog.FooterLegalLinks.Single(l => l.Key == "copyright").Href);
         Assert.Equal("https://www.ecomae.com/legal", LifeOsLegalCatalog.LegalHubHref);
-        Assert.Contains("ECOM GLOBAL FZE LLC", LifeOsLegalCatalog.CopyrightLine(2026), StringComparison.Ordinal);
+        Assert.Contains("ECOM GROUP FZE LLC", LifeOsLegalCatalog.CopyrightLine(2026), StringComparison.Ordinal);
         Assert.Contains("Dubai, UAE", LifeOsLegalCatalog.CopyrightLine(2026), StringComparison.Ordinal);
     }
 
