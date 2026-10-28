@@ -9,6 +9,7 @@
         <a class="@(active ? "active" : null)" href="@Href(tab.Href)"><i class="fa @tab.Icon"></i> @tab.Label</a>
     }
 </nav>
+<ErpJewelleryReportsMenu />
 
 @code {
     [Parameter] public string Active { get; set; } = ErpJewelleryGuide.TabKey;

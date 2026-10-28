@@ -72,7 +72,7 @@ The same templates, samples and field map download from the **INDUS migration** 
 | Repairs | `/erp/jewellery-repairs-app` | Repair jobs, transfer, delivery |
 | Masters (karat, rate type, currency, designs, stones) | `/erp/jewellery-masters-app` | Master data |
 | Trial balance | `/erp/trial-balance-app` | All GL accounts (1000 cash, 1020 petty cash, 1030 card, 1100 AR, 1300 inventory, 1320 old gold, 2100 VAT, 2300 advances, 4000 sales, 4100 returns, 5000 COGS…) |
-| Balance sheet / income statement | `/erp/report-center-app?tab=balance_sheet`, `?tab=income_statement` | Financial statements from the same GL |
+| Balance sheet / income statement | `/erp/report-center-app?tab=balance_sheet`, `?tab=pl` | Financial statements from the same GL |
 | Stock movements ledger | `/erp/stock-movements-app` | General inventory movements |
 
 Print previews: `/erp/jewellery/voucher-print?id=<voucher id>` (TAX INVOICE, TAX CREDIT NOTE, PURCHASE, RECEIPT VOUCHER, JOURNAL VOUCHER), `&kind=fixing`, `&kind=petty`, `&kind=repair`; add `&copy=party` for the party copy.
