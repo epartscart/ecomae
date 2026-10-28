@@ -1,0 +1,366 @@
+step,template,csv_column,indus_field,ecomae_table_column,module,workflow,required,links_to (report / GL / downstream)
+01,coa,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Finance / GL,"Opening balances → trial balance, balance sheet, dashboard",yes,Duplicate guard + traceability
+01,coa,code,A/C Code,epc_erp_coa_accounts.code,Finance / GL,"Opening balances → trial balance, balance sheet, dashboard",yes,GL account code (epc_erp_coa_accounts.code)
+01,coa,name,A/C Name,epc_erp_coa_accounts.name,Finance / GL,"Opening balances → trial balance, balance sheet, dashboard",yes,GL account name
+01,coa,account_type,Group (Asset/Liability/Equity/Income/Expense),epc_erp_coa_accounts.account_type,Finance / GL,"Opening balances → trial balance, balance sheet, dashboard",yes,asset|liability|equity|revenue|expense → statement placement
+01,coa,normal_side,Dr/Cr nature,epc_erp_coa_accounts.normal_side,Finance / GL,"Opening balances → trial balance, balance sheet, dashboard",,debit|credit (defaults from account_type)
+01,coa,indus_ac_code,INDUS A/C Code (if renumbered),(loader only),Finance / GL,"Opening balances → trial balance, balance sheet, dashboard",,kept in description for traceability
+01,coa,opening_debit,Trial balance debit,(loader only),Finance / GL,"Opening balances → trial balance, balance sheet, dashboard",,Opening journal JW-OPEN-TB Dr
+01,coa,opening_credit,Trial balance credit,(loader only),Finance / GL,"Opening balances → trial balance, balance sheet, dashboard",,Opening journal JW-OPEN-TB Cr
+01,coa,opening_date,Cut-off date,(loader only),Finance / GL,"Opening balances → trial balance, balance sheet, dashboard",,Opening journal date
+02,parties,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Purchases / Sales / AP-AR,"Party on metal & diamond purchase, fixing, trade sale",yes,Duplicate guard + traceability
+02,parties,party_code,Party Code,epc_jewel_party.party_code,Purchases / Sales / AP-AR,"Party on metal & diamond purchase, fixing, trade sale",yes,"voucher.party_code, fixing.party_code"
+02,parties,party_name,Party Name,epc_jewel_party.party_name,Purchases / Sales / AP-AR,"Party on metal & diamond purchase, fixing, trade sale",yes,printed on purchase / fixing
+02,parties,party_type,Debtor / Creditor,epc_jewel_party.party_type,Purchases / Sales / AP-AR,"Party on metal & diamond purchase, fixing, trade sale",,SUPPLIER|CUSTOMER|BOTH
+02,parties,trn,TRN,epc_jewel_party.trn,Purchases / Sales / AP-AR,"Party on metal & diamond purchase, fixing, trade sale",,"VAT input/output report, print"
+02,parties,phone,Tel,epc_jewel_party.phone,Purchases / Sales / AP-AR,"Party on metal & diamond purchase, fixing, trade sale",,
+02,parties,mobile,Mobile,epc_jewel_party.mobile,Purchases / Sales / AP-AR,"Party on metal & diamond purchase, fixing, trade sale",,
+02,parties,email,E-mail,epc_jewel_party.email,Purchases / Sales / AP-AR,"Party on metal & diamond purchase, fixing, trade sale",,
+02,parties,address,Address,epc_jewel_party.address,Purchases / Sales / AP-AR,"Party on metal & diamond purchase, fixing, trade sale",,
+02,parties,city,City,epc_jewel_party.city,Purchases / Sales / AP-AR,"Party on metal & diamond purchase, fixing, trade sale",,
+02,parties,country,Country,epc_jewel_party.country,Purchases / Sales / AP-AR,"Party on metal & diamond purchase, fixing, trade sale",,
+02,parties,currency,Party Curr.,epc_jewel_party.currency,Purchases / Sales / AP-AR,"Party on metal & diamond purchase, fixing, trade sale",,voucher.party_curr
+02,parties,cr_days,Cr. Days,epc_jewel_party.cr_days,Purchases / Sales / AP-AR,"Party on metal & diamond purchase, fixing, trade sale",,due date = voc_date + cr_days
+02,parties,credit_limit,Credit limit,epc_jewel_party.credit_limit,Purchases / Sales / AP-AR,"Party on metal & diamond purchase, fixing, trade sale",,
+02,parties,ac_code,Linked A/C Code,epc_jewel_party.ac_code,Purchases / Sales / AP-AR,"Party on metal & diamond purchase, fixing, trade sale",,GL sub-ledger account (AP 2000 / AR 1100 by default)
+03,pos_customers,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",yes,Duplicate guard + traceability
+03,pos_customers,customer_code,Customer (code),epc_jewel_pos_customer.customer_code,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",yes,voucher.customer_code
+03,pos_customers,title,Mr./Mrs.,epc_jewel_pos_customer.title,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,
+03,pos_customers,customer_name,Customer name,epc_jewel_pos_customer.customer_name,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",yes,printed on tax invoice
+03,pos_customers,mobile_cc,Mobile country code,epc_jewel_pos_customer.mobile_cc,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,
+03,pos_customers,mobile,Mobile,epc_jewel_pos_customer.mobile,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,invoice print / CRM
+03,pos_customers,tel1,Tel 1,epc_jewel_pos_customer.tel1,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,
+03,pos_customers,email,Email,epc_jewel_pos_customer.email,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,
+03,pos_customers,nationality,Nationality,epc_jewel_pos_customer.nationality,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,AML/KYC
+03,pos_customers,type_resi,Type (RESI/TOURIST),epc_jewel_pos_customer.type_resi,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,tourist VAT refund eligibility
+03,pos_customers,id_type,ID type,epc_jewel_pos_customer.id_type,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,
+03,pos_customers,id_no,ID#,epc_jewel_pos_customer.id_no,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,AML/KYC (Emirates ID / passport)
+03,pos_customers,id_expiry,ID expiry,epc_jewel_pos_customer.id_expiry,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,
+03,pos_customers,dob,Date of birth,epc_jewel_pos_customer.dob,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,
+03,pos_customers,city,City,epc_jewel_pos_customer.city,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,
+03,pos_customers,state,State,epc_jewel_pos_customer.state,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,
+03,pos_customers,po_box,PO Box,epc_jewel_pos_customer.po_box,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,
+03,pos_customers,religion,Religion,epc_jewel_pos_customer.religion,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,
+03,pos_customers,loyalty_points,Loyalty points,epc_jewel_pos_customer.loyalty_points,POS / Compliance (AML-KYC),"Customer on retail sale, return, advance, repair",,
+04,currencies,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Masters,Party/item currency + conversion,yes,Duplicate guard + traceability
+04,currencies,curr_code,Currency,epc_jewel_currency.curr_code,Masters,Party/item currency + conversion,yes,voucher.party_curr / item_curr
+04,currencies,description,Description,epc_jewel_currency.description,Masters,Party/item currency + conversion,,
+04,currencies,symbol,Symbol,epc_jewel_currency.symbol,Masters,Party/item currency + conversion,,
+04,currencies,conv_rate,Conv. rate,epc_jewel_currency.conv_rate,Masters,Party/item currency + conversion,,
+04,currencies,min_conv_rate,Min rate,epc_jewel_currency.min_conv_rate,Masters,Party/item currency + conversion,,
+04,currencies,max_conv_rate,Max rate,epc_jewel_currency.max_conv_rate,Masters,Party/item currency + conversion,,
+04,currencies,status,Multiply/Divide,epc_jewel_currency.status,Masters,Party/item currency + conversion,,
+05,karats,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Masters / Metal,Purity → pure weight on every metal line,yes,Duplicate guard + traceability
+05,karats,karat_code,Karat,epc_jewel_karat_master.karat_code,Masters / Metal,Purity → pure weight on every metal line,yes,"metal_stock.karat, voucher line purity"
+05,karats,description,Description,epc_jewel_karat_master.description,Masters / Metal,Purity → pure weight on every metal line,,
+05,karats,std_purity,Std purity,epc_jewel_karat_master.std_purity,Masters / Metal,Purity → pure weight on every metal line,yes,pure_wt = gr_wt × purity
+05,karats,range_from,Purity from,epc_jewel_karat_master.range_from,Masters / Metal,Purity → pure weight on every metal line,,
+05,karats,range_to,Purity to,epc_jewel_karat_master.range_to,Masters / Metal,Purity → pure weight on every metal line,,
+05,karats,sp_gravity,Sp. gravity,epc_jewel_karat_master.sp_gravity,Masters / Metal,Purity → pure weight on every metal line,,
+05,karats,division,Division (G/S/P),epc_jewel_karat_master.division,Masters / Metal,Purity → pure weight on every metal line,,
+06,rate_types,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Masters / Metal,"GMS / GOZ / TTB rate conversion on purchase, sale, fixing",yes,Duplicate guard + traceability
+06,rate_types,metal,Metal,epc_jewel_rate_type.metal,Masters / Metal,"GMS / GOZ / TTB rate conversion on purchase, sale, fixing",yes,
+06,rate_types,rate_type,Rate type (GMS/GOZ/TTB),epc_jewel_rate_type.rate_type,Masters / Metal,"GMS / GOZ / TTB rate conversion on purchase, sale, fixing",yes,voucher metal rate basis
+06,rate_types,conv_factor,Conv. factor (grams),epc_jewel_rate_type.conv_factor,Masters / Metal,"GMS / GOZ / TTB rate conversion on purchase, sale, fixing",,
+06,rate_types,conv_factor_oz,Conv. factor (oz),epc_jewel_rate_type.conv_factor_oz,Masters / Metal,"GMS / GOZ / TTB rate conversion on purchase, sale, fixing",,
+06,rate_types,currency,Currency,epc_jewel_rate_type.currency,Masters / Metal,"GMS / GOZ / TTB rate conversion on purchase, sale, fixing",,
+06,rate_types,curr_rate,Curr. rate,epc_jewel_rate_type.curr_rate,Masters / Metal,"GMS / GOZ / TTB rate conversion on purchase, sale, fixing",,
+06,rate_types,rate_variance_pct,Rate variance %,epc_jewel_rate_type.rate_variance_pct,Masters / Metal,"GMS / GOZ / TTB rate conversion on purchase, sale, fixing",,
+06,rate_types,pos_margin_min,POS margin min,epc_jewel_rate_type.pos_margin_min,Masters / Metal,"GMS / GOZ / TTB rate conversion on purchase, sale, fixing",,
+06,rate_types,pos_margin_max,POS margin max,epc_jewel_rate_type.pos_margin_max,Masters / Metal,"GMS / GOZ / TTB rate conversion on purchase, sale, fixing",,
+06,rate_types,is_default,Default,epc_jewel_rate_type.is_default,Masters / Metal,"GMS / GOZ / TTB rate conversion on purchase, sale, fixing",,
+07,daily_rates,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Masters / Metal / POS,Rate printed on invoice + valuation,yes,Duplicate guard + traceability
+07,daily_rates,rate_date,Date,epc_gold_rates.rate_date,Masters / Metal / POS,Rate printed on invoice + valuation,yes,
+07,daily_rates,karat,Karat (e.g. 22K),epc_gold_rates.karat,Masters / Metal / POS,Rate printed on invoice + valuation,yes,
+07,daily_rates,currency,Currency,epc_gold_rates.currency,Masters / Metal / POS,Rate printed on invoice + valuation,,
+07,daily_rates,buy_rate,Buy rate,epc_gold_rates.buy_rate,Masters / Metal / POS,Rate printed on invoice + valuation,,
+07,daily_rates,sell_rate,Sell rate,epc_gold_rates.sell_rate,Masters / Metal / POS,Rate printed on invoice + valuation,yes,invoice karat rate line
+07,daily_rates,unit,Unit (gram),epc_gold_rates.unit,Masters / Metal / POS,Rate printed on invoice + valuation,,
+07,daily_rates,source,Source,epc_gold_rates.source,Masters / Metal / POS,Rate printed on invoice + valuation,,
+08,metal_stock,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",yes,Duplicate guard + traceability
+08,metal_stock,item_code,Stock Code,epc_jewel_metal_stock.item_code,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",yes,voucher line stock_code
+08,metal_stock,description,Description,epc_jewel_metal_stock.description,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",yes,
+08,metal_stock,metal,"Metal (G=gold, D=diamond jewellery, S=silver)",epc_jewel_metal_stock.metal,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",yes,stock report grouping
+08,metal_stock,karat,Karat,epc_jewel_metal_stock.karat,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",yes,metal report by karat
+08,metal_stock,purity,Purity,epc_jewel_metal_stock.purity,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",yes,pure weight
+08,metal_stock,type,Type,epc_jewel_metal_stock.type,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,
+08,metal_stock,brand,Brand,epc_jewel_metal_stock.brand,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,
+08,metal_stock,category,Category,epc_jewel_metal_stock.category,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,
+08,metal_stock,sub_category,Sub category,epc_jewel_metal_stock.sub_category,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,
+08,metal_stock,vendor,Supplier,epc_jewel_metal_stock.vendor,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,
+08,metal_stock,country,Country,epc_jewel_metal_stock.country,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,
+08,metal_stock,hs_code,HS code,epc_jewel_metal_stock.hs_code,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,
+08,metal_stock,mc_unit,Making charge unit,epc_jewel_metal_stock.mc_unit,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,
+08,metal_stock,in_pieces,Stock in pieces,epc_jewel_metal_stock.in_pieces,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,
+08,metal_stock,barcode_prefix,Barcode prefix,epc_jewel_metal_stock.barcode_prefix,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,
+08,metal_stock,pur_cost_gms,Cost / gram,epc_jewel_metal_stock.pur_cost_gms,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,average cost for COGS
+08,metal_stock,sale_price_gms,Sale price / gram,epc_jewel_metal_stock.sale_price_gms,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,
+08,metal_stock,stock_qty,Qty,epc_jewel_metal_stock.stock_qty,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,
+08,metal_stock,stock_pcs,PCS (on date),epc_jewel_metal_stock.stock_pcs,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,stock report pcs
+08,metal_stock,stock_gms,Gross Wt (on date),epc_jewel_metal_stock.stock_gms,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,stock report weight
+08,metal_stock,stock_value,Stock value at cost (on date),epc_jewel_metal_stock.stock_value,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,GL 1300 inventory opening (Dr 1300 / Cr 3900)
+08,metal_stock,reorder_level,Reorder level,epc_jewel_metal_stock.reorder_level,Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,
+08,metal_stock,post_opening,"Post opening stock to GL (Y/N, default Y)",(loader only),Inventory / Stock,"Opening stock → stock report, metal report, GL 1300 inventory",,JW-OPEN-STK journal
+09,designs,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Masters / Manufacture,"Design → tag, manufacture",yes,Duplicate guard + traceability
+09,designs,design_code,Design code,epc_jewel_design.design_code,Masters / Manufacture,"Design → tag, manufacture",yes,
+09,designs,description,Description,epc_jewel_design.description,Masters / Manufacture,"Design → tag, manufacture",yes,
+09,designs,category,Category,epc_jewel_design.category,Masters / Manufacture,"Design → tag, manufacture",,
+09,designs,sub_category,Sub category,epc_jewel_design.sub_category,Masters / Manufacture,"Design → tag, manufacture",,
+09,designs,brand,Brand,epc_jewel_design.brand,Masters / Manufacture,"Design → tag, manufacture",,
+09,designs,metal_and_stone,Metal & stone,epc_jewel_design.metal_and_stone,Masters / Manufacture,"Design → tag, manufacture",,
+09,designs,type,Type,epc_jewel_design.type,Masters / Manufacture,"Design → tag, manufacture",,
+09,designs,vendor,Vendor,epc_jewel_design.vendor,Masters / Manufacture,"Design → tag, manufacture",,
+09,designs,cost_amount,Cost amount,epc_jewel_design.cost_amount,Masters / Manufacture,"Design → tag, manufacture",,
+09,designs,price1_lc,Price 1 (LC),epc_jewel_design.price1_lc,Masters / Manufacture,"Design → tag, manufacture",,
+09,designs,image_path,Picture path,epc_jewel_design.image_path,Masters / Manufacture,"Design → tag, manufacture",,
+10,diamonds,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Masters / Diamond,Diamond item → diamond purchase & sale,yes,Duplicate guard + traceability
+10,diamonds,item_code,Stock Code,epc_jewel_diamond_master.item_code,Masters / Diamond,Diamond item → diamond purchase & sale,yes,
+10,diamonds,description,Description,epc_jewel_diamond_master.description,Masters / Diamond,Diamond item → diamond purchase & sale,yes,
+10,diamonds,design,Design,epc_jewel_diamond_master.design,Masters / Diamond,Diamond item → diamond purchase & sale,,
+10,diamonds,category,Category,epc_jewel_diamond_master.category,Masters / Diamond,Diamond item → diamond purchase & sale,,
+10,diamonds,color,Color,epc_jewel_diamond_master.color,Masters / Diamond,Diamond item → diamond purchase & sale,,
+10,diamonds,clarity,Clarity,epc_jewel_diamond_master.clarity,Masters / Diamond,Diamond item → diamond purchase & sale,,
+10,diamonds,type,Type,epc_jewel_diamond_master.type,Masters / Diamond,Diamond item → diamond purchase & sale,,
+10,diamonds,certificate_no,Certificate no,epc_jewel_diamond_master.certificate_no,Masters / Diamond,Diamond item → diamond purchase & sale,,
+10,diamonds,certificate_by,Certificate by,epc_jewel_diamond_master.certificate_by,Masters / Diamond,Diamond item → diamond purchase & sale,,
+10,diamonds,item_gr_wt,Gross Wt,epc_jewel_diamond_master.item_gr_wt,Masters / Diamond,Diamond item → diamond purchase & sale,,
+10,diamonds,pure_wt,Pure Wt,epc_jewel_diamond_master.pure_wt,Masters / Diamond,Diamond item → diamond purchase & sale,,
+10,diamonds,metal_qty,Metal qty,epc_jewel_diamond_master.metal_qty,Masters / Diamond,Diamond item → diamond purchase & sale,,
+10,diamonds,stone_qty,Stone ct,epc_jewel_diamond_master.stone_qty,Masters / Diamond,Diamond item → diamond purchase & sale,,
+10,diamonds,cost_amount,Cost,epc_jewel_diamond_master.cost_amount,Masters / Diamond,Diamond item → diamond purchase & sale,,
+10,diamonds,price1_lc,Price 1 (LC),epc_jewel_diamond_master.price1_lc,Masters / Diamond,Diamond item → diamond purchase & sale,,
+10,diamonds,vendor,Vendor,epc_jewel_diamond_master.vendor,Masters / Diamond,Diamond item → diamond purchase & sale,,
+11,color_stones,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Masters / Stones,Stone component on design/sale,yes,Duplicate guard + traceability
+11,color_stones,code,Code,epc_jewel_color_stone_master.code,Masters / Stones,Stone component on design/sale,yes,
+11,color_stones,description,Description,epc_jewel_color_stone_master.description,Masters / Stones,Stone component on design/sale,yes,
+11,color_stones,shape,Shape,epc_jewel_color_stone_master.shape,Masters / Stones,Stone component on design/sale,,
+11,color_stones,size,Size,epc_jewel_color_stone_master.size,Masters / Stones,Stone component on design/sale,,
+11,color_stones,color,Color,epc_jewel_color_stone_master.color,Masters / Stones,Stone component on design/sale,,
+11,color_stones,clarity,Clarity,epc_jewel_color_stone_master.clarity,Masters / Stones,Stone component on design/sale,,
+11,color_stones,category,Category,epc_jewel_color_stone_master.category,Masters / Stones,Stone component on design/sale,,
+11,color_stones,vendor,Vendor,epc_jewel_color_stone_master.vendor,Masters / Stones,Stone component on design/sale,,
+11,color_stones,cost_amount,Cost,epc_jewel_color_stone_master.cost_amount,Masters / Stones,Stone component on design/sale,,
+12,pearls,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Masters / Stones,Pearl component on design/sale,yes,Duplicate guard + traceability
+12,pearls,code,Code,epc_jewel_pearl_master.code,Masters / Stones,Pearl component on design/sale,yes,
+12,pearls,description,Description,epc_jewel_pearl_master.description,Masters / Stones,Pearl component on design/sale,yes,
+12,pearls,nature,Nature,epc_jewel_pearl_master.nature,Masters / Stones,Pearl component on design/sale,,
+12,pearls,type,Type,epc_jewel_pearl_master.type,Masters / Stones,Pearl component on design/sale,,
+12,pearls,color,Color,epc_jewel_pearl_master.color,Masters / Stones,Pearl component on design/sale,,
+12,pearls,shape,Shape,epc_jewel_pearl_master.shape,Masters / Stones,Pearl component on design/sale,,
+12,pearls,size,Size,epc_jewel_pearl_master.size,Masters / Stones,Pearl component on design/sale,,
+12,pearls,luster,Luster,epc_jewel_pearl_master.luster,Masters / Stones,Pearl component on design/sale,,
+12,pearls,grade,Grade,epc_jewel_pearl_master.grade,Masters / Stones,Pearl component on design/sale,,
+12,pearls,vendor,Vendor,epc_jewel_pearl_master.vendor,Masters / Stones,Pearl component on design/sale,,
+12,pearls,cost_amount,Cost,epc_jewel_pearl_master.cost_amount,Masters / Stones,Pearl component on design/sale,,
+13,tags,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,yes,Duplicate guard + traceability
+13,tags,tag_no,Tag / Stock Code,epc_jw_tags.tag_no,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,yes,voucher line tag_no
+13,tags,barcode,Barcode,epc_jw_tags.barcode,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,item_type,Item type (gold/diamond),epc_jw_tags.item_type,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,karat,Karat,epc_jw_tags.karat,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,gross_weight,Gross Wt,epc_jw_tags.gross_weight,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,yes,
+13,tags,net_weight,Net Wt,epc_jw_tags.net_weight,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,stone_weight,St. Wt,epc_jw_tags.stone_weight,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,stone_count,Stone pcs,epc_jw_tags.stone_count,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,other_weight,Chain Wt / other,epc_jw_tags.other_weight,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,purity_ppt,Purity (ppt),epc_jw_tags.purity_ppt,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,pure_weight,Pure Wt,epc_jw_tags.pure_weight,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,making_charges,Making rate / value,epc_jw_tags.making_charges,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,making_type,per_gram|lumpsum|percentage,epc_jw_tags.making_type,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,cost_price,Landed value,epc_jw_tags.cost_price,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,sell_price,Tag price,epc_jw_tags.sell_price,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,design_no,Design,epc_jw_tags.design_no,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,category,Category,epc_jw_tags.category,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,subcategory,Sub category,epc_jw_tags.subcategory,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,purchase_date,Purchase date,epc_jw_tags.purchase_date,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,location,Loc. code,epc_jw_tags.location,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,status,in_stock|sold|…,epc_jw_tags.status,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+13,tags,description,Description,epc_jw_tags.description,Inventory / Tagging / POS,Tag scanned on POS sale → sold; return → in stock,,
+14,vouchers,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",yes,Duplicate guard + traceability
+14,vouchers,voc_type,Voc Type (INDUS code),epc_jewel_voucher.voc_type,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",yes,mapped to ecomae voc_type; INDUS code kept in source_voc_type
+14,vouchers,branch,Branch (HO/GH…),epc_jewel_voucher.branch,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",yes,branch filter on every report
+14,vouchers,voc_no,Voc No,epc_jewel_voucher.voc_no,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",yes,printed as BRANCH - NO
+14,vouchers,voc_date,Voc Date,epc_jewel_voucher.voc_date,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",yes,"GL journal date, VAT period"
+14,vouchers,voc_time,Time (print),epc_jewel_voucher.voc_time,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,fy_code,Financial year,epc_jewel_voucher.fy_code,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,party_code,Party Code,epc_jewel_voucher.party_code,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,parties.party_code
+14,vouchers,party_name,Party name,epc_jewel_voucher.party_name,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,party_trn,Party TRN,epc_jewel_voucher.party_trn,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,VAT input report
+14,vouchers,party_curr,Party Curr.,epc_jewel_voucher.party_curr,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,party_curr_rate,Party curr. rate,epc_jewel_voucher.party_curr_rate,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,customer_code,Customer,epc_jewel_voucher.customer_code,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,pos_customers.customer_code
+14,vouchers,customer_title,Mr./Mrs.,epc_jewel_voucher.customer_title,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,customer_name,Customer name,epc_jewel_voucher.customer_name,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,mobile,Mobile,epc_jewel_voucher.mobile,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,tel1,Tel 1,epc_jewel_voucher.tel1,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,email,Email,epc_jewel_voucher.email,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,nationality,Nationality,epc_jewel_voucher.nationality,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,type_resi,Type (RESI/TOURIST),epc_jewel_voucher.type_resi,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,id_no,ID#,epc_jewel_voucher.id_no,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,city,City,epc_jewel_voucher.city,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,salesman,Salesman / Sman,epc_jewel_voucher.salesman,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,sales analysis by salesman
+14,vouchers,item_curr,Item Curr.,epc_jewel_voucher.item_curr,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,item_curr_rate,Item curr. rate,epc_jewel_voucher.item_curr_rate,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,metal_rate,Metal Rate,epc_jewel_voucher.metal_rate,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,fixing / valuation
+14,vouchers,is_fixed,Fixed (Y/N),epc_jewel_voucher.is_fixed,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,fix/unfix position
+14,vouchers,internal_unfix,Internal Unfix,epc_jewel_voucher.internal_unfix,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,cr_days,Cr. Days,epc_jewel_voucher.cr_days,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,supp_inv_no,Supp. Inv No,epc_jewel_voucher.supp_inv_no,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,supp_inv_date,Supp. Inv Date,epc_jewel_voucher.supp_inv_date,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,order_ref,Order Ref,epc_jewel_voucher.order_ref,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,place_of_supply,Place of Supply,epc_jewel_voucher.place_of_supply,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,VAT return emirate
+14,vouchers,tourist_vat_refund,Tourist VAT Refund Y/N,epc_jewel_voucher.tourist_vat_refund,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,karat_rates,"Karat rates printed on invoice (e.g. 18K RATE : 154.75, 22K RATE : 189.25)",epc_jewel_voucher.karat_rates,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,net_amount,Amount / Total Before VAT,epc_jewel_voucher.net_amount,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",yes,"GL revenue 4000 (sale), inventory 1300 (purchase), 2300 (advance)"
+14,vouchers,vat_amount,VAT / TRN Amt,epc_jewel_voucher.vat_amount,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,GL 2100 output VAT (sale) / 1150 input VAT (purchase)
+14,vouchers,total_with_vat,Total Amt+TRN / Amount incl. VAT,epc_jewel_voucher.total_with_vat,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",yes,GL 1100 receivable / 2000 payable
+14,vouchers,rnd_off_amount,Rnd Off Amt.,epc_jewel_voucher.rnd_off_amount,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,other_amount,Other Amt.,epc_jewel_voucher.other_amount,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,old_gold_exchange,Old Gold Exchange / Scrap Gold,epc_jewel_voucher.old_gold_exchange,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,GL Dr 1320 old-gold stock / Cr 1100
+14,vouchers,adjust_sale_return,Adjust Sal. Ret.,epc_jewel_voucher.adjust_sale_return,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,gold_scheme_redeem,Gold-Scheme-Rdm,epc_jewel_voucher.gold_scheme_redeem,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,receipt_total,Receipt Total,epc_jewel_voucher.receipt_total,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,refund_due,Refund / Due,epc_jewel_voucher.refund_due,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,input_vat,Input Vat,epc_jewel_voucher.input_vat,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,rcm_vat,RCM Vat,epc_jewel_voucher.rcm_vat,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,remarks,Remarks,epc_jewel_voucher.remarks,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,narration,Narration,epc_jewel_voucher.narration,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,status,Status (default posted),epc_jewel_voucher.status,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,
+14,vouchers,gl_mode,"post|history (history = keep record, no stock/GL)",epc_jewel_voucher.gl_mode,Purchases / Sales / POS / Finance,"Voucher → stock movement (weight & value) → GL journal → VAT, trial balance, dashboard",,history rows stay off stock & GL
+15,voucher_lines,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",yes,Duplicate guard + traceability
+15,voucher_lines,parent_ref,source_ref of the parent vouchers row,epc_jewel_voucher_lines.voucher_id,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",yes,Links line to its header
+15,voucher_lines,line_no,No.,epc_jewel_voucher_lines.line_no,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,stock_code,Stock Code,epc_jewel_voucher_lines.stock_code,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",yes,metal_stock.item_code (moves weight & value)
+15,voucher_lines,division,Division (G/D),epc_jewel_voucher_lines.division,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,description,Description,epc_jewel_voucher_lines.description,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,line_details,Description details (G:/D:/quality lines),epc_jewel_voucher_lines.line_details,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,tag_no,Tag / barcode,epc_jewel_voucher_lines.tag_no,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,tags.tag_no → sold/returned
+15,voucher_lines,pcs,PCS,epc_jewel_voucher_lines.pcs,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,gr_wt,Gr. Wt / Gms,epc_jewel_voucher_lines.gr_wt,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,stock weight
+15,voucher_lines,stone_wt,Stone Wt,epc_jewel_voucher_lines.stone_wt,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,net_wt,Net Wt,epc_jewel_voucher_lines.net_wt,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,chargeable_wt,Chargable,epc_jewel_voucher_lines.chargeable_wt,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,purity,Purity,epc_jewel_voucher_lines.purity,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,pure_wt,Pure Wt.,epc_jewel_voucher_lines.pure_wt,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,metal report pure weight
+15,voucher_lines,mkg_rate,Mkg. Rate,epc_jewel_voucher_lines.mkg_rate,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,mkg_amount,Mkg. Amount,epc_jewel_voucher_lines.mkg_amount,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,making revenue
+15,voucher_lines,metal_rate,Metal Rate,epc_jewel_voucher_lines.metal_rate,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,metal_amount,Metal Amount,epc_jewel_voucher_lines.metal_amount,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,stone_rate,Stone Rate,epc_jewel_voucher_lines.stone_rate,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,stone_amount,St. Amount,epc_jewel_voucher_lines.stone_amount,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,stone_diff,Stone Diff.,epc_jewel_voucher_lines.stone_diff,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,wastage_pct,Wstg Per,epc_jewel_voucher_lines.wastage_pct,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,wastage_qty,Wstg Qty,epc_jewel_voucher_lines.wastage_qty,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,disc_amount,Discount,epc_jewel_voucher_lines.disc_amount,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,total_amount,Total / Amount (Excl. VAT),epc_jewel_voucher_lines.total_amount,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,line value (purchase cost into stock)
+15,voucher_lines,vat_pct,TRN Per% / VAT %,epc_jewel_voucher_lines.vat_pct,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,vat_amount,TRN Amt / VAT Amount,epc_jewel_voucher_lines.vat_amount,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,total_with_vat,Total+TRN / Amount incl. VAT,epc_jewel_voucher_lines.total_with_vat,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,net_amount,Net amount,epc_jewel_voucher_lines.net_amount,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,loc_code,Loc. Code,epc_jewel_voucher_lines.loc_code,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+15,voucher_lines,supplier,Supplier,epc_jewel_voucher_lines.supplier,Purchases / Sales / Inventory,"Line → stock weight & value, COGS, sales analysis, metal report",,
+16,voucher_receipts,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,POS / Cash & Bank,"Tender → GL cash 1000, card 1030, bank 1010 vs receivable 1100",yes,Duplicate guard + traceability
+16,voucher_receipts,parent_ref,source_ref of the parent vouchers row,epc_jewel_voucher_receipts.voucher_id,POS / Cash & Bank,"Tender → GL cash 1000, card 1030, bank 1010 vs receivable 1100",yes,Links line to its header
+16,voucher_receipts,receipt_mode,Receipt Mode (CASH/CARD/VISA/BANK/NET),epc_jewel_voucher_receipts.receipt_mode,POS / Cash & Bank,"Tender → GL cash 1000, card 1030, bank 1010 vs receivable 1100",yes,"CASH→1000, CARD/VISA→1030, BANK→1010"
+16,voucher_receipts,currency,Currency,epc_jewel_voucher_receipts.currency,POS / Cash & Bank,"Tender → GL cash 1000, card 1030, bank 1010 vs receivable 1100",,
+16,voucher_receipts,curr_rate,Curr. rate,epc_jewel_voucher_receipts.curr_rate,POS / Cash & Bank,"Tender → GL cash 1000, card 1030, bank 1010 vs receivable 1100",,
+16,voucher_receipts,amount_fc,Amount FC,epc_jewel_voucher_receipts.amount_fc,POS / Cash & Bank,"Tender → GL cash 1000, card 1030, bank 1010 vs receivable 1100",,
+16,voucher_receipts,amount_lc,Amount LC,epc_jewel_voucher_receipts.amount_lc,POS / Cash & Bank,"Tender → GL cash 1000, card 1030, bank 1010 vs receivable 1100",yes,GL tender amount
+17,voucher_accounts,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Finance / GL,Dr/Cr account lines → GL journal,yes,Duplicate guard + traceability
+17,voucher_accounts,parent_ref,source_ref of the parent vouchers row,epc_jewel_voucher_addins.voucher_id,Finance / GL,Dr/Cr account lines → GL journal,yes,Links line to its header
+17,voucher_accounts,line_no,No.,epc_jewel_voucher_addins.line_no,Finance / GL,Dr/Cr account lines → GL journal,,
+17,voucher_accounts,addin_code,Exp / HSN code,epc_jewel_voucher_addins.addin_code,Finance / GL,Dr/Cr account lines → GL journal,,
+17,voucher_accounts,description,Description,epc_jewel_voucher_addins.description,Finance / GL,Dr/Cr account lines → GL journal,,
+17,voucher_accounts,debit_ac,A/C Code when Amt Dr/Cr = Debit,epc_jewel_voucher_addins.debit_ac,Finance / GL,Dr/Cr account lines → GL journal,,GL debit account
+17,voucher_accounts,credit_ac,A/C Code when Amt Dr/Cr = Credit,epc_jewel_voucher_addins.credit_ac,Finance / GL,Dr/Cr account lines → GL journal,,GL credit account
+17,voucher_accounts,pct,TRN Per%,epc_jewel_voucher_addins.pct,Finance / GL,Dr/Cr account lines → GL journal,,
+17,voucher_accounts,amount,Amount LC,epc_jewel_voucher_addins.amount,Finance / GL,Dr/Cr account lines → GL journal,yes,
+17,voucher_accounts,narration,Narration,epc_jewel_voucher_addins.narration,Finance / GL,Dr/Cr account lines → GL journal,,
+18,fixing,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,yes,Duplicate guard + traceability
+18,fixing,fix_type,PF (purchase) / SF (sales),epc_jewel_fixing.fix_type,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,yes,
+18,fixing,branch,Branch,epc_jewel_fixing.branch,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,,
+18,fixing,fix_no,Voc No,epc_jewel_fixing.fix_no,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,yes,
+18,fixing,fix_date,Voc Date,epc_jewel_fixing.fix_date,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,yes,
+18,fixing,party_code,Party Code,epc_jewel_fixing.party_code,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,,
+18,fixing,party_name,Party name,epc_jewel_fixing.party_name,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,,
+18,fixing,metal,Metal,epc_jewel_fixing.metal,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,,
+18,fixing,karat,Karat,epc_jewel_fixing.karat,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,,
+18,fixing,rate_type,Metal Rate type (GMS/GOZ),epc_jewel_fixing.rate_type,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,,
+18,fixing,fix_rate,Metal Rate,epc_jewel_fixing.fix_rate,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,yes,
+18,fixing,fix_qty_gms,Pure Wt.,epc_jewel_fixing.fix_qty_gms,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,yes,
+18,fixing,oz_wt,Oz. Wt.,epc_jewel_fixing.oz_wt,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,,
+18,fixing,fix_amount,Total (AED),epc_jewel_fixing.fix_amount,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,yes,
+18,fixing,unfixed_qty,Unfixed balance,epc_jewel_fixing.unfixed_qty,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,,
+18,fixing,party_inv_ref,Invoice Ref. Number,epc_jewel_fixing.party_inv_ref,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,,
+18,fixing,party_inv_date,Invoice Ref. Date,epc_jewel_fixing.party_inv_date,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,,
+18,fixing,salesman,Sman,epc_jewel_fixing.salesman,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,,
+18,fixing,reference_voc,Linked voucher (GRV#),epc_jewel_fixing.reference_voc,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,,
+18,fixing,status,open|fixed,epc_jewel_fixing.status,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,,
+18,fixing,remarks,Narration,epc_jewel_fixing.remarks,Metal / Fix-Unfix,Rate fixing on unfixed weight → fixing reports,,
+19,petty_cash,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Finance / Expenses,Expense Dr account / Cr petty cash 1020 → P&L,yes,Duplicate guard + traceability
+19,petty_cash,branch,Branch,epc_jewel_petty_cash.branch,Finance / Expenses,Expense Dr account / Cr petty cash 1020 → P&L,,
+19,petty_cash,voc_type,Voc Type (PET),epc_jewel_petty_cash.voc_type,Finance / Expenses,Expense Dr account / Cr petty cash 1020 → P&L,,
+19,petty_cash,voc_no,Voc No,epc_jewel_petty_cash.voc_no,Finance / Expenses,Expense Dr account / Cr petty cash 1020 → P&L,yes,
+19,petty_cash,voc_date,Voc Date,epc_jewel_petty_cash.voc_date,Finance / Expenses,Expense Dr account / Cr petty cash 1020 → P&L,yes,
+19,petty_cash,description,Description / Narration,epc_jewel_petty_cash.description,Finance / Expenses,Expense Dr account / Cr petty cash 1020 → P&L,,
+19,petty_cash,account_code,A/C Code (expense),epc_jewel_petty_cash.account_code,Finance / Expenses,Expense Dr account / Cr petty cash 1020 → P&L,yes,GL debit account
+19,petty_cash,account_name,A/C name,epc_jewel_petty_cash.account_name,Finance / Expenses,Expense Dr account / Cr petty cash 1020 → P&L,,
+19,petty_cash,debit_amount,Amount LC (expense),epc_jewel_petty_cash.debit_amount,Finance / Expenses,Expense Dr account / Cr petty cash 1020 → P&L,,GL Dr expense / Cr 1020
+19,petty_cash,credit_amount,Credit amount,epc_jewel_petty_cash.credit_amount,Finance / Expenses,Expense Dr account / Cr petty cash 1020 → P&L,,
+19,petty_cash,currency,Curr Code,epc_jewel_petty_cash.currency,Finance / Expenses,Expense Dr account / Cr petty cash 1020 → P&L,,
+19,petty_cash,approved_by,Approved by,epc_jewel_petty_cash.approved_by,Finance / Expenses,Expense Dr account / Cr petty cash 1020 → P&L,,
+19,petty_cash,remarks,Remarks,epc_jewel_petty_cash.remarks,Finance / Expenses,Expense Dr account / Cr petty cash 1020 → P&L,,
+19,petty_cash,status,Status (default posted),epc_jewel_petty_cash.status,Finance / Expenses,Expense Dr account / Cr petty cash 1020 → P&L,,
+20,repairs,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Repairs,Receipt → transfer → workshop → delivery,yes,Duplicate guard + traceability
+20,repairs,branch,Branch,epc_jewel_repair.branch,Repairs,Receipt → transfer → workshop → delivery,,
+20,repairs,voc_no,Voc No,epc_jewel_repair.voc_no,Repairs,Receipt → transfer → workshop → delivery,yes,
+20,repairs,voc_date,Voc Date,epc_jewel_repair.voc_date,Repairs,Receipt → transfer → workshop → delivery,yes,
+20,repairs,customer_name,Customer,epc_jewel_repair.customer_name,Repairs,Receipt → transfer → workshop → delivery,yes,
+20,repairs,mobile,Mobile,epc_jewel_repair.mobile,Repairs,Receipt → transfer → workshop → delivery,,
+20,repairs,tel1,Tel,epc_jewel_repair.tel1,Repairs,Receipt → transfer → workshop → delivery,,
+20,repairs,email,Email,epc_jewel_repair.email,Repairs,Receipt → transfer → workshop → delivery,,
+20,repairs,nationality,Nationality,epc_jewel_repair.nationality,Repairs,Receipt → transfer → workshop → delivery,,
+20,repairs,salesman,Salesman,epc_jewel_repair.salesman,Repairs,Receipt → transfer → workshop → delivery,,
+20,repairs,delivery_date,Delivery date,epc_jewel_repair.delivery_date,Repairs,Receipt → transfer → workshop → delivery,,
+20,repairs,repair_narration,Repair narration,epc_jewel_repair.repair_narration,Repairs,Receipt → transfer → workshop → delivery,,
+20,repairs,remarks,Remarks,epc_jewel_repair.remarks,Repairs,Receipt → transfer → workshop → delivery,,
+20,repairs,status,received|in_workshop|delivered,epc_jewel_repair.status,Repairs,Receipt → transfer → workshop → delivery,,
+21,repair_items,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Repairs,Bag / item under repair,yes,Duplicate guard + traceability
+21,repair_items,parent_ref,source_ref of the parent repairs row,epc_jewel_repair_items.repair_id,Repairs,Bag / item under repair,yes,Links line to its header
+21,repair_items,line_no,No.,epc_jewel_repair_items.line_no,Repairs,Bag / item under repair,,
+21,repair_items,division,Division,epc_jewel_repair_items.division,Repairs,Bag / item under repair,,
+21,repair_items,stock_code,Stock code,epc_jewel_repair_items.stock_code,Repairs,Bag / item under repair,,
+21,repair_items,description,Description,epc_jewel_repair_items.description,Repairs,Bag / item under repair,yes,
+21,repair_items,item_remarks,Item remarks,epc_jewel_repair_items.item_remarks,Repairs,Bag / item under repair,,
+21,repair_items,bag_no,Bag no,epc_jewel_repair_items.bag_no,Repairs,Bag / item under repair,,
+21,repair_items,pcs,PCS,epc_jewel_repair_items.pcs,Repairs,Bag / item under repair,,
+21,repair_items,gr_wt,Gr. Wt,epc_jewel_repair_items.gr_wt,Repairs,Bag / item under repair,,
+21,repair_items,repair_type,Repair type,epc_jewel_repair_items.repair_type,Repairs,Bag / item under repair,,
+21,repair_items,item_type,Item type,epc_jewel_repair_items.item_type,Repairs,Bag / item under repair,,
+21,repair_items,repair_status,Repair status,epc_jewel_repair_items.repair_status,Repairs,Bag / item under repair,,
+21,repair_items,delivery_date,Delivery date,epc_jewel_repair_items.delivery_date,Repairs,Bag / item under repair,,
+22,stock_verifications,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Inventory / Audit,Physical vs computer stock,yes,Duplicate guard + traceability
+22,stock_verifications,branch,Branch,epc_jewel_stock_verification.branch,Inventory / Audit,Physical vs computer stock,,
+22,stock_verifications,voc_no,Voc No,epc_jewel_stock_verification.voc_no,Inventory / Audit,Physical vs computer stock,yes,
+22,stock_verifications,voc_date,Voc Date,epc_jewel_stock_verification.voc_date,Inventory / Audit,Physical vs computer stock,yes,
+22,stock_verifications,verified_by,By,epc_jewel_stock_verification.verified_by,Inventory / Audit,Physical vs computer stock,,
+22,stock_verifications,location,Location,epc_jewel_stock_verification.location,Inventory / Audit,Physical vs computer stock,,
+22,stock_verifications,metal_stone,Metal/Stone,epc_jewel_stock_verification.metal_stone,Inventory / Audit,Physical vs computer stock,,
+22,stock_verifications,division,Division,epc_jewel_stock_verification.division,Inventory / Audit,Physical vs computer stock,,
+22,stock_verifications,batch,Batch,epc_jewel_stock_verification.batch,Inventory / Audit,Physical vs computer stock,,
+22,stock_verifications,total_pcs,Total PCs,epc_jewel_stock_verification.total_pcs,Inventory / Audit,Physical vs computer stock,,
+22,stock_verifications,total_wgt,Total Wgt.,epc_jewel_stock_verification.total_wgt,Inventory / Audit,Physical vs computer stock,,
+22,stock_verifications,scanned_pcs,Scanned PCs,epc_jewel_stock_verification.scanned_pcs,Inventory / Audit,Physical vs computer stock,,
+22,stock_verifications,scanned_wgt,Scanned Wgt.,epc_jewel_stock_verification.scanned_wgt,Inventory / Audit,Physical vs computer stock,,
+22,stock_verifications,remarks,Remarks,epc_jewel_stock_verification.remarks,Inventory / Audit,Physical vs computer stock,,
+22,stock_verifications,status,Status,epc_jewel_stock_verification.status,Inventory / Audit,Physical vs computer stock,,
+23,stock_verification_lines,source_ref,INDUS key (Branch-VocType-VocNo / code),ecomae_jw_indus_import_registry.source_ref,Inventory / Audit,Difference per stock code,yes,Duplicate guard + traceability
+23,stock_verification_lines,parent_ref,source_ref of the parent stock_verifications row,epc_jewel_stock_verification_lines.verification_id,Inventory / Audit,Difference per stock code,yes,Links line to its header
+23,stock_verification_lines,line_no,No.,epc_jewel_stock_verification_lines.line_no,Inventory / Audit,Difference per stock code,,
+23,stock_verification_lines,stock_code,Stock Code,epc_jewel_stock_verification_lines.stock_code,Inventory / Audit,Difference per stock code,yes,
+23,stock_verification_lines,description,Description,epc_jewel_stock_verification_lines.description,Inventory / Audit,Difference per stock code,,
+23,stock_verification_lines,computer_pcs,Computer Stock Pcs,epc_jewel_stock_verification_lines.computer_pcs,Inventory / Audit,Difference per stock code,,
+23,stock_verification_lines,computer_gr_wt,Computer Stock Gross Wt,epc_jewel_stock_verification_lines.computer_gr_wt,Inventory / Audit,Difference per stock code,,
+23,stock_verification_lines,physical_pcs,Physical Stock Pcs,epc_jewel_stock_verification_lines.physical_pcs,Inventory / Audit,Difference per stock code,,
+23,stock_verification_lines,physical_gr_wt,Physical Stock Gross Wt,epc_jewel_stock_verification_lines.physical_gr_wt,Inventory / Audit,Difference per stock code,,
+23,stock_verification_lines,diff_pcs,Stock Difference Pcs,epc_jewel_stock_verification_lines.diff_pcs,Inventory / Audit,Difference per stock code,,
+23,stock_verification_lines,diff_gr_wt,Stock Difference Gross Wt,epc_jewel_stock_verification_lines.diff_gr_wt,Inventory / Audit,Difference per stock code,,

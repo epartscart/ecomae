@@ -129,20 +129,20 @@
         else if (_tab == "purchases")
         {
             <div class="fo-grid2">
-                <div class="fo-card"><h3>Purchase vouchers</h3>@RowsTable(new[] { "Id", "Type", "No.", "Supplier", "Customer", "Status", "Net", "VAT", "Total", "Date" }, _snap.Purchases, 6, 7, 8)</div>
+                <div class="fo-card"><h3>Purchase vouchers</h3>@RowsTable(new[] { "Id", "Type", "No.", "Supplier", "Customer", "Status", "Net", "VAT", "Total", "Date", "Print" }, WithPrint(_snap.Purchases, "voucher"), 10, 6, 7, 8)</div>
                 <div class="fo-card"><h3>Voucher lines</h3>@RowsTable(new[] { "Id", "Type", "No.", "Stock code", "Item", "Grams", "Making", "Total" }, _snap.VoucherLines, 5, 6, 7)</div>
             </div>
         }
         else if (_tab == "sales")
         {
             <div class="fo-grid2">
-                <div class="fo-card"><h3>Sale vouchers</h3>@RowsTable(new[] { "Id", "Type", "No.", "Supplier", "Customer", "Status", "Net", "VAT", "Total", "Date" }, _snap.Sales, 6, 7, 8)</div>
+                <div class="fo-card"><h3>Sale vouchers</h3>@RowsTable(new[] { "Id", "Type", "No.", "Supplier", "Customer", "Status", "Net", "VAT", "Total", "Date", "Print" }, WithPrint(_snap.Sales, "voucher"), 10, 6, 7, 8)</div>
             </div>
         }
         else if (_tab == "repairs")
         {
             <div class="fo-grid2">
-                <div class="fo-card"><h3>Repair jobs</h3>@RowsTable(new[] { "Id", "No.", "Customer", "Mobile", "Narration", "Status", "Delivery", "Received" }, _snap.Repairs)</div>
+                <div class="fo-card"><h3>Repair jobs</h3>@RowsTable(new[] { "Id", "No.", "Customer", "Mobile", "Narration", "Status", "Delivery", "Received", "Print" }, WithPrint(_snap.Repairs, "repair"), 8)</div>
             </div>
         }
         else if (_tab == "invoices")
@@ -159,6 +159,65 @@
                     <p class="text-muted">Posts metal purchase vouchers (Dr inventory / Cr supplier payable) and sale vouchers (Dr receivable / Cr revenue / Cr 5% output VAT) into the GL — so the income statement, balance sheet and dashboard insights include the jewellery figures. Scoped to the current period filter; already-posted vouchers are skipped.</p>
                 </div>
                 <div class="fo-card"><h3>GL journal trail</h3>@RowsTable(new[] { "Id", "Reference", "Journal", "Date" }, _snap.Ledger)</div>
+            </div>
+        }
+        else if (_tab == "indus")
+        {
+            <div class="fo-grid2">
+                <div class="fo-card">
+                    <h3>1. Test with INDUS sample data (sandbox)</h3>
+                    <p class="text-muted">Loads real INDUS documents (GH-5120 tax invoice with scrap gold, HO-210 tax credit note, HO-37047 fixed-gold purchase, SFX-218 sales fixing, POS advance, journal, petty cash, repair, stock verification) with masters, opening stock and an opening trial balance. Stock weight/value moves per line and every voucher posts to the chart of accounts, so the stock report, metal report, trial balance and dashboard agree.</p>
+                    @if (_isAdmin)
+                    {
+                        <form method="post" action="@IndusHref("samples")" class="fo-inline">
+                            <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
+                            <input type="hidden" name="confirmWrites" value="1" />
+                            <button class="btn btn-sm fo-board-btn" type="submit"><i class="fa fa-cloud-download"></i> Load INDUS sample data</button>
+                        </form>
+                        <form method="post" action="@IndusHref("samples")" class="fo-inline">
+                            <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
+                            <button class="btn btn-sm fo-board-btn" type="submit">Dry-run samples</button>
+                        </form>
+                        <form method="post" action="@IndusHref("clear")" class="fo-inline">
+                            <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
+                            <input type="hidden" name="confirmWrites" value="1" />
+                            <button class="btn btn-sm fo-board-btn fo-board-btn--danger" type="submit"><i class="fa fa-trash"></i> Remove INDUS-imported data</button>
+                        </form>
+                    }
+                </div>
+                <div class="fo-card">
+                    <h3>2. Import your INDUS export (CSV)</h3>
+                    <p class="text-muted">Pick the template (or upload several files named like <code>14_vouchers.csv</code>). Leave “Write” unticked for a dry run — every row is validated and nothing is saved. Sandbox databases only.</p>
+                    @if (_isAdmin)
+                    {
+                        <form method="post" action="@IndusHref("import")" enctype="multipart/form-data">
+                            <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
+                            <select name="template">
+                                <option value="">(from file names)</option>
+                                @foreach (var t in ErpJwIndusImportSpec.Templates)
+                                {
+                                    <option value="@t.Key">@t.Step.ToString("00", CultureInfo.InvariantCulture) — @t.Title</option>
+                                }
+                            </select>
+                            <input type="file" name="file" accept=".csv" multiple />
+                            <label><input type="checkbox" name="confirmWrites" value="1" /> Write (otherwise dry run)</label>
+                            <button class="btn btn-sm fo-board-btn" type="submit"><i class="fa fa-upload"></i> Validate / import</button>
+                        </form>
+                    }
+                </div>
+                <div class="fo-card" style="grid-column:1/-1">
+                    <h3>Templates — load in this order · <a href="@TemplateHref("fieldmap", false)">Download full field map (INDUS field → table.column → module → GL)</a></h3>
+                    <table class="fo">
+                        <tr><th>#</th><th>Template</th><th>INDUS screen / report</th><th>ecomae table</th><th>Module</th><th>Feeds</th><th>Download</th></tr>
+                        @foreach (var t in ErpJwIndusImportSpec.Templates)
+                        {
+                            <tr>
+                                <td>@t.Step</td><td>@t.Title</td><td>@t.IndusScreen</td><td><code>@t.Table</code></td><td>@t.Module</td><td>@t.Workflow</td>
+                                <td><a href="@TemplateHref(t.Key, true)">blank</a> · <a href="@TemplateHref(t.Key, false)">sample</a></td>
+                            </tr>
+                        }
+                    </table>
+                </div>
             </div>
         }
         else if (_tab == "reports")
@@ -204,6 +263,15 @@
 
     private string SelfHref
         => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/jewellery/workspace");
+
+    private string IndusHref(string action)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/jewellery/indus-" + action);
+
+    private string TemplateHref(string key, bool blank)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/jewellery/indus-template?key=" + Uri.EscapeDataString(key) + (blank ? "&blank=1" : ""));
+
+    private static IReadOnlyList<IReadOnlyList<string>> WithPrint(IReadOnlyList<IReadOnlyList<string>> rows, string kind)
+        => rows.Select(r => (IReadOnlyList<string>)r.Concat(new[] { "/erp/jewellery/voucher-print?id=" + (r.Count > 0 ? r[0] : "0") + "&kind=" + kind }).ToList()).ToList();
 
     private string DemoHref(string action)
         => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/jewellery/demo-" + action);

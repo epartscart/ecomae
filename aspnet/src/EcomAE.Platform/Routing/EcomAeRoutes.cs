@@ -3110,6 +3110,16 @@ public static class EcomAeRoutes
     public const string ErpJewelleryGlPost = "/erp/jewellery/gl-post";
     /// <summary>Jewellery sale voucher → UAE FTA tax invoice build + print link.</summary>
     public const string ErpJewelleryIssueInvoice = "/erp/jewellery/issue-invoice";
+    /// <summary>INDUS CSV migration loader (sandbox only, dry-run unless confirmWrites).</summary>
+    public const string ErpJewelleryIndusImport = "/erp/jewellery/indus-import";
+    /// <summary>Loads the INDUS sample data set through the same loader (sandbox only).</summary>
+    public const string ErpJewelleryIndusSamples = "/erp/jewellery/indus-samples";
+    /// <summary>Removes rows created by the INDUS loader plus their GL journals (sandbox only).</summary>
+    public const string ErpJewelleryIndusClear = "/erp/jewellery/indus-clear";
+    /// <summary>Downloads an INDUS CSV template (key=…, blank=1 for headers only, key=fieldmap for the field map).</summary>
+    public const string ErpJewelleryIndusTemplate = "/erp/jewellery/indus-template";
+    /// <summary>INDUS-style print preview: tax invoice, credit note, purchase, receipt, JV, petty cash, fixing, repair.</summary>
+    public const string ErpJewelleryVoucherPrint = "/erp/jewellery/voucher-print";
 
     /// <summary>Core workspace demo seed: inserts DEMO-tagged rows across every area.</summary>
     public const string ErpCoreDemoSeed = "/erp/demo-seed";

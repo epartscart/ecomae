@@ -534,6 +534,11 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryDemoClear, HandleJewelleryDemoClearAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryGlPost, HandleJewelleryGlPostAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryIssueInvoice, HandleJewelleryIssueInvoiceAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryIndusImport, HandleJewelleryIndusImportAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryIndusSamples, HandleJewelleryIndusSamplesAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryIndusClear, HandleJewelleryIndusClearAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryIndusTemplate, HandleJewelleryIndusTemplateAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryVoucherPrint, HandleJewelleryVoucherPrintAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutWorkbook, HandleFitOutWorkbookAsync);
         endpoints.MapGet(EcomAeRoutes.ErpAsapWorkbook, HandleAsapWorkbookAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutDeliveryDashboard, HandleFitOutDeliveryDashboardAsync);
@@ -29242,6 +29247,173 @@ public sealed class ErpModule : ISurfaceModule
             ok,
             message,
             new { ok, writes = ok ? 1 : 0, phpAuthoritative = false, message, session = SessionPayload(session) });
+    }
+
+    private const string IndusReturnUrl = "/erp/jewellery/workspace?tab=indus";
+
+    /// <summary>INDUS CSV import: multipart files (or csv text) + template; dry-run unless confirmWrites; sandbox only.</summary>
+    private static async Task<IResult> HandleJewelleryIndusImportAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpJwIndusImportWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + IndusReturnUrl, "Admin ERP capability required for the INDUS import.");
+        }
+
+        var sandboxBlock = DemoSandboxGuard(context, IndusReturnUrl);
+        if (sandboxBlock is not null) { return sandboxBlock; }
+        if (!context.Request.HasFormContentType)
+        {
+            return Results.BadRequest(new { ok = false, writes = 0, message = "Post multipart/form-data with template + file (or csv)." });
+        }
+
+        var form = await context.Request.ReadFormAsync(cancellationToken);
+        var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        var template = form["template"].ToString().Trim();
+        var files = new List<ErpJwIndusImportFile>();
+        foreach (var file in form.Files)
+        {
+            if (file.Length == 0) { continue; }
+            using var reader = new StreamReader(file.OpenReadStream());
+            var text = await reader.ReadToEndAsync(cancellationToken);
+            var key = template.Length > 0 && form.Files.Count == 1 ? template : IndusKeyFromFileName(file.FileName);
+            files.Add(new ErpJwIndusImportFile(key, text));
+        }
+
+        var csv = form["csv"].ToString();
+        if (csv.Length > 0) { files.Add(new ErpJwIndusImportFile(template, csv)); }
+        var outcome = await writes.ImportAsync(files, confirm, session.UserId.ToString(CultureInfo.InvariantCulture), cancellationToken);
+        return IndusOutcome(context, outcome, session);
+    }
+
+    private static async Task<IResult> HandleJewelleryIndusSamplesAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpJwIndusImportWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + IndusReturnUrl, "Admin ERP capability required for INDUS sample data.");
+        }
+
+        var sandboxBlock = DemoSandboxGuard(context, IndusReturnUrl);
+        if (sandboxBlock is not null) { return sandboxBlock; }
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var outcome = await writes.LoadSamplesAsync(confirm, session.UserId.ToString(CultureInfo.InvariantCulture), cancellationToken);
+        return IndusOutcome(context, outcome, session);
+    }
+
+    private static async Task<IResult> HandleJewelleryIndusClearAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpJwIndusImportWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + IndusReturnUrl, "Admin ERP capability required to clear INDUS data.");
+        }
+
+        var sandboxBlock = DemoSandboxGuard(context, IndusReturnUrl);
+        if (sandboxBlock is not null) { return sandboxBlock; }
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, dryRun = true, validation_code = "confirm_required", message = "Set confirmWrites=true to remove the INDUS-imported rows and their GL journals." });
+        }
+
+        var message = await writes.ClearAsync(cancellationToken);
+        var ok = message.StartsWith("Removed", StringComparison.Ordinal);
+        return LiveWriteFormBinder.Complete(context, IndusReturnUrl, ok, message, new { ok, writes = ok ? 1 : 0, message, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleJewelleryIndusTemplateAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + IndusReturnUrl, "Jewellery access is required for the INDUS templates.");
+        }
+
+        var key = context.Request.Query["key"].ToString().Trim();
+        string text;
+        string fileName;
+        if (string.Equals(key, "fieldmap", StringComparison.OrdinalIgnoreCase))
+        {
+            text = ErpJwIndusFieldMap.Csv();
+            fileName = "indus_field_map.csv";
+        }
+        else
+        {
+            var template = ErpJwIndusImportSpec.Find(key);
+            if (template is null)
+            {
+                return Results.NotFound(new { ok = false, message = "Unknown template key." });
+            }
+
+            var blank = context.Request.Query["blank"].ToString() is "1" or "true";
+            var sample = ErpJwIndusImportWriteService.SampleFiles().FirstOrDefault(s => s.Key == template.Key).Csv;
+            text = !blank && !string.IsNullOrEmpty(sample) ? sample : ErpJwIndusImportSpec.HeaderLine(template) + "\n";
+            fileName = template.Step.ToString("00", CultureInfo.InvariantCulture) + "_" + template.Key + ".csv";
+        }
+
+        return Results.File(System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(text)).ToArray(), "text/csv; charset=utf-8", fileName);
+    }
+
+    private static async Task<IResult> HandleJewelleryVoucherPrintAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWriteConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/jewellery/workspace?tab=sales", "Jewellery access is required to print vouchers.");
+        }
+
+        if (!long.TryParse(context.Request.Query["id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) || id <= 0 || !connections.IsConfigured)
+        {
+            return Results.NotFound();
+        }
+
+        await using var connection = await connections.OpenAsync(cancellationToken);
+        var html = await ErpJwVoucherPrint.RenderAsync(connection, context.Request.Query["kind"].ToString(), id, context.Request.Query["copy"].ToString(), cancellationToken);
+        return html is null ? Results.NotFound() : Results.Content(html, "text/html; charset=utf-8");
+    }
+
+    private static string IndusKeyFromFileName(string? fileName)
+    {
+        var name = Path.GetFileNameWithoutExtension(fileName ?? string.Empty).Trim().ToLowerInvariant();
+        var underscore = name.IndexOf('_', StringComparison.Ordinal);
+        return underscore > 0 && name[..underscore].All(char.IsDigit) ? name[(underscore + 1)..] : name;
+    }
+
+    private static IResult IndusOutcome(HttpContext context, ErpJwIndusImportOutcome outcome, LegacySessionContext session)
+    {
+        var message = outcome.Message;
+        if (outcome.Issues.Count > 0)
+        {
+            message += " " + string.Join(" | ", outcome.Issues.Take(8).Select(i => i.Template + (i.Line > 0 ? " line " + i.Line.ToString(CultureInfo.InvariantCulture) : "") + ": " + i.Message));
+            if (outcome.Issues.Count > 8) { message += " | …+" + (outcome.Issues.Count - 8).ToString(CultureInfo.InvariantCulture) + " more"; }
+        }
+
+        return LiveWriteFormBinder.Complete(
+            context,
+            IndusReturnUrl,
+            outcome.Ok,
+            message,
+            new { ok = outcome.Ok, dryRun = outcome.DryRun, code = outcome.Code, rows = outcome.Rows, inserted = outcome.Inserted, updated = outcome.Updated, skipped = outcome.Skipped, issues = outcome.Issues, notes = outcome.Notes, writes = outcome.DryRun ? 0 : outcome.Inserted + outcome.Updated, message, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleJewelleryWorkbookAsync(

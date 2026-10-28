@@ -24,6 +24,7 @@
   <ItemGroup>
     <None Remove="Storefront/Captcha/*" />
     <EmbeddedResource Include="Storefront/Captcha/*" LogicalName="EcomAE.Platform.Captcha.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\..\..\docs\migration\evidence\jewellery\indus_csv\samples\*.csv" LogicalName="EcomAE.Platform.IndusSamples.%(Filename)%(Extension)" />
     <None Remove="Storefront/Templates/MyOrder*.html" />
     <EmbeddedResource Include="Storefront/Templates/MyOrder*.html" LogicalName="EcomAE.Platform.Storefront.Templates.%(Filename)%(Extension)" />
     <None Remove="Storefront/Templates/Cart*.html" />

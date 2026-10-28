@@ -1,0 +1,8 @@
+source_ref,parent_ref,line_no,stock_code,division,description,line_details,tag_no,pcs,gr_wt,stone_wt,net_wt,chargeable_wt,purity,pure_wt,mkg_rate,mkg_amount,metal_rate,metal_amount,stone_rate,stone_amount,stone_diff,wastage_pct,wastage_qty,disc_amount,total_amount,vat_pct,vat_amount,total_with_vat,net_amount,loc_code,supplier
+L-5120-1,V-GH-POS-5120,1,MS0009133,G,22 CARAT,MAGALSUTRA (F),MS0009133,1,9.78,0.68,9.10,9.10,0.916,8.3356,,163.53,189.25,1722.18,,,,,,,1885.71,5,94.29,1980.00,1885.71,GH,
+L-210-1,V-HO-PSR-210,1,9872,D,RING,G:3.76|D:-0.13 cts|VVS VS GH 18K,9872,1,1.00,,,,,,,,,,,,,,,,1047.62,5,52.38,1100.00,1047.62,HO,
+L-37047-1,V-HO-PUR-37047,1,24TTB,G,24K TT BAR,,,10,1166.40,0,1166.40,1166.40,0.999,1165.23,0,0,478.39,557434.38,,0,,0,0,,557434.38,0,0,557434.38,557434.38,HO,RJ5014
+L-2839-1,V-GH-POS-2839,1,NBD00008,D,NBD NECKLACE 18K,G:6.31 gms|D:|18K,NBD00008,1,1.00,,,,,,,,,,,,,,,,4571.43,5,228.57,4800.00,4571.43,GH,
+L-2839-2,V-GH-POS-2839,2,NBD00009,D,NBD BANGLE 18K,G:7.3 gms|D:|18K,NBD00009,1,1.00,,,,,,,,,,,,,,,,5714.29,5,285.71,6000.00,5714.29,GH,
+L-2839-3,V-GH-POS-2839,3,NBD00011,D,NBD FINGER RING 18K,G:5.13 gms|D:|18K,NBD00011,1,1.00,,,,,,,,,,,,,,,,4571.43,5,228.57,4800.00,4571.43,GH,
+L-2839-4,V-GH-POS-2839,4,NBD00012,D,NBD DIA EARRING 18K,G:3.74 gms|D: 0.72CTS|18K G-H VS-SI,NBD00012,1,1.00,,,,,,,,,,,,,,,,6142.86,5,307.14,6450.00,6142.86,GH,

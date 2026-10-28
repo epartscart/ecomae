@@ -1,0 +1,5 @@
+source_ref,party_code,party_name,party_type,trn,phone,mobile,email,address,city,country,currency,cr_days,credit_limit,ac_code
+PTY-RJ5014,RJ5014,REAL JEWELLERS & MOTIWALA GOLD LLC,SUPPLIER,,0552926021,,hamza_shahzad@hotmail.com,SHOP NO 13 &14,Dubai,UAE,AED,0,,2000
+PTY-F503,F503,Finja Jewellery Dmcc,BOTH,,04-4355999 04-3936900,,sales.dubai@aufinja.com,"JEWELLERY & GEMPLEX - BLDG NO.3, 7TH FLR",Dubai,UAE,AED,0,,2000
+PTY-AY5003,AY5003,AL YAASI JEWELLERY L.L.C,SUPPLIER,100495797100003,,,,,Dubai,UAE,AED,30,,2000
+PTY-SS0001,SS0001,Stone Setting & Repair Workshop,SUPPLIER,100370903500003,,,,,Dubai,UAE,AED,30,,2000

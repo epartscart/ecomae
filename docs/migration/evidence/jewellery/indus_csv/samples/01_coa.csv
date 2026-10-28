@@ -1,0 +1,7 @@
+source_ref,code,name,account_type,normal_side,indus_ac_code,opening_debit,opening_credit,opening_date
+COA-1000,1000,Cash on hand,asset,debit,120000,50000.00,0,01/01/2022
+COA-1010,1010,Bank,asset,debit,,250000.00,0,01/01/2022
+COA-1020,1020,Petty cash,asset,debit,120001,5000.00,0,01/01/2022
+COA-3000,3000,Owner's equity,equity,credit,,0,305000.00,01/01/2022
+COA-6110,6110,Staff refreshments & pantry,expense,debit,,,,
+COA-6120,6120,Stone setting & repair charges,expense,debit,525016,,,

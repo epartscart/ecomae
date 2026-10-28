@@ -1,0 +1,4 @@
+source_ref,parent_ref,line_no,addin_code,description,debit_ac,credit_ac,pct,amount,narration
+A-491-1,V-HO-GJV-491,1,525016,Stone Setting & Repair Charges,6120,,0,3288.00,AS PER INV 18533
+A-491-2,V-HO-GJV-491,2,,Input VAT 5%,1150,,5,164.40,Input VAT on INV 18533
+A-491-3,V-HO-GJV-491,3,SS0001,Stone Setting & Repair Workshop payable,,2000,0,3452.40,Payable INV 18533

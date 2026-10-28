@@ -71,6 +71,7 @@ public sealed class ErpJewelleryDemoSeedWriteService : IErpJewelleryDemoSeedWrit
             ("JW-DEMO-BAR24", "24K Minted Bar 10g", "G", "24", 0.999m, "Bullion", "DEMO Bullion", "Bars", 295m, 302m, 15, 150m),
         };
 
+        var itemIds = new List<long>();
         foreach (var i in items)
         {
             var id = await InsertAsync(connection,
@@ -80,6 +81,7 @@ public sealed class ErpJewelleryDemoSeedWriteService : IErpJewelleryDemoSeedWrit
                 companyId, i.Code, i.Desc, i.Metal, i.Karat, i.Purity, i.Type, i.Brand, i.Cat,
                 i.PurCost, i.SalePrice, i.Qty, (int)i.Qty, i.Gms, i.Gms * i.PurCost, "DEMO");
             marks.Add("epc_jewel_metal_stock", id);
+            itemIds.Add(id);
         }
 
         // Metal purchase voucher covering the opening stock.
@@ -133,11 +135,20 @@ public sealed class ErpJewelleryDemoSeedWriteService : IErpJewelleryDemoSeedWrit
                 var metal = it.SalePrice * gms;
                 var lineNet = metal + making;
                 var lid = await InsertAsync(connection,
-                    "INSERT INTO `epc_jewel_voucher_lines` (`voucher_id`,`line_no`,`stock_code`,`description`,`pcs`,`gr_wt`,`purity`,`mkg_amount`,`metal_rate`,`metal_amount`,`total_amount`,`total_with_vat`,`net_amount`)"
-                    + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    "INSERT INTO `epc_jewel_voucher_lines` (`voucher_id`,`line_no`,`stock_code`,`description`,`pcs`,`gr_wt`,`purity`,`mkg_amount`,`metal_rate`,`metal_amount`,`total_amount`,`total_with_vat`,`net_amount`,`vat_pct`,`vat_amount`,`cost_amount`)"
+                    + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     cancellationToken,
-                    vid, ln++, it.Code, it.Desc, 1, gms, it.Purity, making, it.SalePrice, metal, lineNet, lineNet + Math.Round(lineNet * 0.05m, 2), lineNet);
+                    vid, ln++, it.Code, it.Desc, 1, gms, it.Purity, making, it.SalePrice, metal, lineNet, lineNet + Math.Round(lineNet * 0.05m, 2), lineNet,
+                    5m, Math.Round(lineNet * 0.05m, 2), it.PurCost * gms);
                 marks.Add("epc_jewel_voucher_lines", lid);
+
+                // Issue the sold grams from stock at cost so the stock report,
+                // inventory (GL 1300) and cost of sales (GL 5000) agree.
+                await using var issue = connection.CreateCommand();
+                issue.CommandText = ErpDb.Positional(
+                    "UPDATE `epc_jewel_metal_stock` SET `stock_gms`=`stock_gms`-?,`stock_value`=`stock_value`-?,`stock_pcs`=GREATEST(`stock_pcs`-1,0),`stock_qty`=GREATEST(`stock_qty`-1,0) WHERE `id`=?");
+                ErpDb.AddParameters(issue, gms, it.PurCost * gms, itemIds[itemIdx]);
+                await issue.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
