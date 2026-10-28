@@ -238,6 +238,19 @@ public sealed class ErpIndustryWorkspacesTests
         Assert.Contains("<ErpJewelleryReportsMenu />", tabs, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Erp_report_pages_link_to_the_print_designer()
+    {
+        foreach (var name in new[] { "ErpTrialBalanceApp", "ErpReportCenterApp", "ErpGlJournalsApp", "ErpStockMovementsApp", "ErpAgingApp", "ErpInventoryReportApp", "ErpExpenseReportsApp", "ErpCustomShippingReportsApp" })
+        {
+            var razor = File.ReadAllText(Find($"aspnet/src/EcomAE.Platform/Components/Pages/{name}.razor"));
+            Assert.Contains("<ErpPrintDesignerLink Kind=", razor, StringComparison.Ordinal);
+        }
+
+        var link = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/ErpPrintDesignerLink.razor"));
+        Assert.Contains("/erp/print-designer-app?kind=", link, StringComparison.Ordinal);
+    }
+
     private static string Find(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

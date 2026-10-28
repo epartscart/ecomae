@@ -1,0 +1,21 @@
+@using EcomAE.Platform.Services
+@inject IHttpContextAccessor Http
+
+<div class="erp-print-designer-link" style="text-align:right;font-size:12px;margin:4px 0 8px">
+    <a href="@Href" target="_blank" title="Change the print layout of this report in the print designer"><i class="fa fa-paint-brush"></i> Customize print</a>
+</div>
+
+@code {
+    [Parameter] public string Kind { get; set; } = "posted_report";
+
+    private string Href
+    {
+        get
+        {
+            var company = Http.HttpContext?.Request.Query["company"].ToString();
+            var path = "/erp/print-designer-app?kind=" + Uri.EscapeDataString(Kind)
+                + (string.IsNullOrWhiteSpace(company) ? string.Empty : "&company=" + Uri.EscapeDataString(company));
+            return ClientErpPath.PrefixIfBound(Http.HttpContext, path);
+        }
+    }
+}
