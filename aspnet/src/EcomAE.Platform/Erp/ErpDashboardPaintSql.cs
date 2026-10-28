@@ -51,7 +51,7 @@ public static class ErpDashboardPaintSql
             : "0";
 
         var period = includePeriod && Has("epc_erp_periods")
-            ? "IFNULL((SELECT `status` FROM `epc_erp_periods` WHERE `period_key` = @periodKey LIMIT 1), 'open')"
+            ? "IFNULL((SELECT `status` FROM `epc_erp_periods` WHERE `year_month` = @periodKey LIMIT 1), 'open')"
             : "'open'";
 
         return "SELECT "

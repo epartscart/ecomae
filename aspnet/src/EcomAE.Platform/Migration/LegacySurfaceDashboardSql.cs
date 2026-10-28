@@ -126,7 +126,7 @@ public static class LegacySurfaceDashboardSql
 
     public const string SelectErpCcPeriodStatus = """
         SELECT `status` FROM `epc_erp_periods`
-        WHERE `period_key` = @periodKey
+        WHERE `year_month` = @periodKey
         LIMIT 1
         """;
 
@@ -231,7 +231,7 @@ public static class LegacySurfaceDashboardSql
                 WHERE `active` = 1 AND `purchase_date` >= @dateFrom AND `purchase_date` <= @dateTo
             ) AS vat_in,
             (SELECT COUNT(*) FROM `epc_erp_inv_items` WHERE `active` = 1) AS inventory_items,
-            IFNULL((SELECT `status` FROM `epc_erp_periods` WHERE `period_key` = @periodKey LIMIT 1), 'open') AS period_status,
+            IFNULL((SELECT `status` FROM `epc_erp_periods` WHERE `year_month` = @periodKey LIMIT 1), 'open') AS period_status,
             (SELECT COUNT(*) FROM `epc_erp_sales_orders` WHERE `status` = 'draft') AS draft_sales_orders,
             (SELECT COUNT(*) FROM `epc_erp_purchase_orders` WHERE `status` IN ('draft', 'pending')) AS pending_purchase_orders,
             (SELECT COUNT(*) FROM `epc_erp_gl_journals` WHERE `status` = 'draft' AND `active` = 1) AS unposted_gl_journals,
