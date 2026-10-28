@@ -1,12 +1,31 @@
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Services
 @inject IHttpContextAccessor Http
+@inject IErpWriteConnectionFactory Connections
 
+@((MarkupString)_printBlock)
 <div class="erp-print-designer-link" style="text-align:right;font-size:12px;margin:4px 0 8px">
     <a href="@Href" target="_blank" title="Change the print layout of this report in the print designer"><i class="fa fa-paint-brush"></i> Customize print</a>
 </div>
 
 @code {
     [Parameter] public string Kind { get; set; } = "posted_report";
+
+    private string _printBlock = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (!Connections.IsConfigured) return;
+            await using var connection = await Connections.OpenAsync();
+            _printBlock = ErpJwVoucherPrint.ReportPrintBlock(await ErpJwVoucherPrint.TemplateAsync(connection, Kind, default));
+        }
+        catch (Exception)
+        {
+            _printBlock = string.Empty;
+        }
+    }
 
     private string Href
     {

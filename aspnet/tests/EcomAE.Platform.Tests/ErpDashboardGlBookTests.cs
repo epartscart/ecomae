@@ -59,4 +59,31 @@ public sealed class ErpDashboardGlBookTests
         Assert.Equal("payment_voucher", ErpJwVoucherPrint.DesignKindFor("PETTY CASH VOUCHER"));
         Assert.Contains(ErpDocumentDesign.Kinds, k => k.Code == "jw_repair");
     }
+
+    [Fact]
+    public void Erp_counts_fill_empty_storefront_figures()
+    {
+        var ops = new ErpDashboardOps(5, 21, 2, 2, 3, 2, 1, 0, 1, 0, 8, 1, 1, 5);
+        var k = ErpDashboardGlBook.ApplyOps(Zero(), ops);
+        Assert.Equal(5, k.OrdersCount);
+        Assert.Equal(21, k.InventoryItems);
+        Assert.Equal(3, k.OpenPurchaseOrders);
+        var c = ErpDashboardGlBook.ApplyCommerce(new ErpInsightsCommerceStats(0, 0, 0, 0, 0, 0, 0, 0, 0, 0), ops);
+        Assert.Equal(8, c.Clients);
+        Assert.Equal(4, c.OpenOrders);
+        Assert.Equal(5, c.PriceLists);
+    }
+
+    [Fact]
+    public void Report_pages_print_with_the_saved_template()
+    {
+        var block = ErpJwVoucherPrint.ReportPrintBlock(new Dictionary<string, object?>
+        {
+            ["header_html"] = "<p>INDJ LOGO</p>", ["footer_html"] = "<p>Prepared by finance</p>", ["signature_labels"] = "Accountant,Director", ["primary_color"] = "#123456",
+        });
+        Assert.Contains("@media print", block, StringComparison.Ordinal);
+        Assert.Contains("INDJ LOGO", block, StringComparison.Ordinal);
+        Assert.Contains("<span>DIRECTOR</span>", block, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, ErpJwVoucherPrint.ReportPrintBlock(null));
+    }
 }

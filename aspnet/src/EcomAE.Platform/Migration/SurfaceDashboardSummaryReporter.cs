@@ -199,6 +199,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 connection, monthStart, now, ledgerScope.CompanyId, ledgerScope.IncludeUnassignedZero, cancellationToken).ConfigureAwait(false));
             previous = ErpDashboardGlBook.Apply(previous, await ErpDashboardGlBook.ReadAsync(
                 connection, prevFrom, prevTo, ledgerScope.CompanyId, ledgerScope.IncludeUnassignedZero, cancellationToken).ConfigureAwait(false));
+            var erpOps = await ErpDashboardGlBook.ReadOpsAsync(connection, monthStart, now, ledgerScope.CompanyId, cancellationToken).ConfigureAwait(false);
+            current = ErpDashboardGlBook.ApplyOps(current, erpOps);
 
             // First-paint: keep 6 trend slots from the two periods already loaded — skip 12 extra month scans.
             var trend = new List<ErpWorkspaceTrendPoint>(6);
@@ -216,7 +218,14 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
                 else
                 {
-                    trend.Add(new(label, 0m, 0m));
+                    var gl = await ErpDashboardGlBook.ReadAsync(
+                        connection,
+                        new DateTimeOffset(m).ToUnixTimeSeconds(),
+                        new DateTimeOffset(m.AddMonths(1)).ToUnixTimeSeconds() - 1,
+                        ledgerScope.CompanyId,
+                        ledgerScope.IncludeUnassignedZero,
+                        cancellationToken).ConfigureAwait(false);
+                    trend.Add(new(label, Math.Round(gl.Revenue, 2), Math.Round(gl.Revenue - gl.Expense, 2)));
                 }
             }
 
@@ -285,6 +294,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var commerce = roomForPanels
                 ? await ReadInsightsCommerceAsync(connection, cancellationToken).ConfigureAwait(false)
                 : new ErpInsightsCommerceStats(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            commerce = ErpDashboardGlBook.ApplyCommerce(commerce, erpOps);
             var home = new ErpWorkspaceHomeDigest(
                 current,
                 previous,
