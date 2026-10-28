@@ -1,0 +1,5 @@
+source_ref,customer_code,title,customer_name,mobile_cc,mobile,tel1,email,nationality,type_resi,id_type,id_no,id_expiry,dob,city,state,po_box,religion,loyalty_points
+CUS-1100,1100,Mr.,Anayet Ullah Ashan Ulla,971,505097754,,,BD,RESI,EMIRATES ID,784198367533928,,,Dubai,,,,
+CUS-GH5120,GH5120C,,Namrata,971,554123106,,,IN,RESI,,,,,Dubai,,,,
+CUS-HO210,HO210C,Mr.,Ting Aung,971,505193872,,,MM,RESI,,,,,Dubai,,,,
+CUS-GH2839,GH2839C,Mr.,Sunil Manhani Dev Kumar M,971,506746275,,,IN,RESI,,,,,Dubai,,,,

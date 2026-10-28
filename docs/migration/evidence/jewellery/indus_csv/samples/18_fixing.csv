@@ -1,0 +1,2 @@
+source_ref,fix_type,branch,fix_no,fix_date,party_code,party_name,metal,karat,rate_type,fix_rate,fix_qty_gms,oz_wt,fix_amount,unfixed_qty,party_inv_ref,party_inv_date,salesman,reference_voc,status,remarks
+F-HO-SFX-218,SF,HO,218,26/06/2026,F503,Finja Jewellery Dmcc,G,24,GMS,488.55301,32.26,1.04,15760.72,0,PUFAU26000141,26/06/2026,S012,GRV#37041,fixed,GRV#37041

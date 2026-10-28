@@ -1,0 +1,6 @@
+source_ref,karat_code,description,std_purity,range_from,range_to,sp_gravity,division
+KAR-14,14,14 Karat,0.585,0.583,0.590,0,G
+KAR-18,18,18 Karat,0.750,0.745,0.755,0,G
+KAR-21,21,21 Karat,0.875,0.870,0.880,0,G
+KAR-22,22,22 Karat,0.916,0.912,0.920,0,G
+KAR-24,24,24 Karat,0.999,0.995,1.000,0,G

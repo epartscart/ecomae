@@ -42,6 +42,9 @@ public static class ErpJewelleryGuide
                 Step("stock",
                     "Register each item by metal and karat — code, description, gram cost and "
                     + "sale price — so stock weight and value stay exact."),
+                Step("indus",
+                    "Moving from INDUS? Download the CSV templates, dry-run your exports, then load "
+                    + "them (sandbox first) — masters, opening stock, vouchers, receipts and the GL."),
             ]),
             new("Run the counter", "fa-tags",
             [

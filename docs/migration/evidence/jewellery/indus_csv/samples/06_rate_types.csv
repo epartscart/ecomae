@@ -1,0 +1,4 @@
+source_ref,metal,rate_type,conv_factor,conv_factor_oz,currency,curr_rate,rate_variance_pct,pos_margin_min,pos_margin_max,is_default
+RT-GMS,G,GMS,1,31.1035,AED,1,50,1,50,Y
+RT-GOZ,G,GOZ,31.1035,1,AED,1,50,1,50,N
+RT-TTB,G,TTB,116.64,3.75,AED,1,50,1,50,N

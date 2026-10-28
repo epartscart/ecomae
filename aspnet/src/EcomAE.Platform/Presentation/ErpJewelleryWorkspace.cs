@@ -19,6 +19,7 @@ public static class ErpJewelleryWorkspace
         new("invoices", "Invoices", "fa-file-text-o", "/erp/jewellery/workspace?tab=invoices"),
         new("month-end", "Month-end", "fa-calendar-check-o", "/erp/jewellery/workspace?tab=month-end"),
         new("reports", "Reports", "fa-bar-chart", "/erp/jewellery/workspace?tab=reports"),
+        new("indus", "INDUS migration", "fa-upload", "/erp/jewellery/workspace?tab=indus"),
     ];
 
     public static bool IsContentTab(string? key)

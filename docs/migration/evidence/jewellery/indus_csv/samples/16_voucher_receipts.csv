@@ -1,0 +1,5 @@
+source_ref,parent_ref,receipt_mode,currency,curr_rate,amount_fc,amount_lc
+R-5120-1,V-GH-POS-5120,NET,AED,1,200.00,200.00
+R-210-1,V-HO-PSR-210,CASH,AED,1,1100.00,1100.00
+R-225-1,V-HO-PCR-225,CASH,AED,1,1000.00,1000.00
+R-2839-1,V-GH-POS-2839,VISA,AED,1,22050.00,22050.00

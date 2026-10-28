@@ -1,0 +1,3 @@
+source_ref,curr_code,description,symbol,conv_rate,min_conv_rate,max_conv_rate,status
+CUR-AED,AED,UAE Dirham,AED,1,1,1,MULTIPLY
+CUR-USD,USD,US Dollar,$,3.6725,3.67,3.675,MULTIPLY

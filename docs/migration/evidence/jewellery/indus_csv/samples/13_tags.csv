@@ -1,0 +1,7 @@
+source_ref,tag_no,barcode,item_type,karat,gross_weight,net_weight,stone_weight,stone_count,other_weight,purity_ppt,pure_weight,making_charges,making_type,cost_price,sell_price,design_no,category,subcategory,purchase_date,location,status,description
+TAG-MS0009133,MS0009133,MS0009133,gold,22K,9.78,9.10,0.68,,,916,8.3356,,lumpsum,1650,1980,,MANGALSUTRA,,01/01/2022,GH,in_stock,22 CARAT MAGALSUTRA (F)
+TAG-NBD00008,NBD00008,NBD00008,diamond,18K,6.31,6.31,0,,,750,,,lumpsum,3600,4800,,DIAMOND,,01/01/2022,GH,in_stock,NBD NECKLACE 18K
+TAG-NBD00009,NBD00009,NBD00009,diamond,18K,7.30,7.30,0,,,750,,,lumpsum,4500,6000,,DIAMOND,,01/01/2022,GH,in_stock,NBD BANGLE 18K
+TAG-NBD00011,NBD00011,NBD00011,diamond,18K,5.13,5.13,0,,,750,,,lumpsum,3600,4800,,DIAMOND,,01/01/2022,GH,in_stock,NBD FINGER RING 18K
+TAG-NBD00012,NBD00012,NBD00012,diamond,18K,3.74,3.74,0.144,,,750,,,lumpsum,5000,6450,,DIAMOND,,01/01/2022,GH,in_stock,NBD DIA EARRING 18K
+TAG-9872,9872,9872,diamond,18K,3.76,3.73,0.026,,,750,,,lumpsum,700,1100,,DIAMOND,,01/01/2022,HO,sold,RING 18K VVS VS GH
