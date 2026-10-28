@@ -211,6 +211,33 @@ public sealed class ErpIndustryWorkspacesTests
         Assert.Contains("PostedJournalIdAsync", jwService, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Jewellery_reports_menu_is_on_every_jewellery_page_and_links_real_pages()
+    {
+        var links = ErpJewelleryWorkspace.ReportLinks;
+        Assert.Equal(links.Count, links.Select(l => l.Key).Distinct(StringComparer.Ordinal).Count());
+        Assert.Contains(links, l => l.Href == "/erp/trial-balance-app");
+        Assert.Contains(links, l => l.Href == "/erp/report-center-app?tab=pl");
+        Assert.Contains(links, l => l.Href == "/erp/report-center-app?tab=balance_sheet");
+
+        var pages = Directory.GetFiles(Path.GetDirectoryName(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpJewelleryWorkspaceApp.razor"))!, "*.razor")
+            .Select(File.ReadAllText).ToList();
+        foreach (var link in links.Where(l => l.Href != "/erp"))
+        {
+            var path = link.Href.Split('?')[0];
+            Assert.True(pages.Any(p => p.Contains("@page \"" + path + "\"", StringComparison.Ordinal)), "no page for " + path);
+        }
+
+        foreach (var name in new[] { "CpJewelleryFixingApp", "CpJewelleryMastersApp", "CpJewelleryRepairsApp", "CpJewelleryRetailApp", "CpJewelleryStockVerificationApp" })
+        {
+            var razor = File.ReadAllText(Find($"aspnet/src/EcomAE.Platform/Components/Pages/{name}.razor"));
+            Assert.Contains("<ErpJewelleryReportsMenu />", razor, StringComparison.Ordinal);
+        }
+
+        var tabs = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/ErpJewelleryWorkspaceTabs.razor"));
+        Assert.Contains("<ErpJewelleryReportsMenu />", tabs, StringComparison.Ordinal);
+    }
+
     private static string Find(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

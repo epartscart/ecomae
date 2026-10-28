@@ -1,0 +1,16 @@
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject IHttpContextAccessor Http
+
+<nav class="epc-org-tabs jw-reports-menu" aria-label="Jewellery reports" style="font-size:12px">
+    <a href="@Href("/erp/jewellery/workspace")"><i class="fa fa-diamond"></i> Jewellery workspace</a>
+    @foreach (var link in ErpJewelleryWorkspace.ReportLinks)
+    {
+        <a href="@Href(link.Href)"><i class="fa @link.Icon"></i> @link.Label</a>
+    }
+</nav>
+
+@code {
+    private string Href(string href)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, href);
+}
