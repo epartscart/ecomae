@@ -194,6 +194,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             var current = ToWorkspacePeriod(currentSummary, curExtras);
             var previous = ToWorkspacePeriod(prevSummary, prevExtras);
+            var ledgerScope = await ResolveWorkspaceGlScopeAsync(connection, cancellationToken).ConfigureAwait(false);
+            current = ErpDashboardGlBook.Apply(current, await ErpDashboardGlBook.ReadAsync(
+                connection, monthStart, now, ledgerScope.CompanyId, ledgerScope.IncludeUnassignedZero, cancellationToken).ConfigureAwait(false));
+            previous = ErpDashboardGlBook.Apply(previous, await ErpDashboardGlBook.ReadAsync(
+                connection, prevFrom, prevTo, ledgerScope.CompanyId, ledgerScope.IncludeUnassignedZero, cancellationToken).ConfigureAwait(false));
 
             // First-paint: keep 6 trend slots from the two periods already loaded — skip 12 extra month scans.
             var trend = new List<ErpWorkspaceTrendPoint>(6);

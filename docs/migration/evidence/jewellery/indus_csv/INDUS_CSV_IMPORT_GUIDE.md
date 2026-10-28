@@ -82,3 +82,9 @@ Print previews: `/erp/jewellery/voucher-print?id=<voucher id>` (TAX INVOICE, TAX
 - 24TTB: 10 PCS, 1,166.40 g, 557,434.38 (PUR 37047). Sold INDUS tags go to 0; returned ring 9872 comes back at 700.
 - Sales 35,415.72, returns 1,047.62, COGS 28,240.00, old gold 1,780.00, POS advance 952.38, petty cash 4,583.36.
 - Refresh instead of Remove when stock codes that existed before the import were touched: `bash scripts/cloudpanel_sandbox_db_refresh.sh indj ecomae`, then load samples again.
+
+## Dashboard and print customization
+
+- The ERP dashboard (`/erp?company=1`) fills cash, receivables, payables, stock value, VAT, revenue and profit from the posted GL (COA code bands 10xx cash, 1100 AR, 13xx inventory, 2000 AP, 2100/1150 VAT, revenue/expense accounts) whenever the operational tables have no figure, so it matches the trial balance.
+- Every jewellery page has a top **reports menu** (metal stock, stock balance, verification, purchases, fixing, sales, returns, analysis, repairs, masters, trial balance, balance sheet, P&L, stock movements, GL journals, print designer).
+- Every jewellery print has a **Customize this print** link to `/erp/print-designer-app?kind=<kind>` (invoice, credit_note, jw_purchase, receipt_voucher, journal_voucher, payment_voucher for petty cash, jw_fixing, jw_repair). The saved default template for that doc type (font, colours, header/footer HTML, terms, bank details, signature labels, custom CSS) is applied to the print.

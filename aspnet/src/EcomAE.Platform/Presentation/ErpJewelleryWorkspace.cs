@@ -41,6 +41,7 @@ public static class ErpJewelleryWorkspace
         new("profit-loss", "Profit and loss", "fa-bar-chart", "/erp/report-center-app?tab=pl"),
         new("stock-movements", "Stock movements", "fa-exchange", "/erp/stock-movements-app"),
         new("gl-journals", "GL journals", "fa-book", "/erp/gl-journals-app"),
+        new("print-designer", "Print designer", "fa-paint-brush", "/erp/print-designer-app"),
     ];
 
     public static bool IsContentTab(string? key)

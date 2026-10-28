@@ -35,6 +35,9 @@ public static class ErpDocumentDesign
         new("journal_voucher", "journal_voucher", "Journal voucher", "Voucher", "Debit and credit lines before or at posting."),
         new("posted_journal", "posted_journal", "Posted journal", "Report", "The posted voucher: accounts, debit, credit, and the balanced total."),
         new("posted_report", "posted_report", "Posted trial balance", "Report", "Posted journals only, with debit and credit by account."),
+        new("jw_purchase", "jw_purchase", "Jewellery metal / diamond purchase", "Voucher", "Jewellery purchase voucher with weights, purity and VAT."),
+        new("jw_fixing", "jw_fixing", "Jewellery fixing", "Voucher", "Metal purchase or sale fixing: pure weight, rate and amount."),
+        new("jw_repair", "jw_repair", "Jewellery repair receipt", "Voucher", "Repair intake receipt with bag, stock code and weights."),
     ];
 
     public static ErpDocumentKind Kind(string? code)
