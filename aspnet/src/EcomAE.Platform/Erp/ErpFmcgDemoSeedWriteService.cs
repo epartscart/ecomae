@@ -405,15 +405,43 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
         {
             "CREATE TABLE IF NOT EXISTS `shop_orders_statuses_ref` (`id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(60) NOT NULL DEFAULT '', `for_finish` tinyint(1) NOT NULL DEFAULT 0, `count_flag` tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY (`id`), UNIQUE KEY `ux_sosr_name` (`name`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
             "CREATE TABLE IF NOT EXISTS `shop_orders_items_statuses_ref` (`id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(60) NOT NULL DEFAULT '', `for_finish` tinyint(1) NOT NULL DEFAULT 0, `count_flag` tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY (`id`), UNIQUE KEY `ux_soisr_name` (`name`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
-            "CREATE TABLE IF NOT EXISTS `shop_orders` (`id` int(11) NOT NULL AUTO_INCREMENT, `user_id` int(11) NOT NULL DEFAULT 0, `successfully_created` tinyint(1) NOT NULL DEFAULT 0, `status` int(11) NOT NULL DEFAULT 0, `time` int(11) NOT NULL DEFAULT 0, `price_total_wt` decimal(14,2) NOT NULL DEFAULT 0, `price_total_wt_vat` decimal(14,2) NOT NULL DEFAULT 0, `paid` tinyint(1) NOT NULL DEFAULT 0, `currency_code` varchar(8) NOT NULL DEFAULT 'QAR', PRIMARY KEY (`id`), KEY `ix_sou` (`user_id`), KEY `ix_sot` (`time`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
-            "CREATE TABLE IF NOT EXISTS `shop_orders_items` (`id` int(11) NOT NULL AUTO_INCREMENT, `order_id` int(11) NOT NULL DEFAULT 0, `title` varchar(190) NOT NULL DEFAULT '', `price` decimal(14,2) NOT NULL DEFAULT 0, `count_need` decimal(14,2) NOT NULL DEFAULT 0, `t2_price_purchase` decimal(14,2) NOT NULL DEFAULT 0, `status` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `ix_soi_o` (`order_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `shop_orders` (`id` int(11) NOT NULL AUTO_INCREMENT, `user_id` int(11) NOT NULL DEFAULT 0, `session_id` int(11) NOT NULL DEFAULT 0, `successfully_created` tinyint(1) NOT NULL DEFAULT 0, `status` int(11) NOT NULL DEFAULT 0, `time` int(11) NOT NULL DEFAULT 0, `price_total_wt` decimal(14,2) NOT NULL DEFAULT 0, `price_total_wt_vat` decimal(14,2) NOT NULL DEFAULT 0, `paid` tinyint(1) NOT NULL DEFAULT 0, `paid_type` int(11) NOT NULL DEFAULT 0, `how_get` int(11) NOT NULL DEFAULT 0, `how_get_json` text, `phone_not_auth` varchar(120) NOT NULL DEFAULT '', `email_not_auth` varchar(190) NOT NULL DEFAULT '', `office_id` int(11) NOT NULL DEFAULT 0, `currency_code` varchar(8) NOT NULL DEFAULT 'QAR', PRIMARY KEY (`id`), KEY `ix_sou` (`user_id`), KEY `ix_sot` (`time`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `shop_orders_items` (`id` int(11) NOT NULL AUTO_INCREMENT, `order_id` int(11) NOT NULL DEFAULT 0, `title` varchar(190) NOT NULL DEFAULT '', `price` decimal(14,2) NOT NULL DEFAULT 0, `count_need` decimal(14,2) NOT NULL DEFAULT 0, `count_issued` decimal(14,2) NOT NULL DEFAULT 0, `count_reserved` decimal(14,2) NOT NULL DEFAULT 0, `t2_price_purchase` decimal(14,2) NOT NULL DEFAULT 0, `status` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `ix_soi_o` (`order_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
             "CREATE TABLE IF NOT EXISTS `epc_invoices` (`id` int(11) NOT NULL AUTO_INCREMENT, `invoice_number` varchar(40) NOT NULL DEFAULT '', `customer_name` varchar(190) NOT NULL DEFAULT '', `total_amount` decimal(14,2) NOT NULL DEFAULT 0, `paid_amount` decimal(14,2) NOT NULL DEFAULT 0, `status` varchar(20) NOT NULL DEFAULT 'sent', `currency_code` varchar(8) NOT NULL DEFAULT 'QAR', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_inv_no` (`invoice_number`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
             "CREATE TABLE IF NOT EXISTS `epc_bills` (`id` int(11) NOT NULL AUTO_INCREMENT, `bill_number` varchar(40) NOT NULL DEFAULT '', `supplier_name` varchar(190) NOT NULL DEFAULT '', `total_amount` decimal(14,2) NOT NULL DEFAULT 0, `paid_amount` decimal(14,2) NOT NULL DEFAULT 0, `status` varchar(20) NOT NULL DEFAULT 'received', `currency_code` varchar(8) NOT NULL DEFAULT 'QAR', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_bill_no` (`bill_number`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
             "CREATE TABLE IF NOT EXISTS `shop_users_accounting` (`id` int(11) NOT NULL AUTO_INCREMENT, `user_id` int(11) NOT NULL DEFAULT 0, `order_id` int(11) NOT NULL DEFAULT 0, `income` tinyint(1) NOT NULL DEFAULT 0, `amount` decimal(14,2) NOT NULL DEFAULT 0, `operation_code` varchar(40) NOT NULL DEFAULT '', `office_id` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, `time` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `ix_sua_u` (`user_id`), KEY `ix_sua_o` (`order_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_einvoice_documents` (`id` int(11) NOT NULL AUTO_INCREMENT, `uuid` varchar(64) NOT NULL DEFAULT '', `invoice_number` varchar(40) NOT NULL DEFAULT '', `doc_category` varchar(32) NOT NULL DEFAULT 'tax_invoice', `issue_date` int(11) NOT NULL DEFAULT 0, `payment_due_date` int(11) NOT NULL DEFAULT 0, `currency_code` varchar(8) NOT NULL DEFAULT 'QAR', `subtotal_ex_vat` decimal(14,2) NOT NULL DEFAULT 0, `total_vat` decimal(14,2) NOT NULL DEFAULT 0, `total_incl_vat` decimal(14,2) NOT NULL DEFAULT 0, `paid_amount` decimal(14,2) NOT NULL DEFAULT 0, `status` varchar(20) NOT NULL DEFAULT 'draft', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_ein_no` (`invoice_number`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
         };
         foreach (var sql in ddl)
         {
             await ErpDb.ExecuteAsync(connection, null, sql, cancellationToken).ConfigureAwait(false);
+        }
+
+        // Columns other read-paths select that a pre-existing minimal table may
+        // lack (dashboard batch reads `epc_erp_suppliers.balance`; order readers
+        // select shop_orders.how_get_json etc.).
+        await EnsureColumnAsync(connection, "epc_erp_suppliers", "balance", "`balance` decimal(14,2) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
+        await EnsureColumnAsync(connection, "shop_orders", "session_id", "`session_id` int(11) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
+        await EnsureColumnAsync(connection, "shop_orders", "paid_type", "`paid_type` int(11) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
+        await EnsureColumnAsync(connection, "shop_orders", "how_get", "`how_get` int(11) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
+        await EnsureColumnAsync(connection, "shop_orders", "how_get_json", "`how_get_json` text", cancellationToken).ConfigureAwait(false);
+        await EnsureColumnAsync(connection, "shop_orders", "phone_not_auth", "`phone_not_auth` varchar(120) NOT NULL DEFAULT ''", cancellationToken).ConfigureAwait(false);
+        await EnsureColumnAsync(connection, "shop_orders", "email_not_auth", "`email_not_auth` varchar(190) NOT NULL DEFAULT ''", cancellationToken).ConfigureAwait(false);
+        await EnsureColumnAsync(connection, "shop_orders", "office_id", "`office_id` int(11) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
+        await EnsureColumnAsync(connection, "shop_orders_items", "count_issued", "`count_issued` decimal(14,2) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
+        await EnsureColumnAsync(connection, "shop_orders_items", "count_reserved", "`count_reserved` decimal(14,2) NOT NULL DEFAULT 0", cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task EnsureColumnAsync(DbConnection connection, string table, string column, string definition, CancellationToken ct)
+    {
+        var present = await ScalarAsync(connection,
+            "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='" + table + "' AND COLUMN_NAME='" + column + "'",
+            ct).ConfigureAwait(false);
+        if (present == 0)
+        {
+            await ErpDb.TryExecuteAsync(connection,
+                "ALTER TABLE `" + table + "` ADD COLUMN " + definition,
+                ct).ConfigureAwait(false);
         }
     }
 
@@ -446,14 +474,19 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
             "SELECT `id` FROM `shop_orders_statuses_ref` WHERE `name`='delivered'", cancellationToken);
 
         // Demo customers (no password — cannot log in; receivables page rows).
+        // users.reg_variant is varchar on some tenants, int on others — match the type.
+        var regVariantNumeric = (await ScalarAsync(connection,
+            "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='users' AND COLUMN_NAME='reg_variant' AND DATA_TYPE IN ('int','bigint','smallint','tinyint','mediumint')",
+            cancellationToken).ConfigureAwait(false)) > 0;
+        var regVariant = regVariantNumeric ? "1" : "customer";
         var customers = new[] { "demo-lulu-hypermarket@fmcg.ecomae.com", "demo-carrefour-qatar@fmcg.ecomae.com", "demo-almeera-retail@fmcg.ecomae.com", "demo-monoprix-qatar@fmcg.ecomae.com", "demo-mezmoon-grocery@fmcg.ecomae.com" };
         var custIds = new List<long>();
         foreach (var email in customers)
         {
             var uid = await InsertIfAbsentAsync(connection,
                 "SELECT `user_id` FROM `users` WHERE `email`=@p0",
-                "INSERT INTO `users` (`email`,`email_confirmed`,`phone_confirmed`,`password`,`unlocked`,`reg_variant`,`time_registered`) VALUES (@p0,0,0,'',0,'customer',@p1)",
-                cancellationToken, email, now);
+                "INSERT INTO `users` (`email`,`email_confirmed`,`phone_confirmed`,`password`,`unlocked`,`reg_variant`,`time_registered`) VALUES (@p0,0,0,'',0,@p1,@p2)",
+                cancellationToken, email, regVariant, now);
             custIds.Add(uid);
             await MarkAsync(connection, "users", uid, cancellationToken).ConfigureAwait(false);
         }
@@ -514,12 +547,12 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
         }
 
         // AR e-invoice documents (open balances feed the receivables tile + due count).
-        var invs = new (string No, string Cust, decimal Total, decimal PaidAmt, string St, int DaysAgo)[]
+        var invs = new (string No, string Cust, decimal Total, decimal PaidAmt, string St, string DocSt, int DaysAgo)[]
         {
-            ("INV-D-1001", "Lulu Hypermarket", 14175.00m, 0m, "sent", 6),
-            ("INV-D-1002", "Carrefour Qatar", 9828.00m, 0m, "issued", 10),
-            ("INV-D-1003", "Al Meera Retail", 7455.00m, 4000m, "part_paid", 16),
-            ("INV-D-1004", "Monoprix Qatar", 5428.50m, 0m, "overdue", 34),
+            ("INV-D-1001", "Lulu Hypermarket", 14175.00m, 0m, "sent", "submitted", 6),
+            ("INV-D-1002", "Carrefour Qatar", 9828.00m, 0m, "issued", "submitted", 10),
+            ("INV-D-1003", "Al Meera Retail", 7455.00m, 4000m, "part_paid", "accepted", 16),
+            ("INV-D-1004", "Monoprix Qatar", 5428.50m, 0m, "overdue", "accepted", 34),
         };
         foreach (var v in invs)
         {
@@ -531,9 +564,9 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
 
             var eid = await InsertIfAbsentAsync(connection,
                 "SELECT `id` FROM `epc_einvoice_documents` WHERE `invoice_number`=@p0",
-                "INSERT INTO `epc_einvoice_documents` (`invoice_number`,`doc_category`,`issue_date`,`payment_due_date`,`currency_code`,`subtotal_ex_vat`,`total_vat`,`total_incl_vat`,`paid_amount`,`status`,`active`) VALUES (@p0,'standard',@p1,@p2,'QAR',@p3,@p4,@p5,@p6,@p7,1)",
+                "INSERT INTO `epc_einvoice_documents` (`uuid`,`invoice_number`,`doc_category`,`issue_date`,`payment_due_date`,`currency_code`,`subtotal_ex_vat`,`total_vat`,`total_incl_vat`,`paid_amount`,`status`,`active`) VALUES (UUID(),@p0,'tax_invoice',@p1,@p2,'QAR',@p3,@p4,@p5,@p6,@p7,1)",
                 cancellationToken, v.No, now - v.DaysAgo * day, now - v.DaysAgo * day + 30 * day,
-                v.Total / 1.05m, v.Total - v.Total / 1.05m, v.Total, v.PaidAmt, v.St);
+                v.Total / 1.05m, v.Total - v.Total / 1.05m, v.Total, v.PaidAmt, v.DocSt);
             await MarkAsync(connection, "epc_einvoice_documents", eid, cancellationToken).ConfigureAwait(false);
         }
 
@@ -549,6 +582,12 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
             supIds.Add(sid);
             await MarkAsync(connection, "epc_erp_suppliers", sid, cancellationToken).ConfigureAwait(false);
         }
+        await ErpDb.TryExecuteAsync(connection,
+            "UPDATE `epc_erp_suppliers` SET `balance`=14175.00 WHERE `name`='Al Sidra Dairy Co.'",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(connection,
+            "UPDATE `epc_erp_suppliers` SET `balance`=8783.25 WHERE `name`='Gulf Pack Trading W.L.L.'",
+            cancellationToken).ConfigureAwait(false);
 
         var bills = new (string No, int Sup, decimal Total, decimal PaidAmt, string St, int DaysAgo)[]
         {
@@ -583,9 +622,9 @@ public sealed class ErpFmcgDemoSeedWriteService : IErpFmcgDemoSeedWriteService
         // Open purchase orders feed the open-PO reminder tile.
         var pos = new (string No, int Sup, decimal ExVat, string St)[]
         {
-            ("PO-D-7001", 0, 12600.00m, "confirmed"),
-            ("PO-D-7002", 1, 8365.00m, "confirmed"),
-            ("PO-D-7003", 2, 4920.00m, "sent"),
+            ("PO-D-7001", 0, 12600.00m, "approved"),
+            ("PO-D-7002", 1, 8365.00m, "approved"),
+            ("PO-D-7003", 2, 4920.00m, "draft"),
         };
         foreach (var p in pos)
         {
