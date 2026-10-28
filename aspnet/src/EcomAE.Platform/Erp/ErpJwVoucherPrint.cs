@@ -48,7 +48,7 @@ public static class ErpJwVoucherPrint
             : title.StartsWith("REPAIR", StringComparison.Ordinal) ? "jw_repair"
             : "receipt_voucher";
 
-    private static async Task<Dictionary<string, object?>?> TemplateAsync(DbConnection c, string docType, CancellationToken ct)
+    public static async Task<Dictionary<string, object?>?> TemplateAsync(DbConnection c, string docType, CancellationToken ct)
     {
         try
         {
@@ -65,6 +65,34 @@ public static class ErpJwVoucherPrint
         {
             return null;
         }
+    }
+
+    /// <summary>Print-only CSS + header/footer for an ERP report page, from its saved print-designer template.</summary>
+    public static string ReportPrintBlock(IReadOnlyDictionary<string, object?>? t)
+    {
+        if (t is null) return string.Empty;
+        string S(string k) => t.TryGetValue(k, out var o) && o is not null ? Convert.ToString(o, CultureInfo.InvariantCulture) ?? "" : "";
+        bool B(string k, bool dflt) => t.TryGetValue(k, out var o) && o is not null ? Convert.ToInt32(o, CultureInfo.InvariantCulture) != 0 : dflt;
+        static string Css(string v) => new(v.Where(ch => char.IsLetterOrDigit(ch) || ch is '#' or ',' or ' ' or '-' or '.').ToArray());
+        var css = new StringBuilder(".tpl-print-only{display:none}@media print{.tpl-print-only{display:block}.erp-print-designer-link a{display:none}");
+        if (S("font_family").Length > 0) css.Append("body{font-family:").Append(Css(S("font_family"))).Append('}');
+        if (int.TryParse(S("font_size"), out var size) && size is > 5 and < 30) css.Append("body,table{font-size:").Append(size).Append("px}");
+        if (S("primary_color").Length > 0) css.Append("h1,h2,h3{color:").Append(Css(S("primary_color"))).Append('}');
+        css.Append(S("custom_css").Replace("</", "<\\/", StringComparison.Ordinal)).Append('}');
+        var b = new StringBuilder("<style>").Append(css).Append("</style>");
+        if (S("header_html").Length > 0) b.Append("<div class=\"tpl-print-only tpl-header\">").Append(S("header_html")).Append("</div>");
+        var tail = new StringBuilder();
+        if (B("show_terms", true) && S("terms_html").Length > 0) tail.Append(S("terms_html"));
+        if (S("footer_html").Length > 0) tail.Append(S("footer_html"));
+        var labels = S("signature_labels").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (labels.Length > 0 && B("show_signature_line", true))
+        {
+            tail.Append("<div style=\"display:flex;justify-content:space-between;margin-top:40px;font-weight:bold\">")
+                .Append(string.Concat(labels.Select(l => "<span>" + H(l.ToUpperInvariant()) + "</span>"))).Append("</div>");
+        }
+
+        if (tail.Length > 0) b.Append("<div class=\"tpl-print-only tpl-footer\" style=\"position:fixed;bottom:0;left:0;right:0\">").Append(tail).Append("</div>");
+        return b.ToString();
     }
 
     /// <summary>Overlays the tenant's saved print-designer template (fonts, colours, header/footer, terms, bank, signatures, custom CSS).</summary>

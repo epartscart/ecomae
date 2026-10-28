@@ -107,6 +107,86 @@ public sealed record ErpDashboardGlBook(
         };
     }
 
+    private const string SaleTypes = "'RIN','RSI','RSC','MSL','MSI','MSC','RSL','SI'";
+
+    /// <summary>ERP / jewellery operational counts for tenants without storefront order tables.</summary>
+    public static async Task<ErpDashboardOps> ReadOpsAsync(DbConnection connection, long dateFrom, long dateTo, int companyId, CancellationToken ct)
+    {
+        var co = companyId > 0 ? " AND IFNULL(`company_id`, 0) IN (0, @companyId)" : string.Empty;
+        var day = DateTimeOffset.FromUnixTimeSeconds(dateTo).UtcDateTime.Date;
+        async Task<int> N(string sql, params (string Name, object Value)[] args)
+        {
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                ErpFirstPaint.ApplyIfErp(cmd);
+                cmd.CommandText = sql;
+                foreach (var (name, value) in args) Add(cmd, name, value);
+                if (companyId > 0 && sql.Contains("@companyId", StringComparison.Ordinal)) Add(cmd, "@companyId", companyId);
+                var o = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+                return o is null or DBNull ? 0 : Convert.ToInt32(o, CultureInfo.InvariantCulture);
+            }
+            catch (DbException)
+            {
+                return 0;
+            }
+        }
+
+        var from = DateTimeOffset.FromUnixTimeSeconds(dateFrom).UtcDateTime.Date;
+        var sales = $"SELECT COUNT(*) FROM `epc_jewel_voucher` WHERE `voc_type` IN ({SaleTypes}){co} AND `voc_date` BETWEEN @d1 AND @d2";
+        var orders = await N(sales, ("@d1", from), ("@d2", day)).ConfigureAwait(false)
+            + await N("SELECT COUNT(*) FROM `epc_erp_sales_orders` WHERE `time_created` BETWEEN @t1 AND @t2", ("@t1", dateFrom), ("@t2", dateTo)).ConfigureAwait(false);
+        return new ErpDashboardOps(
+            orders,
+            await N("SELECT COUNT(*) FROM `epc_jewel_metal_stock` WHERE 1=1" + co).ConfigureAwait(false)
+                + await N("SELECT COUNT(*) FROM `epc_erp_inv_items` WHERE `active` = 1").ConfigureAwait(false),
+            await N("SELECT COUNT(*) FROM `epc_erp_sales_orders` WHERE `status` = 'draft'").ConfigureAwait(false),
+            await N("SELECT COUNT(*) FROM `epc_erp_sales_orders` WHERE `status` = 'confirmed'").ConfigureAwait(false),
+            await N("SELECT COUNT(*) FROM `epc_erp_purchases` WHERE `active` = 1 AND `status` IN ('draft','confirmed','open')").ConfigureAwait(false),
+            await N($"SELECT COUNT(*) FROM `epc_jewel_voucher` WHERE `voc_type` IN ({SaleTypes}){co} AND IFNULL(`total_with_vat`,0) > IFNULL(`receipt_total`,0) + 0.005").ConfigureAwait(false),
+            await N("SELECT COUNT(*) FROM `epc_jewel_metal_stock` WHERE IFNULL(`reorder_level`,0) > 0 AND IFNULL(`stock_qty`,0) < `reorder_level`" + co).ConfigureAwait(false),
+            await N(sales, ("@d1", day), ("@d2", day)).ConfigureAwait(false),
+            await N(sales, ("@d1", day.AddDays(-6)), ("@d2", day)).ConfigureAwait(false),
+            await N(sales, ("@d1", day.AddDays(-13)), ("@d2", day.AddDays(-7))).ConfigureAwait(false),
+            await N("SELECT COUNT(*) FROM `epc_jewel_pos_customer` WHERE 1=1" + co).ConfigureAwait(false)
+                + await N("SELECT COUNT(*) FROM `epc_jewel_party` WHERE 1=1" + co).ConfigureAwait(false),
+            await N("SELECT COUNT(*) FROM `epc_rma_requests` WHERE IFNULL(`status`,'') NOT IN ('closed','completed','rejected')").ConfigureAwait(false),
+            await N("SELECT COUNT(*) FROM `epc_erp_inv_warehouses` WHERE `active` = 1").ConfigureAwait(false),
+            await N("SELECT COUNT(*) FROM `epc_price_settings`").ConfigureAwait(false));
+    }
+
+    public static ErpWorkspacePeriodKpis ApplyOps(ErpWorkspacePeriodKpis k, ErpDashboardOps o)
+    {
+        static int Pick(int op, int erp) => op != 0 ? op : erp;
+        return k with
+        {
+            OrdersCount = Pick(k.OrdersCount, o.Orders),
+            InventoryItems = Pick(k.InventoryItems, o.Items),
+            DraftSalesOrders = Pick(k.DraftSalesOrders, o.DraftSalesOrders),
+            ConfirmedSalesOrders = Pick(k.ConfirmedSalesOrders, o.ConfirmedSalesOrders),
+            OpenPurchaseOrders = Pick(k.OpenPurchaseOrders, o.OpenPurchases),
+            InvoicesDue = Pick(k.InvoicesDue, o.InvoicesDue),
+            LowStockItems = Pick(k.LowStockItems, o.LowStock),
+        };
+    }
+
+    public static ErpInsightsCommerceStats ApplyCommerce(ErpInsightsCommerceStats c, ErpDashboardOps o)
+    {
+        static int Pick(int op, int erp) => op != 0 ? op : erp;
+        return c with
+        {
+            OrdersToday = Pick(c.OrdersToday, o.OrdersToday),
+            OrdersWeek = Pick(c.OrdersWeek, o.OrdersWeek),
+            OrdersPrevWeek = Pick(c.OrdersPrevWeek, o.OrdersPrevWeek),
+            OpenOrders = Pick(c.OpenOrders, o.DraftSalesOrders + o.ConfirmedSalesOrders),
+            Products = Pick(c.Products, o.Items),
+            Clients = Pick(c.Clients, o.Clients),
+            ReturnsOpen = Pick(c.ReturnsOpen, o.ReturnsOpen),
+            Warehouses = Pick(c.Warehouses, o.Warehouses),
+            PriceLists = Pick(c.PriceLists, o.PriceLists),
+        };
+    }
+
     private static void Add(DbCommand cmd, string name, object value)
     {
         var p = cmd.CreateParameter();
@@ -115,3 +195,7 @@ public sealed record ErpDashboardGlBook(
         cmd.Parameters.Add(p);
     }
 }
+
+public sealed record ErpDashboardOps(
+    int Orders, int Items, int DraftSalesOrders, int ConfirmedSalesOrders, int OpenPurchases, int InvoicesDue, int LowStock,
+    int OrdersToday, int OrdersWeek, int OrdersPrevWeek, int Clients, int ReturnsOpen, int Warehouses, int PriceLists);
