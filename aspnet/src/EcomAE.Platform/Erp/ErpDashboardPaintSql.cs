@@ -49,8 +49,9 @@ public static class ErpDashboardPaintSql
         var shopVat = includeShop && Has("shop_orders")
             && Cols("shop_orders", "successfully_created", "price_total_wt_vat", "time");
 
-        var cash = Has("epc_erp_cash_bank_accounts") && Cols("epc_erp_cash_bank_accounts", "id", "opening_balance", "active")
+        var cash = Has("epc_erp_cash_bank_accounts") && Cols("epc_erp_cash_bank_accounts", "opening_balance", "active")
             ? Has("epc_erp_cash_bank_entries") && Cols("epc_erp_cash_bank_entries", "account_id", "direction", "amount", "active")
+                && Cols("epc_erp_cash_bank_accounts", "id")
                 ? """
                     (
                         SELECT IFNULL(SUM(a.`opening_balance`
