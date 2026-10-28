@@ -573,17 +573,13 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         long overdueBefore,
         CancellationToken cancellationToken)
     {
-        if (!ErpFirstPaint.IsActive)
-        {
-            return await ReadErpDashboardBatchCoreAsync(
-                connection, monthStart, now, periodKey, overdueBefore,
-                LegacySurfaceDashboardSql.SelectErpDashboardSummaryBatch, cancellationToken).ConfigureAwait(false);
-        }
-
         IReadOnlySet<string> tables;
+        IReadOnlySet<string>? columns = null;
         try
         {
             tables = await ErpTableCatalog.LoadAsync(connection, cancellationToken).ConfigureAwait(false);
+            columns = await ErpTableCatalog.LoadColumnsAsync(
+                connection, ErpDashboardPaintSql.BatchTables, cancellationToken).ConfigureAwait(false);
         }
         catch (DbException)
         {
@@ -594,7 +590,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             return await ReadErpDashboardBatchCoreAsync(
                 connection, monthStart, now, periodKey, overdueBefore,
-                ErpDashboardPaintSql.Batch(tables, includeShop: true, includePeriod: true),
+                ErpDashboardPaintSql.Batch(tables, includeShop: true, includePeriod: true, columns),
                 cancellationToken).ConfigureAwait(false);
         }
         catch (DbException)
@@ -602,7 +598,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             // Unknown shop column or period key — keep the ERP tables that are present.
             return await ReadErpDashboardBatchCoreAsync(
                 connection, monthStart, now, periodKey, overdueBefore,
-                ErpDashboardPaintSql.Batch(tables, includeShop: false, includePeriod: false),
+                ErpDashboardPaintSql.Batch(tables, includeShop: false, includePeriod: false, columns),
                 cancellationToken).ConfigureAwait(false);
         }
     }

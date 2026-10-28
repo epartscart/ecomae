@@ -84,4 +84,53 @@ public static class ErpTableCatalog
     }
 
     private sealed record Snapshot(HashSet<string> Names, long ExpiresAt);
+
+    private static readonly ConcurrentDictionary<string, ColumnSnapshot> ColumnCache = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Columns of the given tables as <c>table.column</c> keys (lowercased),
+    /// cached like the table list. Dashboard batches gate each subquery on the
+    /// columns it touches — a tenant table that diverged (e.g. no
+    /// <c>gl_journals.status</c>) must not fail the whole batch.
+    /// </summary>
+    public static async Task<IReadOnlySet<string>> LoadColumnsAsync(
+        DbConnection connection,
+        IReadOnlyCollection<string> tables,
+        CancellationToken cancellationToken)
+    {
+        var key = ErpSchemaMemo.Key(connection, "cols:" + string.Join(",", tables));
+        if (key.Length > 0
+            && ColumnCache.TryGetValue(key, out var hit)
+            && hit.ExpiresAt > Environment.TickCount64)
+        {
+            return hit.Names;
+        }
+
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (tables.Count == 0)
+        {
+            return names;
+        }
+
+        var inList = string.Join(",", tables.Select(t => "'" + t.Replace("'", "''") + "'"));
+        await using var command = connection.CreateCommand();
+        ErpFirstPaint.ApplyIfErp(command);
+        command.CommandText =
+            "SELECT TABLE_NAME, COLUMN_NAME FROM information_schema.COLUMNS " +
+            "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (" + inList + ")";
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            names.Add(reader.GetString(0) + "." + reader.GetString(1));
+        }
+
+        if (key.Length > 0)
+        {
+            ColumnCache[key] = new ColumnSnapshot(names, Environment.TickCount64 + (long)Ttl.TotalMilliseconds);
+        }
+
+        return names;
+    }
+
+    private sealed record ColumnSnapshot(HashSet<string> Names, long ExpiresAt);
 }
