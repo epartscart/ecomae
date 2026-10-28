@@ -53,3 +53,32 @@ The same templates, samples and field map download from the **INDUS migration** 
 ## Prints (INDUS layout)
 
 `/erp/jewellery/voucher-print?id=<voucher id>` — TAX INVOICE (POS / sale), TAX CREDIT NOTE (return), METAL / DIAMOND PURCHASE, RECEIPT VOUCHER (advance), JOURNAL VOUCHER. `&kind=fixing|petty|repair&id=<row id>` for fixing, petty cash and repair receipts; `&copy=customer|party|office`. Print links are on the Purchases, Sales and Repairs tabs. Company name / TRN come from `epc_org_company_settings` keys `jewellery_print_company_name` / `jewellery_print_trn` (falls back to the e-invoice seller profile).
+
+## Where each report is (sandbox: https://indj-sandbox-uae.ecomae.com)
+
+| Report / screen (INDUS equivalent) | ERP path | Shows |
+|---|---|---|
+| ERP dashboard (KPIs, cash, AR/AP, sales) | `/erp?company=1` | All modules incl. general ERP demo data |
+| Jewellery workspace — stock (Metal Stock Balance) | `/erp/jewellery/workspace?tab=stock` | PCS, gross g, value per stock code; total = GL 1300 jewellery share |
+| Jewellery workspace — reports / month-end | `/erp/jewellery/workspace?tab=reports`, `?tab=month-end` | Stock + sales + purchase summary; Post to GL |
+| Jewellery workspace — purchases / sales / repairs (with **Print**) | `?tab=purchases`, `?tab=sales`, `?tab=repairs` | Vouchers with INDUS-layout print links |
+| INDUS migration (upload, dry run, samples, templates) | `?tab=indus` | Import result, templates table, field map |
+| Metal stock master (weights) | `/erp/jewellery-stock-verification-app?tab=jw_metal_stock` | PCS, gross/net/pure g by stock code |
+| Stock balance (weight) | `/erp/jewellery-stock-verification-app?tab=jw_stock_balance` | Weight balance by karat |
+| Stock verification (MSV) | `/erp/jewellery-stock-verification-app?tab=jw_stock_verification` | Computer vs physical stock |
+| Metal purchase (PUR / DPU) | `/erp/jewellery-fixing-app?tab=jw_metal_purchase` | Purchase vouchers |
+| Sales / purchase fixing (SFX / PFX) | `/erp/jewellery-fixing-app?tab=jw_sales_fixing` | Fixings |
+| Metal sales, sales return, sales analysis (weight) | `/erp/jewellery-retail-app?tab=jw_metal_sales`, `?tab=jw_sales_return`, `?tab=jw_sales_analysis` | POS/retail sales by weight and value |
+| Repairs | `/erp/jewellery-repairs-app` | Repair jobs, transfer, delivery |
+| Masters (karat, rate type, currency, designs, stones) | `/erp/jewellery-masters-app` | Master data |
+| Trial balance | `/erp/trial-balance-app` | All GL accounts (1000 cash, 1020 petty cash, 1030 card, 1100 AR, 1300 inventory, 1320 old gold, 2100 VAT, 2300 advances, 4000 sales, 4100 returns, 5000 COGS…) |
+| Balance sheet / income statement | `/erp/report-center-app?tab=balance_sheet`, `?tab=income_statement` | Financial statements from the same GL |
+| Stock movements ledger | `/erp/stock-movements-app` | General inventory movements |
+
+Print previews: `/erp/jewellery/voucher-print?id=<voucher id>` (TAX INVOICE, TAX CREDIT NOTE, PURCHASE, RECEIPT VOUCHER, JOURNAL VOUCHER), `&kind=fixing`, `&kind=petty`, `&kind=repair`; add `&copy=party` for the party copy.
+
+### Reconciliation (fresh sample load)
+- Jewellery stock value 685,974.38 = jewellery entries in GL 1300; the trial balance's 1300 (680,974.38) also contains the general ERP demo journal `DEMO-JNL` (−5,000).
+- 24TTB: 10 PCS, 1,166.40 g, 557,434.38 (PUR 37047). Sold INDUS tags go to 0; returned ring 9872 comes back at 700.
+- Sales 35,415.72, returns 1,047.62, COGS 28,240.00, old gold 1,780.00, POS advance 952.38, petty cash 4,583.36.
+- Refresh instead of Remove when stock codes that existed before the import were touched: `bash scripts/cloudpanel_sandbox_db_refresh.sh indj ecomae`, then load samples again.
