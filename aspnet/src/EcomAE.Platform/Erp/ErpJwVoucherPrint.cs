@@ -23,13 +23,79 @@ public static class ErpJwVoucherPrint
     public static async Task<string?> RenderAsync(DbConnection connection, string? kind, long id, string? copy, CancellationToken ct)
     {
         await ErpJewelSchema.EnsureAsync(connection, ct).ConfigureAwait(false);
-        return (kind ?? "voucher").Trim().ToLowerInvariant() switch
+        var html = (kind ?? "voucher").Trim().ToLowerInvariant() switch
         {
             "fixing" => await FixingAsync(connection, id, ct).ConfigureAwait(false),
             "petty" => await PettyAsync(connection, id, ct).ConfigureAwait(false),
             "repair" => await RepairAsync(connection, id, ct).ConfigureAwait(false),
             _ => await VoucherAsync(connection, id, copy, ct).ConfigureAwait(false),
         };
+        if (html is null) return null;
+        var m = System.Text.RegularExpressions.Regex.Match(html, "<!--jw-kind:([a-z_]+)-->");
+        var design = m.Success ? m.Groups[1].Value : "invoice";
+        return ApplyTemplate(html, await TemplateAsync(connection, design, ct).ConfigureAwait(false));
+    }
+
+    /// <summary>Print designer document kind for each jewellery print (doc_type in epc_erp_print_templates).</summary>
+    public static string DesignKindFor(string title)
+        => title.StartsWith("TAX INVOICE", StringComparison.Ordinal) ? "invoice"
+            : title.StartsWith("TAX CREDIT NOTE", StringComparison.Ordinal) ? "credit_note"
+            : title.Contains("PURCHASE FIXING", StringComparison.Ordinal) || title.Contains("SALE FIXING", StringComparison.Ordinal) ? "jw_fixing"
+            : title.Contains("PURCHASE", StringComparison.Ordinal) ? "jw_purchase"
+            : title.StartsWith("RECEIPT VOUCHER", StringComparison.Ordinal) ? "receipt_voucher"
+            : title.StartsWith("JOURNAL VOUCHER", StringComparison.Ordinal) ? "journal_voucher"
+            : title.StartsWith("PETTY CASH", StringComparison.Ordinal) ? "payment_voucher"
+            : title.StartsWith("REPAIR", StringComparison.Ordinal) ? "jw_repair"
+            : "receipt_voucher";
+
+    private static async Task<Dictionary<string, object?>?> TemplateAsync(DbConnection c, string docType, CancellationToken ct)
+    {
+        try
+        {
+            await using var command = c.CreateCommand();
+            command.CommandText = ErpDb.Positional("SELECT * FROM `epc_erp_print_templates` WHERE `doc_type`=? AND `active`=1 ORDER BY `is_default` DESC, `id` DESC LIMIT 1");
+            ErpDb.AddParameters(command, docType);
+            await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            if (!await reader.ReadAsync(ct).ConfigureAwait(false)) return null;
+            var row = new Dictionary<string, object?>(StringComparer.Ordinal);
+            for (var i = 0; i < reader.FieldCount; i++) row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+            return row;
+        }
+        catch (DbException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Overlays the tenant's saved print-designer template (fonts, colours, header/footer, terms, bank, signatures, custom CSS).</summary>
+    public static string ApplyTemplate(string html, IReadOnlyDictionary<string, object?>? t)
+    {
+        if (t is null) return html;
+        string S(string k) => t.TryGetValue(k, out var o) && o is not null ? Convert.ToString(o, CultureInfo.InvariantCulture) ?? "" : "";
+        bool B(string k, bool dflt) => t.TryGetValue(k, out var o) && o is not null ? Convert.ToInt32(o, CultureInfo.InvariantCulture) != 0 : dflt;
+        static string Css(string v) => new(v.Where(ch => char.IsLetterOrDigit(ch) || ch is '#' or ',' or ' ' or '-' or '.').ToArray());
+        var css = new StringBuilder();
+        if (S("font_family").Length > 0) css.Append("body{font-family:").Append(Css(S("font_family"))).Append('}');
+        if (int.TryParse(S("font_size"), out var size) && size is > 5 and < 30) css.Append("body{font-size:").Append(size).Append("px}");
+        if (S("primary_color").Length > 0) css.Append("h1{color:").Append(Css(S("primary_color"))).Append('}');
+        if (S("secondary_color").Length > 0) css.Append("table.g th,table.g tr.tot td{color:").Append(Css(S("secondary_color"))).Append('}');
+        if (!B("show_signature_line", true)) css.Append(".sign{display:none}");
+        css.Append(S("custom_css").Replace("</", "<\\/", StringComparison.Ordinal));
+        html = html.Replace("<!--jw-tpl-->", "<style>" + css + "</style>", StringComparison.Ordinal);
+        var header = S("header_html");
+        if (header.Length > 0) html = html.Replace("<div class=\"sheet\">", "<div class=\"sheet\"><div class=\"tpl-header\">" + header + "</div>", StringComparison.Ordinal);
+        var tail = new StringBuilder();
+        if (B("show_terms", true) && S("terms_html").Length > 0) tail.Append("<div class=\"tpl-terms\">").Append(S("terms_html")).Append("</div>");
+        if (B("show_bank_details", true) && S("bank_details_html").Length > 0) tail.Append("<div class=\"tpl-bank\">").Append(S("bank_details_html")).Append("</div>");
+        if (S("footer_html").Length > 0) tail.Append("<div class=\"tpl-footer\">").Append(S("footer_html")).Append("</div>");
+        var labels = S("signature_labels").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (labels.Length > 0 && B("show_signature_line", true))
+        {
+            html = System.Text.RegularExpressions.Regex.Replace(html, "<div class=\"sign\">.*?</div>",
+                "<div class=\"sign\">" + string.Concat(labels.Select(l => "<span>" + H(l.ToUpperInvariant()) + "</span>")) + "</div>");
+        }
+
+        return tail.Length == 0 ? html : html.Replace("</div></body>", tail + "</div></body>", StringComparison.Ordinal);
     }
 
     private static string H(string? s) => WebUtility.HtmlEncode(s ?? string.Empty);
@@ -60,7 +126,7 @@ public static class ErpJwVoucherPrint
     }
 
     private static string Page(string title, string body)
-        => "<!doctype html><html><head><meta charset=\"utf-8\"><title>" + H(title) + "</title><style>"
+        => "<!doctype html><html><head><meta charset=\"utf-8\"><!--jw-kind:" + DesignKindFor(title) + "--><title>" + H(title) + "</title><style>"
            + "body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;margin:0;background:#eee}"
            + ".sheet{width:190mm;min-height:270mm;margin:10px auto;background:#fff;padding:12mm 10mm;box-sizing:border-box}"
            + "h1{text-align:center;font-size:18px;margin:0 0 8px}.top{display:flex;justify-content:space-between;font-weight:bold}.copy{color:#888}"
@@ -71,7 +137,8 @@ public static class ErpJwVoucherPrint
            + "table.g td.n{text-align:right}.sum{width:55%;margin-left:auto;border-collapse:collapse}.sum td{border:1px solid #000;padding:3px 6px}.sum td.n{text-align:right;font-weight:bold}"
            + ".words{font-style:italic;margin:4px 0}.sign{display:flex;justify-content:space-between;margin-top:50px;font-weight:bold}"
            + ".tools{text-align:center;margin:8px}@media print{.tools{display:none}body{background:#fff}.sheet{margin:0}}"
-           + "</style></head><body><div class=\"tools\"><button onclick=\"window.print()\">Print</button></div><div class=\"sheet\">" + body + "</div></body></html>";
+           + ".tools a{margin-left:10px}</style><!--jw-tpl--></head><body><div class=\"tools\"><button onclick=\"window.print()\">Print</button>"
+           + "<a href=\"/erp/print-designer-app?kind=" + DesignKindFor(title) + "\" target=\"_blank\">Customize this print</a></div><div class=\"sheet\">" + body + "</div></body></html>";
 
     private static async Task<string?> VoucherAsync(DbConnection c, long id, string? copy, CancellationToken ct)
     {
