@@ -42,10 +42,14 @@ public static class ErpDashboardPaintSql
         bool Cols(string table, params string[] cols)
             => columns is null || cols.All(c => columns.Contains(table + "." + c));
 
-        var shop = includeShop && Has("shop_orders")
+        var shopRevenue = includeShop && Has("shop_orders")
             && Cols("shop_orders", "successfully_created", "price_total_wt", "price_total_wt_vat", "time");
+        var shopCount = includeShop && Has("shop_orders")
+            && Cols("shop_orders", "successfully_created", "time");
+        var shopVat = includeShop && Has("shop_orders")
+            && Cols("shop_orders", "successfully_created", "price_total_wt_vat", "time");
 
-        var cash = Has("epc_erp_cash_bank_accounts") && Cols("epc_erp_cash_bank_accounts", "opening_balance", "active")
+        var cash = Has("epc_erp_cash_bank_accounts") && Cols("epc_erp_cash_bank_accounts", "id", "opening_balance", "active")
             ? Has("epc_erp_cash_bank_entries") && Cols("epc_erp_cash_bank_entries", "account_id", "direction", "amount", "active")
                 ? """
                     (
@@ -66,11 +70,25 @@ public static class ErpDashboardPaintSql
                 : "(SELECT IFNULL(SUM(a.`opening_balance`), 0) FROM `epc_erp_cash_bank_accounts` a WHERE a.`active` = 1)"
             : "0";
 
-        var stock = Has("epc_erp_inv_stock") && Cols("epc_erp_inv_stock", "qty_on_hand", "avg_unit_cost")
-            ? "(SELECT COALESCE(SUM(`qty_on_hand` * `avg_unit_cost`), 0) FROM `epc_erp_inv_stock`)"
-            : Has("epc_inventory_stock") && Cols("epc_inventory_stock", "quantity", "avg_cost")
-                ? "(SELECT COALESCE(SUM(`quantity` * `avg_cost`), 0) FROM `epc_inventory_stock`)"
-                : "0";
+        var erpStock = Has("epc_erp_inv_stock") && Cols("epc_erp_inv_stock", "qty_on_hand", "avg_unit_cost");
+        var legacyStock = Has("epc_inventory_stock") && Cols("epc_inventory_stock", "quantity", "avg_cost");
+        var stock = erpStock && legacyStock
+            // Match the legacy batch: populated ERP stock wins, else fall back to
+            // the legacy table (an empty ERP table must not hide legacy rows).
+            ? """
+                (
+                    SELECT IF(
+                        EXISTS(SELECT 1 FROM `epc_erp_inv_stock` LIMIT 1),
+                        (SELECT COALESCE(SUM(`qty_on_hand` * `avg_unit_cost`), 0) FROM `epc_erp_inv_stock`),
+                        (SELECT COALESCE(SUM(`quantity` * `avg_cost`), 0) FROM `epc_inventory_stock`)
+                    )
+                )
+                """
+            : erpStock
+                ? "(SELECT COALESCE(SUM(`qty_on_hand` * `avg_unit_cost`), 0) FROM `epc_erp_inv_stock`)"
+                : legacyStock
+                    ? "(SELECT COALESCE(SUM(`quantity` * `avg_cost`), 0) FROM `epc_inventory_stock`)"
+                    : "0";
 
         var lowStock = Has("epc_erp_inv_stock") && Has("epc_erp_inv_items")
             && Cols("epc_erp_inv_stock", "qty_on_hand", "item_id")
@@ -110,10 +128,10 @@ public static class ErpDashboardPaintSql
                 ? "(SELECT COALESCE(SUM(`total_amount` - `paid_amount`), 0) FROM `epc_bills` WHERE `status` <> 'paid')"
                 : "0") + " AS payables, "
             + stock + " AS stock_value, "
-            + (shop
+            + (shopRevenue
                 ? "(SELECT IFNULL(SUM(CASE WHEN `successfully_created` = 1 THEN `price_total_wt` - `price_total_wt_vat` ELSE 0 END), 0) FROM `shop_orders` WHERE `time` >= @dateFrom AND `time` <= @dateTo)"
                 : "0") + " AS revenue_ex_vat, "
-            + (shop
+            + (shopCount
                 ? "(SELECT COUNT(*) FROM `shop_orders` WHERE `successfully_created` = 1 AND `time` >= @dateFrom AND `time` <= @dateTo)"
                 : "0") + " AS orders_count, "
             + (Has("shop_users_accounting") && Cols("shop_users_accounting", "income", "amount", "active")
@@ -122,7 +140,7 @@ public static class ErpDashboardPaintSql
             + (Has("epc_erp_suppliers") && Cols("epc_erp_suppliers", "balance", "active")
                 ? "(SELECT IFNULL(SUM(`balance`), 0) FROM `epc_erp_suppliers` WHERE `active` = 1)"
                 : "0") + " AS ap_balance, "
-            + (shop
+            + (shopVat
                 ? "(SELECT IFNULL(SUM(`price_total_wt_vat`), 0) FROM `shop_orders` WHERE `successfully_created` = 1 AND `time` >= @dateFrom AND `time` <= @dateTo)"
                 : "0") + " AS vat_out, "
             + (Has("epc_erp_purchases") && Cols("epc_erp_purchases", "vat_amount", "active", "purchase_date")
