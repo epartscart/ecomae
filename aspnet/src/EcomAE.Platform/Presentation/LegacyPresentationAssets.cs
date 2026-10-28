@@ -8,7 +8,7 @@ public static class LegacyPresentationAssets
 {
     public const string BrandName = "ECOM AE";
     /// <summary>ECOM AE mark — /platform-assets survives PHP pause on www.</summary>
-    public const string BrandMarkUrl = "/platform-assets/ecomae-mark.svg";
+    public const string BrandMarkUrl = "/platform-assets/ecomae-mark.svg?v=group";
 
     public static IReadOnlyList<string> StylesheetsFor(string surfaceKey) => surfaceKey.Trim().ToLowerInvariant() switch
     {

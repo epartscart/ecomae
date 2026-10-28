@@ -231,7 +231,7 @@ public static class EcomaeMarketingSnapshots
         html = Regex.Replace(
             html,
             @"/content/general_pages/epc_ecomae_logo_svg\.php",
-            "/platform-assets/ecomae-mark.svg",
+            "/platform-assets/ecomae-mark.svg?v=group",
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         // Screenshots / OG — stack-neutral platform-assets (never product .php).
