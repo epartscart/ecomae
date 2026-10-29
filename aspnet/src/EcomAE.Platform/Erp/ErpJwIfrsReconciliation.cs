@@ -240,7 +240,11 @@ public sealed class ErpJwIfrsReconciliationReadService : IErpJwIfrsReconciliatio
                 }
             }
 
-            var rate24 = await ErpGoldRateBoard.ResolveSellAsync(c, (int)companyId, "24K", "AED", end.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), cancellationToken).ConfigureAwait(false);
+            // NRV uses the latest entered 24K buy rate on or before the end date; system carry-forward copies rank last.
+            var rate24 = await ErpDb.DecimalAsync(c, null, ErpDb.Positional(
+                "SELECT `buy_rate` FROM `epc_gold_rates` WHERE `company_id` IN (0,?) AND `karat`='24K' AND `currency`='AED' AND `buy_rate`>0 AND `rate_date`<=?"
+                + " ORDER BY `rate_date` DESC,(`created_by`='system') ASC,`id` DESC LIMIT 1"),
+                cancellationToken, companyId, end.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ConfigureAwait(false);
             if (rate24 > 0)
             {
                 await using var cmd = c.CreateCommand();
