@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Linq;
 
 namespace EcomAE.Platform.Erp;
 
@@ -46,32 +47,48 @@ public sealed class ErpFitOutOperationsReportReadService
         await using var command = connection.CreateCommand();
         var filter = projectId is > 0 ? "WHERE `project_id`=?" : string.Empty;
         var andFilter = projectId is > 0 ? "AND `project_id`=?" : string.Empty;
-        command.CommandText = ErpDb.Positional($"""
+        var parts = new List<string>();
+        var paramCount = 0;
+        async Task AddPartAsync(string table, string sql, int args)
+        {
+            if (await ErpDb.TableKnownAsync(connection, table, cancellationToken).ConfigureAwait(false))
+            {
+                parts.Add(sql);
+                paramCount += args;
+            }
+        }
+
+        await AddPartAsync("ecomae_fitout_estimates", $"""
             SELECT 'estimation', 'estimates', COUNT(*),
                    COALESCE(SUM(`markup_percent`),0)
             FROM `ecomae_fitout_estimates` {filter}
-            UNION ALL
+            """, 1).ConfigureAwait(false);
+        await AddPartAsync("ecomae_fitout_boq_lines", $"""
             SELECT 'estimation', 'boq_lines', COUNT(*),
                    COALESCE(SUM(`quantity`*`unit_rate`),0)
             FROM `ecomae_fitout_boq_lines`
             WHERE `estimate_id` IN (
                 SELECT `id` FROM `ecomae_fitout_estimates` {filter})
-            UNION ALL
+            """, 1).ConfigureAwait(false);
+        await AddPartAsync("ecomae_fitout_procurement_links", $"""
             SELECT 'procurement', 'linked_documents', COUNT(*),
                    COALESCE(SUM(`committed_amount`),0)
             FROM `ecomae_fitout_procurement_links` {filter}
-            UNION ALL
+            """, 1).ConfigureAwait(false);
+        await AddPartAsync("ecomae_fitout_quotations", $"""
             SELECT 'sales', 'quotations', COUNT(*),
                    COALESCE(SUM(`revision`),0)
             FROM `ecomae_fitout_quotations`
             WHERE `estimate_id` IN (
                 SELECT `id` FROM `ecomae_fitout_estimates` {filter})
-            UNION ALL
+            """, 1).ConfigureAwait(false);
+        await AddPartAsync("ecomae_fitout_delivery_records", $"""
             SELECT 'delivery', 'approved_records', COUNT(*),
                    COALESCE(SUM(`amount`),0)
             FROM `ecomae_fitout_delivery_records`
             WHERE `status`='approved' {andFilter}
-            UNION ALL
+            """, 1).ConfigureAwait(false);
+        await AddPartAsync("ecomae_fitout_delivery_records", $"""
             SELECT 'delivery', 'pending_approvals', COUNT(*),
                    COALESCE(SUM(`amount`),0)
             FROM `ecomae_fitout_delivery_records`
@@ -82,24 +99,23 @@ public sealed class ErpFitOutOperationsReportReadService
                   'subcontract_payment_certificate','client_payment_certificate',
                   'retention_release','vendor_bill','payment_voucher','client_progress_claim','subcontractor_progress_claim'
               ) {andFilter}
-            UNION ALL
+            """, 1).ConfigureAwait(false);
+        await AddPartAsync("ecomae_fitout_retention_ledger", $"""
             SELECT 'delivery', 'retention_ledger', COUNT(*),
                    COALESCE(SUM(`amount`),0)
             FROM `ecomae_fitout_retention_ledger`
             {filter}
-            ORDER BY 1,2
-            """);
+            """, 1).ConfigureAwait(false);
+
+        if (parts.Count == 0)
+        {
+            return new([], "empty", "No fit-out data tables exist yet.");
+        }
+
+        command.CommandText = ErpDb.Positional(string.Join("\nUNION ALL\n", parts) + "\nORDER BY 1,2");
         if (projectId is > 0)
         {
-            ErpDb.AddParameters(
-                command,
-                projectId.Value,
-                projectId.Value,
-                projectId.Value,
-                projectId.Value,
-                projectId.Value,
-                projectId.Value,
-                projectId.Value);
+            ErpDb.AddParameters(command, Enumerable.Repeat<object>(projectId.Value, paramCount).ToArray());
         }
 
         var rows = new List<ErpFitOutOperationsReportRow>();

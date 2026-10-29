@@ -228,6 +228,9 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
             // contract_terms is keyed by contract_id (the seeded project id).
             "DELETE t FROM `ecomae_fitout_contract_terms` t INNER JOIN `" + RegistryTable + "` r"
                 + " ON r.`table_name`='ecomae_fitout_contract_terms' AND r.`row_id`=t.`contract_id`",
+            // retention ledger rows follow their approved delivery record.
+            "DELETE l FROM `ecomae_fitout_retention_ledger` l INNER JOIN `" + RegistryTable + "` r"
+                + " ON r.`table_name`='ecomae_fitout_delivery_records' AND r.`row_id`=l.`delivery_record_id`",
         };
         foreach (var sql in linked)
         {
@@ -1136,6 +1139,29 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                     marks.Add("ecomae_fitout_delivery_records", claim.Id);
                     await _records.DecideApprovalAsync(claim.Id, "approved", 0, ct).ConfigureAwait(false);
                 }
+            }
+        }
+
+        // Demo retention releases — the approve path creates + posts the retention ledger.
+        foreach (var project in projects)
+        {
+            var releaseAmount = ErpFitOutCalc.Money(project.ContractValue * 0.15m * 5m / 100m * 0.5m);
+            var release = await _records.SaveAsync(
+                new ErpFitOutDeliveryRecordSaveRequest(
+                    ProjectId: project.Id,
+                    RecordType: "retention_release",
+                    Reference: RefPrefix + "RET-" + project.Id + "-10",
+                    Title: "DEMO | Retention release " + project.Id,
+                    Description: "DEMO | 50% release of 5% retention on 15% work done",
+                    Amount: releaseAmount,
+                    CompletionPercent: 0m,
+                    EventDate: new DateOnly(2026, 10, 31)),
+                ct).ConfigureAwait(false);
+            if (release.Succeeded)
+            {
+                count++;
+                marks.Add("ecomae_fitout_delivery_records", release.Id);
+                await _records.DecideApprovalAsync(release.Id, "approved", 0, ct).ConfigureAwait(false);
             }
         }
 
