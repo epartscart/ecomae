@@ -50,6 +50,16 @@
         }
     }
 
+    function hasPureWeight(form) {
+        var found = false;
+        form.querySelectorAll('[data-jw-line]').forEach(function (row) {
+            if (num(getNamed(row, 'line_pure_wt')) > 0) {
+                found = true;
+            }
+        });
+        return found;
+    }
+
     function recalc(form) {
         var rate = num(getNamed(form, 'metal_rate'));
         var t = { pcs: 0, gr: 0, stone: 0, net: 0, pure: 0, wstg: 0, metal: 0, mkg: 0, st: 0, disc: 0, total: 0 };
@@ -107,7 +117,7 @@
         var pct = num(getNamed(form, 'vat_pct'));
         var basisEl = q(form, '[data-jw-vat-basis]');
         var basis = basisEl ? basisEl.value : 'mkg';
-        var nonMetal = r(t.mkg + t.st + other, 2);
+        var nonMetal = r(Math.max(0, t.mkg + t.st - t.disc) + other, 2);
         var taxable = basis === 'full' ? r(net + other, 2) : basis === 'none' ? 0 : nonMetal;
         var vat = r(taxable * pct / 100, 2);
         var rcm = basis === 'mkg' ? r(t.metal * pct / 100, 2) : 0;
@@ -197,8 +207,8 @@
 
     var skipDraft = { confirmWrites: 1, returnUrl: 1, action: 1, voc_type: 1, after_save: 1, company: 1 };
 
-    function saveDraft(form) {
-        var data = { lines: form.querySelectorAll('[data-jw-line]').length, fields: [] };
+    function saveDraft(form, submitted) {
+        var data = { lines: form.querySelectorAll('[data-jw-line]').length, fields: [], submitted: !!submitted };
         Array.prototype.forEach.call(form.elements, function (el) {
             if (!el.name || skipDraft[el.name] || el.type === 'file' || el.type === 'submit' || el.type === 'button') {
                 return;
@@ -273,6 +283,15 @@
         return true;
     }
 
+    function draftWasSubmitted(form) {
+        try {
+            var raw = sessionStorage.getItem(draftKey(form));
+            return !!raw && JSON.parse(raw).submitted === true;
+        } catch (e) {
+            return false;
+        }
+    }
+
     function clearDraft(form) {
         try {
             sessionStorage.removeItem(draftKey(form));
@@ -316,7 +335,7 @@
         var submitting = false;
         var params = new URLSearchParams(location.search);
 
-        if (params.get('saved_id')) {
+        if (params.get('saved_id') || (!params.get('err') && draftWasSubmitted(form))) {
             clearDraft(form);
             toast('Voucher saved and posted.');
         } else if (params.get('err')) {
@@ -391,7 +410,8 @@
         });
         form.addEventListener('submit', function (event) {
             recalc(form);
-            if (form.getAttribute('data-jw-mode') !== 'sale' && num(getNamed(form, 'metal_rate')) <= 0) {
+            var saleMode = form.getAttribute('data-jw-mode') === 'sale';
+            if (num(getNamed(form, 'metal_rate')) <= 0 && (!saleMode || hasPureWeight(form))) {
                 event.preventDefault();
                 toast('Enter the metal rate before saving.', true);
                 return;
@@ -401,7 +421,7 @@
                 toast('Enter at least one line with gross weight.', true);
                 return;
             }
-            saveDraft(form);
+            saveDraft(form, true);
             submitting = true;
             form.querySelectorAll('[data-jw-submit]').forEach(function (b) {
                 b.disabled = true;
