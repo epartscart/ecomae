@@ -20,6 +20,7 @@
 @inject IErpOrganizationMasterReadService OrgMaster
 @inject IErpBosWfRequestReadService Workflows
 @inject IErpWriteConnectionFactory ErpConnections
+@inject IErpJwDashboardGoldReadService GoldBook
 
 <PageTitle>@_pageTitle</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -92,6 +93,32 @@
                     </div>
                 </div>
             </div>
+            @if (_isAdmin && (_gold.Stock.Count > 0 || _gold.Flows.Any(f => f.GrossGrams != 0 || f.Value != 0)))
+            {
+                <div class="ns-port" id="ns-gold-position">
+                    <h4><i class="fa fa-balance-scale"></i> Gold position — weight &amp; value <span style="font-weight:400;color:var(--ns-muted,#64748b);font-size:11px;">— stock now; movements @_periodFrom to @_periodTo</span></h4>
+                    <div class="bd">
+                        <div class="ns-kpi-grid">
+                            <a class="ns-kpi-card info" href="@Go("/erp/jewellery-stock-verification-app?tab=jw_metal_stock")"><span class="dot"></span><div class="kl">Gold stock — gross weight</div><div class="kv">@Gm(_gold.StockGross)</div><div class="kh">@Gm(_gold.StockPure) pure</div></a>
+                            <a class="ns-kpi-card info" href="@Go("/erp/jewellery-stock-verification-app?tab=jw_stock_ledger")"><span class="dot"></span><div class="kl">Gold stock — value (cost)</div><div class="kv">@ErpNetsuiteDashboardCatalog.Money(_gold.StockValue)</div><div class="kh">AED @_gold.CostPerPureGram.ToString("N2", CultureInfo.InvariantCulture) per pure g</div></a>
+                            @foreach (var f in _gold.Flows)
+                            {
+                                <a class="ns-kpi-card @(f.Label == "Sold" ? "good" : "info")" href="@Go(f.Href)"><span class="dot"></span><div class="kl">@f.Label — weight</div><div class="kv">@Gm(f.GrossGrams)</div><div class="kh">@Gm(f.PureGrams) pure · @f.Pcs.ToString("N0", CultureInfo.InvariantCulture) pcs · @ErpNetsuiteDashboardCatalog.Money(f.Value)</div></a>
+                            }
+                            <a class="ns-kpi-card info" href="@Go("/erp/jewellery-retail-app?tab=jw_sales_analysis")"><span class="dot"></span><div class="kl">Old gold taken in (value)</div><div class="kv">@ErpNetsuiteDashboardCatalog.Money(_gold.OldGoldValue)</div><div class="kh">Exchange on sales, period</div></a>
+                        </div>
+                        <table class="ns-kpi-tbl" style="margin-top:8px">
+                            <tr><th>Karat</th><th class="num">Pcs</th><th class="num">Gross g</th><th class="num">Pure g</th><th class="num">Value (cost)</th><th class="num">Board rate / g</th><th class="num">Value at board rate</th></tr>
+                            @foreach (var s in _gold.Stock)
+                            {
+                                <tr><td>@s.Karat</td><td class="num">@s.Pcs.ToString("N0", CultureInfo.InvariantCulture)</td><td class="num">@s.GrossGrams.ToString("N3", CultureInfo.InvariantCulture)</td><td class="num">@s.PureGrams.ToString("N3", CultureInfo.InvariantCulture)</td><td class="num">@ErpNetsuiteDashboardCatalog.Money(s.Value)</td><td class="num">@(s.BoardRate > 0 ? s.BoardRate.ToString("N2", CultureInfo.InvariantCulture) : "—")</td><td class="num">@(s.BoardRate > 0 ? ErpNetsuiteDashboardCatalog.Money(Math.Round(s.GrossGrams * s.BoardRate, 2)) : "—")</td></tr>
+                            }
+                            <tr><th>Total</th><th class="num">@_gold.Stock.Sum(s => s.Pcs).ToString("N0", CultureInfo.InvariantCulture)</th><th class="num">@_gold.StockGross.ToString("N3", CultureInfo.InvariantCulture)</th><th class="num">@_gold.StockPure.ToString("N3", CultureInfo.InvariantCulture)</th><th class="num">@ErpNetsuiteDashboardCatalog.Money(_gold.StockValue)</th><th></th><th></th></tr>
+                        </table>
+                        <p class="text-muted" style="font-size:11px;margin:4px 0 0">Stock is carried at weighted-average cost (IAS 2); the board-rate column is for information only.</p>
+                    </div>
+                </div>
+            }
         }
         @if (_autoParts)
         {
@@ -1127,6 +1154,9 @@
     private bool _hasFullErpAccess;
     private bool _isSuperHost;
     private bool _jewellery;
+    private ErpJwGoldDashboard _gold = ErpJwGoldDashboard.Empty;
+
+    private static string Gm(decimal grams) => grams.ToString("N3", CultureInfo.InvariantCulture) + " g";
     private IReadOnlyList<PhpModuleCatalog.ModuleLink> _directoryTabs = PhpModuleCatalog.ErpTabs;
     private ErpOrganizationMasterSnapshot? _org;
     private ErpBosWfSummary? _wf;
@@ -1388,6 +1418,11 @@
             _trendRev = [_yearBook.YearIncome];
             _trendProf = [_yearBook.YearReturn];
             _hasTrend = _yearBook.YearIncome != 0 || _yearBook.YearExpense != 0;
+        }
+
+        if (_jewellery && _isAdmin)
+        {
+            _gold = await GoldBook.ReadAsync(_activeCompanyId, _periodFrom, _periodTo, ctx?.RequestAborted ?? default);
         }
 
         BindProfileViews();
