@@ -249,7 +249,7 @@ public sealed class ErpJwIfrsReconciliationReadService : IErpJwIfrsReconciliatio
                 + " ORDER BY `rate_date` DESC,(`created_by`='system') ASC,`id` DESC LIMIT 1");
                 ErpDb.AddParameters(rc, companyId, end.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
                 await using var rr = await rc.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-                if (await rr.ReadAsync(cancellationToken).ConfigureAwait(false)) rate24 = ErpGoldRateBoard.ToGramRate(D(rr, 0), rr.GetString(1));
+                if (await rr.ReadAsync(cancellationToken).ConfigureAwait(false)) rate24 = D(rr, 0);
             }
 
             if (rate24 > 0)
