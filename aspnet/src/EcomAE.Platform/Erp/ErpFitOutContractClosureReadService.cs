@@ -59,7 +59,7 @@ public sealed class ErpFitOutContractClosureReadService
         var commercial = await _commercial
             .ReadAsync(projectId, cancellationToken)
             .ConfigureAwait(false);
-        if (commercial.Source == "database-error")
+if (commercial.Source == "database-error")if (commercial.Source == "database-error")
         {
             return Empty(projectId, commercial.Message, commercial.Source);
         }
@@ -67,7 +67,7 @@ public sealed class ErpFitOutContractClosureReadService
         var subcontract = await _subcontract
             .ReadAsync(projectId, cancellationToken)
             .ConfigureAwait(false);
-        if (subcontract.Source == "database-error")
+if (subcontract.Source == "database-error")if (subcontract.Source == "database-error")
         {
             return Empty(projectId, subcontract.Message, subcontract.Source);
         }
@@ -180,7 +180,7 @@ public sealed class ErpFitOutContractClosureReadService
         }
         catch (DbException exception)
         {
-            return Empty(projectId, exception.Message, "database-error");
+            return Empty(projectId, exception.Message, ErpDb.IsMissingTable(exception) ? "empty" : "database-error");
         }
     }
 

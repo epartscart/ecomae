@@ -68,7 +68,7 @@ public sealed class ErpFitOutProgressReadService : IErpFitOutProgressReadService
         }
         catch (DbException exception)
         {
-            return Empty(exception.Message, "database-error");
+            return Empty(exception.Message, ErpDb.IsMissingTable(exception) ? "empty" : "database-error");
         }
 
         return new(rows, "database", string.Empty);

@@ -52,7 +52,7 @@ public sealed class ErpFitOutRetentionAgeingReadService
         var commercial = await _commercial
             .ReadAsync(projectId, cancellationToken)
             .ConfigureAwait(false);
-        if (commercial.Source == "database-error")
+if (commercial.Source == "database-error")if (commercial.Source == "database-error")
         {
             return Empty(projectId, commercial.Message, commercial.Source);
         }
@@ -95,7 +95,7 @@ public sealed class ErpFitOutRetentionAgeingReadService
         }
         catch (DbException exception)
         {
-            return Empty(projectId, exception.Message, "database-error");
+            return Empty(projectId, exception.Message, ErpDb.IsMissingTable(exception) ? "empty" : "database-error");
         }
     }
 
