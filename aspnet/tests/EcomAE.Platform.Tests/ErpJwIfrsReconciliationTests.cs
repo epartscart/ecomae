@@ -105,3 +105,48 @@ public sealed class ErpJwIfrsReconciliationTests
         Assert.Equal(0m, ErpJwIfrsRules.Nrv("X", "24K", 1m, 10m, 100m, 400m, 0.02m).Shortfall);
     }
 }
+
+public sealed class ErpJwIfrsAdjustmentTests
+{
+    private static void Balanced(IReadOnlyList<ErpAutoPartsIfrs.JournalLine> l) => Assert.Equal(l.Sum(x => x.Debit), l.Sum(x => x.Credit));
+
+    [Fact]
+    public void EclBooksOnlyTheMovementInTheAllowance()
+    {
+        var up = ErpJwIfrsAdjustments.Ecl(1129.07m, 500m);
+        Balanced(up);
+        Assert.Contains(up, l => l.Code == ErpJwIfrsAdjustments.EclExpenseAccount && l.Debit == 629.07m);
+        var down = ErpJwIfrsAdjustments.Ecl(400m, 500m);
+        Assert.Contains(down, l => l.Code == ErpJwIfrsAdjustments.LossAllowanceAccount && l.Debit == 100m);
+        Assert.Empty(ErpJwIfrsAdjustments.Ecl(500m, 500m));
+    }
+
+    [Fact]
+    public void NrvTrueUpAndProvisionRecipesBalance()
+    {
+        Balanced(ErpJwIfrsAdjustments.NrvWriteDown(332.87m));
+        Assert.Empty(ErpJwIfrsAdjustments.NrvWriteDown(0m));
+        var t = ErpJwIfrsAdjustments.InventoryTrueUp(-1048.41m);
+        Balanced(t);
+        Assert.Contains(t, l => l.Code == ErpAutoPartsIfrs.InventoryAccount && l.Credit == 1048.41m);
+        var p = ErpJwIfrsAdjustments.Provision(-200m, "release");
+        Assert.Contains(p, l => l.Code == ErpJwIfrsAdjustments.ProvisionAccount && l.Debit == 200m);
+    }
+
+    [Fact]
+    public void LeaseScheduleUnwindsToZeroAndMatchesPresentValue()
+    {
+        // 12 × 10,000 at 6% p.a. → PV 116,189.32 (annuity in arrears, 0.5% per month).
+        var pv = ErpJwIfrsAdjustments.LeasePresentValue(10000m, 12, 6m);
+        Assert.Equal(116189.32m, pv);
+        var s = ErpJwIfrsAdjustments.LeaseSchedule(10000m, 12, 6m);
+        Assert.Equal(12, s.Count);
+        Assert.Equal(580.95m, s[0].Interest);
+        Assert.Equal(0m, s[^1].Closing);
+        Assert.Equal(pv, s.Sum(r => r.Principal));
+        Assert.Equal(pv, s.Sum(r => r.Depreciation));
+        Assert.Equal(120000m - pv, s.Sum(r => r.Interest));
+        foreach (var r in s) Balanced(ErpJwIfrsAdjustments.LeaseMonth(r, ErpAutoPartsIfrs.BankAccount));
+        Balanced(ErpJwIfrsAdjustments.LeaseInitial(pv));
+    }
+}

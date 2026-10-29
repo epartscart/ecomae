@@ -181,6 +181,30 @@
                         <p class="text-muted">Posted journals are never edited. Correct these with an approved adjusting journal (Dr 1300 / Cr supplier) after checking the supplier invoice.</p>
                     }
                 </div>
+                <div class="fo-card" id="ifrs-adjust">
+                    <h3>Post IFRS period-end adjustments</h3>
+                    <p class="text-muted">Each posts one new, balanced journal with a unique reference (re-posting the same reference is refused). Leave “Post” unticked to preview the entry. Posted journals are never edited; use a new adjustment to correct. Amounts and estimates need accountant approval.</p>
+                    <div class="fo-grid2">
+                        @foreach (var (kind, title, fields) in IfrsForms)
+                        {
+                            <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, EcomAeRoutes.ErpJewelleryIfrsAdjust)" class="fo-card" style="margin:0">
+                                <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
+                                <input type="hidden" name="kind" value="@kind" />
+                                <input type="hidden" name="returnUrl" value="/erp/jewellery/workspace?tab=month-end#ifrs-adjust" />
+                                <strong>@title</strong>
+                                <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:6px 0">
+                                    <label>As of <input class="form-control input-sm" type="date" name="as_of" value="@f.To.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" /></label>
+                                    @foreach (var (name, label, type) in fields)
+                                    {
+                                        <label>@label <input class="form-control input-sm" name="@name" type="@type" step="any" /></label>
+                                    }
+                                </div>
+                                <label><input type="checkbox" name="confirmWrites" value="1" /> Post (otherwise preview)</label>
+                                <button class="btn btn-sm fo-board-btn" type="submit">Preview / post</button>
+                            </form>
+                        }
+                    </div>
+                </div>
                 <div class="fo-grid2">
                     <div class="fo-card"><h3>Statement of cash flows (IAS 7, direct, from cash journals)</h3>
                         @RowsTable(new[] { "Section", "Counter account", "AED" }, f.CashFlow.Select(x => (IReadOnlyList<string>)new[] { x.Section, x.Label, Mn(x.Amount) }).ToList(), 2)
@@ -316,6 +340,15 @@
     private ErpJwIfrsReport? _ifrs;
 
     private static string Mn(decimal v) => v.ToString("N2", CultureInfo.InvariantCulture);
+
+    private static readonly (string Kind, string Title, (string Name, string Label, string Type)[] Fields)[] IfrsForms =
+    [
+        ("ecl", "IFRS 9 — expected credit loss allowance", [("amount", "Target allowance (blank = matrix)", "number")]),
+        ("nrv", "IAS 2 — write stock down to NRV", [("cost_to_sell_pct", "Cost to sell % (default 2)", "number")]),
+        ("true_up", "Inventory true-up GL → stock sub-ledger", [("approved_by", "Approved by", "text")]),
+        ("provision", "IAS 37 — provision (negative releases)", [("ref", "Reference", "text"), ("amount", "Amount", "number"), ("description", "Obligation", "text")]),
+        ("lease", "IFRS 16 — lease (month 0 = recognise)", [("ref", "Lease reference", "text"), ("payment", "Monthly payment", "number"), ("months", "Term (months)", "number"), ("rate", "Borrowing rate % p.a.", "number"), ("month", "Month to post (0 = initial)", "number")]),
+    ];
     private string _csrf = string.Empty;
     private string _flashOk = string.Empty;
     private string _flashErr = string.Empty;
