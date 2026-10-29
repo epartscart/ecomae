@@ -158,6 +158,8 @@ public static class EcomAeRoutes
     public const string ControlPanelIndustrySettingsApp = "/cp/industry-settings-app";
     /// <summary>Tenant CP save_settings. Twins PHP ajax_portal.php?action=save_settings.</summary>
     public const string CpIndustrySettingsWrite = "/cp/industry-settings/save";
+    public const string ControlPanelPlatformAlertsApp = "/cp/platform-alerts-app";
+    public const string CpPlatformAlertsWrite = "/cp/platform-alerts/save";
 
     /// <summary>CP Metabase config + dashboards (secret_key never returned).</summary>
     public const string ControlPanelMetabase = "/cp/metabase";

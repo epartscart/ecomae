@@ -1,0 +1,105 @@
+@page "/cp/platform-alerts-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ICpPlatformAlertsService Alerts
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Platform alerts · Super CP · ECOM AE</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+@if (_allowed)
+{
+    <PhpCpDesktopChrome IsAdmin="_isAdmin">
+        <PhpCpModulePageHeader Title="Platform alerts"
+                               Subtitle="Where the hourly tenant health monitor emails or WhatsApps page / login failures across every tenant host.">
+            <a class="ghost" href="/cp/tenants-app">Tenants</a>
+            <a class="ghost" href="/cp/notifications-app">Notifications</a>
+            <a class="ghost" href="/cp">Home</a>
+        </PhpCpModulePageHeader>
+
+        @if (!_isAdmin)
+        {
+            <div class="col-lg-12"><div class="alert alert-warning">Sign in to the Control Panel to manage platform alert settings.</div></div>
+        }
+        else
+        {
+            <div class="col-lg-8">
+                @if (!string.IsNullOrWhiteSpace(_flash))
+                {
+                    <div class="alert alert-info" role="status">@_flash</div>
+                }
+                <div class="panel panel-default">
+                    <div class="panel-heading"><strong>Alert delivery</strong></div>
+                    <div class="panel-body">
+                        <p class="text-muted">The hourly monitor checks every tenant's login and key pages. On any error it emails the address below — and sends a WhatsApp message when the Meta Cloud API fields are filled and enabled.</p>
+                        <form method="post" action="/cp/platform-alerts/save" style="max-width:560px;">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <div class="form-group">
+                                <label for="alert_email">Alert email</label>
+                                <input class="form-control" type="email" id="alert_email" name="alert_email" value="@_config.AlertEmail" placeholder="alerts@ecomae.com" />
+                            </div>
+                            <hr />
+                            <h4>WhatsApp (Meta Cloud API)</h4>
+                            <div class="checkbox">
+                                <label><input type="checkbox" name="whatsapp_enabled" value="true" checked="@_config.WhatsappEnabled" /> Enable WhatsApp alerts</label>
+                            </div>
+                            <div class="form-group">
+                                <label for="wa_to_number">Send to number (digits, e.g. 971567607011)</label>
+                                <input class="form-control" id="wa_to_number" name="wa_to_number" value="@_config.WhatsappToNumber" />
+                            </div>
+                            <div class="form-group">
+                                <label for="wa_phone_number_id">Phone number ID</label>
+                                <input class="form-control" id="wa_phone_number_id" name="wa_phone_number_id" value="@_config.WhatsappPhoneNumberId" />
+                            </div>
+                            <div class="form-group">
+                                <label for="wa_api_token">API token</label>
+                                <input class="form-control" type="password" id="wa_api_token" name="wa_api_token" value="@_config.WhatsappApiToken" autocomplete="off" />
+                            </div>
+                            <div class="form-group">
+                                <label for="wa_api_version">API version</label>
+                                <input class="form-control" id="wa_api_version" name="wa_api_version" value="@_config.WhatsappApiVersion" />
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save alert settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </PhpCpDesktopChrome>
+}
+
+@code {
+    private bool _allowed;
+    private bool _isAdmin;
+    private CpPlatformAlertsConfig _config = CpPlatformAlertsConfig.Empty;
+    private string _flash = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        _allowed = SuperCpHostGate.IsAllowed(ctx);
+        if (!_allowed || ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _config = await Alerts.ReadAsync(ctx.RequestAborted);
+        if (ctx.Request.Query.TryGetValue("message", out var message))
+        {
+            _flash = message.ToString();
+        }
+    }
+}

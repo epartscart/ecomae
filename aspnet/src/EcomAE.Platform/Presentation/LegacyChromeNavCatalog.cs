@@ -99,6 +99,7 @@ public static class LegacyChromeNavCatalog
         new("Config sandbox", "/cp/config-sandbox-app"),
         new("Marketplace apps", "/cp/marketplace-apps-app"),
         new("Notifications", "/cp/notifications-app"),
+        new("Platform alerts", "/cp/platform-alerts-app"),
         new("Portal settings", "/cp/portal-settings-app"),
         new("Geo / regions", "/cp/geo-regions-app"),
         new("Product filters", "/cp/product-filters-app"),
