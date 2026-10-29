@@ -14,6 +14,10 @@ namespace EcomAE.Platform.Erp;
 /// </summary>
 public static class ErpJwVoucherPrint
 {
+    public const string ClearSubmittedDraftScript =
+        "<script>try{for(var i=sessionStorage.length-1;i>=0;i--){var k=sessionStorage.key(i);"
+        + "if(k&&k.indexOf('epc-jw-draft:')===0&&/\"submitted\":true/.test(sessionStorage.getItem(k)||''))sessionStorage.removeItem(k);}}catch(e){}</script>";
+
     public const string CompanyNameKey = "jewellery_print_company_name";
     public const string TrnKey = "jewellery_print_trn";
 
@@ -166,7 +170,7 @@ public static class ErpJwVoucherPrint
            + ".words{font-style:italic;margin:4px 0}.sign{display:flex;justify-content:space-between;margin-top:50px;font-weight:bold}"
            + ".tools{text-align:center;margin:8px}@media print{.tools{display:none}body{background:#fff}.sheet{margin:0}}"
            + ".tools a{margin-left:10px}</style><!--jw-tpl--></head><body><div class=\"tools\"><button onclick=\"window.print()\">Print</button>"
-           + "<a href=\"/erp/print-designer-app?kind=" + DesignKindFor(title) + "\" target=\"_blank\">Customize this print</a></div><div class=\"sheet\">" + body + "</div></body></html>";
+           + "<a href=\"/erp/print-designer-app?kind=" + DesignKindFor(title) + "\" target=\"_blank\">Customize this print</a></div><div class=\"sheet\">" + body + "</div>" + ClearSubmittedDraftScript + "</body></html>";
 
     private static async Task<string?> VoucherAsync(DbConnection c, long id, string? copy, CancellationToken ct)
     {

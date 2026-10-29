@@ -335,9 +335,14 @@
         var submitting = false;
         var params = new URLSearchParams(location.search);
 
-        if (params.get('saved_id') || (!params.get('err') && draftWasSubmitted(form))) {
+        if (params.get('saved_id')) {
             clearDraft(form);
             toast('Voucher saved and posted.');
+        } else if (!params.get('err') && draftWasSubmitted(form)) {
+            if (restoreDraft(form, template)) {
+                dirty = true;
+            }
+            setStatus(form, 'This entry was submitted but the save was not confirmed. Check the list before saving again.', true);
         } else if (params.get('err')) {
             if (restoreDraft(form, template)) {
                 dirty = true;

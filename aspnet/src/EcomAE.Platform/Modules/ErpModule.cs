@@ -13926,6 +13926,11 @@ public sealed class ErpModule : ISurfaceModule
             var html = jwId is > 0
                 ? await print.RenderJewelleryVoucherAsync(jwId.Value, cancellationToken)
                 : await print.RenderPurchaseAsync(id ?? 0, cancellationToken);
+            if (html is not null && jwId is > 0)
+            {
+                html = html.Replace("</body>", ErpJwVoucherPrint.ClearSubmittedDraftScript + "</body>", StringComparison.OrdinalIgnoreCase);
+            }
+
             return html is null ? Results.NotFound() : Results.Content(html, "text/html; charset=utf-8");
         });
 
