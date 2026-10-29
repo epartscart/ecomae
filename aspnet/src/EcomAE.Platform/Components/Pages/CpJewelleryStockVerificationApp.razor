@@ -9,6 +9,7 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IErpJwPurchaseHistoryReadService Vouchers
 @inject IErpJwMetalStockListReadService MetalStock
+@inject IErpJwMetalReportsReadService MetalReports
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -21,16 +22,9 @@
     <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     <ErpJewelleryReportsMenu />
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery stock verification stats">
-        <div class="kpi"><div class="lbl">Verifications</div><div class="val">@_summary.VerificationCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">In progress</div><div class="val">@_summary.InProgressCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Complete</div><div class="val">@_summary.CompleteCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Lines</div><div class="val">@_summary.LineCount.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
     @if (_opened is not null)
     {
+        <ErpRecordDetailView Caption="@OpenedCaption" ListHref="@_listHref">
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong> <a class="btn btn-xs btn-default" href="@_listHref">Close</a></p>
             <dl class="epc-erp-facts">
@@ -88,7 +82,18 @@
                 <p class="text-muted">No same-status siblings yet.</p>
             }
         </div>
+            </ErpRecordDetailView>
     }
+    else
+    {
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery stock verification stats">
+        <div class="kpi"><div class="lbl">Verifications</div><div class="val">@_summary.VerificationCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">In progress</div><div class="val">@_summary.InProgressCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Complete</div><div class="val">@_summary.CompleteCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Lines</div><div class="val">@_summary.LineCount.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
 
     <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.StockTabs" />
 
@@ -133,6 +138,126 @@
                 Source: @_balance.Source. This is the legacy metal-stock balance projection grouped by metal and karat; movement, as-of-date, business unit, and valuation reconciliation remain on the legacy workflow until separately accepted.
             @if (!string.IsNullOrWhiteSpace(_balance.Message)) { <span> @_balance.Message</span> }
         </div>
+    }
+
+
+    @if (_tab == "jw_stock_ledger")
+    {
+        <ErpPrintDesignerLink Kind="posted_report" />
+        <div class="epc-erp-table-wrap" style="overflow-x:auto">
+            <table class="table table-bordered table-condensed table-epc epc-erp-table" style="font-size:12px;white-space:nowrap">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Stock code</th><th rowspan="2">Description</th><th rowspan="2">Karat</th><th rowspan="2">Purity</th>
+                        <th colspan="3" class="text-center">Opening</th>
+                        <th colspan="4" class="text-center">Receipts (purchase / return)</th>
+                        <th colspan="4" class="text-center">Issues (sale)</th>
+                        <th colspan="3" class="text-center">Closing</th>
+                        <th rowspan="2">Rate / g</th><th rowspan="2">Value</th>
+                    </tr>
+                    <tr>
+                        <th>Pcs</th><th>Gross wt</th><th>Pure wt</th>
+                        <th>Pcs</th><th>Gross wt</th><th>Pure wt</th><th>Value</th>
+                        <th>Pcs</th><th>Gross wt</th><th>Pure wt</th><th>Value</th>
+                        <th>Pcs</th><th>Gross wt</th><th>Pure wt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_ledger.Rows.Count == 0)
+                    {
+                        <tr><td colspan="20" class="text-muted">No metal stock movement yet. @_ledger.Message</td></tr>
+                    }
+                    @foreach (var karat in _ledger.Rows.GroupBy(r => r.Karat))
+                    {
+                        @foreach (var r in karat)
+                        {
+                            <tr>
+                                <td><a href="@($"/erp/jewellery-stock-verification-app?tab=jw_metal_stock&item_code={Uri.EscapeDataString(r.StockCode)}")">@r.StockCode</a></td>
+                                <td>@r.Description</td><td>@r.Karat</td><td class="text-right">@r.Purity.ToString("N3", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@r.OpenPcs.ToString("N0", CultureInfo.InvariantCulture)</td><td class="text-right">@r.OpenGross.ToString("N3", CultureInfo.InvariantCulture)</td><td class="text-right">@r.OpenPure.ToString("N3", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@r.InPcs.ToString("N0", CultureInfo.InvariantCulture)</td><td class="text-right">@r.InGross.ToString("N3", CultureInfo.InvariantCulture)</td><td class="text-right">@r.InPure.ToString("N3", CultureInfo.InvariantCulture)</td><td class="text-right">@r.InValue.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@r.OutPcs.ToString("N0", CultureInfo.InvariantCulture)</td><td class="text-right">@r.OutGross.ToString("N3", CultureInfo.InvariantCulture)</td><td class="text-right">@r.OutPure.ToString("N3", CultureInfo.InvariantCulture)</td><td class="text-right">@r.OutValue.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@r.ClosePcs.ToString("N0", CultureInfo.InvariantCulture)</td><td class="text-right"><strong>@r.CloseGross.ToString("N3", CultureInfo.InvariantCulture)</strong></td><td class="text-right"><strong>@r.ClosePure.ToString("N3", CultureInfo.InvariantCulture)</strong></td>
+                                <td class="text-right">@r.Rate.ToString("N2", CultureInfo.InvariantCulture)</td><td class="text-right"><strong>@r.CloseValue.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
+                            </tr>
+                        }
+                        <tr style="background:#f1f5f9;font-weight:700">
+                            <td colspan="4">Karat @karat.Key total</td>
+                            <td class="text-right">@karat.Sum(r => r.OpenPcs).ToString("N0", CultureInfo.InvariantCulture)</td><td class="text-right">@karat.Sum(r => r.OpenGross).ToString("N3", CultureInfo.InvariantCulture)</td><td class="text-right">@karat.Sum(r => r.OpenPure).ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@karat.Sum(r => r.InPcs).ToString("N0", CultureInfo.InvariantCulture)</td><td class="text-right">@karat.Sum(r => r.InGross).ToString("N3", CultureInfo.InvariantCulture)</td><td class="text-right">@karat.Sum(r => r.InPure).ToString("N3", CultureInfo.InvariantCulture)</td><td class="text-right">@karat.Sum(r => r.InValue).ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@karat.Sum(r => r.OutPcs).ToString("N0", CultureInfo.InvariantCulture)</td><td class="text-right">@karat.Sum(r => r.OutGross).ToString("N3", CultureInfo.InvariantCulture)</td><td class="text-right">@karat.Sum(r => r.OutPure).ToString("N3", CultureInfo.InvariantCulture)</td><td class="text-right">@karat.Sum(r => r.OutValue).ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@karat.Sum(r => r.ClosePcs).ToString("N0", CultureInfo.InvariantCulture)</td><td class="text-right">@karat.Sum(r => r.CloseGross).ToString("N3", CultureInfo.InvariantCulture)</td><td class="text-right">@karat.Sum(r => r.ClosePure).ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td></td><td class="text-right">@karat.Sum(r => r.CloseValue).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                </tbody>
+                @if (_ledger.Rows.Count > 0)
+                {
+                    <tfoot>
+                        <tr style="background:#1e3a5f;color:#fff;font-weight:800">
+                            <td colspan="15">Grand total</td>
+                            <td class="text-right">@_ledger.Rows.Sum(r => r.ClosePcs).ToString("N0", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_ledger.Rows.Sum(r => r.CloseGross).ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_ledger.Rows.Sum(r => r.ClosePure).ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td></td>
+                            <td class="text-right">@_ledger.Rows.Sum(r => r.CloseValue).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    </tfoot>
+                }
+            </table>
+        </div>
+        <p class="text-muted" style="font-size:12px">Closing = metal stock master (pcs, gross weight, value at cost). Receipts and issues come from posted jewellery vouchers; opening = closing − receipts + issues. Pure weight = gross weight × purity when the line has no pure weight.</p>
+    }
+
+    @if (_tab == "jw_metal_tb")
+    {
+        <ErpPrintDesignerLink Kind="posted_report" />
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Metal trial balance totals">
+            <div class="kpi"><div class="lbl">Pure wt Dr (g)</div><div class="val">@_metalTb.Rows.Sum(r => r.PureDebit).ToString("N3", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Pure wt Cr (g)</div><div class="val">@_metalTb.Rows.Sum(r => r.PureCredit).ToString("N3", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Net metal position (g)</div><div class="val">@((_metalTb.Rows.Sum(r => r.PureDebit) - _metalTb.Rows.Sum(r => r.PureCredit)).ToString("N3", CultureInfo.InvariantCulture))</div></div>
+            <div class="kpi"><div class="lbl">24K rate / g</div><div class="val">@_metalTb.Rate24K.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        </div>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-bordered table-condensed table-epc epc-erp-table" style="font-size:12px">
+                <thead>
+                    <tr><th>Group</th><th>Account</th><th>Name</th><th>Karat</th><th class="text-right">Gross wt</th><th class="text-right">Pure wt Dr</th><th class="text-right">Pure wt Cr</th><th class="text-right">Rate / g</th><th class="text-right">Value Dr</th><th class="text-right">Value Cr</th></tr>
+                </thead>
+                <tbody>
+                    @if (_metalTb.Rows.Count == 0)
+                    {
+                        <tr><td colspan="10" class="text-muted">No metal balances yet. @_metalTb.Message</td></tr>
+                    }
+                    @foreach (var r in _metalTb.Rows)
+                    {
+                        <tr>
+                            <td>@r.Group</td><td>@r.Code</td><td>@r.Name</td><td>@r.Karat</td>
+                            <td class="text-right">@(r.GrossWeight == 0 ? "" : r.GrossWeight.ToString("N3", CultureInfo.InvariantCulture))</td>
+                            <td class="text-right">@(r.PureDebit == 0 ? "" : r.PureDebit.ToString("N3", CultureInfo.InvariantCulture))</td>
+                            <td class="text-right">@(r.PureCredit == 0 ? "" : r.PureCredit.ToString("N3", CultureInfo.InvariantCulture))</td>
+                            <td class="text-right">@r.Rate.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@(r.ValueDebit == 0 ? "" : r.ValueDebit.ToString("N2", CultureInfo.InvariantCulture))</td>
+                            <td class="text-right">@(r.ValueCredit == 0 ? "" : r.ValueCredit.ToString("N2", CultureInfo.InvariantCulture))</td>
+                        </tr>
+                    }
+                </tbody>
+                @if (_metalTb.Rows.Count > 0)
+                {
+                    <tfoot>
+                        <tr style="background:#1e3a5f;color:#fff;font-weight:800">
+                            <td colspan="4">Total</td>
+                            <td class="text-right">@_metalTb.Rows.Sum(r => r.GrossWeight).ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_metalTb.Rows.Sum(r => r.PureDebit).ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_metalTb.Rows.Sum(r => r.PureCredit).ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td></td>
+                            <td class="text-right">@_metalTb.Rows.Sum(r => r.ValueDebit).ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_metalTb.Rows.Sum(r => r.ValueCredit).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    </tfoot>
+                }
+            </table>
+        </div>
+        <p class="text-muted" style="font-size:12px">Stock rows: closing pure weight per karat at cost. Party metal rows: unfixed purchases credit the supplier, unfixed sales debit the customer; purchase fixing debits and sales fixing credits the fixed weight. Party value = pure weight × today's 24K rate. The money trial balance is at <a href="/erp/trial-balance-app">Trial balance</a>.</p>
     }
 
     @if (_isAdmin && _tab == "jw_stock_verification")
@@ -401,6 +526,7 @@
         Source: @_source. Counts bind from <code>epc_jewel_stock_verification</code>. Metal-stock and stock-verification saves are live when confirmed. Sample seed is not available on this page.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
+    }
 </PhpErpDesktopChrome>
 
 @code {
@@ -413,6 +539,8 @@
     private ErpJewelleryModuleChrome.TabSpec _spec = ErpJewelleryModuleChrome.StockSpec("jw_stock_verification");
     private CpJewelleryStockVerificationSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private CpJewelleryStockBalanceDigestResult _balance = new([], 0, 0, 0, 0, "n/a", "");
+    private ErpJwMetalReportsResult<ErpJwStockLedgerRow> _ledger = new([], 0, "n/a", "");
+    private ErpJwMetalReportsResult<ErpJwMetalTbRow> _metalTb = new([], 0, "n/a", "");
     private IReadOnlyList<StockRow> _display = [];
     private IReadOnlyList<ErpJwPurchaseHistoryRow> _voucherRows = [];
     private IReadOnlyList<ErpJwMetalStockListRow> _metalRows = [];
@@ -487,6 +615,14 @@
         if (_tab == "jw_stock_balance")
         {
             _balance = await Dashboards.BuildCpJewelleryStockBalanceDigestAsync(200, _company, ctx.RequestAborted);
+        }
+        if (_tab == "jw_stock_ledger")
+        {
+            _ledger = await MetalReports.StockLedgerAsync(_company, ctx.RequestAborted);
+        }
+        if (_tab == "jw_metal_tb")
+        {
+            _metalTb = await MetalReports.MetalTrialBalanceAsync(_company, ctx.RequestAborted);
         }
         if (_tab == "jw_metal_stock")
         {

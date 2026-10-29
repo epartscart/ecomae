@@ -1,0 +1,137 @@
+@namespace EcomAE.Platform.Components.Shared
+@using System.Globalization
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Services
+@inject IErpWriteConnectionFactory Connections
+@*
+  Opened (posted) record page, D365 F&O style: the list is replaced by the record,
+  with an action pane and tabs — General, Accounting (posted GL lines) and Print preview.
+*@
+
+<section class="epc-rec" data-epc-record-view="1">
+    <style>
+        .epc-rec{border:1px solid #d7e3f0;border-radius:8px;background:#fff;margin:0 0 1rem}
+        .epc-rec__bar{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;padding:.55rem .8rem;border-bottom:1px solid #e2e8f0;background:#f8fafc;border-radius:8px 8px 0 0}
+        .epc-rec__title{font-size:15px;font-weight:800;color:#0f172a;margin-right:auto}
+        .epc-rec__status{display:inline-block;margin-left:.5rem;padding:.1rem .5rem;border-radius:10px;background:#dcfce7;color:#166534;font-size:11px;font-weight:700;text-transform:uppercase}
+        .epc-rec__tabs{display:flex;gap:2px;padding:.5rem .8rem 0;border-bottom:2px solid #1d4ed8}
+        .epc-rec__tabs button{border:1px solid #cbd5e1;border-bottom:0;background:#f1f5f9;color:#1e293b;padding:.4rem .9rem;font-size:12px;font-weight:700;border-radius:6px 6px 0 0}
+        .epc-rec__tabs button.is-active{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
+        .epc-rec__pane{padding:.8rem}
+        .epc-rec__pane[hidden]{display:none!important}
+        .epc-rec__pane .epc-erp-table-wrap{margin:0!important;border:0;padding:0}
+        .epc-rec__print{width:100%;height:78vh;border:1px solid #cbd5e1;border-radius:6px;background:#fff}
+    </style>
+    <div class="epc-rec__bar" role="toolbar" aria-label="Record actions">
+        <span class="epc-rec__title">@Caption@if (!string.IsNullOrWhiteSpace(Status))
+            {
+                <span class="epc-rec__status">@Status</span>
+            }</span>
+        <a class="btn btn-sm btn-default" href="@ListHref"><i class="fa fa-arrow-left" aria-hidden="true"></i> Back to list</a>
+        @if (!string.IsNullOrWhiteSpace(PrintHref))
+        {
+            <a class="btn btn-sm btn-primary" href="@PrintHref" target="_blank" rel="noopener"><i class="fa fa-print" aria-hidden="true"></i> Print</a>
+        }
+        @if (!string.IsNullOrWhiteSpace(DesignKind))
+        {
+            <a class="btn btn-sm btn-default" href="@($"/erp/print-designer-app?kind={Uri.EscapeDataString(DesignKind)}")" target="_blank" rel="noopener"><i class="fa fa-paint-brush" aria-hidden="true"></i> Customize print</a>
+        }
+    </div>
+    <div class="epc-rec__tabs" role="tablist">
+        <button type="button" class="is-active" data-rec-tab="general">General</button>
+        @if (GlReferencePrefix is not null)
+        {
+            <button type="button" data-rec-tab="accounting">Accounting (@_gl.Count.ToString(CultureInfo.InvariantCulture))</button>
+        }
+        @if (!string.IsNullOrWhiteSpace(PrintHref))
+        {
+            <button type="button" data-rec-tab="print">Print preview</button>
+        }
+    </div>
+    <div class="epc-rec__pane" data-rec-pane="general">@ChildContent</div>
+    @if (GlReferencePrefix is not null)
+    {
+        <div class="epc-rec__pane" data-rec-pane="accounting" hidden>
+            @if (_gl.Count == 0)
+            {
+                <p class="text-muted">No posted general-ledger lines for this record yet.</p>
+            }
+            else
+            {
+                <table class="table table-bordered table-condensed table-epc epc-erp-table" style="font-size:12px">
+                    <thead><tr><th>Journal</th><th>Date</th><th>Account</th><th>Description</th><th class="text-right">Debit</th><th class="text-right">Credit</th></tr></thead>
+                    <tbody>
+                        @foreach (var g in _gl)
+                        {
+                            <tr><td>@g.Reference</td><td>@g.Date</td><td>@g.Account</td><td>@g.Memo</td><td class="text-right">@(g.Debit == 0 ? "" : g.Debit.ToString("N2", CultureInfo.InvariantCulture))</td><td class="text-right">@(g.Credit == 0 ? "" : g.Credit.ToString("N2", CultureInfo.InvariantCulture))</td></tr>
+                        }
+                    </tbody>
+                    <tfoot><tr style="font-weight:800"><td colspan="4">Total</td><td class="text-right">@_gl.Sum(g => g.Debit).ToString("N2", CultureInfo.InvariantCulture)</td><td class="text-right">@_gl.Sum(g => g.Credit).ToString("N2", CultureInfo.InvariantCulture)</td></tr></tfoot>
+                </table>
+            }
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(PrintHref))
+    {
+        <div class="epc-rec__pane" data-rec-pane="print" hidden>
+            <iframe class="epc-rec__print" title="Print preview" data-rec-src="@PrintHref"></iframe>
+        </div>
+    }
+    <script>
+        (function () {
+            var root = document.currentScript && document.currentScript.closest('[data-epc-record-view]');
+            if (!root) return;
+            root.querySelectorAll('[data-rec-tab]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var key = btn.getAttribute('data-rec-tab');
+                    root.querySelectorAll('[data-rec-tab]').forEach(function (b) { b.classList.toggle('is-active', b === btn); });
+                    root.querySelectorAll('[data-rec-pane]').forEach(function (p) { p.hidden = p.getAttribute('data-rec-pane') !== key; });
+                    var frame = root.querySelector('[data-rec-pane="' + key + '"] iframe[data-rec-src]');
+                    if (frame && !frame.getAttribute('src')) frame.setAttribute('src', frame.getAttribute('data-rec-src'));
+                });
+            });
+        })();
+    </script>
+</section>
+
+@code {
+    [Parameter] public string Caption { get; set; } = "Record";
+    [Parameter] public string? Status { get; set; }
+    [Parameter] public string ListHref { get; set; } = "/erp";
+    [Parameter] public string? PrintHref { get; set; }
+    [Parameter] public string? DesignKind { get; set; }
+    /// <summary>GL journal reference prefix (e.g. <c>JW-V-12-</c>); null hides the Accounting tab.</summary>
+    [Parameter] public string? GlReferencePrefix { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private sealed record GlRow(string Reference, string Date, string Account, string Memo, decimal Debit, decimal Credit);
+
+    private List<GlRow> _gl = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(GlReferencePrefix) || !Connections.IsConfigured) return;
+        try
+        {
+            await using var connection = await Connections.OpenAsync();
+            await using var command = connection.CreateCommand();
+            command.CommandText = ErpDb.Positional(
+                "SELECT j.`reference`,IFNULL(DATE_FORMAT(FROM_UNIXTIME(j.`journal_date`),'%Y-%m-%d'),''),CONCAT(IFNULL(a.`code`,''),' ',IFNULL(a.`name`,'')),IFNULL(l.`line_note`,''),IFNULL(l.`debit`,0),IFNULL(l.`credit`,0)"
+                + " FROM `epc_erp_gl_journals` j INNER JOIN `epc_erp_gl_lines` l ON l.`journal_id`=j.`id`"
+                + " LEFT JOIN `epc_erp_coa_accounts` a ON a.`id`=l.`coa_id`"
+                + " WHERE j.`active`=1 AND j.`reference` LIKE ? ORDER BY j.`id`,l.`id` LIMIT 200");
+            ErpDb.AddParameters(command, GlReferencePrefix + "%");
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                _gl.Add(new(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetString(3),
+                    Convert.ToDecimal(reader.GetValue(4), CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader.GetValue(5), CultureInfo.InvariantCulture)));
+            }
+        }
+        catch (Exception)
+        {
+            _gl = [];
+        }
+    }
+}

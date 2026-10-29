@@ -249,7 +249,9 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                 {
                     var pure = line.PureWeight > 0
                         ? RoundNonNeg(line.PureWeight, 4)
-                        : ErpJwPurity.PureWeight(RoundNonNeg(line.GrossWeight, 4), RoundNonNeg(line.Purity, 6));
+                        : ErpJwPurity.PureWeight(
+                            Math.Max(0m, RoundNonNeg(line.GrossWeight, 4) - RoundNonNeg(line.StoneWeight, 4)),
+                            RoundNonNeg(line.Purity, 6));
                     var metalValue = RoundNonNeg((pure + RoundNonNeg(line.WastageQuantity, 4)) * metalRate, 2);
                     var making = ErpJwPurity.MakingAmount(RoundNonNeg(line.GrossWeight, 4), line.MakingRate, line.MakingAmount);
                     var total = RoundNonNeg(metalValue + making + RoundNonNeg(line.StoneAmount, 2) - RoundNonNeg(line.DiscountAmount, 2), 2);

@@ -93,6 +93,11 @@
             if (pctValue > 0) {
                 amount = r(t.total * pctValue / 100, 2);
                 amountEl.value = amount.toFixed(2);
+                amountEl.setAttribute('data-jw-auto', '1');
+            } else if (amountEl.getAttribute('data-jw-auto') === '1') {
+                amount = 0;
+                amountEl.value = '0';
+                amountEl.removeAttribute('data-jw-auto');
             }
             other += amount;
         });

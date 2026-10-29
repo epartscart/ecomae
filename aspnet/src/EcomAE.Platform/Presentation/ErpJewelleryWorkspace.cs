@@ -28,6 +28,8 @@ public static class ErpJewelleryWorkspace
         new("dashboard", "ERP dashboard", "fa-dashboard", "/erp"),
         new("metal-stock", "Metal stock", "fa-cubes", "/erp/jewellery-stock-verification-app?tab=jw_metal_stock"),
         new("stock-balance", "Stock balance (weight)", "fa-balance-scale", "/erp/jewellery-stock-verification-app?tab=jw_stock_balance"),
+        new("stock-ledger", "Metal stock ledger", "fa-list-alt", "/erp/jewellery-stock-verification-app?tab=jw_stock_ledger"),
+        new("metal-tb", "Metal trial balance", "fa-balance-scale", "/erp/jewellery-stock-verification-app?tab=jw_metal_tb"),
         new("stock-verification", "Stock verification", "fa-check-square-o", "/erp/jewellery-stock-verification-app?tab=jw_stock_verification"),
         new("metal-purchase", "Metal purchase", "fa-shopping-cart", "/erp/jewellery-fixing-app?tab=jw_metal_purchase"),
         new("sales-fixing", "Sales fixing", "fa-lock", "/erp/jewellery-fixing-app?tab=jw_sales_fixing"),

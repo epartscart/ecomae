@@ -20,20 +20,9 @@
     <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     <ErpJewelleryReportsMenu />
-
-    @if (_tab is not ("jw_metal_purchase" or "jw_diamond_purchase"))
-    {
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery fixing stats">
-        <div class="kpi"><div class="lbl">Fixings</div><div class="val">@_summary.FixingCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Open</div><div class="val">@_summary.OpenFixingCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Purchases</div><div class="val">@_summary.PurchaseFixCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Settlements</div><div class="val">@_summary.SettlementCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Petty cash</div><div class="val">@_summary.PettyCashCount.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-    }
-
     @if (_opened is not null)
     {
+        <ErpRecordDetailView Caption="@OpenedCaption" Status="@_opened.Status" ListHref="@_listHref" PrintHref="@($"/erp/jewellery/voucher-print?id={_openedId}&kind=fixing")" DesignKind="jw_fixing">
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong> <a class="btn btn-xs btn-default" href="@_listHref">Close</a></p>
             <dl class="epc-erp-facts">
@@ -97,7 +86,22 @@
                 <p class="text-muted">No same-status siblings yet.</p>
             }
         </div>
+            </ErpRecordDetailView>
     }
+    else
+    {
+
+    @if (_tab is not ("jw_metal_purchase" or "jw_diamond_purchase"))
+    {
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery fixing stats">
+        <div class="kpi"><div class="lbl">Fixings</div><div class="val">@_summary.FixingCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Open</div><div class="val">@_summary.OpenFixingCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Purchases</div><div class="val">@_summary.PurchaseFixCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Settlements</div><div class="val">@_summary.SettlementCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Petty cash</div><div class="val">@_summary.PettyCashCount.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+    }
+
 
     <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.FixingTabs" />
 
@@ -125,6 +129,7 @@
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
+                <div class="jw-mp-wrap" style="grid-column:1 / -1;display:block;width:100%;min-width:0">
                 <section class="jw-mp-card">
                     <h4>Invoice details</h4>
                     <div class="jw-mp-grid">
@@ -284,10 +289,10 @@
                                 <tr><td>Stone amount</td><td><input class="form-control input-sm" data-jw-tot="st" value="0.00" readonly tabindex="-1" /></td></tr>
                                 <tr><td>Net amount</td><td><input class="form-control input-sm" name="net_amount" value="0.00" readonly tabindex="-1" /></td></tr>
                                 <tr><td>Other amounts</td><td><input class="form-control input-sm" name="other_amount" value="0.00" readonly tabindex="-1" /></td></tr>
-                                <tr><td>Taxable value <span class="jw-mp-note" data-jw-basis-note>(excl. metal)</span></td><td><input class="form-control input-sm" data-jw-tot="taxable" value="0.00" readonly tabindex="-1" /></td></tr>
+                                <tr><td>Taxable value <em class="jw-mp-note" data-jw-basis-note>(excl. metal)</em></td><td><input class="form-control input-sm" data-jw-tot="taxable" value="0.00" readonly tabindex="-1" /></td></tr>
                                 <tr><td>VAT %</td><td><input class="form-control input-sm" name="vat_pct" type="number" step="0.01" min="0" value="5" /></td></tr>
                                 <tr><td>Input VAT</td><td><input class="form-control input-sm" name="vat_amount" value="0.00" readonly tabindex="-1" /></td></tr>
-                                <tr><td>RCM VAT on metal <span class="jw-mp-note">(self-accounted, not paid to supplier)</span></td><td><input class="form-control input-sm" name="rcm_vat" value="0.00" readonly tabindex="-1" /></td></tr>
+                                <tr><td>RCM VAT on metal <em class="jw-mp-note">(self-accounted, not paid to supplier)</em></td><td><input class="form-control input-sm" name="rcm_vat" value="0.00" readonly tabindex="-1" /></td></tr>
                                 <tr><td>Round off</td><td><input class="form-control input-sm" name="round_off" type="number" step="0.01" value="0" /></td></tr>
                                 <tr class="jw-mp-grand"><td>Gross total payable</td><td><input class="form-control input-sm" name="gross_total" value="0.00" readonly tabindex="-1" /></td></tr>
                             </table>
@@ -300,6 +305,7 @@
                     <button type="submit" class="btn btn-success btn-sm" data-jw-submit data-jw-submit-print><i class="fa fa-print" aria-hidden="true"></i> Save &amp; print preview</button>
                     <button type="button" class="btn btn-default btn-sm" data-jw-clear><i class="fa fa-eraser" aria-hidden="true"></i> Clear</button>
                     <span class="jw-mp-status" data-jw-status>Draft is kept automatically until you save.</span>
+                </div>
                 </div>
             </form>
         </ErpPhpCreateWell>
@@ -485,6 +491,7 @@
         Source: @_source. Fixings bind from <code>epc_jewel_fixing</code>. Fixing save, purchase voucher save, and fix/unfix create/settle are live when confirmed.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
+    }
 </PhpErpDesktopChrome>
 
 @code {

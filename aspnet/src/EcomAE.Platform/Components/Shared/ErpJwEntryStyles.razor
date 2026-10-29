@@ -13,6 +13,9 @@
 .jw-reports-dd .jw-reports-menu .fa{width:1.1rem;color:#64748b}
 .epc-erp-lookup:has(.epc-erp-lookup__link:not(.is-empty)):not(.is-editing):not(.is-open) .epc-erp-master-picker__q{color:transparent!important;caret-color:#0f172a}
 .jw-mp{max-width:none!important;display:block!important;font-size:12px}
+.jw-mp>*{grid-column:1/-1}
+.jw-mp .jw-mp-wrap,.jw-mp .jw-mp-card{width:100%;max-width:none;box-sizing:border-box}
+.jw-mp .jw-mp-grid label{white-space:nowrap}
 .jw-mp .jw-mp-card{border:1px solid #d7e3f0;border-radius:8px;background:#fff;margin:0 0 .7rem}
 .jw-mp .jw-mp-card>h4{margin:0;padding:.5rem .8rem;border-bottom:1px solid #e2e8f0;background:#f8fafc;color:#334155;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:8px 8px 0 0}
 .jw-mp .jw-mp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.55rem 1rem;padding:.7rem .8rem}
@@ -41,7 +44,9 @@
 .jw-mp .jw-mp-sum td:last-child{text-align:right;width:9.5rem}
 .jw-mp .jw-mp-sum td input,.jw-mp .jw-mp-sum td select{height:28px;font-size:12px;text-align:right}
 .jw-mp .jw-mp-sum tr.jw-mp-grand td{font-size:15px;font-weight:800;color:#1d4ed8;border-top:2px solid #1d4ed8;border-bottom:0}
-.jw-mp .jw-mp-note{color:#64748b;font-size:11px;font-weight:400}
+.jw-mp .jw-mp-note{display:inline;padding:0;border:0;background:none;color:#64748b;font-size:11px;font-weight:400;font-style:normal}
+.jw-mp .jw-mp-tabs{flex-wrap:nowrap}.jw-mp .jw-mp-tabs button{white-space:nowrap;flex:0 0 auto}
+.jw-mp .jw-mp-grid>label,.jw-mp .jw-mp-grid>.epc-erp-master-picker{width:auto!important;max-width:none!important}
 .jw-mp .jw-mp-actions{position:sticky;bottom:0;z-index:5;display:flex;gap:.5rem;align-items:center;padding:.6rem .8rem;background:#fff;border:1px solid #d7e3f0;border-radius:8px;box-shadow:0 -4px 12px rgba(15,35,60,.06)}
 .jw-mp .jw-mp-actions .jw-mp-status{margin-left:auto;color:#64748b}
 .jw-mp .jw-mp-actions .jw-mp-status.is-dirty{color:#b45309;font-weight:700}
