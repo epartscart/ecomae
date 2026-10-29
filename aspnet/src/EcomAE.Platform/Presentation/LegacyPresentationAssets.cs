@@ -86,6 +86,8 @@ public static class LegacyPresentationAssets
     public static readonly IReadOnlyList<string> ErpStylesheets =
     [
         "/epc-static.php?f=cp/templates/bootstrap_admin/vendor/fontawesome/css/font-awesome.css",
+        // The vendored copy points at ../webfonts that are not published on ERP-only hosts (icons render as boxes).
+        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css",
         "/epc-static.php?f=cp/templates/bootstrap_admin/vendor/bootstrap/dist/css/bootstrap.css",
         "/epc-static.php?f=cp/templates/bootstrap_admin/styles/style.css",
         // Match erp_desktop.php stylesheet order (portal + ui + professional + CP blue theme)

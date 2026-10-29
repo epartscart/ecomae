@@ -10829,6 +10829,14 @@ public sealed class ErpModule : ISurfaceModule
             {
                 // Direct GL linkage: vouchers post at save time — no month-end step.
                 voucherMessage += " " + await TryPostGlAsync(() => glPost.PostAsync(written.Id, null, cancellationToken)).ConfigureAwait(false);
+                if (LiveWriteFormBinder.WantsHtml(context)
+                    && context.Request.HasFormContentType
+                    && string.Equals(context.Request.Form["after_save"].ToString(), "print", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Results.Redirect(ClientErpPath.PrefixIfBound(
+                        context,
+                        "/erp/purchase-print?jwId=" + written.Id.ToString(CultureInfo.InvariantCulture)));
+                }
             }
             return LiveWriteFormBinder.Complete(
                 context,
@@ -10846,7 +10854,8 @@ public sealed class ErpModule : ISurfaceModule
                     id = written.Id,
                     voc_type = resolvedType,
                     session = SessionPayload(session)
-                });
+                },
+                extraQuery: written.Succeeded && written.Id > 0 ? "saved_id=" + written.Id.ToString(CultureInfo.InvariantCulture) : null);
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryPettyCashSaveForm, async (
             HttpContext context,

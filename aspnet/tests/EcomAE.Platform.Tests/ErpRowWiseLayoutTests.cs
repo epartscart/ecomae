@@ -77,9 +77,11 @@ public sealed class ErpRowWiseLayoutTests
     {
         var text = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Components/Pages/CpJewelleryFixingApp.razor"));
-        Assert.Contains("hidden=\"@(_panel != \"lines\")\"", text, StringComparison.Ordinal);
-        Assert.Contains("hidden=\"@(_panel != \"addins\")\"", text, StringComparison.Ordinal);
-        Assert.Contains("hidden=\"@(_panel != \"attach\")\"", text, StringComparison.Ordinal);
+        // Panels switch in-page (no navigation) so typed entries are never lost.
+        Assert.Contains("data-jw-panel=\"lines\">", text, StringComparison.Ordinal);
+        Assert.Contains("data-jw-panel=\"addins\" hidden", text, StringComparison.Ordinal);
+        Assert.Contains("data-jw-panel=\"attach\" hidden", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("href=\"@PanelHref(", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@if (_panel != \"attach\")", text, StringComparison.Ordinal);
     }
 

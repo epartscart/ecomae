@@ -21,7 +21,6 @@
     <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     <ErpJewelleryReportsMenu />
-    <ErpManualProcessStrip Keys="jewellery" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery stock verification stats">
         <div class="kpi"><div class="lbl">Verifications</div><div class="val">@_summary.VerificationCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -162,10 +161,10 @@
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
                 <ErpMasterPicker Kind="business_unit" FieldName="branch" Label="Business unit" ValueMode="code" SelectedCode="HQ" InputId="jw-mfg-bu" />
-                <label>Item code <input class="form-control input-sm" name="line_stock_code" required maxlength="20" /></label>
+                <ErpMasterPicker Kind="jw-metal-stock" FieldName="line_stock_code" Label="Item code" ValueMode="code" InputId="jw-stockverification-164" Required="true" />
                 <label>Description <input class="form-control input-sm" name="line_description" required maxlength="120" /></label>
                 <label>Design / party <input class="form-control input-sm" name="party_name" /></label>
-                <label>Cost centre <input class="form-control input-sm" name="party_code" maxlength="20" /></label>
+                <ErpMasterPicker Kind="jw-cc" FieldName="party_code" Label="Cost centre" ValueMode="code" InputId="jw-stockverification-167" AllowNew="true" />
                 <label>Division
                     <select class="form-control input-sm" name="line_division">
                         <option value="G">Gold</option>
@@ -201,7 +200,7 @@
                 }
                 <ErpMasterPicker Kind="business_unit" FieldName="branch" Label="From business unit" ValueMode="code" SelectedCode="HQ" InputId="jw-btr-from" />
                 <ErpMasterPicker Kind="business_unit" FieldName="party_code" Label="To business unit" ValueMode="code" Required="true" InputId="jw-btr-to" />
-                <label>Stock code <input class="form-control input-sm" name="line_stock_code" required maxlength="20" /></label>
+                <ErpMasterPicker Kind="jw-metal-stock" FieldName="line_stock_code" Label="Stock code" ValueMode="code" InputId="jw-stockverification-203" Required="true" />
                 <label>Description <input class="form-control input-sm" name="line_description" required maxlength="120" /></label>
                 <label>Pcs <input class="form-control input-sm" name="line_pcs" type="number" min="0" value="1" /></label>
                 <label>Gross wt <input class="form-control input-sm" name="line_gr_wt" type="number" step="0.0001" value="0" /></label>
@@ -316,7 +315,7 @@
                         <option value="Silver">Silver</option>
                     </select>
                 </label>
-                <label>Karat <input class="form-control input-sm" name="karat" placeholder="22" style="width:70px;" /></label>
+                <ErpMasterPicker Kind="jw-karat" FieldName="karat" Label="Karat" ValueMode="code" InputId="jw-stockverification-318" />
                 <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </form>
         </ErpPhpCreateWell>
