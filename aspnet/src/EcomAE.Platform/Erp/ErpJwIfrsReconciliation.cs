@@ -167,7 +167,7 @@ public sealed class ErpJwIfrsReconciliationReadService : IErpJwIfrsReconciliatio
 
         var unbalanced = (int)await ErpDb.LongAsync(c, null, ErpDb.Positional(
             "SELECT COUNT(*) FROM (SELECT l.`journal_id` FROM `epc_erp_gl_lines` l JOIN `epc_erp_gl_journals` j ON j.`id`=l.`journal_id` WHERE" + scope
-            + " GROUP BY l.`journal_id` HAVING ABS(SUM(l.`debit`)-SUM(l.`credit`))>0.004) x"), cancellationToken, companyId).ConfigureAwait(false);
+            + "AND " + JournalUnix + "<? GROUP BY l.`journal_id` HAVING ABS(SUM(l.`debit`)-SUM(l.`credit`))>0.004) x"), cancellationToken, companyId, toUnix).ConfigureAwait(false);
         var checks = ErpJwIfrsRules.LedgerChecks(accounts, unbalanced);
 
         decimal Bal(Func<ErpJwIfrsAccount, bool> f) => accounts.Where(f).Sum(a => a.Closing);
@@ -179,8 +179,9 @@ public sealed class ErpJwIfrsReconciliationReadService : IErpJwIfrsReconciliatio
         var gaps = new List<(string, decimal, decimal)>();
         if (jewel)
         {
+            // The stock master holds only the current position, so it is comparable to the ledger only up to today.
             var stockValue = await ErpDb.DecimalAsync(c, null, ErpDb.Positional("SELECT IFNULL(SUM(`stock_value`),0) FROM `epc_jewel_metal_stock` WHERE `company_id` IN (0,?)"), cancellationToken, companyId).ConfigureAwait(false);
-            checks.Add(ErpJwIfrsRules.Check("Inventory", "IAS 2.36", "GL inventory 1300 + 1320 vs stock sub-ledger value",
+            if (end >= today) checks.Add(ErpJwIfrsRules.Check("Inventory", "IAS 2.36", "GL inventory 1300 + 1320 vs stock sub-ledger value",
                 stockValue + Bal(a => a.Code == "1320"), Bal(a => a.Code is "1300" or "1320"),
                 "Differences come from non-jewellery journals to 1300 or vouchers whose posted cost differs from the stock moved (listed below)."));
 
@@ -225,8 +226,10 @@ public sealed class ErpJwIfrsReconciliationReadService : IErpJwIfrsReconciliatio
                     "SELECT CONCAT(v.`voc_type`,'-',v.`voc_no`,' (#',v.`id`,')'),IFNULL((SELECT SUM(gl.`debit`) FROM `epc_erp_gl_journals` gj JOIN `epc_erp_gl_lines` gl ON gl.`journal_id`=gj.`id`"
                     + " JOIN `epc_erp_coa_accounts` ga ON ga.`id`=gl.`coa_id` WHERE gj.`reference`=CONCAT('JW-V-',v.`id`,'-PUR') AND ga.`code`='1300'),0),"
                     + " IFNULL((SELECT SUM(x.`cost_amount`) FROM `epc_jewel_voucher_lines` x WHERE x.`voucher_id`=v.`id`),0)"
-                    + " FROM `epc_jewel_voucher` v WHERE v.`company_id` IN (0,?) AND v.`voc_type` IN (" + string.Join(",", purchases.Select(_ => "?")) + ") ORDER BY v.`id`");
-                ErpDb.AddParameters(cmd, purchases.Cast<object?>().Prepend(companyId).ToArray());
+                    + " FROM `epc_jewel_voucher` v WHERE v.`company_id` IN (0,?) AND v.`voc_type` IN (" + string.Join(",", purchases.Select(_ => "?")) + ")"
+                    + " AND DATE(v.`voc_date`)>=? AND DATE(v.`voc_date`)<=? ORDER BY v.`id`");
+                ErpDb.AddParameters(cmd, purchases.Cast<object?>().Prepend(companyId)
+                    .Append(start.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).Append(end.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray());
                 await using var r = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await r.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
