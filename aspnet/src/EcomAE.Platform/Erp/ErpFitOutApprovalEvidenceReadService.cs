@@ -43,7 +43,7 @@ public sealed class ErpFitOutApprovalEvidenceReadService
         await Task.WhenAll(pendingTask, decisionsTask).ConfigureAwait(false);
         var pending = await pendingTask.ConfigureAwait(false);
         var decisions = await decisionsTask.ConfigureAwait(false);
-        var source = pending.Source == "database-error"
+        var source = pending.Source is "database-error" or "empty"
             ? "database-error"
             : pending.Source == "migration"
                 ? "migration"

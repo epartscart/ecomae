@@ -59,7 +59,7 @@ public sealed class ErpFitOutContractClosureReadService
         var commercial = await _commercial
             .ReadAsync(projectId, cancellationToken)
             .ConfigureAwait(false);
-        if (commercial.Source == "database-error")
+        if (commercial.Source != "database")
         {
             return Empty(projectId, commercial.Message, commercial.Source);
         }
@@ -67,7 +67,7 @@ public sealed class ErpFitOutContractClosureReadService
         var subcontract = await _subcontract
             .ReadAsync(projectId, cancellationToken)
             .ConfigureAwait(false);
-        if (subcontract.Source == "database-error")
+        if (subcontract.Source != "database")
         {
             return Empty(projectId, subcontract.Message, subcontract.Source);
         }

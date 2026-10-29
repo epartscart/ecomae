@@ -52,7 +52,7 @@ public sealed class ErpFitOutRetentionAgeingReadService
         var commercial = await _commercial
             .ReadAsync(projectId, cancellationToken)
             .ConfigureAwait(false);
-        if (commercial.Source == "database-error")
+        if (commercial.Source != "database")
         {
             return Empty(projectId, commercial.Message, commercial.Source);
         }
