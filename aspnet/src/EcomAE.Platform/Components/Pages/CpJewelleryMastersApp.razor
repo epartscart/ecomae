@@ -68,7 +68,7 @@
                             <tr>
                                 <td>@(string.IsNullOrWhiteSpace(sib.KaratCode) ? "—" : sib.KaratCode)</td>
                                 <td>@(string.IsNullOrWhiteSpace(sib.Division) ? "—" : sib.Division)</td>
-                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "karat_id", sib.Id)">Open</a></td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "karat_id", sib.Id)" target="_blank" rel="noopener">Open</a></td>
                             </tr>
                         }
                     </tbody>
@@ -725,7 +725,7 @@
                             <td>@(string.IsNullOrWhiteSpace(row.Row.Division) ? "—" : row.Row.Division)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.Row.CreatedAt) ? "—" : row.Row.CreatedAt)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.Row.CreatedBy) ? "—" : row.Row.CreatedBy)</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "karat_id", row.Row.Id)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "karat_id", row.Row.Id)" target="_blank" rel="noopener">Open</a></td>
                         </tr>
                     }
                 }

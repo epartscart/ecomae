@@ -71,7 +71,7 @@
                                 <td>@sib.VocNo.ToString(CultureInfo.InvariantCulture)</td>
                                 <td>@(string.IsNullOrWhiteSpace(sib.Location) ? "—" : sib.Location)</td>
                                 <td>@(string.IsNullOrWhiteSpace(sib.Status) ? "—" : sib.Status)</td>
-                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "verify_id", sib.Id)">Open</a></td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "verify_id", sib.Id)" target="_blank" rel="noopener">Open</a></td>
                             </tr>
                         }
                     </tbody>
@@ -477,7 +477,7 @@
                             <td>@(string.IsNullOrWhiteSpace(row.Type) ? "—" : row.Type)</td>
                             <td>@row.StockPcs.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@row.StockGms.ToString("N4", CultureInfo.InvariantCulture)</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_returnHere, "item_id", row.Id)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_returnHere, "item_id", row.Id)" target="_blank" rel="noopener">Open</a></td>
                         </tr>
                     }
                 }
@@ -510,7 +510,7 @@
                             <td>@row.Total</td>
                             <td>@row.Scanned</td>
                             <td>@row.Status</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "verify_id", row.Id)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "verify_id", row.Id)" target="_blank" rel="noopener">Open</a></td>
                         </tr>
                     }
                 }

@@ -52,7 +52,7 @@
 
     function recalc(form) {
         var rate = num(getNamed(form, 'metal_rate'));
-        var t = { pcs: 0, gr: 0, stone: 0, net: 0, pure: 0, wstg: 0, metal: 0, mkg: 0, st: 0, total: 0 };
+        var t = { pcs: 0, gr: 0, stone: 0, net: 0, pure: 0, wstg: 0, metal: 0, mkg: 0, st: 0, disc: 0, total: 0 };
         form.querySelectorAll('[data-jw-line]').forEach(function (row) {
             var gr = num(getNamed(row, 'line_gr_wt'));
             var stoneWt = num(getNamed(row, 'line_stone_wt'));
@@ -63,7 +63,8 @@
             var metal = r((pure + wstg) * rate, 2);
             var mkg = r(gr * num(getNamed(row, 'line_mkg_rate')), 2);
             var st = r(num(getNamed(row, 'line_stone_amount')), 2);
-            var total = r(metal + mkg + st, 2);
+            var disc = r(num(getNamed(row, 'line_disc_amount')), 2);
+            var total = r(metal + mkg + st - disc, 2);
             var netEl = q(row, '[data-jw-net-wt]');
             if (netEl) {
                 netEl.value = netWt.toFixed(4);
@@ -79,11 +80,11 @@
             }
             t.pcs += num(getNamed(row, 'line_pcs'));
             t.gr += gr; t.stone += stoneWt; t.net += netWt; t.pure += pure; t.wstg += wstg;
-            t.metal += metal; t.mkg += mkg; t.st += st; t.total += total;
+            t.metal += metal; t.mkg += mkg; t.st += st; t.disc += disc; t.total += total;
         });
         setSum(form, 'pcs', String(t.pcs));
         ['gr', 'stone', 'net', 'pure', 'wstg'].forEach(function (k) { setSum(form, k, r(t[k], 4).toFixed(4)); });
-        ['metal', 'mkg', 'st', 'total'].forEach(function (k) { setSum(form, k, r(t[k], 2).toFixed(2)); });
+        ['metal', 'mkg', 'st', 'disc', 'total'].forEach(function (k) { setSum(form, k, r(t[k], 2).toFixed(2)); });
 
         var other = 0;
         form.querySelectorAll('[name="addin_amount"]').forEach(function (amountEl) {
@@ -115,6 +116,8 @@
         setTot(form, 'metal', r(t.metal, 2).toFixed(2));
         setTot(form, 'mkg', r(t.mkg, 2).toFixed(2));
         setTot(form, 'st', r(t.st, 2).toFixed(2));
+        setTot(form, 'disc', r(t.disc, 2).toFixed(2));
+        setTot(form, 'due', r(gross - num(getNamed(form, 'old_gold_exchange')) - num(getNamed(form, 'gold_scheme_redeem')) - num(getNamed(form, 'adjust_sale_return')), 2).toFixed(2));
         setTot(form, 'taxable', taxable.toFixed(2));
         setNamed(form, 'net_amount', net.toFixed(2));
         setNamed(form, 'other_amount', other.toFixed(2));
@@ -388,7 +391,7 @@
         });
         form.addEventListener('submit', function (event) {
             recalc(form);
-            if (num(getNamed(form, 'metal_rate')) <= 0) {
+            if (form.getAttribute('data-jw-mode') !== 'sale' && num(getNamed(form, 'metal_rate')) <= 0) {
                 event.preventDefault();
                 toast('Enter the metal rate before saving.', true);
                 return;

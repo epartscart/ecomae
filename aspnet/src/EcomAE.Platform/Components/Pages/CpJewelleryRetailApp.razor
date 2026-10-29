@@ -125,7 +125,7 @@
                                 <td>@sib.VocNo.ToString(CultureInfo.InvariantCulture)</td>
                                 <td>@(string.IsNullOrWhiteSpace(sib.PartyName) ? "—" : sib.PartyName)</td>
                                 <td>@(string.IsNullOrWhiteSpace(sib.Status) ? "—" : sib.Status)</td>
-                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "voc_id", sib.Id)">Open</a></td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "voc_id", sib.Id)" target="_blank" rel="noopener">Open</a></td>
                             </tr>
                         }
                     </tbody>
@@ -286,85 +286,166 @@
     }
     else if (_isAdmin && (_tab == "jw_retail_sales" || _tab == "jewellery" || _tab == "retail_commerce" || _tab == "jw_metal_sales" || _tab == "jw_sales_return"))
     {
-        <ErpPhpCreateWell Title="@(_tab == "jw_retail_sales" || _tab == "jewellery" || _tab == "retail_commerce" ? "New Invoice" : "New " + _spec.Label)">
-            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+        @if (_savedId > 0)
+        {
+            <div class="jw-saved" role="status">
+                <i class="fa fa-check-circle" aria-hidden="true"></i>
+                <span>Invoice saved and posted to the general ledger and stock.</span>
+                <a class="btn btn-sm btn-primary" href="/erp/jewellery/voucher-print?id=@_savedId.ToString(CultureInfo.InvariantCulture)" target="_blank" rel="noopener"><i class="fa fa-print" aria-hidden="true"></i> Invoice print preview</a>
+                <a class="btn btn-sm btn-default" href="@ErpRecordOpen.Href(_listHref, "voc_id", _savedId)" target="_blank" rel="noopener">Open posted invoice</a>
+                <a class="btn btn-sm btn-default" href="@ReturnHref">New entry</a>
+            </div>
+        }
+        <ErpJwEntryStyles />
+        <ErpPhpCreateWell Title="@(_tab == "jw_retail_sales" || _tab == "jewellery" || _tab == "retail_commerce" ? "Retail invoice" : _spec.Label)">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" class="epc-jw-bm-form jw-mp" data-epc-jw-purchase="1" data-jw-mode="sale" data-jw-draft="@("jw-" + _tab)" autocomplete="off">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="action" value="@RetailVoucherAction(_tab)" />
                 <input type="hidden" name="voc_type" value="@RetailVocType(_tab)" />
+                <input type="hidden" name="after_save" value="" data-jw-after-save />
                 @if (_company > 0)
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
-                <ErpVoucherHeaderFields DateLabel="Invoice date" NumberLabel="Invoice no" NumberPreview="Auto" />
-                <ErpMasterPicker Kind="customer" FieldName="customer_name" InputId="jw-retail-invoice-customer" Label="Customer" ValueMode="name" Required="true" CodeFieldName="party_code" />
-                <input type="hidden" name="party_code" value="" />
-                @if (_tab == "jw_sales_return")
-                {
-                    <label>Source invoice id <input class="form-control input-sm" name="ref_invoice_no" type="number" min="1" required /></label>
-                }
-                <label>Mobile <input class="form-control input-sm" name="mobile" /></label>
-                <ErpMasterPicker Kind="jw-salesman" FieldName="salesman" Label="Salesman" ValueMode="code" InputId="jw-retail-303" AllowNew="true" />
-                <ErpMasterPicker Kind="jw-currency" FieldName="currency" Label="Currency" ValueMode="code" InputId="jw-retail-304" SelectedCode="AED" />
-                <label>Currency rate <input class="form-control input-sm" name="currency_rate" type="number" step="0.000001" value="1" /></label>
-                <ErpMasterPicker Kind="jw-metal-stock" FieldName="line_stock_code" Label="Line stock code" ValueMode="code" InputId="jw-retail-306" />
-                <ErpMasterPicker Kind="jw-tag" FieldName="line_tag_no" Label="Tag / barcode" ValueMode="code" InputId="jw-retail-307" />
-                <label>Line description <input class="form-control input-sm" name="line_description" /></label>
-                <label>Division
-                    <select class="form-control input-sm" name="line_division">
-                        <option value="G">Gold</option>
-                        <option value="D">Diamond</option>
-                        <option value="S">Silver</option>
-                        <option value="P">Pearl</option>
-                    </select>
-                </label>
-                <label>Pcs <input class="form-control input-sm" name="line_pcs" type="number" min="0" value="1" /></label>
-                <label>Gross wt <input class="form-control input-sm" name="line_gr_wt" type="number" step="0.0001" value="0" /></label>
-                <label>Purity <input class="form-control input-sm" name="line_purity" type="number" step="0.000001" value="0.917" /></label>
-                <label>Metal rate <input class="form-control input-sm" name="line_metal_rate" type="number" step="0.00001" value="0" /></label>
-                <label>Making rate <input class="form-control input-sm" name="line_mkg_rate" type="number" step="0.0001" value="0" /></label>
-                <label>Stone amount <input class="form-control input-sm" name="line_stone_amount" type="number" step="0.01" value="0" /></label>
-                <label>Discount <input class="form-control input-sm" name="line_disc_amount" type="number" step="0.01" value="0" /></label>
-                <strong style="width:100%;font-size:.85rem;margin-top:.35rem">Additional voucher lines</strong>
-                @for (var extraLine = 2; extraLine <= 3; extraLine++)
-                {
-                    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;width:100%;padding:.45rem 0;border-top:1px solid #e5e7eb;">
-                        <span style="font-size:.8rem;color:#64748b;width:4rem">Line @extraLine</span>
-                        <ErpMasterPicker Kind="jw-metal-stock" FieldName="line_stock_code" Label="Stock code" ValueMode="code" InputId="@("jw-retail-329-" + extraLine)" />
-                        <ErpMasterPicker Kind="jw-tag" FieldName="line_tag_no" Label="Tag / barcode" ValueMode="code" InputId="@("jw-retail-330-" + extraLine)" />
-                        <label>Description <input class="form-control input-sm" name="line_description" maxlength="120" /></label>
-                        <label>Division
-                            <select class="form-control input-sm" name="line_division">
-                                <option value="G">Gold</option>
-                                <option value="D">Diamond</option>
-                                <option value="S">Silver</option>
-                                <option value="P">Pearl</option>
-                            </select>
-                        </label>
-                        <label>Pcs <input class="form-control input-sm" name="line_pcs" type="number" min="0" value="0" /></label>
-                        <label>Gross wt <input class="form-control input-sm" name="line_gr_wt" type="number" step="0.0001" value="0" /></label>
-                        <label>Purity <input class="form-control input-sm" name="line_purity" type="number" step="0.000001" value="0" /></label>
-                        <label>Metal rate <input class="form-control input-sm" name="line_metal_rate" type="number" step="0.00001" value="0" /></label>
-                        <label>Making rate <input class="form-control input-sm" name="line_mkg_rate" type="number" step="0.0001" value="0" /></label>
-                        <label>Stone amount <input class="form-control input-sm" name="line_stone_amount" type="number" step="0.01" value="0" /></label>
-                        <label>Discount <input class="form-control input-sm" name="line_disc_amount" type="number" step="0.01" value="0" /></label>
+                <div class="jw-mp-wrap" style="grid-column:1 / -1;display:block;width:100%;min-width:0">
+                <section class="jw-mp-card">
+                    <h4>Invoice details</h4>
+                    <div class="jw-mp-grid">
+                        <ErpMasterPicker Kind="business_unit" FieldName="branch" Label="Business unit" ValueMode="code" SelectedCode="HQ" InputId="jw-rt-bu" />
+                        <label>Voc Type <input class="form-control input-sm" value="@RetailVocType(_tab)" readonly /></label>
+                        <label>Invoice date <input class="form-control input-sm" name="voc_date" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" required /></label>
+                        <label>Invoice no <input class="form-control input-sm" value="Auto" readonly /></label>
+                        <ErpMasterPicker Kind="customer" FieldName="customer_name" InputId="jw-retail-invoice-customer" Label="Customer" ValueMode="name" Required="true" CodeFieldName="party_code" />
+                        <label>Mobile <input class="form-control input-sm" name="mobile" /></label>
+                        <ErpMasterPicker Kind="jw-salesman" FieldName="salesman" Label="Salesman" ValueMode="code" InputId="jw-retail-303" AllowNew="true" />
+                        <ErpMasterPicker Kind="jw-currency" FieldName="currency" Label="Currency" ValueMode="code" InputId="jw-retail-304" SelectedCode="AED" />
+                        <label>Currency rate <input class="form-control input-sm" name="currency_rate" type="number" step="0.000001" value="1" /></label>
+                        <label>Metal rate / g (pure) <input class="form-control input-sm" name="metal_rate" type="number" step="0.00001" min="0" value="0" /></label>
+                        @if (_tab == "jw_sales_return")
+                        {
+                            <label>Source invoice id <input class="form-control input-sm" name="ref_invoice_no" type="number" min="1" required /></label>
+                        }
+                        <label>Narration <input class="form-control input-sm" name="narration" maxlength="200" /></label>
                     </div>
-                }
-                <label>Net Amt <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" /></label>
-                <label>VAT <input class="form-control input-sm" name="vat_amount" type="number" step="0.01" value="0" /></label>
-                <label>Gross total <input class="form-control input-sm" name="gross_total" type="number" step="0.01" value="0" /></label>
-                <label>Sale return adjustment <input class="form-control input-sm" name="adjust_sale_return" type="number" step="0.01" value="0" /></label>
-                <label>Old-gold purchase <input class="form-control input-sm" name="old_gold_exchange" type="number" step="0.01" value="0" title="Kept apart from the sale. Cash due is the sale minus this purchase." /></label>
-                <label>Scheme redemption <input class="form-control input-sm" name="gold_scheme_redeem" type="number" step="0.01" value="0" /></label>
-                <label>Refund due <input class="form-control input-sm" name="refund_due" type="number" step="0.01" value="0" /></label>
-                <strong style="width:100%;font-size:.85rem;margin-top:.35rem">Tender / receipt</strong>
-                <label>Mode <input class="form-control input-sm" name="receipt_mode" value="CASH" maxlength="20" /></label>
-                <label>Currency <input class="form-control input-sm" name="receipt_currency" value="AED" maxlength="5" /></label>
-                <label>Rate <input class="form-control input-sm" name="receipt_currency_rate" type="number" step="0.000001" value="1" /></label>
-                <label>Amount FC <input class="form-control input-sm" name="receipt_amount_fc" type="number" step="0.01" value="0" /></label>
-                <label>Amount LC <input class="form-control input-sm" name="receipt_amount_lc" type="number" step="0.01" value="0" /></label>
-                <label>Narration <input class="form-control input-sm" name="narration" /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Save voucher</button>
+                    <input type="hidden" name="party_code" value="" />
+                </section>
+
+                <section class="jw-mp-card">
+                    <div class="jw-mp-tabs epc-jw-panel-nav" role="tablist" aria-label="Invoice panels">
+                        <button type="button" class="is-active" data-jw-panel-btn="lines">1. Line Items</button>
+                        <button type="button" data-jw-panel-btn="addins">2. Tender / receipt</button>
+                    </div>
+                    <div class="jw-mp-panel epc-jw-panel jw-mp-lines" data-jw-panel="lines">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No.</th><th>Stock Code</th><th>Tag / barcode</th><th>Description</th><th>Div</th><th>PCS</th><th>Gr. Wt</th><th>Stone Wt</th><th>Net Wt</th><th>Purity</th><th>Pure Wt</th>
+                                    <th>Wstg %</th><th>Wstg Qty</th><th>Metal Rate</th><th>Metal Amount</th><th>Mkg. Rate</th><th>Mkg. Amount</th><th>St. Amount</th><th>Discount</th><th>Total</th><th></th>
+                                </tr>
+                            </thead>
+                            <tbody data-jw-lines>
+                                <tr data-jw-line>
+                                    <td data-jw-line-no>1</td>
+                                    <td class="jw-stock"><ErpMasterPicker Kind="jw-metal-stock" FieldName="line_stock_code" Label="Stock" ValueMode="code" InputId="jw-retail-306" /></td>
+                                    <td class="jw-stock"><ErpMasterPicker Kind="jw-tag" FieldName="line_tag_no" Label="Tag" ValueMode="code" InputId="jw-retail-307" /></td>
+                                    <td><input class="form-control input-sm" name="line_description" maxlength="120" style="text-align:left;min-width:10rem" /></td>
+                                    <td>
+                                        <select class="form-control input-sm" name="line_division" style="min-width:5rem">
+                                            <option value="G">Gold</option><option value="D">Diamond</option><option value="S">Silver</option><option value="P">Pearl</option>
+                                        </select>
+                                        <input type="hidden" name="line_karat" value="" />
+                                    </td>
+                                    <td><input class="form-control input-sm" name="line_pcs" type="number" min="0" value="1" /></td>
+                                    <td><input class="form-control input-sm" name="line_gr_wt" type="number" step="0.0001" min="0" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="line_stone_wt" type="number" step="0.0001" min="0" value="0" /></td>
+                                    <td><input class="form-control input-sm" data-jw-net-wt type="number" value="0.0000" readonly tabindex="-1" /></td>
+                                    <td><input class="form-control input-sm" name="line_purity" type="number" step="0.000001" min="0" max="1" value="0.916" /></td>
+                                    <td><input class="form-control input-sm" name="line_pure_wt" type="number" value="0.0000" readonly tabindex="-1" /></td>
+                                    <td><input class="form-control input-sm" name="line_wastage_pct" type="number" step="0.0001" min="0" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="line_wastage_qty" type="number" value="0.0000" readonly tabindex="-1" /></td>
+                                    <td><input class="form-control input-sm" name="line_metal_rate" type="number" value="0" readonly tabindex="-1" /></td>
+                                    <td><input class="form-control input-sm" name="line_metal_amount" type="number" value="0.00" readonly tabindex="-1" /></td>
+                                    <td><input class="form-control input-sm" name="line_mkg_rate" type="number" step="0.0001" min="0" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="line_mkg_amount" type="number" value="0.00" readonly tabindex="-1" /></td>
+                                    <td><input class="form-control input-sm" name="line_stone_amount" type="number" step="0.01" min="0" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="line_disc_amount" type="number" step="0.01" min="0" value="0" /></td>
+                                    <td><input class="form-control input-sm" data-jw-item-total type="number" value="0.00" readonly tabindex="-1" /></td>
+                                    <td><button type="button" class="btn btn-xs btn-default" data-jw-line-remove title="Remove line"><i class="fa fa-trash" aria-hidden="true"></i></button></td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="5"><button type="button" class="btn btn-xs btn-primary" data-jw-line-add><i class="fa fa-plus" aria-hidden="true"></i> Add line</button></td>
+                                    <td data-jw-sum="pcs">0</td><td data-jw-sum="gr">0.0000</td><td data-jw-sum="stone">0.0000</td><td data-jw-sum="net">0.0000</td><td></td><td data-jw-sum="pure">0.0000</td>
+                                    <td></td><td data-jw-sum="wstg">0.0000</td><td></td><td data-jw-sum="metal">0.00</td><td></td><td data-jw-sum="mkg">0.00</td><td data-jw-sum="st">0.00</td><td data-jw-sum="disc">0.00</td><td data-jw-sum="total">0.00</td><td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div class="jw-mp-panel epc-jw-panel jw-mp-lines" data-jw-panel="addins" hidden>
+                        <table style="min-width:50rem">
+                            <thead><tr><th>Mode</th><th>Currency</th><th>Rate</th><th>Amount FC</th><th>Amount LC</th></tr></thead>
+                            <tbody>
+                                <tr>
+                                    <td><select class="form-control input-sm" name="receipt_mode"><option>CASH</option><option>CARD</option><option>BANK</option><option>CHEQUE</option><option>ADVANCE</option></select></td>
+                                    <td class="jw-stock"><ErpMasterPicker Kind="jw-currency" FieldName="receipt_currency" Label="Currency" ValueMode="code" SelectedCode="AED" InputId="jw-rt-rcur" /></td>
+                                    <td><input class="form-control input-sm" name="receipt_currency_rate" type="number" step="0.000001" value="1" /></td>
+                                    <td><input class="form-control input-sm" name="receipt_amount_fc" type="number" step="0.01" min="0" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="receipt_amount_lc" type="number" step="0.01" min="0" value="0" /></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <input type="hidden" name="addin_amount" value="0" />
+                    </div>
+                </section>
+
+                <div class="jw-mp-bottom">
+                    <section class="jw-mp-card">
+                        <h4>Adjustments</h4>
+                        <div class="jw-mp-grid">
+                            <label>Sale return adjustment <input class="form-control input-sm" name="adjust_sale_return" type="number" step="0.01" min="0" value="0" /></label>
+                            <label>Old-gold purchase <input class="form-control input-sm" name="old_gold_exchange" type="number" step="0.01" min="0" value="0" title="Kept apart from the sale. Cash due is the sale minus this purchase." /></label>
+                            <label>Scheme redemption <input class="form-control input-sm" name="gold_scheme_redeem" type="number" step="0.01" min="0" value="0" /></label>
+                            <label>Refund due <input class="form-control input-sm" name="refund_due" type="number" step="0.01" min="0" value="0" /></label>
+                            <label>VAT basis
+                                <select class="form-control input-sm" name="vat_basis" data-jw-vat-basis>
+                                    <option value="full" selected>Full invoice value</option>
+                                    <option value="mkg">Making + stone only</option>
+                                    <option value="none">Zero-rated / no VAT</option>
+                                </select>
+                            </label>
+                        </div>
+                    </section>
+                    <section class="jw-mp-card">
+                        <h4>Invoice summary</h4>
+                        <div class="jw-mp-sum">
+                            <table>
+                                <tr><td>Metal value</td><td><input class="form-control input-sm" data-jw-tot="metal" value="0.00" readonly tabindex="-1" /></td></tr>
+                                <tr><td>Making charges</td><td><input class="form-control input-sm" data-jw-tot="mkg" value="0.00" readonly tabindex="-1" /></td></tr>
+                                <tr><td>Stone amount</td><td><input class="form-control input-sm" data-jw-tot="st" value="0.00" readonly tabindex="-1" /></td></tr>
+                                <tr><td>Discount</td><td><input class="form-control input-sm" data-jw-tot="disc" value="0.00" readonly tabindex="-1" /></td></tr>
+                                <tr><td>Net amount</td><td><input class="form-control input-sm" name="net_amount" value="0.00" readonly tabindex="-1" /></td></tr>
+                                <tr><td>Taxable value <em class="jw-mp-note" data-jw-basis-note>(incl. metal)</em></td><td><input class="form-control input-sm" data-jw-tot="taxable" value="0.00" readonly tabindex="-1" /></td></tr>
+                                <tr><td>VAT %</td><td><input class="form-control input-sm" name="vat_pct" type="number" step="0.01" min="0" value="5" /></td></tr>
+                                <tr><td>Output VAT</td><td><input class="form-control input-sm" name="vat_amount" value="0.00" readonly tabindex="-1" /></td></tr>
+                                <tr><td>Round off</td><td><input class="form-control input-sm" name="round_off" type="number" step="0.01" value="0" /></td></tr>
+                                <tr class="jw-mp-grand"><td>Invoice total</td><td><input class="form-control input-sm" name="gross_total" value="0.00" readonly tabindex="-1" /></td></tr>
+                                <tr><td>Cash due <em class="jw-mp-note">(total − old gold − scheme − return adj.)</em></td><td><input class="form-control input-sm" data-jw-tot="due" value="0.00" readonly tabindex="-1" /></td></tr>
+                            </table>
+                            <input type="hidden" name="other_amount" value="0" />
+                            <input type="hidden" name="rcm_vat" value="0" />
+                        </div>
+                    </section>
+                </div>
+
+                <div class="jw-mp-actions">
+                    <button type="submit" class="btn btn-primary btn-sm" data-jw-submit><i class="fa fa-save" aria-hidden="true"></i> Save invoice</button>
+                    <button type="submit" class="btn btn-success btn-sm" data-jw-submit data-jw-submit-print><i class="fa fa-print" aria-hidden="true"></i> Save &amp; print preview</button>
+                    <button type="button" class="btn btn-default btn-sm" data-jw-clear><i class="fa fa-eraser" aria-hidden="true"></i> Clear</button>
+                    <span class="jw-mp-status" data-jw-status>Draft is kept automatically until you save.</span>
+                </div>
+                </div>
             </form>
         </ErpPhpCreateWell>
     }
@@ -534,7 +615,7 @@
                             <td>1</td>
                             <td class="text-right">@row.Net</td>
                             <td>@row.Status</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "voc_id", row.Id)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "voc_id", row.Id)" target="_blank" rel="noopener">Open</a></td>
                         </tr>
                     }
                 }
@@ -584,6 +665,7 @@
     private string _lookupQuery = "";
     private string _lookupMessage = "";
     private bool _showVouchers;
+    private long _savedId;
 
     private sealed record SaleRow(long Id, string No, string InvNo, string InvDate, string Customer, string Net, string Status);
 
@@ -625,6 +707,7 @@
             : "/erp/jewellery-retail-app";
         _listHref = _appPath;
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "voc_id");
+        _savedId = ErpRecordOpen.ReadId(ctx.Request, "saved_id");
         _company = ErpJewelleryModuleChrome.CompanyFromQuery(ctx.Request.Query["company"].ToString());
         _tab = ErpJewelleryModuleChrome.NormalizeTab(ctx.Request.Query["tab"].ToString(), ErpJewelleryModuleChrome.RetailTabs, "jw_retail_sales");
         _ok = ctx.Request.Query["ok"].ToString();

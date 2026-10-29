@@ -75,7 +75,7 @@
                                 <td>@sib.FixNo.ToString(CultureInfo.InvariantCulture)</td>
                                 <td>@(string.IsNullOrWhiteSpace(sib.PartyName) ? (string.IsNullOrWhiteSpace(sib.PartyCode) ? "—" : sib.PartyCode) : sib.PartyName)</td>
                                 <td>@(string.IsNullOrWhiteSpace(sib.Status) ? "—" : sib.Status)</td>
-                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "fixing_id", sib.Id)">Open</a></td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "fixing_id", sib.Id)" target="_blank" rel="noopener">Open</a></td>
                             </tr>
                         }
                     </tbody>
@@ -454,7 +454,7 @@
                             <td class="text-right">@row.NetAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.Status) ? "—" : row.Status)</td>
                             <td>
-                                <a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/jewellery-retail-app", "voc_id", row.Id)">Open</a>
+                                <a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/jewellery-retail-app", "voc_id", row.Id)" target="_blank" rel="noopener">Open</a>
                                 <a class="btn btn-xs btn-default" href="/erp/purchase-print?jwId=@row.Id.ToString(CultureInfo.InvariantCulture)" target="_blank" rel="noopener">@(ErpPurchaseDocumentPrint.IsOfficialJewellery(row.Status, row.Authorized) ? "Print" : "Preview")</a>
                             </td>
                         </tr>
@@ -479,7 +479,7 @@
                             <td class="text-right">@row.Qty</td>
                             <td class="text-right">@row.Amount</td>
                             <td>@row.Status</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "fixing_id", row.Id)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "fixing_id", row.Id)" target="_blank" rel="noopener">Open</a></td>
                         </tr>
                     }
                 }
