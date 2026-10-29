@@ -89,8 +89,10 @@
         form.querySelectorAll('[name="addin_amount"]').forEach(function (amountEl) {
             var row = amountEl.closest('tr');
             var amount = num(amountEl.value);
-            if (amount === 0 && row) {
-                amount = r(t.total * num(getNamed(row, 'addin_pct')) / 100, 2);
+            var pctValue = row ? num(getNamed(row, 'addin_pct')) : 0;
+            if (pctValue > 0) {
+                amount = r(t.total * pctValue / 100, 2);
+                amountEl.value = amount.toFixed(2);
             }
             other += amount;
         });
