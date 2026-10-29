@@ -118,8 +118,8 @@ public sealed class ErpJewelleryGlPostWriteService : IErpJewelleryGlPostWriteSer
                 var label = v.Type + "-" + v.Id.ToString(CultureInfo.InvariantCulture);
                 if (purchaseTypes.Contains(v.Type))
                 {
-                    var stockCost = await CostAsync(connection, v.Id, cancellationToken).ConfigureAwait(false);
-                    purchases += await PostOnceAsync(key + "-PUR", "Metal purchase voucher " + label, v.Id, v.CompanyId, ErpAutoPartsIfrs.PurchaseReceived(ErpJewelleryGl.PurchaseInventoryCost(stockCost, await LineTotalAsync(connection, v.Id, cancellationToken).ConfigureAwait(false), v.Net), v.Vat), v.Date).ConfigureAwait(false);
+                    var lineCost = await ErpDb.DecimalAsync(connection, null, ErpDb.Positional("SELECT " + ErpJewelleryGl.PurchaseLineCostSql + " FROM `epc_jewel_voucher_lines` WHERE `voucher_id`=?"), cancellationToken, v.Id).ConfigureAwait(false);
+                    purchases += await PostOnceAsync(key + "-PUR", "Metal purchase voucher " + label, v.Id, v.CompanyId, ErpAutoPartsIfrs.PurchaseReceived(ErpJewelleryGl.PurchaseInventoryCost(lineCost, v.Net), v.Vat), v.Date).ConfigureAwait(false);
                     var rcm = await ErpDb.DecimalAsync(connection, null, ErpDb.Positional("SELECT IFNULL(`rcm_vat`,0) FROM `epc_jewel_voucher` WHERE `id`=?"), cancellationToken, v.Id).ConfigureAwait(false);
                     extras += await PostOnceAsync(key + "-RCM", "Reverse-charge VAT " + label, v.Id, v.CompanyId, ErpJewelleryGl.ReverseCharge(rcm), v.Date).ConfigureAwait(false);
                     var paid = await TendersAsync(connection, v.Id, cancellationToken).ConfigureAwait(false);
@@ -198,9 +198,6 @@ public sealed class ErpJewelleryGlPostWriteService : IErpJewelleryGlPostWriteSer
 
     private static async Task<decimal> CostAsync(DbConnection connection, long voucherId, CancellationToken ct)
         => await ErpDb.DecimalAsync(connection, null, ErpDb.Positional("SELECT IFNULL(SUM(`cost_amount`),0) FROM `epc_jewel_voucher_lines` WHERE `voucher_id`=?"), ct, voucherId).ConfigureAwait(false);
-
-    private static async Task<decimal> LineTotalAsync(DbConnection connection, long voucherId, CancellationToken ct)
-        => await ErpDb.DecimalAsync(connection, null, ErpDb.Positional("SELECT IFNULL(SUM(`total_amount`),0) FROM `epc_jewel_voucher_lines` WHERE `voucher_id`=?"), ct, voucherId).ConfigureAwait(false);
 
     private static async Task<List<(string Account, decimal Amount)>> TendersAsync(DbConnection connection, long voucherId, CancellationToken ct)
     {

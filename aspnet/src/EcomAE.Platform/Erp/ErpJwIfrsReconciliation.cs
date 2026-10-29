@@ -226,7 +226,7 @@ public sealed class ErpJwIfrsReconciliationReadService : IErpJwIfrsReconciliatio
                 cmd.CommandText = ErpDb.Positional(
                     "SELECT CONCAT(v.`voc_type`,'-',v.`voc_no`,' (#',v.`id`,')'),IFNULL((SELECT SUM(gl.`debit`) FROM `epc_erp_gl_journals` gj JOIN `epc_erp_gl_lines` gl ON gl.`journal_id`=gj.`id`"
                     + " JOIN `epc_erp_coa_accounts` ga ON ga.`id`=gl.`coa_id` WHERE gj.`reference`=CONCAT('JW-V-',v.`id`,'-PUR') AND ga.`code`='1300'),0),"
-                    + " IFNULL((SELECT SUM(IF(x.`cost_amount`>0,x.`cost_amount`,x.`total_amount`)) FROM `epc_jewel_voucher_lines` x WHERE x.`voucher_id`=v.`id`),0)"
+                    + " (SELECT " + ErpJewelleryGl.PurchaseLineCostSql + " FROM `epc_jewel_voucher_lines` x WHERE x.`voucher_id`=v.`id`)"
                     + " FROM `epc_jewel_voucher` v WHERE v.`company_id` IN (0,?) AND v.`voc_type` IN (" + string.Join(",", purchases.Select(_ => "?")) + ")"
                     + " AND DATE(v.`voc_date`)>=? AND DATE(v.`voc_date`)<=? ORDER BY v.`id`");
                 ErpDb.AddParameters(cmd, purchases.Cast<object?>().Prepend(companyId)
@@ -241,10 +241,17 @@ public sealed class ErpJwIfrsReconciliationReadService : IErpJwIfrsReconciliatio
             }
 
             // NRV uses the latest entered 24K buy rate on or before the end date; system carry-forward copies rank last.
-            var rate24 = await ErpDb.DecimalAsync(c, null, ErpDb.Positional(
-                "SELECT `buy_rate` FROM `epc_gold_rates` WHERE `company_id` IN (0,?) AND `karat`='24K' AND `currency`='AED' AND `buy_rate`>0 AND `rate_date`<=?"
-                + " ORDER BY `rate_date` DESC,(`created_by`='system') ASC,`id` DESC LIMIT 1"),
-                cancellationToken, companyId, end.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ConfigureAwait(false);
+            var rate24 = 0m;
+            await using (var rc = c.CreateCommand())
+            {
+                rc.CommandText = ErpDb.Positional(
+                "SELECT `buy_rate`,IFNULL(`unit`,'gram') FROM `epc_gold_rates` WHERE `company_id` IN (0,?) AND `karat`='24K' AND `currency`='AED' AND `buy_rate`>0 AND `rate_date`<=?"
+                + " ORDER BY `rate_date` DESC,(`created_by`='system') ASC,`id` DESC LIMIT 1");
+                ErpDb.AddParameters(rc, companyId, end.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+                await using var rr = await rc.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await rr.ReadAsync(cancellationToken).ConfigureAwait(false)) rate24 = ErpGoldRateBoard.ToGramRate(D(rr, 0), rr.GetString(1));
+            }
+
             if (rate24 > 0)
             {
                 await using var cmd = c.CreateCommand();
