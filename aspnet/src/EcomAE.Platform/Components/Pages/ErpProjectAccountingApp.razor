@@ -113,7 +113,7 @@
                 {
                     var count = grp.Sum(r => r.Count);
                     var amount = grp.Sum(r => r.Amount);
-                    var completion = grp.Any() ? grp.Average(r => r.AverageCompletionPercent) : 0m;
+                    var completion = count > 0 ? grp.Sum(r => r.AverageCompletionPercent * r.Count) / count : 0m;
                     <div class="epc-prja-bar-row">
                         <span class="epc-prja-bar-lbl">@grp.Key</span>
                         <span class="epc-prja-bar-track"><span class="epc-prja-bar certified" style="width:@Pct(completion)"></span></span>
