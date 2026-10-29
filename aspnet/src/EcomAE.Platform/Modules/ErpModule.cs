@@ -538,6 +538,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryIndusSamples, HandleJewelleryIndusSamplesAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryIndusClear, HandleJewelleryIndusClearAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpJewelleryIndusTemplate, HandleJewelleryIndusTemplateAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryIndusMasterSave, HandleJewelleryIndusMasterSaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpJewelleryVoucherPrint, HandleJewelleryVoucherPrintAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutWorkbook, HandleFitOutWorkbookAsync);
         endpoints.MapGet(EcomAeRoutes.ErpAsapWorkbook, HandleAsapWorkbookAsync);
@@ -29270,6 +29271,41 @@ public sealed class ErpModule : ISurfaceModule
     private const string IndusReturnUrl = "/erp/jewellery/workspace?tab=indus";
 
     /// <summary>INDUS CSV import: multipart files (or csv text) + template; dry-run unless confirmWrites; sandbox only.</summary>
+    private static async Task<IResult> HandleJewelleryIndusMasterSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpJwIndusDataService data,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + IndusReturnUrl, "ERP capability required to save INDUS masters.");
+        }
+
+        if (!context.Request.HasFormContentType)
+        {
+            return Results.BadRequest(new { ok = false, writes = 0, message = "Post a form with key + fields." });
+        }
+
+        var form = await context.Request.ReadFormAsync(cancellationToken);
+        var key = form["key"].ToString().Trim();
+        var back = "/erp/jewellery/workspace?tab=indus&key=" + Uri.EscapeDataString(key);
+        if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+        {
+            return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, back), true, "Dry run only: nothing saved.");
+        }
+
+        var values = form.Keys.ToDictionary(k => k, k => form[k].ToString(), StringComparer.OrdinalIgnoreCase);
+        var written = await data.SaveMasterAsync(key, values, ErpJwMasterAudit.Actor(session.Email, session.UserId), cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            back,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, id = written.Id, message = written.Message });
+    }
+
     private static async Task<IResult> HandleJewelleryIndusImportAsync(
         HttpContext context,
         ILegacySessionValidator validator,
