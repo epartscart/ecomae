@@ -9328,6 +9328,66 @@ public sealed class ControlPanelModule : ISurfaceModule
                 });
         }).DisableAntiforgery();
 
+        // Super CP platform alert contacts — where the hourly tenant health
+        // monitor emails/WhatsApps page or login failures.
+        endpoints.MapPost(EcomAeRoutes.CpPlatformAlertsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPlatformAlertsService alerts,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/cp/login?returnUrl=" + EcomAeRoutes.ControlPanelPlatformAlertsApp,
+                    "Admin CP capability required for platform alert settings.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.Json(
+                    new { ok = false, error = new { code = "form_required", message = "Platform alert settings expect a form post." } },
+                    statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    EcomAeRoutes.ControlPanelPlatformAlertsApp,
+                    false,
+                    "Dry-run. Set confirmWrites=true to save platform alert settings.",
+                    new { ok = false, writes = 0, validation_code = "dry_run", session = SessionPayload(session) });
+            }
+
+            var written = await alerts.SaveAsync(
+                new CpPlatformAlertsConfig(
+                    LiveWriteFormBinder.Text(form, "alert_email"),
+                    LiveWriteFormBinder.Flag(form, "whatsapp_enabled"),
+                    LiveWriteFormBinder.Text(form, "wa_api_token"),
+                    LiveWriteFormBinder.Text(form, "wa_phone_number_id"),
+                    LiveWriteFormBinder.Text(form, "wa_api_version"),
+                    LiveWriteFormBinder.Text(form, "wa_to_number")),
+                cancellationToken);
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ControlPanelPlatformAlertsApp,
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    writes = written.Writes,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    session = SessionPayload(session),
+                });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelMetabase, async (
             HttpContext context,
             int? limit,
