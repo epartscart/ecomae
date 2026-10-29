@@ -10637,6 +10637,7 @@ public sealed class ErpModule : ISurfaceModule
             var shipmentCompany = body.ShipmentCompany;
             var portCompany = body.PortCompany;
             var otherAmount = body.OtherAmount;
+            var rcmVat = body.RcmVat;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -10741,6 +10742,7 @@ public sealed class ErpModule : ISurfaceModule
                 shipmentCompany = LiveWriteFormBinder.Text(form, "shipment_company", "shipmentCompany");
                 portCompany = LiveWriteFormBinder.Text(form, "port_company", "portCompany");
                 otherAmount = LiveWriteFormBinder.Dec(form, "other_amount", "otherAmount");
+                rcmVat = LiveWriteFormBinder.Dec(form, "rcm_vat", "rcmVat");
                 var addinCount = new[]
                 {
                     form["addin_code"].Count,
@@ -10824,6 +10826,7 @@ public sealed class ErpModule : ISurfaceModule
                     ShipmentCompany: shipmentCompany,
                     PortCompany: portCompany,
                     OtherAmount: otherAmount,
+                    RcmVat: rcmVat,
                     ActorUserId: session.UserId),
                 cancellationToken);
             var voucherMessage = written.Message;
@@ -35037,6 +35040,7 @@ public sealed class ErpModule : ISurfaceModule
         string? ShipmentCompany = null,
         string? PortCompany = null,
         decimal OtherAmount = 0,
+        decimal RcmVat = 0,
         bool ConfirmWrites = false);
     private sealed record ErpJwFixingSaveBody(
         int CompanyId = 0,

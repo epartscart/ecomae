@@ -13,6 +13,7 @@
 @inject IHttpContextAccessor Http
 @inject IErpJewelleryWorkspaceReadService Workspace
 @inject IErpJwIndusDataService IndusData
+@inject IErpJwIfrsReconciliationReadService Ifrs
 
 <PageTitle>Jewellery workspace · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -162,6 +163,38 @@
                 </div>
                 <div class="fo-card"><h3>GL journal trail</h3>@RowsTable(new[] { "Id", "Reference", "Journal", "Date" }, _snap.Ledger)</div>
             </div>
+            @if (_ifrs is not null)
+            {
+                var f = _ifrs;
+                <div class="fo-card" id="ifrs">
+                    <h3>IFRS &amp; UAE VAT reconciliation · @f.From.ToString("dd MMM yyyy", CultureInfo.InvariantCulture) – @f.To.ToString("dd MMM yyyy", CultureInfo.InvariantCulture) · company @f.CompanyId</h3>
+                    <form method="get" class="fo-inline"><input type="hidden" name="tab" value="month-end" />
+                        From <input type="date" name="from" value="@f.From.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" /> To <input type="date" name="to" value="@f.To.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" />
+                        <button class="btn btn-sm fo-board-btn" type="submit">Reconcile</button></form>
+                    <p class="text-muted">Read-only checks from the posted ledger and the jewellery sub-ledgers. A difference is something to investigate; nothing is changed here. These are technical reconciliations, not an IFRS opinion — a qualified accountant must review policies, estimates and disclosures.</p>
+                    @RowsTable(new[] { "Area", "Standard", "Check", "Expected", "Actual", "Difference", "Result", "Note" },
+                        f.Checks.Select(x => (IReadOnlyList<string>)new[] { x.Area, x.Standard, x.Check, Mn(x.Expected), Mn(x.Actual), Mn(x.Difference), x.Passed ? "PASS" : "DIFFERENCE", x.Note }).ToList(), 3, 4, 5)
+                    @if (f.PurchaseGaps.Count > 0)
+                    {
+                        <h4>Purchase vouchers posted at a different cost than the stock they added (IAS 2.10)</h4>
+                        @RowsTable(new[] { "Voucher", "Posted to 1300", "Stock cost", "Difference" }, f.PurchaseGaps.Select(g => (IReadOnlyList<string>)new[] { g.Reference, Mn(g.Posted), Mn(g.StockCost), Mn(g.StockCost - g.Posted) }).ToList(), 1, 2, 3)
+                        <p class="text-muted">Posted journals are never edited. Correct these with an approved adjusting journal (Dr 1300 / Cr supplier) after checking the supplier invoice.</p>
+                    }
+                </div>
+                <div class="fo-grid2">
+                    <div class="fo-card"><h3>Statement of cash flows (IAS 7, direct, from cash journals)</h3>
+                        @RowsTable(new[] { "Section", "Counter account", "AED" }, f.CashFlow.Select(x => (IReadOnlyList<string>)new[] { x.Section, x.Label, Mn(x.Amount) }).ToList(), 2)
+                        <p><strong>Net cash flow: @Mn(f.CashFlow.Sum(x => x.Amount))</strong></p></div>
+                    <div class="fo-card"><h3>Statement of changes in equity (IAS 1.106)</h3>
+                        @RowsTable(new[] { "Movement", "AED" }, f.EquityMovements.Select(x => (IReadOnlyList<string>)new[] { x.Label, Mn(x.Amount) }).ToList(), 1)</div>
+                    <div class="fo-card"><h3>IAS 2 net realisable value test (metal content, 2% cost to sell)</h3>
+                        @RowsTable(new[] { "Stock", "Karat", "Grams", "Carrying cost", "Metal NRV", "Possible write-down" }, f.Nrv.Select(x => (IReadOnlyList<string>)new[] { x.Code, x.Karat, x.Grams.ToString("N3", CultureInfo.InvariantCulture), Mn(x.Carrying), Mn(x.MetalNrv), Mn(x.Shortfall) }).ToList(), 2, 3, 4, 5)
+                        <p class="text-muted">Inventory stays at weighted-average cost, not at the gold price. Metal NRV ignores making value, so a shortfall is an indicator for review, not an automatic write-down. Total indicator: @Mn(f.Nrv.Sum(x => x.Shortfall))</p></div>
+                    <div class="fo-card"><h3>IFRS 9 expected credit loss — provision matrix</h3>
+                        @RowsTable(new[] { "Age", "Outstanding", "Loss rate", "Allowance" }, f.Ecl.Select(x => (IReadOnlyList<string>)new[] { x.Bucket, Mn(x.Exposure), (x.Rate * 100).ToString("0.#", CultureInfo.InvariantCulture) + "%", Mn(x.Allowance) }).ToList(), 1, 2, 3)
+                        <p class="text-muted">Illustrative rates; calibrate to loss history and forward-looking information before booking Dr ECL expense / Cr loss allowance. Proposed allowance: @Mn(f.Ecl.Sum(x => x.Allowance))</p></div>
+                </div>
+            }
         }
         else if (_tab == "indus")
         {
@@ -280,6 +313,9 @@
     private bool _isAdmin;
     private IReadOnlyDictionary<string, long> _indusCounts = new Dictionary<string, long>();
     private ErpJwIndusDataTable? _indusTable;
+    private ErpJwIfrsReport? _ifrs;
+
+    private static string Mn(decimal v) => v.ToString("N2", CultureInfo.InvariantCulture);
     private string _csrf = string.Empty;
     private string _flashOk = string.Empty;
     private string _flashErr = string.Empty;
@@ -393,6 +429,12 @@
         }
 
         _snap = await Workspace.LoadAsync(_metal, _period, ctx.RequestAborted);
+        if (_isAdmin && _tab == "month-end")
+        {
+            DateOnly? Date(string k) => DateOnly.TryParseExact(ctx.Request.Query[k].ToString(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? d : null;
+            _ifrs = await Ifrs.ReadAsync(Date("from"), Date("to"), 0.02m, ctx.RequestAborted);
+        }
+
         if (_isAdmin && _tab == "indus")
         {
             _indusCounts = await IndusData.CountsAsync(ctx.RequestAborted);

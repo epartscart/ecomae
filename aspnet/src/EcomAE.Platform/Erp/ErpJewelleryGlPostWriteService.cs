@@ -118,7 +118,10 @@ public sealed class ErpJewelleryGlPostWriteService : IErpJewelleryGlPostWriteSer
                 var label = v.Type + "-" + v.Id.ToString(CultureInfo.InvariantCulture);
                 if (purchaseTypes.Contains(v.Type))
                 {
-                    purchases += await PostOnceAsync(key + "-PUR", "Metal purchase voucher " + label, v.Id, v.CompanyId, ErpAutoPartsIfrs.PurchaseReceived(v.Net, v.Vat), v.Date).ConfigureAwait(false);
+                    var stockCost = await CostAsync(connection, v.Id, cancellationToken).ConfigureAwait(false);
+                    purchases += await PostOnceAsync(key + "-PUR", "Metal purchase voucher " + label, v.Id, v.CompanyId, ErpAutoPartsIfrs.PurchaseReceived(ErpJewelleryGl.PurchaseInventoryCost(stockCost, v.Net), v.Vat), v.Date).ConfigureAwait(false);
+                    var rcm = await ErpDb.DecimalAsync(connection, null, ErpDb.Positional("SELECT IFNULL(`rcm_vat`,0) FROM `epc_jewel_voucher` WHERE `id`=?"), cancellationToken, v.Id).ConfigureAwait(false);
+                    extras += await PostOnceAsync(key + "-RCM", "Reverse-charge VAT " + label, v.Id, v.CompanyId, ErpJewelleryGl.ReverseCharge(rcm), v.Date).ConfigureAwait(false);
                     var paid = await TendersAsync(connection, v.Id, cancellationToken).ConfigureAwait(false);
                     extras += await PostOnceAsync(key + "-PAY", "Supplier payment " + label, v.Id, v.CompanyId, ErpJewelleryGl.Tenders(paid, ErpAutoPartsIfrs.ApAccount, tenderIsDebit: false), v.Date).ConfigureAwait(false);
                 }
