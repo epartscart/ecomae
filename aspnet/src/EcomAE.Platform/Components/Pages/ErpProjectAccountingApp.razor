@@ -9,6 +9,11 @@
 @inject IErpPrjaBudgetSaveDryRun BudgetSave
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject EcomAE.Platform.Erp.IErpFitOutDeliveryDashboardReadService FitOutDelivery
+@inject EcomAE.Platform.Erp.IErpFitOutExecutiveDashboardReadService FitOutExecutive
+@inject EcomAE.Platform.Erp.IErpFitOutOperationsReportReadService FitOutOperations
+@inject EcomAE.Platform.Erp.IErpFitOutFinanceOperationsReportReadService FitOutFinance
+@inject EcomAE.Platform.Erp.IErpFitOutApprovalQueueReadService FitOutApprovals
 
 <PageTitle>Project accounting · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -45,6 +50,154 @@
 
     @if (_workArea == "reports")
     {
+    <section class="epc-prja-visual" aria-label="Fit-out visual reports">
+        <article class="epc-prja-vcard">
+            <h3>Executive overview</h3>
+            @if (_exec is null)
+            {
+                <p class="epc-prja-vempty">Loading…</p>
+            }
+            else if (_exec.Rows.Count == 0)
+            {
+                <p class="epc-prja-vempty">@VisualMessage(_exec.Source, _exec.Message, "No fit-out projects yet — load the demo sample data to see the board view.")</p>
+            }
+            else
+            {
+                var totals = new
+                {
+                    Boq = _exec.Rows.Sum(r => r.BoqValue),
+                    Committed = _exec.Rows.Sum(r => r.CommittedAmount),
+                    Delivered = _exec.Rows.Sum(r => r.DeliveryAmount),
+                    Certified = _exec.Rows.Sum(r => r.ClientCertifiedAmount),
+                    Pending = _exec.Rows.Sum(r => r.PendingApprovalAmount),
+                };
+                <div class="epc-erp-kpi epc-erp-stat-row">
+                    <div class="kpi"><div class="lbl">BOQ value</div><div class="val">@Money(totals.Boq)</div></div>
+                    <div class="kpi"><div class="lbl">Committed</div><div class="val">@Money(totals.Committed)</div></div>
+                    <div class="kpi"><div class="lbl">Delivered</div><div class="val">@Money(totals.Delivered)</div></div>
+                    <div class="kpi"><div class="lbl">Certified</div><div class="val">@Money(totals.Certified)</div></div>
+                    <div class="kpi"><div class="lbl">Pending approval</div><div class="val">@Money(totals.Pending)</div></div>
+                </div>
+                <div class="epc-prja-bars" role="img" aria-label="Project value versus certified by project">
+                    @foreach (var row in _exec.Rows.Take(8))
+                    {
+                        var pct = row.BoqValue > 0 ? Math.Min(100m, row.ClientCertifiedAmount / row.BoqValue * 100m) : 0m;
+                        var cpct = row.BoqValue > 0 ? Math.Min(100m, row.CommittedAmount / row.BoqValue * 100m) : 0m;
+                        <div class="epc-prja-bar-row">
+                            <span class="epc-prja-bar-lbl" title="Project @row.ProjectId">P-@row.ProjectId</span>
+                            <span class="epc-prja-bar-track">
+                                <span class="epc-prja-bar committed" style="width:@Pct(cpct)"></span>
+                                <span class="epc-prja-bar certified" style="width:@Pct(pct)"></span>
+                            </span>
+                            <span class="epc-prja-bar-val">@Money(row.ClientCertifiedAmount) / @Money(row.BoqValue)</span>
+                        </div>
+                    }
+                </div>
+                <p class="epc-prja-legend"><span class="sw committed"></span>Committed <span class="sw certified"></span>Client certified</p>
+            }
+        </article>
+
+        <article class="epc-prja-vcard">
+            <h3>Delivery status</h3>
+            @if (_delivery is null)
+            {
+                <p class="epc-prja-vempty">Loading…</p>
+            }
+            else if (_delivery.Rows.Count == 0)
+            {
+                <p class="epc-prja-vempty">@VisualMessage(_delivery.Source, _delivery.Message, "No delivery records yet.")</p>
+            }
+            else
+            {
+                foreach (var grp in _delivery.Rows.GroupBy(r => r.RecordType).Take(6))
+                {
+                    var count = grp.Sum(r => r.Count);
+                    var amount = grp.Sum(r => r.Amount);
+                    var completion = grp.Any() ? grp.Average(r => r.AverageCompletionPercent) : 0m;
+                    <div class="epc-prja-bar-row">
+                        <span class="epc-prja-bar-lbl">@grp.Key</span>
+                        <span class="epc-prja-bar-track"><span class="epc-prja-bar certified" style="width:@Pct(completion)"></span></span>
+                        <span class="epc-prja-bar-val">@count rec · @Money(amount) · @completion.ToString("0")%</span>
+                    </div>
+                }
+            }
+        </article>
+
+        <article class="epc-prja-vcard">
+            <h3>Operations</h3>
+            @if (_ops is null)
+            {
+                <p class="epc-prja-vempty">Loading…</p>
+            }
+            else if (_ops.Rows.Count == 0)
+            {
+                <p class="epc-prja-vempty">@VisualMessage(_ops.Source, _ops.Message, "No operations activity yet.")</p>
+            }
+            else
+            {
+                var maxAmt = _ops.Rows.Max(r => r.Amount) is var m && m > 0 ? m : 1m;
+                foreach (var row in _ops.Rows.Take(8))
+                {
+                    var pct = maxAmt > 0 ? Math.Min(100m, row.Amount / maxAmt * 100m) : 0m;
+                    <div class="epc-prja-bar-row">
+                        <span class="epc-prja-bar-lbl">@row.Category · @row.Metric</span>
+                        <span class="epc-prja-bar-track"><span class="epc-prja-bar committed" style="width:@Pct(pct)"></span></span>
+                        <span class="epc-prja-bar-val">@row.Count · @Money(row.Amount)</span>
+                    </div>
+                }
+            }
+        </article>
+
+        <article class="epc-prja-vcard">
+            <h3>Finance / operations</h3>
+            @if (_fin is null)
+            {
+                <p class="epc-prja-vempty">Loading…</p>
+            }
+            else if (_fin.Rows.Count == 0)
+            {
+                <p class="epc-prja-vempty">@VisualMessage(_fin.Source, _fin.Message, "No finance activity yet.")</p>
+            }
+            else
+            {
+                var maxAmt = _fin.Rows.Max(r => Math.Abs(r.Amount)) is var m && m > 0 ? m : 1m;
+                foreach (var row in _fin.Rows.Take(8))
+                {
+                    var pct = maxAmt > 0 ? Math.Min(100m, Math.Abs(row.Amount) / maxAmt * 100m) : 0m;
+                    <div class="epc-prja-bar-row">
+                        <span class="epc-prja-bar-lbl">@row.Category · @row.Metric</span>
+                        <span class="epc-prja-bar-track"><span class="epc-prja-bar finance" style="width:@Pct(pct)"></span></span>
+                        <span class="epc-prja-bar-val">@row.Count · @Money(row.Amount)</span>
+                    </div>
+                }
+            }
+        </article>
+
+        <article class="epc-prja-vcard">
+            <h3>Approval queue</h3>
+            @if (_appr is null)
+            {
+                <p class="epc-prja-vempty">Loading…</p>
+            }
+            else if (_appr.Rows.Count == 0)
+            {
+                <p class="epc-prja-vempty">@VisualMessage(_appr.Source, _appr.Message, "Approval queue is clear.")</p>
+            }
+            else
+            {
+                <div class="epc-erp-kpi epc-erp-stat-row">
+                    <div class="kpi"><div class="lbl">Pending items</div><div class="val">@_appr.Rows.Count</div></div>
+                    <div class="kpi"><div class="lbl">Pending value</div><div class="val">@Money(_appr.TotalAmount)</div></div>
+                </div>
+                foreach (var row in _appr.Rows.Take(6))
+                {
+                    <div class="epc-prja-appr-row"><strong>@row.RecordType</strong> @row.Reference — @row.Title <span>@Money(row.Amount) · @row.Status</span></div>
+                }
+            }
+        </article>
+    </section>
+
+    <h3 class="epc-prja-dtl">Report endpoints</h3>
     <section class="epc-prja-reports" aria-label="Fit-out reports">
         <article class="epc-prja-report">
             <h3>Excel import</h3>
@@ -852,6 +1005,20 @@
     private long _openedRecId;
     private int _activeCompanyId;
     private string _workArea = "ledger";
+    private EcomAE.Platform.Erp.ErpFitOutExecutiveDashboardResult? _exec;
+    private EcomAE.Platform.Erp.ErpFitOutDeliveryDashboardResult? _delivery;
+    private EcomAE.Platform.Erp.ErpFitOutOperationsReportResult? _ops;
+    private EcomAE.Platform.Erp.ErpFitOutFinanceOperationsReportResult? _fin;
+    private EcomAE.Platform.Erp.ErpFitOutApprovalQueueResult? _appr;
+
+    private static string Money(decimal value)
+        => value.ToString("#,##0.00", CultureInfo.InvariantCulture);
+
+    private static string Pct(decimal value)
+        => value.ToString("0.##", CultureInfo.InvariantCulture) + "%";
+
+    private static string VisualMessage(string source, string message, string empty)
+        => source == "database-error" ? "Report error: " + message : empty;
     private ErpPrjaBudgetDetail? _openedBudget;
     private ErpPrjaTxnDetail? _openedTxn;
     private ErpPrjaRecognitionDetail? _openedRec;
@@ -958,6 +1125,16 @@
         _recCount = result.RecognitionCount;
         _source = result.Source;
         _message = result.Message;
+
+        if (_workArea == "reports")
+        {
+            var ct = ctx.RequestAborted;
+            _exec = await FitOutExecutive.ReadAsync(null, ct);
+            _delivery = await FitOutDelivery.ReadAsync(null, ct);
+            _ops = await FitOutOperations.ReadAsync(null, ct);
+            _fin = await FitOutFinance.ReadAsync(null, ct);
+            _appr = await FitOutApprovals.ReadAsync(null, ct);
+        }
 
         if (_openedBudgetId > 0)
         {

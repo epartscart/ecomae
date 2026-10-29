@@ -248,10 +248,15 @@ public sealed class ErpFitOutEstimateWriteService : IErpFitOutEstimateWriteServi
             "overhead_rate", "total_cost", "selling_rate", "selling_amount"
         })
         {
+            if (await ErpDb.ColumnKnownAsync(connection, "ecomae_fitout_boq_lines", column, cancellationToken).ConfigureAwait(false))
+            {
+                continue;
+            }
+
             await ErpDb.ExecuteAsync(
                 connection,
                 null,
-                $"ALTER TABLE `ecomae_fitout_boq_lines` ADD COLUMN IF NOT EXISTS `{column}` decimal(16,4) NOT NULL DEFAULT 0",
+                $"ALTER TABLE `ecomae_fitout_boq_lines` ADD COLUMN `{column}` decimal(16,4) NOT NULL DEFAULT 0",
                 cancellationToken).ConfigureAwait(false);
         }
     }
