@@ -155,7 +155,7 @@ public sealed class ErpJwIfrsAdjustmentWriteService : IErpJwIfrsAdjustmentWriteS
         string reference;
         string description;
         IReadOnlyList<ErpAutoPartsIfrs.JournalLine> recipe;
-        Func<Task>? after = null;
+        Func<DbTransaction, Task>? after = null;
         switch (request.Kind)
         {
             case "ecl":
@@ -176,13 +176,16 @@ public sealed class ErpJwIfrsAdjustmentWriteService : IErpJwIfrsAdjustmentWriteS
                 recipe = ErpJwIfrsAdjustments.NrvWriteDown(lines.Sum(n => n.Shortfall));
                 reference = "JW-IAS2-NRV-" + stamp;
                 description = "IAS 2 write-down to NRV: " + string.Join(", ", lines.Select(n => n.Code + " " + n.Shortfall.ToString("N2", CultureInfo.InvariantCulture)));
-                after = async () =>
+                after = async tx =>
                 {
-                    foreach (var n in lines)
+                    foreach (var g in lines.GroupBy(n => n.Code, StringComparer.OrdinalIgnoreCase))
                     {
-                        await ErpDb.ExecuteAsync(c, null, ErpDb.Positional(
-                            "UPDATE `epc_jewel_metal_stock` SET `stock_value`=GREATEST(0,`stock_value`-?),`pur_cost_gms`=IF(`stock_gms`>0,ROUND(GREATEST(0,`stock_value`)/`stock_gms`,4),`pur_cost_gms`) WHERE `company_id` IN (0,?) AND `item_code`=?"),
-                            cancellationToken, n.Shortfall, companyId, n.Code).ConfigureAwait(false);
+                        var stockId = await ErpDb.LongAsync(c, tx, ErpDb.Positional(
+                            "SELECT `id` FROM `epc_jewel_metal_stock` WHERE `company_id` IN (0,?) AND `item_code`=? ORDER BY `company_id` DESC LIMIT 1"),
+                            cancellationToken, companyId, g.Key).ConfigureAwait(false);
+                        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                            "UPDATE `epc_jewel_metal_stock` SET `stock_value`=GREATEST(0,`stock_value`-?),`pur_cost_gms`=IF(`stock_gms`>0,ROUND(GREATEST(0,`stock_value`-?)/`stock_gms`,4),`pur_cost_gms`) WHERE `id`=?"),
+                            cancellationToken, g.Sum(n => n.Shortfall), g.Sum(n => n.Shortfall), stockId).ConfigureAwait(false);
                     }
                 };
                 break;
@@ -217,19 +220,24 @@ public sealed class ErpJwIfrsAdjustmentWriteService : IErpJwIfrsAdjustmentWriteS
                 var payment = N("payment");
                 var rate = N("rate");
                 if (key.Length == 0 || months <= 0 || payment <= 0) return ErpSimpleWriteResult.Fail("invalid", "Enter lease reference, monthly payment and term in months.");
+                if (months > 600) return ErpSimpleWriteResult.Fail("invalid", "Lease term is limited to 600 months.");
+                var terms = months.ToString(CultureInfo.InvariantCulture) + " × " + payment.ToString("N2", CultureInfo.InvariantCulture) + " @ " + rate.ToString("0.##", CultureInfo.InvariantCulture) + "%";
                 var month = (int)N("month");
                 var pv = ErpJwIfrsAdjustments.LeasePresentValue(payment, months, rate);
                 if (month <= 0)
                 {
                     recipe = ErpJwIfrsAdjustments.LeaseInitial(pv);
                     reference = "JW-IFRS16-" + key + "-INIT";
-                    description = "IFRS 16 lease " + key + ": " + months.ToString(CultureInfo.InvariantCulture) + " × " + payment.ToString("N2", CultureInfo.InvariantCulture) + " @ " + rate.ToString("0.##", CultureInfo.InvariantCulture) + "% → PV " + pv.ToString("N2", CultureInfo.InvariantCulture);
+                    description = "IFRS 16 lease " + key + ": " + terms + " → PV " + pv.ToString("N2", CultureInfo.InvariantCulture);
                 }
                 else
                 {
                     if (month > months) return ErpSimpleWriteResult.Fail("invalid", "Month is after the lease term.");
-                    if (await ErpAutoPartsGl.PostedJournalIdAsync(c, "JW-IFRS16-" + key + "-INIT", cancellationToken).ConfigureAwait(false) <= 0)
-                        return ErpSimpleWriteResult.Fail("invalid", "Recognise the lease (month 0) first.");
+                    var initId = await ErpAutoPartsGl.PostedJournalIdAsync(c, "JW-IFRS16-" + key + "-INIT", cancellationToken).ConfigureAwait(false);
+                    if (initId <= 0) return ErpSimpleWriteResult.Fail("invalid", "Recognise the lease (month 0) first.");
+                    var initDescription = await ErpDb.StringAsync(c, null, ErpDb.Positional("SELECT IFNULL(`description`,'') FROM `epc_erp_gl_journals` WHERE `id`=?"), cancellationToken, initId).ConfigureAwait(false) ?? "";
+                    if (!initDescription.Contains(": " + terms + " →", StringComparison.Ordinal))
+                        return ErpSimpleWriteResult.Fail("invalid", "Lease terms differ from the recognised lease (" + initDescription + "). Use the original terms or recognise a new lease reference.");
                     var row = ErpJwIfrsAdjustments.LeaseSchedule(payment, months, rate)[month - 1];
                     recipe = ErpJwIfrsAdjustments.LeaseMonth(row, ErpAutoPartsIfrs.BankAccount);
                     reference = "JW-IFRS16-" + key + "-M" + month.ToString("000", CultureInfo.InvariantCulture);
@@ -250,9 +258,26 @@ public sealed class ErpJwIfrsAdjustmentWriteService : IErpJwIfrsAdjustmentWriteS
         var preview = reference + ": " + string.Join("; ", recipe.Select(l => (l.Debit > 0 ? "Dr " : "Cr ") + l.Code + " " + (l.Debit > 0 ? l.Debit : l.Credit).ToString("N2", CultureInfo.InvariantCulture)));
         if (!request.Confirm) return ErpSimpleWriteResult.Ok("Dry run — would post " + preview, 0);
 
-        var id = await ErpAutoPartsGl.PostAsync(_gl, c, null, request.ActorId, companyId, 0, reference, description, recipe, date, cancellationToken).ConfigureAwait(false);
-        if (id <= 0) return ErpSimpleWriteResult.Fail("invalid", "Posting failed — check the period is open.");
-        if (after is not null) await after().ConfigureAwait(false);
+        await using var tx = await c.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        long id;
+        try
+        {
+            if (after is not null) await after(tx).ConfigureAwait(false);
+            id = await ErpAutoPartsGl.PostAsync(_gl, c, tx, request.ActorId, companyId, 0, reference, description, recipe, date, cancellationToken).ConfigureAwait(false);
+            if (id <= 0)
+            {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("invalid", "Posting failed — check the period is open.");
+            }
+
+            await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            await tx.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
+            throw;
+        }
+
         return ErpSimpleWriteResult.Ok("Posted " + preview, id);
     }
 
