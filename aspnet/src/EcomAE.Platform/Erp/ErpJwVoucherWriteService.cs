@@ -88,6 +88,7 @@ public sealed record ErpJwVoucherSaveRequest(
     string? ShipmentCompany = null,
     string? PortCompany = null,
     decimal OtherAmount = 0,
+    decimal RcmVat = 0,
     int ActorUserId = 0);
 
 public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
@@ -369,6 +370,12 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
             {
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
                 return ErpSimpleWriteResult.Fail("invalid", "Failed");
+            }
+
+            var rcmVat = RoundNonNeg(request.RcmVat, 2);
+            if (rcmVat > 0 && ErpJwVocTypes.MetalPurchaseAliases.Contains(vocType))
+            {
+                await ErpDb.ExecuteAsync(connection, transaction, ErpDb.Positional("UPDATE `epc_jewel_voucher` SET `rcm_vat`=? WHERE `id`=?"), cancellationToken, rcmVat, id).ConfigureAwait(false);
             }
 
             var lineNo = 1;

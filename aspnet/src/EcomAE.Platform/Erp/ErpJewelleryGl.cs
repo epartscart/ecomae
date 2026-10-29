@@ -78,6 +78,24 @@ public static class ErpJewelleryGl
             new(ErpAutoPartsIfrs.ArAccount, 0m, amount, "Settled by old gold"),
         ];
 
+    /// <summary>
+    /// UAE domestic reverse charge on precious-metal purchases between registered dealers
+    /// (Cabinet Decision 25/2018): the buyer self-accounts output VAT and recovers the same
+    /// amount as input VAT. Nothing is paid to the supplier.
+    /// </summary>
+    public static IReadOnlyList<ErpAutoPartsIfrs.JournalLine> ReverseCharge(decimal rcmVat)
+        => rcmVat <= 0
+            ? []
+            :
+            [
+                new(ErpAutoPartsIfrs.InputVatAccount, rcmVat, 0m, "Input VAT recoverable — reverse charge (precious metal)"),
+                new(ErpAutoPartsIfrs.VatAccount, 0m, rcmVat, "Output VAT self-accounted — reverse charge (precious metal)"),
+            ];
+
+    /// <summary>IAS 2 purchase cost: the line costs that entered the stock sub-ledger; falls back to the header net when no line moved stock.</summary>
+    public static decimal PurchaseInventoryCost(decimal stockLineCost, decimal headerNet)
+        => stockLineCost > 0 ? stockLineCost : headerNet;
+
     public static IReadOnlyList<ErpAutoPartsIfrs.JournalLine> SalesReturn(decimal net, decimal vat)
     {
         var lines = new List<ErpAutoPartsIfrs.JournalLine> { new(SalesReturnAccount, net, 0m, "Sales return (tax credit note)") };
