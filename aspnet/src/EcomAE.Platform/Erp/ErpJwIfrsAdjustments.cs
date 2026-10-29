@@ -128,12 +128,14 @@ public sealed class ErpJwIfrsAdjustmentWriteService : IErpJwIfrsAdjustmentWriteS
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IErpGlPostingService _gl;
     private readonly IErpJwIfrsReconciliationReadService _recon;
+    private readonly IErpVoucherNumberService _vouchers;
 
-    public ErpJwIfrsAdjustmentWriteService(IErpWriteConnectionFactory connections, IErpGlPostingService gl, IErpJwIfrsReconciliationReadService recon)
+    public ErpJwIfrsAdjustmentWriteService(IErpWriteConnectionFactory connections, IErpGlPostingService gl, IErpJwIfrsReconciliationReadService recon, IErpVoucherNumberService vouchers)
     {
         _connections = connections;
         _gl = gl;
         _recon = recon;
+        _vouchers = vouchers;
     }
 
     public async Task<ErpSimpleWriteResult> PostAsync(ErpJwIfrsAdjustRequest request, CancellationToken cancellationToken = default)
@@ -148,6 +150,7 @@ public sealed class ErpJwIfrsAdjustmentWriteService : IErpJwIfrsAdjustmentWriteS
 
         await using var c = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await _gl.EnsureSchemaAsync(c, cancellationToken).ConfigureAwait(false);
+        await _vouchers.EnsureSchemaAsync(c, cancellationToken).ConfigureAwait(false);
         await ErpAutoPartsGl.EnsureCoaAsync(c, cancellationToken).ConfigureAwait(false);
         await ErpJewelleryGl.EnsureCoaAsync(c, cancellationToken).ConfigureAwait(false);
         var companyId = await ErpLazySchema.ResolveActiveCompanyIdAsync(c, 0, cancellationToken).ConfigureAwait(false);
@@ -155,7 +158,7 @@ public sealed class ErpJwIfrsAdjustmentWriteService : IErpJwIfrsAdjustmentWriteS
         string reference;
         string description;
         IReadOnlyList<ErpAutoPartsIfrs.JournalLine> recipe;
-        Func<DbTransaction, Task>? after = null;
+        Func<DbTransaction, Task<decimal>>? nrvApply = null;
         switch (request.Kind)
         {
             case "ecl":
@@ -176,17 +179,37 @@ public sealed class ErpJwIfrsAdjustmentWriteService : IErpJwIfrsAdjustmentWriteS
                 recipe = ErpJwIfrsAdjustments.NrvWriteDown(lines.Sum(n => n.Shortfall));
                 reference = "JW-IAS2-NRV-" + stamp;
                 description = "IAS 2 write-down to NRV: " + string.Join(", ", lines.Select(n => n.Code + " " + n.Shortfall.ToString("N2", CultureInfo.InvariantCulture)));
-                after = async tx =>
+                nrvApply = async tx =>
                 {
+                    // Reduce each code's row by at most its carrying value; the journal posts exactly what was reduced.
+                    var applied = 0m;
                     foreach (var g in lines.GroupBy(n => n.Code, StringComparer.OrdinalIgnoreCase))
                     {
-                        var stockId = await ErpDb.LongAsync(c, tx, ErpDb.Positional(
-                            "SELECT `id` FROM `epc_jewel_metal_stock` WHERE `company_id` IN (0,?) AND `item_code`=? ORDER BY `company_id` DESC LIMIT 1"),
-                            cancellationToken, companyId, g.Key).ConfigureAwait(false);
-                        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
-                            "UPDATE `epc_jewel_metal_stock` SET `stock_value`=GREATEST(0,`stock_value`-?),`pur_cost_gms`=IF(`stock_gms`>0,ROUND(GREATEST(0,`stock_value`-?)/`stock_gms`,4),`pur_cost_gms`) WHERE `id`=?"),
-                            cancellationToken, g.Sum(n => n.Shortfall), g.Sum(n => n.Shortfall), stockId).ConfigureAwait(false);
+                        var want = g.Sum(n => n.Shortfall);
+                        await using var rc = c.CreateCommand();
+                        rc.Transaction = tx;
+                        rc.CommandText = ErpDb.Positional("SELECT `id`,IFNULL(`stock_value`,0) FROM `epc_jewel_metal_stock` WHERE `company_id` IN (0,?) AND `item_code`=? ORDER BY `company_id` DESC");
+                        ErpDb.AddParameters(rc, companyId, g.Key);
+                        var rows = new List<(long Id, decimal Value)>();
+                        await using (var rr = await rc.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+                        {
+                            while (await rr.ReadAsync(cancellationToken).ConfigureAwait(false)) rows.Add((rr.GetInt64(0), rr.IsDBNull(1) ? 0 : rr.GetDecimal(1)));
+                        }
+
+                        foreach (var row in rows)
+                        {
+                            var cut = Math.Round(Math.Min(want, Math.Max(0m, row.Value)), 2);
+                            if (cut <= 0) continue;
+                            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                                "UPDATE `epc_jewel_metal_stock` SET `stock_value`=`stock_value`-?,`pur_cost_gms`=IF(`stock_gms`>0,ROUND((`stock_value`)/`stock_gms`,4),`pur_cost_gms`) WHERE `id`=?"),
+                                cancellationToken, cut, row.Id).ConfigureAwait(false);
+                            want -= cut;
+                            applied += cut;
+                            if (want <= 0) break;
+                        }
                     }
+
+                    return applied;
                 };
                 break;
             }
@@ -217,8 +240,8 @@ public sealed class ErpJwIfrsAdjustmentWriteService : IErpJwIfrsAdjustmentWriteS
             {
                 var key = Slug(V("ref"));
                 var months = (int)N("months");
-                var payment = N("payment");
-                var rate = N("rate");
+                var payment = Math.Round(N("payment"), 2, MidpointRounding.AwayFromZero);
+                var rate = Math.Round(N("rate"), 2, MidpointRounding.AwayFromZero);
                 if (key.Length == 0 || months <= 0 || payment <= 0) return ErpSimpleWriteResult.Fail("invalid", "Enter lease reference, monthly payment and term in months.");
                 if (months > 600) return ErpSimpleWriteResult.Fail("invalid", "Lease term is limited to 600 months.");
                 var terms = months.ToString(CultureInfo.InvariantCulture) + " × " + payment.ToString("N2", CultureInfo.InvariantCulture) + " @ " + rate.ToString("0.##", CultureInfo.InvariantCulture) + "%";
@@ -262,7 +285,17 @@ public sealed class ErpJwIfrsAdjustmentWriteService : IErpJwIfrsAdjustmentWriteS
         long id;
         try
         {
-            if (after is not null) await after(tx).ConfigureAwait(false);
+            if (nrvApply is not null)
+            {
+                var applied = await nrvApply(tx).ConfigureAwait(false);
+                recipe = ErpJwIfrsAdjustments.NrvWriteDown(applied);
+                if (recipe.Count == 0)
+                {
+                    await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return ErpSimpleWriteResult.Ok("Nothing to post — no stock value left to write down.", 0);
+                }
+            }
+
             id = await ErpAutoPartsGl.PostAsync(_gl, c, tx, request.ActorId, companyId, 0, reference, description, recipe, date, cancellationToken).ConfigureAwait(false);
             if (id <= 0)
             {
