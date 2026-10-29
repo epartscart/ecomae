@@ -78,12 +78,12 @@ public sealed class ErpFitOutAcceptanceEvidenceReadService
                 finance.Source,
                 $"{finance.Rows.Count} finance report row(s)")
         };
-        var source = checks.Any(check => check.Status == "database-error")
+        var source = checks.Any(check => check.Status is "database-error" or "empty")
             ? "database-error"
             : checks.Any(check => check.Status == "migration")
                 ? "migration"
                 : "database";
-        var message = checks.FirstOrDefault(check => check.Status == "database-error")?.Evidence
+        var message = checks.FirstOrDefault(check => check.Status is "database-error" or "empty")?.Evidence
             ?? string.Empty;
         return new(projectId, checks, source == "database", source, message);
     }
