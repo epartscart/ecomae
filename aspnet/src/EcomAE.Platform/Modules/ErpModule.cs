@@ -16625,7 +16625,7 @@ public sealed class ErpModule : ISurfaceModule
 
     private static async Task<IResult> HandleFitOutSubcontractReconciliationAsync(
         HttpContext context,
-        long projectId,
+        long? projectId,
         ILegacySessionValidator validator,
         IErpFitOutSubcontractReconciliationReadService reconciliation,
         CancellationToken cancellationToken)
@@ -16640,7 +16640,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var result = await reconciliation
-            .ReadAsync(projectId, cancellationToken)
+            .ReadAsync(projectId ?? 0, cancellationToken)
             .ConfigureAwait(false);
         return Results.Ok(new
         {
