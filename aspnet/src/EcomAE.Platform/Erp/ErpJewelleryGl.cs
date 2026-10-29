@@ -92,9 +92,9 @@ public static class ErpJewelleryGl
                 new(ErpAutoPartsIfrs.VatAccount, 0m, rcmVat, "Output VAT self-accounted — reverse charge (precious metal)"),
             ];
 
-    /// <summary>IAS 2 purchase cost: the line costs that entered the stock sub-ledger; falls back to the header net when no line moved stock.</summary>
-    public static decimal PurchaseInventoryCost(decimal stockLineCost, decimal headerNet)
-        => stockLineCost > 0 ? stockLineCost : headerNet;
+    /// <summary>IAS 2 purchase cost: the cost moved into the stock sub-ledger, else the line totals, else the header net.</summary>
+    public static decimal PurchaseInventoryCost(decimal stockLineCost, decimal lineTotal, decimal headerNet)
+        => stockLineCost > 0 ? stockLineCost : lineTotal > 0 ? lineTotal : headerNet;
 
     public static IReadOnlyList<ErpAutoPartsIfrs.JournalLine> SalesReturn(decimal net, decimal vat)
     {

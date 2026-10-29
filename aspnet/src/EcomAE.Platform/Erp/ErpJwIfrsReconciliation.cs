@@ -205,10 +205,11 @@ public sealed class ErpJwIfrsReconciliationReadService : IErpJwIfrsReconciliatio
                 + await VoucherSum("v.`vat_amount`", ErpJwVocTypes.AdvanceAliases).ConfigureAwait(false)
                 - await VoucherSum("v.`vat_amount`", ErpJwVocTypes.SalesReturnAliases).ConfigureAwait(false);
             var rcm = await VoucherSum("v.`rcm_vat`", purchases).ConfigureAwait(false);
-            var inVat = await VoucherSum("v.`vat_amount`", purchases).ConfigureAwait(false);
+            var inVat = await VoucherSum("v.`vat_amount`", purchases).ConfigureAwait(false)
+                + await VoucherSum("(SELECT IFNULL(SUM(a.`amount`),0) FROM `epc_jewel_voucher_addins` a WHERE a.`voucher_id`=v.`id` AND a.`debit_ac`='" + ErpAutoPartsIfrs.InputVatAccount + "')", ErpJwVocTypes.JournalAliases).ConfigureAwait(false);
             checks.Add(ErpJwIfrsRules.Check("VAT", "UAE VAT Law Art. 25 / FTA VAT201 box 1", "Output VAT 2100 period credit vs jewellery documents (sales + advances − credit notes + RCM)",
                 outVat + rcm, -Mov(a => a.Code == "2100"), "Other ERP modules posting to 2100 also show here."));
-            checks.Add(ErpJwIfrsRules.Check("VAT", "UAE VAT Law Art. 54 / VAT201 box 9-10", "Input VAT 1150 period debit vs purchase documents (+ reverse charge)",
+            checks.Add(ErpJwIfrsRules.Check("VAT", "UAE VAT Law Art. 54 / VAT201 box 9-10", "Input VAT 1150 period debit vs purchase documents + journal-voucher VAT (+ reverse charge)",
                 inVat + rcm, Mov(a => a.Code == "1150")));
             var cogs = await ErpDb.DecimalAsync(c, null, ErpDb.Positional(
                 "SELECT IFNULL(SUM(CASE WHEN v.`voc_type` IN (" + string.Join(",", ErpJwVocTypes.SalesReturnAliases.Select(_ => "?")) + ") THEN -l.`cost_amount` ELSE l.`cost_amount` END),0)"
@@ -225,7 +226,7 @@ public sealed class ErpJwIfrsReconciliationReadService : IErpJwIfrsReconciliatio
                 cmd.CommandText = ErpDb.Positional(
                     "SELECT CONCAT(v.`voc_type`,'-',v.`voc_no`,' (#',v.`id`,')'),IFNULL((SELECT SUM(gl.`debit`) FROM `epc_erp_gl_journals` gj JOIN `epc_erp_gl_lines` gl ON gl.`journal_id`=gj.`id`"
                     + " JOIN `epc_erp_coa_accounts` ga ON ga.`id`=gl.`coa_id` WHERE gj.`reference`=CONCAT('JW-V-',v.`id`,'-PUR') AND ga.`code`='1300'),0),"
-                    + " IFNULL((SELECT SUM(x.`cost_amount`) FROM `epc_jewel_voucher_lines` x WHERE x.`voucher_id`=v.`id`),0)"
+                    + " IFNULL((SELECT SUM(IF(x.`cost_amount`>0,x.`cost_amount`,x.`total_amount`)) FROM `epc_jewel_voucher_lines` x WHERE x.`voucher_id`=v.`id`),0)"
                     + " FROM `epc_jewel_voucher` v WHERE v.`company_id` IN (0,?) AND v.`voc_type` IN (" + string.Join(",", purchases.Select(_ => "?")) + ")"
                     + " AND DATE(v.`voc_date`)>=? AND DATE(v.`voc_date`)<=? ORDER BY v.`id`");
                 ErpDb.AddParameters(cmd, purchases.Cast<object?>().Prepend(companyId)
