@@ -34,7 +34,8 @@ public sealed record ErpJwVoucherLineSaveRequest(
     decimal DiscountAmount = 0,
     decimal TotalAmount = 0,
     decimal TotalWithVat = 0,
-    decimal NetAmount = 0);
+    decimal NetAmount = 0,
+    decimal StoneWeight = 0);
 
 public sealed record ErpJwVoucherReceiptSaveRequest(
     string? ReceiptMode = null,
@@ -248,9 +249,13 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                 {
                     var pure = line.PureWeight > 0
                         ? RoundNonNeg(line.PureWeight, 4)
-                        : ErpJwPurity.PureWeight(RoundNonNeg(line.GrossWeight, 4), RoundNonNeg(line.Purity, 6));
+                        : ErpJwPurity.PureWeight(
+                            Math.Max(0m, RoundNonNeg(line.GrossWeight, 4) - RoundNonNeg(line.StoneWeight, 4)),
+                            RoundNonNeg(line.Purity, 6));
                     var metalValue = RoundNonNeg((pure + RoundNonNeg(line.WastageQuantity, 4)) * metalRate, 2);
-                    return line with { MetalRate = metalRate, MetalAmount = metalValue, TotalAmount = 0, NetAmount = 0 };
+                    var making = ErpJwPurity.MakingAmount(RoundNonNeg(line.GrossWeight, 4), line.MakingRate, line.MakingAmount);
+                    var total = RoundNonNeg(metalValue + making + RoundNonNeg(line.StoneAmount, 2) - RoundNonNeg(line.DiscountAmount, 2), 2);
+                    return line with { MetalRate = metalRate, MetalAmount = metalValue, MakingAmount = making, TotalAmount = total, NetAmount = total };
                 })
                 .ToArray();
             net = 0;
@@ -412,7 +417,7 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                     connection,
                     transaction,
                     ErpDb.Positional(
-                        "INSERT INTO `epc_jewel_voucher_lines` (`voucher_id`,`line_no`,`stock_code`,`division`,`description`,`pcs`,`qty`,`gr_wt`,`purity`,`pure_wt`,`mkg_rate`,`mkg_amount`,`metal_rate`,`metal_amount`,`stone_amount`,`wastage_pct`,`wastage_qty`,`disc_amount`,`total_amount`,`total_with_vat`,`net_amount`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+                        "INSERT INTO `epc_jewel_voucher_lines` (`voucher_id`,`line_no`,`stock_code`,`division`,`description`,`pcs`,`qty`,`gr_wt`,`purity`,`pure_wt`,`mkg_rate`,`mkg_amount`,`metal_rate`,`metal_amount`,`stone_amount`,`wastage_pct`,`wastage_qty`,`disc_amount`,`total_amount`,`total_with_vat`,`net_amount`,`stone_wt`,`net_wt`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
                     cancellationToken,
                         id,
                     lineNo++,
@@ -434,7 +439,9 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                     RoundNonNeg(line.DiscountAmount, 2),
                     totalAmount,
                     lineTotalWithVat,
-                    netAmount).ConfigureAwait(false);
+                    netAmount,
+                    RoundNonNeg(line.StoneWeight, 4),
+                    RoundNonNeg(Math.Max(0m, grossWeight - RoundNonNeg(line.StoneWeight, 4)), 4)).ConfigureAwait(false);
             }
 
             if (taggedLines.Length > 0)

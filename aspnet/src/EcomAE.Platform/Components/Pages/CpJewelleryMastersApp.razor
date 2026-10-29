@@ -22,16 +22,9 @@
     <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     <ErpJewelleryReportsMenu />
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery master KPIs">
-        <div class="kpi"><div class="lbl">Karats</div><div class="val">@_summary.KaratCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Rate types</div><div class="val">@_summary.RateTypeCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Barcodes</div><div class="val">@_summary.BarcodeCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Diamonds</div><div class="val">@_summary.DiamondCount.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
     @if (_opened is not null)
     {
+        <ErpRecordDetailView Caption="@OpenedCaption" ListHref="@_listHref">
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong> <a class="btn btn-xs btn-default" href="@_listHref">Close</a></p>
             <dl class="epc-erp-facts">
@@ -86,7 +79,18 @@
                 <p class="text-muted">No same-division siblings yet.</p>
             }
         </div>
+            </ErpRecordDetailView>
     }
+    else
+    {
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery master KPIs">
+        <div class="kpi"><div class="lbl">Karats</div><div class="val">@_summary.KaratCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Rate types</div><div class="val">@_summary.RateTypeCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Barcodes</div><div class="val">@_summary.BarcodeCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Diamonds</div><div class="val">@_summary.DiamondCount.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
 
     <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.MasterTabs" />
 
@@ -737,6 +741,7 @@
         Source: @_source. Karat, rate-type, currency, diamond, design, pearl and color-stone, barcode and tag rows bind from the master tables <code>epc_jewel_karat_master</code>, <code>epc_jewel_rate_type</code> and <code>epc_jewel_currency</code>. Daily gold rates write <code>epc_gold_rates</code> and apply on invoices when the document metal rate is blank. Karat, rate-type, currency, diamond, design, pearl, color-stone, barcode generate, tag create/sell, gold-scheme create/enroll/pay, and daily gold rate are live when confirmed. Seed is not available on this page.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
+    }
 </PhpErpDesktopChrome>
 
 @code {

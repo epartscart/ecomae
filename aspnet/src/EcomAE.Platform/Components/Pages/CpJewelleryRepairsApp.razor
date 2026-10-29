@@ -27,41 +27,9 @@
     <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     <ErpJewelleryReportsMenu />
-
-    @if (_isAdmin)
-    {
-        <form method="post" action="/erp/ajax/jw-repair-update-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@ReturnHref" />
-            <label>ERP repair id <input type="number" name="repairId" min="1" required style="width:6rem" /></label>
-            <label>Status
-                <select name="newStatus">
-                    <option value="received">received</option>
-                    <option value="in_progress">in_progress</option>
-                    <option value="ready">ready</option>
-                    <option value="delivered">delivered</option>
-                    <option value="invoiced">invoiced</option>
-                </select>
-            </label>
-            <button type="submit">Save status</button>
-        </form>
-    }
-
-    <div class="jw-status-row" aria-label="Repair status counts">
-        @foreach (var st in ErpJewelleryModuleChrome.RepairStatuses)
-        {
-            var n = StatusCount(st.Key);
-            <div class="jw-status-card" style="border-left:4px solid @st.Color">
-                <div class="n" style="color:@st.Color">@n.ToString(CultureInfo.InvariantCulture)</div>
-                <div class="l">@st.Label</div>
-            </div>
-        }
-    </div>
-
-    <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.RepairTabs" />
-
     @if (_opened is not null)
     {
+        <ErpRecordDetailView Caption="@OpenedCaption" ListHref="@_listHref" PrintHref="@($"/erp/jewellery/voucher-print?id={_openedId}&kind=repair")" DesignKind="jw_repair">
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong> <a class="btn btn-xs btn-default" href="@_listHref">Close</a></p>
             <dl class="epc-erp-facts">
@@ -125,7 +93,43 @@
                 <p class="text-muted">No same-status siblings yet.</p>
             }
         </div>
+            </ErpRecordDetailView>
     }
+    else
+    {
+
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/ajax/jw-repair-update-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@ReturnHref" />
+            <label>ERP repair id <input type="number" name="repairId" min="1" required style="width:6rem" /></label>
+            <label>Status
+                <select name="newStatus">
+                    <option value="received">received</option>
+                    <option value="in_progress">in_progress</option>
+                    <option value="ready">ready</option>
+                    <option value="delivered">delivered</option>
+                    <option value="invoiced">invoiced</option>
+                </select>
+            </label>
+            <button type="submit">Save status</button>
+        </form>
+    }
+
+    <div class="jw-status-row" aria-label="Repair status counts">
+        @foreach (var st in ErpJewelleryModuleChrome.RepairStatuses)
+        {
+            var n = StatusCount(st.Key);
+            <div class="jw-status-card" style="border-left:4px solid @st.Color">
+                <div class="n" style="color:@st.Color">@n.ToString(CultureInfo.InvariantCulture)</div>
+                <div class="l">@st.Label</div>
+            </div>
+        }
+    </div>
+
+    <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.RepairTabs" />
+
 
     @if (_isAdmin && _tab == "jw_repairs")
     {
@@ -352,6 +356,7 @@
         Source: @_source. Jobs bind from <code>epc_jewel_repair</code> and <code>epc_erp_jw_repairs</code>. Create, status, receipt, transfer, workshop-receive, and delivery writes are live when confirmed. Sample seed is not available on this page.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
+    }
 </PhpErpDesktopChrome>
 
 @code {

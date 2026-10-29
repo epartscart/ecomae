@@ -89,8 +89,15 @@
         form.querySelectorAll('[name="addin_amount"]').forEach(function (amountEl) {
             var row = amountEl.closest('tr');
             var amount = num(amountEl.value);
-            if (amount === 0 && row) {
-                amount = r(t.total * num(getNamed(row, 'addin_pct')) / 100, 2);
+            var pctValue = row ? num(getNamed(row, 'addin_pct')) : 0;
+            if (pctValue > 0) {
+                amount = r(t.total * pctValue / 100, 2);
+                amountEl.value = amount.toFixed(2);
+                amountEl.setAttribute('data-jw-auto', '1');
+            } else if (amountEl.getAttribute('data-jw-auto') === '1') {
+                amount = 0;
+                amountEl.value = '0';
+                amountEl.removeAttribute('data-jw-auto');
             }
             other += amount;
         });

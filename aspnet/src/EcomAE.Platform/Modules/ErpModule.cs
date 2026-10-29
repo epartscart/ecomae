@@ -10703,7 +10703,8 @@ public sealed class ErpModule : ISurfaceModule
                             StoneAmount: LiveWriteFormBinder.DecAt(form, "line_stone_amount", index),
                             WastagePercent: LiveWriteFormBinder.DecAt(form, "line_wastage_pct", index),
                             WastageQuantity: LiveWriteFormBinder.DecAt(form, "line_wastage_qty", index),
-                            DiscountAmount: LiveWriteFormBinder.DecAt(form, "line_disc_amount", index)))
+                            DiscountAmount: LiveWriteFormBinder.DecAt(form, "line_disc_amount", index),
+                            StoneWeight: LiveWriteFormBinder.DecAt(form, "line_stone_wt", index)))
                         .Where(line =>
                             !string.IsNullOrWhiteSpace(line.StockCode)
                             || !string.IsNullOrWhiteSpace(line.Description)

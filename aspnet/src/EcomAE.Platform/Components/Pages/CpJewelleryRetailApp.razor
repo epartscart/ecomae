@@ -19,70 +19,9 @@
     <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     <ErpJewelleryReportsMenu />
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery retail stats">
-        <div class="kpi"><div class="lbl">Vouchers</div><div class="val">@_summary.VoucherCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Open vouchers</div><div class="val">@_summary.OpenVouchers.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Tags</div><div class="val">@_summary.TagCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Metal stock rows</div><div class="val">@_summary.MetalStockRows.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.RetailTabs" />
-
-    <div class="epc-erp-empty" style="display:block;margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#f8fafc;color:#334155;">
-        <strong>Metal books.</strong> Net weight is gross minus stones and other material. Pure gold is that net times purity per thousand. An exchange keeps the full sale and the old-gold purchase apart. A POS line keeps metal, making, stones, and VAT, and the cash taken cannot exceed that sale. A melt records the variance and leaves the original tag weight in place.
-        <a href="@WorkbookHref("template")">Download template</a>
-        <a href="@WorkbookHref("package")">Download package</a>
-    </div>
-
-    @if (_isAdmin)
-    {
-        <div class="epc-erp-empty" style="display:block;margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#f8fafc;">
-            <form method="get" action="@_appPath" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0;">
-                <input type="hidden" name="tab" value="@_tab" />
-                @if (_company > 0)
-                {
-                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
-                }
-                <label>Tag / barcode / stock code
-                    <input class="form-control input-sm" name="lookup" value="@_lookupQuery" maxlength="100" />
-                </label>
-                <button type="submit" class="btn btn-default btn-sm">Find item</button>
-            </form>
-            @if (_lookupQuery.Length > 0)
-            {
-                <p class="text-muted" style="margin:.6rem 0 .35rem">@_lookupMessage</p>
-                @if (_lookupRows.Count > 0)
-                {
-                    <div class="epc-erp-table-wrap">
-                        <table class="table table-bordered table-condensed table-epc epc-erp-table">
-                            <thead>
-                                <tr><th>Source</th><th>Tag</th><th>Barcode</th><th>Description / stock</th><th>Status</th><th>Gross wt</th><th>Net wt</th><th>Sell price</th></tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in _lookupRows)
-                                {
-                                    <tr>
-                                        <td>@item.SourceTable</td>
-                                        <td>@(string.IsNullOrWhiteSpace(item.TagNo) ? "—" : item.TagNo)</td>
-                                        <td>@(string.IsNullOrWhiteSpace(item.Barcode) ? "—" : item.Barcode)</td>
-                                        <td>@(string.IsNullOrWhiteSpace(item.Description) ? "—" : item.Description)</td>
-                                        <td>@(string.IsNullOrWhiteSpace(item.Status) ? "—" : item.Status)</td>
-                                        <td>@item.GrossWeight.ToString("N4", CultureInfo.InvariantCulture)</td>
-                                        <td>@item.NetWeight.ToString("N4", CultureInfo.InvariantCulture)</td>
-                                        <td>@item.SellPrice.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
-            }
-        </div>
-    }
-
     @if (_opened is not null)
     {
+        <ErpRecordDetailView Caption="@OpenedCaption" ListHref="@_listHref" PrintHref="@($"/erp/jewellery/voucher-print?id={_openedId}")" DesignKind="invoice" GlReferencePrefix="@($"JW-V-{_openedId}-")">
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong> <a class="btn btn-xs btn-default" href="@_listHref">Close</a></p>
             <dl class="epc-erp-facts">
@@ -197,7 +136,72 @@
                 <p class="text-muted">No same-status siblings yet.</p>
             }
         </div>
+            </ErpRecordDetailView>
     }
+    else
+    {
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery retail stats">
+        <div class="kpi"><div class="lbl">Vouchers</div><div class="val">@_summary.VoucherCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Open vouchers</div><div class="val">@_summary.OpenVouchers.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Tags</div><div class="val">@_summary.TagCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Metal stock rows</div><div class="val">@_summary.MetalStockRows.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.RetailTabs" />
+
+    <div class="epc-erp-empty" style="display:block;margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#f8fafc;color:#334155;">
+        <strong>Metal books.</strong> Net weight is gross minus stones and other material. Pure gold is that net times purity per thousand. An exchange keeps the full sale and the old-gold purchase apart. A POS line keeps metal, making, stones, and VAT, and the cash taken cannot exceed that sale. A melt records the variance and leaves the original tag weight in place.
+        <a href="@WorkbookHref("template")">Download template</a>
+        <a href="@WorkbookHref("package")">Download package</a>
+    </div>
+
+    @if (_isAdmin)
+    {
+        <div class="epc-erp-empty" style="display:block;margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#f8fafc;">
+            <form method="get" action="@_appPath" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0;">
+                <input type="hidden" name="tab" value="@_tab" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Tag / barcode / stock code
+                    <input class="form-control input-sm" name="lookup" value="@_lookupQuery" maxlength="100" />
+                </label>
+                <button type="submit" class="btn btn-default btn-sm">Find item</button>
+            </form>
+            @if (_lookupQuery.Length > 0)
+            {
+                <p class="text-muted" style="margin:.6rem 0 .35rem">@_lookupMessage</p>
+                @if (_lookupRows.Count > 0)
+                {
+                    <div class="epc-erp-table-wrap">
+                        <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                            <thead>
+                                <tr><th>Source</th><th>Tag</th><th>Barcode</th><th>Description / stock</th><th>Status</th><th>Gross wt</th><th>Net wt</th><th>Sell price</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in _lookupRows)
+                                {
+                                    <tr>
+                                        <td>@item.SourceTable</td>
+                                        <td>@(string.IsNullOrWhiteSpace(item.TagNo) ? "—" : item.TagNo)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(item.Barcode) ? "—" : item.Barcode)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(item.Description) ? "—" : item.Description)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(item.Status) ? "—" : item.Status)</td>
+                                        <td>@item.GrossWeight.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                        <td>@item.NetWeight.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                        <td>@item.SellPrice.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+        </div>
+    }
+
 
     @if (_isAdmin && _tab == "jw_pos_advance")
     {
@@ -543,6 +547,7 @@
         Source: @_source. Retail vouchers bind from <code>epc_jewel_voucher</code>. Voucher save is live when confirmed. Other retail forms stay dry-run.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
+    }
 </PhpErpDesktopChrome>
 
 @code {
