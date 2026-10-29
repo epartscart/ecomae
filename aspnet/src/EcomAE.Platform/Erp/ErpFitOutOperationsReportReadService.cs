@@ -135,7 +135,7 @@ public sealed class ErpFitOutOperationsReportReadService
         }
         catch (DbException exception)
         {
-            return new([], "database-error", exception.Message);
+            return new([], ErpDb.IsMissingTable(exception) ? "empty" : "database-error", exception.Message);
         }
 
         return new(rows, "database", string.Empty);

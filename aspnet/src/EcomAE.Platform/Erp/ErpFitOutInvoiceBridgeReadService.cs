@@ -86,7 +86,7 @@ public sealed class ErpFitOutInvoiceBridgeReadService : IErpFitOutInvoiceBridgeR
         }
         catch (DbException exception)
         {
-            return Empty(projectId, exception.Message, "database-error");
+            return Empty(projectId, exception.Message, ErpDb.IsMissingTable(exception) ? "empty" : "database-error");
         }
     }
 

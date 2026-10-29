@@ -91,7 +91,7 @@ public sealed class ErpFitOutBoqReadService : IErpFitOutBoqReadService
         }
         catch (DbException exception)
         {
-            return Empty(estimateId, exception.Message, "database-error");
+            return Empty(estimateId, exception.Message, ErpDb.IsMissingTable(exception) ? "empty" : "database-error");
         }
     }
 
