@@ -181,7 +181,7 @@ public static class ErpGoldRateBoard
             connection,
             null,
             ErpDb.Positional(
-                "SELECT `rate_date` FROM `epc_gold_rates` WHERE `company_id` = ? AND `currency` = ? AND `rate_date` < ? ORDER BY `rate_date` DESC LIMIT 1"),
+                "SELECT DATE_FORMAT(`rate_date`, '%Y-%m-%d') FROM `epc_gold_rates` WHERE `company_id` = ? AND `currency` = ? AND `rate_date` < ? ORDER BY `rate_date` DESC LIMIT 1"),
             cancellationToken,
             companyId,
             currency,

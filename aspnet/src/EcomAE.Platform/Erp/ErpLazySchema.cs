@@ -1774,6 +1774,9 @@ internal static class ErpLazySchema
         await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_suppliers` ROW_FORMAT=DYNAMIC", ct).ConfigureAwait(false);
         (string Column, string Definition)[] columns =
         [
+            ("storage_id", "int(11) DEFAULT NULL"),
+            ("currency_code", "varchar(8) NOT NULL DEFAULT 'AED'"),
+            ("balance", "decimal(14,2) NOT NULL DEFAULT 0"),
             ("country_code", "varchar(8) NOT NULL DEFAULT 'AE'"),
             ("vat_registered", "tinyint(1) NOT NULL DEFAULT 1"),
             ("vendor_account", "varchar(32) DEFAULT NULL"),
