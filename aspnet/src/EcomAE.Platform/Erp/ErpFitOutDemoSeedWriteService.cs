@@ -104,6 +104,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         var site = await SeedSiteRecordsAsync(projects, suppliers, marks, cancellationToken).ConfigureAwait(false);
         var claims = await SeedClaimsAndRecognitionAsync(projects, marks, cancellationToken).ConfigureAwait(false);
         var allocations = await SeedAllocationsAsync(projects, marks, connection, cancellationToken).ConfigureAwait(false);
+        var cashAccounts = await SeedCashAccountsAsync(connection, marks, cancellationToken).ConfigureAwait(false);
         await ApproveDemoClaimsAsync(connection, cancellationToken).ConfigureAwait(false);
         await PersistMarksAsync(connection, marks, cancellationToken).ConfigureAwait(false);
 
@@ -121,7 +122,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
                + budgets + " budgets, " + procurement + " procurement links/matches, "
                + movements + " material movements, " + site + " site records, "
                + claims + " claims/recognition postings, " + allocations
-               + " allocation rows. Total contract value "
+               + " allocation rows, " + cashAccounts + " cash/bank accounts. Total contract value "
                + projects.Sum(p => p.ContractValue).ToString("N0", CultureInfo.InvariantCulture)
                + " across the demo projects. " + glNote;
     }
@@ -331,6 +332,57 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         }
     }
 
+    private async Task<int> SeedCashAccountsAsync(
+        DbConnection connection,
+        DemoMarks marks,
+        CancellationToken ct)
+    {
+        if (!await ErpDb.TableKnownAsync(connection, "epc_erp_cash_bank_accounts", ct).ConfigureAwait(false))
+        {
+            return 0;
+        }
+
+        var count = 0;
+        var rows = new (string Name, string Type, string Bank, string Num, decimal Opening)[]
+        {
+            ("DEMO | Main petty cash", "cash", "", "", 25000m),
+            ("DEMO | Emirates NBD operating account", "bank", "Emirates NBD", "0012-345678-901", 180000m),
+            ("DEMO | FAB savings account", "bank", "First Abu Dhabi Bank", "0456-789012-345", 93240m),
+        };
+        foreach (var (name, type, bank, num, opening) in rows)
+        {
+            try
+            {
+                var exists = await ErpDb.LongAsync(
+                    connection, null,
+                    ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_cash_bank_accounts` WHERE `name`=?"),
+                    ct, name).ConfigureAwait(false);
+                if (exists > 0)
+                {
+                    continue;
+                }
+
+                await ErpDb.ExecuteAsync(
+                    connection, null,
+                    ErpDb.Positional("""
+                        INSERT INTO `epc_erp_cash_bank_accounts`
+                            (`name`,`account_type`,`bank_name`,`account_number`,`currency_code`,
+                             `opening_balance`,`office_id`,`active`,`time_created`)
+                        VALUES (?,?,?,?,'AED',?,0,1,UNIX_TIMESTAMP())
+                        """),
+                    ct, name, type, bank, num, opening).ConfigureAwait(false);
+                var id = await ErpDb.LongAsync(connection, null, "SELECT LAST_INSERT_ID()", ct).ConfigureAwait(false);
+                marks.Add("epc_erp_cash_bank_accounts", id);
+                count++;
+            }
+            catch (DbException)
+            {
+            }
+        }
+
+        return count;
+    }
+
     /// <summary>
     /// Tables that can hold seeded demo rows (registry-keyed on `id`).
     /// Account tables are deliberately absent — demo clear never touches them.
@@ -355,6 +407,7 @@ public sealed class ErpFitOutDemoSeedWriteService : IErpFitOutDemoSeedWriteServi
         yield return "epc_warehouses";
         yield return "epc_erp_customers";
         yield return "epc_prj_projects";
+        yield return "epc_erp_cash_bank_accounts";
     }
 
     private static async Task EnsureProjectsTableAsync(DbConnection connection, CancellationToken ct)
