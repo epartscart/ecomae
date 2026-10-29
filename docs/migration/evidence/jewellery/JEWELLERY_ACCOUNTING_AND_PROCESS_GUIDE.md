@@ -108,6 +108,24 @@ Loaded by the INDUS samples (Workspace › INDUS migration › Load INDUS sample
 | Return of a 22K ring | SRT | contra revenue, VAT reversal, stock back |
 | INDUS GH-5120, HO-210, HO-37047, SFX-218, journal, petty cash, repair, stock count | INDUS samples | full INDUS workflow |
 
+## 7a. Reconciliation evidence (sandbox, company 1, 1 Jan – 30 Oct 2026, release 6f75c7b71)
+
+| Check | Expected | Actual | Result |
+|---|---:|---:|---|
+| Unbalanced journals | 0 | 0 | PASS |
+| Trial balance Dr − Cr | 0.00 | 0.00 | PASS |
+| Assets = liabilities + equity + result | 1,087,156.51 | 1,087,156.51 | PASS |
+| GL 1300+1320 vs stock sub-ledger | 709,852.71 | 710,901.12 | DIFFERENCE 1,048.41 |
+| Output VAT 2100 | 3,401.47 | 3,401.47 | PASS |
+| Input VAT 1150 | 8,530.53 | 8,530.53 | PASS |
+| COGS 5000 | 35,684.17 | 35,684.17 | PASS |
+| Cash flow vs cash movement | 50,393.36 | 50,393.36 | PASS |
+| Changes in equity | 338,179.29 | 338,179.29 | PASS |
+
+The flagged purchase vouchers are RMP-1 (#20, posted 5,000.00 against a stock cost of 43,211.75) and RMP-3 (#22, posted 200.00 against 4,866.93). These are pre-rebuild vouchers whose stock never moved, and they await approved adjusting journals. The remaining 1,048.41 inventory difference comes from older demo data (a non-jewellery journal to 1300 and opening rows); it is for review.
+
+Dashboard gold position on the same date: 1,636.400 g gross / 1,601.775 g pure in stock, at AED 706,072.71 cost (AED 440.81 per pure g). In the period: sold 362.000 g (AED 195,180.01), purchased 687.000 g (AED 215,849.59), returned 5.000 g, and old gold taken in AED 2,000.00. ECL matrix proposal: AED 1,129.07. NRV indicator: AED 332.87 (stock code 9872 only).
+
 ## 8. Known limitations and decisions for the accountant
 
 - **Old purchase vouchers:** purchases saved before the Metal purchase rebuild posted only the VAT base to 1300 (e.g. voucher #20 posted 5,000 while 43,211.75 entered stock). New postings use the stock cost. The old ones are listed in the reconciliation and need adjusting journals.
