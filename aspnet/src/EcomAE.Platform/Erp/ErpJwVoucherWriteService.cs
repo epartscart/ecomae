@@ -601,7 +601,12 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                 cancellationToken).ConfigureAwait(false);
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return ErpSimpleWriteResult.Ok(vocType + " voucher " + vocNo.ToString(CultureInfo.InvariantCulture) + " saved", id);
+            // Purchases add to, sales take from, returns put back into the metal stock master (pcs, gross wt, value at cost).
+            var stockNotes = new List<string>();
+            var moved = await ErpJewelleryGl.ApplyStockAsync(connection, id, stockNotes, cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok(vocType + " voucher " + vocNo.ToString(CultureInfo.InvariantCulture) + " saved"
+                + (moved > 0 ? "; stock updated (" + moved.ToString(CultureInfo.InvariantCulture) + " line" + (moved == 1 ? "" : "s") + ")" : "")
+                + (stockNotes.Count > 0 ? ". " + string.Join(" ", stockNotes) : ""), id);
         }
         catch
         {
