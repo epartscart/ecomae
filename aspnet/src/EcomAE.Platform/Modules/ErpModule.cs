@@ -539,6 +539,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryIndusClear, HandleJewelleryIndusClearAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpJewelleryIndusTemplate, HandleJewelleryIndusTemplateAsync);
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryIndusMasterSave, HandleJewelleryIndusMasterSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryIfrsAdjust, HandleJewelleryIfrsAdjustAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpJewelleryVoucherPrint, HandleJewelleryVoucherPrintAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutWorkbook, HandleFitOutWorkbookAsync);
         endpoints.MapGet(EcomAeRoutes.ErpAsapWorkbook, HandleAsapWorkbookAsync);
@@ -29274,6 +29275,33 @@ public sealed class ErpModule : ISurfaceModule
     private const string IndusReturnUrl = "/erp/jewellery/workspace?tab=indus";
 
     /// <summary>INDUS CSV import: multipart files (or csv text) + template; dry-run unless confirmWrites; sandbox only.</summary>
+    private static async Task<IResult> HandleJewelleryIfrsAdjustAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpJwIfrsAdjustmentWriteService adjustments,
+        CancellationToken cancellationToken)
+    {
+        const string back = "/erp/jewellery/workspace?tab=month-end#ifrs-adjust";
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + Uri.EscapeDataString(back), "Admin ERP capability required for IFRS adjustments.");
+        }
+
+        if (!context.Request.HasFormContentType)
+        {
+            return Results.BadRequest(new { ok = false, writes = 0, message = "Post a form with kind + fields." });
+        }
+
+        var form = await context.Request.ReadFormAsync(cancellationToken);
+        var values = form.Keys.ToDictionary(k => k, k => form[k].ToString(), StringComparer.OrdinalIgnoreCase);
+        var written = await adjustments.PostAsync(
+            new ErpJwIfrsAdjustRequest(form["kind"].ToString().Trim(), values, LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"), (int)session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(context, back, written.Succeeded, written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, id = written.Id, message = written.Message });
+    }
+
     private static async Task<IResult> HandleJewelleryIndusMasterSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,

@@ -27,6 +27,17 @@ public static class ErpJewelleryGl
         (CustomerAdvanceAccount, "Customer advances (POS)", "liability", "credit", "POS receipts / advances from retail customers (INDUS 2801)"),
         (OpeningEquityAccount, "Opening balance equity", "equity", "credit", "Contra for migrated opening stock and balances"),
         (SalesReturnAccount, "Sales returns", "revenue", "debit", "Contra revenue — POS sales returns / tax credit notes"),
+        (ErpJwIfrsAdjustments.LossAllowanceAccount, "Loss allowance — trade receivables (IFRS 9)", "asset", "credit", "Expected credit loss allowance, contra receivables"),
+        (ErpJwIfrsAdjustments.RouAssetAccount, "Right-of-use assets (IFRS 16)", "asset", "debit", "Leased premises / equipment at cost"),
+        (ErpJwIfrsAdjustments.RouDepreciationAccount, "Accumulated depreciation — right-of-use", "asset", "credit", "Contra right-of-use assets"),
+        (ErpJwIfrsAdjustments.ProvisionAccount, "Provisions (IAS 37)", "liability", "credit", "Present obligations of uncertain timing or amount"),
+        (ErpJwIfrsAdjustments.LeaseLiabilityAccount, "Lease liabilities (IFRS 16)", "liability", "credit", "Present value of unpaid lease payments"),
+        (ErpJwIfrsAdjustments.WriteDownAccount, "Inventory write-down to NRV (IAS 2)", "expense", "debit", "Cost of sales — write-down"),
+        (ErpJwIfrsAdjustments.TrueUpAccount, "Inventory reconciliation difference", "expense", "debit", "Approved GL vs stock sub-ledger true-up"),
+        (ErpJwIfrsAdjustments.EclExpenseAccount, "Impairment loss on receivables (IFRS 9)", "expense", "debit", "Movement in expected credit loss allowance"),
+        (ErpJwIfrsAdjustments.ProvisionExpenseAccount, "Provision expense (IAS 37)", "expense", "debit", "Recognition / remeasurement of provisions"),
+        (ErpJwIfrsAdjustments.RouDepreciationExpenseAccount, "Depreciation — right-of-use (IFRS 16)", "expense", "debit", "Straight-line over the lease term"),
+        (ErpJwIfrsAdjustments.LeaseInterestAccount, "Interest on lease liabilities (IFRS 16)", "expense", "debit", "Effective interest on the lease liability"),
     ];
 
     public static async Task EnsureCoaAsync(DbConnection connection, CancellationToken cancellationToken)

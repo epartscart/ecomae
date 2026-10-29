@@ -3119,6 +3119,7 @@ public static class EcomAeRoutes
     /// <summary>Downloads an INDUS CSV template (key=…, blank=1 for headers only, key=fieldmap for the field map).</summary>
     public const string ErpJewelleryIndusTemplate = "/erp/jewellery/indus-template";
     public const string ErpJewelleryIndusMasterSave = "/erp/jewellery/indus-master-save";
+    public const string ErpJewelleryIfrsAdjust = "/erp/jewellery/ifrs-adjust";
     /// <summary>INDUS-style print preview: tax invoice, credit note, purchase, receipt, JV, petty cash, fixing, repair.</summary>
     public const string ErpJewelleryVoucherPrint = "/erp/jewellery/voucher-print";
 
