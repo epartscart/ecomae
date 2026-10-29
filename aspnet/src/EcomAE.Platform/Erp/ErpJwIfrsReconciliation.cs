@@ -167,7 +167,7 @@ public sealed class ErpJwIfrsReconciliationReadService : IErpJwIfrsReconciliatio
 
         var unbalanced = (int)await ErpDb.LongAsync(c, null, ErpDb.Positional(
             "SELECT COUNT(*) FROM (SELECT l.`journal_id` FROM `epc_erp_gl_lines` l JOIN `epc_erp_gl_journals` j ON j.`id`=l.`journal_id` WHERE" + scope
-            + " GROUP BY l.`journal_id` HAVING ABS(SUM(l.`debit`)-SUM(l.`credit`))>0.004) x"), cancellationToken, companyId).ConfigureAwait(false);
+            + "AND " + JournalUnix + "<? GROUP BY l.`journal_id` HAVING ABS(SUM(l.`debit`)-SUM(l.`credit`))>0.004) x"), cancellationToken, companyId, toUnix).ConfigureAwait(false);
         var checks = ErpJwIfrsRules.LedgerChecks(accounts, unbalanced);
 
         decimal Bal(Func<ErpJwIfrsAccount, bool> f) => accounts.Where(f).Sum(a => a.Closing);
@@ -179,8 +179,9 @@ public sealed class ErpJwIfrsReconciliationReadService : IErpJwIfrsReconciliatio
         var gaps = new List<(string, decimal, decimal)>();
         if (jewel)
         {
+            // The stock master holds only the current position, so it is comparable to the ledger only up to today.
             var stockValue = await ErpDb.DecimalAsync(c, null, ErpDb.Positional("SELECT IFNULL(SUM(`stock_value`),0) FROM `epc_jewel_metal_stock` WHERE `company_id` IN (0,?)"), cancellationToken, companyId).ConfigureAwait(false);
-            checks.Add(ErpJwIfrsRules.Check("Inventory", "IAS 2.36", "GL inventory 1300 + 1320 vs stock sub-ledger value",
+            if (end >= today) checks.Add(ErpJwIfrsRules.Check("Inventory", "IAS 2.36", "GL inventory 1300 + 1320 vs stock sub-ledger value",
                 stockValue + Bal(a => a.Code == "1320"), Bal(a => a.Code is "1300" or "1320"),
                 "Differences come from non-jewellery journals to 1300 or vouchers whose posted cost differs from the stock moved (listed below)."));
 
@@ -204,10 +205,11 @@ public sealed class ErpJwIfrsReconciliationReadService : IErpJwIfrsReconciliatio
                 + await VoucherSum("v.`vat_amount`", ErpJwVocTypes.AdvanceAliases).ConfigureAwait(false)
                 - await VoucherSum("v.`vat_amount`", ErpJwVocTypes.SalesReturnAliases).ConfigureAwait(false);
             var rcm = await VoucherSum("v.`rcm_vat`", purchases).ConfigureAwait(false);
-            var inVat = await VoucherSum("v.`vat_amount`", purchases).ConfigureAwait(false);
+            var inVat = await VoucherSum("v.`vat_amount`", purchases).ConfigureAwait(false)
+                + await VoucherSum("(SELECT IFNULL(SUM(a.`amount`),0) FROM `epc_jewel_voucher_addins` a WHERE a.`voucher_id`=v.`id` AND a.`debit_ac`='" + ErpAutoPartsIfrs.InputVatAccount + "')", ErpJwVocTypes.JournalAliases).ConfigureAwait(false);
             checks.Add(ErpJwIfrsRules.Check("VAT", "UAE VAT Law Art. 25 / FTA VAT201 box 1", "Output VAT 2100 period credit vs jewellery documents (sales + advances − credit notes + RCM)",
                 outVat + rcm, -Mov(a => a.Code == "2100"), "Other ERP modules posting to 2100 also show here."));
-            checks.Add(ErpJwIfrsRules.Check("VAT", "UAE VAT Law Art. 54 / VAT201 box 9-10", "Input VAT 1150 period debit vs purchase documents (+ reverse charge)",
+            checks.Add(ErpJwIfrsRules.Check("VAT", "UAE VAT Law Art. 54 / VAT201 box 9-10", "Input VAT 1150 period debit vs purchase documents + journal-voucher VAT (+ reverse charge)",
                 inVat + rcm, Mov(a => a.Code == "1150")));
             var cogs = await ErpDb.DecimalAsync(c, null, ErpDb.Positional(
                 "SELECT IFNULL(SUM(CASE WHEN v.`voc_type` IN (" + string.Join(",", ErpJwVocTypes.SalesReturnAliases.Select(_ => "?")) + ") THEN -l.`cost_amount` ELSE l.`cost_amount` END),0)"
@@ -224,9 +226,11 @@ public sealed class ErpJwIfrsReconciliationReadService : IErpJwIfrsReconciliatio
                 cmd.CommandText = ErpDb.Positional(
                     "SELECT CONCAT(v.`voc_type`,'-',v.`voc_no`,' (#',v.`id`,')'),IFNULL((SELECT SUM(gl.`debit`) FROM `epc_erp_gl_journals` gj JOIN `epc_erp_gl_lines` gl ON gl.`journal_id`=gj.`id`"
                     + " JOIN `epc_erp_coa_accounts` ga ON ga.`id`=gl.`coa_id` WHERE gj.`reference`=CONCAT('JW-V-',v.`id`,'-PUR') AND ga.`code`='1300'),0),"
-                    + " IFNULL((SELECT SUM(x.`cost_amount`) FROM `epc_jewel_voucher_lines` x WHERE x.`voucher_id`=v.`id`),0)"
-                    + " FROM `epc_jewel_voucher` v WHERE v.`company_id` IN (0,?) AND v.`voc_type` IN (" + string.Join(",", purchases.Select(_ => "?")) + ") ORDER BY v.`id`");
-                ErpDb.AddParameters(cmd, purchases.Cast<object?>().Prepend(companyId).ToArray());
+                    + " IFNULL((SELECT SUM(IF(x.`cost_amount`>0,x.`cost_amount`,x.`total_amount`)) FROM `epc_jewel_voucher_lines` x WHERE x.`voucher_id`=v.`id`),0)"
+                    + " FROM `epc_jewel_voucher` v WHERE v.`company_id` IN (0,?) AND v.`voc_type` IN (" + string.Join(",", purchases.Select(_ => "?")) + ")"
+                    + " AND DATE(v.`voc_date`)>=? AND DATE(v.`voc_date`)<=? ORDER BY v.`id`");
+                ErpDb.AddParameters(cmd, purchases.Cast<object?>().Prepend(companyId)
+                    .Append(start.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).Append(end.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray());
                 await using var r = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await r.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -236,7 +240,11 @@ public sealed class ErpJwIfrsReconciliationReadService : IErpJwIfrsReconciliatio
                 }
             }
 
-            var rate24 = await ErpGoldRateBoard.ResolveSellAsync(c, (int)companyId, "24K", "AED", end.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), cancellationToken).ConfigureAwait(false);
+            // NRV uses the latest entered 24K buy rate on or before the end date; system carry-forward copies rank last.
+            var rate24 = await ErpDb.DecimalAsync(c, null, ErpDb.Positional(
+                "SELECT `buy_rate` FROM `epc_gold_rates` WHERE `company_id` IN (0,?) AND `karat`='24K' AND `currency`='AED' AND `buy_rate`>0 AND `rate_date`<=?"
+                + " ORDER BY `rate_date` DESC,(`created_by`='system') ASC,`id` DESC LIMIT 1"),
+                cancellationToken, companyId, end.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ConfigureAwait(false);
             if (rate24 > 0)
             {
                 await using var cmd = c.CreateCommand();

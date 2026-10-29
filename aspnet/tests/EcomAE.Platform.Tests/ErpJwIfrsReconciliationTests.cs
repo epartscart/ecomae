@@ -24,13 +24,14 @@ public sealed class ErpJwIfrsReconciliationTests
     public void PurchaseIsCapitalisedAtTheStockCostNotTheVatBase()
     {
         // Metal 38,211.75 + making 5,000 entered stock; header net held only the 5,000 VAT base.
-        var cost = ErpJewelleryGl.PurchaseInventoryCost(43211.75m, 5000m);
+        var cost = ErpJewelleryGl.PurchaseInventoryCost(0m, 43211.75m, 5000m);
         Assert.Equal(43211.75m, cost);
         var journal = ErpAutoPartsIfrs.PurchaseReceived(cost, 250m);
         Assert.Equal(Dr(journal), Cr(journal));
         Assert.Contains(journal, l => l.Code == ErpAutoPartsIfrs.InventoryAccount && l.Debit == 43211.75m);
         Assert.Contains(journal, l => l.Code == ErpAutoPartsIfrs.ApAccount && l.Credit == 43461.75m);
-        Assert.Equal(5000m, ErpJewelleryGl.PurchaseInventoryCost(0m, 5000m));
+        Assert.Equal(5000m, ErpJewelleryGl.PurchaseInventoryCost(0m, 0m, 5000m));
+        Assert.Equal(42000m, ErpJewelleryGl.PurchaseInventoryCost(42000m, 43211.75m, 5000m));
     }
 
     [Fact]
