@@ -82,7 +82,7 @@
                                 <td>@(string.IsNullOrWhiteSpace(sib.RepairNo) ? "—" : sib.RepairNo)</td>
                                 <td>@(string.IsNullOrWhiteSpace(sib.CustomerName) ? "—" : sib.CustomerName)</td>
                                 <td>@(string.IsNullOrWhiteSpace(sib.Status) ? "—" : sib.Status)</td>
-                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "repair_id", sib.Id)">Open</a></td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "repair_id", sib.Id)" target="_blank" rel="noopener">Open</a></td>
                             </tr>
                         }
                     </tbody>
@@ -344,7 +344,7 @@
                                     }
                                 </td>
                             }
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "repair_id", row.Id)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "repair_id", row.Id)" target="_blank" rel="noopener">Open</a></td>
                         </tr>
                     }
                 }

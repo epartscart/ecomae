@@ -10834,9 +10834,12 @@ public sealed class ErpModule : ISurfaceModule
                     && context.Request.HasFormContentType
                     && string.Equals(context.Request.Form["after_save"].ToString(), "print", StringComparison.OrdinalIgnoreCase))
                 {
+                    var isPurchase = ErpJwVocTypes.Matches(resolvedType, ErpJwVocTypes.MetalPurchaseAliases)
+                        || ErpJwVocTypes.Matches(resolvedType, ErpJwVocTypes.DiamondPurchaseAliases);
                     return Results.Redirect(ClientErpPath.PrefixIfBound(
                         context,
-                        "/erp/purchase-print?jwId=" + written.Id.ToString(CultureInfo.InvariantCulture)));
+                        (isPurchase ? "/erp/purchase-print?jwId=" : "/erp/jewellery/voucher-print?id=")
+                            + written.Id.ToString(CultureInfo.InvariantCulture)));
                 }
             }
             return LiveWriteFormBinder.Complete(
