@@ -2,13 +2,19 @@
 @using EcomAE.Platform.Services
 @inject IHttpContextAccessor Http
 
-<nav class="epc-org-tabs jw-reports-menu" aria-label="Jewellery reports" style="font-size:12px">
-    <a href="@Href("/erp/jewellery/workspace")"><i class="fa fa-diamond"></i> Jewellery workspace</a>
-    @foreach (var link in ErpJewelleryWorkspace.ReportLinks)
-    {
-        <a href="@Href(link.Href)"><i class="fa @link.Icon"></i> @link.Label</a>
-    }
-</nav>
+<ErpJwEntryStyles />
+<div class="jw-reports-bar">
+    <a class="jw-reports-bar__home" href="@Href("/erp/jewellery/workspace")"><i class="fa fa-diamond" aria-hidden="true"></i> Jewellery workspace</a>
+    <details class="jw-reports-dd">
+        <summary><i class="fa fa-bar-chart" aria-hidden="true"></i> Reports &amp; prints</summary>
+        <nav class="jw-reports-menu" aria-label="Jewellery reports">
+            @foreach (var link in ErpJewelleryWorkspace.ReportLinks)
+            {
+                <a href="@Href(link.Href)"><i class="fa @link.Icon" aria-hidden="true"></i> @link.Label</a>
+            }
+        </nav>
+    </details>
+</div>
 
 @code {
     private string Href(string href)

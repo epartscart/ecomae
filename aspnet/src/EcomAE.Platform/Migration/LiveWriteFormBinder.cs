@@ -252,14 +252,16 @@ public static class LiveWriteFormBinder
         bool ok,
         string message,
         object json,
-        int failStatus = StatusCodes.Status400BadRequest)
+        int failStatus = StatusCodes.Status400BadRequest,
+        string? extraQuery = null)
     {
         if (WantsHtml(context))
         {
             var dest = ClientErpPath.PrefixIfBound(context, ReturnUrl(context, fallbackReturnUrl));
             var sep = dest.Contains('?', StringComparison.Ordinal) ? '&' : '?';
             var key = ok ? "ok" : "err";
-            return Results.Redirect(dest + sep + key + "=" + Uri.EscapeDataString(message ?? string.Empty));
+            return Results.Redirect(dest + sep + key + "=" + Uri.EscapeDataString(message ?? string.Empty)
+                + (string.IsNullOrEmpty(extraQuery) ? string.Empty : "&" + extraQuery));
         }
 
         return Results.Json(json, statusCode: ok ? StatusCodes.Status200OK : failStatus);

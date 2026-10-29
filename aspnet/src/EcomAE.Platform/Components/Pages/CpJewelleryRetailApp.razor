@@ -19,7 +19,6 @@
     <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     <ErpJewelleryReportsMenu />
-    <ErpManualProcessStrip Keys="jewellery" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery retail stats">
         <div class="kpi"><div class="lbl">Vouchers</div><div class="val">@_summary.VoucherCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -301,11 +300,11 @@
                     <label>Source invoice id <input class="form-control input-sm" name="ref_invoice_no" type="number" min="1" required /></label>
                 }
                 <label>Mobile <input class="form-control input-sm" name="mobile" /></label>
-                <label>Salesman <input class="form-control input-sm" name="salesman" /></label>
-                <label>Currency <input class="form-control input-sm" name="currency" value="AED" maxlength="5" /></label>
+                <ErpMasterPicker Kind="jw-salesman" FieldName="salesman" Label="Salesman" ValueMode="code" InputId="jw-retail-303" AllowNew="true" />
+                <ErpMasterPicker Kind="jw-currency" FieldName="currency" Label="Currency" ValueMode="code" InputId="jw-retail-304" SelectedCode="AED" />
                 <label>Currency rate <input class="form-control input-sm" name="currency_rate" type="number" step="0.000001" value="1" /></label>
-                <label>Line stock code <input class="form-control input-sm" name="line_stock_code" /></label>
-                <label>Tag / barcode <input class="form-control input-sm" name="line_tag_no" placeholder="optional physical tag" /></label>
+                <ErpMasterPicker Kind="jw-metal-stock" FieldName="line_stock_code" Label="Line stock code" ValueMode="code" InputId="jw-retail-306" />
+                <ErpMasterPicker Kind="jw-tag" FieldName="line_tag_no" Label="Tag / barcode" ValueMode="code" InputId="jw-retail-307" />
                 <label>Line description <input class="form-control input-sm" name="line_description" /></label>
                 <label>Division
                     <select class="form-control input-sm" name="line_division">
@@ -327,8 +326,8 @@
                 {
                     <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;width:100%;padding:.45rem 0;border-top:1px solid #e5e7eb;">
                         <span style="font-size:.8rem;color:#64748b;width:4rem">Line @extraLine</span>
-                        <label>Stock code <input class="form-control input-sm" name="line_stock_code" maxlength="20" /></label>
-                        <label>Tag / barcode <input class="form-control input-sm" name="line_tag_no" maxlength="100" /></label>
+                        <ErpMasterPicker Kind="jw-metal-stock" FieldName="line_stock_code" Label="Stock code" ValueMode="code" InputId="@("jw-retail-329-" + extraLine)" />
+                        <ErpMasterPicker Kind="jw-tag" FieldName="line_tag_no" Label="Tag / barcode" ValueMode="code" InputId="@("jw-retail-330-" + extraLine)" />
                         <label>Description <input class="form-control input-sm" name="line_description" maxlength="120" /></label>
                         <label>Division
                             <select class="form-control input-sm" name="line_division">
@@ -377,7 +376,7 @@
                 }
                 <label>Stock code <input class="form-control input-sm" name="stock_code" required placeholder="MST-001" maxlength="20" /></label>
                 <label>Division <input class="form-control input-sm" name="division" value="G" maxlength="2" style="width:4rem" /></label>
-                <label>Karat <input class="form-control input-sm" name="karat" value="22K" /></label>
+                <ErpMasterPicker Kind="jw-karat" FieldName="karat" Label="Karat" ValueMode="code" InputId="jw-retail-379" SelectedCode="22" />
                 <label>Gross wt <input class="form-control input-sm" name="gross_wt" type="number" step="0.0001" value="0" /></label>
                 <label>Purity <input class="form-control input-sm" name="purity" type="number" step="0.000001" value="0.916" /></label>
                 <label>Tag price <input class="form-control input-sm" name="tag_price" type="number" step="0.01" value="0" /></label>
@@ -447,7 +446,7 @@
                     <option value="callcenter">callcenter</option>
                 </select>
             </label>
-            <label>Currency <input type="text" name="currency" maxlength="8" placeholder="AED" style="width:5rem" /></label>
+            <ErpMasterPicker Kind="jw-currency" FieldName="currency" Label="Currency" ValueMode="code" InputId="jw-retail-449" />
             <label>Active
                 <select name="active">
                     <option value="1" selected>active</option>

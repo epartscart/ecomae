@@ -27,7 +27,6 @@
     <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     <ErpJewelleryReportsMenu />
-    <ErpManualProcessStrip Keys="jewellery" />
 
     @if (_isAdmin)
     {
@@ -144,7 +143,7 @@
                         <option value="Platinum">Platinum</option>
                     </select>
                 </label>
-                <label>Karat <input class="form-control input-sm" name="karat" placeholder="22K" style="width:70px;" /></label>
+                <ErpMasterPicker Kind="jw-karat" FieldName="karat" Label="Karat" ValueMode="code" InputId="jw-repairs-146" />
                 <label>Gross Wt (g) <input class="form-control input-sm" name="gross_wt_in" type="number" step="0.001" value="0.000" style="width:90px;" /></label>
                 <label>Net Wt (g) <input class="form-control input-sm" name="net_wt_in" type="number" step="0.001" value="0.000" style="width:90px;" /></label>
                 <label>Repair Type
@@ -173,7 +172,7 @@
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <ErpMasterPicker Kind="customer" FieldName="customer_name" InputId="jw-repair-receipt-customer" Label="Customer" ValueMode="name" Required="true" />
                 <label>Mobile <input class="form-control input-sm" name="mobile" /></label>
-                <label>Salesman <input class="form-control input-sm" name="salesman" /></label>
+                <ErpMasterPicker Kind="jw-salesman" FieldName="salesman" Label="Salesman" ValueMode="code" InputId="jw-repairs-175" AllowNew="true" />
                 <label>Est. Cost <input class="form-control input-sm" name="total_est_cost" type="number" step="0.01" value="0" style="width:90px;" /></label>
                 <label>Narration <input class="form-control input-sm" name="narration" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save repair receipt</button>

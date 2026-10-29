@@ -175,6 +175,10 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
         }
 
         var companyId = request.CompanyId < 0 ? 0 : request.CompanyId;
+        if (companyId == 0)
+        {
+            companyId = (int)await ErpLazySchema.ResolveActiveCompanyIdAsync(connection, 0, cancellationToken).ConfigureAwait(false);
+        }
         var branch = (request.Branch ?? string.Empty).Trim();
         if (branch.Length == 0)
         {
@@ -236,6 +240,23 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                     cancellationToken).ConfigureAwait(false),
                 5);
         }
+        if (metalPurchase && metalRate > 0)
+        {
+            // The header metal rate prices every line; client line amounts are recomputed so a stale rate cannot post.
+            lines = lines
+                .Select(line =>
+                {
+                    var pure = line.PureWeight > 0
+                        ? RoundNonNeg(line.PureWeight, 4)
+                        : ErpJwPurity.PureWeight(RoundNonNeg(line.GrossWeight, 4), RoundNonNeg(line.Purity, 6));
+                    var metalValue = RoundNonNeg((pure + RoundNonNeg(line.WastageQuantity, 4)) * metalRate, 2);
+                    return line with { MetalRate = metalRate, MetalAmount = metalValue, TotalAmount = 0, NetAmount = 0 };
+                })
+                .ToArray();
+            net = 0;
+            gross = 0;
+        }
+
         var placeOfSupply = Clip((request.PlaceOfSupply ?? string.Empty).Trim(), 80);
         var shipment = Clip((request.ShipmentCompany ?? string.Empty).Trim(), 80);
         var port = Clip((request.PortCompany ?? string.Empty).Trim(), 80);
