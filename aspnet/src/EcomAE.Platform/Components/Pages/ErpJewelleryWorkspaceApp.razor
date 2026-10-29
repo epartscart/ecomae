@@ -7,10 +7,12 @@
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Cp
 @using EcomAE.Platform.Services
+@using EcomAE.Platform.Routing
 @inject ILegacySessionValidator Sessions
 @inject ICpCsrfGuard Csrf
 @inject IHttpContextAccessor Http
 @inject IErpJewelleryWorkspaceReadService Workspace
+@inject IErpJwIndusDataService IndusData
 
 <PageTitle>Jewellery workspace · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -205,14 +207,52 @@
                         </form>
                     }
                 </div>
+                @if (_indusTable is not null)
+                {
+                    var tpl = _indusTable.Template;
+                    <div class="fo-card" style="grid-column:1/-1" id="indus-data">
+                        <h3>@tpl.Step.ToString("00", CultureInfo.InvariantCulture) — @tpl.Title · <code>@tpl.Table</code> · @_indusTable.Total.ToString("N0", CultureInfo.InvariantCulture) rows <a class="btn btn-xs btn-default" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/jewellery/workspace?tab=indus")">Close</a></h3>
+                        <p class="text-muted">INDUS screen: @tpl.IndusScreen · Module: @tpl.Module · Feeds: @tpl.Workflow</p>
+                        @if (_isAdmin && ErpJwIndusDataService.EditableKeys.Contains(tpl.Key))
+                        {
+                            <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, EcomAeRoutes.ErpJewelleryIndusMasterSave)" class="jw-mp-grid" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px">
+                                <input type="hidden" name="@CpCsrfGuard.FieldName" value="@_csrf" />
+                                <input type="hidden" name="confirmWrites" value="1" />
+                                <input type="hidden" name="key" value="@tpl.Key" />
+                                <input type="hidden" name="returnUrl" value="@("/erp/jewellery/workspace?tab=indus&key=" + tpl.Key)" />
+                                @foreach (var col in tpl.Columns.Where(x => x.Column.Length > 0))
+                                {
+                                    <label>@col.IndusField@(col.Required ? " *" : "")
+                                        <input class="form-control input-sm" name="@col.Header" required="@col.Required"
+                                               type="@(col.Type == ErpJwIndusColType.Date ? "date" : col.Type is ErpJwIndusColType.Decimal or ErpJwIndusColType.Int ? "number" : "text")"
+                                               step="@(col.Type == ErpJwIndusColType.Decimal ? "0.01" : "1")"
+                                               maxlength="@(col.MaxLength > 0 ? col.MaxLength : 200)" />
+                                    </label>
+                                }
+                                <div style="grid-column:1/-1"><button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save" aria-hidden="true"></i> Save @tpl.Title.Split(' ')[0].ToLowerInvariant()</button> <span class="text-muted">Same code updates the existing record.</span></div>
+                            </form>
+                        }
+                        @if (_indusTable.Message.Length > 0)
+                        {
+                            <p class="text-muted">@_indusTable.Message</p>
+                        }
+                        else
+                        {
+                            <div style="overflow:auto;max-height:60vh">@RowsTable(_indusTable.Headers.ToArray(), _indusTable.Rows)</div>
+                        }
+                    </div>
+                }
                 <div class="fo-card" style="grid-column:1/-1">
                     <h3>Templates — load in this order · <a href="@TemplateHref("fieldmap", false)">Download full field map (INDUS field → table.column → module → GL)</a></h3>
                     <table class="fo">
-                        <tr><th>#</th><th>Template</th><th>INDUS screen / report</th><th>ecomae table</th><th>Module</th><th>Feeds</th><th>Download</th></tr>
+                        <tr><th>#</th><th>Template</th><th>INDUS screen / report</th><th>ecomae table</th><th>Module</th><th>Feeds</th><th class="num">Rows in ERP</th><th>Where in ERP</th><th>Download</th></tr>
                         @foreach (var t in ErpJwIndusImportSpec.Templates)
                         {
+                            var n = _indusCounts.TryGetValue(t.Key, out var c) ? c : 0;
                             <tr>
                                 <td>@t.Step</td><td>@t.Title</td><td>@t.IndusScreen</td><td><code>@t.Table</code></td><td>@t.Module</td><td>@t.Workflow</td>
+                                <td class="num">@(n < 0 ? "not provisioned" : n.ToString("N0", CultureInfo.InvariantCulture))</td>
+                                <td><a href="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/jewellery/workspace?tab=indus&key=" + t.Key)">All fields</a> · <a href="@ClientErpPath.PrefixIfBound(Http.HttpContext, ErpJwIndusDataService.ScreenHref(t.Key))" target="_blank" rel="noopener">Open screen</a></td>
                                 <td><a href="@TemplateHref(t.Key, true)">blank</a> · <a href="@TemplateHref(t.Key, false)">sample</a></td>
                             </tr>
                         }
@@ -238,6 +278,8 @@
     private string _metal = string.Empty;
     private string _period = string.Empty;
     private bool _isAdmin;
+    private IReadOnlyDictionary<string, long> _indusCounts = new Dictionary<string, long>();
+    private ErpJwIndusDataTable? _indusTable;
     private string _csrf = string.Empty;
     private string _flashOk = string.Empty;
     private string _flashErr = string.Empty;
@@ -351,5 +393,14 @@
         }
 
         _snap = await Workspace.LoadAsync(_metal, _period, ctx.RequestAborted);
+        if (_isAdmin && _tab == "indus")
+        {
+            _indusCounts = await IndusData.CountsAsync(ctx.RequestAborted);
+            var key = ctx.Request.Query["key"].ToString().Trim();
+            if (key.Length > 0)
+            {
+                _indusTable = await IndusData.TableAsync(key, 300, ctx.RequestAborted);
+            }
+        }
     }
 }
