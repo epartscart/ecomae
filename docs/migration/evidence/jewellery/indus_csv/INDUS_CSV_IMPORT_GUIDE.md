@@ -83,6 +83,10 @@ Print previews: `/erp/jewellery/voucher-print?id=<voucher id>` (TAX INVOICE, TAX
 - Sales 35,415.72, returns 1,047.62, COGS 28,240.00, old gold 1,780.00, POS advance 952.38, petty cash 4,583.36.
 - Refresh instead of Remove when stock codes that existed before the import were touched: `bash scripts/cloudpanel_sandbox_db_refresh.sh indj ecomae`, then load samples again.
 
+## Accounting and process guide
+
+See `../JEWELLERY_ACCOUNTING_AND_PROCESS_GUIDE.md` for the posting matrix, VAT/RCM, IFRS policies, month-end reconciliation and sample scenarios.
+
 ## Dashboard and print customization
 
 - The ERP dashboard (`/erp?company=1`) fills cash, receivables, payables, stock value, VAT, revenue and profit from the posted GL (COA code bands 10xx cash, 1100 AR, 13xx inventory, 2000 AP, 2100/1150 VAT, revenue/expense accounts) whenever the operational tables have no figure, so it matches the trial balance.

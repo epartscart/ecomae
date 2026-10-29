@@ -89,7 +89,7 @@ public sealed class ErpFitOutApprovalQueueReadService
         }
         catch (DbException exception)
         {
-            return new([], 0m, "database-error", exception.Message);
+            return new([], 0m, ErpDb.IsMissingTable(exception) ? "empty" : "database-error", exception.Message);
         }
 
         return new(rows, rows.Sum(row => row.Amount), "database", string.Empty);

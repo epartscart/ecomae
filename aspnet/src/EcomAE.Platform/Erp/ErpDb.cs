@@ -93,6 +93,11 @@ internal static class ErpDb
         CancellationToken cancellationToken)
         => ErpTableCatalog.ContainsAsync(connection, table, cancellationToken);
 
+    /// <summary>True when the failure is MySQL 1146 / SQLSTATE 42S02 (table doesn't exist).</summary>
+    public static bool IsMissingTable(DbException exception)
+        => exception.Message.Contains("doesn't exist", StringComparison.OrdinalIgnoreCase)
+           || exception.Message.Contains("42S02", StringComparison.Ordinal);
+
     public static async Task<long> LongAsync(
         DbConnection connection,
         DbTransaction? transaction,
