@@ -253,11 +253,18 @@ public sealed class ErpFitOutEstimateWriteService : IErpFitOutEstimateWriteServi
                 continue;
             }
 
-            await ErpDb.ExecuteAsync(
-                connection,
-                null,
-                $"ALTER TABLE `ecomae_fitout_boq_lines` ADD COLUMN `{column}` decimal(16,4) NOT NULL DEFAULT 0",
-                cancellationToken).ConfigureAwait(false);
+            try
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    $"ALTER TABLE `ecomae_fitout_boq_lines` ADD COLUMN `{column}` decimal(16,4) NOT NULL DEFAULT 0",
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (MySqlConnector.MySqlException ex) when (ex.Number == 1060)
+            {
+                // Duplicate column: a concurrent first write already added it.
+            }
         }
     }
 
