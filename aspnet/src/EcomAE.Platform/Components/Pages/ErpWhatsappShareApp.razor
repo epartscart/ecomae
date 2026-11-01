@@ -26,6 +26,10 @@
     {
         <div class="alert alert-danger">Report error — @_snapshot.Message</div>
     }
+    else if (!_isAdmin)
+    {
+        <div class="alert alert-warning">Sign in with ERP access to use WhatsApp share.</div>
+    }
     else
     {
         <div class="row" style="margin:0 0 14px">
@@ -129,7 +133,9 @@
     function waShowCurrent() {
         var r = WA_DATA[queue[pos]];
         document.getElementById('wa-progress').textContent = (pos + 1) + ' of ' + queue.length;
-        document.getElementById('wa-current').innerHTML = '<strong>' + r.name + '</strong><br/>' + r.phone;
+        document.getElementById('wa-current').innerHTML = '<strong></strong><br/>';
+        document.getElementById('wa-current').firstChild.textContent = r.name;
+        document.getElementById('wa-current').appendChild(document.createTextNode(r.phone));
     }
     function waOpenCurrent() {
         var r = WA_DATA[queue[pos]];
@@ -158,7 +164,7 @@
         var limit = new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
         var picked = 0;
         WA_DATA.forEach(function (r, i) {
-            var due = r.digits !== '' && r.expiry !== '' && r.expiry <= limit;
+            var due = r.digits !== '' && r.expiry !== '' && r.expiry >= today && r.expiry <= limit;
             document.querySelector('.wa-pick[data-i="' + i + '"]').checked = due;
             if (due) picked++;
         });
@@ -179,9 +185,10 @@
         WA_DATA.forEach(function (r, i) {
             var tr = document.createElement('tr');
             var ok = r.digits !== '';
+            var esc = function (s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
             tr.innerHTML = '<td><input type="checkbox" class="wa-pick" data-i="' + i + '"' + (ok ? '' : ' disabled') + '></td>'
-                + '<td>' + r.name + (r.company ? ' <span class="text-muted">' + r.company + '</span>' : '') + '</td>'
-                + '<td>' + r.phone + '</td><td>' + r.expiry + '</td>'
+                + '<td>' + esc(r.name) + (r.company ? ' <span class="text-muted">' + esc(r.company) + '</span>' : '') + '</td>'
+                + '<td>' + esc(r.phone) + '</td><td>' + esc(r.expiry) + '</td>'
                 + '<td class="wa-prev text-muted" data-i="' + i + '" style="font-size:11px"></td>'
                 + '<td id="wa-st-' + i + '">' + (ok ? '' : 'no valid number') + '</td>';
             tbody.appendChild(tr);
@@ -206,7 +213,12 @@
         }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin;
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
         _snapshot = await Share.ReadAsync(ctx.RequestAborted);
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         _recipientsJson = JsonSerializer.Serialize(_snapshot.Recipients.Select(r => new

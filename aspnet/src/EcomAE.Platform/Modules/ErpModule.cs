@@ -197,6 +197,17 @@ public sealed class ErpModule : ISurfaceModule
             IErpWhatsappShareService share,
             CancellationToken cancellationToken) =>
         {
+            // CSRF guard: browsers always send Origin on cross-site form posts.
+            var waOrigin = context.Request.Headers.Origin.ToString();
+            if (waOrigin.Length > 0
+                && (!Uri.TryCreate(waOrigin, UriKind.Absolute, out var waOriginUri)
+                    || !waOriginUri.Host.Equals(context.Request.Host.Host, StringComparison.OrdinalIgnoreCase)))
+            {
+                return Results.Json(
+                    new { ok = false, error = new { code = "bad_origin", message = "Cross-site posts are not accepted." } },
+                    statusCode: StatusCodes.Status403Forbidden);
+            }
+
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {

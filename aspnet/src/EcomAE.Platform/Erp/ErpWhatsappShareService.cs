@@ -69,7 +69,7 @@ public sealed class ErpWhatsappShareService : IErpWhatsappShareService
         var code = NonDigit.Replace(countryCode ?? string.Empty, string.Empty);
         if (code.Length == 0)
         {
-            code = "971";
+            code = DialCode(countryCode);
         }
 
         if (digits.StartsWith("00", StringComparison.Ordinal))
@@ -80,13 +80,28 @@ public sealed class ErpWhatsappShareService : IErpWhatsappShareService
         {
             digits = code + digits[1..];
         }
-        else if (digits.Length <= 9 && !digits.StartsWith(code, StringComparison.Ordinal))
+        else if (digits.Length <= 9 && !digits.StartsWith(code, StringComparison.Ordinal)
+                 || digits.Length == 10 && code is "1" or "91" && !digits.StartsWith(code, StringComparison.Ordinal))
         {
+            // Local number missing its dial prefix. 10-digit locals exist in
+            // US/CA (1) and IN (91); other 10-digit values are treated as
+            // already-international rather than re-prefixed.
             digits = code + digits;
         }
 
         return digits.Length is >= 10 and <= 15 ? digits : string.Empty;
     }
+
+    /// <summary>ISO-2 country code → ITU dialing prefix; UAE default.</summary>
+    private static string DialCode(string? iso)
+        => (iso ?? string.Empty).Trim().ToUpperInvariant() switch
+        {
+            "AE" => "971", "QA" => "974", "SA" => "966", "BH" => "973", "KW" => "965",
+            "OM" => "968", "IN" => "91", "PK" => "92", "PH" => "63", "BD" => "880",
+            "GB" => "44", "US" or "CA" => "1", "EG" => "20", "JO" => "962", "LB" => "961",
+            "TR" => "90", "LK" => "94", "NP" => "977", "ID" => "62", "MY" => "60",
+            _ => "971",
+        };
 
     public static string Personalize(string template, ErpWhatsappRecipient recipient, DateOnly date)
         => (template ?? string.Empty)
@@ -138,23 +153,29 @@ public sealed class ErpWhatsappShareService : IErpWhatsappShareService
                 await using var command = connection.CreateCommand();
                 var hasRe = await ErpDb.TableKnownAsync(connection, "epc_erp_re_tenants", cancellationToken).ConfigureAwait(false)
                     && await ErpDb.TableKnownAsync(connection, "epc_erp_re_leases", cancellationToken).ConfigureAwait(false);
-                var expiryJoin = hasRe
-                    ? """ LEFT JOIN (SELECT t.`name`, MAX(DATE_FORMAT(l.`end_date`,'%Y-%m-%d')) `exp` FROM `epc_erp_re_tenants` t JOIN `epc_erp_re_leases` l ON l.`tenant_id`=t.`id` GROUP BY t.`name`) ex ON ex.`name` = epc_erp_contacts.`name`"""
-                    : string.Empty;
-                var expiryCol = hasRe ? ", IFNULL(ex.`exp`,'')" : ", ''";
-                command.CommandText = """
-                    SELECT epc_erp_contacts.`id`,epc_erp_contacts.`name`,epc_erp_contacts.`company`,epc_erp_contacts.`phone`,epc_erp_contacts.`country_code`,epc_erp_contacts.`party_type`
-                    """ + expiryCol + """
-                    FROM `epc_erp_contacts`
-                    """ + expiryJoin + """
-                    WHERE `active`=1 AND `phone` IS NOT NULL AND `phone` <> ''
-                    ORDER BY epc_erp_contacts.`name` LIMIT 500
-                    """;
+                var expiryCol = hasRe
+                    ? ", IFNULL((SELECT DATE_FORMAT(MAX(l.`end_date`),'%Y-%m-%d') FROM `epc_erp_re_tenants` t JOIN `epc_erp_re_leases` l ON l.`tenant_id`=t.`id` WHERE t.`name`=epc_erp_contacts.`name` AND (IFNULL(epc_erp_contacts.`email`,'')='' OR IFNULL(t.`email`,'')='' OR t.`email`=epc_erp_contacts.`email`)),'')"
+                    : ", ''";
+                var hasCountry = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "country_code", cancellationToken).ConfigureAwait(false);
+                var countryCol = hasCountry ? "epc_erp_contacts.`country_code`" : "''";
+                command.CommandText =
+                    "SELECT epc_erp_contacts.`id`,epc_erp_contacts.`name`,epc_erp_contacts.`company`,epc_erp_contacts.`phone`,"
+                    + countryCol
+                    + ",epc_erp_contacts.`party_type`"
+                    + expiryCol
+                    + " FROM `epc_erp_contacts`"
+                    + " WHERE `active`=1 AND `phone` IS NOT NULL AND `phone` <> ''"
+                    + " ORDER BY epc_erp_contacts.`name` LIMIT 500";
+                var seen = new HashSet<long>();
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     var phone = reader.IsDBNull(3) ? string.Empty : reader.GetString(3);
                     var digits = NormalizePhone(phone, reader.IsDBNull(4) ? null : reader.GetString(4));
+                    if (!seen.Add(reader.GetInt64(0)))
+                    {
+                        continue;
+                    }
                     recipients.Add(new(
                         reader.GetInt64(0),
                         reader.IsDBNull(1) ? string.Empty : reader.GetString(1),
