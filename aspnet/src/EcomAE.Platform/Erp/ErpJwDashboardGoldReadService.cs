@@ -86,7 +86,7 @@ public sealed class ErpJwDashboardGoldReadService : IErpJwDashboardGoldReadServi
                 var groups = new (string Label, IReadOnlyList<string> Types, string Href)[]
                 {
                     ("Sold", ErpJwVocTypes.SalesAnalysisAliases.Concat(ErpJwVocTypes.RetailAliases).Concat(ErpJwVocTypes.MetalSaleAliases).Distinct().ToList(), "/erp/jewellery-retail-app?tab=jw_sales_analysis"),
-                    ("Purchased", ErpJwVocTypes.MetalPurchaseAliases.Concat(ErpJwVocTypes.DiamondPurchaseAliases).Distinct().ToList(), "/erp/jewellery-fixing-app?tab=jw_metal_purchase"),
+                    ("Purchased", ErpJwVocTypes.MetalPurchaseAliases.Distinct().ToList(), "/erp/jewellery-fixing-app?tab=jw_metal_purchase"),
                     ("Returned by customers", ErpJwVocTypes.SalesReturnAliases, "/erp/jewellery-retail-app?tab=jw_sales_return"),
                 };
                 foreach (var g in groups)
@@ -95,7 +95,8 @@ public sealed class ErpJwDashboardGoldReadService : IErpJwDashboardGoldReadServi
                     cmd.CommandText = ErpDb.Positional(
                         "SELECT IFNULL(SUM(l.`pcs`),0),IFNULL(SUM(l.`gr_wt`),0),IFNULL(SUM(IF(l.`pure_wt`>0,l.`pure_wt`,l.`gr_wt`*IF(l.`purity`>1,l.`purity`/1000,l.`purity`))),0),IFNULL(SUM(l.`total_amount`),0)"
                         + " FROM `epc_jewel_voucher_lines` l JOIN `epc_jewel_voucher` v ON v.`id`=l.`voucher_id`"
-                        + " WHERE NOT EXISTS (SELECT 1 FROM `epc_jewel_metal_stock` m WHERE m.`item_code`=l.`stock_code` AND m.`company_id` IN (0,v.`company_id`) AND IFNULL(m.`metal`,'G') NOT IN ('G',''))"
+                        + " WHERE IFNULL((SELECT NULLIF(m.`metal`,'') FROM `epc_jewel_metal_stock` m WHERE m.`item_code`=l.`stock_code` AND m.`company_id` IN (0,v.`company_id`) ORDER BY m.`company_id` DESC LIMIT 1),"
+                        + " IF(l.`stock_code`='' OR UPPER(IFNULL(l.`division`,'')) IN ('D','S','P','C'),'X','G'))='G'"
                         + " AND v.`company_id` IN (0,?) AND v.`status` NOT IN ('draft','cancelled') AND v.`voc_type` IN (" + string.Join(",", g.Types.Select(_ => "?")) + ")"
                         + " AND DATE(v.`voc_date`)>=? AND DATE(v.`voc_date`)<=?");
                     ErpDb.AddParameters(cmd, new object?[] { companyId }.Concat(g.Types).Append(start.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).Append(end.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray());
