@@ -584,7 +584,7 @@ dotnet publish aspnet/src/EcomAE.Workers/EcomAE.Workers.csproj -c Release -o "$W
 printf '%s\n' "$FULL" > "$RELEASE_DIR/PUBLISHED_GIT_SHA.txt"
 # Pack PHP-rendered marketing + industry showcase HTML next to the DLL so Kestrel
 # can serve them even when ECOMAE_PHP_SOURCE_ROOT is stale/missing on the host.
-for snap_dir in epc_rendered_industry epc_rendered_marketing epc_rendered_homes; do
+for snap_dir in epc_rendered_industry epc_rendered_marketing epc_rendered_homes epc_rendered_widgets; do
   src="$REPO/content/general_pages/$snap_dir"
   dst="$PLATFORM_DIR/content/general_pages/$snap_dir"
   if [[ -d "$src" ]]; then

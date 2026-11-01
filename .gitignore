@@ -45,6 +45,7 @@ node_modules/
 # PHP-rendered epartscart CP brochure (epc_cp_full_brochure_render_html, brand epartscart)
 !/content/general_pages/epc_rendered_tenant/*.html
 # PHP-rendered industry showcase hubs/subs (regenerate: scripts/render_ecomae_industry_snapshots.php)
+!/content/general_pages/epc_rendered_widgets/*.html
 !/content/general_pages/epc_rendered_industry/*.html
 config.epc-smtp.php
 epc-operator-update.php
