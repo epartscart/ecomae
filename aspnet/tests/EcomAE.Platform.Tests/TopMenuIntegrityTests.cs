@@ -28,6 +28,10 @@ public sealed class TopMenuIntegrityTests
         "ErpAutoPartsWorkspaceApp.razor", "ErpJewelleryWorkspaceApp.razor", "ErpFmcgWorkspaceApp.razor",
         "CpPriceListsApp.razor", "CpPricesEditApp.razor", "CpPoApprovalsApp.razor", "CpCrmActivitiesApp.razor",
         "CpAdminSessionsApp.razor", "CpPrintDocsApp.razor", "CpBulkUploadApp.razor", "CpFinanceCloseApp.razor",
+        // Super CP utilities reached from the CP chrome nav, not the cached top-menu snapshots.
+        "CpPlatformAlertsApp.razor",
+        // Linked from the ERP Activities workspace catalog, not the top menu.
+        "ErpWhatsappShareApp.razor",
     ];
 
     public static IEnumerable<object[]> Menus()
