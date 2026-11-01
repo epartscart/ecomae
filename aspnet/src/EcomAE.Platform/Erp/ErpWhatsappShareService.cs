@@ -81,10 +81,11 @@ public sealed class ErpWhatsappShareService : IErpWhatsappShareService
             digits = code + digits[1..];
         }
         else if (digits.Length <= 9 && !digits.StartsWith(code, StringComparison.Ordinal)
-                 || digits.Length == 10 && code == "1")
+                 || digits.Length == 10 && code is "1" or "91" && !digits.StartsWith(code, StringComparison.Ordinal))
         {
-            // Local number missing its dial prefix (10-digit US/CA local included);
-            // a 10+ digit number that already carries a different prefix stays as-is.
+            // Local number missing its dial prefix. 10-digit locals exist in
+            // US/CA (1) and IN (91); other 10-digit values are treated as
+            // already-international rather than re-prefixed.
             digits = code + digits;
         }
 
@@ -153,7 +154,7 @@ public sealed class ErpWhatsappShareService : IErpWhatsappShareService
                 var hasRe = await ErpDb.TableKnownAsync(connection, "epc_erp_re_tenants", cancellationToken).ConfigureAwait(false)
                     && await ErpDb.TableKnownAsync(connection, "epc_erp_re_leases", cancellationToken).ConfigureAwait(false);
                 var expiryCol = hasRe
-                    ? ", IFNULL((SELECT DATE_FORMAT(MAX(l.`end_date`),'%Y-%m-%d') FROM `epc_erp_re_tenants` t JOIN `epc_erp_re_leases` l ON l.`tenant_id`=t.`id` WHERE t.`name`=epc_erp_contacts.`name` AND (IFNULL(epc_erp_contacts.`email`,'')='' OR t.`email`=epc_erp_contacts.`email`)),'')"
+                    ? ", IFNULL((SELECT DATE_FORMAT(MAX(l.`end_date`),'%Y-%m-%d') FROM `epc_erp_re_tenants` t JOIN `epc_erp_re_leases` l ON l.`tenant_id`=t.`id` WHERE t.`name`=epc_erp_contacts.`name` AND (IFNULL(epc_erp_contacts.`email`,'')='' OR IFNULL(t.`email`,'')='' OR t.`email`=epc_erp_contacts.`email`)),'')"
                     : ", ''";
                 var hasCountry = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "country_code", cancellationToken).ConfigureAwait(false);
                 var countryCol = hasCountry ? "epc_erp_contacts.`country_code`" : "''";
