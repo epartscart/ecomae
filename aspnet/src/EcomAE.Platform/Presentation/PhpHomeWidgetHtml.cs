@@ -47,16 +47,23 @@ public static class PhpHomeWidgetHtml
     public static string VehicleCatalog(string? langHref = null)
         => Render("content/vehicle_catalog.php", langHref: langHref);
 
-    /// <summary>Pre-rendered snapshot for a deleted PHP widget source (PHP-free publishes).</summary>
-    private static string? SnapshotPath(string relativePath)
+    /// <summary>Pre-rendered snapshot stem for a deleted PHP widget source (PHP-free publishes).</summary>
+    private static string? SnapshotStem(string relativePath)
         => Path.GetFileNameWithoutExtension(relativePath) switch
         {
-            "product_family_catalog" => "family.html",
-            "umapi_catalog" => "catalog.html",
-            "available_brands" => "brands.html",
-            "vehicle_catalog" => "vehicle.html",
+            "product_family_catalog" => "family",
+            "umapi_catalog" => "catalog",
+            "available_brands" => "brands",
+            "vehicle_catalog" => "vehicle",
             _ => null,
         };
+
+    /// <summary>Snapshots are baked with "/en" hrefs; swap the lang prefix for other locales.</summary>
+    private static string LocalizeSnapshot(string html, string langHref)
+        => string.IsNullOrWhiteSpace(langHref) || langHref == DefaultLangHref
+            ? html
+            : html.Replace("\"/en", "\"" + langHref, StringComparison.Ordinal)
+                  .Replace("'/en", "'" + langHref, StringComparison.Ordinal);
 
     /// <summary>Read a pre-rendered HTML file from the monorepo (no PHP substitution).</summary>
     public static string RenderStatic(string relativePath)
@@ -93,23 +100,32 @@ public static class PhpHomeWidgetHtml
         }
 
         var path = Path.GetFullPath(Path.Combine(root, relativePath));
+        var lang = string.IsNullOrWhiteSpace(langHref) ? DefaultLangHref : langHref.TrimEnd('/');
         if (!path.StartsWith(root, StringComparison.Ordinal) || !File.Exists(path))
         {
             // PHP sources were removed from the repo — fall back to the rendered
             // snapshots packed under content/general_pages/epc_rendered_widgets.
-            var snap = SnapshotPath(relativePath);
-            if (snap is null)
+            // The publish tree's copy sits next to the DLL, so check it first:
+            // RepoRoot may resolve to a stale checkout without widget snapshots.
+            var stem = SnapshotStem(relativePath);
+            if (stem is null)
             {
                 return string.Empty;
             }
-            var snapPath = Path.GetFullPath(Path.Combine(
-                root, "content", "general_pages", "epc_rendered_widgets", snap));
-            return snapPath.StartsWith(root, StringComparison.Ordinal) && File.Exists(snapPath)
-                ? File.ReadAllText(snapPath)
-                : string.Empty;
+            var stems = pricesVisible ? new[] { stem + "-pv", stem } : new[] { stem };
+            foreach (var baseDir in new[] { AppContext.BaseDirectory, root })
+            foreach (var s in stems)
+            {
+                var snapPath = Path.GetFullPath(Path.Combine(
+                    baseDir, "content", "general_pages", "epc_rendered_widgets", s + ".html"));
+                if (snapPath.StartsWith(baseDir, StringComparison.Ordinal) && File.Exists(snapPath))
+                {
+                    return LocalizeSnapshot(File.ReadAllText(snapPath), lang);
+                }
+            }
+            return string.Empty;
         }
 
-        var lang = string.IsNullOrWhiteSpace(langHref) ? DefaultLangHref : langHref.TrimEnd('/');
         var cacheKey = relativePath + (pricesVisible ? "|pv1" : "|pv0") + "|" + lang;
         var stamp = File.GetLastWriteTimeUtc(path);
         lock (Gate)
