@@ -189,6 +189,48 @@ public sealed class ErpModule : ISurfaceModule
             });
         }).DisableAntiforgery();
 
+        // WhatsApp Click-to-Chat share — templates save/delete; the share itself
+        // happens client-side via wa.me links (no API, nothing sent automatically).
+        endpoints.MapPost(EcomAeRoutes.ErpWhatsappShareTemplateSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpWhatsappShareService share,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/whatsapp-share-app", "Admin ERP capability required for WhatsApp share templates.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.Json(new { ok = false, error = new { code = "form_required", message = "Template save expects a form post." } }, statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return LiveWriteFormBinder.Complete(context, "/erp/whatsapp-share-app", false, "Dry-run. Set confirmWrites=true to save a template.", new { ok = false, writes = 0, validation_code = "dry_run", session = SessionPayload(session) });
+            }
+
+            var action = LiveWriteFormBinder.Text(form, "action");
+            var written = action == "delete"
+                ? await share.DeleteTemplateAsync(LiveWriteFormBinder.Long(form, "id"), cancellationToken)
+                : action == "reminder_days"
+                    ? await share.SaveReminderDaysAsync((int)LiveWriteFormBinder.Long(form, "reminder_days"), cancellationToken)
+                    : await share.SaveTemplateAsync(
+                        LiveWriteFormBinder.Text(form, "name"),
+                        LiveWriteFormBinder.Text(form, "body"),
+                        cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/whatsapp-share-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.ErpAjaxWriteRegistryDryRun, async (
             string action,
             ErpAjaxWriteRegistryBody? body,

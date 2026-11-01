@@ -158,6 +158,8 @@ public static class EcomAeRoutes
     public const string ControlPanelIndustrySettingsApp = "/cp/industry-settings-app";
     /// <summary>Tenant CP save_settings. Twins PHP ajax_portal.php?action=save_settings.</summary>
     public const string CpIndustrySettingsWrite = "/cp/industry-settings/save";
+    public const string ControlPanelPlatformAlertsApp = "/cp/platform-alerts-app";
+    public const string CpPlatformAlertsWrite = "/cp/platform-alerts/save";
 
     /// <summary>CP Metabase config + dashboards (secret_key never returned).</summary>
     public const string ControlPanelMetabase = "/cp/metabase";
@@ -799,6 +801,9 @@ public static class EcomAeRoutes
     public const string ErpSalesOrdersDelete = "/erp/sales-orders/delete";
     /// <summary>Live PHP customer_master_save / epc_credit_set_master (confirmWrites required).</summary>
     public const string ErpCustomersMasterSave = "/erp/customers/master-save";
+    /// <summary>WhatsApp Click-to-Chat share page + template save/delete.</summary>
+    public const string ErpWhatsappShareApp = "/erp/whatsapp-share-app";
+    public const string ErpWhatsappShareTemplateSave = "/erp/whatsapp-share/template-save";
     /// <summary>Live PHP as_rma_create / epc_as_rma_create (confirmWrites required). Blockchain stays PHP.</summary>
     public const string ErpAftersalesRmaCreate = "/erp/aftersales/rma-create";
     /// <summary>PHP epc_as_rma_resolve. Inventory restock stays PHP.</summary>
