@@ -39,7 +39,7 @@ public static class LoginErrorHelper
             "rate_limited" => "Too many failed attempts. Please wait "
                 + (query.TryGetValue("wait", out var wait) && int.TryParse(wait, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var minutes) && minutes > 0 ? minutes : 15)
                 + " minutes before trying again.",
-            _ => "Incorrect login or password. Use the tenant host where the account was registered (e.g. taxofinca.com vs epartscart.com). If login works on this same host elsewhere, sync the shop secret and database name."
+            _ => "Incorrect login or password. Check that you are signing in on your own company's workspace URL and that the email and password match the account registered there."
         };
     }
 
