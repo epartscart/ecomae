@@ -47,6 +47,17 @@ public static class PhpHomeWidgetHtml
     public static string VehicleCatalog(string? langHref = null)
         => Render("content/vehicle_catalog.php", langHref: langHref);
 
+    /// <summary>Pre-rendered snapshot for a deleted PHP widget source (PHP-free publishes).</summary>
+    private static string? SnapshotPath(string relativePath)
+        => Path.GetFileNameWithoutExtension(relativePath) switch
+        {
+            "product_family_catalog" => "family.html",
+            "umapi_catalog" => "catalog.html",
+            "available_brands" => "brands.html",
+            "vehicle_catalog" => "vehicle.html",
+            _ => null,
+        };
+
     /// <summary>Read a pre-rendered HTML file from the monorepo (no PHP substitution).</summary>
     public static string RenderStatic(string relativePath)
     {
@@ -84,7 +95,18 @@ public static class PhpHomeWidgetHtml
         var path = Path.GetFullPath(Path.Combine(root, relativePath));
         if (!path.StartsWith(root, StringComparison.Ordinal) || !File.Exists(path))
         {
-            return string.Empty;
+            // PHP sources were removed from the repo — fall back to the rendered
+            // snapshots packed under content/general_pages/epc_rendered_widgets.
+            var snap = SnapshotPath(relativePath);
+            if (snap is null)
+            {
+                return string.Empty;
+            }
+            var snapPath = Path.GetFullPath(Path.Combine(
+                root, "content", "general_pages", "epc_rendered_widgets", snap));
+            return snapPath.StartsWith(root, StringComparison.Ordinal) && File.Exists(snapPath)
+                ? File.ReadAllText(snapPath)
+                : string.Empty;
         }
 
         var lang = string.IsNullOrWhiteSpace(langHref) ? DefaultLangHref : langHref.TrimEnd('/');
@@ -225,6 +247,8 @@ public static class PhpHomeWidgetHtml
         }
 
         return File.Exists(Path.Combine(candidate, "content", "product_family_catalog.php"))
+               || File.Exists(Path.Combine(
+                   candidate, "content", "general_pages", "epc_rendered_widgets", "family.html"))
                || File.Exists(Path.Combine(
                    candidate,
                    "content",
