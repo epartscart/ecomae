@@ -68,7 +68,7 @@ public sealed class ErpJwDashboardGoldReadService : IErpJwDashboardGoldReadServi
                 cmd.CommandText = ErpDb.Positional(
                     "SELECT IFNULL(NULLIF(`karat`,''),'—'),SUM(IFNULL(`stock_pcs`,0)),SUM(IFNULL(`stock_gms`,0)),"
                     + "SUM(IFNULL(`stock_gms`,0)*IF(IFNULL(`purity`,0)>1,`purity`/1000,IFNULL(`purity`,0))),SUM(IFNULL(`stock_value`,0))"
-                    + " FROM `epc_jewel_metal_stock` WHERE `company_id` IN (0,?) GROUP BY 1 HAVING SUM(IFNULL(`stock_gms`,0))<>0 OR SUM(IFNULL(`stock_value`,0))<>0 ORDER BY 1");
+                    + " FROM `epc_jewel_metal_stock` WHERE `company_id` IN (0,?) AND IFNULL(`metal`,'G') IN ('G','') GROUP BY 1 HAVING SUM(IFNULL(`stock_gms`,0))<>0 OR SUM(IFNULL(`stock_value`,0))<>0 ORDER BY 1");
                 ErpDb.AddParameters(cmd, companyId);
                 await using var r = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await r.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -95,7 +95,8 @@ public sealed class ErpJwDashboardGoldReadService : IErpJwDashboardGoldReadServi
                     cmd.CommandText = ErpDb.Positional(
                         "SELECT IFNULL(SUM(l.`pcs`),0),IFNULL(SUM(l.`gr_wt`),0),IFNULL(SUM(IF(l.`pure_wt`>0,l.`pure_wt`,l.`gr_wt`*IF(l.`purity`>1,l.`purity`/1000,l.`purity`))),0),IFNULL(SUM(l.`total_amount`),0)"
                         + " FROM `epc_jewel_voucher_lines` l JOIN `epc_jewel_voucher` v ON v.`id`=l.`voucher_id`"
-                        + " WHERE v.`company_id` IN (0,?) AND v.`status` NOT IN ('draft','cancelled') AND v.`voc_type` IN (" + string.Join(",", g.Types.Select(_ => "?")) + ")"
+                        + " WHERE NOT EXISTS (SELECT 1 FROM `epc_jewel_metal_stock` m WHERE m.`item_code`=l.`stock_code` AND m.`company_id` IN (0,v.`company_id`) AND IFNULL(m.`metal`,'G') NOT IN ('G',''))"
+                        + " AND v.`company_id` IN (0,?) AND v.`status` NOT IN ('draft','cancelled') AND v.`voc_type` IN (" + string.Join(",", g.Types.Select(_ => "?")) + ")"
                         + " AND DATE(v.`voc_date`)>=? AND DATE(v.`voc_date`)<=?");
                     ErpDb.AddParameters(cmd, new object?[] { companyId }.Concat(g.Types).Append(start.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).Append(end.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray());
                     await using var r = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
