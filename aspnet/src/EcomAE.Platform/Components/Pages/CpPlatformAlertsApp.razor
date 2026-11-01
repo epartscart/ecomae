@@ -59,7 +59,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="wa_api_token">API token</label>
-                                <input class="form-control" type="password" id="wa_api_token" name="wa_api_token" value="@_config.WhatsappApiToken" autocomplete="off" />
+                                <input class="form-control" type="password" id="wa_api_token" name="wa_api_token" value="" placeholder="@(_config.WhatsappApiToken.Length > 0 ? "Saved — leave blank to keep" : "Meta Cloud API token")" autocomplete="off" />
                             </div>
                             <div class="form-group">
                                 <label for="wa_api_version">API version</label>
@@ -97,9 +97,13 @@
         }
 
         _config = await Alerts.ReadAsync(ctx.RequestAborted);
-        if (ctx.Request.Query.TryGetValue("message", out var message))
+        if (ctx.Request.Query.TryGetValue("ok", out var ok))
         {
-            _flash = message.ToString();
+            _flash = ok.ToString();
+        }
+        else if (ctx.Request.Query.TryGetValue("err", out var err))
+        {
+            _flash = err.ToString();
         }
     }
 }

@@ -102,7 +102,7 @@ public sealed class CpPlatformAlertsService : ICpPlatformAlertsService
         var sql = ErpDb.Positional($"""
             INSERT INTO `{Table}`
                 (`id`,`alert_email`,`whatsapp_enabled`,`wa_api_token`,`wa_phone_number_id`,`wa_api_version`,`wa_to_number`,`time_updated`)
-            VALUES (1,?,?,?,?,?,?,?,UNIX_TIMESTAMP())
+            VALUES (1,?,?,?,?,?,?,UNIX_TIMESTAMP())
             ON DUPLICATE KEY UPDATE
                 `alert_email`=VALUES(`alert_email`),
                 `whatsapp_enabled`=VALUES(`whatsapp_enabled`),

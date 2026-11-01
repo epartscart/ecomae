@@ -9336,6 +9336,22 @@ public sealed class ControlPanelModule : ISurfaceModule
             ICpPlatformAlertsService alerts,
             CancellationToken cancellationToken) =>
         {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            // CSRF guard: browsers always send Origin on cross-site form posts.
+            var origin = context.Request.Headers.Origin.ToString();
+            if (origin.Length > 0
+                && (!Uri.TryCreate(origin, UriKind.Absolute, out var originUri)
+                    || !originUri.Host.Equals(context.Request.Host.Host, StringComparison.OrdinalIgnoreCase)))
+            {
+                return Results.Json(
+                    new { ok = false, error = new { code = "bad_origin", message = "Cross-site posts are not accepted." } },
+                    statusCode: StatusCodes.Status403Forbidden);
+            }
+
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
@@ -9363,11 +9379,18 @@ public sealed class ControlPanelModule : ISurfaceModule
                     new { ok = false, writes = 0, validation_code = "dry_run", session = SessionPayload(session) });
             }
 
+            var postedToken = LiveWriteFormBinder.Text(form, "wa_api_token");
+            if (postedToken.Length == 0)
+            {
+                // Blank field keeps the stored token; it is never rendered back into HTML.
+                postedToken = (await alerts.ReadAsync(cancellationToken)).WhatsappApiToken;
+            }
+
             var written = await alerts.SaveAsync(
                 new CpPlatformAlertsConfig(
                     LiveWriteFormBinder.Text(form, "alert_email"),
                     LiveWriteFormBinder.Flag(form, "whatsapp_enabled"),
-                    LiveWriteFormBinder.Text(form, "wa_api_token"),
+                    postedToken,
                     LiveWriteFormBinder.Text(form, "wa_phone_number_id"),
                     LiveWriteFormBinder.Text(form, "wa_api_version"),
                     LiveWriteFormBinder.Text(form, "wa_to_number")),

@@ -417,6 +417,7 @@ public static class ErpD365Part1Catalog
         yield return P(a, "cmn_all_capa", "All CAPA cases", "CAPA management", "Corrective and preventive action cases.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-medkit");
         yield return P(a, "cmn_my_capa", "My CAPA cases", "CAPA management", "CAPA cases owned by this worker.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-user");
         yield return P(a, "cmn_all_activities", "All activities", "Activities", "Tasks, calls, and appointments.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/agenda-app", "fa-calendar");
+        yield return P(a, "cmn_whatsapp_share", "WhatsApp share", "Activities", "Personalised Click-to-Chat bulk sharing to contacts — no API, send in WhatsApp.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/whatsapp-share-app", "fa-whatsapp");
         yield return P(a, "cmn_my_activities", "My activities", "Activities", "Activities assigned to this worker.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-user");
         yield return P(a, "cmn_my_open_activities", "My open activities", "Activities", "Open activities assigned to this worker.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-folder-open");
         yield return P(a, "cmn_activities_due_week", "Activities due this week", "Activities", "Activities due in the current week.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-calendar-check-o");

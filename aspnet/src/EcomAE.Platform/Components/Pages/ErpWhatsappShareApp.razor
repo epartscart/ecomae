@@ -1,0 +1,235 @@
+@page "/erp/whatsapp-share-app"
+@layout Layout.PhpChromeLayout
+@using System.Text.Json
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Erp
+@inject IErpWhatsappShareService Share
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>WhatsApp share · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="WhatsApp share" BreadcrumbArea="Communications" BreadcrumbTab="WhatsApp share">
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/whatsapp-share-app" IsAdmin="_isAdmin" />
+    <PhpErpModulePageHeader Title="WhatsApp share"
+                           Subtitle="Personalised Click-to-Chat messages to contacts — one recipient at a time, you press send in WhatsApp. No API or paid provider." />
+    <PhpErpD365ActionPane PhpTabHref="/erp/whatsapp-share-app" RefreshHref="@Nav.Uri" />
+
+    @if (!string.IsNullOrWhiteSpace(_flash))
+    {
+        <div class="alert alert-info" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem">@_flash</div>
+    }
+    @if (_snapshot.Source == "database-error")
+    {
+        <div class="alert alert-danger">Report error — @_snapshot.Message</div>
+    }
+    else
+    {
+        <div class="row" style="margin:0 0 14px">
+            <div class="col-lg-8" style="padding-left:0">
+                <div class="panel panel-default" style="margin-bottom:10px">
+                    <div class="panel-heading"><strong>Message</strong></div>
+                    <div class="panel-body">
+                        <p class="text-muted" style="margin-top:0">Placeholders: <code>{TenantName}</code> <code>{MobileNumber}</code> <code>{ExpiryDate}</code> <code>{Date}</code></p>
+                        <textarea id="wa-msg" class="form-control" rows="5" oninput="waPreviewAll()">@_defaultBody</textarea>
+                        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                            <select id="wa-tpl" class="form-control" style="width:auto;display:inline-block" onchange="waLoadTpl()">
+                                <option value="">Load template…</option>
+                                @foreach (var tpl in _snapshot.Templates)
+                                {
+                                    <option value="@tpl.Id" data-body="@tpl.Body">@tpl.Name</option>
+                                }
+                            </select>
+                            <form method="post" action="/erp/whatsapp-share/template-save" style="display:flex;gap:6px;margin:0">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="/erp/whatsapp-share-app" />
+                                <input type="hidden" id="wa-tpl-body" name="body" />
+                                <input class="form-control input-sm" name="name" placeholder="Template name" style="width:auto" />
+                                <button type="submit" class="btn btn-default btn-sm" onclick="document.getElementById('wa-tpl-body').value=document.getElementById('wa-msg').value">Save as template</button>
+                            </form>
+                            <form method="post" action="/erp/whatsapp-share/template-save" style="display:flex;gap:6px;margin:0;align-items:center">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="action" value="reminder_days" />
+                                <label style="margin:0">Remind days before expiry</label>
+                                <input class="form-control input-sm" type="number" name="reminder_days" min="1" max="365" value="@_snapshot.ReminderDays" style="width:5rem" />
+                                <button type="submit" class="btn btn-default btn-sm">Set</button>
+                                <button type="button" class="btn btn-warning btn-sm" onclick="waPickExpiring()">Select expiring</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading"><strong>Recipients</strong> <span class="text-muted">(contacts with a mobile)</span></div>
+                    <div class="panel-body" style="padding:0">
+                        <table class="table table-condensed" style="margin:0">
+                            <thead><tr><th></th><th>Name</th><th>Mobile</th><th>Expiry</th><th>Preview</th><th>Status</th></tr></thead>
+                            <tbody id="wa-rows"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading"><strong>Sharing session</strong></div>
+                    <div class="panel-body">
+                        <div id="wa-progress" class="text-muted" style="margin-bottom:8px">Select recipients and press Start.</div>
+                        <div id="wa-current" style="margin-bottom:8px"></div>
+                        <button class="btn btn-primary" id="wa-start" onclick="waStart()">Start sharing</button>
+                        <button class="btn btn-success" id="wa-open" onclick="waOpenCurrent()" disabled>Open in WhatsApp</button>
+                        <button class="btn btn-default" id="wa-next" onclick="waAdvance(1)" disabled>Next recipient</button>
+                        <button class="btn btn-default" id="wa-skip" onclick="waAdvance(2)" disabled>Skip</button>
+                        <button class="btn btn-danger" id="wa-cancel" onclick="waCancel()" disabled>Cancel</button>
+                        <p class="text-muted" style="margin-top:10px">Each button opens WhatsApp with the number + personalised message filled in — you press Send there. Opening a chat is not the same as a message being sent or delivered.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</PhpErpDesktopChrome>
+
+<script>
+    var WA_DATA = @((MarkupString)_recipientsJson);
+    var queue = [], pos = -1;
+
+    function personalize(tpl, r) {
+        return tpl.split('{TenantName}').join(r.name)
+                  .split('{MobileNumber}').join(r.phone)
+                  .split('{ExpiryDate}').join(r.expiry)
+                  .split('{Date}').join(r.today);
+    }
+    function waLoadTpl() {
+        var sel = document.getElementById('wa-tpl');
+        var opt = sel.options[sel.selectedIndex];
+        if (opt && opt.dataset.body !== undefined) {
+            document.getElementById('wa-msg').value = opt.dataset.body;
+            waPreviewAll();
+        }
+    }
+    function waPreviewAll() {
+        var tpl = document.getElementById('wa-msg').value;
+        document.querySelectorAll('.wa-prev').forEach(function (el) {
+            var r = WA_DATA[el.dataset.i];
+            el.textContent = r.digits ? personalize(tpl, r).substring(0, 90) : 'no valid number';
+        });
+    }
+    function waStart() {
+        queue = [];
+        document.querySelectorAll('.wa-pick:checked').forEach(function (el) { queue.push(+el.dataset.i); });
+        if (!queue.length) { document.getElementById('wa-progress').textContent = 'Select at least one recipient.'; return; }
+        pos = 0;
+        ['wa-open','wa-next','wa-skip','wa-cancel'].forEach(function (id) { document.getElementById(id).disabled = false; });
+        document.getElementById('wa-start').disabled = true;
+        waShowCurrent();
+    }
+    function waShowCurrent() {
+        var r = WA_DATA[queue[pos]];
+        document.getElementById('wa-progress').textContent = (pos + 1) + ' of ' + queue.length;
+        document.getElementById('wa-current').innerHTML = '<strong>' + r.name + '</strong><br/>' + r.phone;
+    }
+    function waOpenCurrent() {
+        var r = WA_DATA[queue[pos]];
+        if (!r.digits) { waAdvance(2); return; }
+        var text = encodeURIComponent(personalize(document.getElementById('wa-msg').value, r));
+        window.open('https://wa.me/' + r.digits + '?text=' + text, '_blank');
+        var cell = document.getElementById('wa-st-' + queue[pos]);
+        if (cell) cell.textContent = 'opened in WhatsApp';
+    }
+    function waAdvance(mark) {
+        var cell = document.getElementById('wa-st-' + queue[pos]);
+        if (cell && cell.textContent === '') cell.textContent = mark === 2 ? 'skipped' : '';
+        pos++;
+        if (pos >= queue.length) {
+            document.getElementById('wa-progress').textContent = 'Done — ' + queue.length + ' recipients processed.';
+            document.getElementById('wa-current').textContent = '';
+            ['wa-open','wa-next','wa-skip','wa-cancel'].forEach(function (id) { document.getElementById(id).disabled = true; });
+            document.getElementById('wa-start').disabled = false;
+            return;
+        }
+        waShowCurrent();
+    }
+    function waPickExpiring() {
+        var days = +document.querySelector('input[name=reminder_days]').value || 90;
+        var today = new Date().toISOString().slice(0, 10);
+        var limit = new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
+        var picked = 0;
+        WA_DATA.forEach(function (r, i) {
+            var due = r.digits !== '' && r.expiry !== '' && r.expiry <= limit;
+            document.querySelector('.wa-pick[data-i="' + i + '"]').checked = due;
+            if (due) picked++;
+        });
+        document.getElementById('wa-msg').value = 'Dear {TenantName},\nThis is a friendly reminder that your tenancy / contract expires on {ExpiryDate}.\nPlease contact our office to renew.\nThank you.';
+        waPreviewAll();
+        document.getElementById('wa-progress').textContent = picked + ' recipients expiring within ' + days + ' days selected — press Start sharing.';
+    }
+    function waCancel() {
+        pos = -1; queue = [];
+        ['wa-open','wa-next','wa-skip','wa-cancel'].forEach(function (id) { document.getElementById(id).disabled = true; });
+        document.getElementById('wa-start').disabled = false;
+        document.getElementById('wa-progress').textContent = 'Cancelled.';
+        document.getElementById('wa-current').textContent = '';
+    }
+    (function () {
+        var tbody = document.getElementById('wa-rows');
+        if (!tbody) return;
+        WA_DATA.forEach(function (r, i) {
+            var tr = document.createElement('tr');
+            var ok = r.digits !== '';
+            tr.innerHTML = '<td><input type="checkbox" class="wa-pick" data-i="' + i + '"' + (ok ? '' : ' disabled') + '></td>'
+                + '<td>' + r.name + (r.company ? ' <span class="text-muted">' + r.company + '</span>' : '') + '</td>'
+                + '<td>' + r.phone + '</td><td>' + r.expiry + '</td>'
+                + '<td class="wa-prev text-muted" data-i="' + i + '" style="font-size:11px"></td>'
+                + '<td id="wa-st-' + i + '">' + (ok ? '' : 'no valid number') + '</td>';
+            tbody.appendChild(tr);
+        });
+        waPreviewAll();
+    })();
+</script>
+
+@code {
+    private bool _isAdmin;
+    private ErpWhatsappShareSnapshot _snapshot = new([], [], 90, "empty", string.Empty);
+    private string _recipientsJson = "[]";
+    private string _flash = string.Empty;
+    private string _defaultBody = "Dear {TenantName},\nWe have an important announcement for you.\nPlease contact our office for further details.\nThank you.";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin;
+        _snapshot = await Share.ReadAsync(ctx.RequestAborted);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        _recipientsJson = JsonSerializer.Serialize(_snapshot.Recipients.Select(r => new
+        {
+            name = string.IsNullOrWhiteSpace(r.Name) ? r.Company : r.Name,
+            company = r.Company,
+            phone = r.Phone,
+            digits = r.Digits,
+            expiry = r.ExpiryDate,
+            today = today.ToString("yyyy-MM-dd"),
+        }));
+        if (_snapshot.Templates.Count > 0)
+        {
+            _defaultBody = _snapshot.Templates[0].Body;
+        }
+
+        if (ctx.Request.Query.TryGetValue("ok", out var ok))
+        {
+            _flash = ok.ToString();
+        }
+        else if (ctx.Request.Query.TryGetValue("err", out var err))
+        {
+            _flash = err.ToString();
+        }
+    }
+}
