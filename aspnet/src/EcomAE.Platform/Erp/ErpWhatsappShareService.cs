@@ -69,7 +69,7 @@ public sealed class ErpWhatsappShareService : IErpWhatsappShareService
         var code = NonDigit.Replace(countryCode ?? string.Empty, string.Empty);
         if (code.Length == 0)
         {
-            code = "971";
+            code = DialCode(countryCode);
         }
 
         if (digits.StartsWith("00", StringComparison.Ordinal))
@@ -87,6 +87,17 @@ public sealed class ErpWhatsappShareService : IErpWhatsappShareService
 
         return digits.Length is >= 10 and <= 15 ? digits : string.Empty;
     }
+
+    /// <summary>ISO-2 country code → ITU dialing prefix; UAE default.</summary>
+    private static string DialCode(string? iso)
+        => (iso ?? string.Empty).Trim().ToUpperInvariant() switch
+        {
+            "AE" => "971", "QA" => "974", "SA" => "966", "BH" => "973", "KW" => "965",
+            "OM" => "968", "IN" => "91", "PK" => "92", "PH" => "63", "BD" => "880",
+            "GB" => "44", "US" or "CA" => "1", "EG" => "20", "JO" => "962", "LB" => "961",
+            "TR" => "90", "LK" => "94", "NP" => "977", "ID" => "62", "MY" => "60",
+            _ => "971",
+        };
 
     public static string Personalize(string template, ErpWhatsappRecipient recipient, DateOnly date)
         => (template ?? string.Empty)
@@ -139,17 +150,20 @@ public sealed class ErpWhatsappShareService : IErpWhatsappShareService
                 var hasRe = await ErpDb.TableKnownAsync(connection, "epc_erp_re_tenants", cancellationToken).ConfigureAwait(false)
                     && await ErpDb.TableKnownAsync(connection, "epc_erp_re_leases", cancellationToken).ConfigureAwait(false);
                 var expiryJoin = hasRe
-                    ? """ LEFT JOIN (SELECT t.`name`, MAX(DATE_FORMAT(l.`end_date`,'%Y-%m-%d')) `exp` FROM `epc_erp_re_tenants` t JOIN `epc_erp_re_leases` l ON l.`tenant_id`=t.`id` GROUP BY t.`name`) ex ON ex.`name` = epc_erp_contacts.`name`"""
+                    ? """ LEFT JOIN (SELECT t.`name`, t.`email`, MAX(DATE_FORMAT(l.`end_date`,'%Y-%m-%d')) `exp` FROM `epc_erp_re_tenants` t JOIN `epc_erp_re_leases` l ON l.`tenant_id`=t.`id` GROUP BY t.`name`, t.`email`) ex ON ex.`name` = epc_erp_contacts.`name` AND (ex.`email` = '' OR IFNULL(epc_erp_contacts.`email`,'') = '' OR ex.`email` = epc_erp_contacts.`email`)"""
                     : string.Empty;
                 var expiryCol = hasRe ? ", IFNULL(ex.`exp`,'')" : ", ''";
-                command.CommandText = """
-                    SELECT epc_erp_contacts.`id`,epc_erp_contacts.`name`,epc_erp_contacts.`company`,epc_erp_contacts.`phone`,epc_erp_contacts.`country_code`,epc_erp_contacts.`party_type`
-                    """ + expiryCol + """
-                    FROM `epc_erp_contacts`
-                    """ + expiryJoin + """
-                    WHERE `active`=1 AND `phone` IS NOT NULL AND `phone` <> ''
-                    ORDER BY epc_erp_contacts.`name` LIMIT 500
-                    """;
+                var hasCountry = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "country_code", cancellationToken).ConfigureAwait(false);
+                var countryCol = hasCountry ? "epc_erp_contacts.`country_code`" : "''";
+                command.CommandText =
+                    "SELECT epc_erp_contacts.`id`,epc_erp_contacts.`name`,epc_erp_contacts.`company`,epc_erp_contacts.`phone`,"
+                    + countryCol
+                    + ",epc_erp_contacts.`party_type`"
+                    + expiryCol
+                    + " FROM `epc_erp_contacts`"
+                    + expiryJoin
+                    + " WHERE `active`=1 AND `phone` IS NOT NULL AND `phone` <> ''"
+                    + " ORDER BY epc_erp_contacts.`name` LIMIT 500";
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
