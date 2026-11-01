@@ -21,12 +21,13 @@
         if (!key) { return; }
         var FIELD = '@CpCsrfGuard.FieldName';
         var HEADER = '@ErpCsrfGuardMiddleware.Header';
-        function stamp(form) {
-            if (!form || form._epcCsrf) { return; }
+        function stamp(form, refresh) {
+            if (!form || (form._epcCsrf && !refresh)) { return; }
             var method = (form.getAttribute('method') || 'get').toLowerCase();
             if (method === 'get') { return; }
             form._epcCsrf = true;
-            if (form.querySelector('input[name="' + FIELD + '"]')) { return; }
+            var existing = form.querySelector('input[name="' + FIELD + '"]');
+            if (existing) { existing.value = key; return; }
             var input = document.createElement('input');
             input.type = 'hidden';
             input.name = FIELD;
@@ -36,7 +37,7 @@
         function stampAll(root) {
             (root || document).querySelectorAll('form').forEach(stamp);
         }
-        document.addEventListener('submit', function (e) { stamp(e.target); }, true);
+        document.addEventListener('submit', function (e) { stamp(e.target, true); }, true);
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function () { stampAll(); });
         } else {

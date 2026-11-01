@@ -205,7 +205,7 @@
         return 'epc-jw-draft:' + (form.getAttribute('data-jw-draft') || 'form') + ':' + location.pathname + ':' + (new URLSearchParams(location.search).get('company') || '');
     }
 
-    var skipDraft = { confirmWrites: 1, returnUrl: 1, action: 1, voc_type: 1, after_save: 1, company: 1 };
+    var skipDraft = { confirmWrites: 1, returnUrl: 1, action: 1, voc_type: 1, after_save: 1, company: 1, csrf_guard_key: 1 };
 
     function saveDraft(form, submitted) {
         var data = { lines: form.querySelectorAll('[data-jw-line]').length, fields: [], submitted: !!submitted };
