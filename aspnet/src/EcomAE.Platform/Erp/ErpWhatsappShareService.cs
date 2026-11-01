@@ -80,8 +80,11 @@ public sealed class ErpWhatsappShareService : IErpWhatsappShareService
         {
             digits = code + digits[1..];
         }
-        else if (digits.Length <= 10 && !digits.StartsWith(code, StringComparison.Ordinal))
+        else if (digits.Length <= 9 && !digits.StartsWith(code, StringComparison.Ordinal)
+                 || digits.Length == 10 && code == "1")
         {
+            // Local number missing its dial prefix (10-digit US/CA local included);
+            // a 10+ digit number that already carries a different prefix stays as-is.
             digits = code + digits;
         }
 
@@ -149,11 +152,9 @@ public sealed class ErpWhatsappShareService : IErpWhatsappShareService
                 await using var command = connection.CreateCommand();
                 var hasRe = await ErpDb.TableKnownAsync(connection, "epc_erp_re_tenants", cancellationToken).ConfigureAwait(false)
                     && await ErpDb.TableKnownAsync(connection, "epc_erp_re_leases", cancellationToken).ConfigureAwait(false);
-                var expiryJoin = hasRe
-                    ? """ LEFT JOIN (SELECT t.`name`, t.`email`, MAX(DATE_FORMAT(l.`end_date`,'%Y-%m-%d')) `exp` FROM `epc_erp_re_tenants` t JOIN `epc_erp_re_leases` l ON l.`tenant_id`=t.`id` GROUP BY t.`name`, t.`email`) ex ON ex.`name` = epc_erp_contacts.`name` AND (ex.`email` = '' OR IFNULL(epc_erp_contacts.`email`,'') = '' OR ex.`email` = epc_erp_contacts.`email`)"""
-                    + " AND ex.`exp` = (SELECT MAX(x2.`exp`) FROM (SELECT t2.`name`, t2.`email`, MAX(DATE_FORMAT(l2.`end_date`,'%Y-%m-%d')) `exp` FROM `epc_erp_re_tenants` t2 JOIN `epc_erp_re_leases` l2 ON l2.`tenant_id`=t2.`id` GROUP BY t2.`name`, t2.`email`) x2 WHERE x2.`name` = epc_erp_contacts.`name`)"
-                    : string.Empty;
-                var expiryCol = hasRe ? ", IFNULL(ex.`exp`,'')" : ", ''";
+                var expiryCol = hasRe
+                    ? ", IFNULL((SELECT DATE_FORMAT(MAX(l.`end_date`),'%Y-%m-%d') FROM `epc_erp_re_tenants` t JOIN `epc_erp_re_leases` l ON l.`tenant_id`=t.`id` WHERE t.`name`=epc_erp_contacts.`name` AND (IFNULL(epc_erp_contacts.`email`,'')='' OR t.`email`=epc_erp_contacts.`email`)),'')"
+                    : ", ''";
                 var hasCountry = await ErpDb.ColumnKnownAsync(connection, "epc_erp_contacts", "country_code", cancellationToken).ConfigureAwait(false);
                 var countryCol = hasCountry ? "epc_erp_contacts.`country_code`" : "''";
                 command.CommandText =
@@ -162,7 +163,6 @@ public sealed class ErpWhatsappShareService : IErpWhatsappShareService
                     + ",epc_erp_contacts.`party_type`"
                     + expiryCol
                     + " FROM `epc_erp_contacts`"
-                    + expiryJoin
                     + " WHERE `active`=1 AND `phone` IS NOT NULL AND `phone` <> ''"
                     + " ORDER BY epc_erp_contacts.`name` LIMIT 500";
                 var seen = new HashSet<long>();
