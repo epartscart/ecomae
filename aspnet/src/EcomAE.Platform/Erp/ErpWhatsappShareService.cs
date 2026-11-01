@@ -81,11 +81,12 @@ public sealed class ErpWhatsappShareService : IErpWhatsappShareService
             digits = code + digits[1..];
         }
         else if (digits.Length <= 9 && !digits.StartsWith(code, StringComparison.Ordinal)
-                 || digits.Length == 10 && code is "1" or "91" && !digits.StartsWith(code, StringComparison.Ordinal))
+                 || digits.Length == 10 && code is "1" or "91")
         {
-            // Local number missing its dial prefix. 10-digit locals exist in
-            // US/CA (1) and IN (91); other 10-digit values are treated as
-            // already-international rather than re-prefixed.
+            // Local number missing its dial prefix. In US/CA (1) and IN (91)
+            // 10 digits is never a complete international number, so it is
+            // always a local needing the prefix — even when it starts with the
+            // same digits (e.g. an Indian mobile beginning "91").
             digits = code + digits;
         }
 
