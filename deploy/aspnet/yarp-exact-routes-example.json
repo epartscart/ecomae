@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": true,
   "readyForPhpRemoval": true,
-  "routeCount": 424,
+  "routeCount": 426,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -5093,6 +5093,30 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "erp-syncron-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-platform-alerts-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/platform-alerts-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-platform-alerts-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-whatsapp-share-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/whatsapp-share-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-whatsapp-share-app-read-ui-preview"
           }
         ]
       }
