@@ -51,7 +51,7 @@
     @if (_workArea == "reports")
     {
     <section class="epc-prja-visual" aria-label="Fit-out visual reports">
-        <article class="epc-prja-vcard">
+        <article class="epc-prja-vcard" id="prja-exec">
             <h3>Executive overview</h3>
             @if (_exec is null)
             {
@@ -97,7 +97,7 @@
             }
         </article>
 
-        <article class="epc-prja-vcard">
+        <article class="epc-prja-vcard" id="prja-delivery">
             <h3>Delivery status</h3>
             @if (_delivery is null)
             {
@@ -123,7 +123,7 @@
             }
         </article>
 
-        <article class="epc-prja-vcard">
+        <article class="epc-prja-vcard" id="prja-ops">
             <h3>Operations</h3>
             @if (_ops is null)
             {
@@ -148,7 +148,7 @@
             }
         </article>
 
-        <article class="epc-prja-vcard">
+        <article class="epc-prja-vcard" id="prja-finance">
             <h3>Finance / operations</h3>
             @if (_fin is null)
             {
@@ -173,7 +173,7 @@
             }
         </article>
 
-        <article class="epc-prja-vcard">
+        <article class="epc-prja-vcard" id="prja-approvals">
             <h3>Approval queue</h3>
             @if (_appr is null)
             {
@@ -325,7 +325,7 @@
                 <button type="submit" class="btn btn-default">Open approval audit JSON</button>
             </form>
         </article>
-        <article class="epc-prja-report">
+        <article class="epc-prja-report" id="prja-subcontract">
             <h3>Subcontract reconciliation</h3>
             <p>Subcontractor orders, claims, and certificates.</p>
             <form method="get" action="@FitOutHref("/erp/fitout/subcontract-reconciliation")" data-epc-inline="1">
