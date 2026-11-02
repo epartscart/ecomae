@@ -2853,3 +2853,13 @@ a.epc-dash-legend__row:hover { color: #0e7490; }
 .epc-d365-entry-head,
 .epc-d365-entry-head a { color: #fff !important; }
 .epc-d365-entry-body { padding: 1rem 1.1rem; background: #fff; }
+
+/* PRJA in-page voucher report */
+.epc-prja-voucher { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .5rem .9rem; margin-top: .6rem; }
+.epc-prja-vline { display: flex; justify-content: space-between; gap: .8rem; padding: .45rem .7rem; background: #f7f9fc; border: 1px solid #e3e9f2; border-radius: 6px; font-size: .82rem; }
+.epc-prja-vline span { color: #5a6b85; }
+.epc-prja-vline strong { color: #174a8b; text-align: right; }
+.epc-prja-vtable { width: 100%; border-collapse: collapse; margin-top: .6rem; font-size: .82rem; }
+.epc-prja-vtable th { text-align: left; padding: .45rem .6rem; background: #eef3fa; color: #174a8b; border-bottom: 2px solid #c9d8ee; white-space: nowrap; }
+.epc-prja-vtable td { padding: .4rem .6rem; border-bottom: 1px solid #e8eef6; vertical-align: top; }
+.epc-prja-vtable tr:nth-child(even) td { background: #fafcff; }
