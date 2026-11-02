@@ -14,6 +14,20 @@
 @inject EcomAE.Platform.Erp.IErpFitOutOperationsReportReadService FitOutOperations
 @inject EcomAE.Platform.Erp.IErpFitOutFinanceOperationsReportReadService FitOutFinance
 @inject EcomAE.Platform.Erp.IErpFitOutApprovalQueueReadService FitOutApprovals
+@inject EcomAE.Platform.Erp.IErpFitOutEstimateRevisionReadService FitOutEstimates
+@inject EcomAE.Platform.Erp.IErpFitOutBoqReadService FitOutBoq
+@inject EcomAE.Platform.Erp.IErpFitOutApprovalEvidenceReadService FitOutApprovalEvidence
+@inject EcomAE.Platform.Erp.IErpFitOutInvoiceBridgeReadService FitOutInvoiceBridge
+@inject EcomAE.Platform.Erp.IErpFitOutInvoiceReconciliationReadService FitOutInvoiceRecon
+@inject EcomAE.Platform.Erp.IErpFitOutCommercialReconciliationReadService FitOutCommercial
+@inject EcomAE.Platform.Erp.IErpFitOutContractClosureReadService FitOutContractClosure
+@inject EcomAE.Platform.Erp.IErpFitOutRetentionAgeingReadService FitOutRetention
+@inject EcomAE.Platform.Erp.IErpFitOutProformaReceiptReadService FitOutProforma
+@inject EcomAE.Platform.Erp.IErpFitOutApprovalAuditReadService FitOutAudit
+@inject EcomAE.Platform.Erp.IErpFitOutSubcontractReconciliationReadService FitOutSubcontract
+@inject EcomAE.Platform.Erp.IErpFitOutAcceptanceEvidenceReadService FitOutAcceptance
+@inject EcomAE.Platform.Erp.IErpFitOutRecoverySummaryReadService FitOutRecovery
+@inject EcomAE.Platform.Erp.IErpFitOutProjectPnlReadService FitOutProjectPnl
 
 <PageTitle>Project accounting · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -51,11 +65,11 @@
     @if (_workArea == "reports")
     {
     <section class="epc-prja-visual" aria-label="Fit-out visual reports">
-        <article class="epc-prja-vcard">
+        <article class="epc-prja-vcard" id="prja-exec">
             <h3>Executive overview</h3>
             @if (_exec is null)
             {
-                <p class="epc-prja-vempty">Loading…</p>
+                <p class="epc-prja-vempty">@(_isAdmin ? "Loading…" : "Sign in with ERP capability for live rows.")</p>
             }
             else if (_exec.Rows.Count == 0)
             {
@@ -97,11 +111,11 @@
             }
         </article>
 
-        <article class="epc-prja-vcard">
+        <article class="epc-prja-vcard" id="prja-delivery">
             <h3>Delivery status</h3>
             @if (_delivery is null)
             {
-                <p class="epc-prja-vempty">Loading…</p>
+                <p class="epc-prja-vempty">@(_isAdmin ? "Loading…" : "Sign in with ERP capability for live rows.")</p>
             }
             else if (_delivery.Rows.Count == 0)
             {
@@ -123,11 +137,11 @@
             }
         </article>
 
-        <article class="epc-prja-vcard">
+        <article class="epc-prja-vcard" id="prja-ops">
             <h3>Operations</h3>
             @if (_ops is null)
             {
-                <p class="epc-prja-vempty">Loading…</p>
+                <p class="epc-prja-vempty">@(_isAdmin ? "Loading…" : "Sign in with ERP capability for live rows.")</p>
             }
             else if (_ops.Rows.Count == 0)
             {
@@ -148,11 +162,11 @@
             }
         </article>
 
-        <article class="epc-prja-vcard">
+        <article class="epc-prja-vcard" id="prja-finance">
             <h3>Finance / operations</h3>
             @if (_fin is null)
             {
-                <p class="epc-prja-vempty">Loading…</p>
+                <p class="epc-prja-vempty">@(_isAdmin ? "Loading…" : "Sign in with ERP capability for live rows.")</p>
             }
             else if (_fin.Rows.Count == 0)
             {
@@ -173,11 +187,11 @@
             }
         </article>
 
-        <article class="epc-prja-vcard">
+        <article class="epc-prja-vcard" id="prja-approvals">
             <h3>Approval queue</h3>
             @if (_appr is null)
             {
-                <p class="epc-prja-vempty">Loading…</p>
+                <p class="epc-prja-vempty">@(_isAdmin ? "Loading…" : "Sign in with ERP capability for live rows.")</p>
             }
             else if (_appr.Rows.Count == 0)
             {
@@ -197,7 +211,47 @@
         </article>
     </section>
 
-    <h3 class="epc-prja-dtl">Report endpoints</h3>
+    <h3 class="epc-prja-dtl">Reports</h3>
+    @if (_report is not null)
+    {
+    <section class="epc-prja-visual" aria-label="Selected report">
+        <article class="epc-prja-vcard" id="prja-report" style="grid-column:1/-1">
+            <h3>@_report.Title</h3>
+            <p>@_report.Subtitle</p>
+            @if (!string.IsNullOrWhiteSpace(_report.Message))
+            {
+                <p class="epc-prja-vempty">@_report.Message</p>
+            }
+            else
+            {
+                @if (_report.Lines.Count > 0)
+                {
+                    <div class="epc-prja-voucher">
+                        @foreach (var line in _report.Lines)
+                        {
+                            <div class="epc-prja-vline"><span>@line.Label</span><strong>@line.Value</strong></div>
+                        }
+                    </div>
+                }
+                @if (_report.Rows.Count > 0)
+                {
+                    <table class="epc-prja-vtable">
+                        @if (_report.Head is not null)
+                        {
+                            <thead><tr>@foreach (var h in _report.Head){<th>@h</th>}</tr></thead>
+                        }
+                        <tbody>
+                            @foreach (var row in _report.Rows)
+                            {
+                                <tr>@foreach (var cell in row){<td>@cell</td>}</tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            }
+        </article>
+    </section>
+    }
     <section class="epc-prja-reports" aria-label="Fit-out reports">
         <article class="epc-prja-report">
             <h3>Excel import</h3>
@@ -208,157 +262,156 @@
         <article class="epc-prja-report">
             <h3>Delivery dashboard</h3>
             <p>Project counts, amounts, and completion by legal entity.</p>
-            <a class="btn btn-default" href="@FitOutHref("/erp/fitout/delivery-dashboard")">Open delivery dashboard JSON</a>
+            <a class="btn btn-default" href="@WorkHref("reports")#prja-delivery">View delivery dashboard</a>
         </article>
         <article class="epc-prja-report">
             <h3>Executive dashboard</h3>
             <p>Board-level fit-out status for the selected company.</p>
-            <a class="btn btn-default" href="@FitOutHref("/erp/fitout/executive-dashboard")">Open executive dashboard JSON</a>
+            <a class="btn btn-default" href="@WorkHref("reports")#prja-exec">View executive dashboard</a>
         </article>
         <article class="epc-prja-report">
             <h3>Operations report</h3>
             <p>Site, procurement, and delivery operations roll-up.</p>
-            <a class="btn btn-default" href="@FitOutHref("/erp/fitout/operations-report")">Open operations report JSON</a>
+            <a class="btn btn-default" href="@WorkHref("reports")#prja-ops">View operations report</a>
         </article>
         <article class="epc-prja-report">
             <h3>Estimate revisions</h3>
             <p>Compare BOQ revisions for one project.</p>
-            <form method="get" action="@FitOutHref("/erp/fitout/estimates/revision-comparison")" data-epc-inline="1">
+            <form method="get" action="/erp/project-accounting-app" data-epc-inline="1">
+                @ReportHidden("estimate-revisions")
                 <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
-                <button type="submit" class="btn btn-default">Compare estimate revisions JSON</button>
+                <button type="submit" class="btn btn-default">View revision comparison</button>
             </form>
         </article>
         <article class="epc-prja-report">
             <h3>Estimate / BOQ</h3>
             <p>Open a saved estimate and its BOQ lines.</p>
-            <form method="get" action="@FitOutHref("/erp/fitout/estimates/boq")" data-epc-inline="1">
+            <form method="get" action="/erp/project-accounting-app" data-epc-inline="1">
+                @ReportHidden("estimate-boq")
                 <label>Estimate id <input type="number" name="estimateId" min="1" placeholder="Estimate id" required /></label>
-                <button type="submit" class="btn btn-default">Open estimate / BOQ JSON</button>
+                <button type="submit" class="btn btn-default">View estimate / BOQ</button>
             </form>
         </article>
         <article class="epc-prja-report">
             <h3>Approval evidence</h3>
             <p>Queue plus audit trail for one project.</p>
-            <form method="get" action="@FitOutHref("/erp/fitout/approval-evidence")" data-epc-inline="1">
+            <form method="get" action="/erp/project-accounting-app" data-epc-inline="1">
+                @ReportHidden("approval-evidence")
                 <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
-                <button type="submit" class="btn btn-default">Open approval evidence JSON</button>
+                <button type="submit" class="btn btn-default">View approval evidence</button>
             </form>
         </article>
         <article class="epc-prja-report">
             <h3>Finance / operations</h3>
             <p>Combined finance and site operations digest.</p>
-            <a class="btn btn-default" href="@FitOutHref("/erp/fitout/finance-operations-report")">Open finance/operations report JSON</a>
+            <a class="btn btn-default" href="@WorkHref("reports")#prja-finance">View finance/operations report</a>
         </article>
         <article class="epc-prja-report">
             <h3>Project P&amp;L / forecast</h3>
             <p>Budget, actual, and forecast margin.</p>
-            <form method="get" action="@FitOutHref("/erp/fitout/project-pnl")" data-epc-inline="1">
+            <form method="get" action="/erp/project-accounting-app" data-epc-inline="1">
+                @ReportHidden("project-pnl")
                 <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" />
-                <button type="submit" class="btn btn-default">Open project P&amp;L / forecast JSON</button>
+                <button type="submit" class="btn btn-default">View project P&amp;L / forecast</button>
             </form>
         </article>
         <article class="epc-prja-report">
             <h3>VAT / invoice links</h3>
             <p>Invoice bridge rows for the selected project.</p>
-            <form method="get" action="/erp/fitout/invoice-bridge" data-epc-inline="1">
-                @if (_activeCompanyId > 0)
-                {
-                    <input type="hidden" name="company" value="@_activeCompanyId.ToString(CultureInfo.InvariantCulture)" />
-                }
+            <form method="get" action="/erp/project-accounting-app" data-epc-inline="1">
+                @ReportHidden("invoice-bridge")
                 <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
-                <button type="submit" class="btn btn-default">Open VAT / invoice links JSON</button>
+                <button type="submit" class="btn btn-default">View VAT / invoice links</button>
             </form>
         </article>
         <article class="epc-prja-report">
             <h3>Billing reconciliation</h3>
             <p>Approved billing versus invoices.</p>
-            <form method="get" action="/erp/fitout/invoice-reconciliation" data-epc-inline="1">
-                @if (_activeCompanyId > 0)
-                {
-                    <input type="hidden" name="company" value="@_activeCompanyId.ToString(CultureInfo.InvariantCulture)" />
-                }
+            <form method="get" action="/erp/project-accounting-app" data-epc-inline="1">
+                @ReportHidden("invoice-reconciliation")
                 <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
-                <button type="submit" class="btn btn-default">Open approved billing reconciliation JSON</button>
+                <button type="submit" class="btn btn-default">View billing reconciliation</button>
             </form>
         </article>
         <article class="epc-prja-report">
             <h3>Contract balance</h3>
             <p>Certification split and remaining contract value.</p>
-            <form method="get" action="/erp/fitout/commercial-reconciliation" data-epc-inline="1">
-                @if (_activeCompanyId > 0)
-                {
-                    <input type="hidden" name="company" value="@_activeCompanyId.ToString(CultureInfo.InvariantCulture)" />
-                }
+            <form method="get" action="/erp/project-accounting-app" data-epc-inline="1">
+                @ReportHidden("commercial-reconciliation")
                 <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
-                <button type="submit" class="btn btn-default">Open contract balance and certification split JSON</button>
+                <button type="submit" class="btn btn-default">View contract balance</button>
             </form>
         </article>
         <article class="epc-prja-report">
             <h3>Contract closure</h3>
             <p>Close-out checklist and remaining holds.</p>
-            <form method="get" action="@FitOutHref("/erp/fitout/contract-closure")" data-epc-inline="1">
+            <form method="get" action="/erp/project-accounting-app" data-epc-inline="1">
+                @ReportHidden("contract-closure")
                 <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
-                <button type="submit" class="btn btn-default">Open contract closure JSON</button>
+                <button type="submit" class="btn btn-default">View contract closure</button>
             </form>
         </article>
         <article class="epc-prja-report">
             <h3>Retention ageing</h3>
             <p>Held and released retention by age.</p>
-            <form method="get" action="@FitOutHref("/erp/fitout/retention-ageing")" data-epc-inline="1">
+            <form method="get" action="/erp/project-accounting-app" data-epc-inline="1">
+                @ReportHidden("retention-ageing")
                 <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
-                <button type="submit" class="btn btn-default">Open retention ageing JSON</button>
+                <button type="submit" class="btn btn-default">View retention ageing</button>
             </form>
         </article>
         <article class="epc-prja-report">
             <h3>Proforma / receipts</h3>
             <p>Proforma invoices and cash receipts.</p>
-            <form method="get" action="@FitOutHref("/erp/fitout/proforma-receipts")" data-epc-inline="1">
+            <form method="get" action="/erp/project-accounting-app" data-epc-inline="1">
+                @ReportHidden("proforma-receipts")
                 <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
-                <button type="submit" class="btn btn-default">Open proforma and receipt history JSON</button>
+                <button type="submit" class="btn btn-default">View proforma and receipts</button>
             </form>
         </article>
         <article class="epc-prja-report">
             <h3>Approval audit</h3>
             <p>Who approved what, and when.</p>
-            <form method="get" action="@FitOutHref("/erp/fitout/approval-audit")" data-epc-inline="1">
+            <form method="get" action="/erp/project-accounting-app" data-epc-inline="1">
+                @ReportHidden("approval-audit")
                 <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
-                <button type="submit" class="btn btn-default">Open approval audit JSON</button>
+                <button type="submit" class="btn btn-default">View approval audit</button>
             </form>
         </article>
-        <article class="epc-prja-report">
+        <article class="epc-prja-report" id="prja-subcontract">
             <h3>Subcontract reconciliation</h3>
             <p>Subcontractor orders, claims, and certificates.</p>
-            <form method="get" action="@FitOutHref("/erp/fitout/subcontract-reconciliation")" data-epc-inline="1">
+            <form method="get" action="/erp/project-accounting-app" data-epc-inline="1">
+                @ReportHidden("subcontract-reconciliation")
                 <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
-                <button type="submit" class="btn btn-default">Open subcontract reconciliation JSON</button>
+                <button type="submit" class="btn btn-default">View subcontract reconciliation</button>
             </form>
         </article>
         <article class="epc-prja-report">
             <h3>Pending approvals</h3>
-            <p>Open the approval queue for a project or the company.</p>
-            <form method="get" action="@FitOutHref("/erp/fitout/approval-queue")" data-epc-inline="1">
+            <p>Approval queue for a project or the company.</p>
+            <form method="get" action="/erp/project-accounting-app" data-epc-inline="1">
+                @ReportHidden("approval-queue")
                 <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" />
-                <button type="submit" class="btn btn-default">Open pending approval queue JSON</button>
+                <button type="submit" class="btn btn-default">View pending approvals</button>
             </form>
         </article>
         <article class="epc-prja-report">
             <h3>Acceptance evidence</h3>
-            <p>Handover and acceptance attachments.</p>
-            <form method="get" action="/erp/fitout/acceptance-evidence" data-epc-inline="1">
-                @if (_activeCompanyId > 0)
-                {
-                    <input type="hidden" name="company" value="@_activeCompanyId.ToString(CultureInfo.InvariantCulture)" />
-                }
+            <p>Handover and acceptance checklist.</p>
+            <form method="get" action="/erp/project-accounting-app" data-epc-inline="1">
+                @ReportHidden("acceptance-evidence")
                 <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
-                <button type="submit" class="btn btn-default">Open acceptance evidence JSON</button>
+                <button type="submit" class="btn btn-default">View acceptance evidence</button>
             </form>
         </article>
         <article class="epc-prja-report">
             <h3>Recovery summary</h3>
             <p>Retention and advance recovery position.</p>
-            <form method="get" action="@FitOutHref("/erp/fitout/recovery-summary")" data-epc-inline="1">
+            <form method="get" action="/erp/project-accounting-app" data-epc-inline="1">
+                @ReportHidden("recovery-summary")
                 <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
-                <button type="submit" class="btn btn-default">Open recovery summary JSON</button>
+                <button type="submit" class="btn btn-default">View recovery summary</button>
             </form>
         </article>
     </section>
@@ -1011,6 +1064,234 @@
     private EcomAE.Platform.Erp.ErpFitOutFinanceOperationsReportResult? _fin;
     private EcomAE.Platform.Erp.ErpFitOutApprovalQueueResult? _appr;
 
+    private sealed record PrjaReportView(
+        string Title,
+        string Subtitle,
+        IReadOnlyList<(string Label, string Value)> Lines,
+        IReadOnlyList<string[]> Rows,
+        string[]? Head,
+        string Message);
+
+    private PrjaReportView? _report;
+    private string _reportKey = string.Empty;
+
+    private MarkupString ReportHidden(string key)
+    {
+        var html = "<input type=\"hidden\" name=\"ws\" value=\"reports\" />"
+            + "<input type=\"hidden\" name=\"report\" value=\"" + key + "\" />";
+        if (_activeCompanyId > 0)
+        {
+            html += "<input type=\"hidden\" name=\"company\" value=\""
+                + _activeCompanyId.ToString(CultureInfo.InvariantCulture) + "\" />";
+        }
+        return new MarkupString(html);
+    }
+
+    private string ProjectLabel(long projectId) => projectId > 0 ? "Project P-" + projectId : "All projects";
+
+    private async Task<PrjaReportView> BuildReportAsync(string key, long projectId, long estimateId, CancellationToken ct)
+    {
+        var lines = new List<(string, string)>();
+        var rows = new List<string[]>();
+        string[]? head = null;
+        string title, subtitle = ProjectLabel(projectId), message = string.Empty;
+        switch (key)
+        {
+            case "estimate-revisions":
+            {
+                title = "Estimate revision comparison";
+                var r = await FitOutEstimates.ReadAsync(projectId, ct);
+                message = r.Message;
+                head = new[] { "Code", "Title", "Rev", "Markup %", "Status", "BOQ lines", "Total cost", "Selling" };
+                rows.AddRange(r.Revisions.Select(v => new[] { v.Code, v.Title, v.Revision.ToString(), Pct(v.MarkupPercent), v.Status, v.BoqLineCount.ToString(), Money(v.TotalCost), Money(v.SellingAmount) }));
+                foreach (var d in r.Deltas)
+                {
+                    lines.Add(("Rev " + d.FromRevision + " → " + d.ToRevision, "cost " + Money(d.CostDelta) + " · selling " + Money(d.SellingDelta) + " · lines " + d.BoqLineDelta));
+                }
+                break;
+            }
+            case "estimate-boq":
+            {
+                title = "Estimate / BOQ";
+                var r = await FitOutBoq.ReadAsync(estimateId, ct);
+                message = r.Message;
+                subtitle = r.Estimate is null ? "Estimate " + estimateId : r.Estimate.Code + " · " + r.Estimate.Title + " · rev " + r.Estimate.Revision;
+                lines.Add(("Total cost", Money(r.TotalCost)));
+                lines.Add(("Selling amount", Money(r.SellingAmount)));
+                head = new[] { "Section", "Description", "Cost type", "Qty", "Unit", "Total cost", "Selling" };
+                rows.AddRange(r.Lines.Select(l => new[] { l.Section, l.Description, l.CostType, l.Quantity.ToString("0.##"), l.Unit, Money(l.TotalCost), Money(l.SellingAmount) }));
+                break;
+            }
+            case "approval-evidence":
+            {
+                title = "Approval evidence";
+                var r = await FitOutApprovalEvidence.ReadAsync(projectId, ct);
+                message = r.Message;
+                lines.Add(("Pending amount", Money(r.PendingAmount)));
+                head = new[] { "Type", "Reference", "Title", "Amount", "Status / decision" };
+                rows.AddRange(r.Pending.Select(p => new[] { p.RecordType, p.Reference, p.Title, Money(p.Amount), p.Status }));
+                rows.AddRange(r.Decisions.Select(d => new[] { d.RecordType, d.Reference, "admin " + d.AdminId, "", d.Decision + " · " + d.DecidedAtUtc.ToString("yyyy-MM-dd") }));
+                break;
+            }
+            case "project-pnl":
+            {
+                title = "Project P&L / forecast";
+                var r = await FitOutProjectPnl.ReadAsync(projectId > 0 ? projectId : null, ct);
+                message = r.Message;
+                head = new[] { "Project", "Revenue budget", "Cost budget", "Actual revenue", "Actual cost", "Budget margin", "Actual margin", "Forecast revenue", "Forecast cost", "Forecast profit" };
+                rows.AddRange(r.Rows.Select(p => new[] { "P-" + p.ProjectId, Money(p.RevenueBudget), Money(p.CostBudget), Money(p.ActualRevenue), Money(p.ActualCost), Money(p.BudgetMargin), Money(p.ActualMargin), Money(p.ForecastRevenue), Money(p.ForecastCost), Money(p.ForecastProfit) }));
+                break;
+            }
+            case "invoice-bridge":
+            {
+                title = "VAT / invoice links";
+                var r = await FitOutInvoiceBridge.ReadAsync(projectId, ct);
+                message = r.Message;
+                head = new[] { "Invoice", "Stage", "Reference", "Ex-VAT", "VAT", "Incl-VAT", "Currency", "Status" };
+                rows.AddRange(r.Rows.Select(x => new[] { x.InvoiceNumber, x.Stage, x.Reference, Money(x.SubtotalExVat), Money(x.TotalVat), Money(x.TotalInclVat), x.CurrencyCode, x.InvoiceStatus }));
+                break;
+            }
+            case "invoice-reconciliation":
+            {
+                title = "Billing reconciliation";
+                var r = await FitOutInvoiceRecon.ReadAsync(projectId, ct);
+                message = r.Message;
+                lines.Add(("Certified amount", Money(r.CertifiedAmount)));
+                lines.Add(("Client certified", Money(r.ClientCertifiedAmount)));
+                lines.Add(("Subcontract certified", Money(r.SubcontractCertifiedAmount)));
+                lines.Add(("Invoiced ex-VAT", Money(r.InvoicedExVat)));
+                lines.Add(("Invoiced VAT", Money(r.InvoicedVat)));
+                lines.Add(("Invoiced incl-VAT", Money(r.InvoicedInclVat)));
+                lines.Add(("Unbilled certified", Money(r.UnbilledCertifiedAmount)));
+                break;
+            }
+            case "commercial-reconciliation":
+            {
+                title = "Contract balance";
+                var r = await FitOutCommercial.ReadAsync(projectId, ct);
+                message = r.Message;
+                lines.Add(("Contract value", Money(r.ContractValue)));
+                lines.Add(("Approved variations", Money(r.ApprovedVariationAmount)));
+                lines.Add(("Budget cost", Money(r.BudgetCost)));
+                lines.Add(("Certified / client certified", Money(r.CertifiedAmount) + " / " + Money(r.ClientCertifiedAmount)));
+                lines.Add(("Subcontract certified", Money(r.SubcontractCertifiedAmount)));
+                lines.Add(("Vendor bills / payments", Money(r.VendorBills) + " / " + Money(r.PaymentVouchers)));
+                lines.Add(("Client billed", Money(r.ClientBilled)));
+                lines.Add(("Retention held / released", Money(r.RetentionHeld) + " / " + Money(r.RetentionReleased)));
+                lines.Add(("Unbilled client", Money(r.UnbilledClientAmount)));
+                lines.Add(("Unpaid vendor", Money(r.UnpaidVendorAmount)));
+                lines.Add(("Forecast margin", Money(r.ForecastMargin)));
+                break;
+            }
+            case "contract-closure":
+            {
+                title = "Contract closure";
+                var r = await FitOutContractClosure.ReadAsync(projectId, ct);
+                message = r.Message;
+                lines.Add(("Ready to close", r.CanClose ? "Yes" : "No"));
+                lines.Add(("Pending approvals", r.PendingApprovalCount + " · " + Money(r.PendingApprovalAmount)));
+                lines.Add(("Completion certificates", r.ApprovedCompletionCertificateCount.ToString()));
+                lines.Add(("Final settlements", r.ApprovedFinalSettlementCount.ToString()));
+                lines.Add(("Unbilled client", Money(r.UnbilledClientAmount)));
+                lines.Add(("Unpaid vendor / subcontract", Money(r.UnpaidVendorAmount) + " / " + Money(r.UnpaidSubcontractCertifiedAmount)));
+                lines.Add(("Subcontract overrun", Money(r.SubcontractOverrunAmount)));
+                lines.Add(("Retention held", Money(r.RetentionHeld)));
+                foreach (var b in r.Blockers) lines.Add(("Blocker", b));
+                break;
+            }
+            case "retention-ageing":
+            {
+                title = "Retention ageing";
+                var r = await FitOutRetention.ReadAsync(projectId, ct);
+                message = r.Message;
+                lines.Add(("Retention held", Money(r.RetentionHeld)));
+                lines.Add(("Held since", r.BaseDate?.ToString("yyyy-MM-dd") ?? "—"));
+                lines.Add(("Warranty ends", r.WarrantyEndDate?.ToString("yyyy-MM-dd") ?? "—"));
+                lines.Add(("Days held", r.DaysHeld.ToString()));
+                lines.Add(("Ageing bucket", r.AgeingBucket));
+                lines.Add(("Release eligible", (r.ReleaseEligible ? "Yes" : "No") + " — " + r.EligibilityReason));
+                break;
+            }
+            case "proforma-receipts":
+            {
+                title = "Proforma / receipts";
+                var r = await FitOutProforma.ReadAsync(projectId, ct);
+                message = r.Message;
+                lines.Add(("Total invoiced", Money(r.TotalInvoiced)));
+                lines.Add(("Total receipts", Money(r.TotalReceipts)));
+                lines.Add(("Outstanding", Money(r.TotalOutstanding)));
+                head = new[] { "Stage", "Invoices", "Ex-VAT", "VAT", "Incl-VAT", "Receipts", "Outstanding" };
+                rows.AddRange(r.Rows.Select(x => new[] { x.Stage, x.InvoiceCount.ToString(), Money(x.InvoicedExVat), Money(x.InvoicedVat), Money(x.InvoicedInclVat), Money(x.Receipts), Money(x.Outstanding) }));
+                break;
+            }
+            case "approval-audit":
+            {
+                title = "Approval audit";
+                var r = await FitOutAudit.ReadAsync(projectId, ct);
+                if (r.Count == 0) message = "No approval decisions recorded for this project.";
+                head = new[] { "Type", "Reference", "Decision", "By", "When (UTC)" };
+                rows.AddRange(r.Select(x => new[] { x.RecordType, x.Reference, x.Decision, "admin " + x.AdminId, x.DecidedAtUtc.ToString("yyyy-MM-dd HH:mm") }));
+                break;
+            }
+            case "subcontract-reconciliation":
+            {
+                title = "Subcontract reconciliation";
+                var r = await FitOutSubcontract.ReadAsync(projectId, ct);
+                message = r.Message;
+                lines.Add(("Ordered", Money(r.OrderedAmount)));
+                lines.Add(("Measured", Money(r.MeasuredAmount)));
+                lines.Add(("Certified", Money(r.CertifiedAmount)));
+                lines.Add(("Payment certified", Money(r.PaymentCertifiedAmount)));
+                lines.Add(("Approved payments", Money(r.ApprovedPayments)));
+                lines.Add(("Uncertified", Money(r.UncertifiedAmount)));
+                lines.Add(("Unpaid certified", Money(r.UnpaidCertifiedAmount)));
+                break;
+            }
+            case "approval-queue":
+            {
+                title = "Pending approvals";
+                var r = await FitOutApprovals.ReadAsync(projectId > 0 ? projectId : null, ct);
+                message = r.Message;
+                lines.Add(("Pending items", r.Rows.Count.ToString()));
+                lines.Add(("Pending value", Money(r.TotalAmount)));
+                head = new[] { "Project", "Type", "Reference", "Title", "Amount", "Status" };
+                rows.AddRange(r.Rows.Select(x => new[] { "P-" + x.ProjectId, x.RecordType, x.Reference, x.Title, Money(x.Amount), x.Status }));
+                break;
+            }
+            case "acceptance-evidence":
+            {
+                title = "Acceptance evidence";
+                var r = await FitOutAcceptance.ReadAsync(projectId, ct);
+                message = r.Message;
+                lines.Add(("Machine checks", r.MachineChecksPassed ? "Passed" : "Incomplete"));
+                head = new[] { "Check", "Status", "Evidence" };
+                rows.AddRange(r.Checks.Select(c => new[] { c.Key, c.Status, c.Evidence }));
+                break;
+            }
+            case "recovery-summary":
+            {
+                title = "Recovery summary";
+                var r = await FitOutRecovery.ReadAsync(projectId, ct);
+                message = r.Message;
+                lines.Add(("Advance % / retention %", Pct(r.AdvancePercent) + " / " + Pct(r.RetentionPercent)));
+                lines.Add(("Certified / client certified", Money(r.CertifiedAmount) + " / " + Money(r.ClientCertifiedAmount)));
+                lines.Add(("Subcontract certified", Money(r.SubcontractCertifiedAmount)));
+                lines.Add(("Advance recovered / outstanding", Money(r.AdvanceRecovered) + " / " + Money(r.AdvanceOutstanding)));
+                lines.Add(("Retention recovered / outstanding", Money(r.RetentionRecovered) + " / " + Money(r.RetentionOutstanding)));
+                break;
+            }
+            default:
+                title = "Report";
+                message = "Unknown report '" + key + "'.";
+                break;
+        }
+        if (lines.Count == 0 && rows.Count == 0 && string.IsNullOrWhiteSpace(message))
+        {
+            message = "No data for this selection — load the demo sample data or pick another project.";
+        }
+        return new PrjaReportView(title, subtitle, lines, rows, head, message);
+    }
+
     private static string Money(decimal value)
         => value.ToString("#,##0.00", CultureInfo.InvariantCulture);
 
@@ -1134,6 +1415,14 @@
             _ops = await FitOutOperations.ReadAsync(null, ct);
             _fin = await FitOutFinance.ReadAsync(null, ct);
             _appr = await FitOutApprovals.ReadAsync(null, ct);
+
+            _reportKey = ctx.Request.Query["report"].ToString();
+            if (!string.IsNullOrWhiteSpace(_reportKey))
+            {
+                long.TryParse(ctx.Request.Query["projectId"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var projectId);
+                long.TryParse(ctx.Request.Query["estimateId"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var estimateId);
+                _report = await BuildReportAsync(_reportKey, projectId, estimateId, ct);
+            }
         }
 
         if (_openedBudgetId > 0)
