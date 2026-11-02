@@ -304,6 +304,9 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
             }
         }
 
+        var addinsTableExists = addins.Length > 0
+            && await TableExistsAsync(connection, "epc_jewel_voucher_addins", cancellationToken).ConfigureAwait(false);
+
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
@@ -563,8 +566,7 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                     amountLc).ConfigureAwait(false);
             }
 
-            if (addins.Length > 0
-                && await TableExistsAsync(connection, "epc_jewel_voucher_addins", cancellationToken).ConfigureAwait(false))
+            if (addinsTableExists)
             {
                 var addinNo = 1;
                 foreach (var addin in addins)
