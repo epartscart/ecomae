@@ -241,8 +241,10 @@ public sealed class LegacyAdminLoginServiceTests
 
         var wrong = LoginErrorHelper.FromUri("https://www.epartscart.com/cp/login?error=invalid_credentials");
         Assert.NotNull(wrong);
-        Assert.Contains("taxofinca", wrong, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("shop secret", wrong, StringComparison.OrdinalIgnoreCase);
+        // Generic wording only — must never leak another tenant's hostname.
+        Assert.Contains("own company's workspace", wrong, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("taxofinca", wrong, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("epartscart.com", wrong, StringComparison.OrdinalIgnoreCase);
 
         var clientErp = LoginErrorHelper.FromUri("https://www.ecomae.com/cp/client-erp/indj/?error=login_backend_error");
         Assert.Equal(LoginErrorHelper.ClientErpShopBackendHint, clientErp);
