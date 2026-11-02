@@ -202,13 +202,15 @@ public sealed class CpErpChromeDashboardParityTests
             src.IndexOf("data-epc-industry-first=\"jewellery\"", StringComparison.Ordinal)
             < src.IndexOf("<div class=\"ns-hero\">", StringComparison.Ordinal));
         Assert.Contains("Fit-out project modules", src);
-        Assert.Contains("FitOutHref(\"/erp/fitout/delivery-dashboard\")", src);
-        Assert.Contains("FitOutHref(\"/erp/fitout/finance-operations-report\")", src);
-        Assert.Contains("FitOutHref(\"/erp/fitout/approval-queue\")", src);
+        // Tiles open rendered reports-page anchors, never raw JSON endpoints.
+        Assert.Contains("FitOutHref(\"/erp/project-accounting-app?ws=reports#prja-delivery\")", src);
+        Assert.Contains("FitOutHref(\"/erp/project-accounting-app?ws=reports#prja-finance\")", src);
+        Assert.Contains("FitOutHref(\"/erp/project-accounting-app?ws=reports#prja-approvals\")", src);
         Assert.Contains("Every fit-out entry keeps the selected legal-entity scope", src);
         Assert.Contains("private string FitOutHref", src);
         Assert.Contains("FITOUT · Fit-out Company · Company 3", projectAccounting);
-        Assert.Contains("action=\"@FitOutHref(\"/erp/fitout/project-pnl\")\"", projectAccounting);
+        // P&L picker renders in-page (report=project-pnl), not the JSON endpoint.
+        Assert.Contains("ReportHidden(\"project-pnl\")", projectAccounting);
         Assert.Contains("Report links retain the selected legal entity", projectAccounting);
         Assert.Contains("data-epc-prja=\"workspace\"", projectAccounting);
         Assert.Contains("WorkHref(\"commercial\")", projectAccounting);
