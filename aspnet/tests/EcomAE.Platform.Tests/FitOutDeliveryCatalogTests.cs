@@ -106,7 +106,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("\"/erp/fitout/finance-operations-report\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/approval/decide\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/invoice-bridge/save\"", routes, StringComparison.Ordinal);
-        Assert.Contains("Open project P&amp;L / forecast JSON", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("View project P&amp;L / forecast", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("forecastMarginPercent", module, StringComparison.Ordinal);
         Assert.Contains("actualMarginPercent", module, StringComparison.Ordinal);
         Assert.Contains("Read-only project P&L projection", module, StringComparison.Ordinal);
@@ -269,14 +269,14 @@ public sealed class FitOutDeliveryCatalogTests
             StringComparison.Ordinal);
         Assert.Contains("action=\"/erp/fitout/invoice-bridge/save\"", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("Fit-out VAT / invoice bridge", projectAccounting, StringComparison.Ordinal);
-        Assert.Contains("action=\"/erp/fitout/invoice-bridge\"", projectAccounting, StringComparison.Ordinal);
-        Assert.Contains("action=\"/erp/fitout/invoice-reconciliation\"", projectAccounting, StringComparison.Ordinal);
-        Assert.Contains("action=\"/erp/fitout/commercial-reconciliation\"", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("ReportHidden(\"invoice-bridge\")", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("ReportHidden(\"invoice-reconciliation\")", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("ReportHidden(\"commercial-reconciliation\")", projectAccounting, StringComparison.Ordinal);
         Assert.Contains(
             "IErpFitOutCommercialReconciliationReadService",
             File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Program.cs")),
             StringComparison.Ordinal);
-        Assert.Contains("action=\"/erp/fitout/acceptance-evidence\"", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("ReportHidden(\"acceptance-evidence\")", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("work_completion_certificate", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("subcontract_payment_certificate", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("client_payment_certificate", projectAccounting, StringComparison.Ordinal);
