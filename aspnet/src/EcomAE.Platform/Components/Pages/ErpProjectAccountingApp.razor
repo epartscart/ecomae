@@ -27,6 +27,7 @@
 @inject EcomAE.Platform.Erp.IErpFitOutSubcontractReconciliationReadService FitOutSubcontract
 @inject EcomAE.Platform.Erp.IErpFitOutAcceptanceEvidenceReadService FitOutAcceptance
 @inject EcomAE.Platform.Erp.IErpFitOutRecoverySummaryReadService FitOutRecovery
+@inject EcomAE.Platform.Erp.IErpFitOutProjectPnlReadService FitOutProjectPnl
 
 <PageTitle>Project accounting · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -1135,18 +1136,10 @@
             case "project-pnl":
             {
                 title = "Project P&L / forecast";
-                var budgets = _budgets.Where(b => projectId <= 0 || b.ProjectId == projectId).GroupBy(b => b.ProjectId)
-                    .ToDictionary(g => g.Key, g => (rev: g.Sum(x => x.RevenueBudget), cost: g.Sum(x => x.CostBudget)));
-                var actuals = _txns.Where(t => projectId <= 0 || t.ProjectId == projectId).GroupBy(t => t.ProjectId)
-                    .ToDictionary(g => g.Key, g => (rev: g.Where(x => x.Amount < 0m).Sum(x => Math.Abs(x.Amount)), cost: g.Where(x => x.Amount >= 0m).Sum(x => x.Amount)));
-                head = new[] { "Project", "Revenue budget", "Cost budget", "Actual revenue", "Actual cost", "Budget margin", "Actual margin" };
-                foreach (var id in budgets.Keys.Concat(actuals.Keys).Distinct().OrderBy(i => i))
-                {
-                    budgets.TryGetValue(id, out var b);
-                    actuals.TryGetValue(id, out var a);
-                    rows.Add(new[] { "P-" + id, Money(b.rev), Money(b.cost), Money(a.rev), Money(a.cost), Money(b.rev - b.cost), Money(a.rev - a.cost) });
-                }
-                if (rows.Count == 0) message = "No budgets or transactions for this selection.";
+                var r = await FitOutProjectPnl.ReadAsync(projectId > 0 ? projectId : null, ct);
+                message = r.Message;
+                head = new[] { "Project", "Revenue budget", "Cost budget", "Actual revenue", "Actual cost", "Budget margin", "Actual margin", "Forecast revenue", "Forecast cost", "Forecast profit" };
+                rows.AddRange(r.Rows.Select(p => new[] { "P-" + p.ProjectId, Money(p.RevenueBudget), Money(p.CostBudget), Money(p.ActualRevenue), Money(p.ActualCost), Money(p.BudgetMargin), Money(p.ActualMargin), Money(p.ForecastRevenue), Money(p.ForecastCost), Money(p.ForecastProfit) }));
                 break;
             }
             case "invoice-bridge":
