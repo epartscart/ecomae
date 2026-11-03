@@ -138,6 +138,15 @@ public sealed class StorefrontLoginPostMiddleware
         switch (outcome.Kind)
         {
             case StorefrontLoginPost.Kind.Redirect:
+                var prefsUserId = outcome.Cookies
+                    .Where(c => string.Equals(c.Name, "u_id", StringComparison.Ordinal))
+                    .Select(c => long.TryParse(c.Value, System.Globalization.CultureInfo.InvariantCulture, out var id) ? id : 0)
+                    .FirstOrDefault(id => id > 0);
+                if (prefsUserId > 0)
+                {
+                    await EcomAE.Platform.Auth.EpcUserPrefs.ApplyOnLoginAsync(
+                        connections, context.Request, context.Response, prefsUserId, context.RequestAborted).ConfigureAwait(false);
+                }
                 context.Response.Redirect(outcome.Location!);
                 return;
             case StorefrontLoginPost.Kind.Body:

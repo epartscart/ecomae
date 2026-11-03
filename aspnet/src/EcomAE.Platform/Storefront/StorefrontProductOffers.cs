@@ -207,7 +207,7 @@ public static class StorefrontProductOffers
                     .Append("\t\t\t\t\tcheck_hash = \"").Append(hash).Append("\"\n")
                     .Append("\t\t\t\t></div>\n\t\t\t\t\n\t\t\t\t\n")
                     .Append("\t\t\t\t<div class=\"product_suggestions\">\n")
-                    .Append("\t\t\t\t\t<div class=\"price\">\n\t\t\t\t\t\t").Append(request.DisplayPrice is { } format && double.TryParse(price, NumberStyles.Float, CultureInfo.InvariantCulture, out var displayValue) ? format(displayValue) : price).Append("\t\t\t\t\t</div>\n")
+                    .Append("\t\t\t\t\t<div class=\"price\">\n\t\t\t\t\t\t").Append(request.DisplayPrice is { } format && double.TryParse(price, NumberStyles.Float, CultureInfo.InvariantCulture, out var displayValue) ? System.Net.WebUtility.HtmlEncode(format(displayValue)) : price).Append("\t\t\t\t\t</div>\n")
                     .Append("\t\t\t\t\t<div class=\"exist\">\n\t\t\t\t\t\t").Append(row.Exist)
                     .Append(stockCountries.TryGetValue(row.StorageId, out var stockCountry) ? " (" + System.Net.WebUtility.HtmlEncode(stockCountry) + ")" : string.Empty)
                     .Append("\t\t\t\t\t</div>\n")

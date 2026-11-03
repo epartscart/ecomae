@@ -64,8 +64,20 @@ public static class EpcUserPrefs
                 }
             }
 
+            // Only plausible values are persisted: numeric ISO for currencies, a short
+            // language token — never arbitrary cookie text.
             var cookieCurrency = request.Cookies["epc_currency"] ?? string.Empty;
+            if (cookieCurrency.Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(cookieCurrency, "^[0-9]{1,4}$"))
+            {
+                cookieCurrency = string.Empty;
+            }
+
             var cookieLang = request.Cookies["lang_cp"] ?? string.Empty;
+            if (cookieLang.Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(cookieLang, "^[a-zA-Z0-9_-]{1,12}$"))
+            {
+                cookieLang = string.Empty;
+            }
+
             var currency = cookieCurrency.Length > 0 ? cookieCurrency : storedCurrency;
             var lang = cookieLang.Length > 0 ? cookieLang : storedLang;
 

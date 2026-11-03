@@ -101,6 +101,11 @@ public static class OAuthCallbackEndpoint
             context.Response,
             new LegacyLoginSuccess(payload.UserId, "", payload.SessionToken, "", payload.Mode != "storefront", payload.Path),
             rememberMe: false);
+        if (context.RequestServices.GetService<EcomAE.Platform.Data.ITenantDbConnectionFactory>() is { } prefsConnections)
+        {
+            await EpcUserPrefs.ApplyOnLoginAsync(
+                prefsConnections, context.Request, context.Response, payload.UserId, cancellationToken).ConfigureAwait(false);
+        }
         var location = payload.Path;
         if (!string.IsNullOrWhiteSpace(payload.Host))
         {
