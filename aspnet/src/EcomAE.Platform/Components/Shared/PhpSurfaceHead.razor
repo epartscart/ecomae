@@ -225,7 +225,7 @@
 
                         var baseDomain = EcomAE.Platform.Storefront.StorefrontCountryDefaults.BaseDomainOf(host) ?? host;
                         var all = await Countries.ListAsync(ctx?.RequestAborted ?? default);
-                        var scheme = _request.Scheme;
+                        var scheme = "https";
                         var alts = new List<(string Hreflang, string Href)>();
                         foreach (var c in all.Where(c => c.IsActive))
                         {
