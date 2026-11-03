@@ -191,9 +191,10 @@ public sealed class CpIndustrySettingsWriteService : ICpIndustrySettingsWriteSer
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             await CpPortalSchema.EnsureSiteSettingsAsync(connection, cancellationToken).ConfigureAwait(false);
+            await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
             var writes = await ErpDb.ExecuteAsync(
                 connection,
-                null,
+                transaction,
                 ErpDb.Positional(
                     "INSERT INTO `epc_portal_site_settings` "
                     + "(`host`, `industry_code`, `theme_template`, `access_mode`, `erp_modules_json`, `cp_default_lang`, "
@@ -226,9 +227,10 @@ public sealed class CpIndustrySettingsWriteService : ICpIndustrySettingsWriteSer
                 menu.ToJsonString(),
                 DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
 
-            await WriteSettingAsync(connection, hostName, "umapi_api_key", request.UmapiApiKey, cancellationToken).ConfigureAwait(false);
-            await WriteSettingAsync(connection, hostName, "laximo_login", request.LaximoLogin, cancellationToken).ConfigureAwait(false);
-            await WriteSettingAsync(connection, hostName, "laximo_key", request.LaximoKey, cancellationToken).ConfigureAwait(false);
+            await WriteSettingAsync(connection, transaction, hostName, "umapi_api_key", request.UmapiApiKey, cancellationToken).ConfigureAwait(false);
+            await WriteSettingAsync(connection, transaction, hostName, "laximo_login", request.LaximoLogin, cancellationToken).ConfigureAwait(false);
+            await WriteSettingAsync(connection, transaction, hostName, "laximo_key", request.LaximoKey, cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             return writes > 0
                 ? ErpSimpleWriteResult.Ok("Settings saved.", 0)
@@ -243,6 +245,7 @@ public sealed class CpIndustrySettingsWriteService : ICpIndustrySettingsWriteSer
     /// <summary>Stores a per-host epc_settings value; an empty field clears the override back to the built-in default.</summary>
     private static async Task WriteSettingAsync(
         DbConnection connection,
+        DbTransaction transaction,
         string hostName,
         string settingKey,
         string? rawValue,
@@ -259,7 +262,7 @@ public sealed class CpIndustrySettingsWriteService : ICpIndustrySettingsWriteSer
         {
             await ErpDb.ExecuteAsync(
                 connection,
-                null,
+                transaction,
                 ErpDb.Positional(
                     "INSERT INTO `epc_settings` (`site_key`, `setting_key`, `setting_value`, `updated_at`) "
                     + "VALUES (?, ?, ?, ?) "
@@ -274,7 +277,7 @@ public sealed class CpIndustrySettingsWriteService : ICpIndustrySettingsWriteSer
         {
             await ErpDb.ExecuteAsync(
                 connection,
-                null,
+                transaction,
                 ErpDb.Positional("DELETE FROM `epc_settings` WHERE `site_key` = ? AND `setting_key` = ?"),
                 cancellationToken,
                 hostName,

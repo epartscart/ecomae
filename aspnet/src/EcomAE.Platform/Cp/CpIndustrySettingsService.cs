@@ -119,9 +119,9 @@ public sealed class CpIndustrySettingsService : ICpIndustrySettingsService
                 // ERP-only tenants have no CP control_groups/control_items — PHP renders the form without the menu tab.
             }
             var baseline = row ?? CpIndustrySettingsView.Empty(hostName, "defaults");
-            var umapiKey = await StoredSettingAsync(connection, hostName, "umapi_api_key", cancellationToken).ConfigureAwait(false);
-            var laximoLogin = await StoredSettingAsync(connection, hostName, "laximo_login", cancellationToken).ConfigureAwait(false);
-            var laximoKey = await StoredSettingAsync(connection, hostName, "laximo_key", cancellationToken).ConfigureAwait(false);
+            var umapiKey = await StoredSettingAsync(connection, hostName, "umapi_api_key", hostOnly: true, cancellationToken).ConfigureAwait(false);
+            var laximoLogin = await StoredSettingAsync(connection, hostName, "laximo_login", hostOnly: true, cancellationToken).ConfigureAwait(false);
+            var laximoKey = await StoredSettingAsync(connection, hostName, "laximo_key", hostOnly: true, cancellationToken).ConfigureAwait(false);
             return baseline with { MenuGroups = groups, MenuItems = items, Source = row is null ? "defaults" : "db", UmapiApiKey = umapiKey, LaximoLogin = laximoLogin, LaximoKey = laximoKey };
         }
         catch (DbException)
@@ -130,17 +130,19 @@ public sealed class CpIndustrySettingsService : ICpIndustrySettingsService
         }
     }
 
-    private static async Task<string> StoredSettingAsync(DbConnection connection, string host, string settingKey, CancellationToken cancellationToken)
+    private static async Task<string> StoredSettingAsync(DbConnection connection, string host, string settingKey, bool hostOnly, CancellationToken cancellationToken)
     {
         try
         {
+            var sql = hostOnly
+                ? "SELECT `setting_value` FROM `epc_settings` WHERE `setting_key` = ? AND `site_key` = ? LIMIT 1"
+                : "SELECT `setting_value` FROM `epc_settings` WHERE `setting_key` = ? "
+                    + "AND (`site_key` = '' OR `site_key` IS NULL OR `site_key` = ?) "
+                    + "ORDER BY CASE WHEN `site_key` IS NULL OR `site_key` = '' THEN 1 ELSE 0 END ASC LIMIT 1";
             return (await ErpDb.StringAsync(
                     connection,
                     null,
-                    ErpDb.Positional(
-                        "SELECT `setting_value` FROM `epc_settings` WHERE `setting_key` = ? "
-                        + "AND (`site_key` = '' OR `site_key` IS NULL OR `site_key` = ?) "
-                        + "ORDER BY CASE WHEN `site_key` IS NULL OR `site_key` = '' THEN 1 ELSE 0 END ASC LIMIT 1"),
+                    ErpDb.Positional(sql),
                     cancellationToken,
                     settingKey,
                     host).ConfigureAwait(false))?.Trim() ?? string.Empty;

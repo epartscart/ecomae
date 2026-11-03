@@ -128,9 +128,13 @@ public static partial class StorefrontPhpAjax
             PortalPostedValues(fields, "erp_modules"),
             PortalPostedIds(fields, "hidden_groups"),
             PortalPostedIds(fields, "hidden_items"),
-            OmsField(fields, "umapi_api_key"),
-            OmsField(fields, "laximo_login"),
-            OmsField(fields, "laximo_key"));
+            OmsFieldOrNull(fields, "umapi_api_key"),
+            OmsFieldOrNull(fields, "laximo_login"),
+            OmsFieldOrNull(fields, "laximo_key"));
+
+    /// <summary>Null when the legacy post omits the field, so saves never erase stored credentials.</summary>
+    private static string? OmsFieldOrNull(IReadOnlyDictionary<string, string> fields, string name)
+        => fields.ContainsKey(name) ? OmsField(fields, name) : null;
 
     private static bool PortalFilled(IReadOnlyDictionary<string, string> fields, string name)
     {
