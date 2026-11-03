@@ -5367,7 +5367,7 @@
     {
       "id": "cp-enterprise-modules-d365-style",
       "kind": "cp-feature",
-      "label": "Enterprise modules (D365-style)",
+      "label": "Enterprise modules (ecom-style)",
       "phpPath": "/CP/shop/finance/erp?epc_erp_shell=1",
       "coverage": "digest-contract",
       "moduleStatus": "digest-only+hybrid-deeplink",
@@ -5444,7 +5444,7 @@
     {
       "id": "cp-netsuite-dashboard-d365-forms",
       "kind": "cp-feature",
-      "label": "NetSuite dashboard + D365 forms",
+      "label": "NetSuite dashboard + ecom forms",
       "phpPath": "/CP/shop/finance/erp?epc_erp_shell=1",
       "coverage": "digest-contract",
       "moduleStatus": "digest-only+hybrid-deeplink",
