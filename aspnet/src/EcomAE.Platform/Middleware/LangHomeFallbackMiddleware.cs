@@ -48,7 +48,8 @@ public sealed class LangHomeFallbackMiddleware
         if (only.Equals("/en", StringComparison.OrdinalIgnoreCase)
             || only.Equals("/ar", StringComparison.OrdinalIgnoreCase)
             || only.Equals("/me", StringComparison.OrdinalIgnoreCase)
-            || only.Equals("/ru", StringComparison.OrdinalIgnoreCase))
+            || only.Equals("/ru", StringComparison.OrdinalIgnoreCase)
+            || only.Equals("/ur", StringComparison.OrdinalIgnoreCase))
         {
             lang = only.TrimStart('/').ToLowerInvariant();
             return true;

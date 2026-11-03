@@ -203,6 +203,9 @@ public static class LoginHostBrand
     public static Brand Resolve(string? host, string surface = "cp")
     {
         var normalized = StripWww(PlatformHostPolicy.NormalizeHost(host));
+        // Country storefronts (sa./pk./eu.… domain) alias the base tenant host —
+        // the country logo IS the tenant's logo, not the platform mark.
+        normalized = EcomAE.Platform.Storefront.StorefrontCountryDefaults.BaseDomainOf(normalized) ?? normalized;
         var surfaceKey = (surface ?? "cp").Trim().ToLowerInvariant();
 
         if (PlatformHostPolicy.IsSuperCpHost(host))
