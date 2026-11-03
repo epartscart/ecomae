@@ -456,6 +456,16 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
         var isReg = payload.IsRegistered || userId > 0 ? 1 : 0;
         var ip = Clip(ClientIp(request), 45);
         var geo = GeoFromRequest(request);
+        if (geo.Code.Length == 0)
+        {
+            // Country storefront visitors (ae./qa./sa.…) get their country from the host when geo lookup is empty.
+            var cSub = Storefront.StorefrontCountryDefaults.SubdomainOf(hostname);
+            if (cSub is not null)
+            {
+                var ctry = Storefront.StorefrontCountryDefaults.Default(cSub);
+                geo = (ctry.CountryCode, ctry.CountryName, geo.Region, geo.City);
+            }
+        }
         var ua = Clip(string.IsNullOrWhiteSpace(request.Headers.UserAgent) ? payload.Ua : request.Headers.UserAgent.ToString(), 512);
         var parsedUa = ParseUa(ua);
         var screenW = Clamp(payload.ScreenW, 0, 65535);

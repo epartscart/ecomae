@@ -1,0 +1,202 @@
+@page "/cp/tenant-countries-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@using EcomAE.Platform.Storefront
+@inject IStorefrontCountryService Countries
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Country storefronts · Control Panel · ECOM AE</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <PhpCpModulePageHeader Title="Country storefronts"
+                           Subtitle="One backend, many country sites — ae./qa./sa. subdomains of your domain serve this same catalogue with per-country currency, language, address and SEO.">
+        <a class="ghost" href="/cp/orders">Orders</a>
+        <a class="ghost" href="/cp/industry-settings-app">Settings</a>
+        <a class="ghost" href="/cp">Home</a>
+    </PhpCpModulePageHeader>
+
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning">Sign in to the Control Panel to manage country storefronts.</div></div>
+    }
+    else
+    {
+        <div class="col-lg-12">
+            @if (!string.IsNullOrWhiteSpace(_flash))
+            {
+                <div class="alert alert-info" role="status">@_flash</div>
+            }
+            <div class="panel panel-default">
+                <div class="panel-heading"><strong>How it works</strong></div>
+                <div class="panel-body">
+                    <p class="text-muted">
+                        Add a country, point its subdomain DNS at this server, and that country site serves
+                        <code>{subdomain}.yourdomain</code> — same stock, same orders, same backend. Prices are
+                        converted by FX rate + markup, rounded to your step; each country's SEO title, description,
+                        keywords, footer address and language can differ so Google indexes every country site separately.
+                    </p>
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading"><strong>Configured countries</strong></div>
+                <div class="panel-body table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Country</th><th>Subdomain</th><th>Currency</th><th>FX rate</th>
+                            <th>Markup %</th><th>VAT %</th><th>Language</th><th>Default</th><th>Active</th><th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var c in _countries)
+                        {
+                            var editing = _edit?.CountryCode == c.CountryCode;
+                            <tr>
+                                <td>@c.CountryName (@c.CountryCode)</td>
+                                <td><code>@c.Subdomain.</code></td>
+                                <td>@c.CurrencyCode</td>
+                                <td>@c.FxRate.ToString("0.######", CultureInfo.InvariantCulture)</td>
+                                <td>@c.PriceMarkupPercent.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                                <td>@c.VatPercent.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                                <td>@c.LanguageCode / @c.Direction</td>
+                                <td>@(c.IsDefault ? "✓" : "")</td>
+                                <td>@(c.IsActive ? "✓" : "off")</td>
+                                <td>
+                                    @if (!editing)
+                                    {
+                                        <a class="btn btn-default btn-xs" href="/cp/tenant-countries-app?edit=@c.CountryCode">Edit</a>
+                                    }
+                                    <form method="post" action="/cp/tenant-countries/delete" style="display:inline" onsubmit="return confirm('Remove @c.CountryCode storefront?');">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="country_code" value="@c.CountryCode" />
+                                        <button type="submit" class="btn btn-danger btn-xs">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading"><strong>@(_edit is null ? "Add country" : "Edit " + _edit.CountryCode)</strong></div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/tenant-countries/save" class="form-horizontal">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <div class="row">
+                            <div class="col-sm-3 form-group">
+                                <label>Country code *</label>
+                                <input class="form-control" name="country_code" maxlength="2" value="@(_edit?.CountryCode ?? "")" placeholder="AE" required />
+                            </div>
+                            <div class="col-sm-5 form-group">
+                                <label>Country name *</label>
+                                <input class="form-control" name="country_name" value="@(_edit?.CountryName ?? "")" placeholder="United Arab Emirates" required />
+                            </div>
+                            <div class="col-sm-4 form-group">
+                                <label>Subdomain</label>
+                                <input class="form-control" name="subdomain" maxlength="8" value="@(_edit?.Subdomain ?? "")" placeholder="ae" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-3 form-group">
+                                <label>Currency *</label>
+                                <input class="form-control" name="currency_code" maxlength="3" value="@(_edit?.CurrencyCode ?? "")" placeholder="AED" required />
+                            </div>
+                            <div class="col-sm-3 form-group">
+                                <label>FX rate (base → this)</label>
+                                <input class="form-control" type="number" step="0.000001" name="fx_rate" value="@((_edit?.FxRate ?? 1m).ToString("0.######", CultureInfo.InvariantCulture))" />
+                            </div>
+                            <div class="col-sm-3 form-group">
+                                <label>Price markup %</label>
+                                <input class="form-control" type="number" step="0.001" name="price_markup_percent" value="@((_edit?.PriceMarkupPercent ?? 0m).ToString("0.###", CultureInfo.InvariantCulture))" />
+                            </div>
+                            <div class="col-sm-3 form-group">
+                                <label>Round to</label>
+                                <input class="form-control" type="number" step="0.000001" name="price_round_to" value="@((_edit?.PriceRoundTo ?? 0.01m).ToString("0.######", CultureInfo.InvariantCulture))" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-3 form-group">
+                                <label>VAT %</label>
+                                <input class="form-control" type="number" step="0.001" name="vat_percent" value="@((_edit?.VatPercent ?? 0m).ToString("0.###", CultureInfo.InvariantCulture))" />
+                            </div>
+                            <div class="col-sm-3 form-group">
+                                <label>Language</label>
+                                <input class="form-control" name="language_code" maxlength="8" value="@(_edit?.LanguageCode ?? "en")" />
+                            </div>
+                            <div class="col-sm-3 form-group">
+                                <label>Direction</label>
+                                <select class="form-control" name="direction">
+                                    <option value="ltr" selected="@((_edit?.Direction ?? "ltr") == "ltr")">ltr</option>
+                                    <option value="rtl" selected="@(_edit?.Direction == "rtl")">rtl</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-3 form-group">
+                                <label>Sort order</label>
+                                <input class="form-control" type="number" name="sort_order" value="@((_edit?.SortOrder ?? 0).ToString(CultureInfo.InvariantCulture))" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO title (blank = default site title)</label>
+                            <input class="form-control" name="seo_title" maxlength="255" value="@(_edit?.SeoTitle ?? "")" placeholder="Auto parts Qatar — delivered to Doha" />
+                        </div>
+                        <div class="form-group">
+                            <label>SEO description</label>
+                            <textarea class="form-control" name="seo_description" maxlength="500" rows="2">@(_edit?.SeoDescription ?? "")</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords</label>
+                            <input class="form-control" name="seo_keywords" maxlength="500" value="@(_edit?.SeoKeywords ?? "")" />
+                        </div>
+                        <div class="form-group">
+                            <label>Country address / footer text</label>
+                            <textarea class="form-control" name="address_text" maxlength="1000" rows="2" placeholder="Showroom address, country phone, working hours…">@(_edit?.AddressText ?? "")</textarea>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" name="is_default" value="true" checked="@(_edit?.IsDefault ?? false)" /> Default country (served on the bare domain)</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" name="is_active" value="true" checked="@(_edit?.IsActive ?? true)" /> Active</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save country</button>
+                        @if (_edit is not null)
+                        {
+                            <a class="btn btn-default" href="/cp/tenant-countries-app">Cancel edit</a>
+                        }
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+</PhpCpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private string _flash = string.Empty;
+    private IReadOnlyList<StorefrontCountry> _countries = [];
+    private StorefrontCountry? _edit;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        var session = ctx is null ? null : await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session?.Kind == LegacySessionKind.Admin;
+        _flash = ctx?.Request.Query["msg"].ToString() ?? string.Empty;
+
+        _countries = await Countries.ListAsync(ctx?.RequestAborted ?? CancellationToken.None);
+        var editCode = ctx?.Request.Query["edit"].ToString();
+        if (!string.IsNullOrWhiteSpace(editCode))
+        {
+            _edit = _countries.FirstOrDefault(
+                c => string.Equals(c.CountryCode, editCode.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+    }
+}

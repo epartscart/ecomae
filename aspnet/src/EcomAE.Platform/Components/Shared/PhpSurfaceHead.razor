@@ -146,13 +146,17 @@
 @if (IncludePublicSeo && _request is not null)
 {
     <meta name="description" content="@_seoDescription" />
-    <meta name="keywords" content="@StorefrontPublicSeo.DefaultKeywords" />
+    <meta name="keywords" content="@_seoKeywords" />
     <link rel="canonical" href="@_canonical" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="@_canonical" />
     <meta property="og:title" content="@_seoTitle" />
     <meta property="og:description" content="@_seoDescription" />
-    @foreach (var alt in StorefrontPublicSeo.HreflangAlternates(_request))
+    @if (_country is not null && !string.IsNullOrWhiteSpace(_country.LanguageCode))
+    {
+        <meta property="og:locale" content="@(_country.LanguageCode)_@(_country.CountryCode)" />
+    }
+    @foreach (var alt in _hreflang)
     {
         <link rel="alternate" hreflang="@alt.Hreflang" href="@alt.Href" />
     }
@@ -174,6 +178,7 @@
     [Parameter] public string ClarityProjectId { get; set; } = "xoflbamawu";
 
     [Inject] private IHttpContextAccessor Http { get; set; } = default!;
+    [Inject] private EcomAE.Platform.Storefront.IStorefrontCountryService? Countries { get; set; }
 
     private string _industryCode = "auto_parts";
     private string _storefrontPackage = "automotive_spareparts_pro";
@@ -181,8 +186,11 @@
     private string _canonical = "/";
     private string _seoTitle = StorefrontPublicSeo.DefaultDescription;
     private string _seoDescription = StorefrontPublicSeo.DefaultDescription;
+    private string _seoKeywords = StorefrontPublicSeo.DefaultKeywords;
+    private IReadOnlyList<(string Hreflang, string Href)> _hreflang = [];
+    private EcomAE.Platform.Storefront.StorefrontCountry? _country;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         _request = ctx?.Request;
@@ -192,6 +200,50 @@
             _seoTitle = StorefrontIndustryHostResolver.ResolveStorefrontTitle(host);
             _seoDescription = StorefrontPublicSeo.HomeMetaDescription;
             _canonical = StorefrontPublicSeo.CanonicalForStorefrontHome(_request);
+            _hreflang = StorefrontPublicSeo.HreflangAlternates(_request);
+
+            // Country storefronts: per-country SEO + hreflang across configured country hosts.
+            if (Countries is not null)
+            {
+                try
+                {
+                    _country = await Countries.ResolveAsync(host, ctx?.RequestAborted ?? default);
+                    if (_country is not null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(_country.SeoTitle))
+                        {
+                            _seoTitle = _country.SeoTitle;
+                        }
+                        if (!string.IsNullOrWhiteSpace(_country.SeoDescription))
+                        {
+                            _seoDescription = _country.SeoDescription;
+                        }
+                        if (!string.IsNullOrWhiteSpace(_country.SeoKeywords))
+                        {
+                            _seoKeywords = _country.SeoKeywords;
+                        }
+
+                        var baseDomain = EcomAE.Platform.Storefront.StorefrontCountryDefaults.BaseDomainOf(host) ?? host;
+                        var all = await Countries.ListAsync(ctx?.RequestAborted ?? default);
+                        var scheme = _request.Scheme;
+                        var alts = new List<(string Hreflang, string Href)>();
+                        foreach (var c in all.Where(c => c.IsActive))
+                        {
+                            var cHost = c.IsDefault ? "www." + baseDomain : c.Subdomain + "." + baseDomain;
+                            alts.Add(($"{c.LanguageCode}-{c.CountryCode}", $"{scheme}://{cHost}/"));
+                        }
+                        alts.Add(("x-default", $"{scheme}://www.{baseDomain}/"));
+                        if (alts.Count > 1)
+                        {
+                            _hreflang = alts;
+                        }
+                    }
+                }
+                catch
+                {
+                    // Country SEO is additive — never break the head.
+                }
+            }
         }
 
         if (!ApplyStorefrontIndustryAttrs)

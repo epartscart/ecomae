@@ -160,6 +160,11 @@ public static class EcomAeRoutes
     public const string CpIndustrySettingsWrite = "/cp/industry-settings/save";
     public const string ControlPanelPlatformAlertsApp = "/cp/platform-alerts-app";
     public const string CpPlatformAlertsWrite = "/cp/platform-alerts/save";
+    public const string ControlPanelTenantCountriesApp = "/cp/tenant-countries-app";
+    public const string CpTenantCountriesSave = "/cp/tenant-countries/save";
+    public const string CpTenantCountriesDelete = "/cp/tenant-countries/delete";
+    /// <summary>CP order confirmation: freeze the fulfillable total for split payments.</summary>
+    public const string CpOrdersSetConfirmedTotal = "/cp/orders/set-confirmed-total";
 
     /// <summary>CP Metabase config + dashboards (secret_key never returned).</summary>
     public const string ControlPanelMetabase = "/cp/metabase";
@@ -2685,6 +2690,10 @@ public static class EcomAeRoutes
     public const string StorefrontPaymentGoToPay = "/storefront/payment/go-to-pay";
     /// <summary>Live PHP epc_demo notification + pay_for_order twin.</summary>
     public const string StorefrontPaymentNotify = "/storefront/payment/notify";
+    /// <summary>Tokenized balance-payment link staff send after confirming an order.</summary>
+    public const string StorefrontBalancePay = "/storefront/balance-pay";
+    /// <summary>Balance-pay POST: creates the payment operation for the order owner.</summary>
+    public const string StorefrontBalancePayCreate = "/storefront/balance-pay/create";
     /// <summary>Vehicle year/make/model catalog shell (UMAPI tree from PHP widget).</summary>
     public const string StorefrontVehicleCatalogApp = "/storefront/vehicle-catalog-app";
     /// <summary>Customer quotes list/detail digest (submit/accept remain PHP).</summary>

@@ -46,22 +46,48 @@ public sealed class DbBackedTenantRegistry : ITenantRegistry
             return cached;
         }
 
+        // Host pairs to try: (primary, www-alias) then (country base domain, www.base).
+        // ae.epartscart.com resolves the same tenant row as epartscart.com.
+        var pairs = new List<(string H0, string H1)> { (aliases[0], aliases.Count > 1 ? aliases[1] : aliases[0]) };
+        if (aliases.Count > 2)
+        {
+            pairs.Add((aliases[2], aliases.Count > 3 ? aliases[3] : aliases[2]));
+        }
+
         try
         {
             await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
-            var record = await TryReadByHostsAsync(
-                    connection,
-                    PortalTenantSql.SelectActiveTenantByHosts,
-                    aliases,
-                    cancellationToken)
-                .ConfigureAwait(false);
+            TenantRegistryRecord? record = null;
+            foreach (var pair in pairs)
+            {
+                record = await TryReadByHostsAsync(
+                        connection,
+                        PortalTenantSql.SelectActiveTenantByHosts,
+                        pair,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+                if (record is not null)
+                {
+                    break;
+                }
+            }
             // Older registries may lack dedicated_db/scale_policy — retry core columns only.
-            record ??= await TryReadByHostsAsync(
-                    connection,
-                    PortalTenantSql.SelectActiveTenantByHostsMinimal,
-                    aliases,
-                    cancellationToken)
-                .ConfigureAwait(false);
+            if (record is null)
+            {
+                foreach (var pair in pairs)
+                {
+                    record = await TryReadByHostsAsync(
+                            connection,
+                            PortalTenantSql.SelectActiveTenantByHostsMinimal,
+                            pair,
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                    if (record is not null)
+                    {
+                        break;
+                    }
+                }
+            }
 
             if (record is not null)
             {
@@ -83,7 +109,7 @@ public sealed class DbBackedTenantRegistry : ITenantRegistry
     private static async Task<TenantRegistryRecord?> TryReadByHostsAsync(
         DbConnection connection,
         string sql,
-        IReadOnlyList<string> aliases,
+        (string H0, string H1) hosts,
         CancellationToken cancellationToken)
     {
         try
@@ -93,12 +119,12 @@ public sealed class DbBackedTenantRegistry : ITenantRegistry
 
             var h0 = command.CreateParameter();
             h0.ParameterName = "@h0";
-            h0.Value = aliases[0];
+            h0.Value = hosts.H0;
             command.Parameters.Add(h0);
 
             var h1 = command.CreateParameter();
             h1.ParameterName = "@h1";
-            h1.Value = aliases.Count > 1 ? aliases[1] : aliases[0];
+            h1.Value = hosts.H1;
             command.Parameters.Add(h1);
 
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);

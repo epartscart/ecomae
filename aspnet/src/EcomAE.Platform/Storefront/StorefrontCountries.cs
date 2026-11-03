@@ -1,0 +1,416 @@
+using System.Data.Common;
+using System.Globalization;
+using EcomAE.Platform.Erp;
+using Microsoft.Extensions.Caching.Memory;
+
+namespace EcomAE.Platform.Storefront;
+
+/// <summary>
+/// One row per country storefront a tenant operates (ae.domain / qa.domain / sa.domain …).
+/// Lives in the tenant shop schema — the same DB the rest of the storefront reads, so a
+/// country host binds the SAME tenant data and only the presentation layer differs.
+/// </summary>
+public sealed record StorefrontCountry(
+    string CountryCode,
+    string CountryName,
+    string Subdomain,
+    string CurrencyCode,
+    decimal FxRate,
+    decimal PriceMarkupPercent,
+    decimal PriceRoundTo,
+    decimal VatPercent,
+    string LanguageCode,
+    string Direction,
+    string SeoTitle,
+    string SeoDescription,
+    string SeoKeywords,
+    string AddressText,
+    bool IsDefault,
+    bool IsActive,
+    int SortOrder)
+{
+    /// <summary>Convert a base-currency amount into this country's display currency.</summary>
+    public decimal ConvertPrice(decimal baseAmount)
+    {
+        var converted = baseAmount * (FxRate <= 0m ? 1m : FxRate);
+        if (PriceMarkupPercent != 0m)
+        {
+            converted *= 1m + (PriceMarkupPercent / 100m);
+        }
+
+        var step = PriceRoundTo <= 0m ? 0.01m : PriceRoundTo;
+        return Math.Round(converted / step, MidpointRounding.AwayFromZero) * step;
+    }
+
+    public string FormatPrice(decimal baseAmount)
+        => ConvertPrice(baseAmount).ToString("#,0.00", CultureInfo.InvariantCulture) + " " + CurrencyCode;
+}
+
+public sealed record StorefrontCountryWrite(
+    string CountryCode,
+    string CountryName,
+    string Subdomain,
+    string CurrencyCode,
+    decimal FxRate,
+    decimal PriceMarkupPercent,
+    decimal PriceRoundTo,
+    decimal VatPercent,
+    string LanguageCode,
+    string Direction,
+    string SeoTitle,
+    string SeoDescription,
+    string SeoKeywords,
+    string AddressText,
+    bool IsDefault,
+    bool IsActive,
+    int SortOrder);
+
+public interface IStorefrontCountryService
+{
+    /// <summary>Country context for the current request host — built-in defaults when unconfigured.</summary>
+    Task<StorefrontCountry> ResolveAsync(string host, CancellationToken cancellationToken = default);
+
+    /// <summary>Every configured country (falls back to the built-in GCC set when the table is empty/missing).</summary>
+    Task<IReadOnlyList<StorefrontCountry>> ListAsync(CancellationToken cancellationToken = default);
+
+    Task<(bool Ok, string Message)> SaveAsync(StorefrontCountryWrite write, CancellationToken cancellationToken = default);
+
+    Task<(bool Ok, string Message)> DeleteAsync(string countryCode, CancellationToken cancellationToken = default);
+}
+
+public static class StorefrontCountryDefaults
+{
+    /// <summary>Two-letter country subdomains that alias to the tenant's base domain.</summary>
+    public static readonly IReadOnlySet<string> Subdomains =
+        new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "ae", "qa", "sa", "kw", "bh", "om" };
+
+    private static readonly StorefrontCountry[] BuiltIn =
+    [
+        new("AE", "United Arab Emirates", "ae", "AED", 1m, 0m, 0.01m, 5m, "en", "ltr",
+            "", "", "", "", IsDefault: true, IsActive: true, 0),
+        new("QA", "Qatar", "qa", "QAR", 1.0005m, 0m, 0.01m, 0m, "en", "ltr",
+            "", "", "", "", IsDefault: false, IsActive: true, 10),
+        new("SA", "Saudi Arabia", "sa", "SAR", 1.0221m, 0m, 0.01m, 15m, "ar", "rtl",
+            "", "", "", "", IsDefault: false, IsActive: true, 20),
+        new("KW", "Kuwait", "kw", "KWD", 0.0837m, 0m, 0.01m, 0m, "en", "ltr",
+            "", "", "", "", IsDefault: false, IsActive: true, 30),
+        new("BH", "Bahrain", "bh", "BHD", 0.1025m, 0m, 0.01m, 10m, "en", "ltr",
+            "", "", "", "", IsDefault: false, IsActive: true, 40),
+        new("OM", "Oman", "om", "OMR", 0.1048m, 0m, 0.01m, 5m, "en", "ltr",
+            "", "", "", "", IsDefault: false, IsActive: true, 50),
+    ];
+
+    public static IReadOnlyList<StorefrontCountry> All => BuiltIn;
+
+    /// <summary>Lowercase 2-letter country subdomain (ae/qa/sa/kw/bh/om) or null.</summary>
+    public static string? SubdomainOf(string? host)
+    {
+        if (string.IsNullOrWhiteSpace(host))
+        {
+            return null;
+        }
+
+        var firstDot = host.IndexOf('.');
+        if (firstDot != 2)
+        {
+            return null;
+        }
+
+        var label = host[..2];
+        return Subdomains.Contains(label) ? label.ToLowerInvariant() : null;
+    }
+
+    /// <summary>Base domain a country subdomain aliases to (ae.epartscart.com → epartscart.com).</summary>
+    public static string? BaseDomainOf(string? host)
+        => SubdomainOf(host) is not null && host!.Length > 3 ? host[3..] : null;
+
+    public static StorefrontCountry Default(string? subdomain)
+    {
+        foreach (var c in BuiltIn)
+        {
+            if (string.Equals(c.Subdomain, subdomain, StringComparison.OrdinalIgnoreCase))
+            {
+                return c;
+            }
+        }
+
+        return BuiltIn[0] with { IsDefault = true };
+    }
+}
+
+public sealed class StorefrontCountryService : IStorefrontCountryService
+{
+    private const string TableSql = """
+        CREATE TABLE IF NOT EXISTS `epc_tenant_countries` (
+            `country_code` VARCHAR(2) NOT NULL,
+            `country_name` VARCHAR(120) NOT NULL DEFAULT '',
+            `subdomain` VARCHAR(8) NOT NULL DEFAULT '',
+            `currency_code` VARCHAR(3) NOT NULL DEFAULT '',
+            `fx_rate` DECIMAL(18,6) NOT NULL DEFAULT 1,
+            `price_markup_percent` DECIMAL(9,3) NOT NULL DEFAULT 0,
+            `price_round_to` DECIMAL(18,6) NOT NULL DEFAULT 0.01,
+            `vat_percent` DECIMAL(9,3) NOT NULL DEFAULT 0,
+            `language_code` VARCHAR(8) NOT NULL DEFAULT 'en',
+            `direction` VARCHAR(3) NOT NULL DEFAULT 'ltr',
+            `seo_title` VARCHAR(255) NOT NULL DEFAULT '',
+            `seo_description` VARCHAR(500) NOT NULL DEFAULT '',
+            `seo_keywords` VARCHAR(500) NOT NULL DEFAULT '',
+            `address_text` VARCHAR(1000) NOT NULL DEFAULT '',
+            `is_default` TINYINT(1) NOT NULL DEFAULT 0,
+            `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+            `sort_order` INT NOT NULL DEFAULT 0,
+            PRIMARY KEY (`country_code`),
+            UNIQUE KEY `epc_tenant_countries_subdomain` (`subdomain`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """;
+
+    private const string ListSql = """
+        SELECT `country_code`,`country_name`,`subdomain`,`currency_code`,`fx_rate`,
+               `price_markup_percent`,`price_round_to`,`vat_percent`,`language_code`,`direction`,
+               `seo_title`,`seo_description`,`seo_keywords`,`address_text`,`is_default`,`is_active`,`sort_order`
+        FROM `epc_tenant_countries`
+        ORDER BY `is_default` DESC, `sort_order`, `country_code`
+        """;
+
+    private const string SaveSql = """
+        INSERT INTO `epc_tenant_countries`
+            (`country_code`,`country_name`,`subdomain`,`currency_code`,`fx_rate`,
+             `price_markup_percent`,`price_round_to`,`vat_percent`,`language_code`,`direction`,
+             `seo_title`,`seo_description`,`seo_keywords`,`address_text`,`is_default`,`is_active`,`sort_order`)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        ON DUPLICATE KEY UPDATE
+            `country_name`=VALUES(`country_name`), `subdomain`=VALUES(`subdomain`),
+            `currency_code`=VALUES(`currency_code`), `fx_rate`=VALUES(`fx_rate`),
+            `price_markup_percent`=VALUES(`price_markup_percent`), `price_round_to`=VALUES(`price_round_to`),
+            `vat_percent`=VALUES(`vat_percent`), `language_code`=VALUES(`language_code`),
+            `direction`=VALUES(`direction`), `seo_title`=VALUES(`seo_title`),
+            `seo_description`=VALUES(`seo_description`), `seo_keywords`=VALUES(`seo_keywords`),
+            `address_text`=VALUES(`address_text`), `is_default`=VALUES(`is_default`),
+            `is_active`=VALUES(`is_active`), `sort_order`=VALUES(`sort_order`)
+        """;
+
+    private const string DeleteSql = "DELETE FROM `epc_tenant_countries` WHERE `country_code` = ?";
+
+    private const string ClearDefaultSql = "UPDATE `epc_tenant_countries` SET `is_default` = 0 WHERE `country_code` <> ?";
+
+    private const string CacheKey = "storefront-countries:list";
+
+    private readonly IErpWriteConnectionFactory _connections;
+    private readonly IMemoryCache _cache;
+
+    public StorefrontCountryService(IErpWriteConnectionFactory connections, IMemoryCache cache)
+    {
+        _connections = connections;
+        _cache = cache;
+    }
+
+    public async Task<StorefrontCountry> ResolveAsync(string host, CancellationToken cancellationToken = default)
+    {
+        var subdomain = StorefrontCountryDefaults.SubdomainOf(host);
+        var countries = await ListAsync(cancellationToken).ConfigureAwait(false);
+        if (subdomain is not null)
+        {
+            foreach (var country in countries)
+            {
+                if (country.IsActive && string.Equals(country.Subdomain, subdomain, StringComparison.OrdinalIgnoreCase))
+                {
+                    return country;
+                }
+            }
+
+            // Host says a country that isn't configured — built-in default for it.
+            return StorefrontCountryDefaults.Default(subdomain);
+        }
+
+        foreach (var country in countries)
+        {
+            if (country.IsDefault && country.IsActive)
+            {
+                return country;
+            }
+        }
+
+        return countries.Count > 0 && countries[0].IsActive ? countries[0] : StorefrontCountryDefaults.Default(null);
+    }
+
+    public async Task<IReadOnlyList<StorefrontCountry>> ListAsync(CancellationToken cancellationToken = default)
+    {
+        if (_cache.TryGetValue(CacheKey, out IReadOnlyList<StorefrontCountry>? cached) && cached is not null)
+        {
+            return cached;
+        }
+
+        var list = await ReadRowsAsync(cancellationToken).ConfigureAwait(false);
+        if (list.Count == 0)
+        {
+            // Unconfigured tenant — expose the built-in GCC set so country hosts work immediately.
+            list = [.. StorefrontCountryDefaults.All];
+        }
+
+        _cache.Set(CacheKey, (IReadOnlyList<StorefrontCountry>)list, TimeSpan.FromMinutes(5));
+        return list;
+    }
+
+    public async Task<(bool Ok, string Message)> SaveAsync(StorefrontCountryWrite write, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(write.CountryCode) || write.CountryCode.Trim().Length != 2)
+        {
+            return (false, "Country code must be two letters (AE, QA, SA…).");
+        }
+
+        if (string.IsNullOrWhiteSpace(write.CurrencyCode))
+        {
+            return (false, "Currency code is required.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.TryExecuteAsync(connection, TableSql, cancellationToken).ConfigureAwait(false);
+            var cc = write.CountryCode.Trim().ToUpperInvariant();
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                SaveSql,
+                cancellationToken,
+                cc,
+                write.CountryName.Trim(),
+                (write.Subdomain.Length > 0 ? write.Subdomain : cc).Trim().ToLowerInvariant(),
+                write.CurrencyCode.Trim().ToUpperInvariant(),
+                write.FxRate <= 0m ? 1m : write.FxRate,
+                write.PriceMarkupPercent,
+                write.PriceRoundTo <= 0m ? 0.01m : write.PriceRoundTo,
+                write.VatPercent,
+                string.IsNullOrWhiteSpace(write.LanguageCode) ? "en" : write.LanguageCode.Trim().ToLowerInvariant(),
+                string.Equals(write.Direction, "rtl", StringComparison.OrdinalIgnoreCase) ? "rtl" : "ltr",
+                write.SeoTitle.Trim(),
+                write.SeoDescription.Trim(),
+                write.SeoKeywords.Trim(),
+                write.AddressText.Trim(),
+                write.IsDefault ? 1 : 0,
+                write.IsActive ? 1 : 0,
+                write.SortOrder).ConfigureAwait(false);
+
+            if (write.IsDefault)
+            {
+                await ErpDb.ExecuteAsync(connection, null, ClearDefaultSql, cancellationToken, cc).ConfigureAwait(false);
+            }
+
+            _cache.Remove(CacheKey);
+            return (true, "Country saved.");
+        }
+        catch (Exception ex) when (ex is DbException or InvalidOperationException)
+        {
+            return (false, "Country save failed: " + ex.Message);
+        }
+    }
+
+    public async Task<(bool Ok, string Message)> DeleteAsync(string countryCode, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.TryExecuteAsync(connection, TableSql, cancellationToken).ConfigureAwait(false);
+            var n = await ErpDb.ExecuteAsync(
+                connection, null, DeleteSql, cancellationToken, countryCode.Trim().ToUpperInvariant()).ConfigureAwait(false);
+            _cache.Remove(CacheKey);
+            return n > 0 ? (true, "Country removed.") : (false, "Country not found.");
+        }
+        catch (Exception ex) when (ex is DbException or InvalidOperationException)
+        {
+            return (false, "Country delete failed: " + ex.Message);
+        }
+    }
+
+    private async Task<List<StorefrontCountry>> ReadRowsAsync(CancellationToken cancellationToken)
+    {
+        var rows = new List<StorefrontCountry>();
+        if (!_connections.IsConfigured)
+        {
+            return rows;
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.TryExecuteAsync(connection, TableSql, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = ListSql;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new StorefrontCountry(
+                    GetStr(reader, "country_code"),
+                    GetStr(reader, "country_name"),
+                    GetStr(reader, "subdomain"),
+                    GetStr(reader, "currency_code"),
+                    GetDec(reader, "fx_rate"),
+                    GetDec(reader, "price_markup_percent"),
+                    GetDec(reader, "price_round_to"),
+                    GetDec(reader, "vat_percent"),
+                    GetStr(reader, "language_code"),
+                    GetStr(reader, "direction"),
+                    GetStr(reader, "seo_title"),
+                    GetStr(reader, "seo_description"),
+                    GetStr(reader, "seo_keywords"),
+                    GetStr(reader, "address_text"),
+                    GetInt(reader, "is_default") == 1,
+                    GetInt(reader, "is_active") == 1,
+                    GetInt(reader, "sort_order")));
+            }
+        }
+        catch (Exception ex) when (ex is DbException or InvalidOperationException)
+        {
+            return rows;
+        }
+
+        return rows;
+    }
+
+    private static string GetStr(DbDataReader reader, string name)
+        => reader.IsDBNull(reader.GetOrdinal(name)) ? string.Empty : Convert.ToString(reader[name], CultureInfo.InvariantCulture) ?? string.Empty;
+
+    private static decimal GetDec(DbDataReader reader, string name)
+        => reader.IsDBNull(reader.GetOrdinal(name)) ? 0m : Convert.ToDecimal(reader[name], CultureInfo.InvariantCulture);
+
+    private static int GetInt(DbDataReader reader, string name)
+        => reader.IsDBNull(reader.GetOrdinal(name)) ? 0 : Convert.ToInt32(reader[name], CultureInfo.InvariantCulture);
+}
+
+/// <summary>Multi-country stock support: shop_storages gets an optional country_code so
+/// the product page can label which country each warehouse row belongs to.</summary>
+public static class StorefrontStockCountry
+{
+    public static async Task<bool> EnsureColumnAsync(DbConnection connection, CancellationToken ct)
+    {
+        if (!await ErpDb.TableKnownAsync(connection, "shop_storages", ct).ConfigureAwait(false))
+        {
+            return false;
+        }
+        if (await ErpDb.ColumnKnownAsync(connection, "shop_storages", "country_code", ct).ConfigureAwait(false))
+        {
+            return true;
+        }
+        await ErpDb.TryExecuteAsync(connection,
+            "ALTER TABLE `shop_storages` ADD COLUMN `country_code` VARCHAR(2) NULL", ct).ConfigureAwait(false);
+        return await ErpDb.ColumnKnownAsync(connection, "shop_storages", "country_code", ct).ConfigureAwait(false);
+    }
+
+    /// <summary>storage_id -> upper-case country code for the storages that have one set.</summary>
+    public static async Task<IReadOnlyDictionary<long, string>> LoadAsync(DbConnection connection, CancellationToken ct)
+    {
+        var map = new Dictionary<long, string>();
+        if (!await EnsureColumnAsync(connection, ct).ConfigureAwait(false))
+        {
+            return map;
+        }
+        await using var cmd = connection.CreateCommand();
+        cmd.CommandText = "SELECT `id`, UPPER(IFNULL(`country_code`,'')) FROM `shop_storages` WHERE `country_code` IS NOT NULL AND `country_code`<>''";
+        await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+        while (await reader.ReadAsync(ct).ConfigureAwait(false))
+        {
+            map[reader.GetInt64(0)] = reader.GetString(1);
+        }
+        return map;
+    }
+}

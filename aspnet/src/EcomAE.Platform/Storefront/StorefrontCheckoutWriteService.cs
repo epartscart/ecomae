@@ -59,15 +59,24 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IStorefrontOrderCreatedPipeline? _orderCreated;
     private readonly Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions>? _php;
+    private readonly IStorefrontSplitPaymentService? _splitPay;
+    private readonly IStorefrontCountryService? _countries;
+    private readonly Microsoft.AspNetCore.Http.IHttpContextAccessor? _http;
 
     public StorefrontCheckoutWriteService(
         IErpWriteConnectionFactory connections,
         IStorefrontOrderCreatedPipeline? orderCreated = null,
-        Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions>? php = null)
+        Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions>? php = null,
+        IStorefrontSplitPaymentService? splitPay = null,
+        IStorefrontCountryService? countries = null,
+        Microsoft.AspNetCore.Http.IHttpContextAccessor? http = null)
     {
         _connections = connections;
         _orderCreated = orderCreated;
         _php = php;
+        _splitPay = splitPay;
+        _countries = countries;
+        _http = http;
     }
 
     public async Task<StorefrontCheckoutWriteResult> CreateAsync(
@@ -414,6 +423,29 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
                 ErpDb.Positional("UPDATE `shop_orders` SET `successfully_created` = 1, `office_id` = ? WHERE `id` = ?"),
                 cancellationToken,
                 firstOffice, orderId);
+
+            // Split payment: stamp country, currency and the 30% advance due now.
+            if (_splitPay is not null)
+            {
+                try
+                {
+                    var orderTotal = lines.Sum(l => l.Price * l.CountNeed);
+                    var host = _http?.HttpContext?.Request.Host.Host ?? string.Empty;
+                    var country = _countries is not null
+                        ? await _countries.ResolveAsync(host, cancellationToken).ConfigureAwait(false)
+                        : EcomAE.Platform.Storefront.StorefrontCountryDefaults.Default(
+                            EcomAE.Platform.Storefront.StorefrontCountryDefaults.SubdomainOf(host));
+                    await _splitPay.StampOrderAsync(
+                        connection, tx, orderId, orderTotal,
+                        country.CountryCode, country.CurrencyCode,
+                        EcomAE.Platform.Storefront.StorefrontSplitPaymentService.DefaultAdvancePercent,
+                        cancellationToken).ConfigureAwait(false);
+                }
+                catch (System.Data.Common.DbException)
+                {
+                    // Split-payment columns are additive — never break checkout.
+                }
+            }
 
             var po = (request.BuyerPoNumber ?? string.Empty).Trim();
             if (po.Length > 64)

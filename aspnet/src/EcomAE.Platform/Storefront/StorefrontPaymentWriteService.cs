@@ -89,6 +89,7 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
     private readonly IStorefrontNotifyDispatcher? _notify;
     private readonly EcomAE.Platform.Cp.ICpPlatformMailer? _mailer;
     private readonly IErpAdvanceVatService? _advanceVat;
+    private readonly IStorefrontSplitPaymentService? _splitPay;
     private IShopPayForOrderService? _payForOrder;
 
     public StorefrontPaymentWriteService(
@@ -97,7 +98,8 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
         IStorefrontNotifyDispatcher? notify = null,
         EcomAE.Platform.Cp.ICpPlatformMailer? mailer = null,
         IShopPayForOrderService? payForOrder = null,
-        IErpAdvanceVatService? advanceVat = null)
+        IErpAdvanceVatService? advanceVat = null,
+        IStorefrontSplitPaymentService? splitPay = null)
     {
         _connections = connections;
         _protocol = protocol;
@@ -105,6 +107,7 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
         _mailer = mailer;
         _payForOrder = payForOrder;
         _advanceVat = advanceVat;
+        _splitPay = splitPay;
     }
 
     public async Task<StorefrontPaymentWriteResult> CreateOperationAsync(
@@ -428,6 +431,30 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
         }
         catch (System.Data.Common.DbException)
         {
+        }
+
+        // Split payment: after an order payment lands, refresh advance/balance flags.
+        if (_splitPay is not null)
+        {
+            try
+            {
+                var payOrders = await ErpDb.StringAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("SELECT `pay_orders` FROM `shop_users_accounting` WHERE `id` = ?;"),
+                    cancellationToken,
+                    operationId).ConfigureAwait(false) ?? string.Empty;
+                foreach (var part in payOrders.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    if (long.TryParse(part, NumberStyles.Integer, CultureInfo.InvariantCulture, out var oid) && oid > 0)
+                    {
+                        await _splitPay.RefreshPaidFlagsAsync(connection, oid, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+            catch (System.Data.Common.DbException)
+            {
+            }
         }
 
         return new StorefrontPaymentWriteResult(true, "ok", message, operationId, SanitizeHandler(handler), writes);
