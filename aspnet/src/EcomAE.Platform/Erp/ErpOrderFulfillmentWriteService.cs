@@ -59,6 +59,8 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
     private readonly IErpInvoiceFromOrderWriteService _orderInvoices;
     private readonly IErpAuditLogWriter _audit;
     private readonly IErpProcessFlowSyncService? _processFlow;
+    private readonly EcomAE.Platform.Storefront.IStorefrontSplitPaymentService? _splitPay;
+    private readonly EcomAE.Platform.Storefront.IStorefrontBalanceRequestNotifier? _balanceNotify;
 
     public ErpOrderFulfillmentWriteService(
         IErpWriteConnectionFactory connections,
@@ -69,7 +71,9 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         IErpSalesInvoiceWriteService soInvoices,
         IErpInvoiceFromOrderWriteService orderInvoices,
         IErpAuditLogWriter audit,
-        IErpProcessFlowSyncService? processFlow = null)
+        IErpProcessFlowSyncService? processFlow = null,
+        EcomAE.Platform.Storefront.IStorefrontSplitPaymentService? splitPay = null,
+        EcomAE.Platform.Storefront.IStorefrontBalanceRequestNotifier? balanceNotify = null)
     {
         _connections = connections;
         _vouchers = vouchers;
@@ -80,6 +84,52 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         _orderInvoices = orderInvoices;
         _audit = audit;
         _processFlow = processFlow;
+        _splitPay = splitPay;
+        _balanceNotify = balanceNotify;
+    }
+
+    /// <summary>
+    /// Vendor-confirm chain: once no `draft` PO remains on the order, every supplier has
+    /// acknowledged — freeze the order total as the confirmed total (staff can still adjust it
+    /// later for partial fulfilment) and e-mail the customer the balance-payment link.
+    /// Best-effort: a mail/DB hiccup must never fail a status sync.
+    /// </summary>
+    private async Task AutoConfirmOnVendorApprovalAsync(DbConnection c, long orderId, CancellationToken ct)
+    {
+        if (_splitPay is null)
+        {
+            return;
+        }
+        try
+        {
+            var drafts = await ScalarDecimalAsync(
+                c, null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_purchase_orders` WHERE `order_id` = ? AND `status` = 'draft'"),
+                ct, orderId).ConfigureAwait(false);
+            var pos = await ScalarDecimalAsync(
+                c, null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_purchase_orders` WHERE `order_id` = ? AND `status` != 'cancelled'"),
+                ct, orderId).ConfigureAwait(false);
+            if (pos <= 0 || drafts > 0)
+            {
+                return;
+            }
+
+            var state = await _splitPay.ReadStateAsync(c, orderId, ct).ConfigureAwait(false);
+            if (state is null || state.ConfirmedTotal.HasValue)
+            {
+                return;
+            }
+
+            var confirmed = await _splitPay.ConfirmOrderAsync(orderId, state.OrderTotal, ct).ConfigureAwait(false);
+            if (confirmed.Ok && _balanceNotify is not null)
+            {
+                await _balanceNotify.SendAsync(orderId, ct).ConfigureAwait(false);
+            }
+        }
+        catch (Exception ex) when (ex is DbException or InvalidOperationException)
+        {
+        }
     }
 
     private async Task SyncOrderCaseAsync(long orderId, ErpPfActor actor, CancellationToken ct)
@@ -905,6 +955,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
                 items.Add(new { po_id = poId, status = newStatus });
             }
         }
+        await AutoConfirmOnVendorApprovalAsync(c, orderId, ct).ConfigureAwait(false);
         return (writes, items);
     }
 

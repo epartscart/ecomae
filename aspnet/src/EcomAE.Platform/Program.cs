@@ -893,6 +893,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPlatformAlertsService, EcomAE.P
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWhatsappShareService, EcomAE.Platform.Erp.ErpWhatsappShareService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCountryService, EcomAE.Platform.Storefront.StorefrontCountryService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontSplitPaymentService, EcomAE.Platform.Storefront.StorefrontSplitPaymentService>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontBalanceRequestNotifier, EcomAE.Platform.Storefront.StorefrontBalanceRequestNotifier>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpIndustrySettingsWriteService, EcomAE.Platform.Cp.CpIndustrySettingsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantFeaturesWriteService, EcomAE.Platform.Cp.CpTenantFeaturesWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSuperCustomerBoardService, EcomAE.Platform.Cp.CpSuperCustomerBoardService>();
