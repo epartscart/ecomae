@@ -9310,7 +9310,8 @@ public sealed class ControlPanelModule : ISurfaceModule
                     [.. form["enabled_packs"].Where(v => !string.IsNullOrWhiteSpace(v)).Select(v => v!)],
                     [.. form["erp_modules"].Where(v => !string.IsNullOrWhiteSpace(v)).Select(v => v!)],
                     hiddenGroups,
-                    hiddenItems),
+                    hiddenItems,
+                    LiveWriteFormBinder.Text(form, "umapi_api_key")),
                 context.Request.Host.Host,
                 cancellationToken);
 
