@@ -1448,25 +1448,42 @@ app.Use(async (context, next) =>
     var subdomain = EcomAE.Platform.Storefront.StorefrontCountryDefaults.SubdomainOf(context.Request.Host.Host);
     if (subdomain is not null)
     {
-        var cookieHeader = context.Request.Headers.Cookie.ToString();
-        var hasCountryOrCurrency = cookieHeader.Split(';').Any(
-            part => part.TrimStart().StartsWith("epc_country=", StringComparison.OrdinalIgnoreCase)
-                || part.TrimStart().StartsWith("epc_currency=", StringComparison.OrdinalIgnoreCase));
-        if (!hasCountryOrCurrency)
+        var parts = context.Request.Headers.Cookie.ToString().Split(';', StringSplitOptions.RemoveEmptyEntries);
+        string? CookieValue(string name) => parts
+            .Select(p => p.TrimStart())
+            .Where(p => p.StartsWith(name + "=", StringComparison.OrdinalIgnoreCase))
+            .Select(p => p[(name.Length + 1)..].Trim())
+            .FirstOrDefault(v => v.Length > 0);
+
+        // An explicit currency or country choice (with a value) always wins over the host.
+        if (CookieValue("epc_country") is null && CookieValue("epc_currency") is null)
         {
-            var code = subdomain.ToUpperInvariant();
-            context.Request.Headers.Cookie = string.IsNullOrEmpty(cookieHeader)
-                ? $"epc_country={code}"
-                : cookieHeader + $"; epc_country={code}";
-            context.Response.Cookies.Append(
-                "epc_country",
-                code,
-                new CookieOptions
-                {
-                    Path = "/",
-                    MaxAge = TimeSpan.FromDays(365),
-                    SameSite = SameSiteMode.Lax,
-                });
+            // Seed only when the tenant actually runs this country storefront — a deactivated
+            // country host resolves to the default country and must not get a foreign currency.
+            var countries = context.RequestServices.GetService<EcomAE.Platform.Storefront.IStorefrontCountryService>();
+            var country = countries is null
+                ? null
+                : await countries.ResolveAsync(context.Request.Host.Host, context.RequestAborted).ConfigureAwait(false);
+            if (country is not null
+                && string.Equals(country.Subdomain, subdomain, StringComparison.OrdinalIgnoreCase))
+            {
+                var code = subdomain.ToUpperInvariant();
+                var kept = parts
+                    .Select(p => p.TrimStart())
+                    .Where(p => !p.StartsWith("epc_country=", StringComparison.OrdinalIgnoreCase)
+                        && !p.StartsWith("epc_currency=", StringComparison.OrdinalIgnoreCase));
+                context.Request.Headers.Cookie = string.Join("; ", kept.Append($"epc_country={code}"));
+                context.Response.Cookies.Append(
+                    "epc_country",
+                    code,
+                    new CookieOptions
+                    {
+                        Path = "/",
+                        MaxAge = TimeSpan.FromDays(365),
+                        SameSite = SameSiteMode.Lax,
+                        Secure = true,
+                    });
+            }
         }
     }
 

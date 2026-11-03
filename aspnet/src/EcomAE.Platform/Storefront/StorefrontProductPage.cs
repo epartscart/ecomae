@@ -28,7 +28,8 @@ public static class StorefrontProductPage
         IReadOnlySet<long> Bookmarks,
         IReadOnlySet<long> Compare,
         IReadOnlyDictionary<string, string> Config,
-        string? SelectedCurrencyIso = null);
+        string? SelectedCurrencyIso = null,
+        string? CountryCookie = null);
 
     private sealed record Product(long Id, string CaptionKey, long CategoryId, string Alias);
     private sealed record Image(long Id, string FileName);
@@ -137,7 +138,11 @@ public static class StorefrontProductPage
             var office = await OfficeAsync(connection, offer.OfficeId, cancellationToken).ConfigureAwait(false);
             var selectedCurrency = await CurrencyAsync(
                 connection,
-                request.SelectedCurrencyIso ?? Config(request, "shop_currency"),
+                string.IsNullOrWhiteSpace(request.SelectedCurrencyIso)
+                    && !string.IsNullOrWhiteSpace(request.CountryCookie)
+                    && EpcCurrency.CountryMap.TryGetValue(request.CountryCookie.ToUpperInvariant(), out var countryIso)
+                    ? countryIso
+                    : request.SelectedCurrencyIso ?? Config(request, "shop_currency"),
                 cancellationToken).ConfigureAwait(false);
             var divId = offer.OfficeId + "_" + offer.StorageId + "_" + offer.StorageRecordId;
             sb.Append("\t\t\t<div class=\"price_div\"><div class=\"price_div_header\">")

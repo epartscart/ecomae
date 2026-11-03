@@ -68,7 +68,7 @@ public sealed class StorefrontBalanceRequestNotifier : IStorefrontBalanceRequest
 
         var host = await ErpDb.StringAsync(
             connection, null,
-            "SELECT `host` FROM `epc_portal_site_settings` WHERE `host` <> '' ORDER BY `id` LIMIT 1",
+            "SELECT `host` FROM `epc_portal_site_settings` WHERE `host` <> '' ORDER BY `host` LIMIT 1",
             cancellationToken).ConfigureAwait(false);
         var link = IStorefrontSplitPaymentService.BalancePayPath(orderId, state.BalanceToken);
         var url = string.IsNullOrWhiteSpace(host) ? link : "https://" + host.Trim().TrimEnd('/') + link;
@@ -87,7 +87,15 @@ public sealed class StorefrontBalanceRequestNotifier : IStorefrontBalanceRequest
             .Append("</div>")
             .ToString();
 
-        var outcome = await _mailer.SendHtmlAsync(email.Trim(), subject, body, cancellationToken).ConfigureAwait(false);
-        return outcome.Ok;
+        try
+        {
+            var outcome = await _mailer.SendHtmlAsync(email.Trim(), subject, body, cancellationToken).ConfigureAwait(false);
+            return outcome.Ok;
+        }
+        catch (Exception)
+        {
+            // SMTP/transport failure is reported as a failed send, never thrown into the caller.
+            return false;
+        }
     }
 }

@@ -380,7 +380,8 @@
                     StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.BookmarksName, StorefrontIntListCookie.BookmarksMax).Select(x => (long)x).ToHashSet(),
                     StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.CompareName, StorefrontIntListCookie.CompareMax).Select(x => (long)x).ToHashSet(),
                     config,
-                    ctx.Request.Cookies["epc_currency"]),
+                    ctx.Request.Cookies["epc_currency"],
+                    ctx.Request.Cookies["epc_country"]),
                 (key, ct) => translator.TextAsync(key, ct),
                 ctx.RequestAborted);
         }
