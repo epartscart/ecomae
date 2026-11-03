@@ -1,13 +1,15 @@
 /* CP Website tracker — loaded outside .row via epc_cp_page_assets */
 .epc-wt { --wt-ink:#0f172a; --wt-muted:#64748b; --wt-line:#e2e8f0; --wt-bg:#f8fafc; --wt-card:#fff; --wt-accent:#0ea5e9; --wt-ok:#059669; --wt-warn:#d97706; }
-.epc-wt .wt-filters { display:flex; flex-wrap:wrap; gap:10px; align-items:end; margin:0 0 16px; padding:14px; background:var(--wt-card); border:1px solid var(--wt-line); border-radius:10px; }
+/* Filters: fixed-width fields in a wrapping horizontal grid.
+   .form-control is width:100% (Bootstrap) — the width lives on the wrapper. */
+.epc-wt .wt-filters { display:flex; flex-wrap:wrap; gap:10px 12px; align-items:end; margin:0 0 16px; padding:14px; background:var(--wt-card); border:1px solid var(--wt-line); border-radius:10px; }
+.epc-wt .wt-filters > div { flex:0 0 168px; min-width:0; }
 .epc-wt .wt-filters label { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--wt-muted); margin:0 0 4px; }
-.epc-wt .wt-filters .form-control { min-width:140px; }
-.epc-wt .wt-filters #wt_ip,
-.epc-wt .wt-filters #wt_user_id { min-width:120px; max-width:160px; }
-.epc-wt .wt-filters #wt_path { min-width:160px; }
-.epc-wt .wt-filters #wt_country,
-.epc-wt .wt-filters #wt_browser { min-width:150px; }
+.epc-wt .wt-filters .form-control { display:block; width:100%; min-width:0; }
+.epc-wt .wt-filters > div:has(#wt_path) { flex:0 0 220px; }
+.epc-wt .wt-filters > div:has(#wt_country),
+.epc-wt .wt-filters > div:has(#wt_browser) { flex:0 0 190px; }
+.epc-wt .wt-filters .wt-filter-actions { flex:1 1 100%; }
 .epc-wt .wt-filter-chip { display:inline-block; margin:0 6px 0 0; padding:2px 8px; border-radius:999px; background:#e0f2fe; color:#075985; font-size:11px; }
 .epc-wt .wt-filter-hint { font-size:11px; color:var(--wt-muted); margin:0 0 10px; }
 .epc-wt .wt-geo-click,

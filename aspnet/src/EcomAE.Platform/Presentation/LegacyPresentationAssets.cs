@@ -179,7 +179,7 @@ public static class LegacyPresentationAssets
     /// <summary>CP Website tracker (PHP epc_web_tracker_cp.css + ASP.NET chart upgrades).</summary>
     public static readonly IReadOnlyList<string> CpWebTrackerStylesheets =
     [
-        "/platform-assets/epc_web_tracker_cp.css?v=20260903wt1"
+        "/platform-assets/epc_web_tracker_cp.css?v=20261103wt2"
     ];
 
     /// <summary>Structural selectors / class markers for graphical presentation probes.</summary>

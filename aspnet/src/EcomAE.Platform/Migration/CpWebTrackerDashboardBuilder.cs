@@ -630,9 +630,15 @@ public static class CpWebTrackerDashboardBuilder
             ("epc_web_tracker_sessions", "ix_wt_sessions_seen", "(`last_seen_at`)"),
             ("epc_web_tracker_sessions", "ix_wt_sessions_site_seen", "(`site_key`,`last_seen_at`)"),
             ("epc_web_tracker_sessions", "ix_wt_sessions_uid", "(`session_uid`)"),
+            // covering indexes for the dashboard's session-table GROUP BYs (geo, devices,
+            // facets): narrow enough for InnoDB's 3072-byte utf8mb4 key limit
+            ("epc_web_tracker_sessions", "ix_wt_sessions_geo_cover", "(`site_key`,`last_seen_at`,`country_code`,`country_name`,`city`)"),
+            ("epc_web_tracker_sessions", "ix_wt_sessions_dev_cover", "(`site_key`,`last_seen_at`,`device_type`,`browser`,`os`)"),
             ("epc_web_tracker_pageviews", "ix_wt_pv_session", "(`session_id`)"),
             ("epc_web_tracker_pageviews", "ix_wt_pv_ts", "(`ts`)"),
             ("epc_web_tracker_pageviews", "ix_wt_pv_site_ts", "(`site_key`,`ts`)"),
+            // covering index for top-pages: path grouping + per-page aggregates without row lookups
+            ("epc_web_tracker_pageviews", "ix_wt_pv_pages_cover", "(`site_key`,`ts`,`path`,`session_uid`,`time_on_page_ms`,`scroll_max_pct`)"),
             ("epc_web_tracker_events", "ix_wt_ev_session", "(`session_id`)"),
             ("epc_web_tracker_events", "ix_wt_ev_ts", "(`ts`)"),
             ("epc_web_tracker_events", "ix_wt_ev_site_ts", "(`site_key`,`ts`)"),
@@ -1265,7 +1271,7 @@ public static class CpWebTrackerDashboardBuilder
     {
         if (cmd.CommandTimeout is 0 or 30)
         {
-            cmd.CommandTimeout = 12;
+            cmd.CommandTimeout = 45;
         }
 
         foreach (var (name, value) in parameters)
@@ -1278,7 +1284,7 @@ public static class CpWebTrackerDashboardBuilder
     {
         if (command.CommandTimeout is 0 or 30)
         {
-            command.CommandTimeout = 12;
+            command.CommandTimeout = 45;
         }
 
         var parameter = command.CreateParameter();
