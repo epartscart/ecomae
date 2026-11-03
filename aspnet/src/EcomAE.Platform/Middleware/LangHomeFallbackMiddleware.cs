@@ -48,7 +48,8 @@ public sealed class LangHomeFallbackMiddleware
         if (only.Equals("/en", StringComparison.OrdinalIgnoreCase)
             || only.Equals("/ar", StringComparison.OrdinalIgnoreCase)
             || only.Equals("/me", StringComparison.OrdinalIgnoreCase)
-            || only.Equals("/ru", StringComparison.OrdinalIgnoreCase))
+            || only.Equals("/ru", StringComparison.OrdinalIgnoreCase)
+            || only.Equals("/ur", StringComparison.OrdinalIgnoreCase))
         {
             lang = only.TrimStart('/').ToLowerInvariant();
             return true;
@@ -56,6 +57,10 @@ public sealed class LangHomeFallbackMiddleware
 
         return false;
     }
+
+    /// <summary>Languages with a real lang home (/en/, /ar/, /me/, /ru/, /ur/).</summary>
+    public static bool IsLangHome(string? lang)
+        => lang is "en" or "ar" or "me" or "ru" or "ur";
 
     public static string RequestCmsLang(HttpContext? http, string fallback = "en")
     {

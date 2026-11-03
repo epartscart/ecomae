@@ -1448,6 +1448,28 @@ app.Use(async (context, next) =>
     var subdomain = EcomAE.Platform.Storefront.StorefrontCountryDefaults.SubdomainOf(context.Request.Host.Host);
     if (subdomain is not null)
     {
+        // A non-English country host lands on its language home (sa. → /ar/, ru. → /ru/)
+        // so the whole catalogue session — not only the <html lang> tag — follows the country.
+        if ((context.Request.Path.Value ?? "/").Equals("/", StringComparison.Ordinal))
+        {
+            var countryService = context.RequestServices.GetService<EcomAE.Platform.Storefront.IStorefrontCountryService>();
+            var homeCountry = countryService is null
+                ? null
+                : await countryService.ResolveAsync(context.Request.Host.Host, context.RequestAborted).ConfigureAwait(false);
+            // Only redirect to a language the storefront actually serves — a country
+            // configured with e.g. fr has no /fr/ home and must land on the default.
+            // An explicit ?lang= pick (sa./?lang=en) is never overridden.
+            if (homeCountry is not null
+                && string.Equals(homeCountry.Subdomain, subdomain, StringComparison.OrdinalIgnoreCase)
+                && EcomAE.Platform.Middleware.LangHomeFallbackMiddleware.IsLangHome(homeCountry.LanguageCode)
+                && !homeCountry.LanguageCode.Equals("en", StringComparison.OrdinalIgnoreCase)
+                && context.Request.Query["lang"].Count == 0)
+            {
+                context.Response.Redirect("/" + homeCountry.LanguageCode + "/", permanent: false);
+                return;
+            }
+        }
+
         var parts = context.Request.Headers.Cookie.ToString().Split(';', StringSplitOptions.RemoveEmptyEntries);
         string? CookieValue(string name) => parts
             .Select(p => p.TrimStart())

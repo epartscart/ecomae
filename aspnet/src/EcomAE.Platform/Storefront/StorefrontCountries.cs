@@ -108,7 +108,8 @@ public static class StorefrontCountryDefaults
             "", "", "", "", IsDefault: false, IsActive: true, 80),
         new("RU", "Russia", "ru", "RUB", 26.0m, 0m, 0.01m, 20m, "ru", "ltr",
             "", "", "", "", IsDefault: false, IsActive: true, 90),
-        new("PK", "Pakistan", "pk", "PKR", 76.15m, 0m, 0.01m, 17m, "en", "ltr",
+        // CountryCode "PK" with Urdu (ur) + rtl: Pakistan's official language is Urdu.
+        new("PK", "Pakistan", "pk", "PKR", 76.15m, 0m, 0.01m, 17m, "ur", "rtl",
             "", "", "", "", IsDefault: false, IsActive: true, 100),
     ];
 

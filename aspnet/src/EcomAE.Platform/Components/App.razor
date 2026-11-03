@@ -26,13 +26,27 @@
     private string _htmlLang = "en";
     private string _htmlDir = "ltr";
 
+    /// <summary>RTL languages served by the lang homes: Arabic and Urdu.</summary>
+    private static string DirFor(string lang)
+        => lang is "ar" or "ur" ? "rtl" : "ltr";
+
     protected override void OnInitialized()
     {
         _htmlLang = LangHomeFallbackMiddleware.RequestCmsLang(Http.HttpContext, "en");
-        _htmlDir = _htmlLang == "ar" ? "rtl" : "ltr";
+        _htmlDir = DirFor(_htmlLang);
 
-        // Country storefronts (ae./qa./sa.…) pin lang/dir to the country's configured language
-        // unless the visitor explicitly picked a language in the URL/session.
+        // An explicit lang home (/en/, /ar/, /ur/, /ru/) is a visitor pick — it wins over
+        // the country host's configured language (e.g. /en/ on sa. stays English).
+        var picked = Http.HttpContext?.Items[LangHomeFallbackMiddleware.LangItem] as string;
+        if (!string.IsNullOrEmpty(picked))
+        {
+            _htmlLang = picked;
+            _htmlDir = DirFor(picked);
+            return;
+        }
+
+        // Country storefronts (ae./qa./sa.…) pin lang/dir to the country's configured
+        // language unless the visitor picked a language in the URL/session.
         var cSub = Http.HttpContext is null
             ? null
             : EcomAE.Platform.Storefront.StorefrontCountryDefaults.SubdomainOf(Http.HttpContext.Request.Host.Host);

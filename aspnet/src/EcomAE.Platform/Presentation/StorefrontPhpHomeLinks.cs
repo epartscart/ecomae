@@ -13,7 +13,7 @@ public static class StorefrontPhpHomeLinks
     public static string LangHref(HttpContext? http)
     {
         var lang = LangHomeFallbackMiddleware.RequestCmsLang(http, "en");
-        if (lang is not ("en" or "ar" or "me" or "ru"))
+        if (!LangHomeFallbackMiddleware.IsLangHome(lang))
         {
             lang = "en";
         }
