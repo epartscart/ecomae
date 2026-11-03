@@ -25,7 +25,7 @@ public static class HomeCatalogWidgets
     public const string UmapiProxyPath = "/api/umapi_proxy.php";
 
     /// <summary>PHP <c>epc_config_key</c> fallback when config.php has no key.</summary>
-    public const string DefaultUmapiKey = "2da16082-e7bc-4bd9-bee2-62b38c79ad8b";
+    public const string DefaultUmapiKey = "1a077e8d-739f-4151-8ddb-ae820163fdb3";
 
     /// <summary>PHP <c>epc_config_key</c>: config.php <c>umapi_api_key</c>, else the last segment of <c>umapi_api_url</c>, else the built-in key.</summary>
     public static string ResolveUmapiKey(IReadOnlyDictionary<string, string>? config)
