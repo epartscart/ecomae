@@ -193,6 +193,7 @@ public static class OAuthCallbackEndpoint
                 context.Response,
                 new LegacyLoginSuccess(userId, profile.Email, session, csrf, state.AuthMode != "storefront", dest),
                 rememberMe: false);
+            await EpcUserPrefs.ApplyOnLoginAsync(connection, context.Request, context.Response, userId, cancellationToken).ConfigureAwait(false);
             if (state.Provider == "google")
             {
                 RememberGoogle(context, profile.Email);

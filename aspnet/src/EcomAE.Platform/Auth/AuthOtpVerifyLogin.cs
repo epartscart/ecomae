@@ -291,6 +291,7 @@ public static class AuthOtpVerifyLogin
         {
             var guest = http.Request.Cookies["session"] ?? string.Empty;
             LegacyLoginCookieWriter.Apply(http.Response, new LegacyLoginSuccess(userId, contact, session, csrf, false, "/"), rememberMe: false);
+            await EpcUserPrefs.ApplyOnLoginAsync(tenant, http.Request, http.Response, userId, cancellationToken).ConfigureAwait(false);
             if (guest.Length > 0)
             {
                 await MergeGuestCartAsync(tenant, userId, guest, cancellationToken).ConfigureAwait(false);
@@ -300,6 +301,7 @@ public static class AuthOtpVerifyLogin
         }
 
         LegacyLoginCookieWriter.Apply(http.Response, new LegacyLoginSuccess(userId, contact, session, csrf, true, "/"), rememberMe: false);
+        await EpcUserPrefs.ApplyOnLoginAsync(tenant, http.Request, http.Response, userId, cancellationToken).ConfigureAwait(false);
         http.Response.Cookies.Append("epc_platform_erp", "deleted", new CookieOptions { Path = "/", Expires = DateTimeOffset.FromUnixTimeSeconds(1) });
         return (200, Ok(CpRedirect(resolved.Kind, resolved.TenantKey, resolved.ReturnHost, resolved.ReturnPath, resolved.ErpOnly)));
     }
