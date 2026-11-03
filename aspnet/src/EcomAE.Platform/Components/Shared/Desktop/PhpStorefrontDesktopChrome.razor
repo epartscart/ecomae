@@ -477,16 +477,16 @@
                                 <a href="@StorefrontSurfaceLinks.BulkUpload"><i class="fa fa-file-excel-o" aria-hidden="true"></i> Excel bulk upload</a>
                             </div>
                             <div class="epc-currency-switcher">
-                                <select id="epc_currency_select" aria-label="Display currency">
-                                    <option value="AED" selected>AED</option>
-                                    <option value="USD">USD</option>
-                                    <option value="EUR">EUR</option>
-                                    <option value="PKR">PKR</option>
-                                    <option value="RUB">RUB</option>
-                                    <option value="SAR">SAR</option>
-                                    <option value="KWD">KWD</option>
-                                    <option value="OMR">OMR</option>
+                                <select id="epc_currency_select" aria-label="Display currency" onchange="var v=this.value;document.cookie='epc_currency='+v+';max-age=31536000;path=/;secure;samesite=lax';document.cookie='epc_currency_host=;max-age=0;path=/';location.reload();">
+                                    @foreach (var iso in EcomAE.Platform.Storefront.EpcCurrency.SupportedIsoCodes)
+                                    {
+                                        var currency = EcomAE.Platform.Storefront.EpcCurrency.DefaultForIso(iso);
+                                        <option value="@iso">@(currency?.IsoName ?? iso)</option>
+                                    }
                                 </select>
+                                <script>
+                                    (function(){var m=document.cookie.match(/(?:^|;\s*)epc_currency=([^;]*)/);var s=document.getElementById('epc_currency_select');if(m&&s){s.value=decodeURIComponent(m[1]);}})();
+                                </script>
                                 <div class="epc-currency-note">Display currency</div>
                             </div>
                         </div>
