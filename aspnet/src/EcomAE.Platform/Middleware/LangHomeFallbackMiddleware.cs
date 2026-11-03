@@ -58,6 +58,10 @@ public sealed class LangHomeFallbackMiddleware
         return false;
     }
 
+    /// <summary>Languages with a real lang home (/en/, /ar/, /me/, /ru/, /ur/).</summary>
+    public static bool IsLangHome(string? lang)
+        => lang is "en" or "ar" or "me" or "ru" or "ur";
+
     public static string RequestCmsLang(HttpContext? http, string fallback = "en")
     {
         if (http?.Items[LangItem] is string stored && stored.Length == 2)

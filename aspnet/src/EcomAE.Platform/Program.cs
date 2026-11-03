@@ -1456,10 +1456,14 @@ app.Use(async (context, next) =>
             var homeCountry = countryService is null
                 ? null
                 : await countryService.ResolveAsync(context.Request.Host.Host, context.RequestAborted).ConfigureAwait(false);
+            // Only redirect to a language the storefront actually serves — a country
+            // configured with e.g. fr has no /fr/ home and must land on the default.
+            // An explicit ?lang= pick (sa./?lang=en) is never overridden.
             if (homeCountry is not null
                 && string.Equals(homeCountry.Subdomain, subdomain, StringComparison.OrdinalIgnoreCase)
-                && homeCountry.LanguageCode.Length == 2
-                && !homeCountry.LanguageCode.Equals("en", StringComparison.OrdinalIgnoreCase))
+                && EcomAE.Platform.Middleware.LangHomeFallbackMiddleware.IsLangHome(homeCountry.LanguageCode)
+                && !homeCountry.LanguageCode.Equals("en", StringComparison.OrdinalIgnoreCase)
+                && context.Request.Query["lang"].Count == 0)
             {
                 context.Response.Redirect("/" + homeCountry.LanguageCode + "/", permanent: false);
                 return;
