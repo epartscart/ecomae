@@ -240,6 +240,11 @@
                         <label>Country code (ISO-2)</label>
                         <input type="text" class="form-control" name="country_code" maxlength="2" value="@_view.Contact.CountryCode" />
                     </div>
+                    <div class="col-md-12 form-group">
+                        <label>Parts catalog API key (Umapi)</label>
+                        <input type="text" class="form-control" name="umapi_api_key" value="@_view.UmapiApiKey" placeholder="Leave empty to keep the built-in catalog key" />
+                        <small class="form-text text-muted">X-App-Key used for the vehicle/parts catalog lookups. Saved per tenant.</small>
+                    </div>
                 </div>
             </div>
         </section>

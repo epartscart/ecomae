@@ -8,6 +8,7 @@ using System.Text.Json;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Cp.PriceImport;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.Erp;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Services;
 using Microsoft.Extensions.Options;
@@ -750,7 +751,7 @@ public static class HomeCatalogWidgets
                     {
                         await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
                         await EnsureUmapiCacheTablesAsync(connection, cancellationToken).ConfigureAwait(false);
-                        await SaveUmapiSyncStatusAsync(connection, false, live?.Status ?? StatusCodes.Status502BadGateway, UmapiErrorMessage(live?.Body, "Catalog service did not return a saved catalog."), UmapiAppKey(context), cancellationToken).ConfigureAwait(false);
+                        await SaveUmapiSyncStatusAsync(connection, false, live?.Status ?? StatusCodes.Status502BadGateway, UmapiErrorMessage(live?.Body, "Catalog service did not return a saved catalog."), await UmapiAppKeyAsync(context, connection, cancellationToken), cancellationToken).ConfigureAwait(false);
                     }
                     catch (DbException)
                     {
@@ -1082,7 +1083,7 @@ public static class HomeCatalogWidgets
                 ("@rows", rows),
                 ("@status", status),
                 ("@now", now)).ConfigureAwait(false);
-            await SaveUmapiSyncStatusAsync(connection, true, status, "Connected", UmapiAppKey(context), cancellationToken).ConfigureAwait(false);
+            await SaveUmapiSyncStatusAsync(connection, true, status, "Connected", await UmapiAppKeyAsync(context, connection, cancellationToken), cancellationToken).ConfigureAwait(false);
             await LogUmapiAccessAsync(connection, action, section, status, fromCache: false, isLive: true, "HTTP " + status.ToString(CultureInfo.InvariantCulture), cancellationToken).ConfigureAwait(false);
         }
     }
@@ -1546,7 +1547,7 @@ public static class HomeCatalogWidgets
             http.Timeout = TimeSpan.FromSeconds(12);
             using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.umapi.ru" + path);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            request.Headers.TryAddWithoutValidation("X-App-Key", UmapiAppKey(context));
+            request.Headers.TryAddWithoutValidation("X-App-Key", await UmapiAppKeyAsync(context, null, cancellationToken));
             using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
             var status = (int)response.StatusCode;
             var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -1665,10 +1666,57 @@ public static class HomeCatalogWidgets
     private static int UmapiQueryInt(HttpContext context, string name)
         => int.TryParse(context.Request.Query[name], NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) ? parsed : 0;
 
-    private static string UmapiAppKey(HttpContext context)
+    private static async Task<string> UmapiAppKeyAsync(HttpContext context, DbConnection? connection, CancellationToken cancellationToken)
     {
+        if (connection is not null)
+        {
+            var stored = await StoredUmapiKeyAsync(connection, cancellationToken).ConfigureAwait(false);
+            if (!string.IsNullOrWhiteSpace(stored))
+            {
+                return stored.Trim();
+            }
+        }
+        else
+        {
+            var connections = context.RequestServices.GetService<ITenantDbConnectionFactory>();
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            if (connections is not null && connections.IsConfigured)
+            {
+                try
+                {
+                    await using var owned = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+                    var stored = await StoredUmapiKeyAsync(owned, cancellationToken).ConfigureAwait(false);
+                    if (!string.IsNullOrWhiteSpace(stored))
+                    {
+                        return stored.Trim();
+                    }
+                }
+                catch (DbException)
+                {
+                    // Tenant DB unreachable — fall through to config.php/default key.
+                }
+            }
+        }
+
         var reference = context.RequestServices.GetService<IOptions<PhpReferenceOptions>>()?.Value ?? new PhpReferenceOptions();
         return ResolveUmapiKey(CpPhpConfig.Read(reference));
+    }
+
+    private static async Task<string?> StoredUmapiKeyAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await ErpDb.StringAsync(
+                connection,
+                null,
+                "SELECT `setting_value` FROM `epc_settings` WHERE `setting_key` = 'umapi_api_key' AND (`site_key` = '' OR `site_key` IS NULL) ORDER BY `updated_at` DESC LIMIT 1",
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            // epc_settings may not exist yet on this tenant DB.
+            return null;
+        }
     }
 
     private static string UmapiErrorMessage(string? body, string fallback)

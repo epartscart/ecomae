@@ -50,7 +50,8 @@ public sealed record CpIndustrySettingsView(
     IReadOnlyList<int> HiddenItems,
     IReadOnlyList<CpIndustrySettingsMenuGroup> MenuGroups,
     IReadOnlyList<CpIndustrySettingsMenuItem> MenuItems,
-    string Source)
+    string Source,
+    string UmapiApiKey)
 {
     public static CpIndustrySettingsView Empty(string host, string source) =>
         new(
@@ -72,7 +73,8 @@ public sealed record CpIndustrySettingsView(
             [],
             [],
             [],
-            source);
+            source,
+            string.Empty);
 
     /// <summary>PHP counts the visible sidebar groups for the settings summary strip.</summary>
     public int VisibleGroupCount =>
@@ -113,11 +115,29 @@ public sealed class CpIndustrySettingsService : ICpIndustrySettingsService
                 // ERP-only tenants have no CP control_groups/control_items — PHP renders the form without the menu tab.
             }
             var baseline = row ?? CpIndustrySettingsView.Empty(hostName, "defaults");
-            return baseline with { MenuGroups = groups, MenuItems = items, Source = row is null ? "defaults" : "db" };
+            var umapiKey = await StoredUmapiApiKeyAsync(connection, cancellationToken).ConfigureAwait(false);
+            return baseline with { MenuGroups = groups, MenuItems = items, Source = row is null ? "defaults" : "db", UmapiApiKey = umapiKey };
         }
         catch (DbException)
         {
             return CpIndustrySettingsView.Empty(hostName, "db-error");
+        }
+    }
+
+    private static async Task<string> StoredUmapiApiKeyAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return (await ErpDb.StringAsync(
+                    connection,
+                    null,
+                    "SELECT `setting_value` FROM `epc_settings` WHERE `setting_key` = 'umapi_api_key' AND (`site_key` = '' OR `site_key` IS NULL) ORDER BY `updated_at` DESC LIMIT 1",
+                    cancellationToken).ConfigureAwait(false))?.Trim() ?? string.Empty;
+        }
+        catch (DbException)
+        {
+            // epc_settings may not exist yet on this tenant DB.
+            return string.Empty;
         }
     }
 
@@ -177,7 +197,8 @@ public sealed class CpIndustrySettingsService : ICpIndustrySettingsService
             menu.Items,
             [],
             [],
-            "db");
+            "db",
+            string.Empty);
     }
 
     private static async Task<IReadOnlyList<CpIndustrySettingsMenuGroup>> LoadMenuGroupsAsync(

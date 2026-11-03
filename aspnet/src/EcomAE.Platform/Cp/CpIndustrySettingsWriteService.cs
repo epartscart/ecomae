@@ -39,7 +39,8 @@ public sealed record CpIndustrySettingsSaveRequest(
     IReadOnlyList<string> EnabledPacks,
     IReadOnlyList<string> ErpModules,
     IReadOnlyList<int> HiddenGroups,
-    IReadOnlyList<int> HiddenItems);
+    IReadOnlyList<int> HiddenItems,
+    string? UmapiApiKey);
 
 public sealed class CpIndustrySettingsWriteService : ICpIndustrySettingsWriteService
 {
@@ -223,6 +224,22 @@ public sealed class CpIndustrySettingsWriteService : ICpIndustrySettingsWriteSer
                 menu.ToJsonString(),
                 DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
 
+            var umapiKey = (request.UmapiApiKey ?? string.Empty).Trim();
+            if (umapiKey.Length > 0)
+            {
+                await EnsureEpcSettingsAsync(connection, cancellationToken).ConfigureAwait(false);
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional(
+                        "INSERT INTO `epc_settings` (`site_key`, `setting_key`, `setting_value`, `updated_at`) "
+                        + "VALUES ('', 'umapi_api_key', ?, ?) "
+                        + "ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`), `updated_at` = VALUES(`updated_at`)"),
+                    cancellationToken,
+                    Clip(umapiKey, 190),
+                    DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
+            }
+
             return writes > 0
                 ? ErpSimpleWriteResult.Ok("Settings saved.", 0)
                 : ErpSimpleWriteResult.Fail("unchanged", "Settings were not updated.");
@@ -231,5 +248,19 @@ public sealed class CpIndustrySettingsWriteService : ICpIndustrySettingsWriteSer
         {
             return ErpSimpleWriteResult.Fail("db", "Settings save failed: " + ex.Message);
         }
+    }
+
+    private static async Task EnsureEpcSettingsAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            "CREATE TABLE IF NOT EXISTS `epc_settings` ("
+            + "`site_key` varchar(190) NOT NULL DEFAULT '', "
+            + "`setting_key` varchar(190) NOT NULL DEFAULT '', "
+            + "`setting_value` mediumtext NULL, "
+            + "`updated_at` bigint NULL, "
+            + "PRIMARY KEY (`site_key`, `setting_key`))",
+            cancellationToken).ConfigureAwait(false);
     }
 }
