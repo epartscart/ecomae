@@ -9311,7 +9311,9 @@ public sealed class ControlPanelModule : ISurfaceModule
                     [.. form["erp_modules"].Where(v => !string.IsNullOrWhiteSpace(v)).Select(v => v!)],
                     hiddenGroups,
                     hiddenItems,
-                    LiveWriteFormBinder.Text(form, "umapi_api_key")),
+                    LiveWriteFormBinder.Text(form, "umapi_api_key"),
+                    LiveWriteFormBinder.Text(form, "laximo_login"),
+                    LiveWriteFormBinder.Text(form, "laximo_key")),
                 context.Request.Host.Host,
                 cancellationToken);
 
