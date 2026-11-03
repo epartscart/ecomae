@@ -136,6 +136,10 @@ public static class StorefrontCountryDefaults
     public static string? BaseDomainOf(string? host)
         => SubdomainOf(host) is not null && host!.Length > 3 ? host[3..] : null;
 
+    /// <summary>Canonical code for row matching: a saved "UK" row is the same country as built-in "GB".</summary>
+    public static string CanonicalCode(string code)
+        => string.Equals(code, "UK", StringComparison.OrdinalIgnoreCase) ? "GB" : code;
+
     public static StorefrontCountry Default(string? subdomain)
     {
         foreach (var c in BuiltIn)
@@ -249,7 +253,7 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
             foreach (var country in countries)
             {
                 if (string.Equals(country.Subdomain, subdomain, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(country.CountryCode, builtinCode, StringComparison.OrdinalIgnoreCase))
+                    || string.Equals(StorefrontCountryDefaults.CanonicalCode(country.CountryCode), builtinCode, StringComparison.OrdinalIgnoreCase))
                 {
                     hasRow = true;
                     if (country.IsActive)
@@ -300,7 +304,7 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
         // Union with built-ins for codes the tenant has no row for — one save must not drop the
         // other country storefronts from hreflang and the management list. DB row wins per code;
         // a deleted/deactivated row stays (as a tombstone) so built-ins never resurrect it.
-        var have = new HashSet<string>(list.Select(c => c.CountryCode), StringComparer.OrdinalIgnoreCase);
+        var have = new HashSet<string>(list.Select(c => StorefrontCountryDefaults.CanonicalCode(c.CountryCode)), StringComparer.OrdinalIgnoreCase);
         foreach (var builtin in StorefrontCountryDefaults.All)
         {
             if (!have.Contains(builtin.CountryCode))
