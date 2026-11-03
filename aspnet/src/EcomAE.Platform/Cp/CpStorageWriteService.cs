@@ -18,6 +18,7 @@ public interface ICpStorageWriteService
         string? handlerFolder,
         int hidden,
         int bgLineColor,
+        string? countryCode = null,
         CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> UpdateAsync(
@@ -31,6 +32,7 @@ public interface ICpStorageWriteService
         string? handlerFolder,
         int hidden,
         int bgLineColor,
+        string? countryCode = null,
         CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> SaveMembershipAsync(
@@ -58,6 +60,7 @@ public sealed class CpStorageWriteService : ICpStorageWriteService
         string? handlerFolder,
         int hidden,
         int bgLineColor,
+        string? countryCode = null,
         CancellationToken cancellationToken = default)
         => SaveAsync(
             0,
@@ -70,6 +73,7 @@ public sealed class CpStorageWriteService : ICpStorageWriteService
             handlerFolder,
             hidden,
             bgLineColor,
+            countryCode,
             cancellationToken);
 
     public Task<ErpSimpleWriteResult> UpdateAsync(
@@ -83,6 +87,7 @@ public sealed class CpStorageWriteService : ICpStorageWriteService
         string? handlerFolder,
         int hidden,
         int bgLineColor,
+        string? countryCode = null,
         CancellationToken cancellationToken = default)
     {
         if (storageId <= 0)
@@ -101,6 +106,7 @@ public sealed class CpStorageWriteService : ICpStorageWriteService
             handlerFolder,
             hidden,
             bgLineColor,
+            countryCode,
             cancellationToken);
     }
 
@@ -276,6 +282,7 @@ public sealed class CpStorageWriteService : ICpStorageWriteService
         string? handlerFolder,
         int hidden,
         int bgLineColor,
+        string? countryCode,
         CancellationToken cancellationToken)
     {
         var caption = HtmlEntities((name ?? string.Empty).Trim());
@@ -316,21 +323,33 @@ public sealed class CpStorageWriteService : ICpStorageWriteService
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
+        // Warehouse country: optional 2-letter ISO; drives the storefront "stock in (CC)" badge.
+        var country = (countryCode ?? string.Empty).Trim().ToUpperInvariant();
+        country = country.Length == 2 && country.All(char.IsLetter) ? country : null;
+
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            var hasCountry = await Storefront.StorefrontStockCountry.EnsureColumnAsync(connection, cancellationToken).ConfigureAwait(false);
             if (storageId == 0)
             {
                 await ErpDb.ExecuteAsync(
                     connection,
                     null,
                     ErpDb.Positional(
-                        """
-                        INSERT INTO `shop_storages` (`name`, `interface_type`, `users`, `connection_options`, `currency`, `short_name`, `hidden`, `bg_line_color`)
-                        VALUES (?,?,?,?,?,?,?,?)
-                        """),
+                        hasCountry
+                            ? """
+                              INSERT INTO `shop_storages` (`name`, `interface_type`, `users`, `connection_options`, `currency`, `short_name`, `hidden`, `bg_line_color`, `country_code`)
+                              VALUES (?,?,?,?,?,?,?,?,?)
+                              """
+                            : """
+                              INSERT INTO `shop_storages` (`name`, `interface_type`, `users`, `connection_options`, `currency`, `short_name`, `hidden`, `bg_line_color`)
+                              VALUES (?,?,?,?,?,?,?,?)
+                              """),
                     cancellationToken,
-                    caption, type, users.Json, options.Json, currencyId, shortCaption, hiddenFlag, bgLineColor).ConfigureAwait(false);
+                    hasCountry
+                        ? new object?[] { caption, type, users.Json, options.Json, currencyId, shortCaption, hiddenFlag, bgLineColor, country }
+                        : new object?[] { caption, type, users.Json, options.Json, currencyId, shortCaption, hiddenFlag, bgLineColor }).ConfigureAwait(false);
                 var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
                 return id > 0
                     ? new ErpSimpleWriteResult(true, "ok", "Warehouse created.", id, 1)
@@ -341,14 +360,23 @@ public sealed class CpStorageWriteService : ICpStorageWriteService
                 connection,
                 null,
                 ErpDb.Positional(
-                    """
-                    UPDATE `shop_storages`
-                    SET `name` = ?, `interface_type` = ?, `users` = ?, `connection_options` = ?,
-                        `currency` = ?, `short_name` = ?, `hidden` = ?, `bg_line_color` = ?
-                    WHERE `id` = ?
-                    """),
+                    hasCountry
+                        ? """
+                          UPDATE `shop_storages`
+                          SET `name` = ?, `interface_type` = ?, `users` = ?, `connection_options` = ?,
+                              `currency` = ?, `short_name` = ?, `hidden` = ?, `bg_line_color` = ?, `country_code` = ?
+                          WHERE `id` = ?
+                          """
+                        : """
+                          UPDATE `shop_storages`
+                          SET `name` = ?, `interface_type` = ?, `users` = ?, `connection_options` = ?,
+                              `currency` = ?, `short_name` = ?, `hidden` = ?, `bg_line_color` = ?
+                          WHERE `id` = ?
+                          """),
                 cancellationToken,
-                caption, type, users.Json, options.Json, currencyId, shortCaption, hiddenFlag, bgLineColor, storageId).ConfigureAwait(false);
+                hasCountry
+                    ? new object?[] { caption, type, users.Json, options.Json, currencyId, shortCaption, hiddenFlag, bgLineColor, country, storageId }
+                    : new object?[] { caption, type, users.Json, options.Json, currencyId, shortCaption, hiddenFlag, bgLineColor, storageId }).ConfigureAwait(false);
             return rows > 0
                 ? ErpSimpleWriteResult.Ok("Warehouse saved.", storageId)
                 : ErpSimpleWriteResult.Fail("not_found", "Warehouse was not updated.");
