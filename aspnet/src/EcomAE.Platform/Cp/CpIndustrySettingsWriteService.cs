@@ -40,7 +40,9 @@ public sealed record CpIndustrySettingsSaveRequest(
     IReadOnlyList<string> ErpModules,
     IReadOnlyList<int> HiddenGroups,
     IReadOnlyList<int> HiddenItems,
-    string? UmapiApiKey);
+    string? UmapiApiKey,
+    string? LaximoLogin,
+    string? LaximoKey);
 
 public sealed class CpIndustrySettingsWriteService : ICpIndustrySettingsWriteService
 {
@@ -224,35 +226,9 @@ public sealed class CpIndustrySettingsWriteService : ICpIndustrySettingsWriteSer
                 menu.ToJsonString(),
                 DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
 
-            if (request.UmapiApiKey is not null)
-            {
-                var umapiKey = Clip(request.UmapiApiKey, 190);
-                await EnsureEpcSettingsAsync(connection, cancellationToken).ConfigureAwait(false);
-                if (umapiKey.Length > 0)
-                {
-                    await ErpDb.ExecuteAsync(
-                        connection,
-                        null,
-                        ErpDb.Positional(
-                            "INSERT INTO `epc_settings` (`site_key`, `setting_key`, `setting_value`, `updated_at`) "
-                            + "VALUES (?, 'umapi_api_key', ?, ?) "
-                            + "ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`), `updated_at` = VALUES(`updated_at`)"),
-                        cancellationToken,
-                        hostName,
-                        umapiKey,
-                        DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
-                }
-                else
-                {
-                    // Empty field = clear the stored override and return to the built-in key.
-                    await ErpDb.ExecuteAsync(
-                        connection,
-                        null,
-                        ErpDb.Positional("DELETE FROM `epc_settings` WHERE `site_key` = ? AND `setting_key` = 'umapi_api_key'"),
-                        cancellationToken,
-                        hostName).ConfigureAwait(false);
-                }
-            }
+            await WriteSettingAsync(connection, hostName, "umapi_api_key", request.UmapiApiKey, cancellationToken).ConfigureAwait(false);
+            await WriteSettingAsync(connection, hostName, "laximo_login", request.LaximoLogin, cancellationToken).ConfigureAwait(false);
+            await WriteSettingAsync(connection, hostName, "laximo_key", request.LaximoKey, cancellationToken).ConfigureAwait(false);
 
             return writes > 0
                 ? ErpSimpleWriteResult.Ok("Settings saved.", 0)
@@ -261,6 +237,48 @@ public sealed class CpIndustrySettingsWriteService : ICpIndustrySettingsWriteSer
         catch (DbException ex)
         {
             return ErpSimpleWriteResult.Fail("db", "Settings save failed: " + ex.Message);
+        }
+    }
+
+    /// <summary>Stores a per-host epc_settings value; an empty field clears the override back to the built-in default.</summary>
+    private static async Task WriteSettingAsync(
+        DbConnection connection,
+        string hostName,
+        string settingKey,
+        string? rawValue,
+        CancellationToken cancellationToken)
+    {
+        if (rawValue is null)
+        {
+            return;
+        }
+
+        var value = Clip(rawValue, 190);
+        await EnsureEpcSettingsAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (value.Length > 0)
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "INSERT INTO `epc_settings` (`site_key`, `setting_key`, `setting_value`, `updated_at`) "
+                    + "VALUES (?, ?, ?, ?) "
+                    + "ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`), `updated_at` = VALUES(`updated_at`)"),
+                cancellationToken,
+                hostName,
+                settingKey,
+                value,
+                DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
+        }
+        else
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("DELETE FROM `epc_settings` WHERE `site_key` = ? AND `setting_key` = ?"),
+                cancellationToken,
+                hostName,
+                settingKey).ConfigureAwait(false);
         }
     }
 

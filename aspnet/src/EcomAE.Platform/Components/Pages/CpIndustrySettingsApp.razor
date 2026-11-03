@@ -245,6 +245,15 @@
                         <input type="text" class="form-control" name="umapi_api_key" value="@_view.UmapiApiKey" placeholder="Leave empty to keep the built-in catalog key" />
                         <small class="form-text text-muted">X-App-Key used for the vehicle/parts catalog lookups. Saved per tenant.</small>
                     </div>
+                    <div class="col-sm-6 form-group">
+                        <label>Laximo login</label>
+                        <input type="text" class="form-control" name="laximo_login" value="@_view.LaximoLogin" placeholder="Leave empty to use the server-configured login" />
+                    </div>
+                    <div class="col-sm-6 form-group">
+                        <label>Laximo access key</label>
+                        <input type="text" class="form-control" name="laximo_key" value="@_view.LaximoKey" placeholder="Leave empty to use the server-configured key" />
+                        <small class="form-text text-muted">VIN / vehicle catalog credentials. Saved per tenant; clearing returns to the server defaults.</small>
+                    </div>
                 </div>
             </div>
         </section>

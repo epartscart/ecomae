@@ -128,7 +128,9 @@ public static partial class StorefrontPhpAjax
             PortalPostedValues(fields, "erp_modules"),
             PortalPostedIds(fields, "hidden_groups"),
             PortalPostedIds(fields, "hidden_items"),
-            OmsField(fields, "umapi_api_key"));
+            OmsField(fields, "umapi_api_key"),
+            OmsField(fields, "laximo_login"),
+            OmsField(fields, "laximo_key"));
 
     private static bool PortalFilled(IReadOnlyDictionary<string, string> fields, string name)
     {

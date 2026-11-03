@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
+using System.Data.Common;
 using EcomAE.Platform.Erp;
 using Microsoft.Extensions.Configuration;
 
@@ -55,15 +56,18 @@ public sealed class LaximoVinDecodeService : ILaximoVinDecodeService
     private readonly IHttpClientFactory _http;
     private readonly IConfiguration _config;
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public LaximoVinDecodeService(
         IHttpClientFactory http,
         IConfiguration config,
-        IErpWriteConnectionFactory connections)
+        IErpWriteConnectionFactory connections,
+        IHttpContextAccessor httpContextAccessor)
     {
         _http = http;
         _config = config;
         _connections = connections;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<LaximoVinDecodeResult> DecodeAsync(string? vinOrFrame, CancellationToken cancellationToken = default)
@@ -74,8 +78,8 @@ public sealed class LaximoVinDecodeService : ILaximoVinDecodeService
             return new LaximoVinDecodeResult(false, "invalid_vin", "Enter a VIN of 11–17 characters.", vin, null, null, 0, []);
         }
 
-        var login = ResolveLogin();
-        var key = ResolveKey();
+        var login = await ResolveLoginAsync(cancellationToken).ConfigureAwait(false);
+        var key = await ResolveKeyAsync(cancellationToken).ConfigureAwait(false);
         if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(key))
         {
             return new LaximoVinDecodeResult(false, "config", "Laximo credentials are not configured.", vin, null, null, 0, []);
@@ -215,6 +219,48 @@ public sealed class LaximoVinDecodeService : ILaximoVinDecodeService
         catch (System.Xml.XmlException)
         {
             return [];
+        }
+    }
+
+    private async Task<string> ResolveLoginAsync(CancellationToken cancellationToken)
+    {
+        var stored = await StoredSettingAsync("laximo_login", cancellationToken).ConfigureAwait(false);
+        return !string.IsNullOrWhiteSpace(stored) ? stored.Trim() : ResolveLogin();
+    }
+
+    private async Task<string> ResolveKeyAsync(CancellationToken cancellationToken)
+    {
+        var stored = await StoredSettingAsync("laximo_key", cancellationToken).ConfigureAwait(false);
+        return !string.IsNullOrWhiteSpace(stored) ? stored.Trim() : ResolveKey();
+    }
+
+    /// <summary>Per-host credential from epc_settings (CP industry settings), with '' global fallback.</summary>
+    private async Task<string?> StoredSettingAsync(string settingKey, CancellationToken cancellationToken)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return null;
+        }
+
+        try
+        {
+            var host = _httpContextAccessor.HttpContext?.Request.Host.Host ?? string.Empty;
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            return await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "SELECT `setting_value` FROM `epc_settings` WHERE `setting_key` = ? "
+                    + "AND (`site_key` = '' OR `site_key` IS NULL OR `site_key` = ?) "
+                    + "ORDER BY CASE WHEN `site_key` IS NULL OR `site_key` = '' THEN 1 ELSE 0 END ASC LIMIT 1"),
+                cancellationToken,
+                settingKey,
+                host).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            // epc_settings may not exist yet; env/config fallbacks apply.
+            return null;
         }
     }
 
