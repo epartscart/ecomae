@@ -435,9 +435,17 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
                         ? await _countries.ResolveAsync(host, cancellationToken).ConfigureAwait(false)
                         : EcomAE.Platform.Storefront.StorefrontCountryDefaults.Default(
                             EcomAE.Platform.Storefront.StorefrontCountryDefaults.SubdomainOf(host));
+                    // Currency stamp = what the order is actually charged in (the default country's
+                    // currency). Country-local pricing is display-level via ConvertPrice — stamping
+                    // the visited country's currency here would mislabel the charged amount.
+                    var chargeCurrency = country.IsDefault
+                        ? country.CurrencyCode
+                        : (_countries is not null
+                            ? (await _countries.ResolveAsync(string.Empty, cancellationToken).ConfigureAwait(false)).CurrencyCode
+                            : country.CurrencyCode);
                     await _splitPay.StampOrderAsync(
                         connection, tx, orderId, orderTotal,
-                        country.CountryCode, country.CurrencyCode,
+                        country.CountryCode, chargeCurrency,
                         EcomAE.Platform.Storefront.StorefrontSplitPaymentService.DefaultAdvancePercent,
                         cancellationToken).ConfigureAwait(false);
                 }

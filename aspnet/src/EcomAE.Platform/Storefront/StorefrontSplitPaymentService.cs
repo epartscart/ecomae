@@ -117,6 +117,19 @@ public sealed class StorefrontSplitPaymentService : IStorefrontSplitPaymentServi
 
     public async Task EnsureSchemaAsync(DbConnection connection, DbTransaction? tx, CancellationToken cancellationToken)
     {
+        if (tx is not null)
+        {
+            if (!_connections.IsConfigured)
+            {
+                return;
+            }
+            // DDL inside a transaction commits it implicitly on MySQL — an unfinished order would
+            // be left behind if later checkout writes fail. Run the ensure on its own connection.
+            await using var ddl = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(ddl, null, cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
         if (!await ErpDb.TableKnownAsync(connection, "shop_orders", cancellationToken).ConfigureAwait(false))
         {
             return;

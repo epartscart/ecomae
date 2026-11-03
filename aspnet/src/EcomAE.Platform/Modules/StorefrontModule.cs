@@ -1912,7 +1912,8 @@ public sealed class StorefrontModule : ISurfaceModule
             var written = await writes.CreateOperationAsync(
                 (int)state.UserId, state.BalanceDue, orderId,
                 LiveWriteFormBinder.Text(form, "pay_handler", "payHandler"),
-                cancellationToken);
+                cancellationToken,
+                state.BalanceDue);
             var dest = written.Ok
                 ? EcomAeRoutes.StorefrontPaymentGoToPay + "?operation=" + written.Id.ToString(CultureInfo.InvariantCulture)
                   + "&pay_system=" + Uri.EscapeDataString(written.PaySystem ?? "epc_demo")
