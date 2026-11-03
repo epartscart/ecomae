@@ -62,7 +62,8 @@ public sealed record CpStorageEditor(
     IReadOnlyDictionary<string, string> ConnectionOptions,
     IReadOnlyList<CpStorageOption> Currencies,
     IReadOnlyList<CpStorageInterfaceType> InterfaceTypes,
-    IReadOnlyList<CpStorageUserOption> UserOptions);
+    IReadOnlyList<CpStorageUserOption> UserOptions,
+    string CountryCode = "");
 
 /// <summary>Reads for PHP <c>logistics/storages.php</c> (list, bulk delete) and <c>storage.php</c> (editor lookups).</summary>
 public interface ICpStorageEditorService
@@ -186,12 +187,14 @@ public sealed class CpStorageEditorService : ICpStorageEditorService
         var bgLineColor = 0;
         var usersJson = "[]";
         var optionsJson = "{}";
+        var countryCode = string.Empty;
         if (storageId > 0)
         {
             await using var cmd = connection.CreateCommand();
             cmd.CommandText = ErpDb.Positional(
-                "SELECT IFNULL(`name`,''), IFNULL(`short_name`,''), IFNULL(`currency`,0), IFNULL(`interface_type`,1), IFNULL(`hidden`,0), IFNULL(`bg_line_color`,0), IFNULL(`users`,''), IFNULL(`connection_options`,'') " +
-                "FROM `shop_storages` WHERE `id` = ? LIMIT 1");
+                "SELECT IFNULL(`name`,''), IFNULL(`short_name`,''), IFNULL(`currency`,0), IFNULL(`interface_type`,1), IFNULL(`hidden`,0), IFNULL(`bg_line_color`,0), IFNULL(`users`,''), IFNULL(`connection_options`,''), " +
+                (await Storefront.StorefrontStockCountry.EnsureColumnAsync(connection, cancellationToken).ConfigureAwait(false) ? "IFNULL(`country_code`,'')" : "''") +
+                " FROM `shop_storages` WHERE `id` = ? LIMIT 1");
             ErpDb.AddParameters(cmd, storageId);
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -207,13 +210,14 @@ public sealed class CpStorageEditorService : ICpStorageEditorService
             bgLineColor = StorageInt(reader.GetValue(5));
             usersJson = reader.GetString(6);
             optionsJson = reader.GetString(7);
+            countryCode = reader.GetString(8);
         }
 
         var currencies = await CurrenciesAsync(connection, cancellationToken).ConfigureAwait(false);
         var types = await InterfaceTypesAsync(connection, cancellationToken).ConfigureAwait(false);
         var userOptions = await BackendUsersAsync(connection, cancellationToken).ConfigureAwait(false);
         return new CpStorageEditor(storageId, name, shortName, currency, interfaceType, hidden, bgLineColor,
-            ParseIdList(usersJson), ParseOptions(optionsJson), currencies, types, userOptions);
+            ParseIdList(usersJson), ParseOptions(optionsJson), currencies, types, userOptions, countryCode);
     }
 
     public async Task<CpStorageInterfaceType?> InterfaceTypeAsync(int interfaceTypeId, CancellationToken cancellationToken = default)

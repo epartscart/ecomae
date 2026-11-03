@@ -79,6 +79,11 @@
                         </div>
                         <div class="hr-line-dashed col-lg-12"></div>
                         <div class="form-group">
+                            <label for="country_code_input" class="col-lg-6 control-label">Warehouse country</label>
+                            <div class="col-lg-6"><input type="text" name="country_code" id="country_code_input" value="@_editor.CountryCode" class="form-control" maxlength="2" placeholder="AE" title="2-letter ISO country code shown next to stock on the storefront (e.g. AE, QA, SA). Leave empty to hide." /></div>
+                        </div>
+                        <div class="hr-line-dashed col-lg-12"></div>
+                        <div class="form-group">
                             <label for="hidden_input" class="col-lg-6 control-label">Hide in price search</label>
                             <div class="col-lg-6"><input type="checkbox" name="hidden" id="hidden_input" value="1" checked="@(_editor.Hidden == 1)" /></div>
                         </div>

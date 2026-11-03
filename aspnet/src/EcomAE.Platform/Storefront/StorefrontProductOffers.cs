@@ -96,6 +96,7 @@ public static class StorefrontProductOffers
             cancellationToken,
             profileGroups.Count > 0 ? (int)profileGroups[0] : 0).ConfigureAwait(false);
         var offices = await StorefrontCustomerOffices.LoadAsync(connection, request.CityCookie, cancellationToken).ConfigureAwait(false);
+        var stockCountries = await StorefrontStockCountry.LoadAsync(connection, cancellationToken).ConfigureAwait(false);
 
         var sb = new StringBuilder();
         sb.Append("\n\n<div class=\"row\"></div>\n<div class=\"col-lg-12\">\n\t<h2 class=\"section-title\">").Append(await T(4164)).Append("</h2>\n")
@@ -138,7 +139,9 @@ public static class StorefrontProductOffers
                     .Append("\t\t\t\t></div>\n\t\t\t\t\n\t\t\t\t\n")
                     .Append("\t\t\t\t<div class=\"product_suggestions\">\n")
                     .Append("\t\t\t\t\t<div class=\"price\">\n\t\t\t\t\t\t").Append(price).Append("\t\t\t\t\t</div>\n")
-                    .Append("\t\t\t\t\t<div class=\"exist\">\n\t\t\t\t\t\t").Append(row.Exist).Append("\t\t\t\t\t</div>\n")
+                    .Append("\t\t\t\t\t<div class=\"exist\">\n\t\t\t\t\t\t").Append(row.Exist)
+                    .Append(stockCountries.TryGetValue(row.StorageId, out var stockCountry) ? " (" + System.Net.WebUtility.HtmlEncode(stockCountry) + ")" : string.Empty)
+                    .Append("\t\t\t\t\t</div>\n")
                     .Append("\t\t\t\t\t<div class=\"reserved\">\n\t\t\t\t\t\t").Append(row.Reserved).Append("\t\t\t\t\t</div>\n")
                     .Append("\t\t\t\t\t<div class=\"exist_details\">\n\t\t\t\t\t\t");
 

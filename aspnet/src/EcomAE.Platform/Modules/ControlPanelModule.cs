@@ -6255,6 +6255,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var handlerFolder = body.HandlerFolder;
             var hidden = body.Hidden;
             var bgLineColor = body.BgLineColor;
+            var countryCode = body.CountryCode;
             var confirm = body.ConfirmWrites;
             var storagesReturn = "/cp/storages-app";
             string? deleteIds = null;
@@ -6272,6 +6273,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 handlerFolder = LiveWriteFormBinder.Text(form, "handlerFolder", "handler_folder");
                 hidden = LiveWriteFormBinder.Int(form, "hidden");
                 bgLineColor = LiveWriteFormBinder.Int(form, "bgLineColor", "bg_line_color");
+                countryCode = LiveWriteFormBinder.Text(form, "countryCode", "country_code");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
                 deleteIds = LiveWriteFormBinder.Text(form, "storages", "storages_to_delete");
                 var postedReturn = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
@@ -6325,9 +6327,9 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             var written = key is "edit" or "update"
                 ? await writes.UpdateAsync(
-                    storageId, name, shortName, currency, interfaceType, usersJson, optionsJson, handlerFolder, hidden, bgLineColor, cancellationToken)
+                    storageId, name, shortName, currency, interfaceType, usersJson, optionsJson, handlerFolder, hidden, bgLineColor, countryCode, cancellationToken)
                 : await writes.CreateAsync(
-                    name, shortName, currency, interfaceType, usersJson, optionsJson, handlerFolder, hidden, bgLineColor, cancellationToken);
+                    name, shortName, currency, interfaceType, usersJson, optionsJson, handlerFolder, hidden, bgLineColor, countryCode, cancellationToken);
             if (written.Succeeded && written.Id > 0 && storagesReturn == "/cp/storages-app")
             {
                 storagesReturn = "/cp/storages-app?storage_id=" + written.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -17684,6 +17686,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? HandlerFolder = null,
         int Hidden = 0,
         int BgLineColor = 0,
+        string? CountryCode = null,
         bool ConfirmWrites = false);
     private sealed record CpTenantEmailSaveBody(
         bool UseTenantSmtp = false,
