@@ -1460,24 +1460,29 @@ app.Use(async (context, next) =>
         var hostSeed = CookieValue("epc_currency_host");
 
         // An explicit epc_country pick wins over the host seed: pin the currency to that
-        // country's mapping as a permanent choice (clears the refresh marker).
+        // country's mapping as a permanent choice (clears the refresh marker). It only
+        // applies while the currency cookie is absent or still OUR seed — a currency the
+        // visitor picked themselves (epc_currency != epc_currency_host) always wins.
         if (userCountry is not null
             && EcomAE.Platform.Storefront.EpcCurrency.CountryMap.TryGetValue(userCountry, out var chosenIso)
-            && !string.Equals(userCurrency, chosenIso, StringComparison.Ordinal))
+            && (userCurrency is null || string.Equals(userCurrency, hostSeed, StringComparison.Ordinal)))
         {
-            var pinned = parts
-                .Select(p => p.TrimStart())
-                .Where(p => !p.StartsWith("epc_currency=", StringComparison.OrdinalIgnoreCase)
-                    && !p.StartsWith("epc_currency_host=", StringComparison.OrdinalIgnoreCase));
-            context.Request.Headers.Cookie = string.Join("; ", pinned.Append($"epc_currency={chosenIso}"));
-            var picked = new CookieOptions
+            if (!string.Equals(userCurrency, chosenIso, StringComparison.Ordinal))
             {
-                Path = "/",
-                MaxAge = TimeSpan.FromDays(365),
-                SameSite = SameSiteMode.Lax,
-                Secure = true,
-            };
-            context.Response.Cookies.Append("epc_currency", chosenIso, picked);
+                var pinned = parts
+                    .Select(p => p.TrimStart())
+                    .Where(p => !p.StartsWith("epc_currency=", StringComparison.OrdinalIgnoreCase)
+                        && !p.StartsWith("epc_currency_host=", StringComparison.OrdinalIgnoreCase));
+                context.Request.Headers.Cookie = string.Join("; ", pinned.Append($"epc_currency={chosenIso}"));
+                var picked = new CookieOptions
+                {
+                    Path = "/",
+                    MaxAge = TimeSpan.FromDays(365),
+                    SameSite = SameSiteMode.Lax,
+                    Secure = true,
+                };
+                context.Response.Cookies.Append("epc_currency", chosenIso, picked);
+            }
             context.Response.Cookies.Delete("epc_currency_host");
             await next(context).ConfigureAwait(false);
             return;
