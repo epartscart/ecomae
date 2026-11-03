@@ -230,7 +230,8 @@
                         foreach (var c in all.Where(c => c.IsActive))
                         {
                             var cHost = c.IsDefault ? "www." + baseDomain : c.Subdomain + "." + baseDomain;
-                            alts.Add(($"{c.LanguageCode}-{c.CountryCode}", $"{scheme}://{cHost}/"));
+                            // CanonicalCode so a saved "UK" row still emits a valid en-GB alternate.
+                            alts.Add(($"{c.LanguageCode}-{EcomAE.Platform.Storefront.StorefrontCountryDefaults.CanonicalCode(c.CountryCode)}", $"{scheme}://{cHost}/"));
                         }
                         alts.Add(("x-default", $"{scheme}://www.{baseDomain}/"));
                         if (alts.Count > 1)

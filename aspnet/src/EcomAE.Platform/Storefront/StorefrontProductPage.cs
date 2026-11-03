@@ -604,7 +604,15 @@ public static class StorefrontProductPage
         var rows = await RowsAsync(connection,
             "SELECT IFNULL(`sign`,''),IFNULL(`caption_short`,''),IFNULL(`rate`,1) FROM `shop_currencies` WHERE `iso_code`=? LIMIT 1",
             [selected], cancellationToken).ConfigureAwait(false);
-        return rows.Count == 0 ? ("AED", "AED", 1m) : (rows[0][0], rows[0][1], D(rows[0][2]));
+        if (rows.Count == 0)
+        {
+            // Supported currency not yet materialized in shop_currencies (fresh tenant DB):
+            // use its built-in default record instead of silently reverting to AED.
+            var builtIn = EpcCurrency.DefaultForIso(selected);
+            return builtIn is null ? ("AED", "AED", 1m) : (builtIn.Sign, builtIn.CaptionShort, (decimal)builtIn.Rate);
+        }
+
+        return (rows[0][0], rows[0][1], D(rows[0][2]));
     }
 
     private static async Task<List<string[]>> RowsAsync(DbConnection connection, string sql, object?[] args, CancellationToken cancellationToken)

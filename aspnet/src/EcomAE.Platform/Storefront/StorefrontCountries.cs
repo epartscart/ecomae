@@ -82,7 +82,7 @@ public static class StorefrontCountryDefaults
 {
     /// <summary>Two-letter country subdomains that alias to the tenant's base domain.</summary>
     public static readonly IReadOnlySet<string> Subdomains =
-        new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "ae", "qa", "sa", "kw", "bh", "om" };
+        new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "ae", "qa", "sa", "kw", "bh", "om", "eu", "us", "uk", "ru", "pk" };
 
     private static readonly StorefrontCountry[] BuiltIn =
     [
@@ -98,6 +98,18 @@ public static class StorefrontCountryDefaults
             "", "", "", "", IsDefault: false, IsActive: true, 40),
         new("OM", "Oman", "om", "OMR", 0.1048m, 0m, 0.01m, 5m, "en", "ltr",
             "", "", "", "", IsDefault: false, IsActive: true, 50),
+        // Region-level storefronts — same one-backend model as the GCC set.
+        new("EU", "European Union", "eu", "EUR", 0.25m, 0m, 0.01m, 20m, "en", "ltr",
+            "", "", "", "", IsDefault: false, IsActive: true, 60),
+        new("US", "United States", "us", "USD", 0.2723m, 0m, 0.01m, 0m, "en", "ltr",
+            "", "", "", "", IsDefault: false, IsActive: true, 70),
+        // CountryCode "GB" (not "UK") so hreflang emits valid en-GB; the "uk" subdomain is unaffected.
+        new("GB", "United Kingdom", "uk", "GBP", 0.2089m, 0m, 0.01m, 20m, "en", "ltr",
+            "", "", "", "", IsDefault: false, IsActive: true, 80),
+        new("RU", "Russia", "ru", "RUB", 26.0m, 0m, 0.01m, 20m, "ru", "ltr",
+            "", "", "", "", IsDefault: false, IsActive: true, 90),
+        new("PK", "Pakistan", "pk", "PKR", 76.15m, 0m, 0.01m, 17m, "en", "ltr",
+            "", "", "", "", IsDefault: false, IsActive: true, 100),
     ];
 
     public static IReadOnlyList<StorefrontCountry> All => BuiltIn;
@@ -123,6 +135,10 @@ public static class StorefrontCountryDefaults
     /// <summary>Base domain a country subdomain aliases to (ae.epartscart.com → epartscart.com).</summary>
     public static string? BaseDomainOf(string? host)
         => SubdomainOf(host) is not null && host!.Length > 3 ? host[3..] : null;
+
+    /// <summary>Canonical code for row matching: a saved "UK" row is the same country as built-in "GB".</summary>
+    public static string CanonicalCode(string code)
+        => string.Equals(code, "UK", StringComparison.OrdinalIgnoreCase) ? "GB" : code;
 
     public static StorefrontCountry Default(string? subdomain)
     {
@@ -237,7 +253,7 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
             foreach (var country in countries)
             {
                 if (string.Equals(country.Subdomain, subdomain, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(country.CountryCode, builtinCode, StringComparison.OrdinalIgnoreCase))
+                    || string.Equals(StorefrontCountryDefaults.CanonicalCode(country.CountryCode), builtinCode, StringComparison.OrdinalIgnoreCase))
                 {
                     hasRow = true;
                     if (country.IsActive)
@@ -288,7 +304,7 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
         // Union with built-ins for codes the tenant has no row for — one save must not drop the
         // other country storefronts from hreflang and the management list. DB row wins per code;
         // a deleted/deactivated row stays (as a tombstone) so built-ins never resurrect it.
-        var have = new HashSet<string>(list.Select(c => c.CountryCode), StringComparer.OrdinalIgnoreCase);
+        var have = new HashSet<string>(list.Select(c => StorefrontCountryDefaults.CanonicalCode(c.CountryCode)), StringComparer.OrdinalIgnoreCase);
         foreach (var builtin in StorefrontCountryDefaults.All)
         {
             if (!have.Contains(builtin.CountryCode))
