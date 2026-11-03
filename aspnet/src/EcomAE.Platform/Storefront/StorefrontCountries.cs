@@ -190,8 +190,16 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
         """;
 
     // Soft delete: the row stays as a tombstone so the built-in fallback does not resurrect the
-    // storefront as active on the next read.
-    private const string DeleteSql = "UPDATE `epc_tenant_countries` SET `is_active` = 0, `is_default` = 0 WHERE `country_code` = ?";
+    // storefront as active on the next read. Upsert so removing a built-in that was never saved
+    // still writes the tombstone (a plain UPDATE would affect zero rows and re-activate it).
+    private const string DeleteSql = """
+        INSERT INTO `epc_tenant_countries`
+            (`country_code`, `name`, `subdomain`, `currency_code`, `fx_rate`, `markup_percent`,
+             `round_to`, `vat_percent`, `language_code`, `dir`, `seo_title`, `seo_description`,
+             `seo_keywords`, `address_text`, `is_default`, `is_active`, `sort_order`)
+        VALUES (?, '', '', '', 1, 0, 0, 0, 'en', 'ltr', '', '', '', '', 0, 0, 0)
+        ON DUPLICATE KEY UPDATE `is_active` = 0, `is_default` = 0
+        """;
 
     private const string ClearDefaultSql = "UPDATE `epc_tenant_countries` SET `is_default` = 0 WHERE `country_code` <> ?";
 
@@ -243,7 +251,17 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
             }
         }
 
-        return countries.Count > 0 && countries[0].IsActive ? countries[0] : StorefrontCountryDefaults.Default(null);
+        // First active row wins; a tombstone at the top must not bounce the host back to the
+        // built-in for the country that was just removed.
+        foreach (var country in countries)
+        {
+            if (country.IsActive)
+            {
+                return country;
+            }
+        }
+
+        return StorefrontCountryDefaults.Default(null);
     }
 
     public async Task<IReadOnlyList<StorefrontCountry>> ListAsync(CancellationToken cancellationToken = default)
