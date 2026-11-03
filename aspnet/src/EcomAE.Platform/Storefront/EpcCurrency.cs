@@ -41,6 +41,10 @@ public static class EpcCurrency
     /// <summary>The ISO codes of PHP <c>epc_currency_supported_defaults()</c>, in its order.</summary>
     public static IReadOnlyList<string> SupportedIsoCodes { get; } = SupportedDefaults.Select(s => s.Iso).ToArray();
 
+    /// <summary>Numeric ISO for an alpha code ("QAR" → "634"), or null when unsupported.</summary>
+    public static string? IsoForAlpha(string? alpha)
+        => SupportedDefaults.FirstOrDefault(s => string.Equals(s.Row.IsoName, alpha, StringComparison.OrdinalIgnoreCase)).Iso;
+
     /// <summary>PHP <c>epc_currency_ensure_supported()</c>: each supported currency is made available with its caption and sign, or inserted. Errors are ignored per currency.</summary>
     public static async Task EnsureSupportedAsync(DbConnection connection, DbTransaction? transaction, CancellationToken cancellationToken)
     {
