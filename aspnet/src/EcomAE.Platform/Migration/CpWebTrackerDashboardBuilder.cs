@@ -630,9 +630,10 @@ public static class CpWebTrackerDashboardBuilder
             ("epc_web_tracker_sessions", "ix_wt_sessions_seen", "(`last_seen_at`)"),
             ("epc_web_tracker_sessions", "ix_wt_sessions_site_seen", "(`site_key`,`last_seen_at`)"),
             ("epc_web_tracker_sessions", "ix_wt_sessions_uid", "(`session_uid`)"),
-            // covering index for the dashboard's session-table GROUP BYs (geo, devices,
-            // referrers, facets): lets MySQL answer from index pages without row lookups
-            ("epc_web_tracker_sessions", "ix_wt_sessions_cover", "(`site_key`,`last_seen_at`,`country_code`,`country_name`,`city`,`device_type`,`browser`,`os`,`referrer_host`,`utm_source`,`utm_medium`,`utm_campaign`)"),
+            // covering indexes for the dashboard's session-table GROUP BYs (geo, devices,
+            // facets): narrow enough for InnoDB's 3072-byte utf8mb4 key limit
+            ("epc_web_tracker_sessions", "ix_wt_sessions_geo_cover", "(`site_key`,`last_seen_at`,`country_code`,`country_name`,`city`)"),
+            ("epc_web_tracker_sessions", "ix_wt_sessions_dev_cover", "(`site_key`,`last_seen_at`,`device_type`,`browser`,`os`)"),
             ("epc_web_tracker_pageviews", "ix_wt_pv_session", "(`session_id`)"),
             ("epc_web_tracker_pageviews", "ix_wt_pv_ts", "(`ts`)"),
             ("epc_web_tracker_pageviews", "ix_wt_pv_site_ts", "(`site_key`,`ts`)"),
