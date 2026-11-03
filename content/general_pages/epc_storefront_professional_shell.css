@@ -3,6 +3,8 @@
 	body {
 		background: #f5f7fb;
 		color: #1f2937;
+		/* Storefront renders at 90% page scale by default — 100% reads oversized. */
+		zoom: 0.9;
 	}
 	/* Site layout: ~90% width, centered — wider than 1170px but keeps side margins */
 	.top-menu-line > .container,
