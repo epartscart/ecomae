@@ -2107,6 +2107,11 @@ app.MapPost(EcomAeRoutes.LegacyAdminLogin, async (HttpContext context, ILegacyAd
         }
 
         LegacyLoginCookieWriter.Apply(context.Response, outcome.Success, remember);
+        if (context.RequestServices.GetService<EcomAE.Platform.Data.ITenantDbConnectionFactory>() is { } prefsConnections)
+        {
+            await EcomAE.Platform.Auth.EpcUserPrefs.ApplyOnLoginAsync(
+                prefsConnections, context.Request, context.Response, outcome.Success.UserId, context.RequestAborted);
+        }
         var dest = string.IsNullOrWhiteSpace(redirect) ? outcome.Success.RedirectPath : redirect;
         if (!dest.StartsWith('/') || dest.StartsWith("//", StringComparison.Ordinal))
         {

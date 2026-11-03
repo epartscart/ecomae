@@ -73,7 +73,9 @@ public static class StorefrontProductPage
             request.SessionToken,
             request.SessionUserId,
             request.Config,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken,
+            request.SelectedCurrencyIso,
+            request.CountryCookie).ConfigureAwait(false);
         html += await RenderTabsAsync(connection, request, product, T, cancellationToken).ConfigureAwait(false);
         html += await RenderVariantsAsync(connection, request, product, T, cancellationToken).ConfigureAwait(false);
         html += await RenderRelatedAsync(connection, request, product, T, cancellationToken).ConfigureAwait(false);

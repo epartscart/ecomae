@@ -101,6 +101,11 @@ public static class OAuthCallbackEndpoint
             context.Response,
             new LegacyLoginSuccess(payload.UserId, "", payload.SessionToken, "", payload.Mode != "storefront", payload.Path),
             rememberMe: false);
+        if (context.RequestServices.GetService<EcomAE.Platform.Data.ITenantDbConnectionFactory>() is { } prefsConnections)
+        {
+            await EpcUserPrefs.ApplyOnLoginAsync(
+                prefsConnections, context.Request, context.Response, payload.UserId, cancellationToken).ConfigureAwait(false);
+        }
         var location = payload.Path;
         if (!string.IsNullOrWhiteSpace(payload.Host))
         {
@@ -193,6 +198,7 @@ public static class OAuthCallbackEndpoint
                 context.Response,
                 new LegacyLoginSuccess(userId, profile.Email, session, csrf, state.AuthMode != "storefront", dest),
                 rememberMe: false);
+            await EpcUserPrefs.ApplyOnLoginAsync(connection, context.Request, context.Response, userId, cancellationToken).ConfigureAwait(false);
             if (state.Provider == "google")
             {
                 RememberGoogle(context, profile.Email);

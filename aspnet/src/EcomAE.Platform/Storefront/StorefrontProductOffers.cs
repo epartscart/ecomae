@@ -23,7 +23,8 @@ public static class StorefrontProductOffers
         string LangHref,
         long Now,
         string PriceRounding,
-        string TechKey);
+        string TechKey,
+        Func<double, string>? DisplayPrice = null);
 
     /// <summary>
     /// The product page's offers block followed by the <c>common_add_to_basket.php</c> script, translated for the
@@ -38,9 +39,12 @@ public static class StorefrontProductOffers
         string? sessionToken,
         string? sessionUserId,
         IReadOnlyDictionary<string, string> config,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? selectedCurrencyIso = null,
+        string? countryCookie = null)
     {
         var translator = new StorefrontPhpTranslator(connection, StorefrontRegFormLoader.LangCode(langHref.TrimEnd('/')));
+        var displayPrice = await DisplayPriceAsync(connection, config, selectedCurrencyIso, countryCookie, cancellationToken).ConfigureAwait(false);
         var request = new Request(
             productId,
             userId,
@@ -49,7 +53,8 @@ public static class StorefrontProductOffers
             langHref.TrimEnd('/'),
             DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             config.TryGetValue("price_rounding", out var rounding) ? rounding : string.Empty,
-            config.TryGetValue("tech_key", out var techKey) ? techKey : string.Empty);
+            config.TryGetValue("tech_key", out var techKey) ? techKey : string.Empty,
+            displayPrice);
         var offers = await RenderAsync(connection, request, (key, ct) => translator.TextAsync(key, ct), cancellationToken).ConfigureAwait(false);
 
         var csrf = string.Empty;
@@ -80,6 +85,70 @@ public static class StorefrontProductOffers
     }
 
     private const string CurrencyRate = "(SELECT `rate` FROM `shop_currencies` WHERE `iso_code` = (SELECT `currency` FROM `shop_storages` WHERE `id` = `shop_storages_data`.`storage_id`) )";
+
+    /// <summary>
+    /// The offers table shows the same converted+signed price the main offer shows: the shop-currency
+    /// amount divided by the selected currency's rate, rendered per <c>currency_show_mode</c>. The raw
+    /// shop-currency value stays in the <c>price</c>/<c>check_hash</c> attributes for
+    /// <c>common_add_to_basket</c>. Returns null when the currency cannot be resolved (raw display).
+    /// </summary>
+    private static async Task<Func<double, string>?> DisplayPriceAsync(
+        DbConnection connection,
+        IReadOnlyDictionary<string, string> config,
+        string? selectedCurrencyIso,
+        string? countryCookie,
+        CancellationToken cancellationToken)
+    {
+        var iso = !string.IsNullOrWhiteSpace(selectedCurrencyIso)
+            ? selectedCurrencyIso.Trim()
+            : !string.IsNullOrWhiteSpace(countryCookie)
+                && EpcCurrency.CountryMap.TryGetValue(countryCookie.Trim().ToUpperInvariant(), out var mapped)
+                    ? mapped
+                    : config.TryGetValue("shop_currency", out var shop) && !string.IsNullOrWhiteSpace(shop) ? shop.Trim() : "784";
+        var (sign, shortName, rate) = await CurrencyAsync(connection, iso, cancellationToken).ConfigureAwait(false);
+        var mode = config.TryGetValue("currency_show_mode", out var m) ? m : "sign_before";
+        return price =>
+        {
+            var number = ((decimal)price / (rate <= 0 ? 1m : rate)).ToString("N2", CultureInfo.InvariantCulture).Replace(",", " ", StringComparison.Ordinal);
+            return mode switch
+            {
+                "no" => number,
+                "sign_after" => number + " " + sign,
+                "short_name_after" => number + " " + shortName,
+                _ => sign + " " + number
+            };
+        };
+    }
+
+    private static async Task<(string Sign, string Short, decimal Rate)> CurrencyAsync(
+        DbConnection connection,
+        string iso,
+        CancellationToken cancellationToken)
+    {
+        string sign = "", shortName = "";
+        var rate = 0m;
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = ErpDb.Positional(
+                "SELECT IFNULL(`sign`,''),IFNULL(`caption_short`,''),IFNULL(`rate`,1) FROM `shop_currencies` WHERE `iso_code`=? LIMIT 1");
+            ErpDb.AddParameters(command, [iso.Length == 0 ? "784" : iso]);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                sign = Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture) ?? string.Empty;
+                shortName = Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? string.Empty;
+                rate = decimal.TryParse(Convert.ToString(reader.GetValue(2), CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture, out var r) ? r : 1m;
+            }
+        }
+
+        if (sign.Length == 0 && shortName.Length == 0)
+        {
+            var builtIn = EpcCurrency.DefaultForIso(iso);
+            return builtIn is null ? ("AED", "AED", 1m) : (builtIn.Sign, builtIn.CaptionShort, (decimal)builtIn.Rate);
+        }
+
+        return (sign, shortName, rate);
+    }
 
     public static async Task<string> RenderAsync(
         DbConnection connection,
@@ -138,7 +207,7 @@ public static class StorefrontProductOffers
                     .Append("\t\t\t\t\tcheck_hash = \"").Append(hash).Append("\"\n")
                     .Append("\t\t\t\t></div>\n\t\t\t\t\n\t\t\t\t\n")
                     .Append("\t\t\t\t<div class=\"product_suggestions\">\n")
-                    .Append("\t\t\t\t\t<div class=\"price\">\n\t\t\t\t\t\t").Append(price).Append("\t\t\t\t\t</div>\n")
+                    .Append("\t\t\t\t\t<div class=\"price\">\n\t\t\t\t\t\t").Append(request.DisplayPrice is { } format && double.TryParse(price, NumberStyles.Float, CultureInfo.InvariantCulture, out var displayValue) ? System.Net.WebUtility.HtmlEncode(format(displayValue)) : price).Append("\t\t\t\t\t</div>\n")
                     .Append("\t\t\t\t\t<div class=\"exist\">\n\t\t\t\t\t\t").Append(row.Exist)
                     .Append(stockCountries.TryGetValue(row.StorageId, out var stockCountry) ? " (" + System.Net.WebUtility.HtmlEncode(stockCountry) + ")" : string.Empty)
                     .Append("\t\t\t\t\t</div>\n")

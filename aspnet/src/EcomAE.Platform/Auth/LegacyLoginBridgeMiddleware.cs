@@ -134,6 +134,11 @@ public sealed class LegacyLoginBridgeMiddleware
             }
 
             LegacyLoginCookieWriter.Apply(context.Response, outcome.Success, remember);
+            if (context.RequestServices.GetService<EcomAE.Platform.Data.ITenantDbConnectionFactory>() is { } prefsConnections)
+            {
+                await EpcUserPrefs.ApplyOnLoginAsync(
+                    prefsConnections, context.Request, context.Response, outcome.Success.UserId, context.RequestAborted).ConfigureAwait(false);
+            }
             if (ClientErpPath.TryParseSiteKey(context.Request.Path.Value, out var clientKey))
             {
                 ClientErpPath.SetCookie(context.Response, clientKey);
