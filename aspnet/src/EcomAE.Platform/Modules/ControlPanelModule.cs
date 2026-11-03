@@ -9553,7 +9553,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 {
                     await balanceNotify.SendAsync(orderId, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception ex) when (ex is System.Data.Common.DbException or InvalidOperationException) { }
+                catch (Exception) { } // Best-effort notification — never fail the confirm write.
             }
 
             return LiveWriteFormBinder.Complete(

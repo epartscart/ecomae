@@ -89,9 +89,11 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
     }
 
     /// <summary>
-    /// Vendor-confirm chain: once no `draft` PO remains on the order, every supplier has
-    /// acknowledged — freeze the order total as the confirmed total (staff can still adjust it
-    /// later for partial fulfilment) and e-mail the customer the balance-payment link.
+    /// Vendor-confirm chain: once every non-cancelled PO on the order is received or invoiced
+    /// (`status` = 'received' or `purchase_id` > 0), every supplier has acknowledged — freeze the
+    /// order total as the confirmed total (staff can still adjust it later for partial fulfilment)
+    /// and e-mail the customer the balance-payment link. Drafts are promoted automatically by the
+    /// status sync, so 'approved' alone is NOT treated as vendor confirmation.
     /// Best-effort: a mail/DB hiccup must never fail a status sync.
     /// </summary>
     private async Task AutoConfirmOnVendorApprovalAsync(DbConnection c, long orderId, CancellationToken ct)
@@ -102,15 +104,15 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         }
         try
         {
-            var drafts = await ScalarDecimalAsync(
-                c, null,
-                ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_purchase_orders` WHERE `order_id` = ? AND `status` = 'draft'"),
-                ct, orderId).ConfigureAwait(false);
             var pos = await ScalarDecimalAsync(
                 c, null,
                 ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_purchase_orders` WHERE `order_id` = ? AND `status` != 'cancelled'"),
                 ct, orderId).ConfigureAwait(false);
-            if (pos <= 0 || drafts > 0)
+            var pending = await ScalarDecimalAsync(
+                c, null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_purchase_orders` WHERE `order_id` = ? AND `status` NOT IN ('cancelled','received') AND `purchase_id` = 0"),
+                ct, orderId).ConfigureAwait(false);
+            if (pos <= 0 || pending > 0)
             {
                 return;
             }
@@ -127,8 +129,9 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
                 await _balanceNotify.SendAsync(orderId, ct).ConfigureAwait(false);
             }
         }
-        catch (Exception ex) when (ex is DbException or InvalidOperationException)
+        catch (Exception)
         {
+            // Best-effort: SMTP/transport failures must never abort the status sync.
         }
     }
 
