@@ -119,14 +119,8 @@ public sealed class StorefrontSplitPaymentService : IStorefrontSplitPaymentServi
     {
         if (tx is not null)
         {
-            if (!_connections.IsConfigured)
-            {
-                return;
-            }
-            // DDL inside a transaction commits it implicitly on MySQL — an unfinished order would
-            // be left behind if later checkout writes fail. Run the ensure on its own connection.
-            await using var ddl = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-            await EnsureSchemaAsync(ddl, null, cancellationToken).ConfigureAwait(false);
+            // Callers ensure the schema before opening the transaction — an ALTER here would
+            // wait on the tx's metadata lock (stall) or implicitly commit it (half order).
             return;
         }
 

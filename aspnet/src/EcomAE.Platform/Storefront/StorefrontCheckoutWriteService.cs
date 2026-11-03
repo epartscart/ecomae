@@ -199,6 +199,20 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
 
         long committedOrderId;
         int committedWrites;
+        // Ensure split-payment columns BEFORE the transaction: a first-checkout ALTER would
+        // wait on this tx's metadata lock (stall), or implicitly commit it (half order).
+        if (_splitPay is not null)
+        {
+            try
+            {
+                await _splitPay.EnsureSchemaAsync(connection, null, cancellationToken).ConfigureAwait(false);
+            }
+            catch (System.Data.Common.DbException)
+            {
+                // Split-payment columns are additive — never break checkout.
+            }
+        }
+
         await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {

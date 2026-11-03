@@ -165,7 +165,12 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
 
             var orderSum = await OrderSumAsync(connection, orderId, cancellationToken).ConfigureAwait(false);
             var paidSum = await PaidSumAsync(connection, orderId, cancellationToken).ConfigureAwait(false);
-            var paidLeft = maxAmount ?? (orderSum - paidSum);
+            var paidLeft = orderSum - paidSum;
+            // An explicit cap (balance link) can never widen the ceiling past the order's real remainder.
+            if (maxAmount is not null)
+            {
+                paidLeft = Math.Min(paidLeft, maxAmount.Value);
+            }
             if (amount > paidLeft)
             {
                 return Fail("forbidden", "Forbidden");
