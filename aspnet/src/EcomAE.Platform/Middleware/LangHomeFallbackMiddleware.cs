@@ -60,7 +60,12 @@ public sealed class LangHomeFallbackMiddleware
 
     /// <summary>Languages with a real lang home (/en/, /ar/, /me/, /ru/, /ur/).</summary>
     public static bool IsLangHome(string? lang)
-        => lang is "en" or "ar" or "me" or "ru" or "ur";
+        => lang is not null
+            && (string.Equals(lang, "en", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(lang, "ar", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(lang, "me", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(lang, "ru", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(lang, "ur", StringComparison.OrdinalIgnoreCase));
 
     public static string RequestCmsLang(HttpContext? http, string fallback = "en")
     {
