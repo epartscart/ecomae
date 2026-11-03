@@ -1670,7 +1670,7 @@ public static class HomeCatalogWidgets
     {
         if (connection is not null)
         {
-            var stored = await StoredUmapiKeyAsync(connection, cancellationToken).ConfigureAwait(false);
+            var stored = await StoredUmapiKeyAsync(connection, context.Request.Host.Host, cancellationToken).ConfigureAwait(false);
             if (!string.IsNullOrWhiteSpace(stored))
             {
                 return stored.Trim();
@@ -1685,7 +1685,7 @@ public static class HomeCatalogWidgets
                 try
                 {
                     await using var owned = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
-                    var stored = await StoredUmapiKeyAsync(owned, cancellationToken).ConfigureAwait(false);
+                    var stored = await StoredUmapiKeyAsync(owned, context.Request.Host.Host, cancellationToken).ConfigureAwait(false);
                     if (!string.IsNullOrWhiteSpace(stored))
                     {
                         return stored.Trim();
@@ -1702,15 +1702,19 @@ public static class HomeCatalogWidgets
         return ResolveUmapiKey(CpPhpConfig.Read(reference));
     }
 
-    private static async Task<string?> StoredUmapiKeyAsync(DbConnection connection, CancellationToken cancellationToken)
+    private static async Task<string?> StoredUmapiKeyAsync(DbConnection connection, string siteKey, CancellationToken cancellationToken)
     {
         try
         {
             return await ErpDb.StringAsync(
                 connection,
                 null,
-                "SELECT `setting_value` FROM `epc_settings` WHERE `setting_key` = 'umapi_api_key' AND (`site_key` = '' OR `site_key` IS NULL) ORDER BY `updated_at` DESC LIMIT 1",
-                cancellationToken).ConfigureAwait(false);
+                ErpDb.Positional(
+                    "SELECT `setting_value` FROM `epc_settings` WHERE `setting_key` = 'umapi_api_key' "
+                    + "AND (`site_key` = '' OR `site_key` IS NULL OR `site_key` = ?) "
+                    + "ORDER BY CASE WHEN `site_key` IS NULL OR `site_key` = '' THEN 1 ELSE 0 END ASC LIMIT 1"),
+                cancellationToken,
+                siteKey).ConfigureAwait(false);
         }
         catch (DbException)
         {

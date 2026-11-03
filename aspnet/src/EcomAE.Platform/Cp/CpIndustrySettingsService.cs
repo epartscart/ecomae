@@ -115,7 +115,7 @@ public sealed class CpIndustrySettingsService : ICpIndustrySettingsService
                 // ERP-only tenants have no CP control_groups/control_items — PHP renders the form without the menu tab.
             }
             var baseline = row ?? CpIndustrySettingsView.Empty(hostName, "defaults");
-            var umapiKey = await StoredUmapiApiKeyAsync(connection, cancellationToken).ConfigureAwait(false);
+            var umapiKey = await StoredUmapiApiKeyAsync(connection, hostName, cancellationToken).ConfigureAwait(false);
             return baseline with { MenuGroups = groups, MenuItems = items, Source = row is null ? "defaults" : "db", UmapiApiKey = umapiKey };
         }
         catch (DbException)
@@ -124,15 +124,19 @@ public sealed class CpIndustrySettingsService : ICpIndustrySettingsService
         }
     }
 
-    private static async Task<string> StoredUmapiApiKeyAsync(DbConnection connection, CancellationToken cancellationToken)
+    private static async Task<string> StoredUmapiApiKeyAsync(DbConnection connection, string host, CancellationToken cancellationToken)
     {
         try
         {
             return (await ErpDb.StringAsync(
                     connection,
                     null,
-                    "SELECT `setting_value` FROM `epc_settings` WHERE `setting_key` = 'umapi_api_key' AND (`site_key` = '' OR `site_key` IS NULL) ORDER BY `updated_at` DESC LIMIT 1",
-                    cancellationToken).ConfigureAwait(false))?.Trim() ?? string.Empty;
+                    ErpDb.Positional(
+                        "SELECT `setting_value` FROM `epc_settings` WHERE `setting_key` = 'umapi_api_key' "
+                        + "AND (`site_key` = '' OR `site_key` IS NULL OR `site_key` = ?) "
+                        + "ORDER BY CASE WHEN `site_key` IS NULL OR `site_key` = '' THEN 1 ELSE 0 END ASC LIMIT 1"),
+                    cancellationToken,
+                    host).ConfigureAwait(false))?.Trim() ?? string.Empty;
         }
         catch (DbException)
         {

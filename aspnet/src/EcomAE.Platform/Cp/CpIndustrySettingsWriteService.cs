@@ -224,20 +224,34 @@ public sealed class CpIndustrySettingsWriteService : ICpIndustrySettingsWriteSer
                 menu.ToJsonString(),
                 DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
 
-            var umapiKey = (request.UmapiApiKey ?? string.Empty).Trim();
-            if (umapiKey.Length > 0)
+            if (request.UmapiApiKey is not null)
             {
+                var umapiKey = Clip(request.UmapiApiKey, 190);
                 await EnsureEpcSettingsAsync(connection, cancellationToken).ConfigureAwait(false);
-                await ErpDb.ExecuteAsync(
-                    connection,
-                    null,
-                    ErpDb.Positional(
-                        "INSERT INTO `epc_settings` (`site_key`, `setting_key`, `setting_value`, `updated_at`) "
-                        + "VALUES ('', 'umapi_api_key', ?, ?) "
-                        + "ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`), `updated_at` = VALUES(`updated_at`)"),
-                    cancellationToken,
-                    Clip(umapiKey, 190),
-                    DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
+                if (umapiKey.Length > 0)
+                {
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        null,
+                        ErpDb.Positional(
+                            "INSERT INTO `epc_settings` (`site_key`, `setting_key`, `setting_value`, `updated_at`) "
+                            + "VALUES (?, 'umapi_api_key', ?, ?) "
+                            + "ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`), `updated_at` = VALUES(`updated_at`)"),
+                        cancellationToken,
+                        hostName,
+                        umapiKey,
+                        DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
+                }
+                else
+                {
+                    // Empty field = clear the stored override and return to the built-in key.
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        null,
+                        ErpDb.Positional("DELETE FROM `epc_settings` WHERE `site_key` = ? AND `setting_key` = 'umapi_api_key'"),
+                        cancellationToken,
+                        hostName).ConfigureAwait(false);
+                }
             }
 
             return writes > 0
