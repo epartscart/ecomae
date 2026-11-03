@@ -41,6 +41,38 @@
                         converted by FX rate + markup, rounded to your step; each country's SEO title, description,
                         keywords, footer address and language can differ so Google indexes every country site separately.
                     </p>
+                    <hr />
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p><strong>Set up a country storefront</strong></p>
+                            <ol class="text-muted" style="padding-left:18px">
+                                <li>Add the country below (code, currency, FX rate, VAT, language, SEO).</li>
+                                <li>Create a DNS record <code>{subdomain}.yourdomain</code> (A record, proxied) pointing at this server.</li>
+                                <li>Visit the subdomain — it serves your catalogue in that country's currency, language and SEO.</li>
+                            </ol>
+                            <p><strong>Pricing &amp; tax</strong></p>
+                            <ul class="text-muted" style="padding-left:18px">
+                                <li><strong>FX rate</strong> = units of this currency per 1 unit of your base currency.</li>
+                                <li><strong>Markup</strong> adds a per-country % on top of FX; <strong>Round to</strong> sets the price step.</li>
+                                <li><strong>VAT %</strong> is the country's tax rate (e.g. AE 5, SA 15, UK 20, US 0) used on order totals.</li>
+                                <li>A visitor's manual currency pick always wins over the host's seeded currency.</li>
+                            </ul>
+                        </div>
+                        <div class="col-sm-6">
+                            <p><strong>Orders &amp; split payments</strong></p>
+                            <ul class="text-muted" style="padding-left:18px">
+                                <li>Customer places an order → pays a <strong>30% advance</strong> immediately.</li>
+                                <li>Vendor purchase orders are auto-created; when the vendor confirms, the customer gets the confirmation plus a <strong>balance-payment link</strong> for the confirmed total (partial fulfilment → lower balance).</li>
+                                <li>Warehouse stock can show its country — set <em>Warehouse country</em> in CP → Warehouses (two-letter code).</li>
+                            </ul>
+                            <p><strong>SEO per country</strong></p>
+                            <ul class="text-muted" style="padding-left:18px">
+                                <li>Each host publishes its own title/description/keywords, canonical URL and <code>hreflang</code> alternates across all active country sites — every country ranks separately on Google.</li>
+                                <li>Language + direction (ltr/rtl) switch the page locale, e.g. <code>sa.</code> renders Arabic RTL.</li>
+                                <li>Web tracker attributes visits by host and geo country automatically — see CP → Web tracker.</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
 
