@@ -40,6 +40,13 @@ public static class EpcCurrency
         ["RU"] = "643", ["SA"] = "682", ["KW"] = "414", ["OM"] = "512", ["QA"] = "634", ["BH"] = "48",
     };
 
+    /// <summary>Built-in record for a supported ISO ("826" → GBP), or null when unsupported.</summary>
+    public static EpcCurrencyRecord? DefaultForIso(string? iso)
+    {
+        var hit = SupportedDefaults.FirstOrDefault(s => string.Equals(s.Iso, iso, StringComparison.Ordinal));
+        return hit.Row is null ? null : new EpcCurrencyRecord(hit.Iso, hit.Row.IsoName, hit.Row.CaptionShort, hit.Row.Sign, hit.Row.Rate);
+    }
+
     /// <summary>The ISO codes of PHP <c>epc_currency_supported_defaults()</c>, in its order.</summary>
     public static IReadOnlyList<string> SupportedIsoCodes { get; } = SupportedDefaults.Select(s => s.Iso).ToArray();
 

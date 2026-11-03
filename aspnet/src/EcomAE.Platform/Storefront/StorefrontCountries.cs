@@ -103,7 +103,8 @@ public static class StorefrontCountryDefaults
             "", "", "", "", IsDefault: false, IsActive: true, 60),
         new("US", "United States", "us", "USD", 0.2723m, 0m, 0.01m, 0m, "en", "ltr",
             "", "", "", "", IsDefault: false, IsActive: true, 70),
-        new("UK", "United Kingdom", "uk", "GBP", 0.2089m, 0m, 0.01m, 20m, "en", "ltr",
+        // CountryCode "GB" (not "UK") so hreflang emits valid en-GB; the "uk" subdomain is unaffected.
+        new("GB", "United Kingdom", "uk", "GBP", 0.2089m, 0m, 0.01m, 20m, "en", "ltr",
             "", "", "", "", IsDefault: false, IsActive: true, 80),
         new("RU", "Russia", "ru", "RUB", 26.0m, 0m, 0.01m, 20m, "ru", "ltr",
             "", "", "", "", IsDefault: false, IsActive: true, 90),
