@@ -189,7 +189,9 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
             `is_active`=VALUES(`is_active`), `sort_order`=VALUES(`sort_order`)
         """;
 
-    private const string DeleteSql = "DELETE FROM `epc_tenant_countries` WHERE `country_code` = ?";
+    // Soft delete: the row stays as a tombstone so the built-in fallback does not resurrect the
+    // storefront as active on the next read.
+    private const string DeleteSql = "UPDATE `epc_tenant_countries` SET `is_active` = 0, `is_default` = 0 WHERE `country_code` = ?";
 
     private const string ClearDefaultSql = "UPDATE `epc_tenant_countries` SET `is_default` = 0 WHERE `country_code` <> ?";
 
@@ -212,16 +214,25 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
         var countries = await ListAsync(cancellationToken).ConfigureAwait(false);
         if (subdomain is not null)
         {
+            var hasRow = false;
             foreach (var country in countries)
             {
-                if (country.IsActive && string.Equals(country.Subdomain, subdomain, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(country.Subdomain, subdomain, StringComparison.OrdinalIgnoreCase))
                 {
-                    return country;
+                    hasRow = true;
+                    if (country.IsActive)
+                    {
+                        return country;
+                    }
                 }
             }
 
-            // Host says a country that isn't configured — built-in default for it.
-            return StorefrontCountryDefaults.Default(subdomain);
+            // No row for this country — built-in. A deactivated row falls through to the default
+            // country instead, so "removed" storefronts stop serving their own presentation.
+            if (!hasRow)
+            {
+                return StorefrontCountryDefaults.Default(subdomain);
+            }
         }
 
         foreach (var country in countries)
@@ -245,19 +256,17 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
 
         var list = await ReadRowsAsync(cancellationToken).ConfigureAwait(false);
         // Union with built-ins for codes the tenant has no row for — one save must not drop the
-        // other country storefronts from hreflang and the management list. DB row wins per code.
-        if (list.Count < StorefrontCountryDefaults.All.Count)
+        // other country storefronts from hreflang and the management list. DB row wins per code;
+        // a deleted/deactivated row stays (as a tombstone) so built-ins never resurrect it.
+        var have = new HashSet<string>(list.Select(c => c.CountryCode), StringComparer.OrdinalIgnoreCase);
+        foreach (var builtin in StorefrontCountryDefaults.All)
         {
-            var have = new HashSet<string>(list.Select(c => c.CountryCode), StringComparer.OrdinalIgnoreCase);
-            foreach (var builtin in StorefrontCountryDefaults.All)
+            if (!have.Contains(builtin.CountryCode))
             {
-                if (!have.Contains(builtin.CountryCode))
-                {
-                    list.Add(builtin);
-                }
+                list.Add(builtin);
             }
-            list = [.. list.OrderByDescending(c => c.IsDefault).ThenBy(c => c.SortOrder).ThenBy(c => c.CountryCode)];
         }
+        list = [.. list.OrderByDescending(c => c.IsDefault).ThenBy(c => c.SortOrder).ThenBy(c => c.CountryCode)];
 
         _cache.Set(cacheKey, (IReadOnlyList<StorefrontCountry>)list, TimeSpan.FromMinutes(5));
         return list;
