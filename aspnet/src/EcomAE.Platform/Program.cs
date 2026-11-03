@@ -1458,6 +1458,36 @@ app.Use(async (context, next) =>
         var userCurrency = CookieValue("epc_currency");
         var userCountry = CookieValue("epc_country");
         var hostSeed = CookieValue("epc_currency_host");
+
+        // An explicit epc_country pick wins over the host seed: pin the currency to that
+        // country's mapping as a permanent choice (clears the refresh marker). It only
+        // applies while the currency cookie is absent or still OUR seed — a currency the
+        // visitor picked themselves (epc_currency != epc_currency_host) always wins.
+        if (userCountry is not null
+            && EcomAE.Platform.Storefront.EpcCurrency.CountryMap.TryGetValue(userCountry, out var chosenIso)
+            && (userCurrency is null || string.Equals(userCurrency, hostSeed, StringComparison.Ordinal)))
+        {
+            if (!string.Equals(userCurrency, chosenIso, StringComparison.Ordinal))
+            {
+                var pinned = parts
+                    .Select(p => p.TrimStart())
+                    .Where(p => !p.StartsWith("epc_currency=", StringComparison.OrdinalIgnoreCase)
+                        && !p.StartsWith("epc_currency_host=", StringComparison.OrdinalIgnoreCase));
+                context.Request.Headers.Cookie = string.Join("; ", pinned.Append($"epc_currency={chosenIso}"));
+                var picked = new CookieOptions
+                {
+                    Path = "/",
+                    MaxAge = TimeSpan.FromDays(365),
+                    SameSite = SameSiteMode.Lax,
+                    Secure = true,
+                };
+                context.Response.Cookies.Append("epc_currency", chosenIso, picked);
+            }
+            context.Response.Cookies.Delete("epc_currency_host");
+            await next(context).ConfigureAwait(false);
+            return;
+        }
+
         // Seed when the visitor has not chosen (fresh), or when the cookie still holds a value
         // WE seeded earlier (hostSeed marker) — so a currency config change refreshes it.
         // A currency the visitor picked themselves (epc_currency != epc_currency_host) always wins.
