@@ -9,6 +9,11 @@ public sealed class StorefrontCountryTests
     [InlineData("ae.epartscart.com", "ae")]
     [InlineData("qa.epartscart.com", "qa")]
     [InlineData("SA.epartscart.com", "sa")]
+    [InlineData("eu.epartscart.com", "eu")]
+    [InlineData("us.epartscart.com", "us")]
+    [InlineData("uk.epartscart.com", "uk")]
+    [InlineData("ru.epartscart.com", "ru")]
+    [InlineData("pk.epartscart.com", "pk")]
     [InlineData("www.epartscart.com", null)]
     [InlineData("epartscart.com", null)]
     [InlineData("de.epartscart.com", null)] // not in the GCC set — aliases still resolve, not a storefront country

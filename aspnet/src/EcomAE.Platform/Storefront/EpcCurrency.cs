@@ -28,12 +28,14 @@ public static class EpcCurrency
         ("512", new("OMR", "OMR", "OMR", 9.54, 8)),
         ("634", new("QAR", "QAR", "QAR", 1.01, 9)),
         ("48", new("BHD", "BHD", "BHD", 9.74, 10)),
+        ("826", new("GBP", "GBP", "£", 4.79, 11)),
     ];
 
     /// <summary>PHP <c>epc_currency_country_map()</c>.</summary>
     public static IReadOnlyDictionary<string, string> CountryMap { get; } = new Dictionary<string, string>(StringComparer.Ordinal)
     {
-        ["AE"] = "784", ["PK"] = "586", ["US"] = "840", ["GB"] = "840",
+        ["AE"] = "784", ["PK"] = "586", ["US"] = "840",
+        ["GB"] = "826", ["UK"] = "826", ["EU"] = "978",
         ["DE"] = "978", ["FR"] = "978", ["IT"] = "978", ["ES"] = "978", ["NL"] = "978", ["BE"] = "978", ["AT"] = "978", ["IE"] = "978", ["PT"] = "978", ["FI"] = "978", ["GR"] = "978",
         ["RU"] = "643", ["SA"] = "682", ["KW"] = "414", ["OM"] = "512", ["QA"] = "634", ["BH"] = "48",
     };

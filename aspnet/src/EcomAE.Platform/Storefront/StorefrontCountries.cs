@@ -82,7 +82,7 @@ public static class StorefrontCountryDefaults
 {
     /// <summary>Two-letter country subdomains that alias to the tenant's base domain.</summary>
     public static readonly IReadOnlySet<string> Subdomains =
-        new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "ae", "qa", "sa", "kw", "bh", "om" };
+        new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "ae", "qa", "sa", "kw", "bh", "om", "eu", "us", "uk", "ru", "pk" };
 
     private static readonly StorefrontCountry[] BuiltIn =
     [
@@ -98,6 +98,17 @@ public static class StorefrontCountryDefaults
             "", "", "", "", IsDefault: false, IsActive: true, 40),
         new("OM", "Oman", "om", "OMR", 0.1048m, 0m, 0.01m, 5m, "en", "ltr",
             "", "", "", "", IsDefault: false, IsActive: true, 50),
+        // Region-level storefronts — same one-backend model as the GCC set.
+        new("EU", "European Union", "eu", "EUR", 0.25m, 0m, 0.01m, 20m, "en", "ltr",
+            "", "", "", "", IsDefault: false, IsActive: true, 60),
+        new("US", "United States", "us", "USD", 0.2723m, 0m, 0.01m, 0m, "en", "ltr",
+            "", "", "", "", IsDefault: false, IsActive: true, 70),
+        new("UK", "United Kingdom", "uk", "GBP", 0.2089m, 0m, 0.01m, 20m, "en", "ltr",
+            "", "", "", "", IsDefault: false, IsActive: true, 80),
+        new("RU", "Russia", "ru", "RUB", 26.0m, 0m, 0.01m, 20m, "ru", "ltr",
+            "", "", "", "", IsDefault: false, IsActive: true, 90),
+        new("PK", "Pakistan", "pk", "PKR", 76.15m, 0m, 0.01m, 17m, "en", "ltr",
+            "", "", "", "", IsDefault: false, IsActive: true, 100),
     ];
 
     public static IReadOnlyList<StorefrontCountry> All => BuiltIn;
