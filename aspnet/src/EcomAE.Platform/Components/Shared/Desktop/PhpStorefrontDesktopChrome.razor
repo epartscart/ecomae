@@ -477,7 +477,7 @@
                                 <a href="@StorefrontSurfaceLinks.BulkUpload"><i class="fa fa-file-excel-o" aria-hidden="true"></i> Excel bulk upload</a>
                             </div>
                             <div class="epc-currency-switcher">
-                                <select id="epc_currency_select" aria-label="Display currency" onchange="var v=this.value;document.cookie='epc_currency='+v+';max-age=31536000;path=/;secure;samesite=lax';document.cookie='epc_currency_host='+v+';max-age=31536000;path=/;secure;samesite=lax';location.reload();">
+                                <select id="epc_currency_select" aria-label="Display currency" onchange="var v=this.value;document.cookie='epc_currency='+v+';max-age=31536000;path=/;secure;samesite=lax';document.cookie='epc_currency_host=;max-age=0;path=/';location.reload();">
                                     @foreach (var iso in EcomAE.Platform.Storefront.EpcCurrency.SupportedIsoCodes)
                                     {
                                         var currency = EcomAE.Platform.Storefront.EpcCurrency.DefaultForIso(iso);
