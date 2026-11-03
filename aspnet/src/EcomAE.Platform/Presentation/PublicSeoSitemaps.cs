@@ -153,7 +153,7 @@ public static class PublicSeoSitemaps
                 continue;
             }
 
-            Add(entries, seen, root + "/en/parts/" + brandSegment + "/" + articleSegment, "weekly", "0.6");
+            Add(entries, seen, root + LangPrefix(root)+"/parts/" + brandSegment + "/" + articleSegment, "weekly", "0.6");
         }
 
         return Emit(entries);
@@ -306,8 +306,8 @@ public static class PublicSeoSitemaps
         var root = (origin ?? string.Empty).TrimEnd('/');
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var entries = new List<SitemapUrl>();
-        Add(entries, seen, root + "/en/parts", "daily", "1.0");
-        Add(entries, seen, root + "/en/available-brands", "weekly", "0.8");
+        Add(entries, seen, root + LangPrefix(root)+"/parts", "daily", "1.0");
+        Add(entries, seen, root + LangPrefix(root)+"/available-brands", "weekly", "0.8");
         foreach (var manufacturer in manufacturers)
         {
             var segment = BrandSegment(manufacturer);
@@ -316,7 +316,7 @@ public static class PublicSeoSitemaps
                 continue;
             }
 
-            Add(entries, seen, root + "/en/parts/" + segment, "weekly", "0.7");
+            Add(entries, seen, root + LangPrefix(root)+"/parts/" + segment, "weekly", "0.7");
         }
 
         return Emit(entries);
@@ -341,7 +341,7 @@ public static class PublicSeoSitemaps
                 continue;
             }
 
-            Add(entries, seen, root + "/en/parts/" + brandSegment + "/" + articleSegment, "weekly", "0.6");
+            Add(entries, seen, root + LangPrefix(root)+"/parts/" + brandSegment + "/" + articleSegment, "weekly", "0.6");
         }
 
         return Emit(entries);
@@ -352,12 +352,12 @@ public static class PublicSeoSitemaps
         var root = (origin ?? string.Empty).TrimEnd('/');
         return Emit(
         [
-            new SitemapUrl(root + "/en", "daily", "1.0"),
-            new SitemapUrl(root + "/en/parts", "daily", "0.9"),
-            new SitemapUrl(root + "/en/available-brands", "weekly", "0.8"),
-            new SitemapUrl(root + "/en/accessories", "weekly", "0.6"),
+            new SitemapUrl(root + "/" + DefaultLangFor(root), "daily", "1.0"),
+            new SitemapUrl(root + LangPrefix(root)+"/parts", "daily", "0.9"),
+            new SitemapUrl(root + LangPrefix(root)+"/available-brands", "weekly", "0.8"),
+            new SitemapUrl(root + LangPrefix(root)+"/accessories", "weekly", "0.6"),
             new SitemapUrl(root + "/privacy", "monthly", "0.5"),
-            new SitemapUrl(root + "/en/privacy", "monthly", "0.5"),
+            new SitemapUrl(root + LangPrefix(root)+"/privacy", "monthly", "0.5"),
         ]);
     }
 
@@ -507,23 +507,44 @@ public static class PublicSeoSitemaps
         }
     }
 
+    /// <summary>
+    /// Country hosts (sa./pk./ru.…) emit their sitemap URLs under the country's
+    /// language home (/ar/, /ur/, /ru/) so Google indexes the localized pages
+    /// for that country's search results. Non-country origins default to /en/.
+    /// </summary>
+    private static string DefaultLangFor(string origin)
+    {
+        var host = Uri.TryCreate(origin, UriKind.Absolute, out var uri) ? uri.Host : origin;
+        var subdomain = EcomAE.Platform.Storefront.StorefrontCountryDefaults.SubdomainOf(host);
+        if (subdomain is null)
+        {
+            return "en";
+        }
+
+        var lang = EcomAE.Platform.Storefront.StorefrontCountryDefaults.Default(subdomain).LanguageCode;
+        return EcomAE.Platform.Middleware.LangHomeFallbackMiddleware.IsLangHome(lang)
+            ? lang.ToLowerInvariant()
+            : "en";
+    }
+
+    private static string LangPrefix(string origin) => "/" + DefaultLangFor(origin);
+
     private static string LangUrl(string origin, string url)
     {
+        var lang = DefaultLangFor(origin);
         var path = url.Trim().Trim('/');
         if (path.Length == 0)
         {
-            return origin + "/en";
+            return origin + "/" + lang;
         }
 
-        if (path.Equals("en", StringComparison.OrdinalIgnoreCase)
-            || path.StartsWith("en/", StringComparison.OrdinalIgnoreCase)
-            || path.StartsWith("ru/", StringComparison.OrdinalIgnoreCase)
-            || path.StartsWith("ar/", StringComparison.OrdinalIgnoreCase))
+        var first = path.IndexOf('/') < 0 ? path : path[..path.IndexOf('/')];
+        if (EcomAE.Platform.Middleware.LangHomeFallbackMiddleware.IsLangHome(first))
         {
             return origin + "/" + path;
         }
 
-        return origin + "/en/" + path;
+        return origin + "/" + lang + "/" + path;
     }
 
     private static string BrandSegment(string manufacturer)

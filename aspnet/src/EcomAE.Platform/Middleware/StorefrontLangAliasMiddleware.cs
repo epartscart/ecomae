@@ -85,7 +85,7 @@ public sealed class StorefrontLangAliasMiddleware
         }
 
         lang = only[1..slash].ToLowerInvariant();
-        if (lang is not ("ar" or "ru" or "me"))
+        if (lang is not ("ar" or "ru" or "me" or "ur"))
         {
             return false;
         }

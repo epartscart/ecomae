@@ -35,6 +35,15 @@
         _htmlLang = LangHomeFallbackMiddleware.RequestCmsLang(Http.HttpContext, "en");
         _htmlDir = DirFor(_htmlLang);
 
+        // An explicit ?lang=xx pick also wins (sa./?lang=en stays English).
+        var qLang = Http.HttpContext?.Request.Query["lang"].FirstOrDefault();
+        if (LangHomeFallbackMiddleware.IsLangHome(qLang))
+        {
+            _htmlLang = qLang!.ToLowerInvariant();
+            _htmlDir = DirFor(_htmlLang);
+            return;
+        }
+
         // An explicit lang home (/en/, /ar/, /ur/, /ru/) is a visitor pick — it wins over
         // the country host's configured language (e.g. /en/ on sa. stays English).
         var picked = Http.HttpContext?.Items[LangHomeFallbackMiddleware.LangItem] as string;
