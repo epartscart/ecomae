@@ -1467,22 +1467,28 @@ app.Use(async (context, next) =>
             if (country is not null
                 && string.Equals(country.Subdomain, subdomain, StringComparison.OrdinalIgnoreCase))
             {
-                var code = subdomain.ToUpperInvariant();
-                var kept = parts
-                    .Select(p => p.TrimStart())
-                    .Where(p => !p.StartsWith("epc_country=", StringComparison.OrdinalIgnoreCase)
-                        && !p.StartsWith("epc_currency=", StringComparison.OrdinalIgnoreCase));
-                context.Request.Headers.Cookie = string.Join("; ", kept.Append($"epc_country={code}"));
-                context.Response.Cookies.Append(
-                    "epc_country",
-                    code,
-                    new CookieOptions
-                    {
-                        Path = "/",
-                        MaxAge = TimeSpan.FromDays(365),
-                        SameSite = SameSiteMode.Lax,
-                        Secure = true,
-                    });
+                // Seed epc_currency with the country's CONFIGURED currency (not the subdomain's
+                // default) so custom codes and overrides like qa→USD render correctly.
+                var iso = EcomAE.Platform.Storefront.EpcCurrency.IsoForAlpha(country.CurrencyCode)
+                    ?? (EcomAE.Platform.Storefront.EpcCurrency.CountryMap.TryGetValue(country.CountryCode, out var mapped) ? mapped : null);
+                if (iso is not null)
+                {
+                    var kept = parts
+                        .Select(p => p.TrimStart())
+                        .Where(p => !p.StartsWith("epc_country=", StringComparison.OrdinalIgnoreCase)
+                            && !p.StartsWith("epc_currency=", StringComparison.OrdinalIgnoreCase));
+                    context.Request.Headers.Cookie = string.Join("; ", kept.Append($"epc_currency={iso}"));
+                    context.Response.Cookies.Append(
+                        "epc_currency",
+                        iso,
+                        new CookieOptions
+                        {
+                            Path = "/",
+                            MaxAge = TimeSpan.FromDays(365),
+                            SameSite = SameSiteMode.Lax,
+                            Secure = true,
+                        });
+                }
             }
         }
     }
