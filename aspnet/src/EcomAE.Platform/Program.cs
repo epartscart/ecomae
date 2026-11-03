@@ -1441,6 +1441,37 @@ app.UseMiddleware<StorefrontStubToPhpRedirectMiddleware>();
 // Super-host /erp chrome links after a client-erp login stay under /cp/client-erp/{key}.
 app.UseMiddleware<ClientErpCookieRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
+// Country storefronts: a country host (ae./qa./sa.… domain) seeds epc_country so the
+// display currency follows the country when the visitor has not picked one.
+app.Use(async (context, next) =>
+{
+    var subdomain = EcomAE.Platform.Storefront.StorefrontCountryDefaults.SubdomainOf(context.Request.Host.Host);
+    if (subdomain is not null)
+    {
+        var cookieHeader = context.Request.Headers.Cookie.ToString();
+        var hasCountryOrCurrency = cookieHeader.Split(';').Any(
+            part => part.TrimStart().StartsWith("epc_country=", StringComparison.OrdinalIgnoreCase)
+                || part.TrimStart().StartsWith("epc_currency=", StringComparison.OrdinalIgnoreCase));
+        if (!hasCountryOrCurrency)
+        {
+            var code = subdomain.ToUpperInvariant();
+            context.Request.Headers.Cookie = string.IsNullOrEmpty(cookieHeader)
+                ? $"epc_country={code}"
+                : cookieHeader + $"; epc_country={code}";
+            context.Response.Cookies.Append(
+                "epc_country",
+                code,
+                new CookieOptions
+                {
+                    Path = "/",
+                    MaxAge = TimeSpan.FromDays(365),
+                    SameSite = SameSiteMode.Lax,
+                });
+        }
+    }
+
+    await next(context).ConfigureAwait(false);
+});
 // /cp/client-erp/{key}/erp… → /erp… after the company DB is bound.
 app.UseMiddleware<ClientErpPathRewriteMiddleware>();
 app.UseMiddleware<TenantDocumentTitleMiddleware>();
