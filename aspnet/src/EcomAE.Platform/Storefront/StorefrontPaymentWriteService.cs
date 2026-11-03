@@ -16,7 +16,8 @@ public interface IStorefrontPaymentWriteService
         decimal amount,
         long orderId,
         string? payHandler,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        decimal? maxAmount = null);
 
     Task<StorefrontPaymentWriteResult> NotifyAsync(
         int userId,
@@ -115,7 +116,8 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
         decimal amount,
         long orderId,
         string? payHandler,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        decimal? maxAmount = null)
     {
         if (userId <= 0)
         {
@@ -163,7 +165,7 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
 
             var orderSum = await OrderSumAsync(connection, orderId, cancellationToken).ConfigureAwait(false);
             var paidSum = await PaidSumAsync(connection, orderId, cancellationToken).ConfigureAwait(false);
-            var paidLeft = orderSum - paidSum;
+            var paidLeft = maxAmount ?? (orderSum - paidSum);
             if (amount > paidLeft)
             {
                 return Fail("forbidden", "Forbidden");
@@ -419,7 +421,9 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
             ErpDb.Positional("SELECT `user_id` FROM `shop_users_accounting` WHERE `id`=?"),
             cancellationToken,
             operationId).ConfigureAwait(false);
-        if (userId > 0 && opUser != userId)
+        // Anonymous callers may settle guest operations only — a fixed demo token must not
+        // activate another user's pending payment.
+        if (opUser != userId)
         {
             return Fail("forbidden", "Forbidden");
         }

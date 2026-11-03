@@ -193,7 +193,9 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
 
     private const string ClearDefaultSql = "UPDATE `epc_tenant_countries` SET `is_default` = 0 WHERE `country_code` <> ?";
 
-    private const string CacheKey = "storefront-countries:list";
+    // Keyed by tenant database — a shared process-wide key would leak one tenant's
+    // SEO/address/pricing onto another tenant's storefronts.
+    private const string CacheKeyPrefix = "storefront-countries:list:";
 
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IMemoryCache _cache;
@@ -235,19 +237,29 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
 
     public async Task<IReadOnlyList<StorefrontCountry>> ListAsync(CancellationToken cancellationToken = default)
     {
-        if (_cache.TryGetValue(CacheKey, out IReadOnlyList<StorefrontCountry>? cached) && cached is not null)
+        var cacheKey = CacheKeyPrefix + await TenantKeyAsync(cancellationToken).ConfigureAwait(false);
+        if (_cache.TryGetValue(cacheKey, out IReadOnlyList<StorefrontCountry>? cached) && cached is not null)
         {
             return cached;
         }
 
         var list = await ReadRowsAsync(cancellationToken).ConfigureAwait(false);
-        if (list.Count == 0)
+        // Union with built-ins for codes the tenant has no row for — one save must not drop the
+        // other country storefronts from hreflang and the management list. DB row wins per code.
+        if (list.Count < StorefrontCountryDefaults.All.Count)
         {
-            // Unconfigured tenant — expose the built-in GCC set so country hosts work immediately.
-            list = [.. StorefrontCountryDefaults.All];
+            var have = new HashSet<string>(list.Select(c => c.CountryCode), StringComparer.OrdinalIgnoreCase);
+            foreach (var builtin in StorefrontCountryDefaults.All)
+            {
+                if (!have.Contains(builtin.CountryCode))
+                {
+                    list.Add(builtin);
+                }
+            }
+            list = [.. list.OrderByDescending(c => c.IsDefault).ThenBy(c => c.SortOrder).ThenBy(c => c.CountryCode)];
         }
 
-        _cache.Set(CacheKey, (IReadOnlyList<StorefrontCountry>)list, TimeSpan.FromMinutes(5));
+        _cache.Set(cacheKey, (IReadOnlyList<StorefrontCountry>)list, TimeSpan.FromMinutes(5));
         return list;
     }
 
@@ -296,7 +308,7 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
                 await ErpDb.ExecuteAsync(connection, null, ClearDefaultSql, cancellationToken, cc).ConfigureAwait(false);
             }
 
-            _cache.Remove(CacheKey);
+            _cache.Remove(CacheKeyPrefix + await TenantKeyAsync(cancellationToken).ConfigureAwait(false));
             return (true, "Country saved.");
         }
         catch (Exception ex) when (ex is DbException or InvalidOperationException)
@@ -313,12 +325,30 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
             await ErpDb.TryExecuteAsync(connection, TableSql, cancellationToken).ConfigureAwait(false);
             var n = await ErpDb.ExecuteAsync(
                 connection, null, DeleteSql, cancellationToken, countryCode.Trim().ToUpperInvariant()).ConfigureAwait(false);
-            _cache.Remove(CacheKey);
+            _cache.Remove(CacheKeyPrefix + await TenantKeyAsync(cancellationToken).ConfigureAwait(false));
             return n > 0 ? (true, "Country removed.") : (false, "Country not found.");
         }
         catch (Exception ex) when (ex is DbException or InvalidOperationException)
         {
             return (false, "Country delete failed: " + ex.Message);
+        }
+    }
+
+    /// <summary>Tenant-scope token for cache keys — the shop database name, or the host when unconfigured.</summary>
+    private async Task<string> TenantKeyAsync(CancellationToken cancellationToken)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return "unconfigured";
+        }
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            return string.IsNullOrWhiteSpace(connection.Database) ? "default" : connection.Database;
+        }
+        catch (DbException)
+        {
+            return "default";
         }
     }
 
