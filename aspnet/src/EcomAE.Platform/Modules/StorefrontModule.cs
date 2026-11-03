@@ -1853,6 +1853,73 @@ public sealed class StorefrontModule : ISurfaceModule
             return Results.Content(html, "text/html; charset=utf-8");
         });
 
+        // Tokenized balance-payment page — the link staff send once the order is confirmed.
+        endpoints.MapGet(EcomAeRoutes.StorefrontBalancePay, async (
+            HttpContext context,
+            EcomAE.Platform.Storefront.IStorefrontSplitPaymentService splitPay,
+            CancellationToken cancellationToken) =>
+        {
+            var orderId = long.TryParse(context.Request.Query["order"].ToString(), out var oid) ? oid : 0;
+            var token = context.Request.Query["token"].ToString();
+            var state = await splitPay.ReadByTokenAsync(orderId, token, cancellationToken);
+            if (state is null)
+            {
+                return Results.Content(
+                    "<!DOCTYPE html><html><body style=\"font-family:sans-serif;padding:2rem\"><h1>Payment link not valid</h1><p>This balance-payment link is expired or incorrect — please request a new one.</p></body></html>",
+                    "text/html; charset=utf-8");
+            }
+
+            var enc = (string s) => System.Net.WebUtility.HtmlEncode(s);
+            var due = state.BalanceDue;
+            var body = due <= 0m
+                ? $"<p>Nothing left to pay on order #{state.OrderId} — thank you.</p>"
+                : $"""
+                  <p>Order #{state.OrderId} — balance due: <b>{due.ToString("#,0.00", CultureInfo.InvariantCulture)} {enc(state.CurrencyCode)}</b>
+                  (of confirmed total {state.EffectiveTotal.ToString("#,0.00", CultureInfo.InvariantCulture)} {enc(state.CurrencyCode)}).</p>
+                  <form method="post" action="{EcomAeRoutes.StorefrontBalancePayCreate}">
+                    <input type="hidden" name="order" value="{state.OrderId}" />
+                    <input type="hidden" name="token" value="{enc(state.BalanceToken)}" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <button type="submit">Pay balance now</button>
+                  </form>
+                  """;
+            return Results.Content(
+                $"<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Balance payment · order {state.OrderId}</title></head><body style=\"font-family:sans-serif;padding:2rem\">{body}</body></html>",
+                "text/html; charset=utf-8");
+        });
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontBalancePayCreate, async (
+            HttpContext context,
+            EcomAE.Platform.Storefront.IStorefrontSplitPaymentService splitPay,
+            EcomAE.Platform.Storefront.IStorefrontPaymentWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var orderId = LiveWriteFormBinder.Long(form, "order", "order_id");
+            var token = LiveWriteFormBinder.Text(form, "token");
+            var state = await splitPay.ReadByTokenAsync(orderId, token, cancellationToken);
+            if (state is null || state.BalanceDue <= 0m || state.UserId <= 0)
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/",
+                    false,
+                    "This balance-payment link is expired or already paid.",
+                    new { ok = false, validation_code = "forbidden" });
+            }
+
+            // Token is the authorization — create the operation for the order owner.
+            var written = await writes.CreateOperationAsync(
+                (int)state.UserId, state.BalanceDue, orderId,
+                LiveWriteFormBinder.Text(form, "pay_handler", "payHandler"),
+                cancellationToken);
+            var dest = written.Ok
+                ? EcomAeRoutes.StorefrontPaymentGoToPay + "?operation=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                  + "&pay_system=" + Uri.EscapeDataString(written.PaySystem ?? "epc_demo")
+                : "/storefront/payment-app";
+            return LiveWriteFormBinder.Complete(context, dest, written.Ok, written.Message, written.ToPayload(null!));
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.StorefrontPaymentNotify, async (
             HttpContext context,
             ILegacySessionValidator validator,

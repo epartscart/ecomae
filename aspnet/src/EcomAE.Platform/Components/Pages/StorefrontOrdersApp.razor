@@ -9,6 +9,7 @@
 @inject IHttpContextAccessor Http
 @inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
 @inject Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions> PhpReference
+@inject EcomAE.Platform.Storefront.IStorefrontSplitPaymentService SplitPay
 
 <PageTitle>My Orders · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
@@ -280,6 +281,33 @@
                     ·
                     <a href="@(StorefrontAspNetCanonical.Payment + "?order_id=" + _selected.Id.ToString(CultureInfo.InvariantCulture))">Pay</a>
                 </p>
+                @if (_split is not null)
+                {
+                    <div style="margin:0 0 1rem;padding:.75rem .9rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:.45rem">
+                        <p style="margin:0 0 .4rem;font-weight:700">
+                            Advance @_split.AdvanceAmount.ToString("N2", CultureInfo.InvariantCulture)
+                            @(_split.AdvancePaid ? "· advance paid" : "· advance unpaid")
+                            @if (_split.ConfirmedTotal.HasValue)
+                            {
+                                <text> · confirmed total @_split.ConfirmedTotal.Value.ToString("N2", CultureInfo.InvariantCulture)</text>
+                            }
+                        </p>
+                        @if (!_split.AdvancePaid && _split.AdvanceDue > 0m)
+                        {
+                            <form method="post" action="/storefront/payment/create-operation">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="order_id" value="@_selected!.Id.ToString(CultureInfo.InvariantCulture)" />
+                                <input type="hidden" name="pay_handler" value="epc_demo" />
+                                <input type="hidden" name="amount" value="@_split.AdvanceDue.ToString("0.00", CultureInfo.InvariantCulture)" />
+                                <button type="submit" style="padding:.5rem .9rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Pay 30% advance — @_split.AdvanceDue.ToString("N2", CultureInfo.InvariantCulture)</button>
+                            </form>
+                        }
+                        @if (_split.ConfirmedTotal.HasValue && !_split.BalancePaid && _split.BalanceDue > 0m)
+                        {
+                            <a href="/storefront/balance-pay?order=@_selected!.Id&token=@_split.BalanceToken" style="display:inline-block;margin-top:.4rem;padding:.5rem .9rem;border-radius:.4rem;background:#1d4ed8;color:#fff;font-weight:800;text-decoration:none">Pay balance — @_split.BalanceDue.ToString("N2", CultureInfo.InvariantCulture)</a>
+                        }
+                    </div>
+                }
                 @if (_selected.Paid != 1)
                 {
                     <form method="post" action="/storefront/payment/create-operation" style="margin-bottom:1rem">
@@ -388,6 +416,7 @@
     private string _source = "n/a";
     private string _message = "";
     private StorefrontOrderDigest? _selected;
+    private EcomAE.Platform.Storefront.StorefrontOrderPayState? _split;
     private IReadOnlyList<StorefrontOrderItemDigest> _items = [];
     private IReadOnlyList<StorefrontOrderMessageDigest> _messages = [];
     private bool _showItems;
@@ -435,6 +464,18 @@
         if (OrderId is > 0)
         {
             _selected = _orders.FirstOrDefault(o => o.Id == OrderId.Value);
+            if (_selected is not null && Connections.IsConfigured)
+            {
+                try
+                {
+                    await using var c = await Connections.OpenAsync(null, ctx.RequestAborted);
+                    _split = await SplitPay.ReadStateAsync(c, _selected.Id, ctx.RequestAborted);
+                }
+                catch
+                {
+                    // Split-payment columns are additive — missing schema hides the card.
+                }
+            }
         }
 
         if (_showItems || _selected is not null)

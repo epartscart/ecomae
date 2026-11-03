@@ -30,5 +30,17 @@
     {
         _htmlLang = LangHomeFallbackMiddleware.RequestCmsLang(Http.HttpContext, "en");
         _htmlDir = _htmlLang == "ar" ? "rtl" : "ltr";
+
+        // Country storefronts (ae./qa./sa.…) pin lang/dir to the country's configured language
+        // unless the visitor explicitly picked a language in the URL/session.
+        var cSub = Http.HttpContext is null
+            ? null
+            : EcomAE.Platform.Storefront.StorefrontCountryDefaults.SubdomainOf(Http.HttpContext.Request.Host.Host);
+        var ctry = cSub is null ? null : EcomAE.Platform.Storefront.StorefrontCountryDefaults.Default(cSub);
+        if (ctry is not null && string.IsNullOrWhiteSpace(Http.HttpContext!.Request.Query["lang"]))
+        {
+            _htmlLang = ctry.LanguageCode;
+            _htmlDir = ctry.Direction;
+        }
     }
 }

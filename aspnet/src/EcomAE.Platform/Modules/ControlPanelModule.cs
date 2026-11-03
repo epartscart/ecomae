@@ -9411,6 +9411,148 @@ public sealed class ControlPanelModule : ISurfaceModule
                 });
         }).DisableAntiforgery();
 
+        // Tenant country storefronts (ae./qa./sa. …) — admin manages rows in the tenant shop DB.
+        endpoints.MapPost(EcomAeRoutes.CpTenantCountriesSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            EcomAE.Platform.Storefront.IStorefrontCountryService countries,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/cp/login?returnUrl=" + EcomAeRoutes.ControlPanelTenantCountriesApp,
+                    "Admin CP capability required for country storefronts.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.Json(
+                    new { ok = false, error = new { code = "form_required", message = "Country save expects a form post." } },
+                    statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    EcomAeRoutes.ControlPanelTenantCountriesApp,
+                    false,
+                    "Dry-run. Set confirmWrites=true to save the country.",
+                    new { ok = false, writes = 0, validation_code = "dry_run", session = SessionPayload(session) });
+            }
+
+            var written = await countries.SaveAsync(
+                new EcomAE.Platform.Storefront.StorefrontCountryWrite(
+                    LiveWriteFormBinder.Text(form, "country_code"),
+                    LiveWriteFormBinder.Text(form, "country_name"),
+                    LiveWriteFormBinder.Text(form, "subdomain"),
+                    LiveWriteFormBinder.Text(form, "currency_code"),
+                    LiveWriteFormBinder.Dec(form, "fx_rate"),
+                    LiveWriteFormBinder.Dec(form, "price_markup_percent"),
+                    LiveWriteFormBinder.Dec(form, "price_round_to"),
+                    LiveWriteFormBinder.Dec(form, "vat_percent"),
+                    LiveWriteFormBinder.Text(form, "language_code"),
+                    LiveWriteFormBinder.Text(form, "direction"),
+                    LiveWriteFormBinder.Text(form, "seo_title"),
+                    LiveWriteFormBinder.Text(form, "seo_description"),
+                    LiveWriteFormBinder.Text(form, "seo_keywords"),
+                    LiveWriteFormBinder.Text(form, "address_text"),
+                    LiveWriteFormBinder.Flag(form, "is_default"),
+                    LiveWriteFormBinder.Flag(form, "is_active"),
+                    LiveWriteFormBinder.Int(form, "sort_order")),
+                cancellationToken);
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ControlPanelTenantCountriesApp + "?msg=" + Uri.EscapeDataString(written.Message),
+                written.Ok,
+                written.Message,
+                new { ok = written.Ok, writes = written.Ok ? 1 : 0, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.CpTenantCountriesDelete, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            EcomAE.Platform.Storefront.IStorefrontCountryService countries,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/cp/login?returnUrl=" + EcomAeRoutes.ControlPanelTenantCountriesApp,
+                    "Admin CP capability required for country storefronts.");
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    EcomAeRoutes.ControlPanelTenantCountriesApp,
+                    false,
+                    "Dry-run. Set confirmWrites=true to delete the country.",
+                    new { ok = false, writes = 0, validation_code = "dry_run", session = SessionPayload(session) });
+            }
+
+            var written = await countries.DeleteAsync(
+                LiveWriteFormBinder.Text(form, "country_code"),
+                cancellationToken);
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ControlPanelTenantCountriesApp + "?msg=" + Uri.EscapeDataString(written.Message),
+                written.Ok,
+                written.Message,
+                new { ok = written.Ok, writes = written.Ok ? 1 : 0, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
+        // Staff order confirmation for split payments: freeze the fulfillable total,
+        // then the balance link goes to the customer for the remainder.
+        endpoints.MapPost(EcomAeRoutes.CpOrdersSetConfirmedTotal, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            EcomAE.Platform.Storefront.IStorefrontSplitPaymentService splitPay,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin)
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/cp/login?returnUrl=/cp/orders",
+                    "Admin session required to confirm orders.");
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/orders",
+                    false,
+                    "Dry-run. Set confirmWrites=true to confirm the order total.",
+                    new { ok = false, writes = 0, validation_code = "dry_run", session = SessionPayload(session) });
+            }
+
+            var written = await splitPay.ConfirmOrderAsync(
+                LiveWriteFormBinder.Long(form, "order_id", "orderId"),
+                LiveWriteFormBinder.Dec(form, "confirmed_total"),
+                cancellationToken);
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/orders?msg=" + Uri.EscapeDataString(written.Message),
+                written.Ok,
+                written.Message,
+                new { ok = written.Ok, writes = written.Ok ? 1 : 0, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelMetabase, async (
             HttpContext context,
             int? limit,

@@ -119,12 +119,22 @@ public static class PlatformHostPolicy
             alias = "www." + primary;
         }
 
-        if (alias.Length == 0 || string.Equals(alias, primary, StringComparison.Ordinal))
+        var aliases = new List<string>(3) { primary };
+        if (alias.Length > 0 && !string.Equals(alias, primary, StringComparison.Ordinal))
         {
-            return [primary];
+            aliases.Add(alias);
         }
 
-        return [primary, alias];
+        // Country storefronts: {cc}.domain (ae./qa./sa./kw./bh./om.) serve the SAME tenant
+        // as the base domain — one backend, per-country presentation.
+        var baseDomain = EcomAE.Platform.Storefront.StorefrontCountryDefaults.BaseDomainOf(primary);
+        if (baseDomain is { Length: > 0 })
+        {
+            aliases.Add(baseDomain);
+            aliases.Add("www." + baseDomain);
+        }
+
+        return aliases;
     }
 
     /// <summary>True when host may run Super BOS / Super CP / Intelligence Platform ops.</summary>

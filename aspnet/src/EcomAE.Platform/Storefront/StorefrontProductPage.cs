@@ -157,7 +157,9 @@ public static class StorefrontProductPage
                 sb.Append(offer.TimeToExe == 0
                     ? "<span class=\"green\">" + H(await t(4094).ConfigureAwait(false)) + "</span>"
                     : "<span class=\"orange\">" + H(await t(3550).ConfigureAwait(false)) + " " + offer.TimeToExe + " " + H(await t(4097).ConfigureAwait(false)) + ".</span>");
-                sb.Append("<span class=\"exist\">").Append(offer.Exist).Append(" ").Append(H(await t(4095).ConfigureAwait(false))).Append(".</span>");
+                sb.Append("<span class=\"exist\">").Append(offer.Exist).Append(" ").Append(H(await t(4095).ConfigureAwait(false)))
+                    .Append(offer.StorageCountry.Length == 0 ? string.Empty : " (" + H(offer.StorageCountry) + ")")
+                    .Append(".</span>");
             }
             else
             {
@@ -515,7 +517,7 @@ public static class StorefrontProductPage
     private sealed record MainOffer(
         long OfficeId, long StorageId, long StorageRecordId, decimal Price, long Exist, long Reserved,
         long TimeToExe, string Article, string Manufacturer, string CurrencyIso, string CurrencySign,
-        string CurrencyShort, decimal CurrencyRate);
+        string CurrencyShort, decimal CurrencyRate, string StorageCountry);
 
     private static async Task<MainOffer?> LoadMainOfferAsync(
         DbConnection connection,
@@ -544,9 +546,12 @@ public static class StorefrontProductPage
         }
 
         var r = rows[0];
+        // Storage country: ensured lazily — render only when the warehouse row names a country.
+        var stockCountries = await StorefrontStockCountry.LoadAsync(connection, cancellationToken).ConfigureAwait(false);
+        var country = stockCountries.TryGetValue(L(r[1]), out var cc) ? cc : string.Empty;
         return new(
             L(r[0]), L(r[1]), L(r[2]), D(r[3]), L(r[4]), L(r[5]), L(r[6]),
-            r[7], r[8], r[9], r[10], r[11], D(r[12]));
+            r[7], r[8], r[9], r[10], r[11], D(r[12]), country);
     }
 
     private static async Task<Product?> LoadProductAsync(DbConnection connection, long id, CancellationToken cancellationToken)
