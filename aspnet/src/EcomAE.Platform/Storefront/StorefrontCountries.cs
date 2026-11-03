@@ -193,13 +193,21 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
     // storefront as active on the next read.
     private const string DeleteSql = "UPDATE `epc_tenant_countries` SET `is_active` = 0, `is_default` = 0 WHERE `country_code` = ?";
 
-    // Tombstone for a built-in that was never saved: keeps its real subdomain so host resolution
-    // still finds the row (and the unique subdomain key is not violated by a blank value).
+    // Tombstone for a built-in that was never saved: copies the built-in's full settings so a
+    // later reactivation keeps its real currency/VAT/locale, and keeps a subdomain value so host
+    // resolution still finds the row. The subdomain column has a unique key — when a custom
+    // country already claimed it, a synthetic `off-<cc>` value is used instead.
     private const string TombstoneInsertSql = """
         INSERT INTO `epc_tenant_countries`
-            (`country_code`, `country_name`, `subdomain`, `currency_code`, `is_active`)
-        VALUES (?, ?, ?, ?, 0)
+            (`country_code`, `country_name`, `subdomain`, `currency_code`, `fx_rate`,
+             `price_markup_percent`, `price_round_to`, `vat_percent`, `language_code`, `direction`,
+             `seo_title`, `seo_description`, `seo_keywords`, `address_text`,
+             `is_default`, `is_active`, `sort_order`)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?)
         """;
+
+    private const string SubdomainTakenSql =
+        "SELECT COUNT(*) FROM `epc_tenant_countries` WHERE `subdomain` = ?";
 
     private const string ClearDefaultSql = "UPDATE `epc_tenant_countries` SET `is_default` = 0 WHERE `country_code` <> ?";
 
@@ -222,10 +230,14 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
         var countries = await ListAsync(cancellationToken).ConfigureAwait(false);
         if (subdomain is not null)
         {
+            // The built-in country code for this host — a tombstone may carry a synthetic
+            // subdomain, so match rows by country code as well as by subdomain.
+            var builtinCode = StorefrontCountryDefaults.Default(subdomain).CountryCode;
             var hasRow = false;
             foreach (var country in countries)
             {
-                if (string.Equals(country.Subdomain, subdomain, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(country.Subdomain, subdomain, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(country.CountryCode, builtinCode, StringComparison.OrdinalIgnoreCase))
                 {
                     hasRow = true;
                     if (country.IsActive)
@@ -363,9 +375,22 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
                     return (false, "Country not found.");
                 }
 
+                var subdomain = builtin.Subdomain;
+                var taken = await ErpDb.DecimalAsync(
+                    connection, null, ErpDb.Positional(SubdomainTakenSql), cancellationToken,
+                    subdomain).ConfigureAwait(false);
+                if (taken > 0)
+                {
+                    subdomain = "off-" + cc.ToLowerInvariant();
+                }
+
                 await ErpDb.ExecuteAsync(
                     connection, null, TombstoneInsertSql, cancellationToken,
-                    cc, builtin.CountryName, builtin.Subdomain, builtin.CurrencyCode).ConfigureAwait(false);
+                    cc, builtin.CountryName, subdomain, builtin.CurrencyCode,
+                    builtin.FxRate, builtin.PriceMarkupPercent, builtin.PriceRoundTo,
+                    builtin.VatPercent, builtin.LanguageCode, builtin.Direction,
+                    builtin.SeoTitle, builtin.SeoDescription, builtin.SeoKeywords,
+                    builtin.AddressText, builtin.SortOrder).ConfigureAwait(false);
             }
 
             _cache.Remove(CacheKeyPrefix + await TenantKeyAsync(cancellationToken).ConfigureAwait(false));

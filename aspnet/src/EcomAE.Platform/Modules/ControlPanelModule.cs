@@ -9518,6 +9518,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             HttpContext context,
             ILegacySessionValidator validator,
             EcomAE.Platform.Storefront.IStorefrontSplitPaymentService splitPay,
+            EcomAE.Platform.Storefront.IStorefrontBalanceRequestNotifier? balanceNotify,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -9540,10 +9541,20 @@ public sealed class ControlPanelModule : ISurfaceModule
                     new { ok = false, writes = 0, validation_code = "dry_run", session = SessionPayload(session) });
             }
 
+            var orderId = LiveWriteFormBinder.Long(form, "order_id", "orderId");
             var written = await splitPay.ConfirmOrderAsync(
-                LiveWriteFormBinder.Long(form, "order_id", "orderId"),
+                orderId,
                 LiveWriteFormBinder.Dec(form, "confirmed_total"),
                 cancellationToken);
+            if (written.Ok && balanceNotify is not null)
+            {
+                // Confirmation = "send the balance-payment link" — best-effort, never blocks the write.
+                try
+                {
+                    await balanceNotify.SendAsync(orderId, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (ex is System.Data.Common.DbException or InvalidOperationException) { }
+            }
 
             return LiveWriteFormBinder.Complete(
                 context,
