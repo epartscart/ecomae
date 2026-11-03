@@ -323,9 +323,12 @@ public sealed class CpStorageWriteService : ICpStorageWriteService
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
-        // Warehouse country: optional 2-letter ISO; drives the storefront "stock in (CC)" badge.
-        var country = (countryCode ?? string.Empty).Trim().ToUpperInvariant();
-        country = country.Length == 2 && country.All(char.IsLetter) ? country : null;
+        // Warehouse country: optional 2-letter ASCII ISO; drives the storefront "stock in (CC)"
+        // badge. Null argument = field not submitted (update keeps the stored value); an empty
+        // string clears it; letters set it.
+        var country = countryCode is null
+            ? null
+            : ((countryCode ?? string.Empty).Trim().ToUpperInvariant() is { Length: 2 } c && c.All(ch => ch is >= 'A' and <= 'Z') ? c : null);
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -360,7 +363,7 @@ public sealed class CpStorageWriteService : ICpStorageWriteService
                 connection,
                 null,
                 ErpDb.Positional(
-                    hasCountry
+                    hasCountry && countryCode is not null
                         ? """
                           UPDATE `shop_storages`
                           SET `name` = ?, `interface_type` = ?, `users` = ?, `connection_options` = ?,
@@ -374,7 +377,7 @@ public sealed class CpStorageWriteService : ICpStorageWriteService
                           WHERE `id` = ?
                           """),
                 cancellationToken,
-                hasCountry
+                hasCountry && countryCode is not null
                     ? new object?[] { caption, type, users.Json, options.Json, currencyId, shortCaption, hiddenFlag, bgLineColor, country, storageId }
                     : new object?[] { caption, type, users.Json, options.Json, currencyId, shortCaption, hiddenFlag, bgLineColor, storageId }).ConfigureAwait(false);
             return rows > 0
