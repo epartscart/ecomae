@@ -1455,8 +1455,15 @@ app.Use(async (context, next) =>
             .Select(p => p[(name.Length + 1)..].Trim())
             .FirstOrDefault(v => v.Length > 0);
 
-        // An explicit currency or country choice (with a value) always wins over the host.
-        if (CookieValue("epc_country") is null && CookieValue("epc_currency") is null)
+        var userCurrency = CookieValue("epc_currency");
+        var userCountry = CookieValue("epc_country");
+        var hostSeed = CookieValue("epc_currency_host");
+        // Seed when the visitor has not chosen (fresh), or when the cookie still holds a value
+        // WE seeded earlier (hostSeed marker) — so a currency config change refreshes it.
+        // A currency the visitor picked themselves (epc_currency != epc_currency_host) always wins.
+        var shouldSeed = (userCurrency is null && userCountry is null)
+            || (userCurrency is not null && string.Equals(userCurrency, hostSeed, StringComparison.Ordinal));
+        if (shouldSeed)
         {
             // Seed only when the tenant actually runs this country storefront — a deactivated
             // country host resolves to the default country and must not get a foreign currency.
@@ -1471,23 +1478,23 @@ app.Use(async (context, next) =>
                 // default) so custom codes and overrides like qa→USD render correctly.
                 var iso = EcomAE.Platform.Storefront.EpcCurrency.IsoForAlpha(country.CurrencyCode)
                     ?? (EcomAE.Platform.Storefront.EpcCurrency.CountryMap.TryGetValue(country.CountryCode, out var mapped) ? mapped : null);
-                if (iso is not null)
+                if (iso is not null && !string.Equals(userCurrency, iso, StringComparison.Ordinal))
                 {
                     var kept = parts
                         .Select(p => p.TrimStart())
                         .Where(p => !p.StartsWith("epc_country=", StringComparison.OrdinalIgnoreCase)
-                            && !p.StartsWith("epc_currency=", StringComparison.OrdinalIgnoreCase));
+                            && !p.StartsWith("epc_currency=", StringComparison.OrdinalIgnoreCase)
+                            && !p.StartsWith("epc_currency_host=", StringComparison.OrdinalIgnoreCase));
                     context.Request.Headers.Cookie = string.Join("; ", kept.Append($"epc_currency={iso}"));
-                    context.Response.Cookies.Append(
-                        "epc_currency",
-                        iso,
-                        new CookieOptions
-                        {
-                            Path = "/",
-                            MaxAge = TimeSpan.FromDays(365),
-                            SameSite = SameSiteMode.Lax,
-                            Secure = true,
-                        });
+                    var options = new CookieOptions
+                    {
+                        Path = "/",
+                        MaxAge = TimeSpan.FromDays(365),
+                        SameSite = SameSiteMode.Lax,
+                        Secure = true,
+                    };
+                    context.Response.Cookies.Append("epc_currency", iso, options);
+                    context.Response.Cookies.Append("epc_currency_host", iso, options);
                 }
             }
         }
