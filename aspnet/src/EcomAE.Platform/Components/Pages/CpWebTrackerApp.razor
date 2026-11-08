@@ -625,7 +625,12 @@
         }
 
         var host = ctx.Request.Host.Host;
-        var own = CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(host);
+        // Domain-mapped tenants (auto247.ae/pk/com.pk) resolve their site_key through the
+        // registry domain map — trust the bound tenant context before the hostname heuristic.
+        var own = ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey]
+            is EcomAE.Platform.Services.TenantContext { Mode: EcomAE.Platform.Services.TenantMode.LiveTenant, SiteKey: { Length: > 0 } boundKey }
+            ? boundKey
+            : CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(host);
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         _isSuper = PlatformHostPolicy.IsSuperCpHost(host);
