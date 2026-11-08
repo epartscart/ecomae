@@ -52,7 +52,7 @@ cnf.close()
 os.chmod(cnf.name, 0o600)
 
 def run_mysql(sql, db=database, silent=False):
-    cmd = ["mysql", "-N", "--defaults-extra-file=" + cnf.name, "-h", host, "-P", port, db, "-e", sql]
+    cmd = ["mysql", "--defaults-extra-file=" + cnf.name, "-N", "-h", host, "-P", port, db, "-e", sql]
     p = subprocess.run(cmd, capture_output=True, text=True)
     if p.returncode != 0:
         if not silent:
