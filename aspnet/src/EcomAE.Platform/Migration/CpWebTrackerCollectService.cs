@@ -171,13 +171,17 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
         _log = log;
     }
 
-    public static string BuildBeaconConfigJson(string? host, int userId)
+    public static string BuildBeaconConfigJson(string? host, int userId, string? siteKey = null)
     {
         var hostname = NormalizeHost(host);
         var cfg = new Dictionary<string, object?>
         {
             ["endpoint"] = EcomAeRoutes.WebTrackerCollectPhp,
-            ["site_key"] = CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(host),
+            // siteKey comes from the resolved tenant context on domain-mapped hosts
+            // (auto247.ae → auto247); the hostname heuristic would mint "auto247_ae".
+            ["site_key"] = !string.IsNullOrEmpty(siteKey)
+                ? NormalizeSiteKey(siteKey)
+                : CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(host),
             ["hostname"] = hostname,
             ["user_id"] = userId > 0 ? userId : 0,
             ["is_registered"] = userId > 0,

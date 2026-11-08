@@ -89,6 +89,16 @@ public sealed class DbBackedTenantRegistry : ITenantRegistry
                 }
             }
 
+            // Multi-domain tenants (auto247.ae / auto247.pk / auto247.com.pk → site_key auto247):
+            // distinct domains can't alias through hostname normalization, so a registry-level
+            // domain map binds each hostname to the tenant's site_key, then the tenant row
+            // resolves exactly like a primary hostname match.
+            if (record is null)
+            {
+                record = await TryReadByDomainMapAsync(connection, aliases, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
             if (record is not null)
             {
                 _cache.Set(cacheKey, record, new MemoryCacheEntryOptions
@@ -104,6 +114,74 @@ public sealed class DbBackedTenantRegistry : ITenantRegistry
         }
 
         return await _seed.FindByHostAsync(normalized, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Domain map fallback: <c>epc_tenant_domains</c> binds arbitrary hostnames to a site_key,
+    /// then the tenant row itself is read by site_key. A missing table (older registry) just
+    /// misses like an unmapped host.
+    /// </summary>
+    private static async Task<TenantRegistryRecord?> TryReadByDomainMapAsync(
+        DbConnection connection,
+        IReadOnlyList<string> aliases,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var lookup = connection.CreateCommand();
+            var names = new string[aliases.Count];
+            for (var i = 0; i < aliases.Count; i++)
+            {
+                var name = "@d" + i;
+                names[i] = name;
+                var p = lookup.CreateParameter();
+                p.ParameterName = name;
+                p.Value = aliases[i];
+                lookup.Parameters.Add(p);
+            }
+
+            lookup.CommandText = "SELECT `site_key`, `hostname` FROM `epc_tenant_domains` "
+                + "WHERE `is_active` = 1 AND `hostname` IN (" + string.Join(",", names) + ") "
+                + "ORDER BY CASE WHEN `hostname` = @d0 THEN 0 ELSE 1 END LIMIT 1";
+
+            await using var reader = await lookup.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            var siteKey = Convert.ToString(reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty;
+            var mappedHost = Convert.ToString(reader["hostname"], CultureInfo.InvariantCulture) ?? string.Empty;
+            if (siteKey.Length == 0)
+            {
+                return null;
+            }
+
+            await reader.DisposeAsync().ConfigureAwait(false);
+            await using var byKey = connection.CreateCommand();
+            byKey.CommandText = PortalTenantSql.SelectTenantBySiteKey;
+            var sk = byKey.CreateParameter();
+            sk.ParameterName = "@siteKey";
+            sk.Value = siteKey;
+            byKey.Parameters.Add(sk);
+            await using var keyReader = await byKey.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await keyReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            var row = ReadRow(keyReader);
+            if (!row.IsActive || row.Status is not ("dns_pending" or "live"))
+            {
+                return null;
+            }
+
+            return row.ToTenantRegistryRecord() with { Host = PlatformHostPolicy.NormalizeHost(mappedHost) };
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static async Task<TenantRegistryRecord?> TryReadByHostsAsync(

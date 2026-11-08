@@ -234,11 +234,16 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
 
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IMemoryCache _cache;
+    private readonly EcomAE.Platform.Data.ITenantDbConnectionFactory? _registryConnections;
 
-    public StorefrontCountryService(IErpWriteConnectionFactory connections, IMemoryCache cache)
+    public StorefrontCountryService(
+        IErpWriteConnectionFactory connections,
+        IMemoryCache cache,
+        EcomAE.Platform.Data.ITenantDbConnectionFactory? registryConnections = null)
     {
         _connections = connections;
         _cache = cache;
+        _registryConnections = registryConnections;
     }
 
     public async Task<StorefrontCountry> ResolveAsync(string host, CancellationToken cancellationToken = default)
@@ -269,6 +274,41 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
             if (!hasRow)
             {
                 return StorefrontCountryDefaults.Default(subdomain);
+            }
+        }
+        else
+        {
+            // Domain-mapped storefronts (auto247.pk → PK): the registry domain map pins a
+            // country code for a whole domain — same effect as a {cc}. subdomain.
+            var mappedCode = await ResolveDomainMapCountryCodeAsync(host, cancellationToken).ConfigureAwait(false);
+            if (mappedCode is { Length: 2 })
+            {
+                var hasRow = false;
+                foreach (var country in countries)
+                {
+                    if (string.Equals(StorefrontCountryDefaults.CanonicalCode(country.CountryCode), mappedCode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        hasRow = true;
+                        if (country.IsActive)
+                        {
+                            return country;
+                        }
+                    }
+                }
+
+                // Tenant has no row for the mapped country — fall back to the built-in for it.
+                // An inactive (deleted) row falls through to the default like a removed
+                // subdomain country — deleting the mapping must stop serving that country.
+                if (!hasRow)
+                {
+                    foreach (var builtin in StorefrontCountryDefaults.All)
+                    {
+                        if (string.Equals(StorefrontCountryDefaults.CanonicalCode(builtin.CountryCode), mappedCode, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return builtin;
+                        }
+                    }
+                }
             }
         }
 
@@ -434,6 +474,42 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
         catch (DbException)
         {
             return "default";
+        }
+    }
+
+    /// <summary>
+    /// Registry domain map (<c>epc_tenant_domains</c>): country pinned to a whole domain
+    /// (auto247.pk → PK) — the multi-domain counterpart of the {cc}. subdomain rule.
+    /// </summary>
+    private async Task<string?> ResolveDomainMapCountryCodeAsync(string host, CancellationToken cancellationToken)
+    {
+        if (_registryConnections is null || !_registryConnections.IsConfigured)
+        {
+            return null;
+        }
+
+        try
+        {
+            await using var connection = await _registryConnections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `country_code` FROM `epc_tenant_domains` "
+                + "WHERE `is_active` = 1 AND `country_code` <> '' AND `hostname` IN (@h0, @h1) LIMIT 1";
+            var h0 = command.CreateParameter();
+            h0.ParameterName = "@h0";
+            h0.Value = host.Trim().ToLowerInvariant();
+            command.Parameters.Add(h0);
+            var h1 = command.CreateParameter();
+            h1.ParameterName = "@h1";
+            var bare = h0.Value.ToString()!;
+            h1.Value = bare.StartsWith("www.", StringComparison.Ordinal) ? bare[4..] : "www." + bare;
+            command.Parameters.Add(h1);
+            var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            var code = Convert.ToString(value, CultureInfo.InvariantCulture)?.Trim().ToUpperInvariant();
+            return code is { Length: 2 } ? code : null;
+        }
+        catch
+        {
+            return null;
         }
     }
 
