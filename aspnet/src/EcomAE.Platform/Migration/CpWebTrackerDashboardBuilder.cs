@@ -502,6 +502,7 @@ public static class CpWebTrackerDashboardBuilder
         try
         {
             await using var cmd = connection.CreateCommand();
+            cmd.CommandTimeout = 45;
             if (fromUnix > 0 && toUnix > 0 && toUnix >= fromUnix)
             {
                 cmd.CommandText = """
@@ -1216,6 +1217,7 @@ public static class CpWebTrackerDashboardBuilder
         try
         {
             await using var cmd = connection.CreateCommand();
+            cmd.CommandTimeout = 45;
             cmd.CommandText = """
                 SELECT DISTINCT IFNULL(`site_key`,'') AS site_key
                 FROM `epc_web_tracker_sessions`
@@ -1269,10 +1271,10 @@ public static class CpWebTrackerDashboardBuilder
 
     private static void Bind(DbCommand cmd, List<(string Name, object Value)> parameters)
     {
-        if (cmd.CommandTimeout is 0 or 30)
-        {
-            cmd.CommandTimeout = 45;
-        }
+        // Tracker dashboard runs heavy analytics on a first-paint request — the
+        // ErpFirstPaint budget clamps DefaultCommandTimeout to ~1s, so always
+        // force the analytics cap here instead of only patching 0/30 defaults.
+        cmd.CommandTimeout = 45;
 
         foreach (var (name, value) in parameters)
         {
@@ -1282,10 +1284,7 @@ public static class CpWebTrackerDashboardBuilder
 
     private static void Add(DbCommand command, string name, object value)
     {
-        if (command.CommandTimeout is 0 or 30)
-        {
-            command.CommandTimeout = 45;
-        }
+        command.CommandTimeout = 45;
 
         var parameter = command.CreateParameter();
         parameter.ParameterName = name;

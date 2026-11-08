@@ -13,7 +13,7 @@
 
 <PageTitle>Workshop · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
+
     <link rel="stylesheet" href="/platform-assets/epc_workshop.css?v=20260922ws" />
     <style>
         .epc-ws-admin { margin-top:1rem; }
@@ -22,8 +22,6 @@
         .epc-ws-admin label { display:flex; flex-direction:column; gap:.15rem; font-size:.75rem; color:#475569; }
         .epc-ws-admin input, .epc-ws-admin select, .epc-ws-admin textarea { min-width:6rem; padding:.3rem .4rem; border:1px solid #cbd5e1; border-radius:.35rem; font-size:.8rem; }
     </style>
-</HeadContent>
-
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))

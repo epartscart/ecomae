@@ -31,11 +31,10 @@ public sealed class LifeOsPremiumInfographicHomeTests
     {
         var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/LifeOsHomeApp.razor");
         Assert.Contains("body-inline", text, StringComparison.Ordinal);
-        var close = text.IndexOf("</HeadContent>", StringComparison.Ordinal);
-        Assert.True(close > 0);
-        var after = text[(close + "</HeadContent>".Length)..];
-        Assert.Contains("<style>", after, StringComparison.Ordinal);
-        Assert.Contains("--lo-black", after, StringComparison.Ordinal);
+        Assert.DoesNotContain("<HeadContent", text, StringComparison.Ordinal);
+        var body = text[text.IndexOf("body-inline", StringComparison.Ordinal)..];
+        Assert.Contains("<style>", body, StringComparison.Ordinal);
+        Assert.Contains("--lo-black", body, StringComparison.Ordinal);
     }
 
     [Fact]

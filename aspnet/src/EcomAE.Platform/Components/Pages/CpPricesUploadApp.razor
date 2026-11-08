@@ -22,7 +22,7 @@
 
 <PageTitle>Price lists · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
+
     <link rel="stylesheet" href="/epc-static.php?f=cp/content/shop/prices_upload/epc_prices_cp.css&amp;v=20260904ways" />
     <style>
         .epc-prices-page { --epc-p-ink:#0f172a; --epc-p-muted:#64748b; --epc-p-line:#e2e8f0; --epc-p-soft:#f8fafc; }
@@ -56,12 +56,36 @@
         .epc-prices-flash-ok { margin:0 0 1rem; padding:.7rem .9rem; border-radius:.4rem; background:#ecfdf5; color:#065f46; }
         .epc-prices-flash-err { margin:0 0 1rem; padding:.7rem .9rem; border-radius:.4rem; background:#fef2f2; color:#991b1b; }
         .epc-prices-complete { display:flex; flex-wrap:wrap; gap:.4rem; align-items:end; margin:0 0 1rem; }
+        /* Redesign: hero, card forms, aligned fields, clear buttons */
+        .epc-prices-hero { display:flex; flex-wrap:wrap; align-items:center; gap:14px; margin:0 0 1rem; padding:1.05rem 1.25rem; border-radius:14px; color:#f8fafc;
+            background:radial-gradient(900px 220px at 90% -20%, rgba(56,189,248,.30), transparent 55%), linear-gradient(135deg,#0f172a 0%,#1d4ed8 55%,#0c4a6e 100%);
+            box-shadow:0 12px 30px rgba(15,23,42,.20); }
+        .epc-prices-hero__mark { width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.14); font-size:20px; }
+        .epc-prices-hero__name { font-size:22px; font-weight:800; letter-spacing:-.02em; line-height:1.15; }
+        .epc-prices-hero__sub { margin-top:3px; font-size:12.5px; opacity:.92; max-width:72ch; }
+        .epc-prices-page h2 { display:flex; align-items:center; gap:.45rem; font-size:1rem !important; font-weight:800; color:var(--epc-p-ink); }
+        .epc-prices-page form:not([style*="display:inline"]) { background:#fff; border:1px solid var(--epc-p-line); border-radius:.6rem; padding:.85rem .95rem; margin:0 0 1rem; box-shadow:0 4px 14px rgba(15,23,42,.04); }
+        .epc-prices-page label:not(.epc-price-action) { display:inline-flex; flex-direction:column; gap:.18rem; font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--epc-p-muted); }
+        .epc-prices-page input:not([type=hidden]):not([type=file]), .epc-prices-page select { border:1px solid #cbd5e1; border-radius:.42rem; padding:.42rem .55rem; font-size:.84rem; background:#fff; color:var(--epc-p-ink); }
+        .epc-prices-page input:focus, .epc-prices-page select:focus { border-color:#2563eb; outline:none; box-shadow:0 0 0 3px rgba(37,99,235,.12); }
+        .epc-prices-page input[type=file] { font-size:.8rem; color:var(--epc-p-muted); }
+        .epc-prices-page button:not(.epc-price-action) { border:1px solid #1d4ed8; background:linear-gradient(135deg,#2563eb,#1d4ed8); color:#fff; font-weight:700; font-size:.8rem; padding:.46rem .9rem; border-radius:.45rem; cursor:pointer; }
+        .epc-prices-page button:not(.epc-price-action):hover { background:#1e40af; }
+        .epc-prices-table tbody tr:hover td { background:#f8fafc; }
+        .epc-prices-page a:not(.btn):not(.epc-price-action) { color:#1d4ed8; }
+        .epc-prices-kpi { display:flex; align-items:center; gap:.6rem; }
+        .epc-prices-kpi strong { font-size:1.35rem; color:var(--epc-p-ink); }
         @@media (max-width:900px){ .epc-prices-kpis{grid-template-columns:1fr;} }
     </style>
-</HeadContent>
-
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
     <div class="epc-prices-page" data-epc-prices-ssr="1">
+        <div class="epc-prices-hero">
+            <div class="epc-prices-hero__mark" aria-hidden="true"><i class="fa fa-upload"></i></div>
+            <div>
+                <div class="epc-prices-hero__name">Price lists &amp; uploads</div>
+                <div class="epc-prices-hero__sub">Import supplier price files by PC, FTP, e-mail or URL, schedule automatic updates, and control which warehouse offers appear on the storefront.</div>
+            </div>
+        </div>
         <div class="epc-prices-toolbar" role="navigation" aria-label="Price list tools">
             <a href="/cp/shop/prices"><i class="fa fa-list"></i> Price lists</a>
             <a href="/cp/shop/prices/price"><i class="fa fa-plus"></i> Add list</a>

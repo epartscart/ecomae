@@ -15,7 +15,7 @@
 
 <PageTitle>Enterprise CRM · @(Http.HttpContext?.Request.Path.StartsWithSegments("/erp") == true ? "ERP" : "Control Panel") · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
+
     <link rel="stylesheet" href="/platform-assets/epc_erp_ui.css?v=20260922crm" />
     <link rel="stylesheet" href="/platform-assets/epc_crm_ui.css?v=20260922crm" />
     <link rel="stylesheet" href="/platform-assets/epc_erp_professional.css?v=20260922crm" />
@@ -39,8 +39,6 @@
         .epc-crm-tl-item .tl-meta { font-size: 11px; color: #888; }
         .epc-crm-convert-form { display: inline; margin: 0; }
     </style>
-</HeadContent>
-
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     @if (!_isAdmin)
