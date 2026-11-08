@@ -1,0 +1,262 @@
+/* Auto247 tenant theme — premium blue & white automotive skin over the nero
+   storefront shell. Only emitted for site_key=auto247 (see PhpSurfaceHead).
+   Scoped under body.epc-storefront--auto247 so it cannot leak to other tenants. */
+
+:root {
+  --auto247-blue: #1d4ed8;
+  --auto247-blue-dark: #1e3a8a;
+  --auto247-blue-deep: #172554;
+  --auto247-blue-light: #3b82f6;
+  --auto247-blue-sky: #60a5fa;
+  --auto247-blue-soft: #eff6ff;
+  --auto247-blue-line: #bfdbfe;
+  --auto247-white: #ffffff;
+  --auto247-ink: #0b1220;
+  --auto247-text: #1e293b;
+  --auto247-muted: #64748b;
+}
+
+/* ---------- Page canvas: light premium ---------- */
+body.epc-storefront--auto247 {
+    background: linear-gradient(180deg, #f8fbff 0%, #f1f6fd 40%, #ffffff 100%) !important;
+    color: var(--auto247-text) !important;
+}
+
+/* ---------- Top navigation: solid premium blue ---------- */
+body.epc-storefront--auto247 .navbar.navbar-default,
+body.epc-storefront--auto247 .navbar.navbar-default.navbar-header-full,
+body.epc-storefront--auto247 .top-menu-line {
+    background: linear-gradient(90deg, var(--auto247-blue-deep) 0%, var(--auto247-blue-dark) 45%, var(--auto247-blue) 100%) !important;
+    border-color: rgba(255, 255, 255, .14) !important;
+    box-shadow: 0 2px 12px rgba(23, 37, 84, .25) !important;
+}
+
+body.epc-storefront--auto247 .navbar-default .navbar-nav > li > a {
+    color: #dbeafe !important;
+}
+
+body.epc-storefront--auto247 .navbar-default .navbar-nav > li > a:hover,
+body.epc-storefront--auto247 .navbar-default .navbar-nav > li > a:focus,
+body.epc-storefront--auto247 .navbar-default .navbar-nav > .open > a {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, .14) !important;
+}
+
+body.epc-storefront--auto247 .navbar-default .navbar-nav > li > a:after {
+    border-left-color: rgba(255, 255, 255, .22) !important;
+}
+
+body.epc-storefront--auto247 .epc-nero-top-actions .new-header-user-box a {
+    color: #dbeafe !important;
+}
+
+body.epc-storefront--auto247 .epc-nero-top-actions .new-header-user-box a:hover {
+    color: #ffffff !important;
+}
+
+/* ---------- Every red CTA -> blue ---------- */
+body.epc-storefront--auto247 .dropdown-cat-btn,
+body.epc-storefront--auto247 .header-cat-btn,
+body.epc-storefront--auto247 #dp_menu > a,
+body.epc-storefront--auto247 .header-call-box,
+body.epc-storefront--auto247 .header-call-box a,
+body.epc-storefront--auto247 .btn.btn-ar.btn-primary,
+body.epc-storefront--auto247 .btn.btn-xs.btn-primary,
+body.epc-storefront--auto247 .btn.btn-primary,
+body.epc-storefront--auto247 #epc-vc-search-go,
+body.epc-storefront--auto247 .epc-header-search__go,
+body.epc-storefront--auto247 .section-vin__btn,
+body.epc-storefront--auto247 .epc-vc-promo-vin-btn {
+    background: linear-gradient(180deg, var(--auto247-blue-light), var(--auto247-blue)) !important;
+    border-color: var(--auto247-blue) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(29, 78, 216, .28) !important;
+}
+
+body.epc-storefront--auto247 .dropdown-cat-btn:hover,
+body.epc-storefront--auto247 .header-cat-btn:hover,
+body.epc-storefront--auto247 .header-call-box:hover,
+body.epc-storefront--auto247 .btn.btn-primary:hover,
+body.epc-storefront--auto247 .section-vin__btn:hover {
+    background: var(--auto247-blue-dark) !important;
+    border-color: var(--auto247-blue-dark) !important;
+}
+
+/* Success/green actions -> sky blue (WhatsApp keeps green intent but goes brand-safe) */
+body.epc-storefront--auto247 .btn.btn-xs.btn-success,
+body.epc-storefront--auto247 .btn.btn-success {
+    background: linear-gradient(180deg, var(--auto247-blue-sky), var(--auto247-blue-light)) !important;
+    border-color: var(--auto247-blue-light) !important;
+    color: #ffffff !important;
+}
+
+/* ---------- Search strip: dark -> blue panel ---------- */
+body.epc-storefront--auto247 .header-search-box.epc-header-search,
+body.epc-storefront--auto247 #epc-header-search {
+    background: linear-gradient(120deg, var(--auto247-blue-deep) 0%, var(--auto247-blue-dark) 60%, var(--auto247-blue) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, .10) !important;
+    border-radius: 10px !important;
+}
+
+body.epc-storefront--auto247 .epc-header-search__tab {
+    color: #dbeafe !important;
+    border-color: rgba(255, 255, 255, .22) !important;
+    background: rgba(255, 255, 255, .06) !important;
+}
+
+body.epc-storefront--auto247 .epc-header-search__tab:hover,
+body.epc-storefront--auto247 .epc-header-search__tab.active {
+    color: var(--auto247-blue) !important;
+    background: #ffffff !important;
+}
+
+body.epc-storefront--auto247 .epc-header-search .form-control {
+    border-color: rgba(255, 255, 255, .2) !important;
+}
+
+/* ---------- Piston hero: black card -> white premium card + blue visual ---------- */
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro {
+    background: #ffffff !important;
+    border: 1px solid var(--auto247-blue-line) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 18px 46px rgba(30, 58, 138, .14) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro .container:before {
+    background:
+        radial-gradient(circle at 15% 20%, rgba(59, 130, 246, .10), transparent 30%),
+        radial-gradient(circle at 85% 10%, rgba(147, 197, 253, .14), transparent 32%),
+        linear-gradient(135deg, rgba(255, 255, 255, .96), rgba(239, 246, 255, .85)) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro__eyebrow {
+    background: var(--auto247-blue-soft) !important;
+    color: var(--auto247-blue) !important;
+    border: 1px solid var(--auto247-blue-line) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro h2 {
+    color: var(--auto247-blue-deep) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro__copy {
+    color: var(--auto247-muted) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro__btn--primary {
+    background: linear-gradient(180deg, var(--auto247-blue-light), var(--auto247-blue)) !important;
+    color: #ffffff !important;
+    border-color: var(--auto247-blue) !important;
+    box-shadow: 0 8px 20px rgba(29, 78, 216, .30) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro__btn--primary:hover {
+    background: var(--auto247-blue-dark) !important;
+    color: #ffffff !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro__btn--ghost {
+    border-color: var(--auto247-blue-line) !important;
+    color: var(--auto247-blue) !important;
+    background: #ffffff !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro__btn--ghost:hover {
+    background: var(--auto247-blue-soft) !important;
+    border-color: var(--auto247-blue) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro__stat {
+    background: var(--auto247-blue-soft) !important;
+    border: 1px solid var(--auto247-blue-line) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro__stat strong {
+    color: var(--auto247-blue-deep) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro__stat span {
+    color: var(--auto247-muted) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro__visual {
+    background:
+        radial-gradient(circle at 75% 30%, rgba(59, 130, 246, .35), transparent 30%),
+        radial-gradient(circle at 18% 20%, rgba(147, 197, 253, .30), transparent 32%),
+        linear-gradient(150deg, var(--auto247-blue-dark), var(--auto247-blue-deep) 65%, #0b1a4a) !important;
+    border: 1px solid rgba(59, 130, 246, .35) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06), 0 14px 34px rgba(23, 37, 84, .28) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-engine-spark,
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-engine-part {
+    background: var(--auto247-blue-sky) !important;
+}
+
+/* ---------- Home banners -> brand blues ---------- */
+body.epc-storefront--auto247 .epc-home-banner--blue {
+    background: linear-gradient(135deg, var(--auto247-blue), var(--auto247-blue-light)) !important;
+}
+
+body.epc-storefront--auto247 .epc-home-banner--dark {
+    background: linear-gradient(135deg, var(--auto247-blue-deep), var(--auto247-blue-dark)) !important;
+}
+
+body.epc-storefront--auto247 .epc-home-banner--red {
+    background: linear-gradient(135deg, var(--auto247-blue-dark), var(--auto247-blue)) !important;
+}
+
+body.epc-storefront--auto247 .epc-home-banner--green {
+    background: linear-gradient(135deg, #2563eb, #60a5fa) !important;
+}
+
+/* ---------- Section accents ---------- */
+body.epc-storefront--auto247 .section-title {
+    border-bottom-color: var(--auto247-blue) !important;
+}
+
+body.epc-storefront--auto247 .section-title:before {
+    color: var(--auto247-blue) !important;
+}
+
+body.epc-storefront--auto247 .nav-tabs > li.active > a,
+body.epc-storefront--auto247 .nav-tabs > li.active > a:focus,
+body.epc-storefront--auto247 .nav-tabs > li.active > a:hover {
+    border-bottom-color: var(--auto247-blue) !important;
+    color: var(--auto247-blue-dark) !important;
+}
+
+body.epc-storefront--auto247 .nav-tabs + .tab-content {
+    border-color: var(--auto247-blue-line) !important;
+}
+
+body.epc-storefront--auto247 a:not(.btn):hover,
+body.epc-storefront--auto247 .epart-front-section-link,
+body.epc-storefront--auto247 .epc-home-banner__icon {
+    color: var(--auto247-blue) !important;
+}
+
+body.epc-storefront--auto247 .epart-front-section-link {
+    color: var(--auto247-blue) !important;
+}
+
+/* ---------- Footer / bottom dock ---------- */
+body.epc-storefront--auto247 .epc-footer,
+body.epc-storefront--auto247 footer,
+body.epc-storefront--auto247 .epc-bottom-dock,
+body.epc-storefront--auto247 .epc-footer-menu {
+    background: linear-gradient(90deg, var(--auto247-blue-deep), var(--auto247-blue-dark)) !important;
+    color: #dbeafe !important;
+}
+
+/* ---------- Inputs ---------- */
+body.epc-storefront--auto247 .form-control:focus {
+    border-color: var(--auto247-blue) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, .18) !important;
+}
+
+/* ---------- Loader / misc brand bits ---------- */
+body.epc-storefront--auto247 .productsCountBox > a,
+body.epc-storefront--auto247 .productsCountBox > a:hover {
+    background: var(--auto247-blue) !important;
+}
