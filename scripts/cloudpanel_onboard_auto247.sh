@@ -45,8 +45,12 @@ if not user:
     print("RESULT=FAIL TenantRegistry CS has no user")
     raise SystemExit(1)
 
+# MYSQL_PWD keeps credentials out of the process list.
+import os
+os.environ["MYSQL_PWD"] = password
+
 def run_mysql(sql, db=database, silent=False):
-    cmd = ["mysql", "-h", host, "-P", port, "-u", user, f"-p{password}", db, "-e", sql]
+    cmd = ["mysql", "-N", "-h", host, "-P", port, "-u", user, db, "-e", sql]
     p = subprocess.run(cmd, capture_output=True, text=True)
     if p.returncode != 0:
         if not silent:
@@ -68,13 +72,13 @@ else:
     print("CREATE DATABASE auto247 + clone docpart schema ...")
     run_mysql(f"CREATE DATABASE IF NOT EXISTS `{SITE}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", db="mysql")
     dump = subprocess.run(
-        ["mysqldump", "-h", host, "-P", port, "-u", user, f"-p{password}",
+        ["mysqldump", "-h", host, "-P", port, "-u", user,
          "--no-data", "--skip-lock-tables", "--single-transaction", "docpart"],
         capture_output=True, text=True)
     if dump.returncode != 0 or not dump.stdout.strip():
         print("RESULT=FAIL mysqldump docpart:", dump.stderr.strip()[:300]); raise SystemExit(1)
     load = subprocess.run(
-        ["mysql", "-h", host, "-P", port, "-u", user, f"-p{password}", SITE],
+        ["mysql", "-h", host, "-P", port, "-u", user, SITE],
         input=dump.stdout, capture_output=True, text=True)
     if load.returncode != 0:
         print("RESULT=FAIL schema load:", load.stderr.strip()[:300]); raise SystemExit(1)

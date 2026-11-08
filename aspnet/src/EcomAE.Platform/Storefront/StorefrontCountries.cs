@@ -283,21 +283,30 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
             var mappedCode = await ResolveDomainMapCountryCodeAsync(host, cancellationToken).ConfigureAwait(false);
             if (mappedCode is { Length: 2 })
             {
+                var hasRow = false;
                 foreach (var country in countries)
                 {
-                    if (country.IsActive
-                        && string.Equals(StorefrontCountryDefaults.CanonicalCode(country.CountryCode), mappedCode, StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(StorefrontCountryDefaults.CanonicalCode(country.CountryCode), mappedCode, StringComparison.OrdinalIgnoreCase))
                     {
-                        return country;
+                        hasRow = true;
+                        if (country.IsActive)
+                        {
+                            return country;
+                        }
                     }
                 }
 
                 // Tenant has no row for the mapped country — fall back to the built-in for it.
-                foreach (var builtin in StorefrontCountryDefaults.All)
+                // An inactive (deleted) row falls through to the default like a removed
+                // subdomain country — deleting the mapping must stop serving that country.
+                if (!hasRow)
                 {
-                    if (string.Equals(StorefrontCountryDefaults.CanonicalCode(builtin.CountryCode), mappedCode, StringComparison.OrdinalIgnoreCase))
+                    foreach (var builtin in StorefrontCountryDefaults.All)
                     {
-                        return builtin;
+                        if (string.Equals(StorefrontCountryDefaults.CanonicalCode(builtin.CountryCode), mappedCode, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return builtin;
+                        }
                     }
                 }
             }

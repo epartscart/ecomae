@@ -14,6 +14,10 @@
     protected override void OnParametersSet()
     {
         var host = Http.HttpContext?.Request.Host.Host ?? string.Empty;
-        _json = CpWebTrackerCollectService.BuildBeaconConfigJson(host, UserId);
+        var siteKey = Http.HttpContext?.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey]
+            is EcomAE.Platform.Services.TenantContext { Mode: EcomAE.Platform.Services.TenantMode.LiveTenant, SiteKey: { Length: > 0 } bound }
+            ? bound
+            : null;
+        _json = CpWebTrackerCollectService.BuildBeaconConfigJson(host, UserId, siteKey);
     }
 }
