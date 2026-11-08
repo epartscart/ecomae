@@ -86,8 +86,9 @@ else:
         print("RESULT=FAIL schema load:", load.stderr.strip()[:300]); raise SystemExit(1)
 
     db_pass = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
-    run_mysql(f"CREATE USER IF NOT EXISTS '{SITE}'@'localhost' IDENTIFIED BY '{db_pass}'", db="mysql", silent=True)
-    run_mysql(f"CREATE USER IF NOT EXISTS '{SITE}'@'127.0.0.1' IDENTIFIED BY '{db_pass}'", db="mysql", silent=True)
+    # mysql_native_password — the Kestrel client can't do caching_sha2 without TLS.
+    run_mysql(f"CREATE USER IF NOT EXISTS '{SITE}'@'localhost' IDENTIFIED WITH mysql_native_password BY '{db_pass}'", db="mysql", silent=True)
+    run_mysql(f"CREATE USER IF NOT EXISTS '{SITE}'@'127.0.0.1' IDENTIFIED WITH mysql_native_password BY '{db_pass}'", db="mysql", silent=True)
     run_mysql(f"GRANT ALL PRIVILEGES ON `{SITE}`.* TO '{SITE}'@'localhost'", db="mysql")
     run_mysql(f"GRANT ALL PRIVILEGES ON `{SITE}`.* TO '{SITE}'@'127.0.0.1'", db="mysql")
     run_mysql("FLUSH PRIVILEGES", db="mysql", silent=True)
