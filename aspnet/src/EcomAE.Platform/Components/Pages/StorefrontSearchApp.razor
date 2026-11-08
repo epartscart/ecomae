@@ -23,24 +23,7 @@
 
 <PageTitle>@PageTitleText</PageTitle>
 <PhpChromeStyles Surface="storefront" />
-<HeadContent>
-@if (_emitChpuSeo)
-{
-    <meta name="robots" content="@_chpuRobots" />
-    <meta name="description" content="@_chpuDescription" />
-    <meta name="keywords" content="@_chpuKeywords" />
-    <link rel="canonical" href="@_chpuCanonical" />
-    <meta property="og:type" content="product" />
-    <meta property="og:url" content="@_chpuCanonical" />
-    <meta property="og:title" content="@PageTitleText" />
-    <meta property="og:description" content="@_chpuDescription" />
-    @foreach (var alt in _chpuHreflang)
-    {
-        <link rel="alternate" hreflang="@alt.Hreflang" href="@alt.Href" />
-    }
-    @((MarkupString)_chpuHeadExtras)
-    @((MarkupString)_chpuJsonLd)
-}
+@* SEO meta stays in the body-stream fallback below — live SSR drops HeadContent. *@
 <link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260904-purchase" />
 <link rel="stylesheet" href="/platform-assets/epc_sku_media.css?v=20260812-fitment-sku" />
 <style>
@@ -90,8 +73,6 @@
         .epc-sf-attr-table a { color:#b91c1c; font-weight:700; text-decoration:none; }
         .epc-sf-attr-chip { display:inline-block; background:#f1f5f9; border-radius:.35rem; padding:.1rem .45rem; font-size:.75rem; font-weight:700; color:#334155; }
 </style>
-</HeadContent>
-
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
 @* Body-stream SEO fallback — live SSR often drops late HeadContent while body chrome survives. *@

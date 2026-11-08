@@ -14,7 +14,7 @@
 
 <PageTitle>POS Terminal · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
+
     <link rel="stylesheet" href="/platform-assets/epc_pos.css?v=20260922pos" />
 <style>
         .epc-pos-admin { margin-top:1rem; }
@@ -28,9 +28,6 @@
         .epc-pos-form button { padding:.4rem .7rem; border:0; border-radius:.35rem; background:#0c4a6e; color:#fff; font-weight:700; font-size:.8rem; cursor:pointer; }
         @@media (max-width:900px){ .epc-pos-forms{grid-template-columns:1fr;} }
 </style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin">
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))

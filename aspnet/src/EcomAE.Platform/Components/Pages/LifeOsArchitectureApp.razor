@@ -19,7 +19,7 @@
 <PhpSurfaceHead Surface="lifeos" />
 <PhpChromeBodyClass Surface="lifeos" />
 
-<HeadContent>
+
 <link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
 <style>
 :root {
@@ -88,8 +88,6 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
   background:#ecfdf5; color:var(--lo-sea); border:1px solid #a7f3d0;
 }
 </style>
-</HeadContent>
-
 @{
     var path = (Http.HttpContext?.Request.Path.Value ?? "").TrimEnd('/').ToLowerInvariant();
     var view = path switch

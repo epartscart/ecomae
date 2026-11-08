@@ -13,12 +13,10 @@
 
 @* Body CSS — live SSR may drop HeadContent. ecomae LifeOS chrome only (not tenant CP shell). *@
 <style>@((MarkupString)_css)</style>
-<HeadContent>
+
 <link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
 <meta name="ecomae-chrome-surface" content="lifeos-guide" />
 <style>@((MarkupString)_css)</style>
-</HeadContent>
-
 <div class="lo-guide" data-surface="lifeos-guide">
   <header class="lo-guide-top" role="banner">
     <a class="lo-guide-brand" href="@EcomAeRoutes.LifeOs">

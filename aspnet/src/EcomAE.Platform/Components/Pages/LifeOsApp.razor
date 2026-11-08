@@ -10,7 +10,7 @@
 <PhpSurfaceHead Surface="lifeos" />
 <PhpChromeBodyClass Surface="lifeos" />
 
-<HeadContent>
+
 <link rel="stylesheet" href="@LegacyPhpFontAssets.LifeOsFonts" />
 <style>
 :root {
@@ -66,8 +66,6 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
   background:var(--lo-sea); color:#fff; font-weight:700; cursor:pointer;
 }
 </style>
-</HeadContent>
-
 @{
     var path = (Http.HttpContext?.Request.Path.Value ?? "").TrimEnd('/');
     var isLogin = path.Equals("/lifeos/login", StringComparison.OrdinalIgnoreCase);
