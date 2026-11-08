@@ -7,20 +7,21 @@ using Xunit;
 namespace EcomAE.Platform.Tests;
 
 /// <summary>
-/// All five locked live tenants: package chrome, industry slugs, CMS twins,
+/// All locked live tenants: package chrome, industry slugs, CMS twins,
 /// and host isolation (no jewellery on epartscart).
 /// </summary>
 public sealed class LiveTenantIndustryParityTests
 {
     [Fact]
-    public void LockedLiveTenantsAreTheFiveProductHosts()
+    public void LockedLiveTenantsAreTheProductHosts()
     {
-        Assert.Equal(5, LiveTenantPresentationLock.Tenants.Count);
+        Assert.Equal(6, LiveTenantPresentationLock.Tenants.Count);
         Assert.Contains(LiveTenantPresentationLock.Tenants, t => t.Id == "epartscart");
         Assert.Contains(LiveTenantPresentationLock.Tenants, t => t.Id == "electronicae");
         Assert.Contains(LiveTenantPresentationLock.Tenants, t => t.Id == "stylenlook");
         Assert.Contains(LiveTenantPresentationLock.Tenants, t => t.Id == "thejewellerytrend");
         Assert.Contains(LiveTenantPresentationLock.Tenants, t => t.Id == "taxofinca");
+        Assert.Contains(LiveTenantPresentationLock.Tenants, t => t.Id == "auto247");
     }
 
     [Theory]

@@ -18,7 +18,7 @@ public static class LiveTenantPresentationLock
         new("taxofinca", "Taxofinca", ["www.taxofinca.com", "taxofinca.com", "taxofinca.ecomae.com"]),
         // auto247: one tenant across every country domain (registry epc_tenant_domains
         // holds the same list — keep both in sync when domains change).
-        new("auto247", "Auto247", ["www.auto247.ae", "auto247.ae", "www.auto247.pk", "auto247.pk", "www.auto247.com.pk", "auto247.com.pk", "www.auto247.com", "auto247.com"]),
+        new("auto247", "Auto247", ["www.auto247.ae", "auto247.ae", "www.auto247.pk", "auto247.pk", "www.auto247.com.pk", "auto247.com.pk", "www.auto247.com", "auto247.com", "www.auto247.sa", "auto247.sa", "www.auto247.qa", "auto247.qa", "www.auto247.kw", "auto247.kw", "www.auto247.bh", "auto247.bh", "www.auto247.om", "auto247.om"]),
     ];
 
     public static IReadOnlyList<string> AllHosts { get; } =
@@ -26,7 +26,7 @@ public static class LiveTenantPresentationLock
 
     /// <summary>Nginx <c>$host</c> allowlist for classic-entry tenant pack (all named product tenants).</summary>
     public const string NginxProductHostRegex =
-        @"^(www\.)?(epartscart|electronicae|stylenlook|thejewellerytrend|taxofinca)\.com$|^(www\.)?auto247\.(ae|pk|com|com\.pk)$";
+        @"^(www\.)?(epartscart|electronicae|stylenlook|thejewellerytrend|taxofinca)\.com$|^(www\.)?auto247\.(ae|pk|com|com\.pk|sa|qa|kw|bh|om)$";
 
     public const string Mandate =
         "ALL named live product tenants use ASP.NET Core for / /cp /erp and deep product trees. "

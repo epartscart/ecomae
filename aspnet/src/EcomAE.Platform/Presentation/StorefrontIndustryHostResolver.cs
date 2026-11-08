@@ -115,7 +115,7 @@ public static class StorefrontIndustryHostResolver
         {
             normalized = normalized[4..];
         }
-        if (normalized is "auto247.ae" or "auto247.pk" or "auto247.com.pk" or "auto247.com")
+        if (normalized.StartsWith("auto247.", StringComparison.Ordinal))
         {
             return "Auto247 — Automotive Parts & Vehicles";
         }

@@ -15,7 +15,7 @@ public sealed class AllSitesAspNetPrimaryLockTests
         Assert.Contains(AllSitesAspNetPrimaryLock.Classes, c => c.Id == "product-tenants");
         Assert.Contains(AllSitesAspNetPrimaryLock.Classes, c => c.Id == "industry-showcase");
         Assert.Contains(AllSitesAspNetPrimaryLock.Classes, c => c.Id == "lifeos");
-        Assert.Equal(5, AllSitesAspNetPrimaryLock.ProductTenantCount);
+        Assert.Equal(6, AllSitesAspNetPrimaryLock.ProductTenantCount);
         Assert.Equal(28, AllSitesAspNetPrimaryLock.IndustryHostCount);
         Assert.Equal(EcomaeIndustryShowcaseHosts.Count, AllSitesAspNetPrimaryLock.IndustryHostCount);
     }

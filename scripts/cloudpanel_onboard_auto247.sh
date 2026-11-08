@@ -125,6 +125,11 @@ domains = [
     ("auto247.pk", "PK"), ("www.auto247.pk", "PK"),
     ("auto247.com.pk", "PK"), ("www.auto247.com.pk", "PK"),
     ("auto247.com", ""), ("www.auto247.com", ""),
+    ("auto247.sa", "SA"), ("www.auto247.sa", "SA"),
+    ("auto247.qa", "QA"), ("www.auto247.qa", "QA"),
+    ("auto247.kw", "KW"), ("www.auto247.kw", "KW"),
+    ("auto247.bh", "BH"), ("www.auto247.bh", "BH"),
+    ("auto247.om", "OM"), ("www.auto247.om", "OM"),
 ]
 for h, cc in domains:
     run_mysql(
