@@ -23,7 +23,23 @@
   [Parameter, EditorRequired] public string Surface { get; set; } = "cp";
     [Parameter] public bool LoginChrome { get; set; }
 
-    private string BodyClass => LoginChrome
-        ? LegacyPresentationAssets.LoginBodyClassFor(Surface)
-        : LegacyPresentationAssets.BodyClassFor(Surface);
+    [Inject] private IHttpContextAccessor Http { get; set; } = default!;
+
+    private string BodyClass
+    {
+        get
+        {
+            var cls = LoginChrome
+                ? LegacyPresentationAssets.LoginBodyClassFor(Surface)
+                : LegacyPresentationAssets.BodyClassFor(Surface);
+            if (Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase)
+                && Http.HttpContext?.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey]
+                    is EcomAE.Platform.Services.TenantContext { SiteKey: "auto247" })
+            {
+                cls += " epc-storefront--auto247";
+            }
+
+            return cls;
+        }
+    }
 }

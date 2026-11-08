@@ -173,6 +173,29 @@ public static class PhpLegacyAssetBridge
             return Results.NotFound();
         });
 
+        // Auto247 tenant storefront theme (blue/white brand skin) — emitted by PhpSurfaceHead
+        // only for site_key=auto247; served stack-neutral on every vhost.
+        endpoints.MapGet("/platform-assets/epc-storefront-theme-auto247.css", () =>
+        {
+            var path = Path.GetFullPath(Path.Combine(repoRoot, "content/general_pages/epc_storefront_theme_auto247.css"));
+            if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
+            {
+                return Results.File(path, "text/css; charset=utf-8");
+            }
+
+            return Results.NotFound();
+        });
+        endpoints.MapGet("/content/general_pages/epc_storefront_theme_auto247.css", () =>
+        {
+            var path = Path.GetFullPath(Path.Combine(repoRoot, "content/general_pages/epc_storefront_theme_auto247.css"));
+            if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
+            {
+                return Results.File(path, "text/css; charset=utf-8");
+            }
+
+            return Results.NotFound();
+        });
+
         // Google Translate (country-IP site language) — PHP twins for all chrome areas.
         // Live PHP serving is paused; /platform-assets must reach Kestrel on every vhost.
         foreach (var (url, relative) in new (string Url, string Relative)[]
