@@ -26,7 +26,7 @@ public static class LiveTenantPresentationLock
 
     /// <summary>Nginx <c>$host</c> allowlist for classic-entry tenant pack (all named product tenants).</summary>
     public const string NginxProductHostRegex =
-        @"^(www\.)?(epartscart|electronicae|stylenlook|thejewellerytrend|taxofinca)\.com$";
+        @"^(www\.)?(epartscart|electronicae|stylenlook|thejewellerytrend|taxofinca)\.com$|^(www\.)?auto247\.(ae|pk|com|com\.pk)$";
 
     public const string Mandate =
         "ALL named live product tenants use ASP.NET Core for / /cp /erp and deep product trees. "
