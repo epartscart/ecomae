@@ -110,6 +110,16 @@ public static class StorefrontIndustryHostResolver
 
     public static string ResolveStorefrontTitle(string? host)
     {
+        var normalized = (host ?? string.Empty).Trim().TrimEnd('.').ToLowerInvariant();
+        if (normalized.StartsWith("www.", StringComparison.Ordinal))
+        {
+            normalized = normalized[4..];
+        }
+        if (normalized is "auto247.ae" or "auto247.pk" or "auto247.com.pk" or "auto247.com")
+        {
+            return "Auto247 — Automotive Parts & Vehicles";
+        }
+
         var industry = ResolveIndustryCode(host);
         if (industry is "auto_parts" or "automotive")
         {

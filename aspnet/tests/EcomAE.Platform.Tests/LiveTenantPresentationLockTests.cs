@@ -8,12 +8,13 @@ public sealed class LiveTenantPresentationLockTests
     [Fact]
     public void NamedLiveTenantsAreCatalogued()
     {
-        Assert.Equal(5, LiveTenantPresentationLock.Tenants.Count);
+        Assert.Equal(6, LiveTenantPresentationLock.Tenants.Count);
         Assert.Contains(LiveTenantPresentationLock.Tenants, t => t.Id == "epartscart");
         Assert.Contains(LiveTenantPresentationLock.Tenants, t => t.Id == "electronicae");
         Assert.Contains(LiveTenantPresentationLock.Tenants, t => t.Id == "stylenlook");
         Assert.Contains(LiveTenantPresentationLock.Tenants, t => t.Id == "thejewellerytrend");
         Assert.Contains(LiveTenantPresentationLock.Tenants, t => t.Id == "taxofinca");
+        Assert.Contains(LiveTenantPresentationLock.Tenants, t => t.Id == "auto247");
     }
 
     [Theory]
@@ -22,6 +23,8 @@ public sealed class LiveTenantPresentationLockTests
     [InlineData("www.stylenlook.com")]
     [InlineData("www.thejewellerytrend.com")]
     [InlineData("www.taxofinca.com")]
+    [InlineData("www.auto247.ae")]
+    [InlineData("auto247.com.pk")]
     public void IsLockedHostRecognizesLiveTenants(string host)
     {
         Assert.True(LiveTenantPresentationLock.IsLockedHost(host));
@@ -36,7 +39,7 @@ public sealed class LiveTenantPresentationLockTests
         Assert.Equal(true, summary["readyForPhpRemoval"]);
         Assert.Equal(false, summary["phpPrimaryUntilParity"]);
         Assert.Equal("aspnet", summary["stackToday"]);
-        Assert.Equal(5, summary["tenantCount"]);
+        Assert.Equal(6, summary["tenantCount"]);
         Assert.Equal("100%-aspnet-core-live-php-reference-kept", summary["targetEndState"]);
         Assert.Equal("aspnet-primary-all-product-tenants-php-reference-only", summary["policy"]);
         Assert.Contains("ASP.NET Core", summary["mandate"]!.ToString()!, StringComparison.OrdinalIgnoreCase);
@@ -47,7 +50,7 @@ public sealed class LiveTenantPresentationLockTests
         Assert.NotEmpty((IReadOnlyList<string>)summary["unlockCriteria"]!);
 
         var tenants = (Array)summary["tenants"]!;
-        Assert.Equal(5, tenants.Length);
+        Assert.Equal(6, tenants.Length);
         foreach (var raw in tenants)
         {
             var row = (IReadOnlyDictionary<string, object>)raw!;

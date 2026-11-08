@@ -104,6 +104,20 @@ public static class LoginHostBrand
                     "rgba(255,255,255,.45)", "rgba(16,185,129,.5)"
                 ],
                 "bos-login--tenant-taxofinca"),
+            ["auto247"] = new(
+                Kind.CompanyMark,
+                "auto247",
+                "Auto247",
+                "AUTOMOTIVE PARTS & VEHICLES",
+                null,
+                "#1d4ed8",
+                "rgba(29,78,216,.30)",
+                "autoparts",
+                [
+                    "rgba(59,130,246,.9)", "rgba(29,78,216,.7)", "rgba(147,197,253,.55)",
+                    "rgba(255,255,255,.55)", "rgba(96,165,250,.55)", "rgba(30,64,175,.65)"
+                ],
+                "bos-login--tenant-auto247"),
             ["sham"] = new(
                 Kind.TenantImage,
                 "sham",
