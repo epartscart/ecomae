@@ -16,6 +16,9 @@ public static class LiveTenantPresentationLock
         new("stylenlook", "StyleNLook", ["www.stylenlook.com", "stylenlook.com", "stylenlook.ecomae.com"]),
         new("thejewellerytrend", "The Jewellery Trend", ["www.thejewellerytrend.com", "thejewellerytrend.com", "jewellerytrend.ecomae.com"]),
         new("taxofinca", "Taxofinca", ["www.taxofinca.com", "taxofinca.com", "taxofinca.ecomae.com"]),
+        // auto247: one tenant across every country domain (registry epc_tenant_domains
+        // holds the same list — keep both in sync when domains change).
+        new("auto247", "Auto247", ["www.auto247.ae", "auto247.ae", "www.auto247.pk", "auto247.pk", "www.auto247.com.pk", "auto247.com.pk", "www.auto247.com", "auto247.com"]),
     ];
 
     public static IReadOnlyList<string> AllHosts { get; } =
