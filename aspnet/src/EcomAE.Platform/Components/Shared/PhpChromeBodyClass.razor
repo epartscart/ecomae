@@ -33,10 +33,9 @@
                 ? LegacyPresentationAssets.LoginBodyClassFor(Surface)
                 : LegacyPresentationAssets.BodyClassFor(Surface);
             if (Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase)
-                && Http.HttpContext?.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey]
-                    is EcomAE.Platform.Services.TenantContext { SiteKey: "auto247" })
+                && Auto247Theme.IsAuto247(Http.HttpContext))
             {
-                cls += " epc-storefront--auto247";
+                cls += " epc-storefront--auto247 epc-storefront--auto247-" + Auto247Theme.CountryClass(Http.HttpContext);
             }
 
             return cls;

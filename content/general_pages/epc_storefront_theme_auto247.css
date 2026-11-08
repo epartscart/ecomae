@@ -296,6 +296,159 @@ body.epc-storefront--auto247 .epart-front-section-link {
     color: var(--auto247-blue) !important;
 }
 
+/* ---------- Auto247 country-aware circular car hero ---------- */
+body.epc-storefront--auto247 .epc-auto247-hero {
+    align-items: center !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    min-height: 390px !important;
+    padding: 10px !important;
+}
+
+body.epc-storefront--auto247 .epc-auto247-badge {
+    align-items: center;
+    background: radial-gradient(circle at 35% 25%, #ffffff 0%, var(--auto247-blue-soft) 40%, #dbeafe 100%);
+    border: 12px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--auto247-blue-line), 0 20px 42px rgba(30, 58, 138, .25);
+    display: flex;
+    height: 270px;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    width: 270px;
+}
+
+body.epc-storefront--auto247 .epc-auto247-badge__ring {
+    border: 2px dashed var(--auto247-blue-light);
+    border-radius: 50%;
+    inset: 16px;
+    position: absolute;
+    animation: auto247-ring 14s linear infinite;
+}
+
+body.epc-storefront--auto247 .epc-auto247-car {
+    bottom: 86px;
+    height: 94px;
+    position: absolute;
+    width: 190px;
+    z-index: 2;
+    animation: auto247-drive 3.4s ease-in-out infinite;
+}
+
+body.epc-storefront--auto247 .epc-auto247-car__body {
+    background: linear-gradient(180deg, var(--auto247-blue-light), var(--auto247-blue));
+    border: 3px solid var(--auto247-blue-dark);
+    border-radius: 28px 34px 13px 13px;
+    bottom: 13px;
+    height: 48px;
+    left: 5px;
+    position: absolute;
+    width: 180px;
+}
+
+body.epc-storefront--auto247 .epc-auto247-car__cabin {
+    background: linear-gradient(135deg, #dbeafe, #ffffff);
+    border: 3px solid var(--auto247-blue-dark);
+    border-bottom: 0;
+    border-radius: 52px 52px 4px 4px;
+    height: 47px;
+    left: 48px;
+    position: absolute;
+    top: 0;
+    width: 98px;
+}
+
+body.epc-storefront--auto247 .epc-auto247-car__light {
+    background: #ffffff;
+    border: 2px solid var(--auto247-blue-dark);
+    border-radius: 50%;
+    height: 13px;
+    position: absolute;
+    right: 6px;
+    top: 49px;
+    width: 13px;
+}
+
+body.epc-storefront--auto247 .epc-auto247-car__wheel {
+    background: #ffffff;
+    border: 7px solid var(--auto247-blue-deep);
+    border-radius: 50%;
+    bottom: 0;
+    height: 35px;
+    position: absolute;
+    width: 35px;
+    animation: auto247-wheel .8s linear infinite;
+}
+
+body.epc-storefront--auto247 .epc-auto247-car__wheel--rear { left: 28px; }
+body.epc-storefront--auto247 .epc-auto247-car__wheel--front { right: 28px; }
+
+body.epc-storefront--auto247 .epc-auto247-road {
+    background: var(--auto247-blue-deep);
+    bottom: 68px;
+    height: 6px;
+    left: 22px;
+    overflow: hidden;
+    position: absolute;
+    width: 226px;
+}
+
+body.epc-storefront--auto247 .epc-auto247-road span {
+    background: #ffffff;
+    display: inline-block;
+    height: 2px;
+    margin: 2px 10px;
+    width: 28px;
+    animation: auto247-road 1s linear infinite;
+}
+
+body.epc-storefront--auto247 .epc-auto247-videocard {
+    background: #ffffff !important;
+    border: 1px solid var(--auto247-blue-line) !important;
+    border-radius: 14px !important;
+    color: var(--auto247-text) !important;
+    margin-top: 20px;
+    max-width: 330px;
+    padding: 12px 18px !important;
+    width: 100%;
+}
+
+body.epc-storefront--auto247 .epc-auto247-videocard strong { color: var(--auto247-blue-deep) !important; }
+body.epc-storefront--auto247 .epc-auto247-videocard p { color: var(--auto247-muted) !important; }
+body.epc-storefront--auto247 .epc-auto247-play { background: var(--auto247-blue) !important; }
+
+/* Pakistan: green/white automotive identity, still with the same centralized platform. */
+body.epc-storefront--auto247-pk .epc-auto247-badge,
+body.epc-storefront--auto247-pk .epc-auto247-videocard { border-color: #bbf7d0 !important; }
+body.epc-storefront--auto247-pk .epc-auto247-badge {
+    background: radial-gradient(circle at 35% 25%, #ffffff 0%, #f0fdf4 42%, #bbf7d0 100%);
+    box-shadow: 0 0 0 2px #86efac, 0 20px 42px rgba(22, 101, 52, .22);
+}
+body.epc-storefront--auto247-pk .epc-auto247-badge__ring { border-color: #22c55e; }
+body.epc-storefront--auto247-pk .epc-auto247-car__body { background: linear-gradient(180deg, #22c55e, #15803d); border-color: #166534; }
+body.epc-storefront--auto247-pk .epc-auto247-car__cabin { border-color: #166534; }
+body.epc-storefront--auto247-pk .epc-auto247-car__wheel { border-color: #14532d; }
+body.epc-storefront--auto247-pk .epc-auto247-road { background: #14532d; }
+body.epc-storefront--auto247-pk .epc-auto247-videocard strong { color: #166534 !important; }
+body.epc-storefront--auto247-pk .epc-auto247-play { background: #16a34a !important; }
+
+/* Other country palettes: keep white space, change the automotive accent only. */
+body.epc-storefront--auto247-sa .epc-auto247-car__body { background: linear-gradient(180deg, #22c55e, #15803d); border-color: #166534; }
+body.epc-storefront--auto247-qa .epc-auto247-car__body { background: linear-gradient(180deg, #a855f7, #7e22ce); border-color: #581c87; }
+body.epc-storefront--auto247-kw .epc-auto247-car__body { background: linear-gradient(180deg, #facc15, #ca8a04); border-color: #854d0e; }
+body.epc-storefront--auto247-bh .epc-auto247-car__body { background: linear-gradient(180deg, #ef4444, #b91c1c); border-color: #7f1d1d; }
+body.epc-storefront--auto247-om .epc-auto247-car__body { background: linear-gradient(180deg, #ef4444, #dc2626); border-color: #991b1b; }
+
+@keyframes auto247-drive { 0%, 100% { transform: translateX(-7px); } 50% { transform: translateX(7px); } }
+@keyframes auto247-wheel { to { transform: rotate(360deg); } }
+@keyframes auto247-road { from { transform: translateX(-38px); } to { transform: translateX(38px); } }
+@keyframes auto247-ring { to { transform: rotate(360deg); } }
+
 /* ---------- Footer / bottom dock ---------- */
 body.epc-storefront--auto247 .epc-footer,
 body.epc-storefront--auto247 footer,

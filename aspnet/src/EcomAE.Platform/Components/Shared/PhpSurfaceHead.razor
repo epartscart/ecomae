@@ -287,11 +287,10 @@
 
             var list = new List<string>(LegacyPresentationAssets.StylesheetsFor(Surface));
             if (Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase)
-                && Http.HttpContext?.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey]
-                    is EcomAE.Platform.Services.TenantContext { SiteKey: "auto247" })
+                && Auto247Theme.IsAuto247(Http.HttpContext))
             {
-                // Auto247 blue/white brand skin — overrides the nero dark/red storefront look.
-                list.Add("/platform-assets/epc-storefront-theme-auto247.css?v=20261019d");
+                // Auto247 brand skin — per-country palette, overrides the nero dark/red storefront look.
+                list.Add("/platform-assets/epc-storefront-theme-auto247.css?v=20261108a");
             }
 
             if (IncludeLoginCss)
