@@ -90,6 +90,27 @@ body.epc-storefront--auto247 .btn.btn-success {
     color: #ffffff !important;
 }
 
+/* ---------- Dark bands -> premium blue / white ---------- */
+body.epc-storefront--auto247 .schearch-line {
+    background: linear-gradient(135deg, var(--auto247-blue-dark) 0%, var(--auto247-blue) 100%) !important;
+    box-shadow: 0 14px 34px rgba(23, 37, 84, .22) !important;
+}
+
+body.epc-storefront--auto247 #dp_menu .vertical-tabs-right {
+    background: var(--auto247-blue-deep) !important;
+    border-color: var(--auto247-blue-line) !important;
+}
+
+body.epc-storefront--auto247 .header-box-mobile .navbar,
+body.epc-storefront--auto247 .mobile-search-div {
+    background: linear-gradient(135deg, var(--auto247-blue-deep), var(--auto247-blue-dark)) !important;
+}
+
+body.epc-storefront--auto247 .epc-cross-modal__head {
+    background: linear-gradient(135deg, var(--auto247-blue-dark), var(--auto247-blue)) !important;
+    color: #ffffff !important;
+}
+
 /* ---------- Search strip: dark -> blue panel ---------- */
 body.epc-storefront--auto247 .header-search-box.epc-header-search,
 body.epc-storefront--auto247 #epc-header-search {
@@ -117,8 +138,15 @@ body.epc-storefront--auto247 .epc-header-search .form-control {
 /* ---------- Piston hero: black card -> white premium card + blue visual ---------- */
 html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro {
     background: #ffffff !important;
+    color: var(--auto247-text) !important;
     border: 1px solid var(--auto247-blue-line) !important;
     border-radius: 16px !important;
+    box-shadow: 0 18px 46px rgba(30, 58, 138, .14) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro .container {
+    background: #ffffff !important;
+    border: 1px solid var(--auto247-blue-line) !important;
     box-shadow: 0 18px 46px rgba(30, 58, 138, .14) !important;
 }
 
@@ -191,6 +219,34 @@ html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto2
 html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-engine-spark,
 html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-engine-part {
     background: var(--auto247-blue-sky) !important;
+}
+
+/* Red engine animation + mascot -> brand blue via hue rotation (red ~0deg -> blue ~215deg) */
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-engine-animation {
+    filter: hue-rotate(215deg) saturate(1.1) brightness(1.05) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro__video-card {
+    background: rgba(239, 246, 255, .92) !important;
+    border: 1px solid var(--auto247-blue-line) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro__video-card strong {
+    color: var(--auto247-blue-deep) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro__video-card p {
+    color: var(--auto247-muted) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-home-pro__play {
+    background: linear-gradient(180deg, var(--auto247-blue-light), var(--auto247-blue)) !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 16px rgba(29, 78, 216, .35) !important;
+}
+
+html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-engine-label {
+    color: #dbeafe !important;
 }
 
 /* ---------- Home banners -> brand blues ---------- */
