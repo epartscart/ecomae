@@ -39,8 +39,6 @@ port = parts.get("port") or "3306"
 user = parts.get("uid") or parts.get("user") or parts.get("user id") or ""
 password = parts.get("pwd") or parts.get("password") or ""
 database = parts.get("database") or parts.get("initial catalog") or "ecomae"
-if host.strip().lower() in ("localhost", "localhost.localdomain", "::1"):
-    host = "127.0.0.1"
 if not user:
     print("RESULT=FAIL TenantRegistry CS has no user")
     raise SystemExit(1)
