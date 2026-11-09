@@ -17,6 +17,5 @@ public static class Auto247Package
     public static void Register(IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<ICustomerSkinContributor, Auto247SkinContributor>();
-        services.AddSingleton<IStorefrontHomeContributor, Auto247HomeContributor>();
     }
 }
