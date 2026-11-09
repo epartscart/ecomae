@@ -2901,7 +2901,7 @@ public static class StorefrontPhpAjaxEndpoints
 
     private static bool PartsApiRateLimited(HttpContext context)
     {
-        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var ip = Migration.CpWebTrackerCollectService.ClientIp(context.Request);
         var window = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 60;
         var allowed = true;
         PartsApiRateBuckets.AddOrUpdate(
