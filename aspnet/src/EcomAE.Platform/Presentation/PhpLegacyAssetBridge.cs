@@ -196,6 +196,18 @@ public static class PhpLegacyAssetBridge
             return Results.NotFound();
         });
 
+        // Auto247 tenant brand logo — referenced by brand_logo_url on the auto247 tenant only.
+        endpoints.MapGet("/platform-assets/auto247-logo.png", () =>
+        {
+            var path = Path.GetFullPath(Path.Combine(repoRoot, "content/general_pages/auto247_logo.png"));
+            if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
+            {
+                return Results.File(path, "image/png");
+            }
+
+            return Results.NotFound();
+        });
+
         // Google Translate (country-IP site language) — PHP twins for all chrome areas.
         // Live PHP serving is paused; /platform-assets must reach Kestrel on every vhost.
         foreach (var (url, relative) in new (string Url, string Relative)[]
