@@ -191,13 +191,14 @@ public sealed class StorefrontPriceAccess : IStorefrontPriceAccess
     public static bool HideStorefrontPricesForGuests(TenantContext? tenant, string host)
     {
         var siteKey = (tenant?.SiteKey ?? string.Empty).Trim().ToLowerInvariant();
-        if (siteKey is "epartscart")
+        if (siteKey is "epartscart" or "auto247")
         {
             return true;
         }
 
         var h = (host ?? string.Empty).Trim().ToLowerInvariant();
-        return h.Contains("epartscart", StringComparison.Ordinal);
+        return h.Contains("epartscart", StringComparison.Ordinal)
+            || h.Contains("auto247", StringComparison.Ordinal);
     }
 
     private async Task<string> ReadTradeApprovalStatusAsync(
