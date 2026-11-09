@@ -139,9 +139,10 @@ public static class UmapiImageProxy
         }
 
         var version = context.Request.Query["v"];
-        if (version.Count > 0 && version[^1].Length > 0)
+        var versionValue = version.Count > 0 ? version[^1] : null;
+        if (!string.IsNullOrEmpty(versionValue))
         {
-            url += "?v=" + Uri.EscapeDataString(version[^1]);
+            url += "?v=" + Uri.EscapeDataString(versionValue);
         }
 
         var cacheKey = System.Convert.ToHexString(
