@@ -32,10 +32,24 @@ import sys
 import tempfile
 
 NORMALIZE_STRIP = re.compile(r"[\s\-_/`'\"\\.,#\r\n\t]")
+SAFE_ARG = re.compile(r"^[a-zA-Z0-9_\- .=/]*$")
 
 
 def norm(value: str) -> str:
     return NORMALIZE_STRIP.sub("", value or "").upper()[:64]
+
+
+def tsv_escape(value: str) -> str:
+    # LOAD DATA interprets backslash escapes; emit MySQL-escaped fields so a
+    # raw tab/newline/backslash in a CSV field cannot split or corrupt a row.
+    return (
+        (value or "")
+        .replace("\\", "\\\\")
+        .replace("\t", "\\t")
+        .replace("\r", "\\r")
+        .replace("\n", "\\n")
+        .replace("\x00", "\\0")
+    )
 
 
 def mysql_cmd(base: str, database: str, sql: str) -> None:
@@ -59,13 +73,25 @@ def main() -> int:
     parser.add_argument("--mysql", default="mysql", help="mysql client prefix, e.g. 'mysql -u root -pPASS'")
     parser.add_argument("--chunk-lines", type=int, default=5_000_000, help="Rows per LOAD DATA batch")
     parser.add_argument("--keep-work", action="store_true", help="Keep intermediate TSV files")
+    parser.add_argument(
+        "--fresh",
+        action="store_true",
+        help="Full-replace mode: load into a clone table, then atomically swap — "
+        "removes cross pairs the refreshed CSV no longer contains.",
+    )
     args = parser.parse_args()
 
     if not os.path.isfile(args.csv):
         print(f"csv not found: {args.csv}", file=sys.stderr)
         return 1
 
+    for name, value in (("--database", args.database), ("--mysql", args.mysql)):
+        if not SAFE_ARG.match(value):
+            print(f"refusing {name} with shell metacharacters: {value!r}", file=sys.stderr)
+            return 1
+
     mysql = args.mysql
+    target_table = "shop_docpart_articles_analogs_list_fresh" if args.fresh else "shop_docpart_articles_analogs_list"
     total = 0
     chunk_files: list[str] = []
 
@@ -109,7 +135,7 @@ def main() -> int:
                     out = open_chunk()
                 mfr = row[c_art_brand].strip()
                 mfr_cross = row[c_cross_brand].strip()
-                out.write("\t".join([art, norm(art), mfr, cross, norm(cross), mfr_cross]) + "\n")
+                out.write("\t".join(tsv_escape(v) for v in [art, norm(art), mfr, cross, norm(cross), mfr_cross]) + "\n")
                 count_in_chunk += 1
                 total += 1
             if out is not None:
@@ -117,11 +143,20 @@ def main() -> int:
 
         print(f"normalized {total:,} rows into {len(chunk_files)} chunk(s)")
 
+        if args.fresh:
+            mysql_cmd(
+                mysql,
+                args.database,
+                "DROP TABLE IF EXISTS `shop_docpart_articles_analogs_list_fresh`;"
+                "CREATE TABLE `shop_docpart_articles_analogs_list_fresh` "
+                "LIKE `shop_docpart_articles_analogs_list`",
+            )
+
         # 2) LOAD DATA each chunk (IGNORE => re-runs are deduped by the UNIQUE key)
         for i, path in enumerate(chunk_files, 1):
             esc = path.replace("\\", "\\\\").replace("'", "\\'")
             sql = (
-                "LOAD DATA LOCAL INFILE '" + esc + "' INTO TABLE `shop_docpart_articles_analogs_list` "
+                "LOAD DATA LOCAL INFILE '" + esc + f"' INTO TABLE `{target_table}` "
                 "FIELDS TERMINATED BY '\\t' LINES TERMINATED BY '\\n' "
                 "(`article`, `article_search`, `manufacturer_article`, `analog`, `analog_search`, `manufacturer_analog`)"
             )
@@ -130,7 +165,18 @@ def main() -> int:
             if not args.keep_work:
                 os.remove(path)
 
-        # 3) Report
+        # 3) Fresh mode: atomic multi-table swap, then drop the old data.
+        if args.fresh:
+            mysql_cmd(
+                mysql,
+                args.database,
+                "RENAME TABLE `shop_docpart_articles_analogs_list` TO `shop_docpart_articles_analogs_list_old`,"
+                " `shop_docpart_articles_analogs_list_fresh` TO `shop_docpart_articles_analogs_list`;"
+                "DROP TABLE `shop_docpart_articles_analogs_list_old`",
+            )
+            print("swapped fresh table into place (removed pairs absent from the new CSV)")
+
+        # 4) Report
         mysql_cmd(
             mysql,
             args.database,
