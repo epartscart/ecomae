@@ -608,3 +608,29 @@ body[class*="epc-storefront--auto247"] .epc-header-search__tab:not(.active) {
 body[class*="epc-storefront--auto247"] .epc-header-search__tab:not(.active):hover {
     background: #fff;
 }
+
+/* --- auto247 polish round 2 --- */
+/* Compact country filter next to section tabs */
+.epc-umapi-tabs .epc-umapi-countrysel {
+    width: auto !important; min-width: 170px; max-width: 240px;
+    display: inline-block; padding: 8px 34px 8px 12px;
+    font-weight: 600; margin-left: auto;
+}
+
+/* Bigger, clear logo */
+.header-logo .epc-surface-host-logo__img,
+a.header-logo .epc-surface-host-logo__img {
+    height: 64px !important; max-width: 320px !important; width: auto !important;
+}
+.logo-line .table-group { grid-template-columns: minmax(280px,auto) minmax(220px,1fr) minmax(280px,auto) !important; }
+
+/* Phone + hours centered above the search band */
+.epc-header-contact-col {
+    display: flex !important; flex-direction: column; align-items: center;
+    justify-content: center; text-align: center; gap: 4px;
+}
+.epc-header-contact-col .epc-header-geo-phone { justify-content: center; }
+.epc-header-contact-col .timetable-box table td { text-align: center; }
+.epc-header-contact-col .text-left { text-align: center !important; }
+
+/* Front-page section links open the full app view - keep them button-styled (already) */
