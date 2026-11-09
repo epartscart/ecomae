@@ -91,7 +91,10 @@ def main() -> int:
             return 1
 
     mysql = args.mysql
-    target_table = "shop_docpart_articles_analogs_list_fresh" if args.fresh else "shop_docpart_articles_analogs_list"
+    run_id = f"_{os.getpid()}"
+    staging_table = f"shop_docpart_articles_analogs_list_fresh{run_id}"
+    old_table = f"shop_docpart_articles_analogs_list_old{run_id}"
+    target_table = staging_table if args.fresh else "shop_docpart_articles_analogs_list"
     total = 0
     chunk_files: list[str] = []
 
@@ -147,8 +150,8 @@ def main() -> int:
             mysql_cmd(
                 mysql,
                 args.database,
-                "DROP TABLE IF EXISTS `shop_docpart_articles_analogs_list_fresh`;"
-                "CREATE TABLE `shop_docpart_articles_analogs_list_fresh` "
+                f"DROP TABLE IF EXISTS `{staging_table}`;"
+                f"CREATE TABLE `{staging_table}` "
                 "LIKE `shop_docpart_articles_analogs_list`",
             )
 
@@ -166,14 +169,25 @@ def main() -> int:
                 os.remove(path)
 
         # 3) Fresh mode: atomic multi-table swap, then drop the old data.
+        # Per-run table names keep concurrent imports isolated; an empty (or
+        # header-only) CSV never swaps — it would wipe every cross pair.
         if args.fresh:
+            if total == 0:
+                print("refusing --fresh swap: the CSV produced zero rows — keeping existing table", file=sys.stderr)
+                mysql_cmd(mysql, args.database, f"DROP TABLE IF EXISTS `{staging_table}`")
+                return 1
             mysql_cmd(
                 mysql,
                 args.database,
-                "RENAME TABLE `shop_docpart_articles_analogs_list` TO `shop_docpart_articles_analogs_list_old`,"
-                " `shop_docpart_articles_analogs_list_fresh` TO `shop_docpart_articles_analogs_list`;"
-                "DROP TABLE `shop_docpart_articles_analogs_list_old`",
+                f"DROP TABLE IF EXISTS `{old_table}`;"
+                f"RENAME TABLE `shop_docpart_articles_analogs_list` TO `{old_table}`,"
+                f" `{staging_table}` TO `shop_docpart_articles_analogs_list`",
             )
+            try:
+                mysql_cmd(mysql, args.database, f"DROP TABLE `{old_table}`")
+            except RuntimeError:
+                # Orphaned _old_<pid> is harmless and never blocks a later run.
+                print(f"warn: could not drop {old_table} — drop it manually", file=sys.stderr)
             print("swapped fresh table into place (removed pairs absent from the new CSV)")
 
         # 4) Report
