@@ -3,13 +3,13 @@
    Scoped under body.epc-storefront--auto247 so it cannot leak to other tenants. */
 
 :root {
-  --auto247-blue: #1d4ed8;
-  --auto247-blue-dark: #1e3a8a;
-  --auto247-blue-deep: #172554;
-  --auto247-blue-light: #3b82f6;
-  --auto247-blue-sky: #60a5fa;
-  --auto247-blue-soft: #eff6ff;
-  --auto247-blue-line: #bfdbfe;
+  --auto247-blue: #0ea5e9;
+  --auto247-blue-dark: #0369a1;
+  --auto247-blue-deep: #0c4a6e;
+  --auto247-blue-light: #38bdf8;
+  --auto247-blue-sky: #7dd3fc;
+  --auto247-blue-soft: #f0f9ff;
+  --auto247-blue-line: #bae6fd;
   --auto247-white: #ffffff;
   --auto247-ink: #0b1220;
   --auto247-text: #1e293b;
