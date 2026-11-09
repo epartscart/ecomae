@@ -630,6 +630,7 @@ public static class HomeCatalogWidgets
         HttpContext context,
         ITenantDbConnectionFactory connections,
         IHttpClientFactory httpClientFactory,
+        IPartsApiService partsApi,
         CancellationToken cancellationToken)
     {
         var action = context.Request.Query["action"].ToString().Trim().ToLowerInvariant();
@@ -743,6 +744,49 @@ public static class HomeCatalogWidgets
 
                     var cache = action == "suppliers" ? 7200 : 3600;
                     return WriteJson(StatusCodes.Status200OK, body, noStore: false, cacheSeconds: cache);
+                }
+
+                // UMAPI live is unavailable: serve the same drill from partsapi.ru
+                // (click-to-fetch → auto-saved into the umapi-shaped tables).
+                if (action == "vin")
+                {
+                    var partsVin = context.Request.Query["vin"].ToString().Trim();
+                    if (partsVin.Length is >= 11 and <= 17)
+                    {
+                        var vinResult = await partsApi.ExecuteAsync(
+                            new PartsApiRequest("VINdecode",
+                                new Dictionary<string, string> { ["vin"] = partsVin, ["lang"] = "en" }),
+                            cancellationToken).ConfigureAwait(false);
+                        if (vinResult.Ok)
+                        {
+                            return WriteJson(StatusCodes.Status200OK, vinResult.Json, noStore: false, cacheSeconds: 3600);
+                        }
+                    }
+                }
+
+                if (connections.IsConfigured && action is "manufacturers" or "models" or "modifications")
+                {
+                    try
+                    {
+                        await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+                        await EnsureUmapiCacheTablesAsync(connection, cancellationToken).ConfigureAwait(false);
+                        var partsBody = await PartsApiVehicleJsonAsync(partsApi, connection, action, section, context, cancellationToken).ConfigureAwait(false);
+                        if (partsBody is not null)
+                        {
+                            try
+                            {
+                                await PersistLiveUmapiAsync(connection, action, section, context, StatusCodes.Status200OK, partsBody, cancellationToken).ConfigureAwait(false);
+                            }
+                            catch (DbException)
+                            {
+                            }
+
+                            return WriteJson(StatusCodes.Status200OK, partsBody, noStore: false, cacheSeconds: 3600);
+                        }
+                    }
+                    catch (DbException)
+                    {
+                    }
                 }
 
                 if (connections.IsConfigured)
@@ -869,6 +913,197 @@ public static class HomeCatalogWidgets
         {
             return 0;
         }
+    }
+
+    private static string PartsApiCarType(string section)
+        => section == "commercial" ? "CV" : section == "motorbike" ? "Motorcycle" : "PC";
+
+    /// <summary>
+    /// Calls partsapi.ru for the vehicle drill levels and returns a body in the
+    /// exact umapi JSON shape (<c>{"data":[...]}</c>) <see cref="PersistLiveUmapiAsync"/> stores.
+    /// </summary>
+    private static async Task<string?> PartsApiVehicleJsonAsync(
+        IPartsApiService partsApi,
+        DbConnection connection,
+        string action,
+        string section,
+        HttpContext context,
+        CancellationToken cancellationToken)
+    {
+        var carType = PartsApiCarType(section);
+        var parms = new Dictionary<string, string> { ["carType"] = carType, ["lang"] = "16" };
+        string method;
+        if (action == "manufacturers")
+        {
+            method = "getMakes";
+        }
+        else if (action == "models")
+        {
+            var mfa = UmapiQueryInt(context, "MFA_ID");
+            if (mfa <= 0)
+            {
+                return null;
+            }
+
+            method = "getModels";
+            parms["makeId"] = mfa.ToString(CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            var ms = UmapiQueryInt(context, "MS_ID");
+            if (ms <= 0)
+            {
+                return null;
+            }
+
+            var mfa = UmapiQueryInt(context, "MFA_ID");
+            if (mfa <= 0)
+            {
+                var scalar = await ErpDb.ScalarAsync(
+                    connection,
+                    null,
+                    "SELECT `mfa_id` FROM `epc_umapi_models` WHERE `section` = @s AND `ms_id` = @ms LIMIT 1",
+                    cancellationToken, ("@s", Cut(section, 20)), ("@ms", ms)).ConfigureAwait(false);
+                if (scalar is not null)
+                {
+                    int.TryParse(scalar.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out mfa);
+                }
+            }
+
+            method = "getCars";
+            parms["modelId"] = ms.ToString(CultureInfo.InvariantCulture);
+            if (mfa > 0)
+            {
+                parms["makeId"] = mfa.ToString(CultureInfo.InvariantCulture);
+            }
+        }
+
+        var result = await partsApi.ExecuteAsync(new PartsApiRequest(method, parms), cancellationToken).ConfigureAwait(false);
+        if (!result.Ok)
+        {
+            return null;
+        }
+
+        using var doc = JsonDocument.Parse(result.Json);
+        var items = PartsApiRows(doc.RootElement);
+        var mapped = new List<Dictionary<string, object?>>(items.Count);
+        foreach (var r in items)
+        {
+            if (action == "manufacturers")
+            {
+                var id = PartsApiText(r, "makeId", "MFA_ID", "id");
+                var name = PartsApiText(r, "makeName", "MFA_BRAND", "name");
+                if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(name))
+                {
+                    continue;
+                }
+
+                mapped.Add(new Dictionary<string, object?>
+                {
+                    ["MFA_ID"] = id, ["MANUFACTURER"] = name, ["MANUFACTURER_RU"] = name,
+                    ["TYPE"] = section, ["COUNTRY"] = "", ["IS_LOGO"] = 1,
+                });
+            }
+            else if (action == "models")
+            {
+                var id = PartsApiText(r, "modelId", "MS_ID", "id");
+                if (string.IsNullOrEmpty(id))
+                {
+                    continue;
+                }
+
+                mapped.Add(new Dictionary<string, object?>
+                {
+                    ["MS_ID"] = id,
+                    ["MODEL_SERIES"] = PartsApiText(r, "modelName", "MOD_CDS_TEXT", "name") ?? "",
+                    ["CI_FROM"] = PartsApiYear(PartsApiText(r, "yearsFrom", "constructionInterval")),
+                    ["CI_TO"] = PartsApiYear(PartsApiText(r, "yearsTo")),
+                });
+            }
+            else
+            {
+                var id = PartsApiText(r, "carId", "CAR_ID", "PC_ID", "CV_ID", "MTB_ID", "id");
+                if (string.IsNullOrEmpty(id))
+                {
+                    continue;
+                }
+
+                mapped.Add(new Dictionary<string, object?>
+                {
+                    ["PC_ID"] = id, ["CV_ID"] = id,
+                    ["PASSENGER_CAR"] = PartsApiText(r, "carName", "CAR_NAME", "name") ?? "",
+                    ["COMMERCIAL_VEHICLE"] = PartsApiText(r, "carName", "CAR_NAME", "name") ?? "",
+                    ["CI_FROM"] = PartsApiText(r, "yearsFrom", "constructionInterval") ?? "",
+                    ["CI_TO"] = PartsApiText(r, "yearsTo") ?? "",
+                    ["POWER_KW"] = PartsApiText(r, "powerKw", "POWER_KW") ?? "",
+                    ["CAPACITY_LT"] = PartsApiText(r, "capacityLt", "CAPACITY_LT") ?? "",
+                    ["FUEL_TYPE"] = PartsApiText(r, "fuelType", "FUEL_TYPE") ?? "",
+                });
+            }
+        }
+
+        if (mapped.Count == 0)
+        {
+            return null;
+        }
+
+        return JsonSerializer.Serialize(new Dictionary<string, object?> { ["data"] = mapped });
+    }
+
+    private static string PartsApiYear(string? raw)
+    {
+        // " 01 Aug 2015" -> "Aug 2015"; keeps the umapi CI_FROM/CI_TO display style.
+        if (string.IsNullOrEmpty(raw) || raw.Length <= 4)
+        {
+            return raw ?? string.Empty;
+        }
+
+        return raw.Substring(4, Math.Min(12, raw.Length - 4)).Trim();
+    }
+
+    private static List<JsonElement> PartsApiRows(JsonElement root)
+    {
+        var current = root;
+        for (var i = 0; i < 4; i++)
+        {
+            if (current.ValueKind == JsonValueKind.Array)
+            {
+                return current.EnumerateArray().ToList();
+            }
+
+            if (current.ValueKind == JsonValueKind.Object
+                && current.TryGetProperty("data", out var inner))
+            {
+                current = inner;
+                continue;
+            }
+
+            return [];
+        }
+
+        return [];
+    }
+
+    private static string? PartsApiText(JsonElement row, params string[] names)
+    {
+        if (row.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        foreach (var name in names)
+        {
+            foreach (var property in row.EnumerateObject())
+            {
+                if (string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase)
+                    && property.Value.ValueKind is JsonValueKind.String or JsonValueKind.Number)
+                {
+                    return property.Value.ToString();
+                }
+            }
+        }
+
+        return null;
     }
 
     private static async Task PersistLiveUmapiAsync(
