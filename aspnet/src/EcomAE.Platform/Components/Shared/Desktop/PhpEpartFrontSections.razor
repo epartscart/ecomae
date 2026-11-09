@@ -32,6 +32,9 @@
 		content: none;
 		display: none;
 	}
+	.epart-front-section-accessories {
+		display: none; /* surfaced by the auto247 storefront skin in the catalog sequence */
+	}
 	.epart-front-section {
 		background: #fff;
 		border: 1px solid #e2e8f0;
@@ -325,6 +328,15 @@
 		{
 			<div class="alert alert-warning">Original Catalog is loading. <a href="@_vehicleHref">Open catalog</a></div>
 		}
+	</section>
+
+	<!-- Accessories — hidden for every tenant; the auto247 skin shows it last in
+	     its catalog sequence (e-catalog → brands → original → family → accessories). -->
+	<section class="epart-front-section epart-front-section-accessories" aria-label="Accessories">
+		<div class="epart-front-section-head">
+			<h2 class="epart-front-section-title">Accessories</h2>
+			<a class="epart-front-section-link" href="/storefront/accessories-app">Open accessories &rarr;</a>
+		</div>
 	</section>
 
 	</div>

@@ -19,9 +19,15 @@ public sealed class Auto247SkinContributor : ICustomerSkinContributor
 
     public string PackageId => Auto247Package.PackageId;
 
-    public string StylesheetHref => "/platform-assets/epc-storefront-theme-auto247.css?v=20261108b";
+    public string StylesheetHref => "/platform-assets/epc-storefront-theme-auto247.css?v=20261109a";
 
     public string BodyClass => "epc-storefront--auto247";
+
+    public string SeoHomeDescription =>
+        "Buy and sell genuine and aftermarket automotive parts online at AUTO247 — UAE and GCC warehouse, fast delivery worldwide.";
+
+    public string SeoHomeKeywords =>
+        "AUTO247, automotive parts, auto parts UAE, spare parts, OE parts, aftermarket, buy sell vehicles parts GCC";
 
     /// <summary>
     /// Tenant match + package activation: the skin applies only while

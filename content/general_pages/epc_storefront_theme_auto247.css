@@ -485,3 +485,51 @@ body.epc-storefront--auto247 .epc-auto247-hero--static .epc-auto247-road *,
 body.epc-storefront--auto247 .epc-auto247-hero--static .epc-auto247-badge__ring {
     animation: none !important;
 }
+
+/* auto247 home: hide hero → quick banners → VIN request strip (tenant request:
+   frontpage starts at the catalog sections). */
+body[class*="epc-storefront--auto247"] .epc-asp-piston-banner,
+body[class*="epc-storefront--auto247"] .epc-asp-home-banners,
+body[class*="epc-storefront--auto247"] .section-vin {
+    display: none !important;
+}
+
+/* auto247 catalog sequence: Epart Catalog → Available Brands → Original Catalog
+   → Family Product → Accessories; all other sections follow. */
+body[class*="epc-storefront--auto247"] .epart-front-original-data {
+    display: flex;
+    flex-direction: column;
+}
+body[class*="epc-storefront--auto247"] .epart-front-section {
+    order: 9;
+    width: 100%;
+}
+body[class*="epc-storefront--auto247"] .epart-front-section-catalog { order: 1; }
+body[class*="epc-storefront--auto247"] .epart-front-section-brands { order: 2; }
+body[class*="epc-storefront--auto247"] .epart-front-section-original { order: 3; }
+body[class*="epc-storefront--auto247"] .epart-front-section-family { order: 4; }
+body[class*="epc-storefront--auto247"] .epart-front-section-accessories {
+    display: block;
+    order: 5;
+}
+
+/* auto247 brand: rename every visible "Epart(s)" label to AUTO247. */
+body[class*="epc-storefront--auto247"] .epart-front-section-catalog .epart-front-section-title {
+    font-size: 0 !important;
+}
+body[class*="epc-storefront--auto247"] .epart-front-section-catalog .epart-front-section-title::after {
+    content: "AUTO247 Catalog";
+    font-size: 28px;
+}
+body[class*="epc-storefront--auto247"] a[href*="eparts-cata"],
+body[class*="epc-storefront--auto247"] a[href*="eparts-mod"],
+body[class*="epc-storefront--auto247"] a[href*="partsapi-catalog"],
+body[class*="epc-storefront--auto247"] a[href*="ucats-app"],
+body[class*="epc-storefront--auto247"] a[href*="katalogi-ucats"] {
+    font-size: 0;
+}
+body[class*="epc-storefront--auto247"] a[href*="eparts-cata"]::after { content: "AUTO247 Catalog"; font-size: 14px; }
+body[class*="epc-storefront--auto247"] a[href*="eparts-mod"]::after { content: "AUTO247 Mod"; font-size: 14px; }
+body[class*="epc-storefront--auto247"] a[href*="partsapi-catalog"]::after { content: "AUTO247 CatAPI"; font-size: 14px; }
+body[class*="epc-storefront--auto247"] a[href*="ucats-app"]::after,
+body[class*="epc-storefront--auto247"] a[href*="katalogi-ucats"]::after { content: "AUTO247 Service Catalog"; font-size: 14px; }

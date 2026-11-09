@@ -212,7 +212,9 @@
         {
             var host = _request.Host.Host;
             _seoTitle = StorefrontIndustryHostResolver.ResolveStorefrontTitle(host);
-            _seoDescription = StorefrontPublicSeo.HomeMetaDescription;
+            // Customer-package skins may override home SEO text (e.g. auto247 → AUTO247).
+            _seoDescription = _skin?.SeoHomeDescription ?? StorefrontPublicSeo.HomeMetaDescription;
+            _seoKeywords = _skin?.SeoHomeKeywords ?? StorefrontPublicSeo.DefaultKeywords;
             _canonical = StorefrontPublicSeo.CanonicalForStorefrontHome(_request);
             _hreflang = StorefrontPublicSeo.HreflangAlternates(_request);
 
