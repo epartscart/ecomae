@@ -634,3 +634,15 @@ a.header-logo .epc-surface-host-logo__img {
 .epc-header-contact-col .text-left { text-align: center !important; }
 
 /* Front-page section links open the full app view - keep them button-styled (already) */
+
+/* auto247: single catalog heading — the front-section title + 'Open AUTO247 Catalog'
+   button duplicate the widget's own h1; hide them and keep one blue title. */
+body[class*="epc-storefront--auto247"] .epart-front-section-catalog .epart-front-section-head {
+    display: none !important;
+}
+body[class*="epc-storefront--auto247"] .epc-umapi-title::after {
+    content: "AUTO247 Catalog"; font-size: 26px; font-weight: 800; color: #0f6ad0;
+}
+
+/* cross reference group headers */
+#epc-cross-ref-list .epc-cross-ref-group { list-style: none; margin: 14px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: #0f6ad0; }
