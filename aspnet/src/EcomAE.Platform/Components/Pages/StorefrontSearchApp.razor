@@ -1416,18 +1416,37 @@
       var html = [];
       var showLimit = opts.showAll ? 5000 : refs.length;
       var seenKeys = Object.create(null);
-      for (var i = 0; i < refs.length && shown < showLimit; i++) {
+      // Genuine (OE) references first, then aftermarket — same split the offers table uses.
+      var buckets = { genuine: [], aftermarket: [] };
+      for (var i = 0; i < refs.length; i++) {
         var ref = refs[i];
         var rb = ref.brand || '';
         var ra = ref.article || ref.article_norm || '';
         var rn = compactArt(ref.article_norm || ra);
         if (!rb || !rn) continue;
         if (rn === selfA && compactBrand(rb) === selfB) continue;
-        var sameArticleAlias = rn === selfA;
         var key = compactBrand(rb) + '|' + rn;
         if (seenKeys[key]) continue;
         seenKeys[key] = 1;
-        var inStock = !!stockKeys[key];
+        var kind = (typeof isGenuine === 'function' && isGenuine(rb)) ? 'genuine' : 'aftermarket';
+        buckets[kind].push({ ref: ref, rb: rb, ra: ra, rn: rn, key: key });
+      }
+      var ordered = buckets.genuine.concat(buckets.aftermarket);
+      var lastKind = '';
+      for (var j = 0; j < ordered.length && shown < showLimit; j++) {
+        var item = ordered[j];
+        var rb = item.rb, ra = item.ra, rn = item.rn, ref = item.ref;
+        var kind = (typeof isGenuine === 'function' && isGenuine(rb)) ? 'genuine' : 'aftermarket';
+        if (kind !== lastKind) {
+          lastKind = kind;
+          var groupCount = kind === 'genuine' ? buckets.genuine.length : buckets.aftermarket.length;
+          if (groupCount > 0) {
+            html.push('<li class="epc-cross-ref-group" data-cross-group="' + kind + '"><strong>' +
+              (kind === 'genuine' ? 'Genuine (OE)' : 'Aftermarket') + ' — ' + groupCount + '</strong></li>');
+          }
+        }
+        var sameArticleAlias = rn === selfA;
+        var inStock = !!stockKeys[item.key];
         var src = String(ref.source || 'cp');
         var srcLower = src.toLowerCase();
         var isCrossbase = srcLower.indexOf('crossbase') !== -1;
