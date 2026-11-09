@@ -2901,7 +2901,13 @@ public static class StorefrontPhpAjaxEndpoints
 
     private static bool PartsApiRateLimited(HttpContext context)
     {
-        var ip = Migration.CpWebTrackerCollectService.ClientIp(context.Request);
+        // nginx appends the real client IP ($proxy_add_x_forwarded_for), so the
+        // RIGHTMOST X-Forwarded-For entry is trusted — a caller can prepend a
+        // spoofed value but cannot remove its own appended IP.
+        var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
+        var ip = forwarded.Length > 0
+            ? forwarded.Split(',')[^1].Trim()
+            : context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         var window = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 60;
         var allowed = true;
         PartsApiRateBuckets.AddOrUpdate(
