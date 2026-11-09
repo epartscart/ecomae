@@ -6,7 +6,11 @@
 @using EcomAE.Platform.Packages
 @inject IPackageRegistry Packages
 @inject ILegacySessionValidator Sessions
+@inject ICpCsrfGuard Csrf
 @inject IHttpContextAccessor Http
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Middleware
+@using EcomAE.Platform.Services
 
 <PageTitle>Packages · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
@@ -70,6 +74,7 @@
                     <form method="post" action="/cp/packages/write" class="well form-inline">
                         <input type="hidden" name="confirmWrites" value="true" />
                         <input type="hidden" name="returnUrl" value="/cp/packages-app" />
+                        <input type="hidden" name="csrf_guard_key" value="@_csrfKey" />
                         <input type="hidden" name="action" value="install" />
                         <div class="form-group"><input type="text" class="form-control" name="site_key" placeholder="site_key (e.g. auto247)" required /></div>
                         <div class="form-group">
@@ -108,6 +113,7 @@
                                             <form method="post" action="/cp/packages/write" style="display:inline">
                                                 <input type="hidden" name="confirmWrites" value="true" />
                                                 <input type="hidden" name="returnUrl" value="/cp/packages-app" />
+                                                <input type="hidden" name="csrf_guard_key" value="@_csrfKey" />
                                                 <input type="hidden" name="site_key" value="@i.SiteKey" />
                                                 <input type="hidden" name="package_id" value="@i.PackageId" />
                                                 <input type="hidden" name="action" value="@(i.Enabled ? "deactivate" : "activate")" />
@@ -128,6 +134,7 @@
 
 @code {
     private bool _isAdmin;
+    private string _csrfKey = "";
     private IReadOnlyList<DeployedPackage> _deployed = [];
     private IReadOnlyList<TenantPackageInstall> _installs = [];
     private string _flashOk = "";
@@ -148,6 +155,8 @@
             return;
         }
 
+        _csrfKey = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
+
         try
         {
             await Packages.EnsureSchemaAsync(ctx.RequestAborted);
@@ -155,6 +164,9 @@
         catch { }
 
         _deployed = await Packages.ListDeployedAsync(ctx.RequestAborted);
-        _installs = await Packages.ListInstallsAsync(null, ctx.RequestAborted);
+        // Super-CP sees all tenants; a tenant admin sees only its own site_key installs.
+        var superCp = SuperCpHostGate.IsAllowed(ctx);
+        var tenantSiteKey = (ctx.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext)?.SiteKey;
+        _installs = await Packages.ListInstallsAsync(superCp ? null : tenantSiteKey, ctx.RequestAborted);
     }
 }

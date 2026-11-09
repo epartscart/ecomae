@@ -225,7 +225,7 @@ public sealed class PackageRegistry : IPackageRegistry
                 ErpDb.Positional("INSERT INTO `epc_tenant_package_installs` (`site_key`,`package_id`,`installed_version`,`install_status`,`migration_status`,`enabled`,`installed_at`) VALUES (?,?,?,?,?,0,?) ON DUPLICATE KEY UPDATE `installed_version`=VALUES(`installed_version`),`install_status`=VALUES(`install_status`)"),
                 cancellationToken,
                 siteKey, packageId, deployed!.Version, "installed", "none", now).ConfigureAwait(false);
-            await WriteHistoryAsync(connection, "tenant", siteKey, packageId, "install", null, deployed.Version, actor, null, now, cancellationToken).ConfigureAwait(false);
+            await WriteHistoryAsync(connection, null, "tenant", siteKey, packageId, "install", null, deployed!.Version, actor, null, now, cancellationToken).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok($"Package {packageId} installed for {siteKey}.", 1);
         }
         catch (DbException ex)
@@ -273,18 +273,40 @@ public sealed class PackageRegistry : IPackageRegistry
                 return ErpSimpleWriteResult.Fail("invalid", "Install the package for this tenant first.");
             }
 
+            if (!enabled)
+            {
+                // Dependent gate: refuse deactivation while an enabled package depends on it.
+                foreach (var other in PackageCatalog.Deployed)
+                {
+                    if (!PackageCatalog.DependenciesOf(other.PackageId).Contains(packageId, StringComparer.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    var depInstall = await GetInstallAsync(siteKey, other.PackageId, cancellationToken).ConfigureAwait(false);
+                    if (depInstall?.Enabled == true)
+                    {
+                        return ErpSimpleWriteResult.Fail("invalid", $"Deactivate {other.PackageId} first — it depends on this package.");
+                    }
+                }
+            }
+
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            // One transaction: enabled flag + revision bump + history commit together — a
+            // mid-sequence failure leaves package state (and the cached view) untouched.
+            await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
             await ErpDb.ExecuteAsync(
-                connection, null,
+                connection, transaction,
                 ErpDb.Positional("UPDATE `epc_tenant_package_installs` SET `enabled`=?, `activated_at`=?, `activated_by`=? WHERE `site_key`=? AND `package_id`=?"),
                 cancellationToken,
                 enabled ? 1 : 0,
                 enabled ? now : (object)DBNull.Value,
                 (object?)actor ?? DBNull.Value,
                 siteKey, packageId).ConfigureAwait(false);
-            await BumpRevisionAsync(connection, siteKey, now, cancellationToken).ConfigureAwait(false);
-            await WriteHistoryAsync(connection, "tenant", siteKey, packageId,
+            await BumpRevisionAsync(connection, transaction, siteKey, now, cancellationToken).ConfigureAwait(false);
+            await WriteHistoryAsync(connection, transaction, "tenant", siteKey, packageId,
                 enabled ? "activate" : "deactivate", install.InstalledVersion, install.InstalledVersion, actor, null, now, cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             // Immediate deactivation: invalidate the resolver cache in-process so a disabled
             // package cannot execute on the next request.
@@ -300,22 +322,22 @@ public sealed class PackageRegistry : IPackageRegistry
     }
 
     private static async Task BumpRevisionAsync(
-        DbConnection connection, string siteKey, long now, CancellationToken cancellationToken)
+        DbConnection connection, DbTransaction transaction, string siteKey, long now, CancellationToken cancellationToken)
     {
         await ErpDb.ExecuteAsync(
-            connection, null,
+            connection, transaction,
             ErpDb.Positional("INSERT INTO `epc_package_revision` (`site_key`,`revision`,`updated_at`) VALUES (?,1,?) ON DUPLICATE KEY UPDATE `revision`=`revision`+1,`updated_at`=VALUES(`updated_at`)"),
             cancellationToken,
             siteKey, now).ConfigureAwait(false);
     }
 
     private static async Task WriteHistoryAsync(
-        DbConnection connection, string scope, string siteKey, string packageId,
+        DbConnection connection, DbTransaction? transaction, string scope, string siteKey, string packageId,
         string action, string? fromVersion, string? toVersion, string? actor,
         string? detail, long now, CancellationToken cancellationToken)
     {
         await ErpDb.ExecuteAsync(
-            connection, null,
+            connection, transaction,
             ErpDb.Positional("INSERT INTO `epc_package_history` (`scope`,`site_key`,`package_id`,`action`,`from_version`,`to_version`,`actor`,`detail`,`created_at`) VALUES (?,?,?,?,?,?,?,?,?)"),
             cancellationToken,
             scope, siteKey, packageId, action,

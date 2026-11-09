@@ -61,10 +61,12 @@ public sealed class PackageResolver : IPackageResolver, IPackageGate
     }
 
     public void Invalidate(string siteKey)
-        => _cache.Remove(RevisionCacheKey(siteKey)); // re-reads epc_package_revision on next resolve
+        => _cache.Remove(RevisionCacheKey(_dbTag ?? string.Empty, siteKey)); // re-reads epc_package_revision on next resolve
 
-    private static string CacheKey(string siteKey, long revision) => $"pkg-resolve:{siteKey}:{revision}";
-    private static string RevisionCacheKey(string siteKey) => "pkg-revision:" + siteKey;
+    private string _dbTag = string.Empty; // captured from the open connection: prevents cross-DB cache bleed
+
+    private static string CacheKey(string dbTag, string siteKey, long revision) => $"pkg-resolve:{dbTag}:{siteKey}:{revision}";
+    private static string RevisionCacheKey(string dbTag, string siteKey) => $"pkg-revision:{dbTag}:{siteKey}";
 
     public async Task<IReadOnlySet<string>> GetEnabledAsync(string siteKey, CancellationToken cancellationToken = default)
     {
@@ -80,7 +82,7 @@ public sealed class PackageResolver : IPackageResolver, IPackageGate
             return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
 
-        var key = CacheKey(siteKey, revision);
+        var key = CacheKey(_dbTag, siteKey, revision);
         if (_cache.TryGetValue(key, out IReadOnlySet<string>? cached) && cached is not null)
         {
             return cached;
@@ -93,7 +95,7 @@ public sealed class PackageResolver : IPackageResolver, IPackageGate
 
     private async Task<long> GetRevisionAsync(string siteKey, CancellationToken cancellationToken)
     {
-        var key = RevisionCacheKey(siteKey);
+        var key = RevisionCacheKey(_dbTag, siteKey);
         if (_cache.TryGetValue(key, out long cached))
         {
             return cached;
@@ -126,11 +128,15 @@ public sealed class PackageResolver : IPackageResolver, IPackageGate
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            _dbTag = connection.Database ?? string.Empty;
             var value = await ErpDb.ScalarAsync(
                 connection, null,
                 "SELECT `revision` FROM `epc_package_revision` WHERE `site_key` = ? LIMIT 1",
                 cancellationToken, siteKey).ConfigureAwait(false);
-            return value is null or DBNull ? 0L : Convert.ToInt64(value);
+            var revision = value is null or DBNull ? 0L : Convert.ToInt64(value);
+            // Cache under the resolved DB tag — the first lookup ran with a blank tag.
+            _cache.Set(RevisionCacheKey(_dbTag, siteKey), revision, _revisionCacheLifetime);
+            return revision;
         }
         catch
         {

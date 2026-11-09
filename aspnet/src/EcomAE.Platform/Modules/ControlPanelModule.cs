@@ -15493,6 +15493,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             HttpContext context,
             ILegacySessionValidator validator,
             EcomAE.Platform.Packages.IPackageRegistry packages,
+            ICpCsrfGuard csrf,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -15504,6 +15505,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             string? action = null;
             string? siteKey = null;
             string? packageId = null;
+            string? csrfKey = null;
             var confirm = false;
             if (context.Request.HasFormContentType)
             {
@@ -15511,6 +15513,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 action = LiveWriteFormBinder.Text(form, "action");
                 siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
                 packageId = LiveWriteFormBinder.Text(form, "package_id", "packageId");
+                csrfKey = LiveWriteFormBinder.Text(form, CpCsrfGuard.FieldName);
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -15524,6 +15527,14 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             if (confirm && key is "install" or "activate" or "deactivate" && siteKey.Length > 0 && packageId.Length > 0)
             {
+                var verdict = await csrf.VerifyAsync(context, session, csrfKey, cancellationToken).ConfigureAwait(false);
+                if (!verdict.Ok)
+                {
+                    return LiveWriteFormBinder.Complete(
+                        context, "/cp/packages-app", false, verdict.Message,
+                        new { ok = false, validation_code = verdict.Code, message = verdict.Message, session = SessionPayload(session) });
+                }
+
                 var actor = session.Email ?? "cp";
                 try
                 {
