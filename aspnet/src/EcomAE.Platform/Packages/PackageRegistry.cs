@@ -373,7 +373,7 @@ public sealed class PackageRegistry : IPackageRegistry
     /// <see cref="GetInstallAsync"/>, a DB error propagates instead of masquerading
     /// as "not installed" (used inside the locked lifecycle path).
     /// </summary>
-    private static async Task<TenantPackageInstall?> ReadInstallAsync(
+    internal static async Task<TenantPackageInstall?> ReadInstallAsync(
         DbConnection connection, string siteKey, string packageId, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();

@@ -1,0 +1,249 @@
+using System.Data.Common;
+using System.Security.Cryptography;
+using System.Text;
+using EcomAE.Platform.Erp;
+using Microsoft.Extensions.Logging;
+
+namespace EcomAE.Platform.Packages;
+
+/// <summary>
+/// Slice 1d upgrade/rollback engine: version-rollforward and recovery for tenant
+/// package installs. Preflight validates version compatibility and install state;
+/// the write commits install-version + migration record + history + revision in one
+/// transaction under the per-tenant lifecycle lock. Rollback is a compensating write
+/// (restore a previously recorded version) — MariaDB DDL is non-transactional, so recovery never
+/// relies on transaction rollback alone: every attempt is recorded with a checksum
+/// in <c>epc_package_migrations</c> and <c>epc_package_history</c>.
+/// <para>Compile-time model note: the running package code is the deployed assembly —
+/// version changes are bookkeeping + data-migration state; shipping different package
+/// code requires a platform deploy, not a version write.</para>
+/// </summary>
+public interface IPackageUpgrade
+{
+    Task<ErpSimpleWriteResult> UpgradeAsync(string siteKey, string packageId, string actor, CancellationToken cancellationToken = default);
+    Task<ErpSimpleWriteResult> RollbackAsync(string siteKey, string packageId, string toVersion, string actor, CancellationToken cancellationToken = default);
+}
+
+/// <summary>Semver-ish core compatibility: package core_min ≤ coreVersion ≤ core_max.</summary>
+public static class PackageCompatibility
+{
+    public static bool IsCompatible(DeployedPackage deployed, string coreVersion)
+    {
+        if (!Version.TryParse(coreVersion, out var core))
+        {
+            return false;
+        }
+
+        if (deployed.CoreMinVersion is not null
+            && (!Version.TryParse(deployed.CoreMinVersion, out var min) || core < min))
+        {
+            return false;
+        }
+
+        if (deployed.CoreMaxVersion is not null
+            && (!Version.TryParse(deployed.CoreMaxVersion, out var max) || core > max))
+        {
+            return false;
+        }
+
+        return true;
+    }
+}
+
+/// <summary>Pure upgrade/recovery decision rules — unit-testable without a DB.</summary>
+public static class UpgradeRules
+{
+    /// <summary>
+    /// Validates an upgrade or rollback. Returns error message or null.
+    /// Compile-time model: only the shipped catalog version is runnable, so an upgrade
+    /// must target <see cref="DeployedPackage.Version"/>; a rollback must target a version
+    /// the tenant's history actually recorded (<paramref name="knownVersions"/>).
+    /// </summary>
+    public static string? Validate(
+        DeployedPackage? deployed,
+        TenantPackageInstall? install,
+        string toVersion,
+        string coreVersion,
+        bool isRollback,
+        IReadOnlySet<string>? knownVersions = null)
+    {
+        if (deployed is null)
+        {
+            return "Unknown package.";
+        }
+
+        if (install is null || install.InstallStatus != "installed")
+        {
+            return "Install the package for this tenant first.";
+        }
+
+        if (string.IsNullOrWhiteSpace(toVersion))
+        {
+            return "Target version required.";
+        }
+
+        if (string.Equals(install.InstalledVersion, toVersion, StringComparison.OrdinalIgnoreCase))
+        {
+            return $"Already on version {toVersion}.";
+        }
+
+        if (isRollback)
+        {
+            // Rollback restores a recorded version — it must be one the tenant actually ran.
+            if (knownVersions is null || !knownVersions.Contains(toVersion))
+            {
+                return $"Version {toVersion} was never deployed for this tenant.";
+            }
+
+            return null;
+        }
+
+        if (!string.Equals(deployed.Version, toVersion, StringComparison.OrdinalIgnoreCase))
+        {
+            return $"Only the deployed version {deployed.Version} is upgradeable.";
+        }
+
+        if (!PackageCompatibility.IsCompatible(deployed, coreVersion))
+        {
+            return $"Package requires core {deployed.CoreMinVersion}–{deployed.CoreMaxVersion}; current core is {coreVersion}.";
+        }
+
+        return null;
+    }
+
+    /// <summary>Integrity checksum for a migration record — verifies a recorded upgrade was not tampered.</summary>
+    public static string Checksum(string packageId, string fromVersion, string toVersion)
+        => Convert.ToHexString(
+            SHA256.HashData(Encoding.UTF8.GetBytes($"{packageId}|{fromVersion}|{toVersion}")))[..16].ToLowerInvariant();
+}
+
+public sealed class PackageUpgradeService : IPackageUpgrade
+{
+    private readonly IErpWriteConnectionFactory _connections;
+    private readonly IPackageResolver _resolver;
+    private readonly ILogger<PackageUpgradeService> _log;
+
+    public PackageUpgradeService(
+        IErpWriteConnectionFactory connections,
+        IPackageResolver resolver,
+        ILogger<PackageUpgradeService> log)
+    {
+        _connections = connections;
+        _resolver = resolver;
+        _log = log;
+    }
+
+    public Task<ErpSimpleWriteResult> UpgradeAsync(string siteKey, string packageId, string actor, CancellationToken cancellationToken = default)
+    {
+        var deployed = PackageCatalog.Find(packageId);
+        var toVersion = deployed?.Version ?? string.Empty;
+        return WriteVersionAsync(siteKey, packageId, toVersion, actor, isRollback: false, cancellationToken);
+    }
+
+    public Task<ErpSimpleWriteResult> RollbackAsync(string siteKey, string packageId, string toVersion, string actor, CancellationToken cancellationToken = default)
+        => WriteVersionAsync(siteKey, packageId, toVersion, actor, isRollback: true, cancellationToken);
+
+    private async Task<ErpSimpleWriteResult> WriteVersionAsync(
+        string siteKey, string packageId, string toVersion, string actor, bool isRollback, CancellationToken cancellationToken)
+    {
+        var deployed = PackageCatalog.Find(packageId);
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var lockName = "epc_pkg_lifecycle_" + siteKey;
+            var gotLock = (await ErpDb.ScalarAsync(
+                connection, null, ErpDb.Positional("SELECT GET_LOCK(?,10)"),
+                cancellationToken, lockName).ConfigureAwait(false))?.ToString() == "1";
+            if (!gotLock)
+            {
+                return ErpSimpleWriteResult.Fail("busy", "Another package change is in progress — retry.");
+            }
+
+            try
+            {
+                var install = await PackageRegistry.ReadInstallAsync(connection, siteKey, packageId, cancellationToken).ConfigureAwait(false);
+                var knownVersions = isRollback
+                    ? await ReadKnownVersionsAsync(connection, siteKey, packageId, cancellationToken).ConfigureAwait(false)
+                    : null;
+                var invalid = UpgradeRules.Validate(deployed, install, toVersion, PackageCatalog.CoreVersion, isRollback, knownVersions);
+                if (invalid is not null)
+                {
+                    return ErpSimpleWriteResult.Fail("invalid", invalid);
+                }
+
+                var fromVersion = install!.InstalledVersion;
+                var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                var migrationId = (isRollback ? "rollback-" : "upgrade-") + fromVersion + "-" + toVersion;
+                var checksum = UpgradeRules.Checksum(packageId, fromVersion, toVersion);
+
+                await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+                await ErpDb.ExecuteAsync(
+                    connection, transaction,
+                    // installed_version only: migration_status stays whatever it is until a real
+                    // package migration runner executes — marking 'applied' here would lie about
+                    // unrun data migrations.
+                    ErpDb.Positional("UPDATE `epc_tenant_package_installs` SET `installed_version`=? WHERE `site_key`=? AND `package_id`=?"),
+                    cancellationToken,
+                    toVersion, siteKey, packageId).ConfigureAwait(false);
+                await ErpDb.ExecuteAsync(
+                    connection, transaction,
+                    ErpDb.Positional("INSERT INTO `epc_package_migrations` (`scope`,`site_key`,`package_id`,`migration_id`,`checksum`,`status`,`applied_at`,`detail`) VALUES ('tenant',?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `status`=VALUES(`status`),`applied_at`=VALUES(`applied_at`),`checksum`=VALUES(`checksum`)"),
+                    cancellationToken,
+                    siteKey, packageId, migrationId, checksum, "applied", now,
+                    isRollback ? "compensating rollback (recorded version restore)" : "version rollforward").ConfigureAwait(false);
+                await BumpRevisionAsync(connection, transaction, siteKey, now, cancellationToken).ConfigureAwait(false);
+                await WriteHistoryAsync(connection, transaction, siteKey, packageId,
+                    isRollback ? "rollback" : "upgrade", fromVersion, toVersion, actor, now, cancellationToken).ConfigureAwait(false);
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+
+                _resolver.Invalidate(siteKey);
+                return ErpSimpleWriteResult.Ok(
+                    $"Package {packageId} {(isRollback ? "rolled back to" : "upgraded to")} {toVersion} for {siteKey}.", 1);
+            }
+            finally
+            {
+                await ErpDb.ExecuteAsync(
+                    connection, null, ErpDb.Positional("SELECT RELEASE_LOCK(?)"),
+                    cancellationToken, lockName).ConfigureAwait(false);
+            }
+        }
+        catch (DbException ex)
+        {
+            _log.LogWarning(ex, "package {Action} failed {Package} {Site}", isRollback ? "rollback" : "upgrade", packageId, siteKey);
+            return ErpSimpleWriteResult.Fail("db", "Package tables missing or write failed — inspect epc_package_migrations for the stopping point, then re-run (idempotent).");
+        }
+    }
+
+    /// <summary>Versions this tenant has recorded in package history (install/upgrade/rollback targets) — the only valid rollback destinations.</summary>
+    private static async Task<IReadOnlySet<string>> ReadKnownVersionsAsync(DbConnection connection, string siteKey, string packageId, CancellationToken cancellationToken)
+    {
+        var versions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "SELECT DISTINCT `to_version` FROM `epc_package_history` WHERE `site_key` = ? AND `package_id` = ? AND `to_version` IS NOT NULL";
+        var p1 = command.CreateParameter(); p1.Value = siteKey; command.Parameters.Add(p1);
+        var p2 = command.CreateParameter(); p2.Value = packageId; command.Parameters.Add(p2);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            versions.Add(reader.GetString(0));
+        }
+
+        return versions;
+    }
+
+    private static async Task BumpRevisionAsync(DbConnection connection, System.Data.Common.DbTransaction transaction, string siteKey, long now, CancellationToken cancellationToken)
+        => await ErpDb.ExecuteAsync(
+            connection, transaction,
+            ErpDb.Positional("INSERT INTO `epc_package_revision` (`site_key`,`revision`,`updated_at`) VALUES (?,1,?) ON DUPLICATE KEY UPDATE `revision`=`revision`+1,`updated_at`=VALUES(`updated_at`)"),
+            cancellationToken,
+            siteKey, now).ConfigureAwait(false);
+
+    private static async Task WriteHistoryAsync(DbConnection connection, System.Data.Common.DbTransaction transaction, string siteKey, string packageId, string action, string fromVersion, string toVersion, string actor, long now, CancellationToken cancellationToken)
+        => await ErpDb.ExecuteAsync(
+            connection, transaction,
+            ErpDb.Positional("INSERT INTO `epc_package_history` (`scope`,`site_key`,`package_id`,`action`,`from_version`,`to_version`,`actor`,`created_at`) VALUES ('tenant',?,?,?,?,?,?,?)"),
+            cancellationToken,
+            siteKey, packageId, action, fromVersion, toVersion, actor, now).ConfigureAwait(false);
+}
