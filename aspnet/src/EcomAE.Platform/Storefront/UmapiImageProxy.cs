@@ -20,12 +20,18 @@ public static class UmapiImageProxy
         url = string.Empty;
         var normalized = AsciiLower(kind ?? string.Empty);
         var parsed = PhpIntCast(id);
-        if (parsed < 1 || normalized is not ("supplier" or "manufacturer"))
+        if (parsed < 1 || normalized is not ("supplier" or "manufacturer" or "model"))
         {
             return false;
         }
 
-        url = "https://image.umapi.ru/" + (normalized == "manufacturer" ? "MANUFACTURERS" : "SUPPLIERS") + "/" + parsed.ToString(CultureInfo.InvariantCulture) + ".png";
+        var collection = normalized switch
+        {
+            "manufacturer" => "MANUFACTURERS",
+            "model" => "MODELS",
+            _ => "SUPPLIERS",
+        };
+        url = "https://image.umapi.ru/" + collection + "/" + parsed.ToString(CultureInfo.InvariantCulture) + ".png";
         return true;
     }
 
