@@ -250,3 +250,16 @@
   font-size: 12px;
 }
 .header-cat-btn { cursor: pointer; }
+
+/* Mega menu leaf pane — rich single-category card (auto247: avoids the near-empty 'Browse X' look) */
+#dp_menu .epc-own-cat-pane { padding: 28px 32px; max-width: 640px; }
+#dp_menu .epc-own-cat-pane-head { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; }
+#dp_menu .epc-own-cat-pane-img { width: 72px; height: 72px; object-fit: contain; }
+#dp_menu .epc-own-cat-pane-title { margin: 0 0 4px; font-size: 22px; font-weight: 800; color: #172536; }
+#dp_menu .epc-own-cat-pane-sub { margin: 0; font-size: 14px; color: #5b6b80; }
+#dp_menu .epc-own-cat-pane-cta {
+    display: inline-block; padding: 12px 26px; border-radius: 10px;
+    background: linear-gradient(180deg, #1d7de0, #0f5fb8); color: #fff;
+    font-weight: 800; font-size: 15px; text-decoration: none;
+}
+#dp_menu .epc-own-cat-pane-cta:hover { background: #0c55a6; color: #fff; text-decoration: none; }
