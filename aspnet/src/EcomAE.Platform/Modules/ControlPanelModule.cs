@@ -15486,6 +15486,76 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         }).DisableAntiforgery();
 
+        // Package install / activate / deactivate (Slice 1a). Super-CP admins act on any
+        // site_key; tenant CP admins act only on their own site_key. Customer-package
+        // ownership and dependency checks are enforced inside the registry (fail-closed).
+        endpoints.MapPost(EcomAeRoutes.CpPackagesWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            EcomAE.Platform.Packages.IPackageRegistry packages,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/packages-app", "Admin CP capability required for packages write.");
+            }
+
+            string? action = null;
+            string? siteKey = null;
+            string? packageId = null;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                packageId = LiveWriteFormBinder.Text(form, "package_id", "packageId");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var tenantSiteKey = context.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant
+                ? tenant.SiteKey
+                : null;
+            var superCp = SuperCpHostGate.IsAllowed(context);
+            siteKey = CpDesignTokensWriteService.ResolveSiteKey(siteKey, superCp, tenantSiteKey);
+            packageId = (packageId ?? string.Empty).Trim().ToLowerInvariant();
+            var key = (action ?? string.Empty).Trim().ToLowerInvariant();
+
+            if (confirm && key is "install" or "activate" or "deactivate" && siteKey.Length > 0 && packageId.Length > 0)
+            {
+                var actor = session.Email ?? "cp";
+                try
+                {
+                    await packages.EnsureSchemaAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // Schema ensure is additive; proceed — the write reports "db" if tables are absent.
+                }
+
+                var written = key == "install"
+                    ? await packages.InstallAsync(siteKey, packageId, actor, cancellationToken).ConfigureAwait(false)
+                    : await packages.SetEnabledAsync(siteKey, packageId, key == "activate", actor, cancellationToken).ConfigureAwait(false);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/packages-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                dryRun = true,
+                validation_code = "dry_run",
+                message = "Dry-run. Set confirmWrites=true with action install|activate|deactivate.",
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelSitemap, async (
             HttpContext context,
             int? limit,

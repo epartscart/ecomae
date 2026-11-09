@@ -654,6 +654,9 @@ public static class EcomAeRoutes
     public const string ControlPanelDesignTokensApp = "/cp/design-tokens-app";
     /// <summary>Design token save. <c>confirmWrites=true</c> twins PHP epc_design_tokens_save. CSS emit stays Classic.</summary>
     public const string CpDesignTokensWrite = "/cp/design-tokens/write";
+
+    /// <summary>Package install/activate/deactivate write. <c>confirmWrites=true</c>; Super-CP.</summary>
+    public const string CpPackagesWrite = "/cp/packages/write";
     public const string ControlPanelSitemap = "/cp/sitemap";
     /// <summary>CP Sitemap Blazor list (JSON digest remains <see cref="ControlPanelSitemap"/>).</summary>
     public const string ControlPanelSitemapApp = "/cp/sitemap-app";

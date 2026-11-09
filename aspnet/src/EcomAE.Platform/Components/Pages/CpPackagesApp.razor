@@ -1,0 +1,160 @@
+@page "/cp/packages-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Packages
+@inject IPackageRegistry Packages
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Packages · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Packages</div>
+            <div class="panel-body">
+                <p>Deployed packages on this platform, installed and activated per tenant. Customer packages are bound to their owning tenant; dependencies must be activated first. Deactivation blocks package APIs, services and handlers immediately.</p>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
+
+    @if (_isAdmin)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Installed packages</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table class="table table-condensed table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Package</th><th>Type</th><th>Version</th><th>Status</th><th>Owner tenant</th><th>Dependencies</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var p in _deployed)
+                            {
+                                <tr>
+                                    <td><strong>@p.PackageId</strong><br /><span class="text-muted">@p.Name</span></td>
+                                    <td>@p.PackageType</td>
+                                    <td>@p.Version</td>
+                                    <td>@p.Status</td>
+                                    <td>@(p.OwnerSiteKey ?? "—")</td>
+                                    <td>@string.Join(", ", PackageCatalog.DependenciesOf(p.PackageId))</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Tenant installs</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/packages/write" class="well form-inline">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="/cp/packages-app" />
+                        <input type="hidden" name="action" value="install" />
+                        <div class="form-group"><input type="text" class="form-control" name="site_key" placeholder="site_key (e.g. auto247)" required /></div>
+                        <div class="form-group">
+                            <select class="form-control" name="package_id">
+                                @foreach (var p in _deployed.Where(p => p.PackageType != PackageTypes.Core))
+                                {
+                                    <option value="@p.PackageId">@p.PackageId</option>
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-default">Install</button>
+                    </form>
+                    <div class="table-responsive">
+                        <table class="table table-condensed table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Tenant</th><th>Package</th><th>Ver</th><th>Migrations</th><th>Enabled</th><th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @if (_installs.Count == 0)
+                            {
+                                <tr><td colspan="6">No installs yet.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var i in _installs)
+                                {
+                                    <tr>
+                                        <td>@i.SiteKey</td>
+                                        <td>@i.PackageId</td>
+                                        <td>@i.InstalledVersion</td>
+                                        <td>@i.MigrationStatus</td>
+                                        <td>@(i.Enabled ? "on" : "off")</td>
+                                        <td>
+                                            <form method="post" action="/cp/packages/write" style="display:inline">
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <input type="hidden" name="returnUrl" value="/cp/packages-app" />
+                                                <input type="hidden" name="site_key" value="@i.SiteKey" />
+                                                <input type="hidden" name="package_id" value="@i.PackageId" />
+                                                <input type="hidden" name="action" value="@(i.Enabled ? "deactivate" : "activate")" />
+                                                <button type="submit" class="btn btn-xs @(i.Enabled ? "btn-warning" : "btn-primary")">@(i.Enabled ? "Deactivate" : "Activate")</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</PhpCpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private IReadOnlyList<DeployedPackage> _deployed = [];
+    private IReadOnlyList<TenantPackageInstall> _installs = [];
+    private string _flashOk = "";
+    private string _flashErr = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        try
+        {
+            await Packages.EnsureSchemaAsync(ctx.RequestAborted);
+        }
+        catch { }
+
+        _deployed = await Packages.ListDeployedAsync(ctx.RequestAborted);
+        _installs = await Packages.ListInstallsAsync(null, ctx.RequestAborted);
+    }
+}
