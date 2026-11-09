@@ -7,6 +7,7 @@
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
 @inject IHttpContextAccessor Http
+@inject IStorefrontHomeResolver HomeResolver
 
 <PageTitle>@_pageTitle</PageTitle>
 <PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" IncludePublicSeo="true" />
@@ -68,7 +69,7 @@ else
     private (string Lang, string Parts, string Umapi, string Brands, string Vin) _home =
         ("/en", "/en/parts", "/en/umapi_catalog", "/en/available-brands", "/en/zapros-prodavczu");
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         var host = ctx?.Request.Host.Host ?? string.Empty;
@@ -77,6 +78,15 @@ else
         if (PhpTenantHomeSnapshots.IsCustomPackage(attrs.StorefrontPackage))
         {
             _tenantSnapshotHtml = PhpTenantHomeSnapshots.HtmlFor(attrs.StorefrontPackage);
+        }
+        else
+        {
+            // Package-contributed home (e.g. customer.auto247 premium storefront).
+            var contributor = await HomeResolver.ResolveAsync(ctx).ConfigureAwait(true);
+            if (contributor is not null)
+            {
+                _tenantSnapshotHtml = await contributor.RenderHomeHtmlAsync(ctx).ConfigureAwait(true);
+            }
         }
 
         var lang = StorefrontPhpHomeLinks.LangHref(ctx);

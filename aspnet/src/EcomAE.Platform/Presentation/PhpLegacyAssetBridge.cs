@@ -196,7 +196,18 @@ public static class PhpLegacyAssetBridge
             return Results.NotFound();
         });
 
-        // Auto247 tenant brand logo — referenced by brand_logo_url on the auto247 tenant only.
+        // Auto247 premium storefront home stylesheet — emitted inside the
+        // customer-package home markup; served stack-neutral on every vhost.
+        endpoints.MapGet("/platform-assets/epc-storefront-home-auto247.css", () =>
+        {
+            var path = Path.GetFullPath(Path.Combine(repoRoot, "content/general_pages/epc_storefront_home_auto247.css"));
+            if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
+            {
+                return Results.File(path, "text/css; charset=utf-8");
+            }
+
+            return Results.NotFound();
+        });
         endpoints.MapGet("/platform-assets/auto247-logo.png", () =>
         {
             var path = Path.GetFullPath(Path.Combine(repoRoot, "content/general_pages/auto247_logo.png"));
