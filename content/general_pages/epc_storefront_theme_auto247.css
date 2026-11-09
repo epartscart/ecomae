@@ -469,3 +469,11 @@ body.epc-storefront--auto247 .productsCountBox > a,
 body.epc-storefront--auto247 .productsCountBox > a:hover {
     background: var(--auto247-blue) !important;
 }
+
+/* ---------- CP theme token: hero_style=static ---------- */
+body.epc-storefront--auto247 .epc-auto247-hero--static .epc-auto247-car,
+body.epc-storefront--auto247 .epc-auto247-hero--static .epc-auto247-car *,
+body.epc-storefront--auto247 .epc-auto247-hero--static .epc-auto247-road *,
+body.epc-storefront--auto247 .epc-auto247-hero--static .epc-auto247-badge__ring {
+    animation: none !important;
+}
