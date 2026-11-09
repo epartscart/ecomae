@@ -2824,6 +2824,7 @@ public static class StorefrontPhpAjaxEndpoints
     private static async Task<IResult> LaximoProxyAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
+        ILaximoCatalogService laximo,
         CancellationToken cancellationToken)
     {
         var action = await FieldAsync(context, "action", cancellationToken).ConfigureAwait(false);
@@ -2834,6 +2835,43 @@ public static class StorefrontPhpAjaxEndpoints
 
         var vin = await FieldAsync(context, "vin", cancellationToken).ConfigureAwait(false);
         var catalog = await FieldAsync(context, "catalog", cancellationToken).ConfigureAwait(false);
+
+        // Auto Parts package installed: real Guayaquil SOAP drill-down with
+        // per-tenant epc_laximo_cache auto-save. Package disabled → legacy stubs.
+        if (laximo is not Storefront.UnavailableLaximoCatalogService
+            && action is not "sync" and not "sync_status" and not "status")
+        {
+            var request = new LaximoCatalogRequest(
+                action,
+                Catalog: catalog,
+                Ssd: await FieldAsync(context, "ssd", cancellationToken).ConfigureAwait(false),
+                VehicleId: FirstNonEmpty(
+                    await FieldAsync(context, "vehicle_id", cancellationToken).ConfigureAwait(false),
+                    await FieldAsync(context, "vehicleid", cancellationToken).ConfigureAwait(false)),
+                CategoryId: FirstNonEmpty(
+                    await FieldAsync(context, "category_id", cancellationToken).ConfigureAwait(false),
+                    await FieldAsync(context, "categoryid", cancellationToken).ConfigureAwait(false)),
+                UnitId: FirstNonEmpty(
+                    await FieldAsync(context, "unit_id", cancellationToken).ConfigureAwait(false),
+                    await FieldAsync(context, "unitid", cancellationToken).ConfigureAwait(false)),
+                GroupId: FirstNonEmpty(
+                    await FieldAsync(context, "group_id", cancellationToken).ConfigureAwait(false),
+                    await FieldAsync(context, "groupid", cancellationToken).ConfigureAwait(false)),
+                Value: await FieldAsync(context, "value", cancellationToken).ConfigureAwait(false),
+                Query: FirstNonEmpty(
+                    await FieldAsync(context, "query", cancellationToken).ConfigureAwait(false),
+                    await FieldAsync(context, "q", cancellationToken).ConfigureAwait(false)),
+                Vin: vin,
+                DetailId: FirstNonEmpty(
+                    await FieldAsync(context, "detail_id", cancellationToken).ConfigureAwait(false),
+                    await FieldAsync(context, "detailid", cancellationToken).ConfigureAwait(false)),
+                Oem: await FieldAsync(context, "oem", cancellationToken).ConfigureAwait(false));
+
+            var live = await laximo.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
+            context.Response.StatusCode = live.HttpStatus;
+            return Results.Text(live.Json, "application/json");
+        }
+
         if (!connections.IsConfigured)
         {
             return Emit(context, StorefrontPhpAjax.LaximoLocal(action, vin, catalog, false, []));
@@ -2850,6 +2888,9 @@ public static class StorefrontPhpAjaxEndpoints
             },
             StorefrontPhpAjax.LaximoLocal(action, vin, catalog, false, [])).ConfigureAwait(false);
     }
+
+    private static string? FirstNonEmpty(string? a, string? b)
+        => !string.IsNullOrWhiteSpace(a) ? a : b;
 
     private static async Task<IResult> PriceUploadApiAsync(
         HttpContext context,

@@ -739,6 +739,8 @@ builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontPaymentWriteSer
 // The Auto Parts package replaces the core fallback ILaximoVinDecodeService below.
 Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions
     .TryAddScoped<EcomAE.Platform.Storefront.ILaximoVinDecodeService, EcomAE.Platform.Storefront.UnavailableLaximoVinDecodeService>(builder.Services);
+Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions
+    .TryAddScoped<EcomAE.Platform.Storefront.ILaximoCatalogService, EcomAE.Platform.Storefront.UnavailableLaximoCatalogService>(builder.Services);
 builder.Services.AddScoped<EcomAE.Platform.Presentation.ICustomerSkinResolver, EcomAE.Platform.Presentation.CustomerSkinResolver>();
 builder.Services.AddScoped<EcomAE.Platform.Packages.IPackageEventBus, EcomAE.Platform.Packages.PackageEventBus>();
 builder.Services.AddScoped<EcomAE.Platform.Packages.PackageMenuService>();
