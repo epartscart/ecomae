@@ -156,10 +156,15 @@ def rows(body: str | None) -> list[dict]:
         data = json.loads(body)
     except json.JSONDecodeError:
         return []
-    if isinstance(data, list):
-        return [r for r in data if isinstance(r, dict)]
-    if isinstance(data, dict) and isinstance(data.get("data"), list):
-        return [r for r in data["data"] if isinstance(r, dict)]
+    # Unwrap nested envelopes ({"data":{"data":[...]}} can come from
+    # cached rows written around provider object responses).
+    for _ in range(4):
+        if isinstance(data, list):
+            return [r for r in data if isinstance(r, dict)]
+        if isinstance(data, dict) and isinstance(data.get("data"), (list, dict)):
+            data = data["data"]
+            continue
+        return []
     return []
 
 
@@ -212,7 +217,7 @@ def harvest(db: Db, keys: dict, workers: int, level: int, car_types: list[str]):
         done = [0]
 
         def work(i_method_params):
-            i, method, params = i_method_params
+            i, (method, params) = i_method_params
             results[i] = call(method, params)
             with lock:
                 done[0] += 1
@@ -249,16 +254,16 @@ def harvest(db: Db, keys: dict, workers: int, level: int, car_types: list[str]):
             name = pick(row, "modelName", "MOD_CDS_TEXT", "MS_NAME")
             if mid:
                 models.append({"modelId": mid, "modelName": name or "", "carType": m["carType"], "makeId": m["makeId"]})
-        model_map[m["makeId"]] = models
+        model_map[(m["carType"], m["makeId"])] = models
     print(f"  {sum(len(v) for v in model_map.values())} models", flush=True)
     if level < 3:
         return stats
 
     # Level 3: cars — smallest makes (fewest models) first
-    ordered_makes = sorted(makes, key=lambda m: len(model_map.get(m["makeId"], [])))
+    ordered_makes = sorted(makes, key=lambda m: len(model_map.get((m["carType"], m["makeId"]), [])))
     car_tasks: list[tuple[str, dict, dict]] = []
     for m in ordered_makes:
-        for mo in model_map.get(m["makeId"], []):
+        for mo in model_map.get((m["carType"], m["makeId"]), []):
             car_tasks.append((
                 "getCars",
                 {"carType": mo["carType"], "makeId": mo["makeId"], "modelId": mo["modelId"], "lang": "16"},

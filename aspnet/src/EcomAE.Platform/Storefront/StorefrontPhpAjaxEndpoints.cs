@@ -2901,34 +2901,30 @@ public static class StorefrontPhpAjaxEndpoints
 
     private static bool PartsApiRateLimited(HttpContext context)
     {
-        // Visitor bucket: CF-Connecting-IP (real client, CF-set and not
-        // client-spoofable through Cloudflare), else the rightmost
-        // X-Forwarded-For entry (nginx appends the real peer), else the socket.
-        var cfIp = context.Request.Headers["CF-Connecting-IP"].ToString();
+        // Real visitor IP. nginx appends its peer's address to X-Forwarded-For,
+        // so the rightmost entry is the direct client (a visitor hitting the
+        // origin straight, or the Cloudflare edge). CF-Connecting-IP carries the
+        // true visitor only when that peer is a Cloudflare edge — a direct
+        // caller can forge the header, so it is trusted solely for CF peers.
         var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
-        var clientIp = cfIp.Length > 0 && System.Net.IPAddress.TryParse(cfIp, out _)
+        var peerIp = forwarded.Length > 0
+            ? forwarded.Split(',')[^1].Trim()
+            : context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var cfIp = context.Request.Headers["CF-Connecting-IP"].ToString();
+        var clientIp = IsCloudflareEdge(peerIp)
+            && cfIp.Length > 0 && System.Net.IPAddress.TryParse(cfIp, out _)
             ? cfIp
-            : forwarded.Length > 0
-                ? forwarded.Split(',')[^1].Trim()
-                : context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var connectionIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            : peerIp;
 
         var window = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 60;
         var allowed = true;
-        foreach (var (key, limit) in new[]
+        PartsApiRateBuckets.AddOrUpdate(
+            clientIp,
+            (window, 1),
+            (_, current) => current.Window == window ? (window, current.Count + 1) : (window, 1));
+        if (PartsApiRateBuckets.TryGetValue(clientIp, out var bucket) && bucket.Count > 120)
         {
-            ("v:" + clientIp, 120),       // per visitor
-            ("c:" + connectionIp, 1200),  // high ceiling: header-rotation floods still capped by real peer
-        })
-        {
-            PartsApiRateBuckets.AddOrUpdate(
-                key,
-                (window, 1),
-                (_, current) => current.Window == window ? (window, current.Count + 1) : (window, 1));
-            if (PartsApiRateBuckets.TryGetValue(key, out var bucket) && bucket.Count > limit)
-            {
-                allowed = false;
-            }
+            allowed = false;
         }
 
         // Opportunistic pruning so the map can't grow unbounded.
@@ -2938,6 +2934,57 @@ public static class StorefrontPhpAjaxEndpoints
         }
 
         return !allowed;
+    }
+
+    // Cloudflare IPv4 edge ranges (cloudflare.com/ips-v4).
+    private static readonly (uint Network, uint Mask)[] CloudflareRanges = BuildCloudflareRanges();
+
+    private static (uint, uint)[] BuildCloudflareRanges()
+    {
+        string[] cidrs =
+        {
+            "173.245.48.0/20", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22",
+            "141.101.64.0/18", "108.162.192.0/18", "190.93.240.0/20", "188.114.96.0/20",
+            "197.234.240.0/22", "198.41.128.0/17", "162.158.0.0/15", "104.16.0.0/13",
+            "104.24.0.0/14", "172.64.0.0/13", "131.0.72.0/22",
+        };
+        var list = new List<(uint, uint)>(cidrs.Length);
+        foreach (var cidr in cidrs)
+        {
+            var slash = cidr.IndexOf('/');
+            var bytes = System.Net.IPAddress.Parse(cidr[..slash]).GetAddressBytes();
+            var network = ((uint)bytes[0] << 24) | ((uint)bytes[1] << 16) | ((uint)bytes[2] << 8) | bytes[3];
+            var bits = int.Parse(cidr[(slash + 1)..]);
+            var mask = bits == 0 ? 0u : uint.MaxValue << (32 - bits);
+            list.Add((network, mask));
+        }
+
+        return list.ToArray();
+    }
+
+    private static bool IsCloudflareEdge(string ip)
+    {
+        if (!System.Net.IPAddress.TryParse(ip, out var parsed))
+        {
+            return false;
+        }
+
+        var bytes = parsed.GetAddressBytes();
+        if (bytes.Length != 4)
+        {
+            return false;
+        }
+
+        var value = ((uint)bytes[0] << 24) | ((uint)bytes[1] << 16) | ((uint)bytes[2] << 8) | bytes[3];
+        foreach (var (network, mask) in CloudflareRanges)
+        {
+            if ((value & mask) == network)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
