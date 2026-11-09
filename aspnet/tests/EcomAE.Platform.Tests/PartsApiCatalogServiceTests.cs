@@ -28,12 +28,30 @@ public class PartsApiCatalogServiceTests
     }
 
     [Fact]
-    public void BuildCacheKey_SortsParams()
+    public void BuildCacheKey_Sha1OfMethodAndCanonicalParams()
     {
+        // Matches the existing docpart.epc_partsapi_cache producer:
+        // sha1("getMakes|{\"carType\":\"CV\",\"lang\":\"en\"}")
         var key = PartsApiCatalogService.BuildCacheKey(
-            "getModels",
-            new Dictionary<string, string> { ["modelId"] = "2", ["makeId"] = "1" });
-        Assert.Equal("getmodels|makeId=1|modelId=2", key);
+            "getMakes",
+            new Dictionary<string, string> { ["carType"] = "CV", ["lang"] = "en" });
+        Assert.Equal("bc045394446824ed7e95d4aeaecfb20c64a4f891", key);
+    }
+
+    [Fact]
+    public void WrapBody_WrapsArrayPayloads()
+    {
+        var wrapped = PartsApiCatalogService.WrapBody("getMakes", "[{\"makeId\":1}]");
+        Assert.Contains("\"ok\":true", wrapped);
+        Assert.Contains("\"rows\":1", wrapped);
+        Assert.Contains("\"action\":\"getmakes\"", wrapped);
+    }
+
+    [Fact]
+    public void WrapBody_PassesThroughAlreadyWrapped()
+    {
+        const string body = "{\"ok\":true,\"rows\":2,\"data\":[1,2]}";
+        Assert.Equal(body, PartsApiCatalogService.WrapBody("getMakes", body));
     }
 
     [Fact]

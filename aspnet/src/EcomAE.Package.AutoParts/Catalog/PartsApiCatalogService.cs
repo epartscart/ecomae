@@ -83,8 +83,10 @@ public sealed class PartsApiCatalogService : IPartsApiService
         }
 
         // partsapi.ru issues a separate key per purchased method, so a
-        // method-scoped setting wins, then the shared tenant key, then env.
+        // method-scoped setting/env wins, then the shared tenant key, then env.
         var key = await ResolveSettingAsync("partsapi_key_" + method.ToLowerInvariant(), cancellationToken).ConfigureAwait(false)
+            ?? _config["EcomAE:PartsApi:MethodKeys:" + method]
+            ?? _config["EcomAE:PartsApi:MethodKeys:" + method.ToLowerInvariant()]
             ?? await ResolveSettingAsync("partsapi_key", cancellationToken).ConfigureAwait(false)
             ?? _config["EcomAE:PartsApi:Key"];
         var baseUrl = _config["EcomAE:PartsApi:BaseUrl"];
@@ -147,31 +149,30 @@ public sealed class PartsApiCatalogService : IPartsApiService
                 StatusCodes.Status503ServiceUnavailable, "provider", providerError);
         }
 
-        await WriteCacheAsync(cacheKey, method, upstream.Body, cancellationToken).ConfigureAwait(false);
-        return PartsApiResult.Payload(upstream.Body);
+        var stored = WrapBody(method, upstream.Body);
+        await WriteCacheAsync(cacheKey, method, request.Params, stored, cancellationToken).ConfigureAwait(false);
+        return PartsApiResult.Payload(stored);
     }
 
-    /// <summary>Deterministic cache key: method + params sorted by name.</summary>
+    /// <summary>
+    /// Shared cache key, identical to the existing epc_partsapi_cache producer:
+    /// sha1(method + "|" + canonical params JSON with keys sorted).
+    /// </summary>
     public static string BuildCacheKey(string method, IReadOnlyDictionary<string, string>? parameters)
     {
-        var builder = new StringBuilder(method.ToLowerInvariant());
-        if (parameters is not null)
-        {
-            foreach (var pair in parameters.OrderBy(p => p.Key, StringComparer.Ordinal))
-            {
-                builder.Append('|').Append(EscKey(pair.Key)).Append('=').Append(EscKey(pair.Value));
-            }
-        }
-
-        return builder.ToString();
+        var builder = new StringBuilder(method);
+        builder.Append('|').Append(CanonicalParamsJson(parameters));
+        var hash = System.Security.Cryptography.SHA1.HashData(Encoding.UTF8.GetBytes(builder.ToString()));
+        return Convert.ToHexStringLower(hash);
     }
 
-    // Escape delimiters so distinct requests can never collide on one cache row.
-    private static string EscKey(string? value)
-        => (value ?? string.Empty)
-            .Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("|", "\\|", StringComparison.Ordinal)
-            .Replace("=", "\\=", StringComparison.Ordinal);
+    public static string CanonicalParamsJson(IReadOnlyDictionary<string, string>? parameters)
+    {
+        var ordered = (parameters ?? new Dictionary<string, string>())
+            .OrderBy(p => p.Key, StringComparer.Ordinal)
+            .ToDictionary(p => p.Key, p => p.Value ?? string.Empty);
+        return JsonSerializer.Serialize(ordered);
+    }
 
     /// <summary>
     /// Returns the provider's error message when the body is an error payload
@@ -306,15 +307,48 @@ public sealed class PartsApiCatalogService : IPartsApiService
         }
     }
 
+    /// <summary>Wraps a provider payload in the cache's canonical envelope.</summary>
+    public static string WrapBody(string method, string body)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            if (doc.RootElement.ValueKind == JsonValueKind.Object
+                && doc.RootElement.TryGetProperty("ok", out _))
+            {
+                return body; // already wrapped
+            }
+
+            var count = doc.RootElement.ValueKind == JsonValueKind.Array
+                ? doc.RootElement.GetArrayLength() : 1;
+            return JsonSerializer.Serialize(new
+            {
+                ok = true,
+                action = method.ToLowerInvariant(),
+                rows = count,
+                data = doc.RootElement.Clone(),
+            });
+        }
+        catch (JsonException)
+        {
+            return body;
+        }
+    }
+
     private async Task EnsureCacheTableAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         await ErpDb.TryExecuteAsync(
             connection,
             """
             CREATE TABLE IF NOT EXISTS `epc_partsapi_cache` (
-                `cache_key` VARCHAR(255) NOT NULL,
-                `action` VARCHAR(60) NOT NULL DEFAULT '',
-                `response_json` MEDIUMTEXT,
+                `cache_key` VARCHAR(190) NOT NULL,
+                `method` VARCHAR(64) NOT NULL,
+                `action` VARCHAR(40) NOT NULL DEFAULT '',
+                `section` VARCHAR(20) NOT NULL DEFAULT '',
+                `language` VARCHAR(10) NOT NULL DEFAULT 'en',
+                `request_json` TEXT,
+                `response_json` MEDIUMTEXT NOT NULL,
+                `rows_count` INT NOT NULL DEFAULT 0,
                 `http_status` INT NOT NULL DEFAULT 200,
                 `last_sync` INT NOT NULL DEFAULT 0,
                 PRIMARY KEY (`cache_key`)
@@ -353,7 +387,9 @@ public sealed class PartsApiCatalogService : IPartsApiService
         }
     }
 
-    private async Task WriteCacheAsync(string cacheKey, string method, string json, CancellationToken cancellationToken)
+    private async Task WriteCacheAsync(
+        string cacheKey, string method, IReadOnlyDictionary<string, string>? parameters,
+        string json, CancellationToken cancellationToken)
     {
         if (!_connections.IsConfigured || cacheKey.Length > 250)
         {
@@ -362,18 +398,40 @@ public sealed class PartsApiCatalogService : IPartsApiService
 
         try
         {
+            var rows = 0;
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.ValueKind == JsonValueKind.Object
+                    && doc.RootElement.TryGetProperty("rows", out var r)
+                    && r.ValueKind == JsonValueKind.Number)
+                {
+                    rows = r.GetInt32();
+                }
+            }
+            catch (JsonException)
+            {
+            }
+
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             await EnsureCacheTableAsync(connection, cancellationToken).ConfigureAwait(false);
             await ErpDb.ExecuteAsync(
                 connection,
                 null,
                 ErpDb.Positional(
-                    "REPLACE INTO `epc_partsapi_cache` (`cache_key`, `action`, `response_json`, `http_status`, `last_sync`) "
-                    + "VALUES (?, ?, ?, 200, ?)"),
+                    "REPLACE INTO `epc_partsapi_cache` (`cache_key`, `method`, `action`, `section`, `language`, `request_json`, `response_json`, `rows_count`, `http_status`, `last_sync`) "
+                    + "VALUES (?, ?, ?, 'catalog', ?, ?, ?, ?, 200, ?)"),
                 cancellationToken,
                 cacheKey,
+                method,
                 method.ToLowerInvariant(),
+                (parameters is not null
+                    && (parameters.TryGetValue("lang", out var lang) || parameters.TryGetValue("LANG", out lang))
+                    && lang is not null)
+                    ? lang : "en",
+                CanonicalParamsJson(parameters),
                 json,
+                rows,
                 DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
         }
         catch (DbException)

@@ -2901,22 +2901,34 @@ public static class StorefrontPhpAjaxEndpoints
 
     private static bool PartsApiRateLimited(HttpContext context)
     {
-        // nginx appends the real client IP ($proxy_add_x_forwarded_for), so the
-        // RIGHTMOST X-Forwarded-For entry is trusted — a caller can prepend a
-        // spoofed value but cannot remove its own appended IP.
+        // Visitor bucket: CF-Connecting-IP (real client, CF-set and not
+        // client-spoofable through Cloudflare), else the rightmost
+        // X-Forwarded-For entry (nginx appends the real peer), else the socket.
+        var cfIp = context.Request.Headers["CF-Connecting-IP"].ToString();
         var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
-        var ip = forwarded.Length > 0
-            ? forwarded.Split(',')[^1].Trim()
-            : context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var clientIp = cfIp.Length > 0 && System.Net.IPAddress.TryParse(cfIp, out _)
+            ? cfIp
+            : forwarded.Length > 0
+                ? forwarded.Split(',')[^1].Trim()
+                : context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var connectionIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
         var window = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 60;
         var allowed = true;
-        PartsApiRateBuckets.AddOrUpdate(
-            ip,
-            (window, 1),
-            (_, current) => current.Window == window ? (window, current.Count + 1) : (window, 1));
-        if (PartsApiRateBuckets.TryGetValue(ip, out var bucket) && bucket.Count > 120)
+        foreach (var (key, limit) in new[]
         {
-            allowed = false;
+            ("v:" + clientIp, 120),       // per visitor
+            ("c:" + connectionIp, 1200),  // high ceiling: header-rotation floods still capped by real peer
+        })
+        {
+            PartsApiRateBuckets.AddOrUpdate(
+                key,
+                (window, 1),
+                (_, current) => current.Window == window ? (window, current.Count + 1) : (window, 1));
+            if (PartsApiRateBuckets.TryGetValue(key, out var bucket) && bucket.Count > limit)
+            {
+                allowed = false;
+            }
         }
 
         // Opportunistic pruning so the map can't grow unbounded.
