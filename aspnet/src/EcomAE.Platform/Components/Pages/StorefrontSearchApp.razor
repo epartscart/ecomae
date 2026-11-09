@@ -679,11 +679,24 @@
                             }
                             else
                             {
-                                @foreach (var cross in _crossRefs)
+                                var genuineRefs = _crossRefs.Where(c => IsGenuineManufacturer(c.Brand)).ToList();
+                                var groupedRefs = genuineRefs.Count > 0
+                                    ? genuineRefs.Concat(_crossRefs.Where(c => !IsGenuineManufacturer(c.Brand))).ToList()
+                                    : _crossRefs;
+                                string? seenGroup = null;
+                                @foreach (var cross in groupedRefs)
                                 {
                                     var label = string.IsNullOrWhiteSpace(cross.Brand) ? cross.Article : $"{cross.Brand} {cross.Article}";
                                     var src = string.IsNullOrWhiteSpace(cross.Source) ? "cp" : cross.Source;
                                     var isCrossbase = src.Contains("crossbase", StringComparison.OrdinalIgnoreCase);
+                                    var group = IsGenuineManufacturer(cross.Brand) ? "genuine" : "aftermarket";
+                                    @if (genuineRefs.Count > 0 && group != seenGroup)
+                                    {
+                                        seenGroup = group;
+                                        var groupTitle = group == "genuine" ? "Genuine (OE)" : "Aftermarket";
+                                        var groupCount = group == "genuine" ? genuineRefs.Count : groupedRefs.Count - genuineRefs.Count;
+                                        <li class="epc-cross-ref-group" data-cross-group="@group"><strong>@groupTitle — @groupCount</strong></li>
+                                    }
                                     <li data-cross-key="@($"{cross.Brand}|{cross.Article}")" data-source="@src">
                                         <a href="@BrandArticleHref(cross.Article, cross.Brand)" data-enhance-nav="false">@label</a>
                                         <span style="color:#64748b">(@(isCrossbase ? "crossbase" : $"part number {cross.Article}"))</span>
