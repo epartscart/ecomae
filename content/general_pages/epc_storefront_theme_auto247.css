@@ -533,3 +533,20 @@ body[class*="epc-storefront--auto247"] a[href*="eparts-mod"]::after { content: "
 body[class*="epc-storefront--auto247"] a[href*="partsapi-catalog"]::after { content: "AUTO247 CatAPI"; font-size: 14px; }
 body[class*="epc-storefront--auto247"] a[href*="ucats-app"]::after,
 body[class*="epc-storefront--auto247"] a[href*="katalogi-ucats"]::after { content: "AUTO247 Service Catalog"; font-size: 14px; }
+
+/* auto247: catalog-section "open" links as clear buttons. Doubled class beats the
+   skin's own `a:not(.btn):hover` blue-text rule so the label stays white on blue. */
+body[class*="epc-storefront--auto247"] .epart-front-section-link.epart-front-section-link {
+    background: #087CF0;
+    border-radius: 8px;
+    color: #fff !important;
+    display: inline-block;
+    font-size: .9rem;
+    padding: 10px 18px;
+    text-decoration: none !important;
+}
+body[class*="epc-storefront--auto247"] .epart-front-section-link.epart-front-section-link:hover {
+    background: #0668cf;
+    color: #fff !important;
+    text-decoration: none !important;
+}
