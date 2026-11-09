@@ -740,7 +740,6 @@ builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontPaymentWriteSer
 Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions
     .TryAddScoped<EcomAE.Platform.Storefront.ILaximoVinDecodeService, EcomAE.Platform.Storefront.UnavailableLaximoVinDecodeService>(builder.Services);
 builder.Services.AddScoped<EcomAE.Platform.Presentation.ICustomerSkinResolver, EcomAE.Platform.Presentation.CustomerSkinResolver>();
-builder.Services.AddScoped<EcomAE.Platform.Presentation.IStorefrontHomeResolver, EcomAE.Platform.Presentation.StorefrontHomeResolver>();
 builder.Services.AddScoped<EcomAE.Platform.Packages.IPackageEventBus, EcomAE.Platform.Packages.PackageEventBus>();
 builder.Services.AddScoped<EcomAE.Platform.Packages.PackageMenuService>();
 builder.Services.AddScoped<EcomAE.Platform.Packages.PackageJobGuard>();
