@@ -132,14 +132,29 @@ def main():
                 rec = {"MFA_ID": mid, "MANUFACTURER": name, "MANUFACTURER_RU": name,
                        "TYPE": section, "COUNTRY": "", "IS_LOGO": 1}
                 out.append(rec)
+                # partsapi carries no country/popular — preserve any values the
+                # umapi data already set instead of blanking them on re-runs.
                 dst.run(
-                    "REPLACE INTO `epc_umapi_manufacturers` (`section`,`mfa_id`,`manufacturer`,`manufacturer_ru`,`type`,`country`,`popular`,`is_logo`,`raw_json`,`updated_at`) VALUES ("
+                    "INSERT INTO `epc_umapi_manufacturers` (`section`,`mfa_id`,`manufacturer`,`manufacturer_ru`,`type`,`country`,`popular`,`is_logo`,`raw_json`,`updated_at`) VALUES ("
                     f"'{section}',{int(float(mid))},'{sql_escape(name)}','{sql_escape(name)}','{section}','',0,1,"
-                    f"'{sql_escape(json.dumps(rec, ensure_ascii=False))}',{now})")
+                    f"'{sql_escape(json.dumps(rec, ensure_ascii=False))}',{now})"
+                    " ON DUPLICATE KEY UPDATE `manufacturer`=VALUES(`manufacturer`),`type`=VALUES(`type`),"
+                    "`is_logo`=VALUES(`is_logo`),`raw_json`=VALUES(`raw_json`),`updated_at`=VALUES(`updated_at`)")
                 stats["makes"] += 1
             if out:
+                # Cache row is rebuilt from the table so it inherits preserved
+                # country/popular values, sorted popular-first.
+                lines = dst.read_rows(
+                    "SELECT mfa_id,manufacturer,COALESCE(manufacturer_ru,manufacturer),COALESCE(country,''),"
+                    "popular,is_logo FROM `epc_umapi_manufacturers` WHERE `section`='" + section
+                    + "' ORDER BY popular DESC,manufacturer").splitlines()
+                items = [
+                    {"MFA_ID": m, "MANUFACTURER": n, "MANUFACTURER_RU": r, "TYPE": section,
+                     "COUNTRY": c, "POPULAR": p, "IS_LOGO": l}
+                    for m, n, r, c, p, l in (l.split("\t") for l in lines)
+                ]
                 reqj = json.dumps({"action": "manufacturers", "section": section}, separators=(",", ":"))
-                umapi_cache_write(dst, "manufacturers", section, reqj, out)
+                umapi_cache_write(dst, "manufacturers", section, reqj, items)
         elif method == "getModels":
             mfa = params.get("makeId")
             out = []
