@@ -27,6 +27,17 @@
 .epc-umapi-model-img { width: 100%; max-width: 150px; aspect-ratio: 4 / 3; object-fit: contain; }
 .epc-umapi-mod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
 .epc-umapi-mod-card { display: flex; flex-direction: column; gap: 8px; border-radius: 10px; }
+.epc-umapi-modelfilter { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+.epc-umapi-modelfilter select { max-width: 130px; }
+.epc-umapi-letters { display: flex; flex-wrap: wrap; gap: 5px; }
+.epc-umapi-letter { border: 1px solid #e1e7ef; background: #fff; color: #1e67b1; border-radius: 6px; min-width: 30px; min-height: 30px; font-weight: 700; cursor: pointer; padding: 0 8px; }
+.epc-umapi-letter.active, .epc-umapi-letter:hover { background: #2b78d6; border-color: #2b78d6; color: #fff; }
+.epc-umapi-modwrap { overflow-x: auto; border: 1px solid #e1e7ef; border-radius: 10px; }
+.epc-umapi-modtable th { background: #f4f8ff; color: #29598f; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; text-align: left; }
+.epc-umapi-modtable td strong { color: #1e67b1; }
+.epc-umapi-mod-row { cursor: pointer; }
+.epc-umapi-mod-row:hover td { background: #f4f8ff; }
+
 .epc-umapi-chips { display: flex; flex-wrap: wrap; gap: 5px; }
 .epc-umapi-chip { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px; background: #eef4fc; color: #29598f; font-size: 12px; font-weight: 600; }
 
@@ -363,13 +374,55 @@
             output.innerHTML = '<div class="epc-umapi-message">No models found for this manufacturer.</div>';
             return;
         }
-        output.innerHTML = listSummary('Select model series for ' + (state.manufacturer ? state.manufacturer.MANUFACTURER : 'selected brand') + '.', items) + '<div class="epc-umapi-model-grid">' + items.map(function (item, index) {
+        var years = {};
+        items.forEach(function (item) {
+            var from = parseInt((item.CI_FROM || '').slice(0, 4), 10);
+            var to = parseInt((item.CI_TO || '').slice(0, 4), 10) || new Date().getFullYear();
+            for (var y = from; y <= to && y > 1900; y++) { years[y] = true; }
+        });
+        var yearOpts = Object.keys(years).sort(function (a, b) { return b - a; })
+            .map(function (y) { return '<option value="' + y + '">' + y + '</option>'; }).join('');
+        var letters = {};
+        items.forEach(function (item) {
+            var c = (item.MODEL_SERIES || '').trim().charAt(0).toUpperCase();
+            if (/^[A-Z0-9]$/.test(c)) { letters[c] = true; }
+        });
+        var letterBtns = ['<button type="button" class="epc-umapi-letter active" data-letter="">All</button>']
+            .concat(Object.keys(letters).sort().map(function (c) {
+                return '<button type="button" class="epc-umapi-letter" data-letter="' + c + '">' + c + '</button>';
+            })).join('');
+        var toolbar = '<div class="epc-umapi-modelfilter"><select id="epc-umapi-yearsel" class="form-control"><option value="">Year</option>' +
+            yearOpts + '</select><div class="epc-umapi-letters">' + letterBtns + '</div></div>';
+        output.innerHTML = listSummary('Select model series for ' + (state.manufacturer ? state.manufacturer.MANUFACTURER : 'selected brand') + '.', items) + toolbar + '<div class="epc-umapi-model-grid">' + items.map(function (item, index) {
             var years = cleanDate(item.CI_FROM) + (item.CI_TO ? ' \u2014 ' + cleanDate(item.CI_TO) : '');
             var img = item.MS_ID ? '<img class="epc-umapi-model-img" alt="" loading="lazy" src="/api/umapi_image.php?kind=model&id=' + encodeURIComponent(item.MS_ID) + '" onerror="this.remove()">' : '';
-            return '<div class="epc-umapi-card epc-umapi-model-card" data-index="' + index + '" data-search="' + esc(item.MODEL_SERIES + ' ' + years) + '">' +
+            var yFrom = parseInt((item.CI_FROM || '').slice(0, 4), 10) || 0;
+            var yTo = parseInt((item.CI_TO || '').slice(0, 4), 10) || 9999;
+            var first = (item.MODEL_SERIES || '').trim().charAt(0).toUpperCase();
+            return '<div class="epc-umapi-card epc-umapi-model-card" data-index="' + index + '" data-letter="' + esc(first) + '" data-yfrom="' + yFrom + '" data-yto="' + yTo + '" data-search="' + esc(item.MODEL_SERIES + ' ' + years) + '">' +
                 img + '<strong>' + esc(item.MODEL_SERIES) + '</strong>' + (years ? '<span class="epc-umapi-chip">' + esc(years) + '</span>' : '') + '</div>';
         }).join('') + '</div>';
         bindIndexed('.epc-umapi-model-card', items, loadModifications);
+        var yearSel = document.getElementById('epc-umapi-yearsel');
+        var activeLetter = '';
+        function applyModelFilter() {
+            var y = yearSel && yearSel.value ? parseInt(yearSel.value, 10) : 0;
+            Array.prototype.forEach.call(output.querySelectorAll('.epc-umapi-model-card'), function (card) {
+                var okL = !activeLetter || card.getAttribute('data-letter') === activeLetter;
+                var okY = !y || (parseInt(card.getAttribute('data-yfrom'), 10) <= y && y <= parseInt(card.getAttribute('data-yto'), 10));
+                card.style.display = (okL && okY) ? '' : 'none';
+            });
+        }
+        if (yearSel) { yearSel.onchange = applyModelFilter; }
+        Array.prototype.forEach.call(output.querySelectorAll('.epc-umapi-letter'), function (btn) {
+            btn.onclick = function () {
+                activeLetter = btn.getAttribute('data-letter') || '';
+                Array.prototype.forEach.call(output.querySelectorAll('.epc-umapi-letter'), function (b) {
+                    b.classList.toggle('active', b === btn);
+                });
+                applyModelFilter();
+            };
+        });
         applyFilter();
     }
 
@@ -380,19 +433,25 @@
             output.innerHTML = '<div class="epc-umapi-message">No modifications found for this model.</div>';
             return;
         }
-        output.innerHTML = listSummary('Select exact vehicle modification.', items) + '<div class="epc-umapi-mod-grid">' + items.map(function (item, index) {
-            var chips = [
-                cleanDate(item.CI_FROM) + (item.CI_TO ? ' \u2014 ' + cleanDate(item.CI_TO) : ''),
-                item.POWER_KW ? item.POWER_KW + ' kW' : '',
-                item.CAPACITY_LT ? item.CAPACITY_LT + ' L' : '',
-                item.FUEL_TYPE || ''
-            ].filter(Boolean);
-            var meta = chips.join(' ');
-            return '<div class="epc-umapi-card epc-umapi-mod-card" data-index="' + index + '" data-search="' + esc(getModificationTitle(item) + ' ' + meta) + '">' +
-                '<strong>' + esc(getModificationTitle(item)) + '</strong><span class="epc-umapi-chips">' +
-                chips.map(function (c) { return '<span class="epc-umapi-chip">' + esc(c) + '</span>'; }).join('') + '</span></div>';
-        }).join('') + '</div>';
-        bindIndexed('.epc-umapi-mod-card', items, loadCategories);
+        output.innerHTML = listSummary('Select exact vehicle modification.', items) + '<div class="epc-umapi-modwrap"><table class="epc-umapi-table epc-umapi-modtable"><thead><tr>' +
+            '<th>L.</th><th>Model</th><th>Year</th><th>Engine type</th><th>Power</th><th>Drive</th></tr></thead><tbody>' + items.map(function (item, index) {
+            var litres = item.CAPACITY_LT ? (Math.round(item.CAPACITY_LT * 100) / 100).toFixed(2).replace(/0+$/, '').replace(/\.$/, '') : '';
+            var yearFrom = (item.CI_FROM || '').slice(0, 4);
+            var yearTo = (item.CI_TO || '').slice(0, 4);
+            var years = yearFrom + (yearTo ? ' \u2014 ' + yearTo : ' \u2014 p.t.');
+            var engine = item.ENGINE_TYPE || item.FUEL_TYPE || '';
+            var kw = item.POWER_KW ? Math.round(item.POWER_KW) : 0;
+            var ps = item.POWER_PS ? Math.round(item.POWER_PS) : 0;
+            var power = kw ? kw + 'Kw' + (ps ? ' / ' + ps + 'Hp' : '') : '';
+            var drive = item.DRIVE_TYPE || '';
+            var search = [getModificationTitle(item), litres, years, engine, power, drive].join(' ');
+            return '<tr class="epc-umapi-mod-row" data-index="' + index + '" data-search="' + esc(search) + '">' +
+                '<td>' + esc(litres) + '</td><td><strong>' + esc(getModificationTitle(item)) + '</strong></td><td>' + esc(years) + '</td>' +
+                '<td>' + esc(engine) + '</td><td>' + esc(power) + '</td><td>' + esc(drive) + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+        Array.prototype.forEach.call(output.querySelectorAll('.epc-umapi-mod-row'), function (row) {
+            row.onclick = function () { loadCategories(items[parseInt(row.getAttribute('data-index'), 10)]); };
+        });
         applyFilter();
     }
 
