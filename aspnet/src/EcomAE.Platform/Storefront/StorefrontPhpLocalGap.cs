@@ -19,6 +19,7 @@ public static partial class StorefrontPhpAjax
     public const string AiPartsExpertPath = "/api/epc_ai_parts_expert.php";
     public const string PartsAgentPath = "/api/epc_parts_agent.php";
     public const string LaximoProxyPath = "/api/laximo_proxy.php";
+    public const string PartsApiProxyPath = "/api/partsapi_proxy.php";
     public const string PriceUploadPath = "/api/prices/upload_price.php";
     public const string SkuMediaAdminPath = "/content/shop/catalogue/ajax_epc_sku_media.php";
     public const string TaxExemptUploadPath = "/content/users/ajax_epc_tax_exempt_upload.php";

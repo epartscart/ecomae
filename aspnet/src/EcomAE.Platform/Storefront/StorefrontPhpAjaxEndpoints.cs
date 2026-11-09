@@ -234,6 +234,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.LaximoProxyPath, ["GET", "POST"], LaximoProxyAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.PartsApiProxyPath, ["GET", "POST"], PartsApiProxyAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.PriceUploadPath, ["GET", "POST"], PriceUploadApiAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.SkuMediaAdminPath, ["GET", "POST"], SkuMediaAdminAsync)
@@ -2891,6 +2893,61 @@ public static class StorefrontPhpAjaxEndpoints
 
     private static string? FirstNonEmpty(string? a, string? b)
         => !string.IsNullOrWhiteSpace(a) ? a : b;
+
+    /// <summary>
+    /// /api/partsapi_proxy.php — TecDoc catalog via partsapi.ru. The provider's
+    /// method name comes in `method` (or `action`); every other field is passed
+    /// through verbatim as the method's own documented parameters.
+    /// </summary>
+    private static async Task<IResult> PartsApiProxyAsync(
+        HttpContext context,
+        IPartsApiService partsApi,
+        CancellationToken cancellationToken)
+    {
+        var method = await FieldAsync(context, "method", cancellationToken).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(method))
+        {
+            method = await FieldAsync(context, "action", cancellationToken).ConfigureAwait(false);
+        }
+
+        if (string.IsNullOrWhiteSpace(method))
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            return Results.Text(
+                "{\"success\":false,\"error\":\"method is required\",\"code\":\"missing_method\"}",
+                "application/json");
+        }
+
+        var skip = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "method", "action", "key", "csrf_guard_key", "token",
+        };
+        var parameters = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var pair in context.Request.Query)
+        {
+            if (!skip.Contains(pair.Key))
+            {
+                parameters[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var pair in form)
+            {
+                if (!skip.Contains(pair.Key))
+                {
+                    parameters[pair.Key] = pair.Value.ToString();
+                }
+            }
+        }
+
+        var result = await partsApi.ExecuteAsync(
+            new PartsApiRequest(method, parameters), cancellationToken).ConfigureAwait(false);
+        context.Response.StatusCode = result.HttpStatus;
+        return Results.Text(result.Json, "application/json");
+    }
 
     private static async Task<IResult> PriceUploadApiAsync(
         HttpContext context,
