@@ -19,6 +19,10 @@ public static class AutoPartsPackage
         services.AddScoped<ILaximoVinDecodeService, LaximoVinDecodeService>();
         services.AddHttpClient(nameof(LaximoOemCatalogService));
         services.AddScoped<ILaximoCatalogService, LaximoOemCatalogService>();
+        // RemoveAllLoggers: the shared subscription key travels in the request
+        // URL (provider's only auth scheme) — keep it out of HTTP request logs.
+        services.AddHttpClient(nameof(PartsApiCatalogService)).RemoveAllLoggers();
+        services.AddScoped<IPartsApiService, PartsApiCatalogService>();
         services.AddSingleton<EcomAE.Platform.Packages.IPackageRouteContributor, AutoPartsRouteContributor>();
         services.AddSingleton<EcomAE.Platform.Packages.IPackageMenuContributor, AutoPartsMenuContributor>();
     }

@@ -234,6 +234,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.LaximoProxyPath, ["GET", "POST"], LaximoProxyAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.PartsApiProxyPath, ["GET", "POST"], PartsApiProxyAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.PriceUploadPath, ["GET", "POST"], PriceUploadApiAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.SkuMediaAdminPath, ["GET", "POST"], SkuMediaAdminAsync)
@@ -2891,6 +2893,178 @@ public static class StorefrontPhpAjaxEndpoints
 
     private static string? FirstNonEmpty(string? a, string? b)
         => !string.IsNullOrWhiteSpace(a) ? a : b;
+
+    // Anonymous callers reach a shared paid subscription — cap per-IP request
+    // rate so one visitor can't burn the provider quota for every tenant.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (long Window, int Count)>
+        PartsApiRateBuckets = new(StringComparer.Ordinal);
+
+    private static bool PartsApiRateLimited(HttpContext context)
+    {
+        // Real visitor IP. nginx appends its peer's address to X-Forwarded-For,
+        // so the rightmost entry is the direct client (a visitor hitting the
+        // origin straight, or the Cloudflare edge). CF-Connecting-IP carries the
+        // true visitor only when that peer is a Cloudflare edge — a direct
+        // caller can forge the header, so it is trusted solely for CF peers.
+        var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
+        var peerIp = forwarded.Length > 0
+            ? forwarded.Split(',')[^1].Trim()
+            : context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var cfIp = context.Request.Headers["CF-Connecting-IP"].ToString();
+        var clientIp = IsCloudflareEdge(peerIp)
+            && cfIp.Length > 0 && System.Net.IPAddress.TryParse(cfIp, out _)
+            ? cfIp
+            : peerIp;
+
+        var window = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 60;
+        var allowed = true;
+        PartsApiRateBuckets.AddOrUpdate(
+            clientIp,
+            (window, 1),
+            (_, current) => current.Window == window ? (window, current.Count + 1) : (window, 1));
+        if (PartsApiRateBuckets.TryGetValue(clientIp, out var bucket) && bucket.Count > 120)
+        {
+            allowed = false;
+        }
+
+        // Opportunistic pruning so the map can't grow unbounded.
+        if (PartsApiRateBuckets.Count > 10_000)
+        {
+            PartsApiRateBuckets.Clear();
+        }
+
+        return !allowed;
+    }
+
+    // Cloudflare edge ranges (cloudflare.com/ips-v4 + ips-v6).
+    private static readonly (byte[] Network, int Bits)[] CloudflareRanges = BuildCloudflareRanges();
+
+    private static (byte[], int)[] BuildCloudflareRanges()
+    {
+        string[] cidrs =
+        {
+            "173.245.48.0/20", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22",
+            "141.101.64.0/18", "108.162.192.0/18", "190.93.240.0/20", "188.114.96.0/20",
+            "197.234.240.0/22", "198.41.128.0/17", "162.158.0.0/15", "104.16.0.0/13",
+            "104.24.0.0/14", "172.64.0.0/13", "131.0.72.0/22",
+            "2400:cb00::/32", "2606:4700::/32", "2803:f800::/32", "2405:b500::/32",
+            "2405:8100::/32", "2a06:98c0::/29", "2c0f:f248::/32",
+        };
+        var list = new List<(byte[], int)>(cidrs.Length);
+        foreach (var cidr in cidrs)
+        {
+            var slash = cidr.IndexOf('/');
+            list.Add((
+                System.Net.IPAddress.Parse(cidr[..slash]).GetAddressBytes(),
+                int.Parse(cidr[(slash + 1)..])));
+        }
+
+        return list.ToArray();
+    }
+
+    private static bool IsCloudflareEdge(string ip)
+    {
+        if (!System.Net.IPAddress.TryParse(ip, out var parsed))
+        {
+            return false;
+        }
+
+        var bytes = parsed.GetAddressBytes();
+        foreach (var (network, bits) in CloudflareRanges)
+        {
+            if (network.Length != bytes.Length)
+            {
+                continue;
+            }
+
+            var fullBytes = bits / 8;
+            var match = true;
+            for (var i = 0; i < fullBytes; i++)
+            {
+                if (network[i] != bytes[i])
+                {
+                    match = false;
+                    break;
+                }
+            }
+
+            if (match && bits % 8 != 0)
+            {
+                var mask = (byte)(0xFF << (8 - bits % 8));
+                match = (network[fullBytes] & mask) == (bytes[fullBytes] & mask);
+            }
+
+            if (match)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// /api/partsapi_proxy.php — TecDoc catalog via partsapi.ru. The provider's
+    /// method name comes in `method` (or `action`); every other field is passed
+    /// through verbatim as the method's own documented parameters.
+    /// </summary>
+    private static async Task<IResult> PartsApiProxyAsync(
+        HttpContext context,
+        IPartsApiService partsApi,
+        CancellationToken cancellationToken)
+    {
+        if (PartsApiRateLimited(context))
+        {
+            context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+            return Results.Text(
+                "{\"success\":false,\"error\":\"rate limit exceeded\",\"code\":\"rate_limited\"}",
+                "application/json");
+        }
+
+        var method = await FieldAsync(context, "method", cancellationToken).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(method))
+        {
+            method = await FieldAsync(context, "action", cancellationToken).ConfigureAwait(false);
+        }
+
+        if (string.IsNullOrWhiteSpace(method))
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            return Results.Text(
+                "{\"success\":false,\"error\":\"method is required\",\"code\":\"missing_method\"}",
+                "application/json");
+        }
+
+        var skip = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "method", "action", "key", "csrf_guard_key", "token",
+        };
+        var parameters = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var pair in context.Request.Query)
+        {
+            if (!skip.Contains(pair.Key))
+            {
+                parameters[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var pair in form)
+            {
+                if (!skip.Contains(pair.Key))
+                {
+                    parameters[pair.Key] = pair.Value.ToString();
+                }
+            }
+        }
+
+        var result = await partsApi.ExecuteAsync(
+            new PartsApiRequest(method, parameters), cancellationToken).ConfigureAwait(false);
+        context.Response.StatusCode = result.HttpStatus;
+        return Results.Text(result.Json, "application/json");
+    }
 
     private static async Task<IResult> PriceUploadApiAsync(
         HttpContext context,

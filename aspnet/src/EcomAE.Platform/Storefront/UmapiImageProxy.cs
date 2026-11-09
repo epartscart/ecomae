@@ -123,13 +123,52 @@ public static class UmapiImageProxy
         return new string(chars);
     }
 
-    private static async Task<IResult> HandleAsync(HttpContext context, IHttpClientFactory httpClientFactory, CancellationToken cancellationToken)
+    // Fetch-once/save: every successful CDN fetch is stored in the tenant DB's
+    // epc_image_cache; later clicks for the same image are served locally.
+    private static async Task<IResult> HandleAsync(
+        HttpContext context,
+        IHttpClientFactory httpClientFactory,
+        Erp.IErpWriteConnectionFactory connections,
+        CancellationToken cancellationToken)
     {
         var kind = context.Request.Query["kind"];
         var id = context.Request.Query["id"];
         if (!TryImageUrl(kind.Count > 0 ? kind[^1] : null, id.Count > 0 ? id[^1] : null, out var url))
         {
             return Results.Text("Bad request", "text/plain; charset=utf-8", Encoding.UTF8, StatusCodes.Status400BadRequest);
+        }
+
+        var version = context.Request.Query["v"];
+        var versionValue = version.Count > 0 ? version[^1] : null;
+        if (!string.IsNullOrEmpty(versionValue))
+        {
+            url += "?v=" + Uri.EscapeDataString(versionValue);
+        }
+
+        var cacheKey = System.Convert.ToHexString(
+            System.Security.Cryptography.SHA1.HashData(Encoding.UTF8.GetBytes(url))).ToLowerInvariant();
+        try
+        {
+            await using var connection = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureImageCacheAsync(connection, cancellationToken).ConfigureAwait(false);
+            await using (var read = connection.CreateCommand())
+            {
+                read.CommandText = "SELECT `content_type`, `body` FROM `epc_image_cache` WHERE `cache_key` = @k LIMIT 1";
+                var p = read.CreateParameter(); p.ParameterName = "@k"; p.Value = cacheKey; read.Parameters.Add(p);
+                await using var rs = await read.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await rs.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var cachedType = rs.GetString(0);
+                    var cachedBody = (byte[])rs.GetValue(1);
+                    context.Response.Headers.CacheControl = "public, max-age=604800, immutable";
+                    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+                    return Results.File(cachedBody, cachedType);
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Cache layer is best-effort — fall through to a live fetch.
         }
 
         try
@@ -147,13 +186,49 @@ public static class UmapiImageProxy
             }
 
             var type = response.Content.Headers.ContentType?.ToString();
+            var contentType = string.IsNullOrWhiteSpace(type) ? "image/png" : type;
+            try
+            {
+                await using var connection = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+                await EnsureImageCacheAsync(connection, cancellationToken).ConfigureAwait(false);
+                await using var write = connection.CreateCommand();
+                write.CommandText = "REPLACE INTO `epc_image_cache` (`cache_key`, `content_type`, `body`, `last_sync`) VALUES (@k, @t, @b, @s)";
+                foreach (var (n, v) in new (string, object)[]
+                {
+                    ("@k", cacheKey), ("@t", contentType), ("@b", bytes),
+                    ("@s", DateTimeOffset.UtcNow.ToUnixTimeSeconds()),
+                })
+                {
+                    var p = write.CreateParameter(); p.ParameterName = n; p.Value = v; write.Parameters.Add(p);
+                }
+
+                await write.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // A failed cache write never blocks serving the image.
+            }
+
             context.Response.Headers.CacheControl = "public, max-age=604800, immutable";
             context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-            return Results.File(bytes, string.IsNullOrWhiteSpace(type) ? "image/png" : type);
+            return Results.File(bytes, contentType);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
             return Results.Text("Not found", "text/plain; charset=utf-8", Encoding.UTF8, StatusCodes.Status404NotFound);
         }
+    }
+
+    private static async Task EnsureImageCacheAsync(System.Data.Common.DbConnection connection, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "CREATE TABLE IF NOT EXISTS `epc_image_cache` ("
+            + "`cache_key` VARCHAR(64) NOT NULL, "
+            + "`content_type` VARCHAR(64) NOT NULL DEFAULT 'image/png', "
+            + "`body` MEDIUMBLOB NOT NULL, "
+            + "`last_sync` INT NOT NULL DEFAULT 0, "
+            + "PRIMARY KEY (`cache_key`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
 }
