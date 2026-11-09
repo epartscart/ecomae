@@ -514,25 +514,64 @@ body[class*="epc-storefront--auto247"] .epart-front-section-accessories {
 }
 
 /* auto247 brand: rename every visible "Epart(s)" label to AUTO247. */
+/* auto247: every visible "Epart" label -> AUTO247. The original text (and any
+   child elements) is collapsed with font-size:0 — keeps anchors keyboard-focusable
+   and is unaffected by visibility rules elsewhere; ::after shows the label. */
 body[class*="epc-storefront--auto247"] .epart-front-section-catalog .epart-front-section-title {
     font-size: 0 !important;
 }
 body[class*="epc-storefront--auto247"] .epart-front-section-catalog .epart-front-section-title::after {
-    content: "AUTO247 Catalog";
-    font-size: 28px;
+    content: "AUTO247 Catalog"; font-size: 28px;
 }
+body[class*="epc-storefront--auto247"] a[href*="eparts-cata-app"],
+body[class*="epc-storefront--auto247"] a[href*="eparts-mod-app"],
 body[class*="epc-storefront--auto247"] a[href*="eparts-cata"],
 body[class*="epc-storefront--auto247"] a[href*="eparts-mod"],
 body[class*="epc-storefront--auto247"] a[href*="partsapi-catalog"],
+body[class*="epc-storefront--auto247"] a[href*="umapi-catalog-app"],
 body[class*="epc-storefront--auto247"] a[href*="ucats-app"],
-body[class*="epc-storefront--auto247"] a[href*="katalogi-ucats"] {
-    font-size: 0;
+body[class*="epc-storefront--auto247"] a[href*="katalogi-ucats"],
+body[class*="epc-storefront--auto247"] a[href*="umapi_catalog"],
+body[class*="epc-storefront--auto247"] a[href*="eparts-cata-app"] *,
+body[class*="epc-storefront--auto247"] a[href*="eparts-mod-app"] *,
+body[class*="epc-storefront--auto247"] a[href*="eparts-cata"] *,
+body[class*="epc-storefront--auto247"] a[href*="eparts-mod"] *,
+body[class*="epc-storefront--auto247"] a[href*="partsapi-catalog"] *,
+body[class*="epc-storefront--auto247"] a[href*="umapi-catalog-app"] *,
+body[class*="epc-storefront--auto247"] a[href*="ucats-app"] *,
+body[class*="epc-storefront--auto247"] a[href*="katalogi-ucats"] *,
+body[class*="epc-storefront--auto247"] a[href*="umapi_catalog"] * {
+    font-size: 0 !important;
 }
-body[class*="epc-storefront--auto247"] a[href*="eparts-cata"]::after { content: "AUTO247 Catalog"; font-size: 14px; }
-body[class*="epc-storefront--auto247"] a[href*="eparts-mod"]::after { content: "AUTO247 Mod"; font-size: 14px; }
-body[class*="epc-storefront--auto247"] a[href*="partsapi-catalog"]::after { content: "AUTO247 CatAPI"; font-size: 14px; }
+body[class*="epc-storefront--auto247"] a[href*="eparts-cata-app"]::after,
+body[class*="epc-storefront--auto247"] a[href*="eparts-cata"]::after,
+body[class*="epc-storefront--auto247"] a[href*="umapi-catalog-app"]::after {
+    content: "AUTO247 Catalog"; font-size: 14px;
+}
+body[class*="epc-storefront--auto247"] li:nth-child(3) a[href*="eparts-cata-app"]::after {
+    content: "AUTO247 CatAPI"; font-size: 14px;
+}
+body[class*="epc-storefront--auto247"] a[href*="eparts-mod-app"]::after,
+body[class*="epc-storefront--auto247"] a[href*="eparts-mod"]::after {
+    content: "AUTO247 Mod"; font-size: 14px;
+}
+body[class*="epc-storefront--auto247"] a[href*="partsapi-catalog"]::after {
+    content: "AUTO247 CatAPI"; font-size: 14px;
+}
 body[class*="epc-storefront--auto247"] a[href*="ucats-app"]::after,
-body[class*="epc-storefront--auto247"] a[href*="katalogi-ucats"]::after { content: "AUTO247 Service Catalog"; font-size: 14px; }
+body[class*="epc-storefront--auto247"] a[href*="katalogi-ucats"]::after {
+    content: "AUTO247 Service Catalog"; font-size: 14px;
+}
+body[class*="epc-storefront--auto247"] a[href*="umapi_catalog"]::after {
+    content: "Open AUTO247 Catalog"; font-size: 14px;
+}
+/* widget h1 title inside the e-catalog */
+body[class*="epc-storefront--auto247"] .epc-umapi-title {
+    font-size: 0 !important;
+}
+body[class*="epc-storefront--auto247"] .epc-umapi-title::after {
+    content: "AUTO247 Catalog"; font-size: 24px;
+}
 
 /* auto247: catalog-section "open" links as clear buttons. Doubled class beats the
    skin's own `a:not(.btn):hover` blue-text rule so the label stays white on blue. */
@@ -557,4 +596,15 @@ body[class*="epc-storefront--auto247"] .epart-front-original-data > section[aria
 body[class*="epc-storefront--auto247"] .epart-front-original-data > section[aria-label="Special searches"],
 body[class*="epc-storefront--auto247"] .epc-moddir {
     display: none !important;
+}
+
+/* auto247: header search tabs — inactive labels were near-invisible white-on-blue. */
+body[class*="epc-storefront--auto247"] .epc-header-search__tab:not(.active) {
+    color: #1e3a5f !important;
+    background: rgba(255, 255, 255, .92);
+    border-radius: 8px;
+    padding: 6px 12px;
+}
+body[class*="epc-storefront--auto247"] .epc-header-search__tab:not(.active):hover {
+    background: #fff;
 }

@@ -105,11 +105,11 @@ public static class LoginHostBrand
                 ],
                 "bos-login--tenant-taxofinca"),
             ["auto247"] = new(
-                Kind.CompanyMark,
+                Kind.TenantImage,
                 "auto247",
                 "Auto247",
                 "AUTOMOTIVE PARTS & VEHICLES",
-                null,
+                "/platform-assets/auto247-logo.png",
                 "#1d4ed8",
                 "rgba(29,78,216,.30)",
                 "autoparts",
