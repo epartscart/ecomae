@@ -867,7 +867,7 @@ body.epc-vc-modal-open {
 			].filter(Boolean).join(' · ');
 		}
 		vehicleBar.innerHTML = '<div><strong>' + esc(title) + '</strong><span>' + esc(meta) + '</span></div>' +
-			'<a class="btn btn-default btn-sm" href="' + esc(langHref + '/umapi_catalog') + '">Open Epart Catalog</a>';
+			'<a class="btn btn-default btn-sm" href="' + esc(langHref + '/umapi_catalog') + '">Open Catalog</a>';
 	}
 	function renderInfoPanels() {
 		if (!state.modification) { return; }
@@ -1204,7 +1204,7 @@ body.epc-vc-modal-open {
 			? '<div class="epc-vc-oe-list">' + oes.map(function (oe) {
 				return '<div><strong>' + esc(oe.brand || 'OE') + '</strong> ' + esc(oe.number) + '</div>';
 			}).join('') + '</div>'
-			: '<p class="epc-vc-message">No OE numbers found in Epart catalog for this article.</p>';
+			: '<p class="epc-vc-message">No OE numbers found in catalog for this article.</p>';
 		if (titleEl) {
 			titleEl.textContent = brand + ' ' + article + (name ? ' — ' + name : '');
 		}
@@ -1686,7 +1686,7 @@ body.epc-vc-modal-open {
 			if (!engines.length) {
 				var hint = payload && payload.truncated
 					? 'No match in the first pass of brands. Pick make (year → Toyota) and try again, or contact us.'
-					: 'No engine found for this code in Epart catalog.';
+					: 'No engine found for this code in catalog.';
 				showPromoEngineMessage(hint, true);
 				return;
 			}
@@ -1729,7 +1729,7 @@ body.epc-vc-modal-open {
 			var manufacturers = vinArray(data && data.matchingManufacturers);
 			var models = vinArray(data && data.matchingModels);
 			if (!vehicles.length) {
-				showPromoVinMessage('No vehicle found for this VIN in Epart catalog.', true);
+				showPromoVinMessage('No vehicle found for this VIN in catalog.', true);
 				return;
 			}
 			if (vehicles.length === 1) {
