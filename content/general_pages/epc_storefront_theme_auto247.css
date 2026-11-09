@@ -550,3 +550,11 @@ body[class*="epc-storefront--auto247"] .epart-front-section-link.epart-front-sec
     color: #fff !important;
     text-decoration: none !important;
 }
+
+/* auto247: front page ends at Accessories — drop Parts expert, Special searches
+   and the complete-surface directory from the home sections. */
+body[class*="epc-storefront--auto247"] .epart-front-original-data > section[aria-label="Parts expert"],
+body[class*="epc-storefront--auto247"] .epart-front-original-data > section[aria-label="Special searches"],
+body[class*="epc-storefront--auto247"] .epc-moddir {
+    display: none !important;
+}
