@@ -77,6 +77,7 @@
         <button type="button" class="epc-umapi-tab" data-section="passenger">Passenger</button>
         <button type="button" class="epc-umapi-tab" data-section="commercial">Commercial</button>
         <button type="button" class="epc-umapi-tab" data-section="motorbike">Motorbike</button>
+        <select id="epc-umapi-countrysel" class="form-control epc-umapi-countrysel" style="display:none" aria-label="Filter by country"><option value="">Country</option></select>
     </div>
 
     <div class="epc-umapi-toolbar">
@@ -107,6 +108,7 @@
     var output = document.getElementById('epc-umapi-output');
     var steps = document.getElementById('epc-umapi-steps');
     var filterInput = document.getElementById('epc-umapi-filter');
+    var countrySel = document.getElementById('epc-umapi-countrysel');
     var articleInput = document.getElementById('epc-umapi-article');
     var articleButton = document.getElementById('epc-umapi-article-btn');
     var vinInput = document.getElementById('epc-umapi-vin');
@@ -204,9 +206,26 @@
     function flagHtml(country) {
         var code = countryCode(country);
         if (!code) {
-            return esc(country || '');
+            return esc(countryLabel(country));
         }
-        return '<img class="epc-country-flag" alt="" src="https://flagcdn.com/24x18/' + code + '.png">' + esc(country || '');
+        return '<img class="epc-country-flag" alt="" src="https://flagcdn.com/24x18/' + code + '.png">' + esc(countryLabel(country));
+    }
+
+    var COUNTRY_LABELS = {
+        'япония': 'Japan', 'германия': 'Germany', 'сша': 'USA', 'италия': 'Italy',
+        'великобритания': 'United Kingdom', 'китай': 'China', 'франция': 'France',
+        'южная корея': 'South Korea', 'россия': 'Russia', 'румыния': 'Romania',
+        'чехия': 'Czech Republic', 'швеция': 'Sweden', 'украина': 'Ukraine',
+        'бельгия': 'Belgium', 'бразилия': 'Brazil', 'индия': 'India',
+        'турция': 'Turkey', 'иран': 'Iran', 'чехословакия': 'Czechoslovakia',
+        'испания': 'Spain', 'сербия': 'Serbia', 'аргентина': 'Argentina',
+        'австрия': 'Austria', 'ссср': 'USSR', 'австралия': 'Australia',
+        'венесуэла': 'Venezuela', 'вьетнам': 'Vietnam', 'египет': 'Egypt',
+        'индонезия': 'Indonesia', 'ирак': 'Iraq', 'канада': 'Canada'
+    };
+    function countryLabel(country) {
+        var key = String(country || '').trim().toLowerCase();
+        return COUNTRY_LABELS[key] || String(country || '').trim();
     }
 
     function apiItems(data) {
@@ -316,7 +335,7 @@
 
     function manufacturerCard(item, index) {
         var logo = item.IS_LOGO ? '<img class="epc-umapi-logo" alt="" src="https://image.umapi.ru/MANUFACTURERS/' + encodeURIComponent(item.MFA_ID) + '.png" onerror="this.style.display=\'none\';">' : '';
-        return '<div class="epc-umapi-card epc-umapi-manufacturer-card" data-index="' + index + '" data-search="' + esc(item.MANUFACTURER + ' ' + item.COUNTRY) + '">' +
+        return '<div class="epc-umapi-card epc-umapi-manufacturer-card" data-index="' + index + '" data-ccode="' + esc(countryCode(item.COUNTRY || '') || '') + '" data-search="' + esc(item.MANUFACTURER + ' ' + item.COUNTRY) + '">' +
             logo + '<strong>' + esc(item.MANUFACTURER) + '</strong><small>' + flagHtml(item.COUNTRY || '') + '</small></div>';
     }
 
@@ -331,6 +350,7 @@
         Array.prototype.forEach.call(output.querySelectorAll('[data-search]'), function (node) {
             node.style.display = node.getAttribute('data-search').toLowerCase().indexOf(term) === -1 ? 'none' : '';
         });
+        if (typeof applyCountryFilter === 'function') { applyCountryFilter(); }
     }
 
     function renderManufacturers(items) {
@@ -365,6 +385,34 @@
         output.innerHTML = html;
         bindIndexed('.epc-umapi-card', items, loadModels);
         applyFilter();
+        if (countrySel) {
+            var codes = {};
+            items.forEach(function (item) {
+                var c = countryCode(item.COUNTRY || '') || '';
+                var label = countryLabel(item.COUNTRY);
+                if (c && label && !codes[c]) { codes[c] = label; }
+            });
+            var sorted = Object.keys(codes).sort(function (a, b) { return codes[a].localeCompare(codes[b]); });
+            countrySel.innerHTML = '<option value="">Country (' + sorted.length + ')</option>' +
+                sorted.map(function (c) { return '<option value="' + esc(c) + '">' + esc(codes[c]) + '</option>'; }).join('');
+            countrySel.value = '';
+            countrySel.style.display = sorted.length ? 'inline-block' : 'none';
+            countrySel.onchange = applyCountryFilter;
+        }
+    }
+
+    function applyCountryFilter() {
+        if (!countrySel) { return; }
+        var want = countrySel.value;
+        var cards = output.querySelectorAll('.epc-umapi-manufacturer-card');
+        for (var i = 0; i < cards.length; i++) {
+            var c = cards[i].getAttribute('data-ccode') || '';
+            if (want && c !== want) { cards[i].style.display = 'none'; }
+        }
+    }
+
+    function hideCountryFilter() {
+        if (countrySel) { countrySel.style.display = 'none'; countrySel.value = ''; }
     }
 
     function renderModels(items) {
@@ -600,6 +648,7 @@
 
     function loadModels(item) {
         if (filterInput) { filterInput.value = ''; }
+        hideCountryFilter();
         state.manufacturer = item;
         state.model = null;
         state.modification = null;
@@ -610,6 +659,7 @@
 
     function loadModifications(item) {
         if (filterInput) { filterInput.value = ''; }
+        hideCountryFilter();
         state.model = item;
         state.modification = null;
         loading('Loading modifications...');
@@ -618,6 +668,7 @@
 
     function loadCategories(item) {
         if (filterInput) { filterInput.value = ''; }
+        hideCountryFilter();
         state.modification = item;
         loading('Loading categories...');
         api('categories', { ID: getModificationId(item) }).then(function (data) {
@@ -628,6 +679,7 @@
 
     function loadProducts(categoryId) {
         if (filterInput) { filterInput.value = ''; }
+        hideCountryFilter();
         if (!state.modification) {
             return;
         }
@@ -639,6 +691,7 @@
 
     function loadArticles(productId) {
         if (filterInput) { filterInput.value = ''; }
+        hideCountryFilter();
         if (!state.modification) {
             return;
         }
