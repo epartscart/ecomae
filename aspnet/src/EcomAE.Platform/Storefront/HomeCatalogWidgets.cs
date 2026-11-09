@@ -225,6 +225,48 @@ public static class HomeCatalogWidgets
     /// <summary>Vehicle catalog widgets require a JSON array. An empty array is the offline list, not an error.</summary>
     public static string EmptyVehicleCatalogJson() => "[]";
 
+    /// <summary>True when a live vehicle-catalog body carries no rows: <c>[]</c>, <c>{"data":[]}</c>, or <c>{"rows":0}</c>.</summary>
+    private static bool IsEmptyVehicleCatalogBody(string body)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(body);
+            var root = document.RootElement;
+            if (root.ValueKind == JsonValueKind.Array)
+            {
+                return root.GetArrayLength() == 0;
+            }
+
+            if (root.ValueKind == JsonValueKind.Object)
+            {
+                if (root.TryGetProperty("data", out var data))
+                {
+                    if (data.ValueKind == JsonValueKind.Array)
+                    {
+                        return data.GetArrayLength() == 0;
+                    }
+
+                    if (data.ValueKind == JsonValueKind.Object
+                        && data.TryGetProperty("array", out var nested)
+                        && nested.ValueKind == JsonValueKind.Array)
+                    {
+                        return nested.GetArrayLength() == 0;
+                    }
+                }
+
+                if (root.TryGetProperty("rows", out var rows) && rows.ValueKind == JsonValueKind.Number)
+                {
+                    return rows.GetInt32() == 0;
+                }
+            }
+        }
+        catch (JsonException)
+        {
+        }
+
+        return false;
+    }
+
     /// <summary>Parts-brand widget reads <c>data</c>/<c>rows</c>. Zero rows is "No brands found", not HTTP 402.</summary>
     public static string EmptySuppliersJson()
         => """{"rows":0,"data":[],"source":"database"}""";
@@ -721,7 +763,10 @@ public static class HomeCatalogWidgets
                 or "brands" or "analogs" or "article" or "article_links" or "engines" or "engine")
             {
                 var live = await TryLiveUmapiAsync(httpClientFactory, action, section, context, cancellationToken).ConfigureAwait(false);
-                if (live is not null && live.Value.Status is >= 200 and < 300)
+                var liveEmpty = action is "manufacturers" or "models" or "modifications"
+                    && live is not null && live.Value.Status is >= 200 and < 300
+                    && IsEmptyVehicleCatalogBody(live.Value.Body);
+                if (live is not null && live.Value.Status is >= 200 and < 300 && !liveEmpty)
                 {
                     var body = live.Value.Body;
                     if (connections.IsConfigured)
