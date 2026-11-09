@@ -29,5 +29,15 @@
             _html = "<p style=\"margin:0;color:#64748b\">Original catalog widget is unavailable in this environment. "
                   + "<a href=\"" + StorefrontSurfaceLinks.LaximoVin + "\">Open VIN / Frame search</a>.</p>";
         }
+        else
+        {
+            // Live OEM drill-down: laximo_storefront.js drives brands → vehicle →
+            // categories/units → parts against /api/laximo_proxy.php (Auto Parts package).
+            _html += "<link rel=\"stylesheet\" href=\"/platform-assets/laximo_storefront.css\" />"
+                + "<div id=\"Laximo_container\"></div>"
+                + "<script src=\"/platform-assets/laximo_storefront.js\"></script>"
+                + "<script>document.addEventListener('DOMContentLoaded',function(){if(window.Laximo){Laximo.init();}});"
+                + "if(window.jQuery&&window.Laximo){jQuery(document).ready(function(){Laximo.init();});}</script>";
+        }
     }
 }

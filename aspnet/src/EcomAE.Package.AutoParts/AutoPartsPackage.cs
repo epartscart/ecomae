@@ -17,6 +17,8 @@ public static class AutoPartsPackage
     {
         services.AddHttpClient(nameof(LaximoVinDecodeService));
         services.AddScoped<ILaximoVinDecodeService, LaximoVinDecodeService>();
+        services.AddHttpClient(nameof(LaximoOemCatalogService));
+        services.AddScoped<ILaximoCatalogService, LaximoOemCatalogService>();
         services.AddSingleton<EcomAE.Platform.Packages.IPackageRouteContributor, AutoPartsRouteContributor>();
         services.AddSingleton<EcomAE.Platform.Packages.IPackageMenuContributor, AutoPartsMenuContributor>();
     }

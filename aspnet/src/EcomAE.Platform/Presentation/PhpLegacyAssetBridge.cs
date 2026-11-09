@@ -276,6 +276,11 @@ public static class PhpLegacyAssetBridge
                          "cp/content/shop/prices_send/epc_prices_send.js"),
                      ("/platform-assets/epc_integrations_hub_ui.js",
                          "cp/content/control/portal/epc_integrations_hub_ui.js"),
+                     // OEM (laximo) storefront catalog drill-down UI.
+                     ("/platform-assets/laximo_storefront.js",
+                         "api/Laximo/laximo.js"),
+                     ("/platform-assets/laximo_storefront.css",
+                         "api/Laximo/laximo.css"),
                  })
         {
             var localRelative = relative;
