@@ -132,18 +132,36 @@ class Db:
         self._known.add(key)
 
 
-def fetch(method: str, key: str, params: dict, retries: int = 3) -> str | None:
+def fetch(method: str, key: str, params: dict, retries: int = 4, throttle_retries: int = 25) -> str | None:
     qs = "method=" + urllib.parse.quote(method) + "&key=" + urllib.parse.quote(key)
     for k, v in params.items():
         qs += "&" + urllib.parse.quote(k) + "=" + urllib.parse.quote(str(v))
+    throttled = 0
     for attempt in range(retries):
         try:
             req = urllib.request.Request(API + "?" + qs, headers={"User-Agent": "ecomae-harvest/1.0"})
             with urllib.request.urlopen(req, timeout=30) as resp:
                 body = resp.read().decode("utf-8", "replace")
+            if '"error_code":5000' in body or '"error_code": 5000' in body:
+                throttled += 1
+                if throttled > throttle_retries:
+                    return None
+                time.sleep(min(90 * throttled, 300))
+                attempt -= 1
+                continue
             if '"error_code"' in body or '"code":9' in body or '"status":4' in body or '"status":5' in body:
                 return None
             return body
+        except urllib.error.HTTPError as exc:
+            if exc.code == 401:
+                # Per-IP quota — same 5000 error surfaced as HTTP 401.
+                throttled += 1
+                if throttled > throttle_retries:
+                    return None
+                time.sleep(min(90 * throttled, 300))
+                attempt -= 1
+                continue
+            time.sleep(1.5 * (attempt + 1))
         except Exception:
             time.sleep(1.5 * (attempt + 1))
     return None
@@ -325,6 +343,83 @@ def harvest(db: Db, keys: dict, workers: int, level: int, car_types: list[str]):
             media_tasks = [("getArticleMedia", {"ART_ID": a, "LANG": "16"}) for a in article_ids]
             print(f"level 6: getArticleMedia x{len(media_tasks)}", flush=True)
             batch(media_tasks, "media")
+
+    # Level 7: per-article enrichment — crosses-with-titles, names, weight,
+    # EAN13, product groups. Inputs come from harvested article rows.
+    if level >= 7:
+        article_refs: list[tuple[str, str]] = []  # (brand, number)
+        article_ids7: list[str] = []
+        seen_ref = set(); seen_id = set()
+        for body in results:
+            for row in rows(body):
+                nr = pick(row, "ART_ARTICLE_NR", "articleNumber", "ART_NUM")
+                br = pick(row, "ART_SUP_BRAND", "brand", "SUP_BRAND")
+                if nr and br and (br, nr) not in seen_ref:
+                    seen_ref.add((br, nr)); article_refs.append((br, nr))
+                aid = pick(row, "ART_ID", "articleId")
+                if aid and aid not in seen_id:
+                    seen_id.add(aid); article_ids7.append(aid)
+        enrich: list[tuple[str, dict]] = []
+        for br, nr in article_refs:
+            if keys.get("getCrossesTitle"):
+                enrich.append(("getCrossesTitle", {"number": nr, "brand": br, "lang": "en"}))
+            if keys.get("getPartnameByBrandNumber"):
+                enrich.append(("getPartnameByBrandNumber", {"brand": br, "number": nr, "lang": "en"}))
+            if keys.get("getPartWeight"):
+                enrich.append(("getPartWeight", {"brand": br, "number": nr}))
+            if keys.get("FindEAN13"):
+                enrich.append(("FindEAN13", {"brand": br, "number": nr}))
+            if keys.get("getProductGroupsByBrandNumber"):
+                enrich.append(("getProductGroupsByBrandNumber", {"brand": br, "sku": nr, "lang": "16"}))
+        for aid in article_ids7:
+            if keys.get("getArticleCriteria"):
+                enrich.append(("getArticleCriteria", {"ART_ID": aid, "LANG": "16"}))
+        print(f"level 7: article enrichment x{len(enrich)}", flush=True)
+        batch(enrich, "enrich")
+
+    # Level 8: AUTONORMS chain — makes -> models -> motors -> times.
+    if level >= 8 and keys.get("GetNormsMakes"):
+        print("level 8: GetNorms chain", flush=True)
+        nm_body = call("GetNormsMakes", {})
+        for mrow in rows(nm_body):
+            seo = pick(mrow, "makeNameSEO", "makeName")
+            if not seo:
+                continue
+            mo_body = call("GetNormsModels", {"makeNameSEO": seo}) if keys.get("GetNormsModels") else None
+            for orow in rows(mo_body):
+                mid = pick(orow, "modelId")
+                if not mid or not keys.get("GetNormsMotors"):
+                    continue
+                mt_body = call("GetNormsMotors", {"modelId": mid})
+                for trow in rows(mt_body):
+                    motor = pick(trow, "motorId")
+                    if motor and keys.get("GetNormsTimes"):
+                        call("GetNormsTimes", {"motorId": motor, "TopCatId": "1", "SubCatId": "1"})
+
+    # Level 9: maintenance chain — toMakes -> toModels -> toTypes -> toParts + oils.
+    if level >= 9 and keys.get("toMakes"):
+        print("level 9: maintenance chain", flush=True)
+        tm_body = call("toMakes", {})
+        for brow in rows(tm_body):
+            bid = pick(brow, "brandId", "id")
+            if not bid or not keys.get("toModels"):
+                continue
+            ml_body = call("toModels", {"brandId": bid})
+            for trow in rows(ml_body):
+                tid = pick(trow, "modelId", "id")
+                if not tid or not keys.get("toTypes"):
+                    continue
+                ty_body = call("toTypes", {"modelId": tid})
+                for prow in rows(ty_body):
+                    tid2 = pick(prow, "typeId", "id")
+                    if not tid2:
+                        continue
+                    if keys.get("toParts"):
+                        call("toParts", {"typeId": tid2})
+                    if keys.get("toOils"):
+                        call("toOils", {"typeId": tid2})
+                    if keys.get("toDopusk"):
+                        call("toDopusk", {"typeId": tid2})
 
     return stats
 

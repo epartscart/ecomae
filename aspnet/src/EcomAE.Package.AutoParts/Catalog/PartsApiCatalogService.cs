@@ -33,10 +33,11 @@ public sealed class PartsApiCatalogService : IPartsApiService
         "getProductGroupsByBrandNumber",
         "VINdecode", "VINdecodeOE", "decodeVINus", "getPartsbyVIN",
         "GetNormsMakes", "GetNormsModels", "GetNormsMotors", "GetNormsTimes", "GetFillVolumes",
-        "toMakes", "toModels", "toTypes", "toParts", "toDoPass", "toOils",
+        "toMakes", "toModels", "toTypes", "toParts", "toDopusk", "toDoPass", "toOils",
         "FindEAN13", "DecodeEAN13", "PartSuggest", "partNameSuggest",
         "getCrosses", "getCrossesTitle", "getCrossesWithBrand",
         "getPartnameByBrandNumber", "getPartWeight", "getCarsByOilSpecification",
+        "gosnomer2vin", "carImpoundment", "rusNameSuggest",
     };
 
     private readonly IHttpClientFactory _http;
