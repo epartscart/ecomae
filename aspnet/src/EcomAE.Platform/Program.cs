@@ -735,8 +735,11 @@ builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontOrderCreatedPip
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontVendorPortalReader, EcomAE.Platform.Storefront.StorefrontVendorPortalReader>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontGuestSessionService, EcomAE.Platform.Storefront.StorefrontGuestSessionService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontPaymentWriteService, EcomAE.Platform.Storefront.StorefrontPaymentWriteService>();
-builder.Services.AddHttpClient(nameof(EcomAE.Platform.Storefront.LaximoVinDecodeService));
-builder.Services.AddScoped<EcomAE.Platform.Storefront.ILaximoVinDecodeService, EcomAE.Platform.Storefront.LaximoVinDecodeService>();
+// Package assemblies register their services here (compile-time Phase-1 bootstrap).
+// The Auto Parts package replaces the core fallback ILaximoVinDecodeService below.
+Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions
+    .TryAddScoped<EcomAE.Platform.Storefront.ILaximoVinDecodeService, EcomAE.Platform.Storefront.UnavailableLaximoVinDecodeService>(builder.Services);
+EcomAE.Platform.Packages.PackageBootstrap.RegisterPackages(builder.Services, builder.Configuration);
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontVinRequestWriteService, EcomAE.Platform.Storefront.StorefrontVinRequestWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontQuoteWriteService, EcomAE.Platform.Storefront.StorefrontQuoteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontGarageWriteService, EcomAE.Platform.Storefront.StorefrontGarageWriteService>();

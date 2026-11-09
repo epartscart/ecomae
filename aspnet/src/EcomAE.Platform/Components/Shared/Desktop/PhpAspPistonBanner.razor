@@ -83,6 +83,8 @@
 
 @code {
     [Inject] private IHttpContextAccessor Http { get; set; } = default!;
+    [Inject] private IEnumerable<ICustomerSkinContributor> CustomerSkins { get; set; } = default!;
+    private ICustomerSkinContributor? Skin => CustomerSkins.FirstOrDefault(s => s.AppliesTo(Http.HttpContext));
     [Inject] private EcomAE.Platform.Presentation.IStorefrontThemeTokens? ThemeTokens { get; set; }
 
     private string _heroStyle = "car";
@@ -105,9 +107,9 @@
         }
     }
 
-    private bool IsAuto247 => EcomAE.Platform.Presentation.Auto247Theme.IsAuto247(Http.HttpContext);
-    private string CountryCode => EcomAE.Platform.Presentation.Auto247Theme.CountryClass(Http.HttpContext);
-    private string DisplayCurrency => EcomAE.Platform.Presentation.Auto247Theme.CurrencyForCountry(CountryCode);
+    private bool IsAuto247 => Skin is not null;
+    private string CountryCode => Skin?.CountryCodeFor(Http.HttpContext) ?? "ae";
+    private string DisplayCurrency => Skin?.CurrencyFor(CountryCode) ?? "";
 
     [Parameter] public string Eyebrow { get; set; } = "Professional auto spare parts store";
     [Parameter] public string Title { get; set; } = "Find genuine and aftermarket spare parts faster, cleaner, and with confidence.";
