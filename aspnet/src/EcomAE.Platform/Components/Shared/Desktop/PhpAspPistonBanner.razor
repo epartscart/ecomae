@@ -1,3 +1,4 @@
+@using EcomAE.Platform.Presentation
 @namespace EcomAE.Platform.Components.Shared
 @*
   Port of content/general_pages/epc_automotive_spareparts_piston_banner.php.
@@ -83,14 +84,16 @@
 
 @code {
     [Inject] private IHttpContextAccessor Http { get; set; } = default!;
-    [Inject] private IEnumerable<ICustomerSkinContributor> CustomerSkins { get; set; } = default!;
-    private ICustomerSkinContributor? Skin => CustomerSkins.FirstOrDefault(s => s.AppliesTo(Http.HttpContext));
+    [Inject] private ICustomerSkinResolver SkinResolver { get; set; } = default!;
+    private ICustomerSkinContributor? _skin;
+    private ICustomerSkinContributor? Skin => _skin;
     [Inject] private EcomAE.Platform.Presentation.IStorefrontThemeTokens? ThemeTokens { get; set; }
 
     private string _heroStyle = "car";
 
     protected override async Task OnInitializedAsync()
     {
+        _skin = await SkinResolver.ResolveAsync(Http.HttpContext);
         // CP design-tokens sf_hero_style: car (default for auto247) | engine | static.
         if (ThemeTokens is not null && Http.HttpContext is not null)
         {

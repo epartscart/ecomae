@@ -60,6 +60,30 @@ public sealed class PackageRegistry : IPackageRegistry
                 DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                 DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
         }
+
+        // Seed installs preserving pre-extraction behavior: industry.auto_parts was
+        // core-resident (enabled for every tenant); customer.auto247 shipped the only
+        // Auto247 skin (enabled for its owner). New packages start deactivated.
+        try
+        {
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    "INSERT IGNORE INTO `epc_tenant_package_installs` (`site_key`,`package_id`,`installed_version`,`install_status`,`migration_status`,`enabled`,`installed_at`,`activated_at`) "
+                    + "SELECT `site_key`, 'industry.auto_parts', '1.0.0', 'installed', 'none', 1, ?, ? FROM `epc_portal_tenants`"),
+                cancellationToken, now, now).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    "INSERT IGNORE INTO `epc_tenant_package_installs` (`site_key`,`package_id`,`installed_version`,`install_status`,`migration_status`,`enabled`,`installed_at`,`activated_at`) VALUES ('auto247','customer.auto247','1.0.0','installed','none',1,?,?)"),
+                cancellationToken, now, now).ConfigureAwait(false);
+        }
+        catch (DbException ex)
+        {
+            // Older registries may lack epc_portal_tenants/packages tables — seeds are best-effort.
+            _log.LogWarning(ex, "package install seed skipped");
+        }
     }
 
     private static readonly string[] SchemaDdl =
@@ -244,7 +268,23 @@ public sealed class PackageRegistry : IPackageRegistry
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-            var install = await GetInstallAsync(siteKey, packageId, cancellationToken).ConfigureAwait(false);
+            // Per-tenant advisory lock serializes all package lifecycle ops for this
+            // tenant: a concurrent activate cannot slip its dependency check between
+            // another request's deactivation check and commit.
+            var lockName = "epc_pkg_lifecycle_" + siteKey;
+            var gotLock = (await ErpDb.ScalarAsync(
+                connection, null, ErpDb.Positional("SELECT GET_LOCK(?,10)"),
+                cancellationToken, lockName).ConfigureAwait(false))?.ToString() == "1";
+            if (!gotLock)
+            {
+                return ErpSimpleWriteResult.Fail("busy", "Another package change is in progress — retry.");
+            }
+
+            try
+            {
+            // Strict reads on the lifecycle connection: read failures fail the write
+            // (never silently treated as "not installed").
+            var install = await ReadInstallAsync(connection, siteKey, packageId, cancellationToken).ConfigureAwait(false);
 
             if (enabled)
             {
@@ -253,7 +293,7 @@ public sealed class PackageRegistry : IPackageRegistry
                     deployed, siteKey, packageId, install, forInstall: false,
                     dep => depCache.TryGetValue(dep, out var cached)
                         ? cached
-                        : depCache[dep] = GetInstallAsync(siteKey, dep, cancellationToken).GetAwaiter().GetResult());
+                        : depCache[dep] = ReadInstallAsync(connection, siteKey, dep, cancellationToken).GetAwaiter().GetResult());
                 if (invalid is not null)
                 {
                     return ErpSimpleWriteResult.Fail("invalid", invalid);
@@ -283,7 +323,7 @@ public sealed class PackageRegistry : IPackageRegistry
                         continue;
                     }
 
-                    var depInstall = await GetInstallAsync(siteKey, other.PackageId, cancellationToken).ConfigureAwait(false);
+                    var depInstall = await ReadInstallAsync(connection, siteKey, other.PackageId, cancellationToken).ConfigureAwait(false);
                     if (depInstall?.Enabled == true)
                     {
                         return ErpSimpleWriteResult.Fail("invalid", $"Deactivate {other.PackageId} first — it depends on this package.");
@@ -313,12 +353,47 @@ public sealed class PackageRegistry : IPackageRegistry
             _resolver.Invalidate(siteKey);
             return ErpSimpleWriteResult.Ok(
                 $"Package {packageId} {(enabled ? "activated" : "deactivated")} for {siteKey}.", 1);
+            }
+            finally
+            {
+                await ErpDb.ExecuteAsync(
+                    connection, null, ErpDb.Positional("SELECT RELEASE_LOCK(?)"),
+                    CancellationToken.None, lockName).ConfigureAwait(false);
+            }
         }
         catch (DbException ex)
         {
             _log.LogWarning(ex, "package set-enabled failed {Package} {Site}", packageId, siteKey);
             return ErpSimpleWriteResult.Fail("db", "Package tables missing — schema ensure first.");
         }
+    }
+
+    /// <summary>
+    /// Strict single-row install read on a caller-owned connection: unlike
+    /// <see cref="GetInstallAsync"/>, a DB error propagates instead of masquerading
+    /// as "not installed" (used inside the locked lifecycle path).
+    /// </summary>
+    private static async Task<TenantPackageInstall?> ReadInstallAsync(
+        DbConnection connection, string siteKey, string packageId, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "SELECT `site_key`,`package_id`,`installed_version`,`install_status`,`migration_status`,`enabled`,`installed_at`,`activated_at`,`activated_by` "
+            + "FROM `epc_tenant_package_installs` WHERE `site_key` = ? AND `package_id` = ? LIMIT 1";
+        var p1 = command.CreateParameter(); p1.Value = siteKey; command.Parameters.Add(p1);
+        var p2 = command.CreateParameter(); p2.Value = packageId; command.Parameters.Add(p2);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        return new TenantPackageInstall(
+            reader.GetString(0), reader.GetString(1), reader.GetString(2),
+            reader.GetString(3), reader.GetString(4), reader.GetInt32(5) == 1,
+            reader.IsDBNull(6) ? null : reader.GetValue(6)?.ToString(),
+            reader.IsDBNull(7) ? null : reader.GetValue(7)?.ToString(),
+            reader.IsDBNull(8) ? null : reader.GetString(8));
     }
 
     private static async Task BumpRevisionAsync(

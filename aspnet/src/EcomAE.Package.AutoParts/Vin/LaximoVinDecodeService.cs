@@ -5,6 +5,9 @@ using System.Text;
 using System.Xml.Linq;
 using System.Data.Common;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Middleware;
+using EcomAE.Platform.Packages;
+using EcomAE.Platform.Services;
 using EcomAE.Platform.Storefront;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -24,22 +27,36 @@ public sealed class LaximoVinDecodeService : ILaximoVinDecodeService
     private readonly IConfiguration _config;
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IPackageGate _packageGate;
 
     public LaximoVinDecodeService(
         IHttpClientFactory http,
         IConfiguration config,
         IErpWriteConnectionFactory connections,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IPackageGate packageGate)
     {
         _http = http;
         _config = config;
         _connections = connections;
         _httpContextAccessor = httpContextAccessor;
+        _packageGate = packageGate;
     }
 
     public async Task<LaximoVinDecodeResult> DecodeAsync(string? vinOrFrame, CancellationToken cancellationToken = default)
     {
+        // Tenant activation gate: industry.auto_parts must be enabled for the
+        // requesting tenant before any decode work runs (fail-closed).
         var vin = NormalizeVin(vinOrFrame);
+        var siteKey = (_httpContextAccessor.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey]
+            as TenantContext)?.SiteKey ?? string.Empty;
+        if (siteKey.Length == 0
+            || !await _packageGate.IsEnabledAsync(siteKey, AutoPartsPackage.PackageId, cancellationToken).ConfigureAwait(false))
+        {
+            return new LaximoVinDecodeResult(false, "package_disabled",
+                "VIN decode is not enabled for this storefront.", vin, null, null, 0, []);
+        }
+
         if (vin.Length is < 11 or > 17)
         {
             return new LaximoVinDecodeResult(false, "invalid_vin", "Enter a VIN of 11–17 characters.", vin, null, null, 0, []);

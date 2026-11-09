@@ -24,8 +24,12 @@
     [Parameter] public bool LoginChrome { get; set; }
 
     [Inject] private IHttpContextAccessor Http { get; set; } = default!;
-    [Inject] private IEnumerable<ICustomerSkinContributor> CustomerSkins { get; set; } = default!;
-    private ICustomerSkinContributor? Skin => CustomerSkins.FirstOrDefault(s => s.AppliesTo(Http.HttpContext));
+    [Inject] private ICustomerSkinResolver SkinResolver { get; set; } = default!;
+    private ICustomerSkinContributor? _skin;
+    private ICustomerSkinContributor? Skin => _skin;
+
+    protected override async Task OnInitializedAsync()
+        => _skin = await SkinResolver.ResolveAsync(Http.HttpContext);
 
     private string BodyClass
     {

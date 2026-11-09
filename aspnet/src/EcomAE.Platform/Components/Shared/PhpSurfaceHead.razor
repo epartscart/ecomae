@@ -187,8 +187,9 @@
     [Inject] private IHttpContextAccessor Http { get; set; } = default!;
     [Inject] private EcomAE.Platform.Storefront.IStorefrontCountryService? Countries { get; set; }
     [Inject] private IStorefrontThemeTokens? ThemeTokens { get; set; }
-    [Inject] private IEnumerable<ICustomerSkinContributor> CustomerSkins { get; set; } = default!;
-    private ICustomerSkinContributor? Skin => CustomerSkins.FirstOrDefault(s => s.AppliesTo(Http.HttpContext));
+    [Inject] private ICustomerSkinResolver SkinResolver { get; set; } = default!;
+    private ICustomerSkinContributor? _skin;
+    private ICustomerSkinContributor? Skin => _skin;
 
     private string _industryCode = "auto_parts";
     private string _storefrontPackage = "automotive_spareparts_pro";
@@ -204,6 +205,7 @@
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
+        _skin = await SkinResolver.ResolveAsync(ctx);
         _request = ctx?.Request;
         await LoadThemeTokensAsync();
         if (_request is not null && IncludePublicSeo)

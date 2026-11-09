@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.Loader;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -8,12 +9,13 @@ namespace EcomAE.Platform.Packages;
 /// <summary>
 /// Phase-1 compile-time package bootstrapper: loads each deployed package's
 /// well-known assembly and invokes its <c>Register(IServiceCollection,
-/// IConfiguration)</c> entry point. Assembly names are hard-mapped here — no
-/// dynamic probing; missing assemblies degrade gracefully.
+/// IConfiguration)</c> entry point. Assembly names are allowlisted in
+/// <see cref="AssemblyByPackage"/> — arbitrary assembly names are never loaded;
+/// missing assemblies degrade gracefully (fail-closed service fallbacks).
 /// </summary>
 public static class PackageBootstrap
 {
-    /// <summary>package_id → assembly name. Compile-time known; extend per package.</summary>
+    /// <summary>package_id → assembly name. Compile-time allowlist; extend per package.</summary>
     private static readonly IReadOnlyDictionary<string, string> AssemblyByPackage =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -32,7 +34,16 @@ public static class PackageBootstrap
         {
             try
             {
-                var assembly = Assembly.Load(new AssemblyName(assemblyName));
+                // LoadFromAssemblyPath: package DLLs ship beside the app but are NOT in
+                // deps.json — a plain Assembly.Load(name) cannot resolve them.
+                var path = Path.Combine(AppContext.BaseDirectory, assemblyName + ".dll");
+                var assembly = TryLoadAssembly(path);
+                if (assembly is null)
+                {
+                    log?.LogWarning("package {Package} assembly {Assembly} not shipped", packageId, assemblyName);
+                    continue;
+                }
+
                 var entry = assembly.GetTypes()
                     .FirstOrDefault(t => t.IsSealed && t.IsAbstract && t.Name.EndsWith("Package", StringComparison.Ordinal));
                 var register = entry?.GetMethod("Register", BindingFlags.Public | BindingFlags.Static);
@@ -44,14 +55,21 @@ public static class PackageBootstrap
 
                 register.Invoke(null, [services, configuration]);
             }
-            catch (FileNotFoundException)
-            {
-                // Package assembly not shipped — registry resolution stays fail-closed.
-            }
             catch (Exception ex)
             {
                 log?.LogError(ex, "package {Package} registration failed", packageId);
             }
         }
+    }
+
+    /// <summary>Loads a package assembly from an exact path; null when absent.</summary>
+    internal static Assembly? TryLoadAssembly(string path)
+    {
+        if (!File.Exists(path))
+        {
+            return null;
+        }
+
+        return AssemblyLoadContext.Default.LoadFromAssemblyPath(path);
     }
 }
