@@ -1,5 +1,4 @@
 using System.Data.Common;
-using System.Net;
 using System.Text;
 using System.Text.Json;
 using EcomAE.Platform.Erp;
@@ -83,7 +82,10 @@ public sealed class PartsApiCatalogService : IPartsApiService
                 "Unknown or disallowed partsapi method: " + method);
         }
 
-        var key = await ResolveSettingAsync("partsapi_key", cancellationToken).ConfigureAwait(false)
+        // partsapi.ru issues a separate key per purchased method, so a
+        // method-scoped setting wins, then the shared tenant key, then env.
+        var key = await ResolveSettingAsync("partsapi_key_" + method.ToLowerInvariant(), cancellationToken).ConfigureAwait(false)
+            ?? await ResolveSettingAsync("partsapi_key", cancellationToken).ConfigureAwait(false)
             ?? _config["EcomAE:PartsApi:Key"];
         var baseUrl = _config["EcomAE:PartsApi:BaseUrl"];
         if (string.IsNullOrWhiteSpace(baseUrl))
@@ -92,6 +94,14 @@ public sealed class PartsApiCatalogService : IPartsApiService
         }
 
         var cacheKey = BuildCacheKey(method, request.Params);
+
+        // Fetch-once: serve a fresh cached response before spending a provider call.
+        var fresh = await ReadCacheAsync(cacheKey, cancellationToken).ConfigureAwait(false);
+        if (fresh is not null)
+        {
+            return fresh;
+        }
+
         if (string.IsNullOrWhiteSpace(key))
         {
             var cachedCreds = await ReadCacheAsync(cacheKey, cancellationToken, allowExpired: true).ConfigureAwait(false);
@@ -105,8 +115,8 @@ public sealed class PartsApiCatalogService : IPartsApiService
                 "partsapi.ru API key is not configured.");
         }
 
-        var body = await SendAsync(baseUrl, method, key, request.Params, cancellationToken).ConfigureAwait(false);
-        if (body is null)
+        var upstream = await SendAsync(baseUrl, method, key, request.Params, cancellationToken).ConfigureAwait(false);
+        if (upstream.Body is null)
         {
             var stale = await ReadCacheAsync(cacheKey, cancellationToken, allowExpired: true).ConfigureAwait(false);
             if (stale is not null)
@@ -119,17 +129,26 @@ public sealed class PartsApiCatalogService : IPartsApiService
                 "partsapi.ru did not return a response.");
         }
 
-        // Provider errors arrive as {"code":9000,...} or {"error_code":5002,...}
-        // with status 4xx — surface the provider's own message, never cache them.
-        var providerError = ExtractProviderError(body);
+        // Non-2xx or an error payload ({"code":9000}, {"error_code":5002},
+        // {"status":4xx}) — surface the provider's own message, never cache it,
+        // and serve a stale row when one exists.
+        var providerError = upstream.Status >= 400
+            ? ExtractProviderError(upstream.Body) ?? "partsapi.ru returned HTTP " + upstream.Status + "."
+            : ExtractProviderError(upstream.Body);
         if (providerError is not null)
         {
+            var stale = await ReadCacheAsync(cacheKey, cancellationToken, allowExpired: true).ConfigureAwait(false);
+            if (stale is not null)
+            {
+                return stale;
+            }
+
             return PartsApiResult.Error(
                 StatusCodes.Status503ServiceUnavailable, "provider", providerError);
         }
 
-        await WriteCacheAsync(cacheKey, method, body, cancellationToken).ConfigureAwait(false);
-        return PartsApiResult.Payload(body);
+        await WriteCacheAsync(cacheKey, method, upstream.Body, cancellationToken).ConfigureAwait(false);
+        return PartsApiResult.Payload(upstream.Body);
     }
 
     /// <summary>Deterministic cache key: method + params sorted by name.</summary>
@@ -140,12 +159,19 @@ public sealed class PartsApiCatalogService : IPartsApiService
         {
             foreach (var pair in parameters.OrderBy(p => p.Key, StringComparer.Ordinal))
             {
-                builder.Append('|').Append(pair.Key).Append('=').Append(pair.Value);
+                builder.Append('|').Append(EscKey(pair.Key)).Append('=').Append(EscKey(pair.Value));
             }
         }
 
         return builder.ToString();
     }
+
+    // Escape delimiters so distinct requests can never collide on one cache row.
+    private static string EscKey(string? value)
+        => (value ?? string.Empty)
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("|", "\\|", StringComparison.Ordinal)
+            .Replace("=", "\\=", StringComparison.Ordinal);
 
     /// <summary>
     /// Returns the provider's error message when the body is an error payload
@@ -200,7 +226,9 @@ public sealed class PartsApiCatalogService : IPartsApiService
         }
     }
 
-    private async Task<string?> SendAsync(
+    public sealed record UpstreamResponse(int Status, string? Body);
+
+    private async Task<UpstreamResponse> SendAsync(
         string baseUrl,
         string method,
         string key,
@@ -233,20 +261,20 @@ public sealed class PartsApiCatalogService : IPartsApiService
             // Keep error payloads (401 with {"error_code":...}) so the provider's
             // message reaches the caller; only transport-level or empty bodies
             // count as unreachable.
-            if (response.StatusCode == HttpStatusCode.NotFound || body.Length == 0)
+            if (body.Length == 0)
             {
-                return null;
+                return new UpstreamResponse((int)response.StatusCode, null);
             }
 
-            return body;
+            return new UpstreamResponse((int)response.StatusCode, body);
         }
         catch (HttpRequestException)
         {
-            return null;
+            return new UpstreamResponse(0, null);
         }
         catch (TaskCanceledException)
         {
-            return null;
+            return new UpstreamResponse(0, null);
         }
     }
 

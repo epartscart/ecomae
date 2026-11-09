@@ -2894,6 +2894,34 @@ public static class StorefrontPhpAjaxEndpoints
     private static string? FirstNonEmpty(string? a, string? b)
         => !string.IsNullOrWhiteSpace(a) ? a : b;
 
+    // Anonymous callers reach a shared paid subscription — cap per-IP request
+    // rate so one visitor can't burn the provider quota for every tenant.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (long Window, int Count)>
+        PartsApiRateBuckets = new(StringComparer.Ordinal);
+
+    private static bool PartsApiRateLimited(HttpContext context)
+    {
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var window = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 60;
+        var allowed = true;
+        PartsApiRateBuckets.AddOrUpdate(
+            ip,
+            (window, 1),
+            (_, current) => current.Window == window ? (window, current.Count + 1) : (window, 1));
+        if (PartsApiRateBuckets.TryGetValue(ip, out var bucket) && bucket.Count > 120)
+        {
+            allowed = false;
+        }
+
+        // Opportunistic pruning so the map can't grow unbounded.
+        if (PartsApiRateBuckets.Count > 10_000)
+        {
+            PartsApiRateBuckets.Clear();
+        }
+
+        return !allowed;
+    }
+
     /// <summary>
     /// /api/partsapi_proxy.php — TecDoc catalog via partsapi.ru. The provider's
     /// method name comes in `method` (or `action`); every other field is passed
@@ -2904,6 +2932,14 @@ public static class StorefrontPhpAjaxEndpoints
         IPartsApiService partsApi,
         CancellationToken cancellationToken)
     {
+        if (PartsApiRateLimited(context))
+        {
+            context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+            return Results.Text(
+                "{\"success\":false,\"error\":\"rate limit exceeded\",\"code\":\"rate_limited\"}",
+                "application/json");
+        }
+
         var method = await FieldAsync(context, "method", cancellationToken).ConfigureAwait(false);
         if (string.IsNullOrWhiteSpace(method))
         {
