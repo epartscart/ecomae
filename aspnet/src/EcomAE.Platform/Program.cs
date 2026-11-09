@@ -743,6 +743,7 @@ builder.Services.AddScoped<EcomAE.Platform.Presentation.ICustomerSkinResolver, E
 builder.Services.AddScoped<EcomAE.Platform.Packages.IPackageEventBus, EcomAE.Platform.Packages.PackageEventBus>();
 builder.Services.AddScoped<EcomAE.Platform.Packages.PackageMenuService>();
 builder.Services.AddScoped<EcomAE.Platform.Packages.PackageJobGuard>();
+builder.Services.AddScoped<EcomAE.Platform.Packages.IPackageUpgrade, EcomAE.Platform.Packages.PackageUpgradeService>();
 EcomAE.Platform.Packages.PackageBootstrap.RegisterPackages(builder.Services, builder.Configuration);
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontVinRequestWriteService, EcomAE.Platform.Storefront.StorefrontVinRequestWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontQuoteWriteService, EcomAE.Platform.Storefront.StorefrontQuoteWriteService>();

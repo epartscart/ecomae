@@ -15493,6 +15493,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             HttpContext context,
             ILegacySessionValidator validator,
             EcomAE.Platform.Packages.IPackageRegistry packages,
+            EcomAE.Platform.Packages.IPackageUpgrade upgrade,
             ICpCsrfGuard csrf,
             CancellationToken cancellationToken) =>
         {
@@ -15505,6 +15506,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             string? action = null;
             string? siteKey = null;
             string? packageId = null;
+            string? toVersion = null;
             string? csrfKey = null;
             var confirm = false;
             if (context.Request.HasFormContentType)
@@ -15513,6 +15515,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 action = LiveWriteFormBinder.Text(form, "action");
                 siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
                 packageId = LiveWriteFormBinder.Text(form, "package_id", "packageId");
+                toVersion = LiveWriteFormBinder.Text(form, "to_version", "toVersion", "version");
                 csrfKey = LiveWriteFormBinder.Text(form, CpCsrfGuard.FieldName);
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
@@ -15525,7 +15528,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             packageId = (packageId ?? string.Empty).Trim().ToLowerInvariant();
             var key = (action ?? string.Empty).Trim().ToLowerInvariant();
 
-            if (confirm && key is "install" or "activate" or "deactivate" && siteKey.Length > 0 && packageId.Length > 0)
+            if (confirm && key is "install" or "activate" or "deactivate" or "upgrade" or "rollback" && siteKey.Length > 0 && packageId.Length > 0)
             {
                 var verdict = await csrf.VerifyAsync(context, session, csrfKey, cancellationToken).ConfigureAwait(false);
                 if (!verdict.Ok)
@@ -15545,9 +15548,13 @@ public sealed class ControlPanelModule : ISurfaceModule
                     // Schema ensure is additive; proceed — the write reports "db" if tables are absent.
                 }
 
-                var written = key == "install"
-                    ? await packages.InstallAsync(siteKey, packageId, actor, cancellationToken).ConfigureAwait(false)
-                    : await packages.SetEnabledAsync(siteKey, packageId, key == "activate", actor, cancellationToken).ConfigureAwait(false);
+                var written = key switch
+                {
+                    "install" => await packages.InstallAsync(siteKey, packageId, actor, cancellationToken).ConfigureAwait(false),
+                    "upgrade" => await upgrade.UpgradeAsync(siteKey, packageId, actor, cancellationToken).ConfigureAwait(false),
+                    "rollback" => await upgrade.RollbackAsync(siteKey, packageId, toVersion ?? string.Empty, actor, cancellationToken).ConfigureAwait(false),
+                    _ => await packages.SetEnabledAsync(siteKey, packageId, key == "activate", actor, cancellationToken).ConfigureAwait(false),
+                };
                 return LiveWriteFormBinder.Complete(
                     context,
                     "/cp/packages-app",
