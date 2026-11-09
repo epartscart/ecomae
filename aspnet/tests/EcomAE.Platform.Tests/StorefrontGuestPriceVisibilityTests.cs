@@ -34,6 +34,9 @@ public sealed class StorefrontGuestPriceVisibilityTests
     [InlineData("epartscart", "www.epartscart.com", true)]
     [InlineData("epartscart", "epartscart.com", true)]
     [InlineData(null, "www.epartscart.com", true)]
+    [InlineData("auto247", "auto247.ae", true)]
+    [InlineData(null, "auto247.ae", true)]
+    [InlineData(null, "auto247.pk", true)]
     [InlineData("platform", "www.ecomae.com", false)]
     public void HideForGuests_MatchesEpartscartPhpFallback(string? siteKey, string host, bool expected)
     {
