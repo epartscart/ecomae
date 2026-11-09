@@ -620,9 +620,9 @@ body[class*="epc-storefront--auto247"] .epc-header-search__tab:not(.active):hove
 /* Bigger, clear logo */
 .header-logo .epc-surface-host-logo__img,
 a.header-logo .epc-surface-host-logo__img {
-    height: 64px !important; max-width: 320px !important; width: auto !important;
+    height: 88px !important; max-width: 380px !important; width: auto !important;
 }
-.logo-line .table-group { grid-template-columns: minmax(280px,auto) minmax(220px,1fr) minmax(280px,auto) !important; }
+.logo-line .table-group { grid-template-columns: minmax(400px,auto) minmax(200px,1fr) minmax(280px,auto) !important; }
 
 /* Phone + hours centered above the search band */
 .epc-header-contact-col {

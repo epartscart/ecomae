@@ -150,11 +150,17 @@
           active +
           '" id="category_' +
           cat.id +
-          '"><div class="box_line"><a class="one_line" href="' +
-          href +
-          '">Browse ' +
+          '"><div class="epc-own-cat-pane">' +
+          '<div class="epc-own-cat-pane-head"><img class="epc-own-cat-pane-img" src="' +
+          img +
+          '" alt=""/><div><h3 class="epc-own-cat-pane-title">' +
           label +
-          '</a></div></div>';
+          '</h3><p class="epc-own-cat-pane-sub">Browse all products in this category.</p></div></div>' +
+          '<a class="epc-own-cat-pane-cta" href="' +
+          href +
+          '">Open ' +
+          label +
+          ' &rarr;</a></div></div>';
       }
     });
     tabs += '</ul></div>';
