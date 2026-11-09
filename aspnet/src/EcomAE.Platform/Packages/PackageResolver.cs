@@ -3,6 +3,7 @@ using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EcomAE.Platform.Packages;
 
@@ -23,10 +24,16 @@ public interface IPackageGate
 public sealed class PackageResolver : IPackageResolver, IPackageGate
 {
     private static readonly TimeSpan CacheLifetime = TimeSpan.FromSeconds(60);
+    // The revision row is re-read at most once per second per instance: deactivation on
+    // any instance is visible to every other instance within ~1s (fail-closed applies).
+    private static readonly TimeSpan RevisionCacheLifetime = TimeSpan.FromSeconds(1);
 
-    private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpWriteConnectionFactory? _connections;
     private readonly IMemoryCache _cache;
     private readonly ILogger<PackageResolver> _log;
+    private readonly Func<string, CancellationToken, Task<long>>? _revisionLoader;
+    private readonly Func<string, CancellationToken, Task<IReadOnlySet<string>>>? _setLoader;
+    private readonly TimeSpan _revisionCacheLifetime;
 
     public PackageResolver(
         IErpWriteConnectionFactory connections,
@@ -36,12 +43,28 @@ public sealed class PackageResolver : IPackageResolver, IPackageGate
         _connections = connections;
         _cache = cache;
         _log = log;
+        _revisionCacheLifetime = RevisionCacheLifetime;
+    }
+
+    /// <summary>Test seam: simulates separate app instances sharing one registry store.</summary>
+    internal PackageResolver(
+        Func<string, CancellationToken, Task<long>> revisionLoader,
+        Func<string, CancellationToken, Task<IReadOnlySet<string>>> setLoader,
+        IMemoryCache cache,
+        TimeSpan revisionCacheLifetime)
+    {
+        _revisionLoader = revisionLoader;
+        _setLoader = setLoader;
+        _cache = cache;
+        _log = NullLogger<PackageResolver>.Instance;
+        _revisionCacheLifetime = revisionCacheLifetime;
     }
 
     public void Invalidate(string siteKey)
-        => _cache.Remove(CacheKey(siteKey));
+        => _cache.Remove(RevisionCacheKey(siteKey)); // re-reads epc_package_revision on next resolve
 
-    private static string CacheKey(string siteKey) => "pkg-resolve:" + siteKey;
+    private static string CacheKey(string siteKey, long revision) => $"pkg-resolve:{siteKey}:{revision}";
+    private static string RevisionCacheKey(string siteKey) => "pkg-revision:" + siteKey;
 
     public async Task<IReadOnlySet<string>> GetEnabledAsync(string siteKey, CancellationToken cancellationToken = default)
     {
@@ -50,7 +73,14 @@ public sealed class PackageResolver : IPackageResolver, IPackageGate
             return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
 
-        var key = CacheKey(siteKey);
+        var revision = await GetRevisionAsync(siteKey, cancellationToken).ConfigureAwait(false);
+        if (revision < 0)
+        {
+            // Revision unverifiable → fail closed: never serve potentially stale state.
+            return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        var key = CacheKey(siteKey, revision);
         if (_cache.TryGetValue(key, out IReadOnlySet<string>? cached) && cached is not null)
         {
             return cached;
@@ -61,10 +91,69 @@ public sealed class PackageResolver : IPackageResolver, IPackageGate
         return resolved;
     }
 
+    private async Task<long> GetRevisionAsync(string siteKey, CancellationToken cancellationToken)
+    {
+        var key = RevisionCacheKey(siteKey);
+        if (_cache.TryGetValue(key, out long cached))
+        {
+            return cached;
+        }
+
+        var revision = await LoadRevisionAsync(siteKey, cancellationToken).ConfigureAwait(false);
+        _cache.Set(key, revision, _revisionCacheLifetime);
+        return revision;
+    }
+
+    private async Task<long> LoadRevisionAsync(string siteKey, CancellationToken cancellationToken)
+    {
+        if (_revisionLoader is not null)
+        {
+            try
+            {
+                return await _revisionLoader(siteKey, cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        if (_connections is null || !_connections.IsConfigured)
+        {
+            return -1;
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var value = await ErpDb.ScalarAsync(
+                connection, null,
+                "SELECT `revision` FROM `epc_package_revision` WHERE `site_key` = ? LIMIT 1",
+                cancellationToken, siteKey).ConfigureAwait(false);
+            return value is null or DBNull ? 0L : Convert.ToInt64(value);
+        }
+        catch
+        {
+            return -1; // fail closed: unknown revision still resolves the set, never a stale enabled entry
+        }
+    }
+
     private async Task<IReadOnlySet<string>> LoadAsync(string siteKey, CancellationToken cancellationToken)
     {
+        if (_setLoader is not null)
+        {
+            try
+            {
+                return await _setLoader(siteKey, cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                return new HashSet<string>(StringComparer.OrdinalIgnoreCase); // fail closed
+            }
+        }
+
         var enabled = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        if (!_connections.IsConfigured)
+        if (_connections is null || !_connections.IsConfigured)
         {
             return enabled; // fail closed
         }
