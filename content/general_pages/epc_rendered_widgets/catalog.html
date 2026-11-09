@@ -22,6 +22,14 @@
 .epc-umapi-logo { max-height: 30px; max-width: 70px; margin-bottom: 8px; }
 .epc-country-flag { width: 22px; height: 16px; object-fit: cover; border: 1px solid #e0e5ed; border-radius: 2px; margin-right: 5px; vertical-align: -3px; }
 .epc-umapi-list { display: grid; gap: 9px; }
+.epc-umapi-model-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.epc-umapi-model-card { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 6px; min-height: 160px; padding: 14px 10px 12px; text-align: center; border-radius: 10px; }
+.epc-umapi-model-img { width: 100%; max-width: 150px; aspect-ratio: 4 / 3; object-fit: contain; }
+.epc-umapi-mod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.epc-umapi-mod-card { display: flex; flex-direction: column; gap: 8px; border-radius: 10px; }
+.epc-umapi-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.epc-umapi-chip { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px; background: #eef4fc; color: #29598f; font-size: 12px; font-weight: 600; }
+
 .epc-umapi-row { background: #fff; border: 1px solid #e1e7ef; border-radius: 8px; padding: 12px; cursor: pointer; }
 .epc-umapi-row:hover { border-color: #2b78d6; }
 .epc-umapi-count { float: right; color: #657184; font-size: 13px; margin-top: 8px; }
@@ -355,12 +363,13 @@
             output.innerHTML = '<div class="epc-umapi-message">No models found for this manufacturer.</div>';
             return;
         }
-        output.innerHTML = listSummary('Select model series for ' + (state.manufacturer ? state.manufacturer.MANUFACTURER : 'selected brand') + '.', items) + '<div class="epc-umapi-list">' + items.map(function (item, index) {
-            var years = cleanDate(item.CI_FROM) + (item.CI_TO ? ' - ' + cleanDate(item.CI_TO) : '');
-            return '<div class="epc-umapi-row" data-index="' + index + '" data-search="' + esc(item.MODEL_SERIES + ' ' + years) + '">' +
-                '<strong>' + esc(item.MODEL_SERIES) + '</strong><br><small>' + esc(years) + '</small></div>';
+        output.innerHTML = listSummary('Select model series for ' + (state.manufacturer ? state.manufacturer.MANUFACTURER : 'selected brand') + '.', items) + '<div class="epc-umapi-model-grid">' + items.map(function (item, index) {
+            var years = cleanDate(item.CI_FROM) + (item.CI_TO ? ' \u2014 ' + cleanDate(item.CI_TO) : '');
+            var img = item.MS_ID ? '<img class="epc-umapi-model-img" alt="" loading="lazy" src="/api/umapi_image.php?kind=model&id=' + encodeURIComponent(item.MS_ID) + '" onerror="this.remove()">' : '';
+            return '<div class="epc-umapi-card epc-umapi-model-card" data-index="' + index + '" data-search="' + esc(item.MODEL_SERIES + ' ' + years) + '">' +
+                img + '<strong>' + esc(item.MODEL_SERIES) + '</strong>' + (years ? '<span class="epc-umapi-chip">' + esc(years) + '</span>' : '') + '</div>';
         }).join('') + '</div>';
-        bindIndexed('.epc-umapi-row', items, loadModifications);
+        bindIndexed('.epc-umapi-model-card', items, loadModifications);
         applyFilter();
     }
 
@@ -371,17 +380,19 @@
             output.innerHTML = '<div class="epc-umapi-message">No modifications found for this model.</div>';
             return;
         }
-        output.innerHTML = listSummary('Select exact vehicle modification.', items) + '<div class="epc-umapi-list">' + items.map(function (item, index) {
-            var meta = [
-                cleanDate(item.CI_FROM) + (item.CI_TO ? ' - ' + cleanDate(item.CI_TO) : ''),
+        output.innerHTML = listSummary('Select exact vehicle modification.', items) + '<div class="epc-umapi-mod-grid">' + items.map(function (item, index) {
+            var chips = [
+                cleanDate(item.CI_FROM) + (item.CI_TO ? ' \u2014 ' + cleanDate(item.CI_TO) : ''),
                 item.POWER_KW ? item.POWER_KW + ' kW' : '',
                 item.CAPACITY_LT ? item.CAPACITY_LT + ' L' : '',
                 item.FUEL_TYPE || ''
-            ].filter(Boolean).join(' | ');
-            return '<div class="epc-umapi-row" data-index="' + index + '" data-search="' + esc(getModificationTitle(item) + ' ' + meta) + '">' +
-                '<strong>' + esc(getModificationTitle(item)) + '</strong><br><small>' + esc(meta) + '</small></div>';
+            ].filter(Boolean);
+            var meta = chips.join(' ');
+            return '<div class="epc-umapi-card epc-umapi-mod-card" data-index="' + index + '" data-search="' + esc(getModificationTitle(item) + ' ' + meta) + '">' +
+                '<strong>' + esc(getModificationTitle(item)) + '</strong><span class="epc-umapi-chips">' +
+                chips.map(function (c) { return '<span class="epc-umapi-chip">' + esc(c) + '</span>'; }).join('') + '</span></div>';
         }).join('') + '</div>';
-        bindIndexed('.epc-umapi-row', items, loadCategories);
+        bindIndexed('.epc-umapi-mod-card', items, loadCategories);
         applyFilter();
     }
 
