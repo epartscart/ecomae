@@ -24,6 +24,12 @@
     [Parameter] public bool LoginChrome { get; set; }
 
     [Inject] private IHttpContextAccessor Http { get; set; } = default!;
+    [Inject] private ICustomerSkinResolver SkinResolver { get; set; } = default!;
+    private ICustomerSkinContributor? _skin;
+    private ICustomerSkinContributor? Skin => _skin;
+
+    protected override async Task OnInitializedAsync()
+        => _skin = await SkinResolver.ResolveAsync(Http.HttpContext);
 
     private string BodyClass
     {
@@ -33,9 +39,9 @@
                 ? LegacyPresentationAssets.LoginBodyClassFor(Surface)
                 : LegacyPresentationAssets.BodyClassFor(Surface);
             if (Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase)
-                && Auto247Theme.IsAuto247(Http.HttpContext))
+                && Skin is { } skin)
             {
-                cls += " epc-storefront--auto247 epc-storefront--auto247-" + Auto247Theme.CountryClass(Http.HttpContext);
+                cls += " " + skin.BodyClass + " " + skin.BodyClass + "-" + skin.CountryCodeFor(Http.HttpContext);
             }
 
             return cls;

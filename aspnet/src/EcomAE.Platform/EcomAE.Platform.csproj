@@ -6,6 +6,8 @@
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="EcomAE.Platform.Tests" />
+    <InternalsVisibleTo Include="EcomAE.Package.AutoParts" />
+    <InternalsVisibleTo Include="EcomAE.Customer.Auto247" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
@@ -37,5 +39,22 @@
     <Exec Command="bash &quot;$(MSBuildThisFileDirectory)..\..\..\deploy\on-premises-aspnet\build-setup-binaries.sh&quot; &quot;$(IntermediateOutputPath)customer-setup&quot;" ContinueOnError="true" />
     <Copy SourceFiles="$(MSBuildThisFileDirectory)..\..\..\deploy\on-premises-aspnet\setup.exe" DestinationFolder="$(PublishDir)setup-packs\on-premises-aspnet\" Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\deploy\on-premises-aspnet\setup.exe')" />
     <Copy SourceFiles="$(MSBuildThisFileDirectory)..\..\..\deploy\hybrid\setup.exe" DestinationFolder="$(PublishDir)setup-packs\hybrid\" Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\deploy\hybrid\setup.exe')" />
+  </Target>
+  <!-- Package assemblies ship beside the platform build/publish output; PackageBootstrap
+       loads them by name at startup (compile-time registration, runtime gating).
+       Package projects build with no-dependencies after the platform compile so a
+       clean publish always produces both DLLs (the Package-to-Platform edge is the
+       only direction allowed; a Platform-to-Package reference would be a cycle). -->
+  <Target Name="BuildPackageAssemblies" AfterTargets="Build;Publish">
+    <Exec Command="dotnet build &quot;$(MSBuildThisFileDirectory)..\EcomAE.Package.AutoParts\EcomAE.Package.AutoParts.csproj&quot; -c $(Configuration) --no-dependencies -v q" />
+    <Exec Command="dotnet build &quot;$(MSBuildThisFileDirectory)..\EcomAE.Customer.Auto247\EcomAE.Customer.Auto247.csproj&quot; -c $(Configuration) --no-dependencies -v q" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\EcomAE.Package.AutoParts\bin\$(Configuration)\net10.0\EcomAE.Package.AutoParts.dll"
+          DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\EcomAE.Customer.Auto247\bin\$(Configuration)\net10.0\EcomAE.Customer.Auto247.dll"
+          DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\EcomAE.Package.AutoParts\bin\$(Configuration)\net10.0\EcomAE.Package.AutoParts.dll"
+          DestinationFolder="$(PublishDir)" Condition="'$(PublishDir)' != ''" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\EcomAE.Customer.Auto247\bin\$(Configuration)\net10.0\EcomAE.Customer.Auto247.dll"
+          DestinationFolder="$(PublishDir)" Condition="'$(PublishDir)' != ''" SkipUnchangedFiles="true" />
   </Target>
 </Project>

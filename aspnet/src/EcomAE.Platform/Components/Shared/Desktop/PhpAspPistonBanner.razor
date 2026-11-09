@@ -1,3 +1,4 @@
+@using EcomAE.Platform.Presentation
 @namespace EcomAE.Platform.Components.Shared
 @*
   Port of content/general_pages/epc_automotive_spareparts_piston_banner.php.
@@ -83,12 +84,16 @@
 
 @code {
     [Inject] private IHttpContextAccessor Http { get; set; } = default!;
+    [Inject] private ICustomerSkinResolver SkinResolver { get; set; } = default!;
+    private ICustomerSkinContributor? _skin;
+    private ICustomerSkinContributor? Skin => _skin;
     [Inject] private EcomAE.Platform.Presentation.IStorefrontThemeTokens? ThemeTokens { get; set; }
 
     private string _heroStyle = "car";
 
     protected override async Task OnInitializedAsync()
     {
+        _skin = await SkinResolver.ResolveAsync(Http.HttpContext);
         // CP design-tokens sf_hero_style: car (default for auto247) | engine | static.
         if (ThemeTokens is not null && Http.HttpContext is not null)
         {
@@ -105,9 +110,9 @@
         }
     }
 
-    private bool IsAuto247 => EcomAE.Platform.Presentation.Auto247Theme.IsAuto247(Http.HttpContext);
-    private string CountryCode => EcomAE.Platform.Presentation.Auto247Theme.CountryClass(Http.HttpContext);
-    private string DisplayCurrency => EcomAE.Platform.Presentation.Auto247Theme.CurrencyForCountry(CountryCode);
+    private bool IsAuto247 => Skin is not null;
+    private string CountryCode => Skin?.CountryCodeFor(Http.HttpContext) ?? "ae";
+    private string DisplayCurrency => Skin?.CurrencyFor(CountryCode) ?? "";
 
     [Parameter] public string Eyebrow { get; set; } = "Professional auto spare parts store";
     [Parameter] public string Title { get; set; } = "Find genuine and aftermarket spare parts faster, cleaner, and with confidence.";

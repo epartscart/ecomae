@@ -5,49 +5,19 @@ using System.Text;
 using System.Xml.Linq;
 using System.Data.Common;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Middleware;
+using EcomAE.Platform.Packages;
+using EcomAE.Platform.Services;
+using EcomAE.Platform.Storefront;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 
-namespace EcomAE.Platform.Storefront;
+namespace EcomAE.Package.AutoParts;
 
 /// <summary>
-/// Live twin of PHP Guayaquil <c>FindVehicleByVIN</c> / <c>FindVehicleByFrameNo</c>
-/// (<c>GuayaquilSoapWrapper.QueryDataLogin</c>). Cache-only lookup stays on
-/// <c>ICatalogOfflineCacheService</c> when credentials are missing and the VIN is cached.
+/// Auto Parts industry package implementation of the VIN decode contract
+/// (Guayaquil SOAP twin). Registered by <see cref="AutoPartsPackage"/>.
 /// </summary>
-public interface ILaximoVinDecodeService
-{
-    Task<LaximoVinDecodeResult> DecodeAsync(string? vinOrFrame, CancellationToken cancellationToken = default);
-}
-
-public sealed record LaximoVehicleRow(string Brand, string Name, string Catalog, string Ssd);
-
-public sealed record LaximoVinDecodeResult(
-    bool Ok,
-    string Code,
-    string Message,
-    string Vin,
-    string? Manufacturer,
-    string? ModelLabel,
-    int VehicleCount,
-    IReadOnlyList<LaximoVehicleRow> Vehicles)
-{
-    public object ToPayload(object session) => new
-    {
-        ok = Ok,
-        surface = "storefront",
-        writes = 0,
-        phpAuthoritative = false,
-        validation_code = Code,
-        message = Message,
-        vin = Vin,
-        manufacturer = Manufacturer,
-        model_label = ModelLabel,
-        vehicle_count = VehicleCount,
-        vehicles = Vehicles.Select(v => new { brand = v.Brand, name = v.Name, catalog = v.Catalog, ssd = v.Ssd }),
-        session
-    };
-}
-
 public sealed class LaximoVinDecodeService : ILaximoVinDecodeService
 {
     public const string OemSoapUrl = "https://ws.laximo.net/ec.Kito.WebCatalog/services/Catalog.CatalogHttpSoap11Endpoint/";
@@ -57,22 +27,36 @@ public sealed class LaximoVinDecodeService : ILaximoVinDecodeService
     private readonly IConfiguration _config;
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IPackageGate _packageGate;
 
     public LaximoVinDecodeService(
         IHttpClientFactory http,
         IConfiguration config,
         IErpWriteConnectionFactory connections,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IPackageGate packageGate)
     {
         _http = http;
         _config = config;
         _connections = connections;
         _httpContextAccessor = httpContextAccessor;
+        _packageGate = packageGate;
     }
 
     public async Task<LaximoVinDecodeResult> DecodeAsync(string? vinOrFrame, CancellationToken cancellationToken = default)
     {
+        // Tenant activation gate: industry.auto_parts must be enabled for the
+        // requesting tenant before any decode work runs (fail-closed).
         var vin = NormalizeVin(vinOrFrame);
+        var siteKey = (_httpContextAccessor.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey]
+            as TenantContext)?.SiteKey ?? string.Empty;
+        if (siteKey.Length == 0
+            || !await _packageGate.IsEnabledAsync(siteKey, AutoPartsPackage.PackageId, cancellationToken).ConfigureAwait(false))
+        {
+            return new LaximoVinDecodeResult(false, "package_disabled",
+                "VIN decode is not enabled for this storefront.", vin, null, null, 0, []);
+        }
+
         if (vin.Length is < 11 or > 17)
         {
             return new LaximoVinDecodeResult(false, "invalid_vin", "Enter a VIN of 11–17 characters.", vin, null, null, 0, []);

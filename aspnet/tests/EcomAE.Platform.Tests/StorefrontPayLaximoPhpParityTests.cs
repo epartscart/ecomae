@@ -1,3 +1,4 @@
+using EcomAE.Package.AutoParts;
 using EcomAE.Platform.Cp;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
