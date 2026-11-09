@@ -21,17 +21,30 @@ public sealed class StorefrontThemeTokens : IStorefrontThemeTokens
 {
     private static readonly TimeSpan CacheLifetime = TimeSpan.FromSeconds(60);
 
-    // sf_* key → CSS variable (auto247 theme file). Sanitized hex colors only.
+    // sf_* key → generic --epc-sf-* CSS variable. The tenant theme layer (e.g. the
+    // auto247 skin) consumes these vars with per-country fallbacks; core stays
+    // customer-agnostic. Sanitized hex colors only — no free-form CSS.
     public static readonly IReadOnlyDictionary<string, string> CssVarMap =
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["sf_primary"] = "--auto247-blue",
-            ["sf_primary_dark"] = "--auto247-blue-dark",
-            ["sf_primary_deep"] = "--auto247-blue-deep",
-            ["sf_primary_light"] = "--auto247-blue-light",
-            ["sf_sky"] = "--auto247-blue-sky",
-            ["sf_soft"] = "--auto247-blue-soft",
-            ["sf_line"] = "--auto247-blue-line",
+            ["sf_primary"] = "--epc-sf-primary",
+            ["sf_primary_dark"] = "--epc-sf-primary-dark",
+            ["sf_primary_deep"] = "--epc-sf-primary-deep",
+            ["sf_primary_light"] = "--epc-sf-primary-light",
+            ["sf_sky"] = "--epc-sf-sky",
+            ["sf_soft"] = "--epc-sf-soft",
+            ["sf_line"] = "--epc-sf-line",
+        };
+
+    // Palette tokens also derive the hero-vehicle accent vars so a saved palette
+    // recolors the whole hero, overriding each country theme's car accent.
+    private static readonly IReadOnlyDictionary<string, string> DerivedCarVars =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["sf_primary"] = "--epc-sf-car2",
+            ["sf_primary_light"] = "--epc-sf-car1",
+            ["sf_primary_dark"] = "--epc-sf-car-line",
+            ["sf_primary_deep"] = "--epc-sf-car-deep",
         };
 
     public static readonly Regex HexColor = new(
@@ -40,7 +53,11 @@ public sealed class StorefrontThemeTokens : IStorefrontThemeTokens
 
     public static readonly IReadOnlyList<string> ColorKeys = [.. CssVarMap.Keys, "sf_page_bg"];
 
-    /// <summary>Sanitized <c>&lt;style&gt;</c> fragment with :root var overrides ("" when none).</summary>
+    /// <summary>
+    /// Sanitized <c>&lt;style&gt;</c> fragment emitting <c>--epc-sf-*</c> var overrides.
+    /// Emitted at equal specificity to the country theme's body class (later in document → wins),
+    /// plus the generic storefront shell so <c>sf_page_bg</c> and future skins apply to every tenant.
+    /// </summary>
     public static string StyleBlock(IReadOnlyDictionary<string, string> tokens, string bodyClassSuffix)
     {
         var vars = new List<string>();
@@ -49,13 +66,17 @@ public sealed class StorefrontThemeTokens : IStorefrontThemeTokens
             if (tokens.TryGetValue(key, out var value) && HexColor.IsMatch(value))
             {
                 vars.Add(cssVar + ":" + value);
+                if (DerivedCarVars.TryGetValue(key, out var carVar))
+                {
+                    vars.Add(carVar + ":" + value);
+                }
             }
         }
 
         var pageBg = "";
         if (tokens.TryGetValue("sf_page_bg", out var bg) && HexColor.IsMatch(bg))
         {
-            pageBg = $"body.epc-storefront--auto247{{background:{bg} !important;}}";
+            pageBg = $"body.epc-storefront-shell{{background:{bg} !important;}}";
         }
 
         if (vars.Count == 0 && pageBg.Length == 0)
@@ -63,8 +84,17 @@ public sealed class StorefrontThemeTokens : IStorefrontThemeTokens
             return string.Empty;
         }
 
-        var root = vars.Count > 0 ? ":root{" + string.Join(';', vars) + "}" : "";
-        return $"<style id=\"epc-sf-theme-{bodyClassSuffix}\">{root}{pageBg}</style>";
+        var declaration = string.Join(';', vars);
+        // Generic storefront shell (every tenant) + exact country class (matches the theme's own
+        // selector so the saved token, emitted later, wins over country defaults).
+        var selectors = "body.epc-storefront-shell";
+        if (!string.Equals(bodyClassSuffix, "default", StringComparison.Ordinal))
+        {
+            selectors += $",body.epc-storefront--auto247-{bodyClassSuffix}";
+        }
+
+        var rules = vars.Count > 0 ? selectors + "{" + declaration + "}" : "";
+        return $"<style id=\"epc-sf-theme-{bodyClassSuffix}\">{rules}{pageBg}</style>";
     }
 
     private readonly IErpWriteConnectionFactory _connections;

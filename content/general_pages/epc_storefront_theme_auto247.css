@@ -3,13 +3,13 @@
    Scoped under body.epc-storefront--auto247 so it cannot leak to other tenants. */
 
 :root {
-  --auto247-blue: #0ea5e9;
-  --auto247-blue-dark: #0369a1;
-  --auto247-blue-deep: #0c4a6e;
-  --auto247-blue-light: #38bdf8;
-  --auto247-blue-sky: #7dd3fc;
-  --auto247-blue-soft: #f0f9ff;
-  --auto247-blue-line: #bae6fd;
+  --auto247-blue: var(--epc-sf-primary, #0ea5e9);
+  --auto247-blue-dark: var(--epc-sf-primary-dark, #0369a1);
+  --auto247-blue-deep: var(--epc-sf-primary-deep, #0c4a6e);
+  --auto247-blue-light: var(--epc-sf-primary-light, #38bdf8);
+  --auto247-blue-sky: var(--epc-sf-sky, #7dd3fc);
+  --auto247-blue-soft: var(--epc-sf-soft, #f0f9ff);
+  --auto247-blue-line: var(--epc-sf-line, #bae6fd);
   --auto247-white: #ffffff;
   --auto247-ink: #0b1220;
   --auto247-text: #1e293b;
@@ -324,7 +324,7 @@ body.epc-storefront--auto247 .epc-auto247-badge {
 }
 
 body.epc-storefront--auto247 .epc-auto247-badge__ring {
-    border: 2px dashed var(--auto247-blue-light);
+    border: 2px dashed var(--epc-sf-car1, var(--auto247-blue-light));
     border-radius: 50%;
     inset: 16px;
     position: absolute;
@@ -341,8 +341,8 @@ body.epc-storefront--auto247 .epc-auto247-car {
 }
 
 body.epc-storefront--auto247 .epc-auto247-car__body {
-    background: linear-gradient(180deg, var(--auto247-blue-light), var(--auto247-blue));
-    border: 3px solid var(--auto247-blue-dark);
+    background: linear-gradient(180deg, var(--epc-sf-car1, var(--auto247-blue-light)), var(--epc-sf-car2, var(--auto247-blue)));
+    border: 3px solid var(--epc-sf-car-line, var(--auto247-blue-dark));
     border-radius: 28px 34px 13px 13px;
     bottom: 13px;
     height: 48px;
@@ -353,7 +353,7 @@ body.epc-storefront--auto247 .epc-auto247-car__body {
 
 body.epc-storefront--auto247 .epc-auto247-car__cabin {
     background: linear-gradient(135deg, #dbeafe, #ffffff);
-    border: 3px solid var(--auto247-blue-dark);
+    border: 3px solid var(--epc-sf-car-line, var(--auto247-blue-dark));
     border-bottom: 0;
     border-radius: 52px 52px 4px 4px;
     height: 47px;
@@ -365,7 +365,7 @@ body.epc-storefront--auto247 .epc-auto247-car__cabin {
 
 body.epc-storefront--auto247 .epc-auto247-car__light {
     background: #ffffff;
-    border: 2px solid var(--auto247-blue-dark);
+    border: 2px solid var(--epc-sf-car-line, var(--auto247-blue-dark));
     border-radius: 50%;
     height: 13px;
     position: absolute;
@@ -376,7 +376,7 @@ body.epc-storefront--auto247 .epc-auto247-car__light {
 
 body.epc-storefront--auto247 .epc-auto247-car__wheel {
     background: #ffffff;
-    border: 7px solid var(--auto247-blue-deep);
+    border: 7px solid var(--epc-sf-car-deep, var(--auto247-blue-deep));
     border-radius: 50%;
     bottom: 0;
     height: 35px;
@@ -389,7 +389,7 @@ body.epc-storefront--auto247 .epc-auto247-car__wheel--rear { left: 28px; }
 body.epc-storefront--auto247 .epc-auto247-car__wheel--front { right: 28px; }
 
 body.epc-storefront--auto247 .epc-auto247-road {
-    background: var(--auto247-blue-deep);
+    background: var(--epc-sf-car-deep, var(--auto247-blue-deep));
     bottom: 68px;
     height: 6px;
     left: 22px;
@@ -422,27 +422,33 @@ body.epc-storefront--auto247 .epc-auto247-videocard strong { color: var(--auto24
 body.epc-storefront--auto247 .epc-auto247-videocard p { color: var(--auto247-muted) !important; }
 body.epc-storefront--auto247 .epc-auto247-play { background: var(--auto247-blue) !important; }
 
-/* Pakistan: green/white automotive identity, still with the same centralized platform. */
-body.epc-storefront--auto247-pk .epc-auto247-badge,
-body.epc-storefront--auto247-pk .epc-auto247-videocard { border-color: #bbf7d0 !important; }
-body.epc-storefront--auto247-pk .epc-auto247-badge {
-    background: radial-gradient(circle at 35% 25%, #ffffff 0%, #f0fdf4 42%, #bbf7d0 100%);
-    box-shadow: 0 0 0 2px #86efac, 0 20px 42px rgba(22, 101, 52, .22);
+/* Pakistan: green/white automotive identity via --epc-sf-* vars (token overrides still win). */
+body.epc-storefront--auto247-pk {
+    --epc-sf-primary: #16a34a;
+    --epc-sf-primary-dark: #15803d;
+    --epc-sf-primary-deep: #14532d;
+    --epc-sf-primary-light: #4ade80;
+    --epc-sf-sky: #86efac;
+    --epc-sf-soft: #f0fdf4;
+    --epc-sf-line: #bbf7d0;
+    --epc-sf-car1: #22c55e;
+    --epc-sf-car2: #15803d;
+    --epc-sf-car-line: #166534;
+    --epc-sf-car-deep: #14532d;
 }
-body.epc-storefront--auto247-pk .epc-auto247-badge__ring { border-color: #22c55e; }
-body.epc-storefront--auto247-pk .epc-auto247-car__body { background: linear-gradient(180deg, #22c55e, #15803d); border-color: #166534; }
-body.epc-storefront--auto247-pk .epc-auto247-car__cabin { border-color: #166534; }
-body.epc-storefront--auto247-pk .epc-auto247-car__wheel { border-color: #14532d; }
-body.epc-storefront--auto247-pk .epc-auto247-road { background: #14532d; }
-body.epc-storefront--auto247-pk .epc-auto247-videocard strong { color: #166534 !important; }
-body.epc-storefront--auto247-pk .epc-auto247-play { background: #16a34a !important; }
+body.epc-storefront--auto247-pk .epc-auto247-badge,
+body.epc-storefront--auto247-pk .epc-auto247-videocard { border-color: var(--epc-sf-line) !important; }
+body.epc-storefront--auto247-pk .epc-auto247-badge {
+    background: radial-gradient(circle at 35% 25%, #ffffff 0%, var(--epc-sf-soft) 42%, var(--epc-sf-line) 100%);
+    box-shadow: 0 0 0 2px var(--epc-sf-sky), 0 20px 42px rgba(22, 101, 52, .22);
+}
 
-/* Other country palettes: keep white space, change the automotive accent only. */
-body.epc-storefront--auto247-sa .epc-auto247-car__body { background: linear-gradient(180deg, #22c55e, #15803d); border-color: #166534; }
-body.epc-storefront--auto247-qa .epc-auto247-car__body { background: linear-gradient(180deg, #a855f7, #7e22ce); border-color: #581c87; }
-body.epc-storefront--auto247-kw .epc-auto247-car__body { background: linear-gradient(180deg, #facc15, #ca8a04); border-color: #854d0e; }
-body.epc-storefront--auto247-bh .epc-auto247-car__body { background: linear-gradient(180deg, #ef4444, #b91c1c); border-color: #7f1d1d; }
-body.epc-storefront--auto247-om .epc-auto247-car__body { background: linear-gradient(180deg, #ef4444, #dc2626); border-color: #991b1b; }
+/* Other country palettes: automotive accent only, still var-driven. */
+body.epc-storefront--auto247-sa { --epc-sf-car1: #22c55e; --epc-sf-car2: #15803d; --epc-sf-car-line: #166534; }
+body.epc-storefront--auto247-qa { --epc-sf-car1: #a855f7; --epc-sf-car2: #7e22ce; --epc-sf-car-line: #581c87; }
+body.epc-storefront--auto247-kw { --epc-sf-car1: #facc15; --epc-sf-car2: #ca8a04; --epc-sf-car-line: #854d0e; }
+body.epc-storefront--auto247-bh { --epc-sf-car1: #ef4444; --epc-sf-car2: #b91c1c; --epc-sf-car-line: #7f1d1d; }
+body.epc-storefront--auto247-om { --epc-sf-car1: #ef4444; --epc-sf-car2: #dc2626; --epc-sf-car-line: #991b1b; }
 
 @keyframes auto247-drive { 0%, 100% { transform: translateX(-7px); } 50% { transform: translateX(7px); } }
 @keyframes auto247-wheel { to { transform: rotate(360deg); } }
