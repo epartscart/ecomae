@@ -103,6 +103,21 @@
         return map[key] || '';
     }
 
+    var COUNTRY_LABELS = {
+        'япония': 'Japan', 'германия': 'Germany', 'сша': 'USA', 'италия': 'Italy',
+        'великобритания': 'United Kingdom', 'китай': 'China', 'франция': 'France',
+        'южная корея': 'South Korea', 'россия': 'Russia', 'румыния': 'Romania',
+        'чехия': 'Czech Republic', 'швеция': 'Sweden', 'украина': 'Ukraine',
+        'бельгия': 'Belgium', 'бразилия': 'Brazil', 'индия': 'India',
+        'турция': 'Turkey', 'иран': 'Iran', 'чехословакия': 'Czechoslovakia',
+        'испания': 'Spain', 'сербия': 'Serbia', 'аргентина': 'Argentina',
+        'австрия': 'Austria', 'ссср': 'USSR'
+    };
+    function countryLabel(country) {
+        var key = String(country || '').trim().toLowerCase();
+        return COUNTRY_LABELS[key] || String(country || '');
+    }
+
     function logoProxyUrl(kind, id) {
         if (!id) {
             return '';
@@ -113,9 +128,9 @@
     function flagHtml(country) {
         var code = countryCode(country);
         if (!code) {
-            return esc(country || '');
+            return esc(countryLabel(country));
         }
-        return '<img class="epc-country-flag" alt="" src="https://flagcdn.com/24x18/' + code + '.png">' + esc(country || '');
+        return '<img class="epc-country-flag" alt="" src="https://flagcdn.com/24x18/' + code + '.png">' + esc(countryLabel(country));
     }
 
     function api(action, params) {
