@@ -410,10 +410,13 @@
     function applyCountryFilter() {
         if (!countrySel) { return; }
         var want = countrySel.value;
+        var term = filterInput ? filterInput.value.toLowerCase() : '';
         var cards = output.querySelectorAll('.epc-umapi-manufacturer-card');
         for (var i = 0; i < cards.length; i++) {
             var c = cards[i].getAttribute('data-ccode') || '';
-            if (want && c !== want) { cards[i].style.display = 'none'; }
+            var hay = (cards[i].getAttribute('data-search') || '').toLowerCase();
+            var hide = (want && c !== want) || (term && hay.indexOf(term) === -1);
+            cards[i].style.display = hide ? 'none' : '';
         }
     }
 
