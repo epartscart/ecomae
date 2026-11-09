@@ -2936,10 +2936,10 @@ public static class StorefrontPhpAjaxEndpoints
         return !allowed;
     }
 
-    // Cloudflare IPv4 edge ranges (cloudflare.com/ips-v4).
-    private static readonly (uint Network, uint Mask)[] CloudflareRanges = BuildCloudflareRanges();
+    // Cloudflare edge ranges (cloudflare.com/ips-v4 + ips-v6).
+    private static readonly (byte[] Network, int Bits)[] CloudflareRanges = BuildCloudflareRanges();
 
-    private static (uint, uint)[] BuildCloudflareRanges()
+    private static (byte[], int)[] BuildCloudflareRanges()
     {
         string[] cidrs =
         {
@@ -2947,16 +2947,16 @@ public static class StorefrontPhpAjaxEndpoints
             "141.101.64.0/18", "108.162.192.0/18", "190.93.240.0/20", "188.114.96.0/20",
             "197.234.240.0/22", "198.41.128.0/17", "162.158.0.0/15", "104.16.0.0/13",
             "104.24.0.0/14", "172.64.0.0/13", "131.0.72.0/22",
+            "2400:cb00::/32", "2606:4700::/32", "2803:f800::/32", "2405:b500::/32",
+            "2405:8100::/32", "2a06:98c0::/29", "2c0f:f248::/32",
         };
-        var list = new List<(uint, uint)>(cidrs.Length);
+        var list = new List<(byte[], int)>(cidrs.Length);
         foreach (var cidr in cidrs)
         {
             var slash = cidr.IndexOf('/');
-            var bytes = System.Net.IPAddress.Parse(cidr[..slash]).GetAddressBytes();
-            var network = ((uint)bytes[0] << 24) | ((uint)bytes[1] << 16) | ((uint)bytes[2] << 8) | bytes[3];
-            var bits = int.Parse(cidr[(slash + 1)..]);
-            var mask = bits == 0 ? 0u : uint.MaxValue << (32 - bits);
-            list.Add((network, mask));
+            list.Add((
+                System.Net.IPAddress.Parse(cidr[..slash]).GetAddressBytes(),
+                int.Parse(cidr[(slash + 1)..])));
         }
 
         return list.ToArray();
@@ -2970,15 +2970,31 @@ public static class StorefrontPhpAjaxEndpoints
         }
 
         var bytes = parsed.GetAddressBytes();
-        if (bytes.Length != 4)
+        foreach (var (network, bits) in CloudflareRanges)
         {
-            return false;
-        }
+            if (network.Length != bytes.Length)
+            {
+                continue;
+            }
 
-        var value = ((uint)bytes[0] << 24) | ((uint)bytes[1] << 16) | ((uint)bytes[2] << 8) | bytes[3];
-        foreach (var (network, mask) in CloudflareRanges)
-        {
-            if ((value & mask) == network)
+            var fullBytes = bits / 8;
+            var match = true;
+            for (var i = 0; i < fullBytes; i++)
+            {
+                if (network[i] != bytes[i])
+                {
+                    match = false;
+                    break;
+                }
+            }
+
+            if (match && bits % 8 != 0)
+            {
+                var mask = (byte)(0xFF << (8 - bits % 8));
+                match = (network[fullBytes] & mask) == (bytes[fullBytes] & mask);
+            }
+
+            if (match)
             {
                 return true;
             }
