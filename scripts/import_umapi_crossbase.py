@@ -155,18 +155,27 @@ def main() -> int:
                 "LIKE `shop_docpart_articles_analogs_list`",
             )
 
-        # 2) LOAD DATA each chunk (IGNORE => re-runs are deduped by the UNIQUE key)
-        for i, path in enumerate(chunk_files, 1):
-            esc = path.replace("\\", "\\\\").replace("'", "\\'")
-            sql = (
-                "LOAD DATA LOCAL INFILE '" + esc + f"' INTO TABLE `{target_table}` "
-                "FIELDS TERMINATED BY '\\t' LINES TERMINATED BY '\\n' "
-                "(`article`, `article_search`, `manufacturer_article`, `analog`, `analog_search`, `manufacturer_analog`)"
-            )
-            mysql_cmd(mysql, args.database, sql)
-            print(f"loaded chunk {i}/{len(chunk_files)}")
-            if not args.keep_work:
-                os.remove(path)
+        try:
+            # 2) LOAD DATA each chunk (IGNORE => re-runs are deduped by the UNIQUE key)
+            for i, path in enumerate(chunk_files, 1):
+                esc = path.replace("\\", "\\\\").replace("'", "\\'")
+                sql = (
+                    "LOAD DATA LOCAL INFILE '" + esc + f"' INTO TABLE `{target_table}` "
+                    "FIELDS TERMINATED BY '\\t' LINES TERMINATED BY '\\n' "
+                    "(`article`, `article_search`, `manufacturer_article`, `analog`, `analog_search`, `manufacturer_analog`)"
+                )
+                mysql_cmd(mysql, args.database, sql)
+                print(f"loaded chunk {i}/{len(chunk_files)}")
+                if not args.keep_work:
+                    os.remove(path)
+        except BaseException:
+            # Never leave a populated staging table behind on failure.
+            if args.fresh:
+                try:
+                    mysql_cmd(mysql, args.database, f"DROP TABLE IF EXISTS `{staging_table}`")
+                except RuntimeError:
+                    pass
+            raise
 
         # 3) Fresh mode: atomic multi-table swap, then drop the old data.
         # Per-run table names keep concurrent imports isolated; an empty (or
@@ -176,13 +185,20 @@ def main() -> int:
                 print("refusing --fresh swap: the CSV produced zero rows — keeping existing table", file=sys.stderr)
                 mysql_cmd(mysql, args.database, f"DROP TABLE IF EXISTS `{staging_table}`")
                 return 1
-            mysql_cmd(
-                mysql,
-                args.database,
-                f"DROP TABLE IF EXISTS `{old_table}`;"
-                f"RENAME TABLE `shop_docpart_articles_analogs_list` TO `{old_table}`,"
-                f" `{staging_table}` TO `shop_docpart_articles_analogs_list`",
-            )
+            try:
+                mysql_cmd(
+                    mysql,
+                    args.database,
+                    f"DROP TABLE IF EXISTS `{old_table}`;"
+                    f"RENAME TABLE `shop_docpart_articles_analogs_list` TO `{old_table}`,"
+                    f" `{staging_table}` TO `shop_docpart_articles_analogs_list`",
+                )
+            except RuntimeError:
+                try:
+                    mysql_cmd(mysql, args.database, f"DROP TABLE IF EXISTS `{staging_table}`")
+                except RuntimeError:
+                    pass
+                raise
             try:
                 mysql_cmd(mysql, args.database, f"DROP TABLE `{old_table}`")
             except RuntimeError:
