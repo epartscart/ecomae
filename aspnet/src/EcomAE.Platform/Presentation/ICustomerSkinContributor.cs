@@ -31,4 +31,10 @@ public interface ICustomerSkinContributor
 
     /// <summary>Body class fragment added to the storefront body ("" = none).</summary>
     string BodyClass { get; }
+
+    /// <summary>Optional tenant home meta description; null keeps the default.</summary>
+    string? SeoHomeDescription => null;
+
+    /// <summary>Optional tenant home meta keywords; null keeps the default.</summary>
+    string? SeoHomeKeywords => null;
 }
