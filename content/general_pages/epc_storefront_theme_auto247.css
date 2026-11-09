@@ -2,7 +2,9 @@
    storefront shell. Only emitted for site_key=auto247 (see PhpSurfaceHead).
    Scoped under body.epc-storefront--auto247 so it cannot leak to other tenants. */
 
-:root {
+/* Aliases live on body.epc-storefront--auto247 (not :root) so --epc-sf-* set on the
+   same element — country theme defaults and CP sf_* tokens — resolve correctly. */
+body.epc-storefront--auto247 {
   --auto247-blue: var(--epc-sf-primary, #0ea5e9);
   --auto247-blue-dark: var(--epc-sf-primary-dark, #0369a1);
   --auto247-blue-deep: var(--epc-sf-primary-deep, #0c4a6e);
