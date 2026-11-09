@@ -168,14 +168,17 @@ public class PackageAcceptanceTests
         var deployed = PackageCatalog.Find("industry.auto_parts")!;
         var installed = Install("auto247", "industry.auto_parts", "1.0.0", enabled: true);
 
-        Assert.Null(UpgradeRules.Validate(deployed, installed, "1.1.0", PackageCatalog.CoreVersion, isRollback: false));
+        var behind = Install("auto247", "industry.auto_parts", "0.9.9", enabled: true);
+        Assert.Null(UpgradeRules.Validate(deployed, behind, "1.0.0", PackageCatalog.CoreVersion, isRollback: false));
         Assert.NotNull(UpgradeRules.Validate(deployed, installed, "1.0.0", PackageCatalog.CoreVersion, isRollback: false)); // same version
-        Assert.NotNull(UpgradeRules.Validate(deployed, null, "1.1.0", PackageCatalog.CoreVersion, isRollback: false));    // not installed
-        Assert.NotNull(UpgradeRules.Validate(null, installed, "1.1.0", PackageCatalog.CoreVersion, isRollback: false));  // unknown package
-        // Rollback skips the core-compat check (recovery must work even on an incompatible core).
-        var tight = deployed with { CoreMaxVersion = "0.9.0" };
-        Assert.NotNull(UpgradeRules.Validate(tight, installed, "1.1.0", PackageCatalog.CoreVersion, isRollback: false));
-        Assert.Null(UpgradeRules.Validate(tight, installed, "0.9.9", PackageCatalog.CoreVersion, isRollback: true));
+        Assert.NotNull(UpgradeRules.Validate(deployed, behind, "9.9.9", PackageCatalog.CoreVersion, isRollback: false));  // undeployed version
+        Assert.NotNull(UpgradeRules.Validate(deployed, null, "1.0.0", PackageCatalog.CoreVersion, isRollback: false));    // not installed
+        Assert.NotNull(UpgradeRules.Validate(null, installed, "1.0.0", PackageCatalog.CoreVersion, isRollback: false));  // unknown package
+        // Rollback accepts only versions the tenant's history recorded — never an invented one.
+        var known = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "0.9.9" };
+        Assert.Null(UpgradeRules.Validate(deployed, installed, "0.9.9", PackageCatalog.CoreVersion, isRollback: true, known));
+        Assert.NotNull(UpgradeRules.Validate(deployed, installed, "9.9.9", PackageCatalog.CoreVersion, isRollback: true, known));
+        Assert.NotNull(UpgradeRules.Validate(deployed, installed, "0.9.9", PackageCatalog.CoreVersion, isRollback: true)); // no history
 
         Assert.Equal(
             UpgradeRules.Checksum("industry.auto_parts", "1.0.0", "1.1.0"),

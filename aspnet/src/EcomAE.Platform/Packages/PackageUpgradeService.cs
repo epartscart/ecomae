@@ -11,9 +11,12 @@ namespace EcomAE.Platform.Packages;
 /// package installs. Preflight validates version compatibility and install state;
 /// the write commits install-version + migration record + history + revision in one
 /// transaction under the per-tenant lifecycle lock. Rollback is a compensating write
-/// (restore previous version) — MariaDB DDL is non-transactional, so recovery never
+/// (restore a previously recorded version) — MariaDB DDL is non-transactional, so recovery never
 /// relies on transaction rollback alone: every attempt is recorded with a checksum
 /// in <c>epc_package_migrations</c> and <c>epc_package_history</c>.
+/// <para>Compile-time model note: the running package code is the deployed assembly —
+/// version changes are bookkeeping + data-migration state; shipping different package
+/// code requires a platform deploy, not a version write.</para>
 /// </summary>
 public interface IPackageUpgrade
 {
@@ -50,13 +53,19 @@ public static class PackageCompatibility
 /// <summary>Pure upgrade/recovery decision rules — unit-testable without a DB.</summary>
 public static class UpgradeRules
 {
-    /// <summary>Validates an upgrade or rollback. Returns error message or null.</summary>
+    /// <summary>
+    /// Validates an upgrade or rollback. Returns error message or null.
+    /// Compile-time model: only the shipped catalog version is runnable, so an upgrade
+    /// must target <see cref="DeployedPackage.Version"/>; a rollback must target a version
+    /// the tenant's history actually recorded (<paramref name="knownVersions"/>).
+    /// </summary>
     public static string? Validate(
         DeployedPackage? deployed,
         TenantPackageInstall? install,
         string toVersion,
         string coreVersion,
-        bool isRollback)
+        bool isRollback,
+        IReadOnlySet<string>? knownVersions = null)
     {
         if (deployed is null)
         {
@@ -78,7 +87,23 @@ public static class UpgradeRules
             return $"Already on version {toVersion}.";
         }
 
-        if (!isRollback && !PackageCompatibility.IsCompatible(deployed, coreVersion))
+        if (isRollback)
+        {
+            // Rollback restores a recorded version — it must be one the tenant actually ran.
+            if (knownVersions is null || !knownVersions.Contains(toVersion))
+            {
+                return $"Version {toVersion} was never deployed for this tenant.";
+            }
+
+            return null;
+        }
+
+        if (!string.Equals(deployed.Version, toVersion, StringComparison.OrdinalIgnoreCase))
+        {
+            return $"Only the deployed version {deployed.Version} is upgradeable.";
+        }
+
+        if (!PackageCompatibility.IsCompatible(deployed, coreVersion))
         {
             return $"Package requires core {deployed.CoreMinVersion}–{deployed.CoreMaxVersion}; current core is {coreVersion}.";
         }
@@ -138,7 +163,10 @@ public sealed class PackageUpgradeService : IPackageUpgrade
             try
             {
                 var install = await PackageRegistry.ReadInstallAsync(connection, siteKey, packageId, cancellationToken).ConfigureAwait(false);
-                var invalid = UpgradeRules.Validate(deployed, install, toVersion, PackageCatalog.CoreVersion, isRollback);
+                var knownVersions = isRollback
+                    ? await ReadKnownVersionsAsync(connection, siteKey, packageId, cancellationToken).ConfigureAwait(false)
+                    : null;
+                var invalid = UpgradeRules.Validate(deployed, install, toVersion, PackageCatalog.CoreVersion, isRollback, knownVersions);
                 if (invalid is not null)
                 {
                     return ErpSimpleWriteResult.Fail("invalid", invalid);
@@ -152,7 +180,10 @@ public sealed class PackageUpgradeService : IPackageUpgrade
                 await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
                 await ErpDb.ExecuteAsync(
                     connection, transaction,
-                    ErpDb.Positional("UPDATE `epc_tenant_package_installs` SET `installed_version`=?, `migration_status`='applied' WHERE `site_key`=? AND `package_id`=?"),
+                    // installed_version only: migration_status stays whatever it is until a real
+                    // package migration runner executes — marking 'applied' here would lie about
+                    // unrun data migrations.
+                    ErpDb.Positional("UPDATE `epc_tenant_package_installs` SET `installed_version`=? WHERE `site_key`=? AND `package_id`=?"),
                     cancellationToken,
                     toVersion, siteKey, packageId).ConfigureAwait(false);
                 await ErpDb.ExecuteAsync(
@@ -160,7 +191,7 @@ public sealed class PackageUpgradeService : IPackageUpgrade
                     ErpDb.Positional("INSERT INTO `epc_package_migrations` (`scope`,`site_key`,`package_id`,`migration_id`,`checksum`,`status`,`applied_at`,`detail`) VALUES ('tenant',?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `status`=VALUES(`status`),`applied_at`=VALUES(`applied_at`),`checksum`=VALUES(`checksum`)"),
                     cancellationToken,
                     siteKey, packageId, migrationId, checksum, "applied", now,
-                    isRollback ? "compensating rollback" : "version rollforward").ConfigureAwait(false);
+                    isRollback ? "compensating rollback (recorded version restore)" : "version rollforward").ConfigureAwait(false);
                 await BumpRevisionAsync(connection, transaction, siteKey, now, cancellationToken).ConfigureAwait(false);
                 await WriteHistoryAsync(connection, transaction, siteKey, packageId,
                     isRollback ? "rollback" : "upgrade", fromVersion, toVersion, actor, now, cancellationToken).ConfigureAwait(false);
@@ -182,6 +213,24 @@ public sealed class PackageUpgradeService : IPackageUpgrade
             _log.LogWarning(ex, "package {Action} failed {Package} {Site}", isRollback ? "rollback" : "upgrade", packageId, siteKey);
             return ErpSimpleWriteResult.Fail("db", "Package tables missing or write failed — inspect epc_package_migrations for the stopping point, then re-run (idempotent).");
         }
+    }
+
+    /// <summary>Versions this tenant has recorded in package history (install/upgrade/rollback targets) — the only valid rollback destinations.</summary>
+    private static async Task<IReadOnlySet<string>> ReadKnownVersionsAsync(DbConnection connection, string siteKey, string packageId, CancellationToken cancellationToken)
+    {
+        var versions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "SELECT DISTINCT `to_version` FROM `epc_package_history` WHERE `site_key` = ? AND `package_id` = ? AND `to_version` IS NOT NULL";
+        var p1 = command.CreateParameter(); p1.Value = siteKey; command.Parameters.Add(p1);
+        var p2 = command.CreateParameter(); p2.Value = packageId; command.Parameters.Add(p2);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            versions.Add(reader.GetString(0));
+        }
+
+        return versions;
     }
 
     private static async Task BumpRevisionAsync(DbConnection connection, System.Data.Common.DbTransaction transaction, string siteKey, long now, CancellationToken cancellationToken)
