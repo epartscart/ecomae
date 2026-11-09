@@ -107,6 +107,15 @@ public sealed class LaximoOemCatalogService : ILaximoCatalogService
                 "Laximo service did not return a response.");
         }
 
+        // SOAP Fault (e.g. E_ACCESSDENIED when the shared subscription is
+        // disabled) — surface the provider's own message, not a generic error.
+        var fault = ExtractFault(xml);
+        if (fault is not null)
+        {
+            return LaximoCatalogResult.Error(
+                StatusCodes.Status503ServiceUnavailable, "provider", fault);
+        }
+
         var result = XmlToResult(request, xml);
         await WriteCacheAsync(cacheKey, request.Action, xml, cancellationToken).ConfigureAwait(false);
         return result;
@@ -155,13 +164,38 @@ public sealed class LaximoOemCatalogService : ILaximoCatalogService
             request.Headers.TryAddWithoutValidation("SOAPAction", "\"\"");
             using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
             var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            return response.IsSuccessStatusCode && body.Length > 0 ? body : null;
+            // SOAP faults arrive as HTTP 500 with a valid Fault body — keep it so
+            // the provider's message reaches the caller; only transport-level or
+            // empty responses count as unreachable.
+            return body.Length > 0 ? body : null;
         }
         catch (HttpRequestException)
         {
             return null;
         }
         catch (TaskCanceledException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Extracts a SOAP faultstring when the provider rejected the call.</summary>
+    public static string? ExtractFault(string xml)
+    {
+        if (string.IsNullOrWhiteSpace(xml) || !xml.Contains("Fault", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        try
+        {
+            var doc = XDocument.Parse(xml);
+            var fault = doc.Descendants()
+                .FirstOrDefault(e => e.Name.LocalName.Equals("faultstring", StringComparison.OrdinalIgnoreCase));
+            var text = fault?.Value?.Trim();
+            return string.IsNullOrWhiteSpace(text) ? null : text;
+        }
+        catch (System.Xml.XmlException)
         {
             return null;
         }

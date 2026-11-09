@@ -93,6 +93,18 @@ public sealed class LaximoOemCatalogServiceTests
     }
 
     [Fact]
+    public void ExtractFault_ReturnsProviderMessage()
+    {
+        const string faultXml = """
+            <?xml version='1.0' encoding='UTF-8'?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Body><soapenv:Fault><faultcode>soapenv:Server</faultcode><faultstring>E_ACCESSDENIED:Cannot find active user</faultstring></soapenv:Fault></soapenv:Body></soapenv:Envelope>
+            """;
+
+        Assert.Equal("E_ACCESSDENIED:Cannot find active user", LaximoOemCatalogService.ExtractFault(faultXml));
+        Assert.Null(LaximoOemCatalogService.ExtractFault("<Response><row a=\"1\"/></Response>"));
+        Assert.Null(LaximoOemCatalogService.ExtractFault("not xml at all"));
+    }
+
+    [Fact]
     public void XmlToResult_InvalidXml_ReturnsParseError()
     {
         var result = LaximoOemCatalogService.XmlToResult(new LaximoCatalogRequest("units"), "<unclosed");
