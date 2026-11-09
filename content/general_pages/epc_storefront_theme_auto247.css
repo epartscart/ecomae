@@ -579,3 +579,14 @@ body[class*="epc-storefront--auto247"] .epart-front-section-link.epart-front-sec
     color: #fff !important;
     text-decoration: none !important;
 }
+
+/* auto247: header search tabs — inactive labels were near-invisible white-on-blue. */
+body[class*="epc-storefront--auto247"] .epc-header-search__tab:not(.active) {
+    color: #1e3a5f !important;
+    background: rgba(255, 255, 255, .92);
+    border-radius: 8px;
+    padding: 6px 12px;
+}
+body[class*="epc-storefront--auto247"] .epc-header-search__tab:not(.active):hover {
+    background: #fff;
+}
