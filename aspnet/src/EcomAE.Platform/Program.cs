@@ -920,6 +920,10 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpNlReportingWriteService, EcomAE
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpConfigSandboxWriteService, EcomAE.Platform.Cp.CpConfigSandboxWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMarketplaceAppsWriteService, EcomAE.Platform.Cp.CpMarketplaceAppsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpDesignTokensWriteService, EcomAE.Platform.Cp.CpDesignTokensWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Packages.PackageResolver>();
+builder.Services.AddScoped<EcomAE.Platform.Packages.IPackageResolver>(sp => sp.GetRequiredService<EcomAE.Platform.Packages.PackageResolver>());
+builder.Services.AddScoped<EcomAE.Platform.Packages.IPackageGate>(sp => sp.GetRequiredService<EcomAE.Platform.Packages.PackageResolver>());
+builder.Services.AddScoped<EcomAE.Platform.Packages.IPackageRegistry, EcomAE.Platform.Packages.PackageRegistry>();
 builder.Services.AddScoped<EcomAE.Platform.Presentation.ITenantPresentationProvider, EcomAE.Platform.Presentation.TenantPresentationProvider>();
 builder.Services.AddScoped<EcomAE.Platform.Presentation.IStorefrontThemeTokens, EcomAE.Platform.Presentation.StorefrontThemeTokens>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSmsWhatsappWriteService, EcomAE.Platform.Cp.CpSmsWhatsappWriteService>();

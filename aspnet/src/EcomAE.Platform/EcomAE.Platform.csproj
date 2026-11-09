@@ -5,6 +5,9 @@
     <AssemblyName>EcomAE.Platform</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="EcomAE.Platform.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="ExcelDataReader" Version="3.7.0" />
     <PackageReference Include="FluentFTP" Version="54.2.1" />
