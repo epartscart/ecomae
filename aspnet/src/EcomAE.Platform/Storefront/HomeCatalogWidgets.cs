@@ -198,6 +198,7 @@ public static class HomeCatalogWidgets
         endpoints.MapMethods(ProductFamilyPath, ["GET", "POST"], ProductFamilyAsync);
         endpoints.MapMethods(UmapiProxyPath, ["GET", "POST"], UmapiProxyAsync);
         UmapiImageProxy.Map(endpoints);
+        StorefrontPartsApiProduct.Map(endpoints);
     }
 
     public static string UnavailableJson()
