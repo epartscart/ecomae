@@ -138,6 +138,12 @@ public static class UmapiImageProxy
             return Results.Text("Bad request", "text/plain; charset=utf-8", Encoding.UTF8, StatusCodes.Status400BadRequest);
         }
 
+        var version = context.Request.Query["v"];
+        if (version.Count > 0 && version[^1].Length > 0)
+        {
+            url += "?v=" + Uri.EscapeDataString(version[^1]);
+        }
+
         var cacheKey = System.Convert.ToHexString(
             System.Security.Cryptography.SHA1.HashData(Encoding.UTF8.GetBytes(url))).ToLowerInvariant();
         try
