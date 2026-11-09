@@ -921,6 +921,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpConfigSandboxWriteService, Ecom
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMarketplaceAppsWriteService, EcomAE.Platform.Cp.CpMarketplaceAppsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpDesignTokensWriteService, EcomAE.Platform.Cp.CpDesignTokensWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Presentation.ITenantPresentationProvider, EcomAE.Platform.Presentation.TenantPresentationProvider>();
+builder.Services.AddScoped<EcomAE.Platform.Presentation.IStorefrontThemeTokens, EcomAE.Platform.Presentation.StorefrontThemeTokens>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSmsWhatsappWriteService, EcomAE.Platform.Cp.CpSmsWhatsappWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPluginsWriteService, EcomAE.Platform.Cp.CpPluginsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTemplatesWriteService, EcomAE.Platform.Cp.CpTemplatesWriteService>();

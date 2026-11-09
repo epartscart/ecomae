@@ -28,10 +28,10 @@
                     <div class="epc-home-pro__stat"><strong>@DisplayCurrency</strong><span>clear pricing</span></div>
                 </div>
             </div>
-            @if (IsAuto247)
+            @if (IsAuto247 && _heroStyle is not "engine")
             {
                 @* Auto247: circular badge with a driving car — replaces the piston/engine loop. *@
-                <div class="epc-home-pro__visual epc-auto247-hero" aria-label="Animated car driving on a road">
+                <div class="epc-home-pro__visual epc-auto247-hero@(_heroStyle is "static" ? " epc-auto247-hero--static" : "")" aria-label="Animated car driving on a road">
                     <div class="epc-auto247-badge" role="img" aria-label="Animated car driving on a road">
                         <span class="epc-auto247-badge__ring"></span>
                         <div class="epc-auto247-car">
@@ -83,6 +83,27 @@
 
 @code {
     [Inject] private IHttpContextAccessor Http { get; set; } = default!;
+    [Inject] private EcomAE.Platform.Presentation.IStorefrontThemeTokens? ThemeTokens { get; set; }
+
+    private string _heroStyle = "car";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // CP design-tokens sf_hero_style: car (default for auto247) | engine | static.
+        if (ThemeTokens is not null && Http.HttpContext is not null)
+        {
+            try
+            {
+                var tokens = await ThemeTokens.GetAsync(Http.HttpContext);
+                if (tokens.TryGetValue("sf_hero_style", out var style)
+                    && style is "car" or "engine" or "static")
+                {
+                    _heroStyle = style;
+                }
+            }
+            catch { }
+        }
+    }
 
     private bool IsAuto247 => EcomAE.Platform.Presentation.Auto247Theme.IsAuto247(Http.HttpContext);
     private string CountryCode => EcomAE.Platform.Presentation.Auto247Theme.CountryClass(Http.HttpContext);

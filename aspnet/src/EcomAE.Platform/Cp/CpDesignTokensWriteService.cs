@@ -46,6 +46,16 @@ public sealed class CpDesignTokensWriteService : ICpDesignTokensWriteService
         "ui_nav_label_mode",
         "ui_show_help",
         "ui_show_status_legend",
+        // Storefront theme overrides (sanitized; emitted as CSS vars by PhpSurfaceHead).
+        "sf_primary",
+        "sf_primary_dark",
+        "sf_primary_deep",
+        "sf_primary_light",
+        "sf_sky",
+        "sf_soft",
+        "sf_line",
+        "sf_page_bg",
+        "sf_hero_style",
     ];
 
     private readonly IErpWriteConnectionFactory _connections;
@@ -124,6 +134,18 @@ public sealed class CpDesignTokensWriteService : ICpDesignTokensWriteService
         else if (settingKey == "ui_nav_label_mode")
         {
             value = value is "full" or "short" or "adaptive" ? value : "adaptive";
+        }
+        else if (EcomAE.Platform.Presentation.StorefrontThemeTokens.ColorKeys.Contains(settingKey, StringComparer.Ordinal))
+        {
+            // Hex color or empty (clears the override back to the theme-file default).
+            if (value.Length > 0 && !EcomAE.Platform.Presentation.StorefrontThemeTokens.HexColor.IsMatch(value))
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Color must be a hex value like #0ea5e9 (or empty to clear).");
+            }
+        }
+        else if (settingKey == "sf_hero_style")
+        {
+            value = value is "car" or "engine" or "static" ? value : "car";
         }
 
         try

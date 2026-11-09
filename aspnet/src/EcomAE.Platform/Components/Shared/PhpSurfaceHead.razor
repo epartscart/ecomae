@@ -117,6 +117,13 @@
 {
     <link rel="stylesheet" href="@href" />
 }
+@* Storefront theme overrides (epc_settings sf_* tokens, CP design-tokens page):
+   emitted in the body stream so they win over the tenant theme stylesheet even when
+   HeadContent is dropped. Sanitized color vars only — no free-form CSS. *@
+@if (_themeStyle.Length > 0)
+{
+    @((MarkupString)_themeStyle)
+}
 @if (IncludeBosLoginScripts)
 {
     @foreach (var src in LegacyPresentationAssets.BosLoginScripts)
@@ -179,6 +186,7 @@
 
     [Inject] private IHttpContextAccessor Http { get; set; } = default!;
     [Inject] private EcomAE.Platform.Storefront.IStorefrontCountryService? Countries { get; set; }
+    [Inject] private IStorefrontThemeTokens? ThemeTokens { get; set; }
 
     private string _industryCode = "auto_parts";
     private string _storefrontPackage = "automotive_spareparts_pro";
@@ -189,11 +197,13 @@
     private string _seoKeywords = StorefrontPublicSeo.DefaultKeywords;
     private IReadOnlyList<(string Hreflang, string Href)> _hreflang = [];
     private EcomAE.Platform.Storefront.StorefrontCountry? _country;
+    private string _themeStyle = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         _request = ctx?.Request;
+        await LoadThemeTokensAsync();
         if (_request is not null && IncludePublicSeo)
         {
             var host = _request.Host.Host;
@@ -255,6 +265,30 @@
         var attrs = StorefrontIndustryHostResolver.Resolve(ctx?.Request.Host.Host);
         _industryCode = attrs.IndustryCode;
         _storefrontPackage = attrs.StorefrontPackage;
+    }
+
+    /// <summary>CP design-tokens sf_* overrides emitted in the body stream (all surfaces render head twice).</summary>
+    private async Task LoadThemeTokensAsync()
+    {
+        if (!Surface.Equals("storefront", StringComparison.OrdinalIgnoreCase)
+            || ThemeTokens is null
+            || Http.HttpContext is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var tokens = await ThemeTokens.GetAsync(Http.HttpContext);
+            var suffix = Auto247Theme.IsAuto247(Http.HttpContext)
+                ? Auto247Theme.CountryClass(Http.HttpContext)
+                : "default";
+            _themeStyle = StorefrontThemeTokens.StyleBlock(tokens, suffix);
+        }
+        catch
+        {
+            _themeStyle = "";
+        }
     }
 
     private bool IsBosSurface => Surface.Equals("bos", StringComparison.OrdinalIgnoreCase);
