@@ -740,6 +740,9 @@ builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontPaymentWriteSer
 Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions
     .TryAddScoped<EcomAE.Platform.Storefront.ILaximoVinDecodeService, EcomAE.Platform.Storefront.UnavailableLaximoVinDecodeService>(builder.Services);
 builder.Services.AddScoped<EcomAE.Platform.Presentation.ICustomerSkinResolver, EcomAE.Platform.Presentation.CustomerSkinResolver>();
+builder.Services.AddScoped<EcomAE.Platform.Packages.IPackageEventBus, EcomAE.Platform.Packages.PackageEventBus>();
+builder.Services.AddScoped<EcomAE.Platform.Packages.PackageMenuService>();
+builder.Services.AddScoped<EcomAE.Platform.Packages.PackageJobGuard>();
 EcomAE.Platform.Packages.PackageBootstrap.RegisterPackages(builder.Services, builder.Configuration);
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontVinRequestWriteService, EcomAE.Platform.Storefront.StorefrontVinRequestWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontQuoteWriteService, EcomAE.Platform.Storefront.StorefrontQuoteWriteService>();
@@ -1450,6 +1453,9 @@ app.UseMiddleware<StorefrontStubToPhpRedirectMiddleware>();
 // Super-host /erp chrome links after a client-erp login stay under /cp/client-erp/{key}.
 app.UseMiddleware<ClientErpCookieRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
+// Package route gating: package-owned prefixes return 403 package_disabled unless the
+// package is enabled for the resolving tenant (fail closed).
+app.UseMiddleware<EcomAE.Platform.Packages.PackageGateMiddleware>();
 // Country storefronts: a country host (ae./qa./sa.… domain) seeds epc_country so the
 // display currency follows the country when the visitor has not picked one.
 app.Use(async (context, next) =>
