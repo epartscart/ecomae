@@ -444,7 +444,7 @@
             var ps = item.POWER_PS ? Math.round(item.POWER_PS) : 0;
             var power = kw ? kw + 'Kw' + (ps ? ' / ' + ps + 'Hp' : '') : '';
             var drive = item.DRIVE_TYPE || '';
-            var search = [getModificationTitle(item), litres, years, engine, power, drive].join(' ');
+            var search = [(state.model && state.model.MODEL_SERIES) || '', getModificationTitle(item), litres, years, engine, power, drive].join(' ');
             return '<tr class="epc-umapi-mod-row" data-index="' + index + '" data-search="' + esc(search) + '">' +
                 '<td>' + esc(litres) + '</td><td><strong>' + esc(getModificationTitle(item)) + '</strong></td><td>' + esc(years) + '</td>' +
                 '<td>' + esc(engine) + '</td><td>' + esc(power) + '</td><td>' + esc(drive) + '</td></tr>';
@@ -599,6 +599,7 @@
     }
 
     function loadModels(item) {
+        if (filterInput) { filterInput.value = ''; }
         state.manufacturer = item;
         state.model = null;
         state.modification = null;
@@ -608,6 +609,7 @@
     }
 
     function loadModifications(item) {
+        if (filterInput) { filterInput.value = ''; }
         state.model = item;
         state.modification = null;
         loading('Loading modifications...');
@@ -615,6 +617,7 @@
     }
 
     function loadCategories(item) {
+        if (filterInput) { filterInput.value = ''; }
         state.modification = item;
         loading('Loading categories...');
         api('categories', { ID: getModificationId(item) }).then(function (data) {
@@ -624,6 +627,7 @@
     }
 
     function loadProducts(categoryId) {
+        if (filterInput) { filterInput.value = ''; }
         if (!state.modification) {
             return;
         }
@@ -634,6 +638,7 @@
     }
 
     function loadArticles(productId) {
+        if (filterInput) { filterInput.value = ''; }
         if (!state.modification) {
             return;
         }
