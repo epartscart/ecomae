@@ -137,7 +137,9 @@ def fetch(method: str, key: str, params: dict, retries: int = 4, throttle_retrie
     for k, v in params.items():
         qs += "&" + urllib.parse.quote(k) + "=" + urllib.parse.quote(str(v))
     throttled = 0
-    for attempt in range(retries):
+    attempt = 0
+    while attempt < retries:
+        attempt += 1
         try:
             req = urllib.request.Request(API + "?" + qs, headers={"User-Agent": "ecomae-harvest/1.0"})
             with urllib.request.urlopen(req, timeout=30) as resp:
@@ -147,23 +149,29 @@ def fetch(method: str, key: str, params: dict, retries: int = 4, throttle_retrie
                 if throttled > throttle_retries:
                     return None
                 time.sleep(min(90 * throttled, 300))
-                attempt -= 1
+                attempt = 0
                 continue
             if '"error_code"' in body or '"code":9' in body or '"status":4' in body or '"status":5' in body:
                 return None
             return body
         except urllib.error.HTTPError as exc:
-            if exc.code == 401:
-                # Per-IP quota — same 5000 error surfaced as HTTP 401.
+            body = ""
+            try:
+                body = exc.read().decode("utf-8", "replace")
+            except Exception:
+                pass
+            if exc.code == 401 and ('"error_code":5000' in body or '"error_code": 5000' in body):
+                # Per-IP quota — wait out the window and keep retrying.
                 throttled += 1
                 if throttled > throttle_retries:
                     return None
                 time.sleep(min(90 * throttled, 300))
-                attempt -= 1
+                attempt = 0
                 continue
-            time.sleep(1.5 * (attempt + 1))
+            # Other 401s (bad/expired key) and statuses: normal retry budget.
+            time.sleep(1.5 * attempt)
         except Exception:
-            time.sleep(1.5 * (attempt + 1))
+            time.sleep(1.5 * attempt)
     return None
 
 
