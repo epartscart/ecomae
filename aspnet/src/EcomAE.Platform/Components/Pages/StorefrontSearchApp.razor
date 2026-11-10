@@ -795,9 +795,9 @@
       b.onclick = function () { window.epcSetOfferView(b.getAttribute('data-view')); };
     });
     var sortSel = document.getElementById('epcOfferSort');
-    if (sortSel) sortSel.onchange = window.epcSortOffers;
+    if (sortSel) sortSel.onchange = function () { window.epcSortOffers(); };
   }
-  window.epcSetOfferView('grid');
+  setTimeout(function () { window.epcSetOfferView('grid'); }, 0);
   var table = document.getElementById('all_table_products');
   var pricesVisible = !table || table.getAttribute('data-prices-visible') === '1';
   var showPurchase = table && table.getAttribute('data-show-purchase') === '1';
