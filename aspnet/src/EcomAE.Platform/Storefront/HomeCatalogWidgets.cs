@@ -1137,6 +1137,7 @@ public static class HomeCatalogWidgets
         if (action == "categories")
         {
             PartsApiTreeRows(doc.RootElement, mapped);
+            PartsApiTreeNest(mapped);
         }
 
         foreach (var r in items)
@@ -1245,7 +1246,8 @@ public static class HomeCatalogWidgets
         }
 
         var id = PartsApiText(node, "id", "strId", "STR_ID", "nodeId", "catId");
-        var name = PartsApiText(node, "name", "title", "DES", "text", "label");
+        var name = PartsApiText(node, "name", "STR_NODE_NAME", "title", "DES", "text", "label", "STR_PATH");
+        var parentId = PartsApiText(node, "STR_ID_PARENT", "strIdParent", "parentId", "parent", "PARENT_ID");
         var children = new List<Dictionary<string, object?>>();
         foreach (var prop in node.EnumerateObject())
         {
@@ -1282,6 +1284,7 @@ public static class HomeCatalogWidgets
             ["CATEGORY_NAME"] = name ?? id,
             ["name"] = name ?? id,
             ["DES"] = name ?? id,
+            ["STR_ID_PARENT"] = parentId ?? "",
             ["source"] = "partsapi",
         };
         if (children.Count > 0)
@@ -1330,6 +1333,46 @@ public static class HomeCatalogWidgets
         {
             mapped.Add(entry);
         }
+    }
+
+    /// <summary>
+    /// partsapi getSearchTree returns a flat list; each row carries STR_ID_PARENT.
+    /// Rebuilds the nested tree so the widget renders categories under their groups.
+    /// </summary>
+    private static void PartsApiTreeNest(List<Dictionary<string, object?>> mapped)
+    {
+        var byId = new Dictionary<string, Dictionary<string, object?>>(StringComparer.Ordinal);
+        foreach (var entry in mapped)
+        {
+            if (entry.TryGetValue("STR_ID", out var idObj) && idObj is string id && id.Length > 0)
+            {
+                byId.TryAdd(id, entry);
+            }
+        }
+
+        var roots = new List<Dictionary<string, object?>>(mapped.Count);
+        foreach (var entry in mapped)
+        {
+            var parentId = entry.TryGetValue("STR_ID_PARENT", out var p) ? p as string : null;
+            if (parentId is { Length: > 0 } && byId.TryGetValue(parentId, out var parent) && !ReferenceEquals(parent, entry))
+            {
+                if (!parent.TryGetValue("CHILD", out var childObj) || childObj is not List<Dictionary<string, object?>> children)
+                {
+                    children = new List<Dictionary<string, object?>>();
+                    parent["CHILD"] = children;
+                    parent["children"] = children;
+                }
+
+                children.Add(entry);
+            }
+            else
+            {
+                roots.Add(entry);
+            }
+        }
+
+        mapped.Clear();
+        mapped.AddRange(roots);
     }
 
     private static string PartsApiYear(string? raw)

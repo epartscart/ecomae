@@ -125,7 +125,7 @@ public static class PartsApiVinDecode
                 var mk = Field("make", "brand", "mark", "manufacturer", "maker", "makeName", "manuName", "manuShortName");
                 var md = Field("model", "modelName", "model_name", "carName", "modification", "vehicle");
                 var type = Field("typeName", "name", "car");
-                if (md.Length > 0 && type.Length > 0 && !md.Contains(type, StringComparison.OrdinalIgnoreCase))
+                if (md.Length > 0 && type.Length > 0 && !md.EndsWith(type, StringComparison.OrdinalIgnoreCase))
                 {
                     md = (md + " " + type).Trim();
                 }
