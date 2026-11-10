@@ -782,6 +782,11 @@
   var genuine = @JsonGenuine;
   if (!article || !brand) return;
   loadProductHero(brand, article);
+  var progress = document.getElementById('epcSfPollProgress');
+  var countEl = document.getElementById('epcSfPollCount');
+  var totalEl = document.getElementById('epcSfPollTotal');
+  var body = document.getElementById('epcSfOfferBody');
+  if (!body) return;
   var epcOfferView = 'grid';
   var epcOfferSort = 'price-asc';
   var viewsBar = document.getElementById('epcOfferViews');
@@ -792,12 +797,7 @@
     var sortSel = document.getElementById('epcOfferSort');
     if (sortSel) sortSel.onchange = window.epcSortOffers;
   }
-  window.epcSyncOfferCards();
-  var progress = document.getElementById('epcSfPollProgress');
-  var countEl = document.getElementById('epcSfPollCount');
-  var totalEl = document.getElementById('epcSfPollTotal');
-  var body = document.getElementById('epcSfOfferBody');
-  if (!body) return;
+  window.epcSetOfferView('grid');
   var table = document.getElementById('all_table_products');
   var pricesVisible = !table || table.getAttribute('data-prices-visible') === '1';
   var showPurchase = table && table.getAttribute('data-show-purchase') === '1';
@@ -1314,7 +1314,7 @@
         var p = productFromTr(tr);
         var actions = tr.querySelector('.td_add_to_cart');
         var kind = tr.classList.contains('epc-part-type-row--genuine') ? 'OE' : 'AM';
-        return '<div class="epc-offer-card">' +
+        return '<div class="epc-offer-card" data-offer-key="' + esc(tr.getAttribute('data-offer-key') || '') + '">' +
           '<div class="epc-offer-card__photo">' + cardPhotoHtml(tr) + '</div>' +
           '<div class="epc-offer-card__title"><a href="' + partHref(p.manufacturer, p.articleShow || p.article) + '">' +
             esc(p.manufacturer) + ' ' + esc(p.articleShow || p.article) + '</a><div class="epc-offer-card__name">' + esc(p.name || '') + '</div></div>' +
@@ -1331,7 +1331,7 @@
         var actions = tr.querySelector('.td_add_to_cart');
         var info = tr.querySelector('.td_info');
         var wh = p.storage || '';
-        return '<div class="epc-offer-line">' +
+        return '<div class="epc-offer-line" data-offer-key="' + esc(tr.getAttribute('data-offer-key') || '') + '">' +
           '<div class="epc-offer-line__photo">' + cardPhotoHtml(tr) + '</div>' +
           '<div class="epc-offer-line__mid"><a href="' + partHref(p.manufacturer, p.articleShow || p.article) + '"><b>' +
             esc(p.manufacturer) + '</b> ' + esc(p.articleShow || p.article) + '</a>' +
@@ -1345,12 +1345,35 @@
       }).join('');
     }
     if (typeof window.epcBindSearchRowPhotoLoaders === 'function') window.epcBindSearchRowPhotoLoaders(cards);
-    if (typeof window.epcBindOfferActions === 'function') window.epcBindOfferActions(cards);
   }
+  // Card controls forward to the matching offer row — the row owns the cart/quote/qty handlers.
+  document.getElementById('epc-offer-cards').addEventListener('click', function (e) {
+    var card = e.target && e.target.closest ? e.target.closest('[data-offer-key]') : null;
+    if (!card) return;
+    var tr = body.querySelector('tr[data-offer-key="' + String(card.getAttribute('data-offer-key')).replace(/"/g, '\\"') + '"]');
+    if (!tr) return;
+    var btn = e.target.closest('button, a');
+    if (!btn) return;
+    var cls = ['epc-btn-cart', 'epc-btn-quote', 'count_need_minus', 'count_need_plus'].find(function (c) {
+      return btn.classList.contains(c) || (btn.closest && btn.closest('.' + c));
+    });
+    if (!cls) return;
+    e.preventDefault();
+    var cardQty = card.querySelector('.epc-qty-input');
+    var rowQty = tr.querySelector('.epc-qty-input');
+    if (cardQty && rowQty) rowQty.value = cardQty.value;
+    var src = tr.querySelector('.' + cls);
+    if (src) src.click();
+    if (cls.indexOf('count_need_') === 0 && cardQty && rowQty) cardQty.value = rowQty.value;
+  });
   window.epcSyncOfferCards = function () {
     var views = document.getElementById('epcOfferViews');
+    var area = document.getElementById('products_area');
+    var cards = document.getElementById('epc-offer-cards');
     var has = offerGroups().length > 0;
     if (views) views.hidden = !has;
+    if (area && has) area.hidden = epcOfferView !== 'table';
+    if (cards && has) cards.hidden = epcOfferView === 'table';
     if (has && epcOfferView !== 'table') renderOfferCards();
     else if (has) { var c = document.getElementById('epcOfferCount'); if (c) c.textContent = 'Products: ' + offerGroups().length; }
   };

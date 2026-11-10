@@ -426,7 +426,8 @@ public static class StorefrontPartsApiProduct
         List<string[]> vehicles, List<string[]> crosses,
         List<WarehouseRow> stock, StorefrontPriceAccessResult access)
     {
-        var inStock = stock.Exists(s => s.Exist > 0);
+        var wantedBrand = NormalizeBrand(brand);
+        var inStock = stock.Exists(s => s.Exist > 0 && NormalizeBrand(s.Manufacturer) == wantedBrand);
         var oe = crosses.Take(5).Select(c => c[1]).Where(x => x.Length > 0).ToList();
         var sb = new StringBuilder(24000);
         sb.Append("<div class=\"epc-prod\"><style>");
