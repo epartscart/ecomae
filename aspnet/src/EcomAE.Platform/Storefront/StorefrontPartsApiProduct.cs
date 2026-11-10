@@ -21,6 +21,7 @@ public static class StorefrontPartsApiProduct
     private static async Task<IResult> HandleAsync(
         HttpContext context,
         IPartsApiService partsApi,
+        IHttpClientFactory httpClientFactory,
         CancellationToken cancellationToken)
     {
         var brand = context.Request.Query["brand"].ToString().Trim();
@@ -81,8 +82,75 @@ public static class StorefrontPartsApiProduct
             catch (Exception) { results[key] = new PartsApiResult(false, 502, ""); }
         }
 
+        // UMAPI is the paid primary: its /Article/{id} payload carries the part
+        // name, webp photo and the full criteria table in one call — prefer it
+        // and let partsapi fill only what umapi lacks.
+        JsonElement umapiArticle = default;
+        if (artId.Length > 0)
+        {
+            try
+            {
+                var region = context.Request.Query["region"].ToString().Trim();
+                if (region.Length == 0)
+                {
+                    region = "WWW";
+                }
+
+                var langName = lang == "16" ? "en" : lang;
+                var http = httpClientFactory.CreateClient();
+                http.Timeout = TimeSpan.FromSeconds(12);
+                using var request = new HttpRequestMessage(HttpMethod.Get,
+                    "https://api.umapi.ru/v2/autocatalog/" + langName + "-" + region.ToUpperInvariant() + "/Article/" + Uri.EscapeDataString(artId));
+                request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                request.Headers.TryAddWithoutValidation("X-App-Key", await HomeCatalogWidgets.UmapiAppKeyAsync(context, null, cancellationToken).ConfigureAwait(false));
+                using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                if (response.IsSuccessStatusCode && body.StartsWith('{'))
+                {
+                    using var doc = JsonDocument.Parse(body);
+                    umapiArticle = doc.RootElement.Clone();
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        if (umapiArticle.ValueKind == JsonValueKind.Object)
+        {
+            var umapiName = Text(umapiArticle, "COMPLETE_DES", "DES", "ART_PRODUCT_NAME") ?? "";
+            if (umapiName.Length > 0)
+            {
+                artName = umapiName;
+            }
+        }
+
         // Assemble the card.
         var images = new List<string>();
+        if (umapiArticle.ValueKind == JsonValueKind.Object)
+        {
+            if (umapiArticle.TryGetProperty("MEDIAS", out var medias) && medias.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var m in medias.EnumerateArray())
+                {
+                    var file = Text(m, "FILE_NAME", "MEDIA_FILE", "file") ?? "";
+                    if (file.Length > 0)
+                    {
+                        images.Add("https://image.umapi.ru/ARTICLES/" + file);
+                    }
+                }
+            }
+
+            if (images.Count == 0)
+            {
+                var file = Text(umapiArticle, "MEDIA_FILE") ?? "";
+                if (file.Length > 0)
+                {
+                    images.Add("https://image.umapi.ru/ARTICLES/" + file);
+                }
+            }
+        }
+
         foreach (var row in Rows(results.GetValueOrDefault("media")))
         {
             var u = Text(row, "url", "URL", "IMAGE", "image", "path", "FILE_NAME") ?? "";
@@ -100,11 +168,31 @@ public static class StorefrontPartsApiProduct
         var specs = new List<(string Name, string Value)>();
         foreach (var row in Rows(results.GetValueOrDefault("criteria")))
         {
-            var n = Text(row, "CRITERIA_NAME", "CRITERIA", "criteria", "name", "CRITERIA_DESCRIPTION", "title") ?? "";
-            var v = Text(row, "CRITERIA_VALUE", "criteriaValue", "value", "CRITERIA_DESCRIPTION_VALUE", "description") ?? "";
+            var n = Text(row, "CRITERIA_NAME", "CRITERIA", "criteria", "name", "CRI_DES", "CRI_SHORT_DES", "CRITERIA_DESCRIPTION", "title") ?? "";
+            var v = Text(row, "CRITERIA_VALUE", "criteriaValue", "value", "VALUE", "DES", "CRITERIA_DESCRIPTION_VALUE", "description") ?? "";
             if (n.Length > 0)
             {
                 specs.Add((n, v));
+            }
+        }
+
+        if (specs.Count == 0 && umapiArticle.ValueKind == JsonValueKind.Object
+            && umapiArticle.TryGetProperty("CRITERIAS", out var criterias) && criterias.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var c in criterias.EnumerateArray())
+            {
+                var n = Text(c, "CRI_SHORT_DES", "CRI_DES", "name") ?? "";
+                var v = Text(c, "DES", "VALUE", "value") ?? "";
+                var unit = Text(c, "CRI_UNIT_DES") ?? "";
+                if (v.Length > 0 && unit.Length > 0 && !v.EndsWith(unit, StringComparison.OrdinalIgnoreCase))
+                {
+                    v += " " + unit;
+                }
+
+                if (n.Length > 0)
+                {
+                    specs.Add((n, v));
+                }
             }
         }
 
