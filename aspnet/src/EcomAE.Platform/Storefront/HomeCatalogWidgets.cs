@@ -763,7 +763,7 @@ public static class HomeCatalogWidgets
                 or "brands" or "analogs" or "article" or "article_links" or "engines" or "engine")
             {
                 var live = await TryLiveUmapiAsync(httpClientFactory, action, section, context, cancellationToken).ConfigureAwait(false);
-                var liveEmpty = action is "manufacturers" or "models" or "modifications"
+                var liveEmpty = action is "manufacturers" or "models" or "modifications" or "categories" or "products"
                     && live is not null && live.Value.Status is >= 200 and < 300
                     && IsEmptyVehicleCatalogBody(live.Value.Body);
                 if (live is not null && live.Value.Status is >= 200 and < 300 && !liveEmpty)
@@ -810,7 +810,7 @@ public static class HomeCatalogWidgets
                     }
                 }
 
-                if (connections.IsConfigured && action is "manufacturers" or "models" or "modifications")
+                if (connections.IsConfigured && action is "manufacturers" or "models" or "modifications" or "categories" or "products")
                 {
                     try
                     {
@@ -994,6 +994,30 @@ public static class HomeCatalogWidgets
             method = "getModels";
             parms["makeId"] = mfa.ToString(CultureInfo.InvariantCulture);
         }
+        else if (action == "categories")
+        {
+            var car = UmapiQueryInt(context, "ID");
+            if (car <= 0)
+            {
+                return null;
+            }
+
+            method = "getSearchTree";
+            parms["carId"] = car.ToString(CultureInfo.InvariantCulture);
+        }
+        else if (action == "products")
+        {
+            var car = UmapiQueryInt(context, "ID");
+            var str = UmapiQueryInt(context, "CATEGORY_ID");
+            if (car <= 0 || str <= 0)
+            {
+                return null;
+            }
+
+            method = "getArticles";
+            parms["carId"] = car.ToString(CultureInfo.InvariantCulture);
+            parms["strId"] = str.ToString(CultureInfo.InvariantCulture);
+        }
         else
         {
             var ms = UmapiQueryInt(context, "MS_ID");
@@ -1033,8 +1057,18 @@ public static class HomeCatalogWidgets
         using var doc = JsonDocument.Parse(result.Json);
         var items = PartsApiRows(doc.RootElement);
         var mapped = new List<Dictionary<string, object?>>(items.Count);
+        if (action == "categories")
+        {
+            PartsApiTreeRows(doc.RootElement, "", mapped);
+        }
+
         foreach (var r in items)
         {
+            if (action == "categories")
+            {
+                break;
+            }
+
             if (action == "manufacturers")
             {
                 var id = PartsApiText(r, "makeId", "MFA_ID", "id");
@@ -1066,6 +1100,25 @@ public static class HomeCatalogWidgets
                     ["CI_TO"] = PartsApiYear(PartsApiText(r, "yearsTo")),
                 });
             }
+            else if (action == "products")
+            {
+                var id = PartsApiText(r, "ART_ID", "artId", "id");
+                var nr = PartsApiText(r, "ART_ARTICLE_NR", "ART_DISPLAY_NR", "ARTICLE_NR", "ART_NUM") ?? "";
+                if (string.IsNullOrEmpty(id) && nr.Length == 0)
+                {
+                    continue;
+                }
+
+                mapped.Add(new Dictionary<string, object?>
+                {
+                    ["ID"] = id ?? nr,
+                    ["ART_ID"] = id,
+                    ["ARTICLE_NR"] = nr,
+                    ["ART_PRODUCT_NAME"] = PartsApiText(r, "ART_PRODUCT_NAME", "ART_NAME", "name") ?? "",
+                    ["SUP_BRAND"] = PartsApiText(r, "ART_SUP_BRAND", "SUP_BRAND", "brand") ?? "",
+                    ["SUP_ID"] = PartsApiText(r, "ART_SUP_ID", "SUP_ID") ?? "",
+                });
+            }
             else
             {
                 var id = PartsApiText(r, "carId", "CAR_ID", "PC_ID", "CV_ID", "MTB_ID", "id");
@@ -1093,7 +1146,59 @@ public static class HomeCatalogWidgets
             return null;
         }
 
+        // Category widgets read {"data":{"root":[...]}}; the rest read {"data":[...]}.
+        if (action == "categories")
+        {
+            return JsonSerializer.Serialize(new Dictionary<string, object?>
+            {
+                ["data"] = new Dictionary<string, object?> { ["root"] = mapped },
+            });
+        }
+
         return JsonSerializer.Serialize(new Dictionary<string, object?> { ["data"] = mapped });
+    }
+
+    /// <summary>Flattens partsapi search-tree nodes (possibly nested) into umapi category rows.</summary>
+    private static void PartsApiTreeRows(JsonElement node, string parentId, List<Dictionary<string, object?>> mapped)
+    {
+        if (node.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var child in node.EnumerateArray())
+            {
+                PartsApiTreeRows(child, parentId, mapped);
+            }
+
+            return;
+        }
+
+        if (node.ValueKind != JsonValueKind.Object)
+        {
+            return;
+        }
+
+        var id = PartsApiText(node, "id", "strId", "STR_ID", "nodeId", "catId");
+        var name = PartsApiText(node, "name", "title", "DES", "text", "label");
+        if (!string.IsNullOrEmpty(id) || !string.IsNullOrEmpty(name))
+        {
+            mapped.Add(new Dictionary<string, object?>
+            {
+                ["STR_ID"] = id ?? name,
+                ["CATEGORY_ID"] = id ?? name,
+                ["CATEGORY_NAME"] = name ?? id,
+                ["name"] = name ?? id,
+                ["DES"] = name ?? id,
+                ["PARENT_ID"] = parentId,
+                ["source"] = "partsapi",
+            });
+        }
+
+        foreach (var prop in node.EnumerateObject())
+        {
+            if (prop.Value.ValueKind is JsonValueKind.Array or JsonValueKind.Object)
+            {
+                PartsApiTreeRows(prop.Value, id ?? parentId, mapped);
+            }
+        }
     }
 
     private static string PartsApiYear(string? raw)
