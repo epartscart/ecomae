@@ -71,6 +71,19 @@
 .epc-umapi-tree button { border: 0; background: transparent; color: #1e67b1; padding: 3px 0; text-align: left; }
 .epc-umapi-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
 .epc-umapi-products button { white-space: normal; text-align: left; }
+.epc-art-brand { background: #fdf0e4; color: #e07b39; font-weight: 700; letter-spacing: .04em; padding: 8px 14px; border-radius: 4px; margin: 14px 0 0; }
+.epc-art-card { display: flex; align-items: center; gap: 16px; border: 1px solid #e7edf5; border-radius: 6px; padding: 14px 16px; margin-top: 6px; background: #fff; }
+.epc-art-thumb { flex: 0 0 110px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
+.epc-art-img { max-width: 110px; max-height: 90px; object-fit: contain; }
+.epc-art-body { flex: 1 1 auto; min-width: 0; }
+.epc-art-title { font-size: 17px; font-weight: 700; color: #1e67b1; text-decoration: none; }
+.epc-art-title small { color: #6d7786; font-weight: 600; }
+.epc-art-name { color: #3d4a5c; margin: 2px 0 6px; }
+.epc-art-specs { font-size: 13px; color: #4d5a6c; line-height: 1.7; }
+.epc-art-specs span { margin-right: 14px; white-space: nowrap; }
+.epc-art-prices { flex: 0 0 auto; border: 1px solid #e07b39; color: #e07b39; border-radius: 4px; padding: 7px 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.epc-art-prices:hover { background: #e07b39; color: #fff; }
+.epc-cat-row.epc-cat-active { outline: 1px solid #e07b39; border-radius: 4px; }
 .epc-umapi-table { width: 100%; border-collapse: collapse; background: #fff; }
 .epc-umapi-table th, .epc-umapi-table td { border: 1px solid #e1e7ef; padding: 8px; vertical-align: top; }
 .epc-umapi-table th { background: #f5f7fa; }
@@ -576,7 +589,7 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
             var des = node.DES || 'Category';
             var toggle = children.length
                 ? '<button type="button" class="epc-cat-toggle" aria-expanded="false">+</button>'
-                : '<span class="epc-cat-toggle" aria-hidden="true"></span>';
+                : '<span class="epc-cat-toggle" aria-hidden="true">–</span>';
             return '<li class="epc-cat-node" data-search="' + esc(des) + '">' +
                 '<span class="epc-cat-row">' + toggle + catIcon(des, level) +
                 '<button type="button" data-category="' + esc(node.CATEGORY_ID) + '">' + esc(des) + '</button></span>' +
@@ -613,6 +626,15 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
             output.innerHTML = '<div class="epc-umapi-message">No product groups found for this category.</div>';
             return;
         }
+        // UMAPI repeats each product row once per brand — dedupe by product id.
+        var seen = {};
+        items = items.filter(function (item) {
+            var id = item.PT_ID || item.PT_IDS || item.ID;
+            var key = String(id) + '|' + String(item.PRODUCT || item.PT_DES || item.DES || '');
+            if (seen[key]) { return false; }
+            seen[key] = true;
+            return true;
+        });
         output.innerHTML = '<button type="button" class="btn btn-default" id="epc-umapi-back-categories">Back to categories</button><h3>Product groups</h3><div class="epc-umapi-products">' +
             items.map(function (item) {
                 var id = item.PT_ID || item.PT_IDS || item.ID;
@@ -632,10 +654,24 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
             output.innerHTML = '<div class="epc-umapi-message">No articles found.</div>';
             return;
         }
-        output.innerHTML = '<button type="button" class="btn btn-default" id="epc-umapi-back-categories">Back to categories</button><h3>Articles</h3>' +
-            '<div class="epc-umapi-summary">Last step: click Search to open the shop price result for the selected brand and part number.</div>' +
-            '<table class="epc-umapi-table"><thead><tr><th>Brand</th><th>Article</th><th>Name</th><th>Action</th></tr></thead><tbody>' +
-            items.map(articleRow).join('') + '</tbody></table>';
+        // Brand-grouped cards like the UMAPI catalog: brand header, drawing, part number,
+        // inline key specs, "Find out prices" -> warehouse/shop search.
+        var groups = [];
+        var byBrand = {};
+        items.forEach(function (item) {
+            var brand = item.SUP_BRAND || item.BRAND || item.SUPPLIER || item.MANUFACTURER || '';
+            if (!byBrand[brand]) {
+                byBrand[brand] = [];
+                groups.push(brand);
+            }
+            byBrand[brand].push(item);
+        });
+        groups.sort();
+        output.innerHTML = '<button type="button" class="btn btn-default" id="epc-umapi-back-categories">Back to categories</button>' +
+            groups.map(function (brand) {
+                return '<div class="epc-art-brand">' + esc(brand || 'Aftermarket') + '</div>' +
+                    byBrand[brand].map(function (item) { return articleCard(item, brand); }).join('');
+            }).join('');
         document.getElementById('epc-umapi-back-categories').onclick = function () { renderCategories(state.categories); };
     }
 
@@ -661,16 +697,22 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
         }
         return legacyUrl;
     }
-    function articleRow(item) {
-        var brand = item.SUP_BRAND || item.BRAND || item.SUPPLIER || item.MANUFACTURER || '';
-        var article = item.ART_ARTICLE_NR || item.ARTICLE || item.ART_NUMBER || item.OEN || '';
-        var name = item.ART_PRODUCT_NAME || item.PRODUCT_NAME || item.DES || item.NAME || '';
+    function articleCard(item, brand) {
+        var article = item.ART_ARTICLE_NR || item.ARTICLE_NR || item.ARTICLE || item.ART_NUMBER || item.OEN || '';
+        var name = item.COMPLETE_DES || item.ART_PRODUCT_NAME || item.PRODUCT_NAME || item.DES || item.NAME || '';
+        var file = item.MEDIA_FILE || (item.MEDIAS && item.MEDIAS.length ? item.MEDIAS[0].FILE_NAME : '');
+        var img = file ? '<img class="epc-art-img" alt="" loading="lazy" src="/api/umapi_image.php?kind=article&id=' + encodeURIComponent(file) + '" onerror="this.remove()">' : '';
+        var specs = (item.CRITERIAS || []).slice(0, 6).map(function (c) {
+            return '<span><strong>' + esc(c.CRI_DES || c.CRI_SHORT_DES || '') + ':</strong> ' + esc(c.VALUE || '') + '</span>';
+        }).join(' ');
         var searchUrl = shopSearchUrl(brand, article);
         var productUrl = '/en/parts/' + encodeURIComponent(String(brand).toUpperCase()) + '/' + encodeURIComponent(article);
-        return '<tr data-search="' + esc([brand, article, name].join(' ')) + '">' +
-            '<td>' + esc(brand) + '</td><td>' + esc(article) + '</td><td>' + esc(name) + '</td>' +
-            '<td><a class="btn btn-xs btn-primary" href="' + esc(productUrl) + '" title="Open ' + esc(brand) + ' ' + esc(article) + ' product page">View</a>' +
-            ' <a class="btn btn-xs btn-default" href="' + esc(searchUrl) + '" title="Search ' + esc(brand) + ' ' + esc(article) + ' in shop">Search</a></td></tr>';
+        return '<div class="epc-art-card" data-search="' + esc([brand, article, name].join(' ')) + '">' +
+            '<a class="epc-art-thumb" href="' + esc(productUrl) + '">' + img + '</a>' +
+            '<div class="epc-art-body"><a class="epc-art-title" href="' + esc(productUrl) + '">' + esc(article) + ' <small>' + esc(brand) + '</small></a>' +
+            '<div class="epc-art-name">' + esc(name) + '</div>' +
+            '<div class="epc-art-specs">' + specs + '</div></div>' +
+            '<a class="epc-art-prices" href="' + esc(searchUrl) + '" title="Search ' + esc(brand) + ' ' + esc(article) + ' prices in our shop">Find out prices</a></div>';
     }
 
     function renderBrandSearch(items, article) {
@@ -703,7 +745,12 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
 
     function bindCategoryButtons() {
         Array.prototype.forEach.call(output.querySelectorAll('[data-category]'), function (node) {
-            node.onclick = function () { loadProducts(node.getAttribute('data-category')); };
+            node.onclick = function () {
+                Array.prototype.forEach.call(output.querySelectorAll('.epc-cat-row.epc-cat-active'), function (r) { r.classList.remove('epc-cat-active'); });
+                var row = node.closest('.epc-cat-row');
+                if (row) { row.classList.add('epc-cat-active'); }
+                loadProducts(node.getAttribute('data-category'));
+            };
         });
         Array.prototype.forEach.call(output.querySelectorAll('button.epc-cat-toggle'), function (btn) {
             btn.onclick = function () {
@@ -778,7 +825,7 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
             return;
         }
         loading('Loading articles...');
-        api('articles', { PT_IDS: productId, ID: getModificationId(state.modification), limit: 30, offset: 0 }).then(renderArticles).catch(showError);
+        api('articles', { PT_IDS: productId, ID: getModificationId(state.modification), limit: 200, offset: 0 }).then(renderArticles).catch(showError);
     }
 
 

@@ -2081,7 +2081,11 @@ public static class HomeCatalogWidgets
             "vin" => catalog + "/Vin/" + Uri.EscapeDataString(context.Request.Query["vin"].ToString()),
             "categories" => catalog + "/Categories?ID=" + Uri.EscapeDataString(context.Request.Query["ID"].ToString()) + "&type=PC",
             "products" => catalog + "/Products?CATEGORY_ID=" + Uri.EscapeDataString(context.Request.Query["CATEGORY_ID"].ToString()) + "&ID=" + Uri.EscapeDataString(context.Request.Query["ID"].ToString()) + "&type=PC",
-            "articles" => catalog + "/Articles?PT_IDS=" + Uri.EscapeDataString(context.Request.Query["PT_IDS"].ToString()) + "&type=PC",
+            // Upstream 500s unless ID, limit and offset are all present.
+            "articles" => catalog + "/Articles?PT_IDS=" + Uri.EscapeDataString(context.Request.Query["PT_IDS"].ToString())
+                + "&ID=" + Uri.EscapeDataString(context.Request.Query["ID"].ToString())
+                + "&type=PC&limit=" + (context.Request.Query["limit"].ToString() is { Length: > 0 } lim ? lim : "200")
+                + "&offset=" + (context.Request.Query["offset"].ToString() is { Length: > 0 } off ? off : "0"),
             // UMAPI needs the OE number normalized (13101-54101 -> 1310154101).
             "brands" => catalog + "/BrandRefinement/" + Uri.EscapeDataString(NormalizeArticle(context.Request.Query["article"].ToString())),
             "analogs" => catalog + "/Analogs/" + Uri.EscapeDataString(NormalizeArticle(context.Request.Query["article"].ToString())) + "/" + Uri.EscapeDataString(context.Request.Query["brand"].ToString()),
