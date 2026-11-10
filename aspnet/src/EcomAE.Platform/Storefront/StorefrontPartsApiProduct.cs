@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.Erp;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Services;
 
@@ -420,9 +421,13 @@ public static class StorefrontPartsApiProduct
         var makeLogos = await LoadMakeLogoIdsAsync(connections, context,
             vehicles.Select(v => v[0]).Where(m => m.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
             cancellationToken).ConfigureAwait(false);
+        var waHref = "https://wa.me/" + await LoadWhatsappNumberAsync(connections, context, cancellationToken).ConfigureAwait(false)
+            + "?text=" + Uri.EscapeDataString(
+                "Price inquiry: " + brand + " " + number + (artName.Length > 0 ? " — " + artName : "")
+                + " https://" + context.Request.Host + "/en/parts/" + Uri.EscapeDataString(brand) + "/" + Uri.EscapeDataString(number));
 
         var html = Render(brand, number, artName, artCategory, images, specs, vehicles, crosses,
-            stock, access, ean, makeLogos);
+            stock, access, ean, makeLogos, waHref);
         context.Response.Headers.CacheControl = "no-store";
         return Results.Text(html, "text/html; charset=utf-8", Encoding.UTF8);
     }
@@ -610,6 +615,30 @@ public static class StorefrontPartsApiProduct
         return map;
     }
 
+    private static async Task<string> LoadWhatsappNumberAsync(
+        ITenantDbConnectionFactory connections, HttpContext context, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken)
+                .ConfigureAwait(false);
+            var value = await ErpDb.StringAsync(connection, null,
+                "SELECT `setting_value` FROM `epc_settings` WHERE `setting_key` IN ('whatsapp_number','whatsapp','contact_whatsapp') LIMIT 1",
+                cancellationToken).ConfigureAwait(false);
+            var digits = new string((value ?? "").Where(char.IsDigit).ToArray());
+            if (digits.Length >= 8)
+            {
+                return digits;
+            }
+        }
+        catch (Exception)
+        {
+        }
+
+        return "971567607011";
+    }
+
     private static string E(string? s) => System.Net.WebUtility.HtmlEncode(s ?? "");
 
     // Barcode module pattern: EAN-13 (95 modules) or EAN-8 (67 modules).
@@ -751,7 +780,7 @@ public static class StorefrontPartsApiProduct
         List<string> images, List<(string Name, string Value)> specs,
         List<string[]> vehicles, List<string[]> crosses,
         List<WarehouseRow> stock, StorefrontPriceAccessResult access, string ean,
-        Dictionary<string, int> makeLogos)
+        Dictionary<string, int> makeLogos, string waHref)
     {
         var wantedBrand = NormalizeBrand(brand);
         var inStock = stock.Exists(s => s.Exist > 0 && NormalizeBrand(s.Manufacturer) == wantedBrand);
@@ -781,6 +810,7 @@ public static class StorefrontPartsApiProduct
         sb.Append(".epc-prod .epc-prod-stockbox .ok{color:#2d8a2d;font-weight:700}");
         sb.Append(".epc-prod .epc-prod-stockbox .no{color:#666;font-weight:700}");
         sb.Append(".epc-prod .epc-prod-ask{display:block;border:1px solid #ddd;background:#fff;color:#2d8a2d;padding:10px;text-align:center;text-decoration:none;font-weight:700}");
+        sb.Append(".epc-prod .epc-prod-ask--wa{border-color:#25d366;background:#25d366;color:#fff}");
         sb.Append(".epc-prod .epc-prod-tabs{margin-top:26px;border-bottom:1px solid #ddd;display:flex;gap:2px}");
         sb.Append(".epc-prod .epc-prod-tab{border:1px solid #ddd;border-bottom:0;background:#f4f4f4;color:#777;padding:9px 20px;cursor:pointer;font-size:14px}");
         sb.Append(".epc-prod .epc-prod-tab.on{background:#fff;color:#e8600a;border-top:2px solid #e8600a;font-weight:700}");
@@ -891,7 +921,7 @@ public static class StorefrontPartsApiProduct
             sb.Append("<span class=\"no\">Out of stock</span>");
         }
         sb.Append("</div>");
-        sb.Append("<a class=\"epc-prod-ask\" href=\"/storefront/contact-app\">? Ask price</a>");
+        sb.Append("<a class=\"epc-prod-ask epc-prod-ask--wa\" href=\"" + E(waHref) + "\" target=\"_blank\" rel=\"noopener\"><i class=\"fa fa-whatsapp\" aria-hidden=\"true\"></i> WhatsApp inquiry</a>");
         sb.Append("</div></div>");
 
         // Tabs
