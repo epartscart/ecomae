@@ -763,7 +763,7 @@ public static class HomeCatalogWidgets
                 or "brands" or "analogs" or "article" or "article_links" or "engines" or "engine")
             {
                 var live = await TryLiveUmapiAsync(httpClientFactory, action, section, context, cancellationToken).ConfigureAwait(false);
-                var liveEmpty = action is "manufacturers" or "models" or "modifications" or "categories" or "products"
+                var liveEmpty = action is "manufacturers" or "models" or "modifications" or "categories" or "products" or "articles"
                     && live is not null && live.Value.Status is >= 200 and < 300
                     && IsEmptyVehicleCatalogBody(live.Value.Body);
                 if (live is not null && live.Value.Status is >= 200 and < 300 && !liveEmpty)
@@ -810,7 +810,7 @@ public static class HomeCatalogWidgets
                     }
                 }
 
-                if (connections.IsConfigured && action is "manufacturers" or "models" or "modifications" or "categories" or "products")
+                if (connections.IsConfigured && action is "manufacturers" or "models" or "modifications" or "categories" or "products" or "articles")
                 {
                     try
                     {
@@ -1018,6 +1018,74 @@ public static class HomeCatalogWidgets
             parms["carId"] = car.ToString(CultureInfo.InvariantCulture);
             parms["strId"] = str.ToString(CultureInfo.InvariantCulture);
         }
+        else if (action == "articles")
+        {
+            // Widgets hand the products' IDs back as PT_IDS; for partsapi those IDs
+            // are ART_IDs, and the detail rows already live in epc_partsapi_cache
+            // from the getArticles call that produced them — no provider call needed.
+            var wanted = context.Request.Query["PT_IDS"].ToString()
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToHashSet(StringComparer.Ordinal);
+            if (wanted.Count == 0)
+            {
+                return null;
+            }
+
+            var cached = new List<string>();
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = "SELECT `response_json` FROM `epc_partsapi_cache` WHERE `method` = 'getArticles'";
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (!reader.IsDBNull(0))
+                    {
+                        cached.Add(reader.GetString(0));
+                    }
+                }
+            }
+            var articleRows = new List<Dictionary<string, object?>>();
+            foreach (var body in cached)
+            {
+                if (string.IsNullOrEmpty(body))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    using var cacheDoc = JsonDocument.Parse(body);
+                    foreach (var r in PartsApiRows(cacheDoc.RootElement))
+                    {
+                        var id = PartsApiText(r, "ART_ID", "artId", "id");
+                        if (id is null || !wanted.Contains(id))
+                        {
+                            continue;
+                        }
+
+                        articleRows.Add(new Dictionary<string, object?>
+                        {
+                            ["ID"] = id,
+                            ["ART_ID"] = id,
+                            ["ARTICLE_NR"] = PartsApiText(r, "ART_ARTICLE_NR", "ART_DISPLAY_NR", "ARTICLE_NR", "ART_NUM") ?? "",
+                            ["ART_PRODUCT_NAME"] = PartsApiText(r, "ART_PRODUCT_NAME", "ART_NAME", "name") ?? "",
+                            ["SUP_BRAND"] = PartsApiText(r, "ART_SUP_BRAND", "SUP_BRAND", "brand") ?? "",
+                            ["SUP_ID"] = PartsApiText(r, "ART_SUP_ID", "SUP_ID") ?? "",
+                        });
+                    }
+                }
+                catch (JsonException)
+                {
+                }
+            }
+
+            if (articleRows.Count == 0)
+            {
+                return null;
+            }
+
+            return JsonSerializer.Serialize(new Dictionary<string, object?> { ["data"] = articleRows });
+        }
         else
         {
             var ms = UmapiQueryInt(context, "MS_ID");
@@ -1059,7 +1127,7 @@ public static class HomeCatalogWidgets
         var mapped = new List<Dictionary<string, object?>>(items.Count);
         if (action == "categories")
         {
-            PartsApiTreeRows(doc.RootElement, "", mapped);
+            PartsApiTreeRows(doc.RootElement, mapped);
         }
 
         foreach (var r in items)
@@ -1158,14 +1226,72 @@ public static class HomeCatalogWidgets
         return JsonSerializer.Serialize(new Dictionary<string, object?> { ["data"] = mapped });
     }
 
-    /// <summary>Flattens partsapi search-tree nodes (possibly nested) into umapi category rows.</summary>
-    private static void PartsApiTreeRows(JsonElement node, string parentId, List<Dictionary<string, object?>> mapped)
+    /// <summary>Builds nested umapi category rows from a partsapi search-tree node.
+    /// Children are kept under both <c>CHILD</c> and <c>children</c> so hierarchy survives.</summary>
+    private static Dictionary<string, object?>? PartsApiTreeNode(JsonElement node)
+    {
+        if (node.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        var id = PartsApiText(node, "id", "strId", "STR_ID", "nodeId", "catId");
+        var name = PartsApiText(node, "name", "title", "DES", "text", "label");
+        var children = new List<Dictionary<string, object?>>();
+        foreach (var prop in node.EnumerateObject())
+        {
+            if (prop.Value.ValueKind is JsonValueKind.Array)
+            {
+                foreach (var child in prop.Value.EnumerateArray())
+                {
+                    var sub = PartsApiTreeNode(child);
+                    if (sub is not null)
+                    {
+                        children.Add(sub);
+                    }
+                }
+            }
+            else if (prop.Value.ValueKind is JsonValueKind.Object)
+            {
+                var sub = PartsApiTreeNode(prop.Value);
+                if (sub is not null)
+                {
+                    children.Add(sub);
+                }
+            }
+        }
+
+        if (string.IsNullOrEmpty(id) && string.IsNullOrEmpty(name))
+        {
+            return null;
+        }
+
+        var entry = new Dictionary<string, object?>
+        {
+            ["STR_ID"] = id ?? name,
+            ["CATEGORY_ID"] = id ?? name,
+            ["CATEGORY_NAME"] = name ?? id,
+            ["name"] = name ?? id,
+            ["DES"] = name ?? id,
+            ["source"] = "partsapi",
+        };
+        if (children.Count > 0)
+        {
+            entry["CHILD"] = children;
+            entry["children"] = children;
+        }
+
+        return entry;
+    }
+
+    /// <summary>Collects the top-level nodes of a partsapi search-tree payload.</summary>
+    private static void PartsApiTreeRows(JsonElement node, List<Dictionary<string, object?>> mapped)
     {
         if (node.ValueKind == JsonValueKind.Array)
         {
             foreach (var child in node.EnumerateArray())
             {
-                PartsApiTreeRows(child, parentId, mapped);
+                PartsApiTreeRows(child, mapped);
             }
 
             return;
@@ -1176,28 +1302,24 @@ public static class HomeCatalogWidgets
             return;
         }
 
-        var id = PartsApiText(node, "id", "strId", "STR_ID", "nodeId", "catId");
-        var name = PartsApiText(node, "name", "title", "DES", "text", "label");
-        if (!string.IsNullOrEmpty(id) || !string.IsNullOrEmpty(name))
+        // Unwrap envelopes ({"data":{...}}) but keep real tree nodes at the top level.
+        if (!node.EnumerateObject().Any(p => PartsApiText(node, "id", "strId", "STR_ID", "nodeId", "catId", "name", "title", "DES", "text", "label") is not null))
         {
-            mapped.Add(new Dictionary<string, object?>
+            foreach (var prop in node.EnumerateObject())
             {
-                ["STR_ID"] = id ?? name,
-                ["CATEGORY_ID"] = id ?? name,
-                ["CATEGORY_NAME"] = name ?? id,
-                ["name"] = name ?? id,
-                ["DES"] = name ?? id,
-                ["PARENT_ID"] = parentId,
-                ["source"] = "partsapi",
-            });
+                if (prop.Value.ValueKind is JsonValueKind.Array or JsonValueKind.Object)
+                {
+                    PartsApiTreeRows(prop.Value, mapped);
+                }
+            }
+
+            return;
         }
 
-        foreach (var prop in node.EnumerateObject())
+        var entry = PartsApiTreeNode(node);
+        if (entry is not null)
         {
-            if (prop.Value.ValueKind is JsonValueKind.Array or JsonValueKind.Object)
-            {
-                PartsApiTreeRows(prop.Value, id ?? parentId, mapped);
-            }
+            mapped.Add(entry);
         }
     }
 
