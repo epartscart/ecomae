@@ -569,6 +569,7 @@
                     </nav>
                 }
                 <div id="work_area" class="epc-chpu-work-area">
+                <div id="epc-product-hero"></div>
                 <div class="epc-ssr-warehouse-banner" role="status">
                     @if (_genuineRows.Count + _aftermarketRows.Count > 0)
                     {
@@ -733,6 +734,7 @@
   var brand = @JsonBrand;
   var genuine = @JsonGenuine;
   if (!article || !brand) return;
+  loadProductHero(brand, article);
   var progress = document.getElementById('epcSfPollProgress');
   var countEl = document.getElementById('epcSfPollCount');
   var totalEl = document.getElementById('epcSfPollTotal');
@@ -994,6 +996,31 @@
     }
     return '<div class="epc-product-actions epc-product-actions--quote-only" data-aid="' + aid + '">' + tools +
       quoteBtn + '</div>';
+  }
+  window.epcProdTab = function (btn, pane) {
+    var wrap = btn.closest('.epc-prod');
+    wrap.querySelectorAll('.epc-prod-tab').forEach(function (t) { t.classList.remove('on'); });
+    wrap.querySelectorAll('.epc-prod-pane').forEach(function (p) { p.hidden = true; });
+    btn.classList.add('on');
+    wrap.querySelector('.epc-prod-pane[data-pane="' + pane + '"]').hidden = false;
+  }
+  window.epcProdMake = function (btn) {
+    var on = btn.classList.toggle('on');
+    btn.parentNode.querySelectorAll('.epc-veh-make').forEach(function (b) {
+      if (b !== btn) b.classList.remove('on');
+    });
+    var make = on ? btn.getAttribute('data-make') : '';
+    document.querySelectorAll('.epc-veh-row').forEach(function (r) {
+      r.style.display = (!make || r.getAttribute('data-make') === make) ? '' : 'none';
+    });
+  }
+  function loadProductHero(brand, article) {
+    var host = document.getElementById('epc-product-hero');
+    if (!host || !brand || !article) return;
+    fetch('/api/article_product?brand=' + encodeURIComponent(brand) + '&number=' + encodeURIComponent(article))
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (html) { if (html) host.innerHTML = html; })
+      .catch(function () {});
   }
   function brandArticleGroupKey(mfr, art) {
     return String(mfr || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase() + '|' +

@@ -666,7 +666,7 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
         var article = item.ART_ARTICLE_NR || item.ARTICLE || item.ART_NUMBER || item.OEN || '';
         var name = item.ART_PRODUCT_NAME || item.PRODUCT_NAME || item.DES || item.NAME || '';
         var searchUrl = shopSearchUrl(brand, article);
-        var productUrl = '/api/partsapi_product.php?brand=' + encodeURIComponent(brand) + '&number=' + encodeURIComponent(article);
+        var productUrl = '/en/parts/' + encodeURIComponent(String(brand).toUpperCase()) + '/' + encodeURIComponent(article);
         return '<tr data-search="' + esc([brand, article, name].join(' ')) + '">' +
             '<td>' + esc(brand) + '</td><td>' + esc(article) + '</td><td>' + esc(name) + '</td>' +
             '<td><a class="btn btn-xs btn-primary" href="' + esc(productUrl) + '" title="Open ' + esc(brand) + ' ' + esc(article) + ' product page">View</a>' +
@@ -688,8 +688,8 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
             var brand = item.BRAND || item.SUP_BRAND || item.MANUFACTURER || item.BRAND_NAME || item.DES || '';
             // UMAPI's Analogs endpoint is broken upstream (500 on every call);
             // car-mod.com lands on the part detail page, and so do we.
-            window.location.href = '/api/partsapi_product.php?brand=' +
-                encodeURIComponent(brand) + '&number=' + encodeURIComponent(article);
+            window.location.href = '/en/parts/' + encodeURIComponent(String(brand).toUpperCase()) +
+                '/' + encodeURIComponent(article);
         });
     }
 
