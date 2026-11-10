@@ -38,7 +38,7 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/en/vehicle-catalog", "/en/vehicle-catalog")]
     [InlineData("/en/users/login", "/en/users/login")]
     [InlineData("/product-family", "/en/product-family")]
-    [InlineData("/umapi_catalog", "/en/umapi_catalog")]
+    [InlineData("/umapi_catalog", "/en/catalog")]
     [InlineData("https://agriculture.ecomae.com/CP/", "https://agriculture.ecomae.com/cp")]
     [InlineData("/epc-blockchain-verify.php", "/blockchain/verify")]
     [InlineData("/epc-blockchain-verify.php?proof=prf_x", "/blockchain/verify?proof=prf_x")]
