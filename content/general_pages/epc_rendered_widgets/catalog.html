@@ -55,6 +55,11 @@
 .epc-umapi-manufacturer-card { min-height: 110px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; text-align: center; border-radius: 10px; }
 .epc-umapi-manufacturer-card .epc-umapi-logo { margin: 0; max-height: 34px; max-width: 92px; }
 .epc-umapi-manufacturer-card small { min-height: 18px; }
+.epc-umapi-mini { min-height: 62px !important; padding: 8px 10px !important; position: relative; }
+.epc-umapi-mini .epc-umapi-mini-flag { position: absolute; top: 8px; right: 8px; }
+.epc-umapi-mini .epc-umapi-mini-flag img { display: block; width: 22px; height: 17px; }
+.epc-umapi-mini strong { font-size: 13px; }
+.epc-umapi-mini small { text-transform: lowercase; }
 .epc-umapi-tree ul { list-style: none; padding-left: 18px; }
 .epc-umapi-tree li { margin: 5px 0; }
 .epc-umapi-tree button { border: 0; background: transparent; color: #1e67b1; padding: 3px 0; text-align: left; }
@@ -345,9 +350,18 @@
             logo + '<strong>' + esc(item.MANUFACTURER) + '</strong><small>' + flagHtml(item.COUNTRY || '') + '</small></div>';
     }
 
-    function manufacturerGrid(list, allItems) {
+    function manufacturerMiniCard(item, index) {
+        var code = countryCode(item.COUNTRY || '');
+        var flag = code ? '<span class="epc-umapi-mini-flag"><img alt="" src="https://flagcdn.com/24x18/' + code + '.png"></span>' : '';
+        var sub = String(item.MANUFACTURER || '').toLowerCase();
+        if (!code && item.COUNTRY) { sub += ' · ' + countryLabel(item.COUNTRY); }
+        return '<div class="epc-umapi-card epc-umapi-manufacturer-card epc-umapi-mini" data-index="' + index + '" data-ccode="' + esc(code || '') + '" data-search="' + esc(item.MANUFACTURER + ' ' + item.COUNTRY) + '">' +
+            flag + '<strong>' + esc(item.MANUFACTURER) + '</strong><small>' + esc(sub) + '</small></div>';
+    }
+
+    function manufacturerGrid(list, allItems, mini) {
         return '<div class="epc-umapi-grid epc-umapi-manufacturer-grid">' + list.map(function (item) {
-            return manufacturerCard(item, allItems.indexOf(item));
+            return mini ? manufacturerMiniCard(item, allItems.indexOf(item)) : manufacturerCard(item, allItems.indexOf(item));
         }).join('') + '</div>';
     }
 
@@ -385,7 +399,7 @@
             html += '<div class="epc-umapi-section"><h3 class="epc-umapi-section-title">Other manufacturers <span>A-Z</span></h3><div class="epc-umapi-alpha">' +
                 letters.map(function (letter) { return '<a href="#epc-letter-' + esc(letter) + '">' + esc(letter) + '</a>'; }).join('') + '</div></div>';
             letters.forEach(function (letter) {
-                html += '<div class="epc-umapi-section" id="epc-letter-' + esc(letter) + '"><h3 class="epc-umapi-section-title">' + esc(letter) + ' <span>' + esc(groups[letter].length) + '</span></h3>' + manufacturerGrid(groups[letter], items) + '</div>';
+                html += '<div class="epc-umapi-section" id="epc-letter-' + esc(letter) + '"><h3 class="epc-umapi-section-title">' + esc(letter) + ' <span>' + esc(groups[letter].length) + '</span></h3>' + manufacturerGrid(groups[letter], items, true) + '</div>';
             });
         }
         output.innerHTML = html;
@@ -492,15 +506,18 @@
         }
         output.innerHTML = listSummary('Select exact vehicle modification.', items) + '<div class="epc-umapi-modwrap"><table class="epc-umapi-table epc-umapi-modtable"><thead><tr>' +
             '<th>L.</th><th>Model</th><th>Year</th><th>Engine type</th><th>Power</th><th>Drive</th></tr></thead><tbody>' + items.map(function (item, index) {
-            var litres = item.CAPACITY_LT ? (Math.round(item.CAPACITY_LT * 100) / 100).toFixed(2).replace(/0+$/, '').replace(/\.$/, '') : '';
+            var litres = item.CAPACITY_LT || (item.CAPACITY_TECH ? item.CAPACITY_TECH / 1000 : 0);
+            litres = litres ? (Math.round(litres * 100) / 100).toFixed(2).replace(/0+$/, '').replace(/\.$/, '') : '';
             var yearFrom = (item.CI_FROM || '').slice(0, 4);
             var yearTo = (item.CI_TO || '').slice(0, 4);
             var years = yearFrom + (yearTo ? ' \u2014 ' + yearTo : ' \u2014 p.t.');
             var engine = item.ENGINE_TYPE || item.FUEL_TYPE || '';
-            var kw = item.POWER_KW ? Math.round(item.POWER_KW) : 0;
-            var ps = item.POWER_PS ? Math.round(item.POWER_PS) : 0;
+            var kw = item.POWER_KW || item.POWER_KW_START;
+            kw = kw ? Math.round(kw) : 0;
+            var ps = item.POWER_PS || item.POWER_PS_START;
+            ps = ps ? Math.round(ps) : 0;
             var power = kw ? kw + 'Kw' + (ps ? ' / ' + ps + 'Hp' : '') : '';
-            var drive = item.DRIVE_TYPE || '';
+            var drive = item.DRIVE_TYPE || item.AXLE_CONFIGURATION || '';
             var search = [(state.model && state.model.MODEL_SERIES) || '', getModificationTitle(item), litres, years, engine, power, drive].join(' ');
             return '<tr class="epc-umapi-mod-row" data-index="' + index + '" data-search="' + esc(search) + '">' +
                 '<td>' + esc(litres) + '</td><td><strong>' + esc(getModificationTitle(item)) + '</strong></td><td>' + esc(years) + '</td>' +
@@ -626,8 +643,10 @@
             }).join('') + '</div>';
         bindIndexed('.epc-umapi-card', items, function (item) {
             var brand = item.BRAND || item.SUP_BRAND || item.MANUFACTURER || item.BRAND_NAME || item.DES || '';
-            loading('Loading analogs...');
-            api('analogs', { article: article, brand: brand }).then(renderArticles).catch(showError);
+            // UMAPI's Analogs endpoint is broken upstream (500 on every call);
+            // car-mod.com lands on the part detail page, and so do we.
+            window.location.href = '/api/partsapi_product.php?brand=' +
+                encodeURIComponent(brand) + '&number=' + encodeURIComponent(article);
         });
     }
 

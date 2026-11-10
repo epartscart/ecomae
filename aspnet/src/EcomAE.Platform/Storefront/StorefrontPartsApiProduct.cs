@@ -1,5 +1,10 @@
+using System.Data.Common;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using EcomAE.Platform.Data;
+using EcomAE.Platform.Middleware;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Storefront;
 
@@ -22,6 +27,8 @@ public static class StorefrontPartsApiProduct
         HttpContext context,
         IPartsApiService partsApi,
         IHttpClientFactory httpClientFactory,
+        ITenantDbConnectionFactory connections,
+        IStorefrontPriceAccess priceAccess,
         CancellationToken cancellationToken)
     {
         var brand = context.Request.Query["brand"].ToString().Trim();
@@ -255,7 +262,14 @@ public static class StorefrontPartsApiProduct
             }
         }
 
-        var html = Render(brand, number, artName, images, specs, vehicles, crosses);
+        // Warehouse: same normalized-article lookup the part search uses, gated by
+        // the shared storefront price visibility rule (guest/pending redacted).
+        var access = await priceAccess.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
+        var stock = await LoadWarehouseStockAsync(connections, context, number, cancellationToken)
+            .ConfigureAwait(false);
+
+        var html = Render(brand, number, artName, images, specs, vehicles, crosses,
+            stock, access);
         context.Response.Headers.CacheControl = "no-store";
         return Results.Text(html, "text/html; charset=utf-8", Encoding.UTF8);
     }
@@ -333,11 +347,73 @@ public static class StorefrontPartsApiProduct
         return new string(chars, 0, n);
     }
 
+    private sealed record WarehouseRow(
+        string Manufacturer, string ArticleShow, string Name, double Exist, double Price);
+
+    private static async Task<List<WarehouseRow>> LoadWarehouseStockAsync(
+        ITenantDbConnectionFactory connections, HttpContext context, string number,
+        CancellationToken cancellationToken)
+    {
+        var rows = new List<WarehouseRow>();
+        var compact = NormalizeBrand(number);
+        if (compact.Length == 0)
+        {
+            return rows;
+        }
+
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken)
+                .ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT UPPER(TRIM(`manufacturer`)) AS manufacturer,
+                       COALESCE(NULLIF(`article_show`, ''), `article`) AS article_show,
+                       MIN(`name`) AS name,
+                       SUM(IFNULL(`exist`, 0)) AS exist,
+                       MIN(`price`) AS price
+                FROM `shop_docpart_prices_data`
+                WHERE TRIM(IFNULL(`article`, '')) != ''
+                  AND IFNULL(`price`, 0) > 0 AND IFNULL(`exist`, 0) > 0
+                  AND (
+                    REPLACE(REPLACE(REPLACE(REPLACE(UPPER(TRIM(`article`)), ' ', ''), '-', ''), '.', ''), '/', '') = @compact
+                    OR REPLACE(REPLACE(REPLACE(REPLACE(UPPER(TRIM(`article_show`)), ' ', ''), '-', ''), '.', ''), '/', '') = @compact
+                  )
+                GROUP BY UPPER(TRIM(`manufacturer`)), COALESCE(NULLIF(`article_show`, ''), `article`)
+                ORDER BY manufacturer ASC, price ASC
+                LIMIT 60
+                """;
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@compact";
+            parameter.Value = compact;
+            command.Parameters.Add(parameter);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new WarehouseRow(
+                    reader.IsDBNull(0) ? "" : reader.GetString(0),
+                    reader.IsDBNull(1) ? "" : reader.GetString(1),
+                    reader.IsDBNull(2) ? "" : reader.GetString(2),
+                    reader.IsDBNull(3) ? 0 : Convert.ToDouble(reader.GetValue(3), CultureInfo.InvariantCulture),
+                    reader.IsDBNull(4) ? 0 : Convert.ToDouble(reader.GetValue(4), CultureInfo.InvariantCulture)));
+            }
+        }
+        catch (Exception)
+        {
+            // Missing connection string (InvalidOperationException) or absent
+            // price table (DbException) — the section renders empty either way.
+        }
+
+        return rows;
+    }
+
     private static string E(string? s) => System.Net.WebUtility.HtmlEncode(s ?? "");
 
     private static string Render(string brand, string number, string name,
         List<string> images, List<(string Name, string Value)> specs,
-        List<string[]> vehicles, List<string[]> crosses)
+        List<string[]> vehicles, List<string[]> crosses,
+        List<WarehouseRow> stock, StorefrontPriceAccessResult access)
     {
         var sb = new StringBuilder(16000);
         sb.Append("<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">");
@@ -421,6 +497,39 @@ public static class StorefrontPartsApiProduct
         else
         {
             sb.Append("<div class=\"empty\">Vehicle applicability is loading on first request.</div>");
+        }
+
+        sb.Append("<h2>In our warehouse</h2>");
+        if (stock.Count > 0)
+        {
+            sb.Append("<table><tr><th>Brand</th><th>Number</th><th>Name</th><th>Stock</th><th>Price</th></tr>");
+            foreach (var s in stock)
+            {
+                sb.Append("<tr><td>").Append(E(s.Manufacturer)).Append("</td><td>").Append(E(s.ArticleShow))
+                    .Append("</td><td>").Append(E(s.Name)).Append("</td><td>")
+                    .Append(access.PricesVisible ? s.Exist.ToString("0.##", CultureInfo.InvariantCulture) : access.SensitiveMask)
+                    .Append("</td><td>");
+                if (access.PricesVisible)
+                {
+                    sb.Append(s.Price.ToString("0.00", CultureInfo.InvariantCulture));
+                }
+                else if (access.LoginCtaHtml.Length > 0)
+                {
+                    sb.Append(access.LoginCtaHtml);
+                }
+                else
+                {
+                    sb.Append(access.SensitiveMask);
+                }
+
+                sb.Append("</td></tr>");
+            }
+
+            sb.Append("</table>");
+        }
+        else
+        {
+            sb.Append("<div class=\"empty\">Not in stock.</div>");
         }
 
         sb.Append("<h2>Crosses / Analogs</h2>");
