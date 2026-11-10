@@ -6867,6 +6867,44 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<StorefrontBrandCardsResult> ListStorefrontBrandCardsAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new([], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
+            var cards = new List<StorefrontBrandCard>();
+            await using var command = connection.CreateCommand();
+            ErpFirstPaint.ApplyIfErp(command);
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontGenuineBrandCards;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var brand = Convert.ToString(reader["brand"] is DBNull ? string.Empty : reader["brand"], CultureInfo.InvariantCulture) ?? string.Empty;
+                if (brand.Length == 0)
+                {
+                    continue;
+                }
+
+                var mfaId = reader["mfa_id"] is DBNull ? 0L : Convert.ToInt64(reader["mfa_id"], CultureInfo.InvariantCulture);
+                var fullName = Convert.ToString(reader["full_name"] is DBNull ? string.Empty : reader["full_name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var country = Convert.ToString(reader["country"] is DBNull ? string.Empty : reader["country"], CultureInfo.InvariantCulture) ?? string.Empty;
+                cards.Add(new StorefrontBrandCard(brand, mfaId, fullName, country));
+            }
+
+            var list = cards.OrderBy(c => c.Brand, StringComparer.OrdinalIgnoreCase).ToList();
+            return new(list, list.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, "database-error", ex.Message);
+        }
+    }
+
     public async Task<StorefrontOfficeStorageBunchesResult> ListStorefrontOfficeStorageBunchesAsync(
         string article,
         string? brand,
