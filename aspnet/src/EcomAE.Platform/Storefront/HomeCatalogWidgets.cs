@@ -720,7 +720,8 @@ public static class HomeCatalogWidgets
         if (action is not (
             "status" or "manufacturers" or "models" or "modifications" or "suppliers" or "brand_parts"
             or "brands" or "analogs" or "article" or "article_links" or "vin" or "engines" or "engine"
-            or "categories" or "products" or "articles" or "engine_search"))
+            or "categories" or "products" or "articles" or "engine_search"
+            or "modification" or "language_codes" or "region_codes"))
         {
             return WriteJson(StatusCodes.Status400BadRequest, UmapiUnknownJson(), noStore: false);
         }
