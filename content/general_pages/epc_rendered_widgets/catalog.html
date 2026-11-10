@@ -630,7 +630,7 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
         var seen = {};
         items = items.filter(function (item) {
             var id = item.PT_ID || item.PT_IDS || item.ID;
-            var key = String(id) + '|' + String(item.PRODUCT || item.PT_DES || item.DES || '');
+            var key = String(id);
             if (seen[key]) { return false; }
             seen[key] = true;
             return true;
@@ -703,7 +703,7 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
         var file = item.MEDIA_FILE || (item.MEDIAS && item.MEDIAS.length ? item.MEDIAS[0].FILE_NAME : '');
         var img = file ? '<img class="epc-art-img" alt="" loading="lazy" src="/api/umapi_image.php?kind=article&id=' + encodeURIComponent(file) + '" onerror="this.remove()">' : '';
         var specs = (item.CRITERIAS || []).slice(0, 6).map(function (c) {
-            return '<span><strong>' + esc(c.CRI_DES || c.CRI_SHORT_DES || '') + ':</strong> ' + esc(c.VALUE || '') + '</span>';
+            return '<span><strong>' + esc(c.CRI_DES || c.CRI_SHORT_DES || '') + ':</strong> ' + esc(c.VALUE || c.DES || '') + '</span>';
         }).join(' ');
         var searchUrl = shopSearchUrl(brand, article);
         var productUrl = '/en/parts/' + encodeURIComponent(String(brand).toUpperCase()) + '/' + encodeURIComponent(article);
