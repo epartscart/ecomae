@@ -61,6 +61,7 @@ public static class EmshcloudVinDecode
         {
             using var doc = JsonDocument.Parse(json);
             if (!doc.RootElement.TryGetProperty("sonuc", out var sonuc)
+                || sonuc.ValueKind != JsonValueKind.Object
                 || !sonuc.TryGetProperty("araclar", out var araclar)
                 || araclar.ValueKind != JsonValueKind.Array)
             {
@@ -69,6 +70,11 @@ public static class EmshcloudVinDecode
 
             foreach (var row in araclar.EnumerateArray())
             {
+                if (row.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
                 var name = Str(row, "arac_adi");
                 var make = Str(row, "marka_ad");
                 if (make.Length == 0 && name.Length > 0)

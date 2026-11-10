@@ -10,6 +10,7 @@
 @inject ILaximoVinDecodeService VinDecode
 @inject IPartsApiService PartsApi
 @inject IErpWriteConnectionFactory Connections
+@inject IHttpClientFactory HttpClientFactory
 
 <PageTitle>VIN / Frame search · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
@@ -183,6 +184,15 @@
                     if (decoded.Ok)
                     {
                         source = "Live partsapi decode";
+                    }
+                }
+
+                if (!decoded.Ok && Http.HttpContext is not null)
+                {
+                    decoded = await EmshcloudVinDecode.DecodeAndCacheAsync(Http.HttpContext, HttpClientFactory, Connections, _vin, ct);
+                    if (decoded.Ok)
+                    {
+                        source = "Live emshcloud decode";
                     }
                 }
 
