@@ -353,8 +353,10 @@
     function manufacturerMiniCard(item, index) {
         var code = countryCode(item.COUNTRY || '');
         var flag = code ? '<span class="epc-umapi-mini-flag"><img alt="" src="https://flagcdn.com/24x18/' + code + '.png"></span>' : '';
+        var sub = String(item.MANUFACTURER || '').toLowerCase();
+        if (!code && item.COUNTRY) { sub += ' · ' + countryLabel(item.COUNTRY); }
         return '<div class="epc-umapi-card epc-umapi-manufacturer-card epc-umapi-mini" data-index="' + index + '" data-ccode="' + esc(code || '') + '" data-search="' + esc(item.MANUFACTURER + ' ' + item.COUNTRY) + '">' +
-            flag + '<strong>' + esc(item.MANUFACTURER) + '</strong><small>' + esc(String(item.MANUFACTURER || '').toLowerCase()) + '</small></div>';
+            flag + '<strong>' + esc(item.MANUFACTURER) + '</strong><small>' + esc(sub) + '</small></div>';
     }
 
     function manufacturerGrid(list, allItems, mini) {
@@ -504,15 +506,18 @@
         }
         output.innerHTML = listSummary('Select exact vehicle modification.', items) + '<div class="epc-umapi-modwrap"><table class="epc-umapi-table epc-umapi-modtable"><thead><tr>' +
             '<th>L.</th><th>Model</th><th>Year</th><th>Engine type</th><th>Power</th><th>Drive</th></tr></thead><tbody>' + items.map(function (item, index) {
-            var litres = item.CAPACITY_LT ? (Math.round(item.CAPACITY_LT * 100) / 100).toFixed(2).replace(/0+$/, '').replace(/\.$/, '') : '';
+            var litres = item.CAPACITY_LT || item.CAPACITY_TECH;
+            litres = litres ? (Math.round(litres * 100) / 100).toFixed(2).replace(/0+$/, '').replace(/\.$/, '') : '';
             var yearFrom = (item.CI_FROM || '').slice(0, 4);
             var yearTo = (item.CI_TO || '').slice(0, 4);
             var years = yearFrom + (yearTo ? ' \u2014 ' + yearTo : ' \u2014 p.t.');
             var engine = item.ENGINE_TYPE || item.FUEL_TYPE || '';
-            var kw = item.POWER_KW ? Math.round(item.POWER_KW) : 0;
-            var ps = item.POWER_PS ? Math.round(item.POWER_PS) : 0;
+            var kw = item.POWER_KW || item.POWER_KW_START;
+            kw = kw ? Math.round(kw) : 0;
+            var ps = item.POWER_PS || item.POWER_PS_START;
+            ps = ps ? Math.round(ps) : 0;
             var power = kw ? kw + 'Kw' + (ps ? ' / ' + ps + 'Hp' : '') : '';
-            var drive = item.DRIVE_TYPE || '';
+            var drive = item.DRIVE_TYPE || item.AXLE_CONFIGURATION || '';
             var search = [(state.model && state.model.MODEL_SERIES) || '', getModificationTitle(item), litres, years, engine, power, drive].join(' ');
             return '<tr class="epc-umapi-mod-row" data-index="' + index + '" data-search="' + esc(search) + '">' +
                 '<td>' + esc(litres) + '</td><td><strong>' + esc(getModificationTitle(item)) + '</strong></td><td>' + esc(years) + '</td>' +
