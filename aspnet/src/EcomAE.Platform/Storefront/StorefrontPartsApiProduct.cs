@@ -144,6 +144,50 @@ public static class StorefrontPartsApiProduct
             }
         }
 
+        // Name fallback when partsapi is throttled: BrandRefinement returns TITLE per brand.
+        if (artName.Length == 0)
+        {
+            try
+            {
+                var region2 = context.Request.Query["region"].ToString().Trim();
+                if (region2.Length == 0)
+                {
+                    region2 = "WWW";
+                }
+
+                var langName2 = lang == "16" ? "en" : lang;
+                var http = httpClientFactory.CreateClient();
+                http.Timeout = TimeSpan.FromSeconds(12);
+                using var request = new HttpRequestMessage(HttpMethod.Get,
+                    "https://api.umapi.ru/v2/autocatalog/" + langName2 + "-" + region2.ToUpperInvariant() + "/BrandRefinement/" + Uri.EscapeDataString(number));
+                request.Headers.TryAddWithoutValidation("X-App-Key", await HomeCatalogWidgets.UmapiAppKeyAsync(context, null, cancellationToken).ConfigureAwait(false));
+                using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+                    if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var row in doc.RootElement.EnumerateArray())
+                        {
+                            var b = NormalizeBrand(Text(row, "BRAND", "SUP_BRAND") ?? "");
+                            var title = Text(row, "TITLE", "DES", "DISPLAY") ?? "";
+                            if (title.Length > 0 && (artName.Length == 0 || b == wanted))
+                            {
+                                artName = title;
+                                if (b == wanted)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
         // Assemble the card.
         var images = new List<string>();
         if (umapiArticle.ValueKind == JsonValueKind.Object)
@@ -393,7 +437,7 @@ public static class StorefrontPartsApiProduct
                     OR REPLACE(REPLACE(REPLACE(REPLACE(UPPER(TRIM(`article_show`)), ' ', ''), '-', ''), '.', ''), '/', '') = @compact
                   )
                 GROUP BY UPPER(TRIM(`manufacturer`)), COALESCE(NULLIF(`article_show`, ''), `article`)
-                ORDER BY (REPLACE(REPLACE(REPLACE(REPLACE(UPPER(TRIM(`manufacturer`)), ' ', ''), '-', ''), '.', ''), '/', '') = @brand) DESC, manufacturer ASC, price ASC
+                ORDER BY MAX(REPLACE(REPLACE(REPLACE(REPLACE(UPPER(TRIM(`manufacturer`)), ' ', ''), '-', ''), '.', ''), '/', '') = @brand) DESC, manufacturer ASC, price ASC
                 LIMIT 60
                 """;
             var parameter = command.CreateParameter();
