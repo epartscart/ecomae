@@ -19,6 +19,19 @@ public static class UmapiImageProxy
     {
         url = string.Empty;
         var normalized = AsciiLower(kind ?? string.Empty);
+        if (normalized == "article")
+        {
+            // Article photos are keyed by the MEDIA_FILE name from the Articles payload.
+            var file = (id ?? string.Empty).Trim();
+            if (file.Length is < 8 or > 128 || file.Any(c => !(char.IsAsciiLetterOrDigit(c) || c is '.' or '_' or '-')))
+            {
+                return false;
+            }
+
+            url = "https://image.umapi.ru/ARTICLES/" + file;
+            return true;
+        }
+
         var parsed = PhpIntCast(id);
         if (parsed < 1 || normalized is not ("supplier" or "manufacturer" or "model"))
         {
