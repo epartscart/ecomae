@@ -256,7 +256,7 @@ public static class HomeCatalogWidgets
 
                 if (root.TryGetProperty("rows", out var rows) && rows.ValueKind == JsonValueKind.Number)
                 {
-                    return rows.GetInt32() == 0;
+                    return rows.GetDouble() == 0;
                 }
             }
         }
@@ -266,7 +266,6 @@ public static class HomeCatalogWidgets
 
         return false;
     }
-
     /// <summary>Parts-brand widget reads <c>data</c>/<c>rows</c>. Zero rows is "No brands found", not HTTP 402.</summary>
     public static string EmptySuppliersJson()
         => """{"rows":0,"data":[],"source":"database"}""";
@@ -763,7 +762,7 @@ public static class HomeCatalogWidgets
                 or "brands" or "analogs" or "article" or "article_links" or "engines" or "engine")
             {
                 var live = await TryLiveUmapiAsync(httpClientFactory, action, section, context, cancellationToken).ConfigureAwait(false);
-                var liveEmpty = action is "manufacturers" or "models" or "modifications"
+                var liveEmpty = action is "manufacturers" or "models" or "modifications" or "categories" or "products" or "articles"
                     && live is not null && live.Value.Status is >= 200 and < 300
                     && IsEmptyVehicleCatalogBody(live.Value.Body);
                 if (live is not null && live.Value.Status is >= 200 and < 300 && !liveEmpty)
@@ -810,7 +809,7 @@ public static class HomeCatalogWidgets
                     }
                 }
 
-                if (connections.IsConfigured && action is "manufacturers" or "models" or "modifications")
+                if (connections.IsConfigured && action is "manufacturers" or "models" or "modifications" or "categories" or "products" or "articles")
                 {
                     try
                     {
@@ -850,7 +849,7 @@ public static class HomeCatalogWidgets
 
                 // Homepage grids treat a missing TecDoc cache as an empty list.
                 // Forwarding the rejected-key 402 makes response.ok false and the widget shows an error.
-                if (action is "manufacturers" or "models" or "modifications")
+                if (action is "manufacturers" or "models" or "modifications" or "categories" or "products" or "articles")
                 {
                     return WriteJson(StatusCodes.Status200OK, EmptyVehicleCatalogJson(), noStore: false, cacheSeconds: 60);
                 }
@@ -862,7 +861,17 @@ public static class HomeCatalogWidgets
 
                 if (live is not null)
                 {
-                    return WriteJson(live.Value.Status, live.Value.Body, noStore: false);
+                    // Upstream sometimes answers with an HTML billing/error page instead of
+                    // JSON; forwarding it breaks the widget's response.json() parse.
+                    var liveBody = live.Value.Body;
+                    var trimmed = liveBody.TrimStart();
+                    if (!trimmed.StartsWith('{') && !trimmed.StartsWith('['))
+                    {
+                        liveBody = """{"message":"Catalog service returned a non-JSON response.","statusCode":502}""";
+                        return WriteJson(StatusCodes.Status502BadGateway, liveBody, noStore: false);
+                    }
+
+                    return WriteJson(live.Value.Status, liveBody, noStore: false);
                 }
             }
 
@@ -994,6 +1003,98 @@ public static class HomeCatalogWidgets
             method = "getModels";
             parms["makeId"] = mfa.ToString(CultureInfo.InvariantCulture);
         }
+        else if (action == "categories")
+        {
+            var car = UmapiQueryInt(context, "ID");
+            if (car <= 0)
+            {
+                return null;
+            }
+
+            method = "getSearchTree";
+            parms["carId"] = car.ToString(CultureInfo.InvariantCulture);
+        }
+        else if (action == "products")
+        {
+            var car = UmapiQueryInt(context, "ID");
+            var str = UmapiQueryInt(context, "CATEGORY_ID");
+            if (car <= 0 || str <= 0)
+            {
+                return null;
+            }
+
+            method = "getArticles";
+            parms["carId"] = car.ToString(CultureInfo.InvariantCulture);
+            parms["strId"] = str.ToString(CultureInfo.InvariantCulture);
+        }
+        else if (action == "articles")
+        {
+            // Widgets hand the products' IDs back as PT_IDS; for partsapi those IDs
+            // are ART_IDs, and the detail rows already live in epc_partsapi_cache
+            // from the getArticles call that produced them — no provider call needed.
+            var wanted = context.Request.Query["PT_IDS"].ToString()
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToHashSet(StringComparer.Ordinal);
+            if (wanted.Count == 0)
+            {
+                return null;
+            }
+
+            var cached = new List<string>();
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = "SELECT `response_json` FROM `epc_partsapi_cache` WHERE `method` = 'getArticles'";
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (!reader.IsDBNull(0))
+                    {
+                        cached.Add(reader.GetString(0));
+                    }
+                }
+            }
+            var articleRows = new List<Dictionary<string, object?>>();
+            foreach (var body in cached)
+            {
+                if (string.IsNullOrEmpty(body))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    using var cacheDoc = JsonDocument.Parse(body);
+                    foreach (var r in PartsApiRows(cacheDoc.RootElement))
+                    {
+                        var id = PartsApiText(r, "ART_ID", "artId", "id");
+                        if (id is null || !wanted.Contains(id))
+                        {
+                            continue;
+                        }
+
+                        articleRows.Add(new Dictionary<string, object?>
+                        {
+                            ["ID"] = id,
+                            ["ART_ID"] = id,
+                            ["ARTICLE_NR"] = PartsApiText(r, "ART_ARTICLE_NR", "ART_DISPLAY_NR", "ARTICLE_NR", "ART_NUM") ?? "",
+                            ["ART_PRODUCT_NAME"] = PartsApiText(r, "ART_PRODUCT_NAME", "ART_NAME", "name") ?? "",
+                            ["SUP_BRAND"] = PartsApiText(r, "ART_SUP_BRAND", "SUP_BRAND", "brand") ?? "",
+                            ["SUP_ID"] = PartsApiText(r, "ART_SUP_ID", "SUP_ID") ?? "",
+                        });
+                    }
+                }
+                catch (JsonException)
+                {
+                }
+            }
+
+            if (articleRows.Count == 0)
+            {
+                return null;
+            }
+
+            return JsonSerializer.Serialize(new Dictionary<string, object?> { ["data"] = articleRows });
+        }
         else
         {
             var ms = UmapiQueryInt(context, "MS_ID");
@@ -1033,8 +1134,18 @@ public static class HomeCatalogWidgets
         using var doc = JsonDocument.Parse(result.Json);
         var items = PartsApiRows(doc.RootElement);
         var mapped = new List<Dictionary<string, object?>>(items.Count);
+        if (action == "categories")
+        {
+            PartsApiTreeRows(doc.RootElement, mapped);
+        }
+
         foreach (var r in items)
         {
+            if (action == "categories")
+            {
+                break;
+            }
+
             if (action == "manufacturers")
             {
                 var id = PartsApiText(r, "makeId", "MFA_ID", "id");
@@ -1066,6 +1177,25 @@ public static class HomeCatalogWidgets
                     ["CI_TO"] = PartsApiYear(PartsApiText(r, "yearsTo")),
                 });
             }
+            else if (action == "products")
+            {
+                var id = PartsApiText(r, "ART_ID", "artId", "id");
+                var nr = PartsApiText(r, "ART_ARTICLE_NR", "ART_DISPLAY_NR", "ARTICLE_NR", "ART_NUM") ?? "";
+                if (string.IsNullOrEmpty(id) && nr.Length == 0)
+                {
+                    continue;
+                }
+
+                mapped.Add(new Dictionary<string, object?>
+                {
+                    ["ID"] = id ?? nr,
+                    ["ART_ID"] = id,
+                    ["ARTICLE_NR"] = nr,
+                    ["ART_PRODUCT_NAME"] = PartsApiText(r, "ART_PRODUCT_NAME", "ART_NAME", "name") ?? "",
+                    ["SUP_BRAND"] = PartsApiText(r, "ART_SUP_BRAND", "SUP_BRAND", "brand") ?? "",
+                    ["SUP_ID"] = PartsApiText(r, "ART_SUP_ID", "SUP_ID") ?? "",
+                });
+            }
             else
             {
                 var id = PartsApiText(r, "carId", "CAR_ID", "PC_ID", "CV_ID", "MTB_ID", "id");
@@ -1079,8 +1209,8 @@ public static class HomeCatalogWidgets
                     ["PC_ID"] = id, ["CV_ID"] = id,
                     ["PASSENGER_CAR"] = PartsApiText(r, "carName", "CAR_NAME", "name") ?? "",
                     ["COMMERCIAL_VEHICLE"] = PartsApiText(r, "carName", "CAR_NAME", "name") ?? "",
-                    ["CI_FROM"] = PartsApiText(r, "yearsFrom", "constructionInterval") ?? "",
-                    ["CI_TO"] = PartsApiText(r, "yearsTo") ?? "",
+                    ["CI_FROM"] = PartsApiYear(PartsApiText(r, "yearsFrom", "constructionInterval")),
+                    ["CI_TO"] = PartsApiYear(PartsApiText(r, "yearsTo")),
                     ["POWER_KW"] = PartsApiText(r, "powerKw", "POWER_KW") ?? "",
                     ["CAPACITY_LT"] = PartsApiText(r, "capacityLt", "CAPACITY_LT") ?? "",
                     ["FUEL_TYPE"] = PartsApiText(r, "fuelType", "FUEL_TYPE") ?? "",
@@ -1093,18 +1223,133 @@ public static class HomeCatalogWidgets
             return null;
         }
 
+        // Category widgets read {"data":{"root":[...]}}; the rest read {"data":[...]}.
+        if (action == "categories")
+        {
+            return JsonSerializer.Serialize(new Dictionary<string, object?>
+            {
+                ["data"] = new Dictionary<string, object?> { ["root"] = mapped },
+            });
+        }
+
         return JsonSerializer.Serialize(new Dictionary<string, object?> { ["data"] = mapped });
+    }
+
+    /// <summary>Builds nested umapi category rows from a partsapi search-tree node.
+    /// Children are kept under both <c>CHILD</c> and <c>children</c> so hierarchy survives.</summary>
+    private static Dictionary<string, object?>? PartsApiTreeNode(JsonElement node)
+    {
+        if (node.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        var id = PartsApiText(node, "id", "strId", "STR_ID", "nodeId", "catId");
+        var name = PartsApiText(node, "name", "title", "DES", "text", "label");
+        var children = new List<Dictionary<string, object?>>();
+        foreach (var prop in node.EnumerateObject())
+        {
+            if (prop.Value.ValueKind is JsonValueKind.Array)
+            {
+                foreach (var child in prop.Value.EnumerateArray())
+                {
+                    var sub = PartsApiTreeNode(child);
+                    if (sub is not null)
+                    {
+                        children.Add(sub);
+                    }
+                }
+            }
+            else if (prop.Value.ValueKind is JsonValueKind.Object)
+            {
+                var sub = PartsApiTreeNode(prop.Value);
+                if (sub is not null)
+                {
+                    children.Add(sub);
+                }
+            }
+        }
+
+        if (string.IsNullOrEmpty(id) && string.IsNullOrEmpty(name))
+        {
+            return null;
+        }
+
+        var entry = new Dictionary<string, object?>
+        {
+            ["STR_ID"] = id ?? name,
+            ["CATEGORY_ID"] = id ?? name,
+            ["CATEGORY_NAME"] = name ?? id,
+            ["name"] = name ?? id,
+            ["DES"] = name ?? id,
+            ["source"] = "partsapi",
+        };
+        if (children.Count > 0)
+        {
+            entry["CHILD"] = children;
+            entry["children"] = children;
+        }
+
+        return entry;
+    }
+
+    /// <summary>Collects the top-level nodes of a partsapi search-tree payload.</summary>
+    private static void PartsApiTreeRows(JsonElement node, List<Dictionary<string, object?>> mapped)
+    {
+        if (node.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var child in node.EnumerateArray())
+            {
+                PartsApiTreeRows(child, mapped);
+            }
+
+            return;
+        }
+
+        if (node.ValueKind != JsonValueKind.Object)
+        {
+            return;
+        }
+
+        // Unwrap envelopes ({"data":{...}}) but keep real tree nodes at the top level.
+        if (!node.EnumerateObject().Any(p => PartsApiText(node, "id", "strId", "STR_ID", "nodeId", "catId", "name", "title", "DES", "text", "label") is not null))
+        {
+            foreach (var prop in node.EnumerateObject())
+            {
+                if (prop.Value.ValueKind is JsonValueKind.Array or JsonValueKind.Object)
+                {
+                    PartsApiTreeRows(prop.Value, mapped);
+                }
+            }
+
+            return;
+        }
+
+        var entry = PartsApiTreeNode(node);
+        if (entry is not null)
+        {
+            mapped.Add(entry);
+        }
     }
 
     private static string PartsApiYear(string? raw)
     {
-        // " 01 Aug 2015" -> "Aug 2015"; keeps the umapi CI_FROM/CI_TO display style.
+        // TecDoc RFC-1123 dates: "Sat, 01 Aug 2015 00:00:00 GMT" -> "Aug 2015".
+        // The "01 Jan 1970" sentinel means open-ended -> "9999" (umapi convention).
         if (string.IsNullOrEmpty(raw) || raw.Length <= 4)
         {
             return raw ?? string.Empty;
         }
 
-        return raw.Substring(4, Math.Min(12, raw.Length - 4)).Trim();
+        var body = raw.Substring(4, Math.Min(12, raw.Length - 4)).Trim();
+        // Only the exact "01 Jan 1970" epoch is TecDoc's open-ended sentinel;
+        // a real 1970 date (e.g. "01 Jul 1970") must keep its value.
+        if (body.StartsWith("01 Jan 1970", StringComparison.Ordinal))
+        {
+            return "9999";
+        }
+
+        return body;
     }
 
     private static List<JsonElement> PartsApiRows(JsonElement root)

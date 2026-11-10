@@ -38,15 +38,16 @@ public static class StorefrontPartsApiProduct
         var artName = "";
         var search = await partsApi.ExecuteAsync(new PartsApiRequest("searchArticles",
             new Dictionary<string, string> { ["SEARCH_NUMBER"] = number, ["LANG"] = lang }), cancellationToken).ConfigureAwait(false);
+        var wanted = NormalizeBrand(brand);
         foreach (var row in Rows(search))
         {
-            var b = Text(row, "SUP_BRAND", "brand", "BRAND") ?? "";
-            if (artId.Length == 0 || b.Equals(brand, StringComparison.OrdinalIgnoreCase))
+            var b = NormalizeBrand(Text(row, "ART_SUP_BRAND", "SUP_BRAND", "brand", "BRAND") ?? "");
+            if (artId.Length == 0 || b == wanted)
             {
                 artId = Text(row, "ART_ID", "artId") ?? artId;
-                supId = Text(row, "SUP_ID", "supId") ?? supId;
-                artName = Text(row, "ART_NAME", "artName", "name") ?? artName;
-                if (b.Equals(brand, StringComparison.OrdinalIgnoreCase))
+                supId = Text(row, "ART_SUP_ID", "SUP_ID", "supId") ?? supId;
+                artName = Text(row, "ART_PRODUCT_NAME", "ART_NAME", "artName", "name") ?? artName;
+                if (b == wanted)
                 {
                     break;
                 }
@@ -99,7 +100,7 @@ public static class StorefrontPartsApiProduct
         var specs = new List<(string Name, string Value)>();
         foreach (var row in Rows(results.GetValueOrDefault("criteria")))
         {
-            var n = Text(row, "CRITERIA", "criteria", "name", "CRITERIA_DESCRIPTION", "title") ?? "";
+            var n = Text(row, "CRITERIA_NAME", "CRITERIA", "criteria", "name", "CRITERIA_DESCRIPTION", "title") ?? "";
             var v = Text(row, "CRITERIA_VALUE", "criteriaValue", "value", "CRITERIA_DESCRIPTION_VALUE", "description") ?? "";
             if (n.Length > 0)
             {
@@ -127,9 +128,9 @@ public static class StorefrontPartsApiProduct
         var crosses = new List<string[]>();
         foreach (var row in Rows(results.GetValueOrDefault("crosses")))
         {
-            var cb = Text(row, "brand", "SUP_BRAND", "crossBrand", "OEM_BRAND") ?? "";
-            var cn = Text(row, "number", "ARTICLE_NR", "crossNumber", "ART_NUM") ?? "";
-            var cname = Text(row, "name", "ART_NAME", "title") ?? "";
+            var cb = Text(row, "ART_BRAND", "brand", "SUP_BRAND", "crossBrand", "OEM_BRAND") ?? "";
+            var cn = Text(row, "ART_DISPLAY_NR", "number", "ARTICLE_NR", "crossNumber", "ART_NUM") ?? "";
+            var cname = Text(row, "ART_PRODUCT_NAME", "name", "ART_NAME", "title") ?? "";
             if ((cb + cn).Length > 0)
             {
                 crosses.Add(new[] { cb, cn, cname });
@@ -197,6 +198,21 @@ public static class StorefrontPartsApiProduct
         }
 
         return null;
+    }
+
+    private static string NormalizeBrand(string s)
+    {
+        var chars = new char[s.Length];
+        var n = 0;
+        foreach (var c in s)
+        {
+            if (char.IsLetterOrDigit(c))
+            {
+                chars[n++] = char.ToUpperInvariant(c);
+            }
+        }
+
+        return new string(chars, 0, n);
     }
 
     private static string E(string? s) => System.Net.WebUtility.HtmlEncode(s ?? "");
