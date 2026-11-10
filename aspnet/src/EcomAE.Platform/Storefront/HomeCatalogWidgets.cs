@@ -850,7 +850,7 @@ public static class HomeCatalogWidgets
 
                 // Homepage grids treat a missing TecDoc cache as an empty list.
                 // Forwarding the rejected-key 402 makes response.ok false and the widget shows an error.
-                if (action is "manufacturers" or "models" or "modifications")
+                if (action is "manufacturers" or "models" or "modifications" or "categories" or "products" or "articles")
                 {
                     return WriteJson(StatusCodes.Status200OK, EmptyVehicleCatalogJson(), noStore: false, cacheSeconds: 60);
                 }
@@ -862,7 +862,17 @@ public static class HomeCatalogWidgets
 
                 if (live is not null)
                 {
-                    return WriteJson(live.Value.Status, live.Value.Body, noStore: false);
+                    // Upstream sometimes answers with an HTML billing/error page instead of
+                    // JSON; forwarding it breaks the widget's response.json() parse.
+                    var liveBody = live.Value.Body;
+                    var trimmed = liveBody.TrimStart();
+                    if (!trimmed.StartsWith('{') && !trimmed.StartsWith('['))
+                    {
+                        liveBody = """{"message":"Catalog service returned a non-JSON response.","statusCode":502}""";
+                        return WriteJson(StatusCodes.Status502BadGateway, liveBody, noStore: false);
+                    }
+
+                    return WriteJson(live.Value.Status, liveBody, noStore: false);
                 }
             }
 
