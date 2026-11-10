@@ -626,8 +626,10 @@
             }).join('') + '</div>';
         bindIndexed('.epc-umapi-card', items, function (item) {
             var brand = item.BRAND || item.SUP_BRAND || item.MANUFACTURER || item.BRAND_NAME || item.DES || '';
-            loading('Loading analogs...');
-            api('analogs', { article: article, brand: brand }).then(renderArticles).catch(showError);
+            // UMAPI's Analogs endpoint is broken upstream (500 on every call);
+            // car-mod.com lands on the part detail page, and so do we.
+            window.location.href = '/api/partsapi_product.php?brand=' +
+                encodeURIComponent(brand) + '&number=' + encodeURIComponent(article);
         });
     }
 
