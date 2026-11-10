@@ -1282,6 +1282,30 @@
     var sel = document.getElementById('epcOfferSort');
     epcOfferSort = sel ? sel.value : 'price-asc';
     renderOfferCards();
+    // Table view: reorder the real offer rows inside each contiguous block
+    // (group leaders by data-group-index 0, members follow their leader).
+    var cmp = function (a, b) {
+      if (epcOfferSort === 'name') return String(a.getAttribute('data-name') || '').localeCompare(String(b.getAttribute('data-name') || ''));
+      var pa = Number(a.getAttribute('data-price') || 0), pb = Number(b.getAttribute('data-price') || 0);
+      return epcOfferSort === 'price-desc' ? pb - pa : pa - pb;
+    };
+    var all = Array.prototype.slice.call(body.children).filter(function (r) { return r.tagName === 'TR'; });
+    var frag = document.createDocumentFragment();
+    var i = 0;
+    while (i < all.length) {
+      if (all[i].hasAttribute('data-offer-key')) {
+        var run = [];
+        while (i < all.length && all[i].hasAttribute('data-offer-key')) { run.push(all[i]); i++; }
+        var leaders = run.filter(function (r) { return Number(r.getAttribute('data-group-index') || 0) === 0; });
+        leaders.sort(cmp);
+        leaders.forEach(function (l) {
+          var key = l.getAttribute('data-offer-key');
+          run.filter(function (r) { return r.getAttribute('data-offer-key') === key; })
+             .forEach(function (r) { frag.appendChild(r); });
+        });
+      } else { frag.appendChild(all[i]); i++; }
+    }
+    body.appendChild(frag);
   };
   function offerGroups() {
     var groups = [];
