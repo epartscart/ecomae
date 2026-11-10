@@ -204,7 +204,7 @@
             var letter = normalizeLetter(item.name);
             var letterMatch = activeLetter === 'All' || letter === activeLetter;
             var termMatch = !term || item.search.indexOf(term) !== -1;
-            var countryMatch = !activeCountry || (item.country || '') === activeCountry;
+            var countryMatch = !activeCountry || (countryLabel(item.country) || item.country || '').toLowerCase() === activeCountry.toLowerCase();
             return letterMatch && termMatch && countryMatch;
         });
     }
@@ -230,15 +230,16 @@
         (cache.vehicles || []).forEach(function (item) {
             var c = String(item.country || '').trim();
             if (c) {
-                seen[c] = true;
+                var label = countryLabel(c) || c;
+                seen[label.toLowerCase()] = { raw: c, label: label };
             }
         });
-        var countries = Object.keys(seen).sort(function (a, b) {
-            return countryLabel(a).localeCompare(countryLabel(b));
+        var countries = Object.keys(seen).map(function (key) { return seen[key]; }).sort(function (a, b) {
+            return a.label.localeCompare(b.label);
         });
         countrySelect.innerHTML = '<option value="">All countries (' + countries.length + ')</option>' +
             countries.map(function (c) {
-                return '<option value="' + esc(c) + '">' + esc(countryLabel(c)) + '</option>';
+                return '<option value="' + esc(c.label) + '">' + esc(c.label) + '</option>';
             }).join('');
         countrySelect.value = activeCountry;
         countrySelect.style.display = countries.length ? '' : 'none';
