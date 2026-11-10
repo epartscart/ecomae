@@ -36,22 +36,39 @@ public static class PartsApiVinDecode
 
         var manufacturer = "";
         var model = "";
-        var count = 0;
+        var vehicles = new List<LaximoVehicleRow>();
         try
         {
             using var doc = JsonDocument.Parse(result.Json);
             var root = doc.RootElement;
-            var row = root.ValueKind == JsonValueKind.Array
-                ? root.EnumerateArray().FirstOrDefault()
-                : root;
-            if (row.ValueKind == JsonValueKind.Object && row.TryGetProperty("data", out var data)
+            var rows = new List<JsonElement>();
+            if (root.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var r in root.EnumerateArray())
+                {
+                    rows.Add(r);
+                }
+            }
+            else if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("data", out var data)
                 && data.ValueKind == JsonValueKind.Array)
             {
-                row = data.EnumerateArray().FirstOrDefault();
+                foreach (var r in data.EnumerateArray())
+                {
+                    rows.Add(r);
+                }
+            }
+            else if (root.ValueKind == JsonValueKind.Object)
+            {
+                rows.Add(root);
             }
 
-            if (row.ValueKind == JsonValueKind.Object)
+            foreach (var row in rows)
             {
+                if (row.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
                 string Field(params string[] names)
                 {
                     foreach (var p in row.EnumerateObject())
@@ -66,26 +83,36 @@ public static class PartsApiVinDecode
                     return "";
                 }
 
-                manufacturer = Field("make", "brand", "mark", "manufacturer", "maker", "makeName");
-                model = Field("model", "modelName", "model_name", "carName", "modification", "vehicle");
-                if (model.Length == 0)
+                var mk = Field("make", "brand", "mark", "manufacturer", "maker", "makeName");
+                var md = Field("model", "modelName", "model_name", "carName", "modification", "vehicle");
+                if (md.Length == 0)
                 {
-                    model = Field("name", "car", "typeName");
+                    md = Field("name", "car", "typeName");
+                }
+
+                if (mk.Length == 0 && md.Length == 0)
+                {
+                    continue;
+                }
+
+                vehicles.Add(new LaximoVehicleRow(mk, md, "", ""));
+                if (manufacturer.Length == 0)
+                {
+                    manufacturer = mk;
+                    model = md;
                 }
             }
-
-            count = root.ValueKind == JsonValueKind.Array ? root.GetArrayLength() : 1;
         }
         catch (JsonException)
         {
         }
 
-        if (manufacturer.Length == 0 && model.Length == 0)
+        if (vehicles.Count == 0)
         {
             return new LaximoVinDecodeResult(false, "miss", "No vehicle for this VIN.", vin, null, null, 0, []);
         }
 
-        var vehicles = new List<LaximoVehicleRow> { new(manufacturer, model, "", "") };
+        var count = vehicles.Count;
         var cacheJson = JsonSerializer.Serialize(new
         {
             data = new
@@ -93,7 +120,7 @@ public static class PartsApiVinDecode
                 matchingManufacturers = new { array = new[] { new { manuName = manufacturer } } },
                 matchingVehicles = new
                 {
-                    array = new[] { new { carName = (manufacturer + " " + model).Trim(), vehicleTypeDescription = model } }
+                    array = vehicles.Select(v => new { carName = (v.Brand + " " + v.Name).Trim(), vehicleTypeDescription = v.Name }).ToArray()
                 },
                 matchingVehiclesCount = count
             },
