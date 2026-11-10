@@ -1976,6 +1976,7 @@ public sealed class StorefrontModule : ISurfaceModule
             ILaximoVinDecodeService decode,
             IPartsApiService partsApi,
             IErpWriteConnectionFactory connections,
+            IHttpClientFactory httpClientFactory,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -1996,6 +1997,15 @@ public sealed class StorefrontModule : ISurfaceModule
                 if (parts.Ok)
                 {
                     decoded = parts;
+                }
+                else
+                {
+                    // Last resort: the shared emshcloud TecDoc subscription.
+                    var ems = await EmshcloudVinDecode.DecodeAndCacheAsync(context, httpClientFactory, connections, decoded.Vin, cancellationToken).ConfigureAwait(false);
+                    if (ems.Ok)
+                    {
+                        decoded = ems;
+                    }
                 }
             }
             var dest = "/storefront/vin-app?vin=" + Uri.EscapeDataString(decoded.Vin);
