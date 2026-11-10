@@ -62,15 +62,41 @@ public static class PartsApiVinDecode
                 rows.Add(root);
             }
 
-            // Flatten [{data:[...]}, ...] envelopes into their vehicle rows.
+            // Flatten envelope wrappers ("data"/"result" as array or as an
+            // object-of-objects like {"result":{"0":{vehicle},...}}) into
+            // their vehicle rows.
             for (var i = 0; i < rows.Count; i++)
             {
-                if (rows[i].ValueKind == JsonValueKind.Object && rows[i].TryGetProperty("data", out var inner)
-                    && inner.ValueKind == JsonValueKind.Array)
+                if (rows[i].ValueKind != JsonValueKind.Object)
                 {
-                    var expanded = inner.EnumerateArray().ToList();
+                    continue;
+                }
+
+                var unwrapped = new List<JsonElement>();
+                foreach (var key in new[] { "data", "result" })
+                {
+                    if (!rows[i].TryGetProperty(key, out var inner))
+                    {
+                        continue;
+                    }
+
+                    if (inner.ValueKind == JsonValueKind.Array)
+                    {
+                        unwrapped.AddRange(inner.EnumerateArray());
+                    }
+                    else if (inner.ValueKind == JsonValueKind.Object)
+                    {
+                        foreach (var p in inner.EnumerateObject())
+                        {
+                            unwrapped.Add(p.Value);
+                        }
+                    }
+                }
+
+                if (unwrapped.Count > 0)
+                {
                     rows.RemoveAt(i);
-                    rows.InsertRange(i, expanded);
+                    rows.InsertRange(i, unwrapped);
                     i--;
                 }
             }
@@ -96,11 +122,16 @@ public static class PartsApiVinDecode
                     return "";
                 }
 
-                var mk = Field("make", "brand", "mark", "manufacturer", "maker", "makeName");
+                var mk = Field("make", "brand", "mark", "manufacturer", "maker", "makeName", "manuName", "manuShortName");
                 var md = Field("model", "modelName", "model_name", "carName", "modification", "vehicle");
-                if (md.Length == 0)
+                var type = Field("typeName", "name", "car");
+                if (md.Length > 0 && type.Length > 0 && !md.Contains(type, StringComparison.OrdinalIgnoreCase))
                 {
-                    md = Field("name", "car", "typeName");
+                    md = (md + " " + type).Trim();
+                }
+                else if (md.Length == 0)
+                {
+                    md = type;
                 }
 
                 if (mk.Length == 0 && md.Length == 0)
