@@ -959,7 +959,7 @@ public static class StorefrontPartsApiProduct
                 if (makeLogos.TryGetValue(m, out var logoId))
                 {
                     sb.Append("<img src=\"/api/umapi_image.php?kind=manufacturer&id=").Append(logoId)
-                        .Append("\" alt=\"").Append(E(m)).Append("\" style=\"max-width:100%;max-height:100%;object-fit:contain\" onerror=\"this.outerHTML='" + E(m.Length > 6 ? m[..6] : m) + "'\">");
+                        .Append("\" alt=\"").Append(E(m)).Append("\" style=\"max-width:100%;max-height:100%;object-fit:contain\" onerror=\"this.outerHTML='" + E((m.Length > 6 ? m[..6] : m).Replace("\\", "\\\\").Replace("'", "\\'").Replace("<", "")) + "'\">");
                 }
                 else
                 {
