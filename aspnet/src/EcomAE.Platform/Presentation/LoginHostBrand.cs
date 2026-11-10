@@ -109,7 +109,7 @@ public static class LoginHostBrand
                 "auto247",
                 "Auto247",
                 "AUTOMOTIVE PARTS & VEHICLES",
-                "/platform-assets/auto247-logo.png",
+                "/platform-assets/auto247-logo.png?v=20261110",
                 "#1d4ed8",
                 "rgba(29,78,216,.30)",
                 "autoparts",

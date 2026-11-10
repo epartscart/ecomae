@@ -197,11 +197,12 @@ public static class PhpLegacyAssetBridge
         });
 
         // Auto247 tenant brand logo — referenced by brand_logo_url on the auto247 tenant only.
-        endpoints.MapGet("/platform-assets/auto247-logo.png", () =>
+        endpoints.MapGet("/platform-assets/auto247-logo.png", (HttpContext ctx) =>
         {
             var path = Path.GetFullPath(Path.Combine(repoRoot, "content/general_pages/auto247_logo.png"));
             if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
             {
+                ctx.Response.Headers.CacheControl = "no-cache, must-revalidate";
                 return Results.File(path, "image/png");
             }
 
