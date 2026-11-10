@@ -376,7 +376,10 @@ public static class StorefrontPartsApiProduct
                 FROM `shop_docpart_prices_data`
                 WHERE TRIM(IFNULL(`article`, '')) != ''
                   AND IFNULL(`price`, 0) > 0 AND IFNULL(`exist`, 0) > 0
-                  AND REPLACE(REPLACE(REPLACE(REPLACE(UPPER(TRIM(COALESCE(NULLIF(`article_show`, ''), `article`))), ' ', ''), '-', ''), '.', ''), '/', '') = @compact
+                  AND (
+                    REPLACE(REPLACE(REPLACE(REPLACE(UPPER(TRIM(`article`)), ' ', ''), '-', ''), '.', ''), '/', '') = @compact
+                    OR REPLACE(REPLACE(REPLACE(REPLACE(UPPER(TRIM(`article_show`)), ' ', ''), '-', ''), '.', ''), '/', '') = @compact
+                  )
                 GROUP BY UPPER(TRIM(`manufacturer`)), COALESCE(NULLIF(`article_show`, ''), `article`)
                 ORDER BY manufacturer ASC, price ASC
                 LIMIT 60
@@ -396,9 +399,10 @@ public static class StorefrontPartsApiProduct
                     reader.IsDBNull(4) ? 0 : Convert.ToDouble(reader.GetValue(4), CultureInfo.InvariantCulture)));
             }
         }
-        catch (DbException)
+        catch (Exception)
         {
-            // Price table absent on this tenant — the section renders empty.
+            // Missing connection string (InvalidOperationException) or absent
+            // price table (DbException) — the section renders empty either way.
         }
 
         return rows;
