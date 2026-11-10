@@ -992,11 +992,20 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
         loading('Loading ' + make + '...');
         api('manufacturers', {}).then(function (items) {
             items = apiItems(items) || [];
-            var m = items.filter(function (it) {
-                return String(it.MANUFACTURER || '').toLowerCase() === make.toLowerCase();
-            })[0] || items.filter(function (it) {
-                return String(it.MANUFACTURER || '').toLowerCase().indexOf(make.toLowerCase()) === 0;
-            })[0];
+            // Try progressively longer makes ("ALFA" → "ALFA ROMEO" → …) so
+            // multi-word brands from fitment rows resolve to the right maker.
+            var m = null;
+            var modelWords = model ? model.split(' ') : [];
+            for (var extra = 0; !m && extra <= modelWords.length; extra++) {
+                var cand = make + (extra > 0 ? ' ' + modelWords.slice(0, extra).join(' ') : '');
+                var cl = cand.toLowerCase();
+                m = items.filter(function (it) {
+                    return String(it.MANUFACTURER || '').toLowerCase() === cl;
+                })[0] || items.filter(function (it) {
+                    return String(it.MANUFACTURER || '').toLowerCase().indexOf(cl) === 0;
+                })[0];
+                if (m && extra > 0) { model = modelWords.slice(extra).join(' '); }
+            }
             if (!m) { renderManufacturers(items); return; }
             state.manufacturer = m;
             state.vehicleType = chooseVehicleType(m);
