@@ -35,6 +35,7 @@
 <div class="epc-brands" id="epc-brands" data-umapi-href="/en/umapi_catalog" data-prices-visible="0">
     <div class="epc-brands-controls">
         <input type="search" class="form-control" id="epc-brands-search" placeholder="Search brand name, manufacturer, or country">
+        <select id="epc-brands-country" class="form-control" style="display:none;max-width:220px"><option value="">All countries</option></select>
         <a class="btn btn-default" href="/en/umapi_catalog">Open Catalog</a>
     </div>
     <div class="epc-brands-tabs">
@@ -61,6 +62,8 @@
     var output = document.getElementById('epc-brands-output');
     var mode = 'parts';
     var activeLetter = 'A';
+    var activeCountry = '';
+    var countrySelect = document.getElementById('epc-brands-country');
     var cache = { parts: null, vehicles: null };
     var pricesVisible = root.getAttribute('data-prices-visible') === '1';
     var priceLoginCta = "<span class=\"epc-price-login-cta\"><a href=\"/storefront/login\">Log in</a><span class=\"epc-price-login-cta__sep\"> or </span><a href=\"/storefront/register-app\">register</a><span class=\"epc-price-login-cta__hint\"> to see prices</span></span>";
@@ -201,7 +204,8 @@
             var letter = normalizeLetter(item.name);
             var letterMatch = activeLetter === 'All' || letter === activeLetter;
             var termMatch = !term || item.search.indexOf(term) !== -1;
-            return letterMatch && termMatch;
+            var countryMatch = !activeCountry || (item.country || '') === activeCountry;
+            return letterMatch && termMatch && countryMatch;
         });
     }
 
@@ -214,9 +218,36 @@
         return '<span class="epc-brand-logo-wrap"><img class="epc-brand-logo" alt="" loading="eager" decoding="async" src="' + esc(item.logo) + '" onload="var p=this.closest(\'.epc-brand-item\');if(p){p.classList.add(\'has-logo-loaded\');}" onerror="var p=this.closest(\'.epc-brand-item\');if(p){p.classList.add(\'is-logo-missing\');}this.remove();">' + fallback + '</span>';
     }
 
+    function populateCountries() {
+        if (!countrySelect) {
+            return;
+        }
+        if (mode !== 'vehicles') {
+            countrySelect.style.display = 'none';
+            return;
+        }
+        var seen = {};
+        (cache.vehicles || []).forEach(function (item) {
+            var c = String(item.country || '').trim();
+            if (c) {
+                seen[c] = true;
+            }
+        });
+        var countries = Object.keys(seen).sort(function (a, b) {
+            return countryLabel(a).localeCompare(countryLabel(b));
+        });
+        countrySelect.innerHTML = '<option value="">All countries (' + countries.length + ')</option>' +
+            countries.map(function (c) {
+                return '<option value="' + esc(c) + '">' + esc(countryLabel(c)) + '</option>';
+            }).join('');
+        countrySelect.value = activeCountry;
+        countrySelect.style.display = countries.length ? '' : 'none';
+    }
+
     function render() {
         var items = cache[mode] || [];
         buildLetters(items);
+        populateCountries();
         var shown = filteredItems();
         summary.innerHTML = 'Showing ' + shown.length + ' of ' + items.length + ' available ' + (mode === 'parts' ? 'parts brands' : 'vehicle manufacturers') + '.';
         if (!shown.length) {
@@ -339,13 +370,21 @@
             return;
         }
         showLoading(mode === 'parts' ? 'Loading available parts brands...' : 'Loading vehicle manufacturers...');
-        (mode === 'parts' ? loadParts(0, [], 0) : loadVehicles()).catch(showError);
+        (mode === 'parts' ? loadParts(0, [], 0) : loadVehicles()).then(populateCountries).catch(showError);
+    }
+
+    if (countrySelect) {
+        countrySelect.onchange = function () {
+            activeCountry = countrySelect.value;
+            render();
+        };
     }
 
     Array.prototype.forEach.call(root.querySelectorAll('.epc-brands-tabs button'), function (button) {
         button.onclick = function () {
             mode = button.getAttribute('data-mode');
             activeLetter = 'A';
+            activeCountry = '';
             Array.prototype.forEach.call(root.querySelectorAll('.epc-brands-tabs button'), function (item) {
                 item.classList.toggle('active', item === button);
             });
