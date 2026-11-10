@@ -276,7 +276,7 @@ public static class StorefrontPartsApiProduct
         // Warehouse: same normalized-article lookup the part search uses, gated by
         // the shared storefront price visibility rule (guest/pending redacted).
         var access = await priceAccess.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
-        var stock = await LoadWarehouseStockAsync(connections, context, number, cancellationToken)
+        var stock = await LoadWarehouseStockAsync(connections, context, number, brand, cancellationToken)
             .ConfigureAwait(false);
 
         var html = Render(brand, number, artName, images, specs, vehicles, crosses,
@@ -363,7 +363,7 @@ public static class StorefrontPartsApiProduct
 
     private static async Task<List<WarehouseRow>> LoadWarehouseStockAsync(
         ITenantDbConnectionFactory connections, HttpContext context, string number,
-        CancellationToken cancellationToken)
+        string brand, CancellationToken cancellationToken)
     {
         var rows = new List<WarehouseRow>();
         var compact = NormalizeBrand(number);
@@ -392,13 +392,17 @@ public static class StorefrontPartsApiProduct
                     OR REPLACE(REPLACE(REPLACE(REPLACE(UPPER(TRIM(`article_show`)), ' ', ''), '-', ''), '.', ''), '/', '') = @compact
                   )
                 GROUP BY UPPER(TRIM(`manufacturer`)), COALESCE(NULLIF(`article_show`, ''), `article`)
-                ORDER BY manufacturer ASC, price ASC
+                ORDER BY (REPLACE(REPLACE(REPLACE(REPLACE(UPPER(TRIM(`manufacturer`)), ' ', ''), '-', ''), '.', ''), '/', '') = @brand) DESC, manufacturer ASC, price ASC
                 LIMIT 60
                 """;
             var parameter = command.CreateParameter();
             parameter.ParameterName = "@compact";
             parameter.Value = compact;
             command.Parameters.Add(parameter);
+            var brandParameter = command.CreateParameter();
+            brandParameter.ParameterName = "@brand";
+            brandParameter.Value = NormalizeBrand(brand);
+            command.Parameters.Add(brandParameter);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -529,7 +533,7 @@ public static class StorefrontPartsApiProduct
 
         // Stock box
         sb.Append("<div class=\"epc-prod-stock\">");
-        var totalStock = stock.Sum(s => s.Exist);
+        var totalStock = stock.Where(s => NormalizeBrand(s.Manufacturer) == wantedBrand).Sum(s => s.Exist);
         sb.Append("<div class=\"epc-prod-stockbox\">");
         if (inStock)
         {
