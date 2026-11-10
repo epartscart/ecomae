@@ -165,9 +165,13 @@ public static class StorefrontPartsApiProduct
                 if (response.IsSuccessStatusCode)
                 {
                     using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
-                    if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                    var rows = doc.RootElement.ValueKind == JsonValueKind.Array ? doc.RootElement
+                        : doc.RootElement.ValueKind == JsonValueKind.Object && doc.RootElement.TryGetProperty("data", out var d) && d.ValueKind == JsonValueKind.Array ? d
+                        : doc.RootElement.ValueKind == JsonValueKind.Object && doc.RootElement.TryGetProperty("rows", out var r) && r.ValueKind == JsonValueKind.Array ? r
+                        : (JsonElement?)null;
+                    if (rows.HasValue)
                     {
-                        foreach (var row in doc.RootElement.EnumerateArray())
+                        foreach (var row in rows.Value.EnumerateArray())
                         {
                             var b = NormalizeBrand(Text(row, "BRAND", "SUP_BRAND") ?? "");
                             var title = Text(row, "TITLE", "DES", "DISPLAY") ?? "";
@@ -523,7 +527,7 @@ public static class StorefrontPartsApiProduct
         sb.Append("</style>");
 
         // Title bar
-        var title = brand + " " + number + " - " + name;
+        var title = name.Length > 0 ? brand + " " + number + " - " + name : brand + " " + number;
         if (oe.Count > 0)
         {
             title += " (" + string.Join(", ", oe) + (crosses.Count > 5 ? "…" : "") + ")";
