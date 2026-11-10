@@ -24,6 +24,7 @@ public static class StorefrontPartsApiProduct
     {
         endpoints.MapGet(Path, HandleAsync).AllowAnonymous();
         endpoints.MapGet(FragmentPath, HandleAsyncLegacy).AllowAnonymous();
+        endpoints.MapGet("/api/article_product", HandleAsyncLegacy).AllowAnonymous();
     }
 
     private static IResult HandleAsync(HttpContext context)
