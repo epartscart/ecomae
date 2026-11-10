@@ -986,7 +986,7 @@ public static class HomeCatalogWidgets
         CancellationToken cancellationToken)
     {
         var carType = PartsApiCarType(section);
-        var parms = new Dictionary<string, string> { ["carType"] = carType, ["lang"] = "16" };
+        var parms = new Dictionary<string, string> { ["carType"] = carType, ["lang"] = "en" };
         string method;
         if (action == "manufacturers")
         {

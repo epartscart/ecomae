@@ -49,7 +49,7 @@ public static class StorefrontPartsApiProduct
     {
         var brand = context.Request.Query["brand"].ToString().Trim();
         var number = context.Request.Query["number"].ToString().Trim();
-        var lang = context.Request.Query["lang"].ToString().Trim() is { Length: > 0 } l ? l : "16";
+        var lang = context.Request.Query["lang"].ToString().Trim() is { Length: > 0 } l ? l : "en";
 
         // Resolve the article id (needed for media/criteria/crosses).
         var artId = "";
