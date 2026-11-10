@@ -1079,8 +1079,8 @@ public static class HomeCatalogWidgets
                     ["PC_ID"] = id, ["CV_ID"] = id,
                     ["PASSENGER_CAR"] = PartsApiText(r, "carName", "CAR_NAME", "name") ?? "",
                     ["COMMERCIAL_VEHICLE"] = PartsApiText(r, "carName", "CAR_NAME", "name") ?? "",
-                    ["CI_FROM"] = PartsApiText(r, "yearsFrom", "constructionInterval") ?? "",
-                    ["CI_TO"] = PartsApiText(r, "yearsTo") ?? "",
+                    ["CI_FROM"] = PartsApiYear(PartsApiText(r, "yearsFrom", "constructionInterval")),
+                    ["CI_TO"] = PartsApiYear(PartsApiText(r, "yearsTo")),
                     ["POWER_KW"] = PartsApiText(r, "powerKw", "POWER_KW") ?? "",
                     ["CAPACITY_LT"] = PartsApiText(r, "capacityLt", "CAPACITY_LT") ?? "",
                     ["FUEL_TYPE"] = PartsApiText(r, "fuelType", "FUEL_TYPE") ?? "",
@@ -1098,13 +1098,20 @@ public static class HomeCatalogWidgets
 
     private static string PartsApiYear(string? raw)
     {
-        // " 01 Aug 2015" -> "Aug 2015"; keeps the umapi CI_FROM/CI_TO display style.
+        // TecDoc RFC-1123 dates: "Sat, 01 Aug 2015 00:00:00 GMT" -> "Aug 2015".
+        // The "01 Jan 1970" sentinel means open-ended -> "9999" (umapi convention).
         if (string.IsNullOrEmpty(raw) || raw.Length <= 4)
         {
             return raw ?? string.Empty;
         }
 
-        return raw.Substring(4, Math.Min(12, raw.Length - 4)).Trim();
+        var body = raw.Substring(4, Math.Min(12, raw.Length - 4)).Trim();
+        if (body.Contains("1970"))
+        {
+            return "9999";
+        }
+
+        return body;
     }
 
     private static List<JsonElement> PartsApiRows(JsonElement root)
