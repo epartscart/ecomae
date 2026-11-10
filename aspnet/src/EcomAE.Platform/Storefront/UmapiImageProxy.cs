@@ -173,6 +173,10 @@ public static class UmapiImageProxy
                 {
                     var cachedType = rs.GetString(0);
                     var cachedBody = (byte[])rs.GetValue(1);
+                    if (IsUmapiPlaceholder(cachedBody))
+                    {
+                        return Results.Text("Not found", "text/plain; charset=utf-8", Encoding.UTF8, StatusCodes.Status404NotFound);
+                    }
                     context.Response.Headers.CacheControl = "public, max-age=604800, immutable";
                     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
                     return Results.File(cachedBody, cachedType);
@@ -193,7 +197,7 @@ public static class UmapiImageProxy
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("image/*"));
             using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
             var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode || bytes.Length < 64)
+            if (!response.IsSuccessStatusCode || bytes.Length < 64 || IsUmapiPlaceholder(bytes))
             {
                 return Results.Text("Not found", "text/plain; charset=utf-8", Encoding.UTF8, StatusCodes.Status404NotFound);
             }
@@ -231,6 +235,15 @@ public static class UmapiImageProxy
             return Results.Text("Not found", "text/plain; charset=utf-8", Encoding.UTF8, StatusCodes.Status404NotFound);
         }
     }
+
+    /// <summary>image.umapi.ru answers HTTP 200 with a generic "no photo" JPEG for every missing
+    /// image — all supplier logos included — so bytes must be checked, not the status code.</summary>
+    private static bool IsUmapiPlaceholder(byte[] body)
+        => body.Length == 43525
+            && string.Equals(
+                System.Convert.ToHexString(System.Security.Cryptography.MD5.HashData(body)).ToLowerInvariant(),
+                "04c19007f273129fe271a162913f1de5",
+                StringComparison.Ordinal);
 
     private static async Task EnsureImageCacheAsync(System.Data.Common.DbConnection connection, CancellationToken cancellationToken)
     {
