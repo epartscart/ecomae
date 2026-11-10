@@ -786,6 +786,7 @@ public static class StorefrontPartsApiProduct
         sb.Append(".epc-prod .epc-prod-tab.on{background:#fff;color:#e8600a;border-top:2px solid #e8600a;font-weight:700}");
         sb.Append(".epc-prod .epc-prod-pane{border:1px solid #ddd;border-top:0;background:#fff;padding:16px}");
         sb.Append(".epc-prod .epc-oe-table{width:100%;border-collapse:collapse;font-size:12px}");
+        sb.Append(".epc-prod .epc-oe-scroll{max-height:380px;overflow-y:auto}");
         sb.Append(".epc-prod .epc-oe-table td{border:1px solid #eee;padding:6px 10px;vertical-align:top}");
         sb.Append(".epc-prod .epc-oe-table td.brand{font-weight:700;text-align:center;background:#fafafa;white-space:nowrap}");
         sb.Append(".epc-prod .epc-oe-num{display:inline-block;margin:0 14px 6px 0;color:#333}");
@@ -794,6 +795,7 @@ public static class StorefrontPartsApiProduct
         sb.Append(".epc-prod .epc-veh-make{width:56px;height:56px;border:1px solid #e0e0e0;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;font-size:10px;color:#555;text-align:center;background:#fff;padding:4px}");
         sb.Append(".epc-prod .epc-veh-make.on{border:2px solid #e8600a;color:#e8600a;box-shadow:0 1px 4px rgba(232,96,10,.25)}");
         sb.Append(".epc-prod .epc-veh-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 30px}");
+        sb.Append(".epc-prod #epcVehRows{max-height:480px;overflow-y:auto}");
         sb.Append(".epc-prod .epc-veh-sub{color:#e8600a;font-weight:700;margin:0 0 6px;padding-bottom:4px;border-bottom:1px solid #eee}");
         sb.Append(".epc-prod .epc-veh-row{display:grid;grid-template-columns:1fr 1fr;gap:0 30px;padding:9px 6px;font-size:13px;border-bottom:1px solid #f0f0f0;color:inherit;text-decoration:none}");
         sb.Append(".epc-prod .epc-veh-row:nth-child(even){background:#faf6f2}");
@@ -903,7 +905,7 @@ public static class StorefrontPartsApiProduct
         sb.Append("<div class=\"epc-prod-pane\" data-pane=\"oe\">");
         if (crosses.Count > 0)
         {
-            sb.Append("<table class=\"epc-oe-table\">");
+            sb.Append("<div class=\"epc-oe-scroll\"><table class=\"epc-oe-table\">");
             foreach (var grp in crosses.GroupBy(c => c[0], StringComparer.OrdinalIgnoreCase))
             {
                 sb.Append("<tr><td class=\"brand\">").Append(E(grp.Key)).Append("</td><td>");
@@ -914,7 +916,7 @@ public static class StorefrontPartsApiProduct
                 }
                 sb.Append("</td></tr>");
             }
-            sb.Append("</table>");
+            sb.Append("</table></div>");
         }
         else
         {
