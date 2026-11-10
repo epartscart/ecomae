@@ -795,7 +795,7 @@ public static class StorefrontPartsApiProduct
         sb.Append(".epc-prod .epc-veh-make{width:56px;height:56px;border:1px solid #e0e0e0;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;font-size:10px;color:#555;text-align:center;background:#fff;padding:4px}");
         sb.Append(".epc-prod .epc-veh-make.on{border:2px solid #e8600a;color:#e8600a;box-shadow:0 1px 4px rgba(232,96,10,.25)}");
         sb.Append(".epc-prod .epc-veh-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 30px}");
-        sb.Append(".epc-prod #epcVehRows{max-height:480px;overflow-y:auto}");
+        sb.Append(".epc-prod #epcVehRows{max-height:240px;overflow-y:auto}");
         sb.Append(".epc-prod .epc-veh-sub{color:#e8600a;font-weight:700;margin:0 0 6px;padding-bottom:4px;border-bottom:1px solid #eee}");
         sb.Append(".epc-prod .epc-veh-row{display:grid;grid-template-columns:1fr 1fr;gap:0 30px;padding:9px 6px;font-size:13px;border-bottom:1px solid #f0f0f0;color:inherit;text-decoration:none}");
         sb.Append(".epc-prod .epc-veh-row:nth-child(even){background:#faf6f2}");
@@ -974,7 +974,7 @@ public static class StorefrontPartsApiProduct
             {
                 var years = (v[3] + (v[4].Length > 0 ? " - " + v[4] : "")).Trim(' ', '-');
                 // car-mod: clicking a vehicle opens that car's catalog drill-down.
-                var carUrl = "/en/catalog?make=" + Uri.EscapeDataString(v[0])
+                var carUrl = "/en/umapi_catalog?make=" + Uri.EscapeDataString(v[0])
                     + (v[1].Length > 0 ? "&model=" + Uri.EscapeDataString(v[1].Split('(')[0].Trim()) : "");
                 sb.Append("<a class=\"epc-veh-row\" data-make=\"").Append(E(v[0])).Append("\" href=\"").Append(E(carUrl)).Append("\"><div class=\"epc-veh-cell\"><b>")
                     .Append(E(v[1].Length > 0 ? v[1] : v[0])).Append("</b>")
