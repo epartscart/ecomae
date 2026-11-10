@@ -18,7 +18,7 @@ public static class StorefrontPartsApiProduct
     public const string Path = "/api/partsapi_product.php";
 
     /// <summary>ASP.NET-native fragment endpoint feeding the product hero on /en/parts/{BRAND}/{ARTICLE}.</summary>
-    public const string FragmentPath = "/api/article_product";
+    public const string FragmentPath = "/api/article_product.php";
 
     public static void Map(IEndpointRouteBuilder endpoints)
     {

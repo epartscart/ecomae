@@ -1075,7 +1075,7 @@
   function loadProductHero(brand, article) {
     var host = document.getElementById('epc-product-hero');
     if (!host || !brand || !article) return;
-    fetch('/api/article_product?brand=' + encodeURIComponent(brand) + '&number=' + encodeURIComponent(article))
+    fetch('/api/article_product.php?brand=' + encodeURIComponent(brand) + '&number=' + encodeURIComponent(article))
       .then(function (r) { return r.ok ? r.text() : ''; })
       .then(function (html) { if (html) host.innerHTML = html; })
       .catch(function () {});
