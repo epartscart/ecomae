@@ -24,7 +24,7 @@ public static class StorefrontPhpCanonical
     public const string EpartsMod = LangPrefix + "/eparts-mod";
     public const string PartsApiCatalog = LangPrefix + "/partsapi-catalog";
     public const string LevamOem = LangPrefix + "/levam-oem";
-    public const string UmapiCatalog = LangPrefix + "/umapi_catalog";
+    public const string UmapiCatalog = LangPrefix + "/catalog";
     public const string UcatsService = LangPrefix + "/shop/katalogi-ucats";
     public const string OriginalCatalog = LangPrefix + "/original-catalog";
     public const string DemandIntelligence = LangPrefix + "/demand-intelligence";

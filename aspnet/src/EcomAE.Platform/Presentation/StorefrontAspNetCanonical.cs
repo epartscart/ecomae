@@ -33,7 +33,7 @@ public static class StorefrontAspNetCanonical
     public const string EpartsMod = "/storefront/eparts-mod-app";
     public const string PartsApiCatalog = "/storefront/eparts-cata-app";
     public const string LevamOem = "/storefront/original-catalog-app";
-    public const string UmapiCatalog = "/storefront/umapi-catalog-app";
+    public const string UmapiCatalog = "/en/catalog";
     public const string UcatsService = "/storefront/ucats-app";
     public const string OriginalCatalog = "/storefront/original-catalog-app";
     public const string DemandIntelligence = "/storefront/demand-intelligence-app";

@@ -16,7 +16,7 @@ public sealed class StorefrontPhpHomeLinksTests
         var lang = StorefrontPhpHomeLinks.LangHref(ctx);
         Assert.Equal("/en", lang);
         Assert.Equal("/en/parts", StorefrontPhpHomeLinks.Parts(lang));
-        Assert.Equal("/en/umapi_catalog", StorefrontPhpHomeLinks.UmapiCatalog(lang));
+        Assert.Equal("/en/catalog", StorefrontPhpHomeLinks.UmapiCatalog(lang));
         Assert.Equal("/en/available-brands", StorefrontPhpHomeLinks.AvailableBrands(lang));
         Assert.Equal("/en/product-family", StorefrontPhpHomeLinks.ProductFamily(lang));
         Assert.Equal("/en/vehicle-catalog", StorefrontPhpHomeLinks.VehicleCatalog(lang));

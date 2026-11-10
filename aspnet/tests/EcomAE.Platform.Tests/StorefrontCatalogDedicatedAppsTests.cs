@@ -19,7 +19,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
     [Fact]
     public void DedicatedCatalogAppsAreNotHomepageHashes()
     {
-        Assert.Equal("/storefront/umapi-catalog-app", StorefrontAspNetCanonical.UmapiCatalog);
+        Assert.Equal("/en/catalog", StorefrontAspNetCanonical.UmapiCatalog);
         Assert.Equal("/storefront/product-family-app", StorefrontAspNetCanonical.ProductFamily);
         Assert.Equal("/storefront/available-brands-app", StorefrontAspNetCanonical.AvailableBrands);
         Assert.Equal("/storefront/available-brands-app", StorefrontAspNetCanonical.PartsInStock);
