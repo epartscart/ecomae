@@ -759,7 +759,8 @@ public static class HomeCatalogWidgets
             }
 
             if (action is "categories" or "products" or "articles" or "vin" or "manufacturers" or "models" or "modifications" or "suppliers"
-                or "brands" or "analogs" or "article" or "article_links" or "engines" or "engine")
+                or "brands" or "analogs" or "article" or "article_links" or "engines" or "engine"
+                or "modification" or "language_codes" or "region_codes")
             {
                 var live = await TryLiveUmapiAsync(httpClientFactory, action, section, context, cancellationToken).ConfigureAwait(false);
                 var liveEmpty = action is "manufacturers" or "models" or "modifications" or "categories" or "products" or "articles"
@@ -2087,6 +2088,10 @@ public static class HomeCatalogWidgets
             "article_links" => catalog + "/ArticleLinks/" + Uri.EscapeDataString(context.Request.Query["id"].ToString()),
             "engines" => catalog + "/Engines?MFA_ID=" + Uri.EscapeDataString(context.Request.Query["MFA_ID"].ToString()),
             "engine" => catalog + "/Engine/" + Uri.EscapeDataString(context.Request.Query["id"].ToString()),
+            "modification" => catalog + "/" + (section == "commercial" ? "CommercialVehicle" : section == "motorbike" ? "Motorbike" : "Passanger")
+                + "/" + Uri.EscapeDataString(context.Request.Query["id"].ToString()),
+            "language_codes" => catalog + "/LanguageCodes",
+            "region_codes" => catalog + "/RegionCodes",
             _ => "",
         };
         if (section == "commercial" && action == "manufacturers")
