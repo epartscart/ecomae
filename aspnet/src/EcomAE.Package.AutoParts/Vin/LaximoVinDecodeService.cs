@@ -320,14 +320,22 @@ public sealed class LaximoVinDecodeService : ILaximoVinDecodeService
                 cancellationToken,
                 vin, "en", "WWW", System.Text.Json.JsonSerializer.Serialize(new
                     {
-                        ok = true,
-                        source = "laximo",
-                        vin,
-                        manufacturer,
-                        model_label = model,
-                        vehicle_count = vehicles.Count,
-                        vehicles = vehicles.Select(v => new { brand = v.Brand, name = v.Name, catalog = v.Catalog, ssd = v.Ssd }),
-                        raw_xml = rawXml
+                        data = new
+                        {
+                            matchingManufacturers = new { array = new[] { new { manuName = manufacturer } } },
+                            matchingVehicles = new
+                            {
+                                array = vehicles.Select(v => new
+                                {
+                                    carName = (v.Brand + " " + v.Name).Trim(),
+                                    vehicleTypeDescription = v.Name,
+                                    catalog = v.Catalog,
+                                    ssd = v.Ssd
+                                }).ToArray()
+                            },
+                            matchingVehiclesCount = vehicles.Count
+                        },
+                        status = 200
                     }), vehicles.Count, manufacturer, model, 200).ConfigureAwait(false);
         }
         catch

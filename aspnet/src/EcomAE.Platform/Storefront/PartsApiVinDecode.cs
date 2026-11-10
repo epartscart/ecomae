@@ -86,6 +86,19 @@ public static class PartsApiVinDecode
         }
 
         var vehicles = new List<LaximoVehicleRow> { new(manufacturer, model, "", "") };
+        var cacheJson = JsonSerializer.Serialize(new
+        {
+            data = new
+            {
+                matchingManufacturers = new { array = new[] { new { manuName = manufacturer } } },
+                matchingVehicles = new
+                {
+                    array = new[] { new { carName = (manufacturer + " " + model).Trim(), vehicleTypeDescription = model } }
+                },
+                matchingVehiclesCount = count
+            },
+            status = 200
+        });
         if (connections.IsConfigured)
         {
             try
@@ -97,7 +110,7 @@ public static class PartsApiVinDecode
                     ErpDb.Positional(
                         "INSERT INTO `epc_umapi_vin_cache` (`vin`,`language`,`region`,`response_json`,`vehicle_count`,`manufacturer`,`model_label`,`http_status`,`updated_at`) VALUES (?,?,?,?,?,?,?,?,UTC_TIMESTAMP()) ON DUPLICATE KEY UPDATE `response_json`=VALUES(`response_json`), `vehicle_count`=VALUES(`vehicle_count`), `manufacturer`=VALUES(`manufacturer`), `model_label`=VALUES(`model_label`), `http_status`=VALUES(`http_status`), `updated_at`=UTC_TIMESTAMP()"),
                     cancellationToken,
-                    vin, "en", "WWW", result.Json, count, manufacturer, model, 200).ConfigureAwait(false);
+                    vin, "en", "WWW", cacheJson, count, manufacturer, model, 200).ConfigureAwait(false);
             }
             catch (Exception)
             {
