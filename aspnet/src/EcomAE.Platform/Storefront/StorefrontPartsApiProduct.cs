@@ -109,19 +109,49 @@ public static class StorefrontPartsApiProduct
         }
 
         var vehicles = new List<string[]>();
-        foreach (var row in Rows(results.GetValueOrDefault("fitment")))
+        var fitmentRows = Rows(results.GetValueOrDefault("fitment"));
+        if (!fitmentRows.Any())
         {
+            // getApplicability needs the brand parameter some suppliers don't
+            // publish; getApplicability2 keys on the number alone and returns
+            // the full linked-vehicle list.
+            try
+            {
+                results["fitment2"] = await partsApi.ExecuteAsync(new PartsApiRequest("getApplicability2",
+                    new Dictionary<string, string> { ["sku"] = number }), cancellationToken).ConfigureAwait(false);
+                fitmentRows = Rows(results["fitment2"]);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        foreach (var row in fitmentRows)
+        {
+            var carName = Text(row, "carName") ?? "";
+            var sp = carName.IndexOf(' ');
             var cells = new[]
             {
-                Text(row, "make", "makeName", "MFA_BRAND", "manufacturer") ?? "",
-                Text(row, "model", "modelName", "MOD_CDS_TEXT") ?? "",
-                Text(row, "carName", "modification", "type", "engine") ?? "",
-                Text(row, "yearsFrom", "yearFrom", "from") ?? "",
-                Text(row, "yearsTo", "yearTo", "to") ?? "",
+                Text(row, "make", "makeName", "MFA_BRAND", "manufacturer")
+                    ?? (sp > 0 ? carName[..sp] : (carName.Length > 0 ? carName : "")),
+                Text(row, "model", "modelName", "MOD_CDS_TEXT")
+                    ?? (sp > 0 ? carName[(sp + 1)..] : ""),
+                Text(row, "modification", "type", "engine")
+                    ?? (Text(row, "carName") is null ? ""
+                        : (((Text(row, "CAPACITY") ?? "") is { Length: > 0 } cap ? cap + "cc " : "")
+                            + ((Text(row, "POWER_KW") ?? "") is { Length: > 0 } kw ? kw + "kW " : "")
+                            + (Text(row, "PC_ENG_CODES") ?? "")).Trim()),
+                Text(row, "yearsFrom", "yearFrom", "yearStart", "from") ?? "",
+                Text(row, "yearsTo", "yearTo", "yearEnd", "to") ?? "",
             };
             if (cells.Any(c => c.Length > 0))
             {
                 vehicles.Add(cells);
+            }
+
+            if (vehicles.Count >= 300)
+            {
+                break;
             }
         }
 
