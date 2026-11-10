@@ -174,6 +174,7 @@
 
     function cleanDate(value) {
         value = text(value);
+        if (/^(none|null)$/i.test(value)) { return ''; }
         return value ? value.replace(/-01$/, '').replace(/-00$/, '') : '';
     }
 
@@ -446,9 +447,11 @@
             return;
         }
         var years = {};
+        var maxYear = Math.min(new Date().getFullYear() + 1, 2027);
         items.forEach(function (item) {
             var from = parseInt((item.CI_FROM || '').slice(0, 4), 10);
-            var to = parseInt((item.CI_TO || '').slice(0, 4), 10) || new Date().getFullYear();
+            var to = parseInt((item.CI_TO || '').slice(0, 4), 10);
+            if (!to || to > maxYear) { to = maxYear; }
             for (var y = from; y <= to && y > 1900; y++) { years[y] = true; }
         });
         var yearOpts = Object.keys(years).sort(function (a, b) { return b - a; })
@@ -465,7 +468,8 @@
         var toolbar = '<div class="epc-umapi-modelfilter"><select id="epc-umapi-yearsel" class="form-control"><option value="">Year</option>' +
             yearOpts + '</select><div class="epc-umapi-letters">' + letterBtns + '</div></div>';
         output.innerHTML = listSummary('Select model series for ' + (state.manufacturer ? state.manufacturer.MANUFACTURER : 'selected brand') + '.', items) + toolbar + '<div class="epc-umapi-model-grid">' + items.map(function (item, index) {
-            var years = cleanDate(item.CI_FROM) + (item.CI_TO ? ' \u2014 ' + cleanDate(item.CI_TO) : '');
+            var years = cleanDate(item.CI_FROM);
+            if (years) { years += cleanDate(item.CI_TO) ? ' \u2014 ' + cleanDate(item.CI_TO) : ' \u2014 p.t.'; }
             var img = item.MS_ID ? '<img class="epc-umapi-model-img" alt="" loading="lazy" src="/api/umapi_image.php?kind=model&id=' + encodeURIComponent(item.MS_ID) + '" onerror="this.remove()">' : '';
             var yFrom = parseInt((item.CI_FROM || '').slice(0, 4), 10) || 0;
             var yTo = parseInt((item.CI_TO || '').slice(0, 4), 10) || 9999;
