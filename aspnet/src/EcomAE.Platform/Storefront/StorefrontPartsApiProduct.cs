@@ -360,6 +360,30 @@ public static class StorefrontPartsApiProduct
             }
         }
 
+        // Cross refs are language-neutral — serve the cached ru-locale rows when
+        // the en call was throttled and nothing came back.
+        if (crosses.Count == 0 && artId.Length > 0)
+        {
+            try
+            {
+                var ruCrosses = await partsApi.ExecuteAsync(new PartsApiRequest("getArticleCrosses",
+                    new Dictionary<string, string> { ["ART_ID"] = artId, ["LANG"] = "16" }), cancellationToken).ConfigureAwait(false);
+                foreach (var row in Rows(ruCrosses))
+                {
+                    var cb = Text(row, "ART_BRAND", "brand", "SUP_BRAND", "crossBrand", "OEM_BRAND") ?? "";
+                    var cn = Text(row, "ART_DISPLAY_NR", "number", "ARTICLE_NR", "crossNumber", "ART_NUM") ?? "";
+                    var cname = Text(row, "ART_PRODUCT_NAME", "name", "ART_NAME", "title") ?? "";
+                    if ((cb + cn).Length > 0)
+                    {
+                        crosses.Add(new[] { cb, cn, cname });
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
         // EAN/barcode — umapi article payload first, then any row field.
         var ean = "";
         if (umapiArticle.ValueKind == JsonValueKind.Object)
@@ -393,9 +417,12 @@ public static class StorefrontPartsApiProduct
         var access = await priceAccess.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
         var stock = await LoadWarehouseStockAsync(connections, context, number, brand, cancellationToken)
             .ConfigureAwait(false);
+        var makeLogos = await LoadMakeLogoIdsAsync(connections, context,
+            vehicles.Select(v => v[0]).Where(m => m.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
+            cancellationToken).ConfigureAwait(false);
 
         var html = Render(brand, number, artName, artCategory, images, specs, vehicles, crosses,
-            stock, access, ean);
+            stock, access, ean, makeLogos);
         context.Response.Headers.CacheControl = "no-store";
         return Results.Text(html, "text/html; charset=utf-8", Encoding.UTF8);
     }
@@ -538,6 +565,51 @@ public static class StorefrontPartsApiProduct
         return rows;
     }
 
+    // Real make logos for the Suitable-vehicles tiles — the umapi manufacturers
+    // table already carries MNF ids with is_logo for synced tenants.
+    private static async Task<Dictionary<string, int>> LoadMakeLogoIdsAsync(
+        ITenantDbConnectionFactory connections, HttpContext context,
+        List<string> makes, CancellationToken cancellationToken)
+    {
+        var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        if (makes.Count == 0)
+        {
+            return map;
+        }
+
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken)
+                .ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `manufacturer`, MIN(`mfa_id`) FROM `epc_umapi_manufacturers` WHERE `is_logo` = 1 GROUP BY `manufacturer`";
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var byNorm = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var name = reader.IsDBNull(0) ? "" : reader.GetString(0);
+                if (name.Length > 0)
+                {
+                    byNorm[NormalizeBrand(name)] = reader.GetInt32(1);
+                }
+            }
+
+            foreach (var make in makes)
+            {
+                if (byNorm.TryGetValue(NormalizeBrand(make), out var id))
+                {
+                    map[make] = id;
+                }
+            }
+        }
+        catch (Exception)
+        {
+        }
+
+        return map;
+    }
+
     private static string E(string? s) => System.Net.WebUtility.HtmlEncode(s ?? "");
 
     // Barcode module pattern: EAN-13 (95 modules) or EAN-8 (67 modules).
@@ -678,7 +750,8 @@ public static class StorefrontPartsApiProduct
     private static string Render(string brand, string number, string name, string category,
         List<string> images, List<(string Name, string Value)> specs,
         List<string[]> vehicles, List<string[]> crosses,
-        List<WarehouseRow> stock, StorefrontPriceAccessResult access, string ean)
+        List<WarehouseRow> stock, StorefrontPriceAccessResult access, string ean,
+        Dictionary<string, int> makeLogos)
     {
         var wantedBrand = NormalizeBrand(brand);
         var inStock = stock.Exists(s => s.Exist > 0 && NormalizeBrand(s.Manufacturer) == wantedBrand);
@@ -845,7 +918,7 @@ public static class StorefrontPartsApiProduct
         }
         else
         {
-            sb.Append("<div class=\"epc-empty\">Cross reference data is loading on first request.</div>");
+            sb.Append("<div class=\"epc-empty\">No cross references found for this article.</div>");
         }
         if (ean.Length >= 8)
         {
@@ -882,7 +955,17 @@ public static class StorefrontPartsApiProduct
             foreach (var m in makeList)
             {
                 sb.Append("<button type=\"button\" class=\"epc-veh-make\" onclick=\"epcProdMake(this)\" data-make=\"")
-                    .Append(E(m)).Append("\">").Append(E(m.Length > 6 ? m[..6] : m)).Append("</button>");
+                    .Append(E(m)).Append("\" title=\"").Append(E(m)).Append("\">");
+                if (makeLogos.TryGetValue(m, out var logoId))
+                {
+                    sb.Append("<img src=\"/api/umapi_image.php?kind=manufacturer&id=").Append(logoId)
+                        .Append("\" alt=\"").Append(E(m)).Append("\" style=\"max-width:100%;max-height:100%;object-fit:contain\" onerror=\"this.outerHTML='" + E(m.Length > 6 ? m[..6] : m) + "'\">");
+                }
+                else
+                {
+                    sb.Append(E(m.Length > 6 ? m[..6] : m));
+                }
+                sb.Append("</button>");
             }
             sb.Append("</div><div class=\"epc-veh-grid\"><div class=\"epc-veh-col\"><div class=\"epc-veh-sub\">Model, Year</div></div><div class=\"epc-veh-col\"><div class=\"epc-veh-sub\">Engine</div></div></div><div id=\"epcVehRows\">");
             foreach (var v in vehicles)
@@ -902,7 +985,7 @@ public static class StorefrontPartsApiProduct
         }
         else
         {
-            sb.Append("<div class=\"epc-empty\">Vehicle applicability is loading on first request.</div>");
+            sb.Append("<div class=\"epc-empty\">No vehicle applicability found for this article.</div>");
         }
         sb.Append("</div>");
 
