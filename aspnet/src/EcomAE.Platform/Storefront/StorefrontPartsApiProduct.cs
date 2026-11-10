@@ -56,6 +56,7 @@ public static class StorefrontPartsApiProduct
         var artId = "";
         string? supId = null;
         var artName = "";
+        var artCategory = "";
         var search = await partsApi.ExecuteAsync(new PartsApiRequest("searchArticles",
             new Dictionary<string, string> { ["SEARCH_NUMBER"] = number, ["LANG"] = lang }), cancellationToken).ConfigureAwait(false);
         var wanted = NormalizeBrand(brand);
@@ -141,6 +142,12 @@ public static class StorefrontPartsApiProduct
             if (umapiName.Length > 0)
             {
                 artName = umapiName;
+            }
+
+            var umapiCategory = Text(umapiArticle, "CATEGORY_NAME", "CATEGORY", "PRODUCT_GROUP", "GA_DES", "GROUP_NAME", "ART_PRODUCT_GROUP") ?? "";
+            if (umapiCategory.Length > 0)
+            {
+                artCategory = umapiCategory;
             }
         }
 
@@ -243,6 +250,37 @@ public static class StorefrontPartsApiProduct
             }
         }
 
+        // English-only rule: when the en criteria call yielded nothing (provider
+        // throttled), fall back to the cached Russian payload and translate the
+        // well-known criterion names/values — values like "75 [мм]" are neutral.
+        if (specs.Count == 0 && artId.Length > 0)
+        {
+            try
+            {
+                var ruCriteria = await partsApi.ExecuteAsync(new PartsApiRequest("getArticleCriteria",
+                    new Dictionary<string, string> { ["ART_ID"] = artId, ["LANG"] = "16" }), cancellationToken).ConfigureAwait(false);
+                foreach (var row in Rows(ruCriteria))
+                {
+                    var (n, unit) = TranslateSpecName(Text(row, "CRITERIA_NAME", "CRITERIA", "criteria", "name") ?? "");
+                    var v = TranslateSpecValue(Text(row, "CRITERIA_VALUE", "criteriaValue", "value", "VALUE") ?? "");
+                    if (n.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    if (unit.Length > 0 && v.Length > 0 && char.IsDigit(v[0]) && !v.EndsWith(unit, StringComparison.OrdinalIgnoreCase))
+                    {
+                        v = v + " " + unit;
+                    }
+
+                    specs.Add((n, v));
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
         if (specs.Count == 0 && umapiArticle.ValueKind == JsonValueKind.Object
             && umapiArticle.TryGetProperty("CRITERIAS", out var criterias) && criterias.ValueKind == JsonValueKind.Array)
         {
@@ -336,7 +374,9 @@ public static class StorefrontPartsApiProduct
 
         if (ean.Length == 0)
         {
-            foreach (var row in fitmentRows.Concat(Rows(results.GetValueOrDefault("crosses"))).Concat(Rows(results.GetValueOrDefault("article"))))
+            // Only the requested article's own payload — never fitment/cross rows,
+            // which describe other products and would mislabel the barcode.
+            foreach (var row in Rows(results.GetValueOrDefault("article")))
             {
                 ean = Text(row, "EAN", "EAN_CODE", "GTIN", "BARCODE", "ART_EAN") ?? "";
                 if (ean.Length >= 8)
@@ -354,7 +394,7 @@ public static class StorefrontPartsApiProduct
         var stock = await LoadWarehouseStockAsync(connections, context, number, brand, cancellationToken)
             .ConfigureAwait(false);
 
-        var html = Render(brand, number, artName, images, specs, vehicles, crosses,
+        var html = Render(brand, number, artName, artCategory, images, specs, vehicles, crosses,
             stock, access, ean);
         context.Response.Headers.CacheControl = "no-store";
         return Results.Text(html, "text/html; charset=utf-8", Encoding.UTF8);
@@ -500,28 +540,52 @@ public static class StorefrontPartsApiProduct
 
     private static string E(string? s) => System.Net.WebUtility.HtmlEncode(s ?? "");
 
-    // EAN-13 module pattern (95 modules): guard + 6 left (L/G) + center + 6 right (R) + guard.
+    // Barcode module pattern: EAN-13 (95 modules) or EAN-8 (67 modules).
     private static bool[]? Ean13Bars(string ean)
     {
         var digits = new string(ean.Where(char.IsDigit).ToArray());
         if (digits.Length == 12)
         {
-            var sum = digits.Select((c, i) => (c - '0') * (i % 2 == 0 ? 1 : 3)).Sum();
-            digits += ((10 - sum % 10) % 10).ToString();
+            // UPC-A is exactly EAN-13 with a leading zero — prefix, never append.
+            digits = "0" + digits;
         }
 
-        if (digits.Length != 13)
+        if (digits.Length == 7)
+        {
+            var sum7 = digits.Select((c, i) => (c - '0') * (i % 2 == 0 ? 3 : 1)).Sum();
+            digits += ((10 - sum7 % 10) % 10).ToString();
+        }
+
+        var ean8 = digits.Length == 8;
+        if (!ean8 && digits.Length != 13)
         {
             return null;
         }
 
         var d = digits.Select(c => c - '0').ToArray();
-        var firstG = new[] { "LLLLLL", "LLGLGG", "LLGGLG", "LLGGGL", "LGLLGG", "LGGLLG", "LGGGLL", "LGLGLG", "LGLGGL", "LGGLGL" };
         var L = new[] { "0001101", "0011001", "0010011", "0111101", "0100011", "0110001", "0101111", "0111011", "0110111", "0001011" };
         var G = new[] { "0100111", "0110011", "0011011", "0100001", "0011101", "0111001", "0000101", "0010001", "0001001", "0010111" };
         var R = new[] { "1110010", "1100110", "1101100", "1000010", "1011100", "1001110", "1010000", "1000100", "1001000", "1110100" };
-        var pattern = firstG[d[0]];
         var sb2 = new StringBuilder("101");
+        if (ean8)
+        {
+            for (var i = 0; i < 4; i++)
+            {
+                sb2.Append(L[d[i]]);
+            }
+
+            sb2.Append("01010");
+            for (var i = 4; i < 8; i++)
+            {
+                sb2.Append(R[d[i]]);
+            }
+
+            sb2.Append("101");
+            return sb2.ToString().Select(c => c == '1').ToArray();
+        }
+
+        var firstG = new[] { "LLLLLL", "LLGLGG", "LLGGLG", "LLGGGL", "LGLLGG", "LGGLLG", "LGGGLL", "LGLGLG", "LGLGGL", "LGGLGL" };
+        var pattern = firstG[d[0]];
         for (var i = 0; i < 6; i++)
         {
             sb2.Append(pattern[i] == 'L' ? L[d[i + 1]] : G[d[i + 1]]);
@@ -537,7 +601,81 @@ public static class StorefrontPartsApiProduct
         return sb2.ToString().Select(c => c == '1').ToArray();
     }
 
-    private static string Render(string brand, string number, string name,
+    private static (string Name, string Unit) TranslateSpecName(string name)
+    {
+        var t = (name ?? "").Trim();
+        var unit = "";
+        // Strip "[мм]" / "(мм)" unit suffix → English unit appended to the value.
+        var m = System.Text.RegularExpressions.Regex.Match(t, @"[\[\(](мм|см|м|бар|кг|л|мл|шт|Вт|В|А|л\.с\.|град|°)[\]\)]\s*$");
+        if (m.Success)
+        {
+            unit = m.Groups[1].Value switch
+            {
+                "мм" => "mm", "см" => "cm", "м" => "m", "бар" => "bar", "кг" => "kg",
+                "л" => "l", "мл" => "ml", "шт" => "pcs", "Вт" => "W", "В" => "V",
+                "А" => "A", "л.с." => "hp", "град" or "°" => "°",
+                _ => m.Groups[1].Value,
+            };
+            t = t[..m.Index].TrimEnd();
+        }
+
+        var en = t switch
+        {
+            "Высота" => "Height",
+            "Ширина" => "Width",
+            "Длина" => "Length",
+            "Размер резьбы" => "Thread Size",
+            "Диаметр прокладки" => "Seal Diameter",
+            "Внутренний диаметр" => "Inner diameter",
+            "Внутренний диаметр 2" => "Inner diameter 2",
+            "Наружный диаметр" or "Внешний диаметр" => "Outer diameter",
+            "Наружный диаметр 2" or "Внешний диаметр 2" => "Outer diameter 2",
+            "Вес" => "Weight",
+            "Исполнение фильтра" or "Тип фильтра" => "Filter type",
+            "Направление потока" => "Flow direction",
+            "Давление открытия обгонного клапана" or "Давление открытия перепускного клапана" => "Bypass Valve Opening Pressure",
+            "Давление открытия обходного клапана" => "Bypass Valve Opening Pressure",
+            "Пропускная способность" => "Flow rate",
+            "Монтажное положение" => "Fitting position",
+            "Типоразмер" => "Size",
+            "Количество полюсов" => "Number of poles",
+            "Напряжение" => "Voltage",
+            "Мощность" => "Power",
+            "Исполнение для страны" => "Country of design",
+            "Дополнительный артикул / дополнительная инфор" or "Дополнительный артикул" or "Дополнительная информация" => "Additional info",
+            _ => t,
+        };
+        return (en, unit);
+    }
+
+    private static string TranslateSpecValue(string value)
+    {
+        var t = (value ?? "").Trim();
+        if (t.Length == 0)
+        {
+            return t;
+        }
+
+        // units / booleans
+        if (t == "да" || t.Equals("Да", StringComparison.OrdinalIgnoreCase)) return "yes";
+        if (t == "нет" || t.Equals("Нет", StringComparison.OrdinalIgnoreCase)) return "no";
+        if (t == "Россия") return "Russia";
+        if (t == "Накручиваемый фильтр" || t == "Резьбовой фильтр") return "Screw-on Filter";
+        if (t.StartsWith("с возвратным клапаном", StringComparison.OrdinalIgnoreCase)
+            || t.StartsWith("С обратным клапаном", StringComparison.OrdinalIgnoreCase)
+            || t.StartsWith("с одним возвратным клапаном", StringComparison.OrdinalIgnoreCase))
+        {
+            return "With one anti-return valve";
+        }
+        if (t.StartsWith("без возвратного клапана", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Without anti-return valve";
+        }
+        if (t.StartsWith("в наличии", StringComparison.OrdinalIgnoreCase)) return "in stock";
+        return t;
+    }
+
+    private static string Render(string brand, string number, string name, string category,
         List<string> images, List<(string Name, string Value)> specs,
         List<string[]> vehicles, List<string[]> crosses,
         List<WarehouseRow> stock, StorefrontPriceAccessResult access, string ean)
@@ -584,7 +722,7 @@ public static class StorefrontPartsApiProduct
         sb.Append(".epc-prod .epc-veh-make.on{border:2px solid #e8600a;color:#e8600a;box-shadow:0 1px 4px rgba(232,96,10,.25)}");
         sb.Append(".epc-prod .epc-veh-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 30px}");
         sb.Append(".epc-prod .epc-veh-sub{color:#e8600a;font-weight:700;margin:0 0 6px;padding-bottom:4px;border-bottom:1px solid #eee}");
-        sb.Append(".epc-prod .epc-veh-row{display:grid;grid-template-columns:1fr 1fr;gap:0 30px;padding:9px 6px;font-size:13px;border-bottom:1px solid #f0f0f0}");
+        sb.Append(".epc-prod .epc-veh-row{display:grid;grid-template-columns:1fr 1fr;gap:0 30px;padding:9px 6px;font-size:13px;border-bottom:1px solid #f0f0f0;color:inherit;text-decoration:none}");
         sb.Append(".epc-prod .epc-veh-row:nth-child(even){background:#faf6f2}");
         sb.Append(".epc-prod .epc-veh-row:hover{background:#fdeadd}");
         sb.Append(".epc-prod .epc-veh-row b{color:#e8600a}");
@@ -633,11 +771,23 @@ public static class StorefrontPartsApiProduct
         sb.Append("<div class=\"epc-prod-name\">").Append(E(name.Length > 0 ? name : "Auto part")).Append("</div>");
         sb.Append("<ul class=\"epc-prod-bullets\"><li>").Append(E(brand)).Append(" ").Append(E(number))
             .Append(name.Length > 0 ? " — " + E(name) : "").Append("</li>");
-        var makes = vehicles.Select(v => v[0]).Where(m => m.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).Take(6).ToList();
-        if (makes.Count > 0)
+        if (category.Length > 0)
         {
-            sb.Append("<li>Suitable: <b>").Append(E(string.Join(", ", makes))).Append("</b>")
-                .Append(vehicles.Count > makes.Count ? " and more — see Suitable vehicles" : "").Append("</li>");
+            sb.Append("<li>Category: <b>").Append(E(category)).Append("</b></li>");
+        }
+        // Grouped applicability — "TOYOTA - Avensis, Camry; LIFAN - 620, X50; …"
+        var grouped = vehicles
+            .GroupBy(v => v[0], StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Key.Length > 0)
+            .Take(6)
+            .Select(g => g.Key.ToUpperInvariant() + " - " + string.Join(", ",
+                g.Select(v => v[1]).Where(m => m.Length > 0).Distinct().Take(6)))
+            .Where(s => s.TrimEnd() != "-" && !s.EndsWith("- ", StringComparison.Ordinal))
+            .ToList();
+        if (grouped.Count > 0)
+        {
+            sb.Append("<li>").Append(E(string.Join("; ", grouped)))
+                .Append(vehicles.Count > grouped.Count ? " — see Suitable vehicles" : "").Append("</li>");
         }
         sb.Append("</ul>");
         if (specs.Count > 0)
@@ -738,12 +888,15 @@ public static class StorefrontPartsApiProduct
             foreach (var v in vehicles)
             {
                 var years = (v[3] + (v[4].Length > 0 ? " - " + v[4] : "")).Trim(' ', '-');
-                sb.Append("<div class=\"epc-veh-row\" data-make=\"").Append(E(v[0])).Append("\"><div class=\"epc-veh-cell\"><b>")
+                // car-mod: clicking a vehicle opens that car's catalog drill-down.
+                var carUrl = "/en/catalog?make=" + Uri.EscapeDataString(v[0])
+                    + (v[1].Length > 0 ? "&model=" + Uri.EscapeDataString(v[1].Split('(')[0].Trim()) : "");
+                sb.Append("<a class=\"epc-veh-row\" data-make=\"").Append(E(v[0])).Append("\" href=\"").Append(E(carUrl)).Append("\"><div class=\"epc-veh-cell\"><b>")
                     .Append(E(v[1].Length > 0 ? v[1] : v[0])).Append("</b>")
                     .Append(years.Length > 0 ? "<span class=\"epc-veh-mdl\">, " + E(years) + "</span>" : "")
                     .Append("</div><div class=\"epc-veh-cell epc-veh-eng\">")
                     .Append(v[2].Length > 0 ? E(v[2]) : "")
-                    .Append("</div></div>");
+                    .Append("</div></a>");
             }
             sb.Append("</div>");
         }
