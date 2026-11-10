@@ -9,21 +9,37 @@ using EcomAE.Platform.Services;
 namespace EcomAE.Platform.Storefront;
 
 /// <summary>
-/// <c>/api/partsapi_product.php?brand=&amp;number=</c> — car-mod-style article page
-/// backed by the shared partsapi.ru subscription: hero card (photo, brand, article
-/// number, part name), criteria/spec table, "Suitable for" vehicle applicability,
-/// and the crosses/analogs table. Every response goes through
-/// <see cref="IPartsApiService"/> so each fetch is cached permanently
-/// (fetch-once/save — repeat views cost nothing).
+/// <c>/api/partsapi_product.php?brand=&amp;number=</c> — legacy entry point that
+/// redirects to the canonical CHPU product page <c>/en/parts/{BRAND}/{ARTICLE}</c>,
+/// which owns the warehouse offers table and add-to-cart actions.
 /// </summary>
 public static class StorefrontPartsApiProduct
 {
     public const string Path = "/api/partsapi_product.php";
 
-    public static void Map(IEndpointRouteBuilder endpoints)
-        => endpoints.MapGet(Path, HandleAsync).AllowAnonymous();
+    /// <summary>ASP.NET-native fragment endpoint feeding the product hero on /en/parts/{BRAND}/{ARTICLE}.</summary>
+    public const string FragmentPath = "/api/article_product";
 
-    private static async Task<IResult> HandleAsync(
+    public static void Map(IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapGet(Path, HandleAsync).AllowAnonymous();
+        endpoints.MapGet(FragmentPath, HandleAsyncLegacy).AllowAnonymous();
+    }
+
+    private static IResult HandleAsync(HttpContext context)
+    {
+        var brand = context.Request.Query["brand"].ToString().Trim();
+        var number = context.Request.Query["number"].ToString().Trim();
+        if (brand.Length == 0 || number.Length == 0)
+        {
+            return Results.Text("brand and number are required", "text/plain; charset=utf-8", Encoding.UTF8, StatusCodes.Status400BadRequest);
+        }
+
+        var target = "/en/parts/" + Uri.EscapeDataString(brand.ToUpperInvariant()) + "/" + Uri.EscapeDataString(number);
+        return Results.Redirect(target, permanent: true);
+    }
+
+    private static async Task<IResult> HandleAsyncLegacy(
         HttpContext context,
         IPartsApiService partsApi,
         IHttpClientFactory httpClientFactory,
@@ -33,12 +49,7 @@ public static class StorefrontPartsApiProduct
     {
         var brand = context.Request.Query["brand"].ToString().Trim();
         var number = context.Request.Query["number"].ToString().Trim();
-        if (brand.Length == 0 || number.Length == 0)
-        {
-            return Results.Text("brand and number are required", "text/plain; charset=utf-8", Encoding.UTF8, StatusCodes.Status400BadRequest);
-        }
-
-        var lang = context.Request.Query["lang"].ToString().Trim() is { Length: > 0 } l ? l : "16";
+        var lang = context.Request.Query["lang"].ToString().Trim() is { Length: > 0 } l ? l : "en";
 
         // Resolve the article id (needed for media/criteria/crosses).
         var artId = "";
@@ -265,7 +276,7 @@ public static class StorefrontPartsApiProduct
         // Warehouse: same normalized-article lookup the part search uses, gated by
         // the shared storefront price visibility rule (guest/pending redacted).
         var access = await priceAccess.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
-        var stock = await LoadWarehouseStockAsync(connections, context, number, cancellationToken)
+        var stock = await LoadWarehouseStockAsync(connections, context, number, brand, cancellationToken)
             .ConfigureAwait(false);
 
         var html = Render(brand, number, artName, images, specs, vehicles, crosses,
@@ -352,7 +363,7 @@ public static class StorefrontPartsApiProduct
 
     private static async Task<List<WarehouseRow>> LoadWarehouseStockAsync(
         ITenantDbConnectionFactory connections, HttpContext context, string number,
-        CancellationToken cancellationToken)
+        string brand, CancellationToken cancellationToken)
     {
         var rows = new List<WarehouseRow>();
         var compact = NormalizeBrand(number);
@@ -381,13 +392,17 @@ public static class StorefrontPartsApiProduct
                     OR REPLACE(REPLACE(REPLACE(REPLACE(UPPER(TRIM(`article_show`)), ' ', ''), '-', ''), '.', ''), '/', '') = @compact
                   )
                 GROUP BY UPPER(TRIM(`manufacturer`)), COALESCE(NULLIF(`article_show`, ''), `article`)
-                ORDER BY manufacturer ASC, price ASC
+                ORDER BY (REPLACE(REPLACE(REPLACE(REPLACE(UPPER(TRIM(`manufacturer`)), ' ', ''), '-', ''), '.', ''), '/', '') = @brand) DESC, manufacturer ASC, price ASC
                 LIMIT 60
                 """;
             var parameter = command.CreateParameter();
             parameter.ParameterName = "@compact";
             parameter.Value = compact;
             command.Parameters.Add(parameter);
+            var brandParameter = command.CreateParameter();
+            brandParameter.ParameterName = "@brand";
+            brandParameter.Value = NormalizeBrand(brand);
+            command.Parameters.Add(brandParameter);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -415,140 +430,188 @@ public static class StorefrontPartsApiProduct
         List<string[]> vehicles, List<string[]> crosses,
         List<WarehouseRow> stock, StorefrontPriceAccessResult access)
     {
-        var sb = new StringBuilder(16000);
-        sb.Append("<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">");
-        sb.Append("<title>").Append(E(number)).Append(" — ").Append(E(brand)).Append(" — AUTO247</title>");
-        sb.Append("<style>");
-        sb.Append("body{margin:0;font:14px/1.5 Arial,Helvetica,sans-serif;background:#f4f6f8;color:#222}");
-        sb.Append(".wrap{max-width:1060px;margin:24px auto;padding:0 16px}");
-        sb.Append(".card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:22px;display:flex;gap:26px;flex-wrap:wrap}");
-        sb.Append(".pic{width:280px;height:280px;object-fit:contain;border:1px solid #eee;border-radius:8px;background:#fff}");
-        sb.Append(".picph{width:280px;height:280px;display:flex;align-items:center;justify-content:center;color:#aaa;border:1px dashed #ddd;border-radius:8px}");
-        sb.Append("h1{font-size:24px;margin:0 0 4px}.brand{color:#0b7ed7;font-weight:600}.name{color:#555;margin:2px 0 14px}");
-        sb.Append("h2{font-size:18px;margin:28px 0 12px;border-left:4px solid #0b7ed7;padding-left:10px}");
-        sb.Append("table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08)}");
-        sb.Append("th{background:#0b7ed7;color:#fff;text-align:left;padding:10px 14px;font-weight:600}");
-        sb.Append("td{padding:9px 14px;border-bottom:1px solid #f0f0f0}");
-        sb.Append("tr:last-child td{border-bottom:0}tr:nth-child(even) td{background:#fafbfc}");
-        sb.Append(".thumbs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.thumbs img{width:64px;height:64px;object-fit:contain;border:1px solid #eee;border-radius:6px}");
-        sb.Append(".empty{color:#888;padding:14px;background:#fff;border-radius:10px}");
-        sb.Append("</style></head><body><div class=\"wrap\">");
+        var wantedBrand = NormalizeBrand(brand);
+        var inStock = stock.Exists(s => s.Exist > 0 && NormalizeBrand(s.Manufacturer) == wantedBrand);
+        var oe = crosses.Take(5).Select(c => c[1]).Where(x => x.Length > 0).ToList();
+        var sb = new StringBuilder(24000);
+        sb.Append("<div class=\"epc-prod\"><style>");
+        sb.Append(".epc-prod{font:13px/1.45 Arial,Helvetica,sans-serif;color:#333}");
+        sb.Append(".epc-prod .epc-prod-title{background:#fdeadd;border:1px solid #f0c9a0;color:#e8600a;font-weight:700;font-size:17px;padding:8px 14px;border-radius:4px 4px 0 0}");
+        sb.Append(".epc-prod .epc-prod-crumb{font-size:12px;color:#888;padding:6px 2px}");
+        sb.Append(".epc-prod .epc-prod-crumb a{color:#888;text-decoration:none}");
+        sb.Append(".epc-prod .epc-prod-hero{display:flex;gap:26px;background:#fff;border:1px solid #e5e5e5;border-top:0;padding:18px;flex-wrap:wrap}");
+        sb.Append(".epc-prod .epc-prod-gallery{flex:0 0 300px;max-width:300px}");
+        sb.Append(".epc-prod .epc-prod-pic{width:300px;height:300px;object-fit:contain;border:1px solid #eee;background:#fff}");
+        sb.Append(".epc-prod .epc-prod-thumbs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}");
+        sb.Append(".epc-prod .epc-prod-thumbs img{width:58px;height:58px;object-fit:contain;border:1px solid #e0e0e0;cursor:pointer}");
+        sb.Append(".epc-prod .epc-prod-thumbs img:hover{border-color:#e8600a}");
+        sb.Append(".epc-prod .epc-prod-info{flex:1 1 380px;min-width:280px}");
+        sb.Append(".epc-prod .epc-prod-name{color:#e8600a;font-size:15px;font-weight:700;margin:0 0 8px}");
+        sb.Append(".epc-prod .epc-prod-bullets{margin:0 0 12px;padding-left:18px;color:#333}");
+        sb.Append(".epc-prod .epc-prod-bullets b{color:#000}");
+        sb.Append(".epc-prod .epc-prod-specs-title{color:#e8600a;border-bottom:2px solid #e8600a;font-weight:700;padding-bottom:3px;margin:0 0 8px}");
+        sb.Append(".epc-prod .epc-prod-specs{width:100%;border-collapse:collapse}");
+        sb.Append(".epc-prod .epc-prod-specs td{padding:7px 10px;text-align:center}");
+        sb.Append(".epc-prod .epc-prod-specs tr:nth-child(odd) td{background:#f5f5f5}");
+        sb.Append(".epc-prod .epc-prod-stock{flex:0 0 170px}");
+        sb.Append(".epc-prod .epc-prod-stockbox{border:1px solid #ddd;padding:12px;background:#fafafa;text-align:center;margin-bottom:8px}");
+        sb.Append(".epc-prod .epc-prod-stockbox .ok{color:#2d8a2d;font-weight:700}");
+        sb.Append(".epc-prod .epc-prod-stockbox .no{color:#666;font-weight:700}");
+        sb.Append(".epc-prod .epc-prod-ask{display:block;border:1px solid #ddd;background:#fff;color:#2d8a2d;padding:10px;text-align:center;text-decoration:none;font-weight:700}");
+        sb.Append(".epc-prod .epc-prod-tabs{margin-top:26px;border-bottom:1px solid #ddd;display:flex;gap:2px}");
+        sb.Append(".epc-prod .epc-prod-tab{border:1px solid #ddd;border-bottom:0;background:#f4f4f4;color:#777;padding:9px 20px;cursor:pointer;font-size:14px}");
+        sb.Append(".epc-prod .epc-prod-tab.on{background:#fff;color:#e8600a;border-top:2px solid #e8600a;font-weight:700}");
+        sb.Append(".epc-prod .epc-prod-pane{border:1px solid #ddd;border-top:0;background:#fff;padding:16px}");
+        sb.Append(".epc-prod .epc-oe-table{width:100%;border-collapse:collapse;font-size:12px}");
+        sb.Append(".epc-prod .epc-oe-table td{border:1px solid #eee;padding:6px 10px;vertical-align:top}");
+        sb.Append(".epc-prod .epc-oe-table td.brand{font-weight:700;text-align:center;background:#fafafa;white-space:nowrap}");
+        sb.Append(".epc-prod .epc-oe-num{display:inline-block;margin:0 14px 6px 0;color:#333}");
+        sb.Append(".epc-prod .epc-oe-num a{color:#e8600a;text-decoration:none}");
+        sb.Append(".epc-prod .epc-veh-makes{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}");
+        sb.Append(".epc-prod .epc-veh-make{width:52px;height:52px;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;font-size:10px;color:#555;text-align:center;background:#fff}");
+        sb.Append(".epc-prod .epc-veh-make.on{border:2px solid #e8600a;color:#e8600a}");
+        sb.Append(".epc-prod .epc-veh-sub{color:#e8600a;font-weight:700;margin:0 0 4px}");
+        sb.Append(".epc-prod .epc-veh-row{border-bottom:1px solid #eee;padding:8px 2px;font-size:13px}");
+        sb.Append(".epc-prod .epc-veh-row b{color:#e8600a}");
+        sb.Append(".epc-prod .epc-veh-mdl{color:#333}");
+        sb.Append(".epc-prod .epc-empty{color:#888;padding:10px}");
+        sb.Append("</style>");
 
-        sb.Append("<div class=\"card\">");
+        // Title bar
+        var title = brand + " " + number + " - " + name;
+        if (oe.Count > 0)
+        {
+            title += " (" + string.Join(", ", oe) + (crosses.Count > 5 ? "…" : "") + ")";
+        }
+        sb.Append("<div class=\"epc-prod-title\">").Append(E(title)).Append("</div>");
+        sb.Append("<div class=\"epc-prod-crumb\"><a href=\"/\">Home</a> › <a href=\"/storefront/available-brands-app\">Manufacturers</a> › <span>")
+            .Append(E(brand)).Append("</span> › <span>").Append(E(number)).Append("</span></div>");
+
+        // Hero
+        sb.Append("<div class=\"epc-prod-hero\">");
+        sb.Append("<div class=\"epc-prod-gallery\">");
         if (images.Count > 0)
         {
-            sb.Append("<div><img class=\"pic\" src=\"").Append(E(images[0])).Append("\" alt=\"").Append(E(number)).Append("\">");
+            sb.Append("<img class=\"epc-prod-pic\" id=\"epcProdPic\" src=\"").Append(E(images[0])).Append("\" alt=\"").Append(E(number)).Append("\">");
             if (images.Count > 1)
             {
-                sb.Append("<div class=\"thumbs\">");
-                foreach (var img in images.Skip(1).Take(8))
+                sb.Append("<div class=\"epc-prod-thumbs\">");
+                foreach (var img in images.Take(6))
                 {
-                    sb.Append("<img src=\"").Append(E(img)).Append("\" alt=\"\">");
+                    sb.Append("<img src=\"").Append(E(img)).Append("\" alt=\"\" onclick=\"document.getElementById('epcProdPic').src=this.src\">");
                 }
-
                 sb.Append("</div>");
             }
+        }
+        else
+        {
+            sb.Append("<div class=\"epc-prod-pic\" style=\"display:flex;align-items:center;justify-content:center;color:#aaa;border:1px dashed #ddd\">No photo yet</div>");
+        }
+        sb.Append("</div>");
 
+        sb.Append("<div class=\"epc-prod-info\">");
+        sb.Append("<div class=\"epc-prod-name\">").Append(E(name.Length > 0 ? name : "Auto part")).Append("</div>");
+        sb.Append("<ul class=\"epc-prod-bullets\"><li>").Append(E(brand)).Append(" ").Append(E(number))
+            .Append(name.Length > 0 ? " — " + E(name) : "").Append("</li>");
+        var makes = vehicles.Select(v => v[0]).Where(m => m.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).Take(6).ToList();
+        if (makes.Count > 0)
+        {
+            sb.Append("<li>Suitable: <b>").Append(E(string.Join(", ", makes))).Append("</b>")
+                .Append(vehicles.Count > makes.Count ? " and more — see Suitable vehicles" : "").Append("</li>");
+        }
+        sb.Append("</ul>");
+        if (specs.Count > 0)
+        {
+            sb.Append("<div class=\"epc-prod-specs-title\">Specifications:</div><table class=\"epc-prod-specs\">");
+            foreach (var (n, v) in specs.Take(12))
+            {
+                sb.Append("<tr><td>").Append(E(n)).Append(":</td><td><b>").Append(E(v)).Append("</b></td></tr>");
+            }
+            sb.Append("</table>");
+        }
+        sb.Append("</div>");
+
+        // Stock box
+        sb.Append("<div class=\"epc-prod-stock\">");
+        var totalStock = stock.Where(s => NormalizeBrand(s.Manufacturer) == wantedBrand).Sum(s => s.Exist);
+        sb.Append("<div class=\"epc-prod-stockbox\">");
+        if (inStock)
+        {
+            sb.Append(access.PricesVisible
+                ? "<span class=\"ok\">In stock: " + totalStock.ToString("0.##", CultureInfo.InvariantCulture) + "</span>"
+                : "<span class=\"ok\">In stock</span>");
+        }
+        else
+        {
+            sb.Append("<span class=\"no\">Out of stock</span>");
+        }
+        sb.Append("</div>");
+        sb.Append("<a class=\"epc-prod-ask\" href=\"/storefront/contact-app\">? Ask price</a>");
+        sb.Append("</div></div>");
+
+        // Tabs
+        sb.Append("<div class=\"epc-prod-tabs\">")
+            .Append("<button type=\"button\" class=\"epc-prod-tab on\" onclick=\"epcProdTab(this,'oe')\">OE Numbers</button>")
+            .Append("<button type=\"button\" class=\"epc-prod-tab\" onclick=\"epcProdTab(this,'veh')\">Suitable vehicles</button>")
+            .Append("<button type=\"button\" class=\"epc-prod-tab\" onclick=\"epcProdTab(this,'rev')\">Reviews (0)</button>")
+            .Append("</div>");
+
+        // OE Numbers pane
+        sb.Append("<div class=\"epc-prod-pane\" data-pane=\"oe\">");
+        if (crosses.Count > 0)
+        {
+            sb.Append("<table class=\"epc-oe-table\">");
+            foreach (var grp in crosses.GroupBy(c => c[0], StringComparer.OrdinalIgnoreCase))
+            {
+                sb.Append("<tr><td class=\"brand\">").Append(E(grp.Key)).Append("</td><td>");
+                foreach (var c in grp)
+                {
+                    sb.Append("<span class=\"epc-oe-num\"><a href=\"/en/parts/").Append(Uri.EscapeDataString(c[0].ToUpperInvariant()))
+                        .Append("/").Append(Uri.EscapeDataString(c[1])).Append("\">").Append(E(c[1])).Append("</a></span>");
+                }
+                sb.Append("</td></tr>");
+            }
+            sb.Append("</table>");
+        }
+        else
+        {
+            sb.Append("<div class=\"epc-empty\">Cross reference data is loading on first request.</div>");
+        }
+        sb.Append("</div>");
+
+        // Suitable vehicles pane
+        sb.Append("<div class=\"epc-prod-pane\" data-pane=\"veh\" hidden>");
+        if (vehicles.Count > 0)
+        {
+            var makeList = vehicles.Select(v => v[0]).Where(m => m.Length > 0)
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            sb.Append("<div class=\"epc-veh-makes\">");
+            foreach (var m in makeList)
+            {
+                sb.Append("<button type=\"button\" class=\"epc-veh-make\" onclick=\"epcProdMake(this)\" data-make=\"")
+                    .Append(E(m)).Append("\">").Append(E(m.Length > 6 ? m[..6] : m)).Append("</button>");
+            }
+            sb.Append("</div><div class=\"epc-veh-sub\">Model, Year</div><div id=\"epcVehRows\">");
+            foreach (var v in vehicles)
+            {
+                var years = (v[3] + (v[4].Length > 0 ? " - " + v[4] : "")).Trim(' ', '-');
+                sb.Append("<div class=\"epc-veh-row\" data-make=\"").Append(E(v[0])).Append("\"><b>")
+                    .Append(E(v[1].Length > 0 ? v[1] : v[0])).Append("</b>")
+                    .Append(v[2].Length > 0 ? "<span class=\"epc-veh-mdl\">, " + E(v[2]) + "</span>" : "")
+                    .Append(years.Length > 0 ? "<span class=\"epc-veh-mdl\">, " + E(years) + "</span>" : "")
+                    .Append("</div>");
+            }
             sb.Append("</div>");
         }
         else
         {
-            sb.Append("<div class=\"picph\">No photo yet</div>");
+            sb.Append("<div class=\"epc-empty\">Vehicle applicability is loading on first request.</div>");
         }
+        sb.Append("</div>");
 
-        sb.Append("<div><h1>").Append(E(number)).Append("</h1>");
-        sb.Append("<div class=\"brand\">").Append(E(brand)).Append("</div>");
-        if (name.Length > 0)
-        {
-            sb.Append("<div class=\"name\">").Append(E(name)).Append("</div>");
-        }
-
-        sb.Append("</div></div>");
-
-        sb.Append("<h2>Specifications</h2>");
-        if (specs.Count > 0)
-        {
-            sb.Append("<table><tr><th>Criteria</th><th>Value</th></tr>");
-            foreach (var (n, v) in specs)
-            {
-                sb.Append("<tr><td>").Append(E(n)).Append("</td><td>").Append(E(v)).Append("</td></tr>");
-            }
-
-            sb.Append("</table>");
-        }
-        else
-        {
-            sb.Append("<div class=\"empty\">Specification data is loading on first request.</div>");
-        }
-
-        sb.Append("<h2>Suitable for</h2>");
-        if (vehicles.Count > 0)
-        {
-            sb.Append("<table><tr><th>Make</th><th>Model</th><th>Modification / Engine</th><th>From</th><th>To</th></tr>");
-            foreach (var v in vehicles)
-            {
-                sb.Append("<tr><td>").Append(E(v[0])).Append("</td><td>").Append(E(v[1]))
-                    .Append("</td><td>").Append(E(v[2])).Append("</td><td>").Append(E(v[3]))
-                    .Append("</td><td>").Append(E(v[4])).Append("</td></tr>");
-            }
-
-            sb.Append("</table>");
-        }
-        else
-        {
-            sb.Append("<div class=\"empty\">Vehicle applicability is loading on first request.</div>");
-        }
-
-        sb.Append("<h2>In our warehouse</h2>");
-        if (stock.Count > 0)
-        {
-            sb.Append("<table><tr><th>Brand</th><th>Number</th><th>Name</th><th>Stock</th><th>Price</th></tr>");
-            foreach (var s in stock)
-            {
-                sb.Append("<tr><td>").Append(E(s.Manufacturer)).Append("</td><td>").Append(E(s.ArticleShow))
-                    .Append("</td><td>").Append(E(s.Name)).Append("</td><td>")
-                    .Append(access.PricesVisible ? s.Exist.ToString("0.##", CultureInfo.InvariantCulture) : access.SensitiveMask)
-                    .Append("</td><td>");
-                if (access.PricesVisible)
-                {
-                    sb.Append(s.Price.ToString("0.00", CultureInfo.InvariantCulture));
-                }
-                else if (access.LoginCtaHtml.Length > 0)
-                {
-                    sb.Append(access.LoginCtaHtml);
-                }
-                else
-                {
-                    sb.Append(access.SensitiveMask);
-                }
-
-                sb.Append("</td></tr>");
-            }
-
-            sb.Append("</table>");
-        }
-        else
-        {
-            sb.Append("<div class=\"empty\">Not in stock.</div>");
-        }
-
-        sb.Append("<h2>Crosses / Analogs</h2>");
-        if (crosses.Count > 0)
-        {
-            sb.Append("<table><tr><th>Brand</th><th>Number</th><th>Name</th></tr>");
-            foreach (var c in crosses)
-            {
-                sb.Append("<tr><td>").Append(E(c[0])).Append("</td><td>").Append(E(c[1])).Append("</td><td>").Append(E(c[2])).Append("</td></tr>");
-            }
-
-            sb.Append("</table>");
-        }
-        else
-        {
-            sb.Append("<div class=\"empty\">Cross reference data is loading on first request.</div>");
-        }
-
-        sb.Append("</div></body></html>");
+        // Reviews pane
+        sb.Append("<div class=\"epc-prod-pane\" data-pane=\"rev\" hidden><div class=\"epc-empty\">No reviews yet for this product.</div></div>");
+        sb.Append("</div>");
         return sb.ToString();
     }
 }

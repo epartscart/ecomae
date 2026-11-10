@@ -72,6 +72,36 @@
         .epc-sf-attr-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
         .epc-sf-attr-table a { color:#b91c1c; font-weight:700; text-decoration:none; }
         .epc-sf-attr-chip { display:inline-block; background:#f1f5f9; border-radius:.35rem; padding:.1rem .45rem; font-size:.75rem; font-weight:700; color:#334155; }
+
+.epc-offer-views{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:8px 0 10px;flex-wrap:wrap}
+.epc-offer-views__sort{display:flex;align-items:center;gap:6px;font-size:13px}
+.epc-offer-views__sort select{padding:4px 8px;border:1px solid #d5dbe3;border-radius:6px}
+.epc-offer-views__count{background:#eef2f7;border:1px solid #d5dbe3;border-radius:6px;padding:4px 10px;font-size:13px}
+.epc-offer-views__switch{display:flex;border:1px solid #d5dbe3;border-radius:6px;overflow:hidden}
+.epc-offer-views__switch button{border:0;background:#fff;padding:6px 12px;cursor:pointer;color:#64748b}
+.epc-offer-views__switch button.on{background:#0b7ed7;color:#fff}
+#epc-offer-cards[hidden]{display:none}
+.epc-offer-cards--grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.epc-offer-card{border:1px solid #e2e8f0;border-radius:10px;background:#fff;padding:12px;display:flex;flex-direction:column;gap:10px}
+.epc-offer-card__photo{min-height:120px;display:flex;align-items:center;justify-content:center}
+.epc-offer-card__photo img{max-width:100%;max-height:150px;object-fit:contain}
+.epc-offer-card__title a{font-weight:600;color:#0b7ed7;text-decoration:none}
+.epc-offer-card__name{font-size:12px;color:#475569;margin-top:2px}
+.epc-offer-card__buy{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid #f1f5f9;padding-top:8px}
+.epc-offer-card__badge{background:#e0ecfa;color:#0b5cad;font-size:10px;font-weight:700;border-radius:4px;padding:2px 6px}
+.epc-offer-card__price{font-size:18px;font-weight:700;color:#2d8a2d;margin-left:auto}
+.epc-offer-card__exist{font-size:12px;color:#64748b}
+.epc-offer-cards--list{display:flex;flex-direction:column;gap:8px}
+.epc-offer-line{display:flex;gap:14px;align-items:center;border:1px solid #e2e8f0;border-radius:10px;background:#fff;padding:10px 14px}
+.epc-offer-line__photo{width:64px;min-width:64px;text-align:center}
+.epc-offer-line__photo img{max-width:64px;max-height:64px;object-fit:contain}
+.epc-offer-line__mid{flex:1;min-width:0}
+.epc-offer-line__mid a{color:#0b7ed7;text-decoration:none}
+.epc-offer-line__name{font-size:12px;color:#475569}
+.epc-offer-line__info{font-size:12px;color:#64748b}
+.epc-offer-line__buy{display:flex;align-items:center;gap:10px}
+.epc-offer-line__price{font-size:16px;font-weight:700;color:#2d8a2d}
+.epc-offer-line__exist{font-size:12px;color:#64748b}
 </style>
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
@@ -569,6 +599,7 @@
                     </nav>
                 }
                 <div id="work_area" class="epc-chpu-work-area">
+                <div id="epc-product-hero"></div>
                 <div class="epc-ssr-warehouse-banner" role="status">
                     @if (_genuineRows.Count + _aftermarketRows.Count > 0)
                     {
@@ -581,6 +612,23 @@
                         <span> — polling UAE warehouses for Genuine (OE) and Aftermarket stock.</span>
                     }
                 </div>
+                <div class="epc-offer-views" id="epcOfferViews" hidden>
+                    <div class="epc-offer-views__sort">
+                        <label>Sort by:</label>
+                        <select id="epcOfferSort">
+                            <option value="price-asc">Lowest Price</option>
+                            <option value="price-desc">Highest Price</option>
+                            <option value="name">Name</option>
+                        </select>
+                        <span id="epcOfferCount" class="epc-offer-views__count"></span>
+                    </div>
+                    <div class="epc-offer-views__switch" role="group" aria-label="View">
+                        <button type="button" data-view="list" title="List view"><i class="fa fa-list"></i></button>
+                        <button type="button" data-view="grid" class="on" title="Grid view"><i class="fa fa-th-large"></i></button>
+                        <button type="button" data-view="table" title="Table view"><i class="fa fa-th"></i></button>
+                    </div>
+                </div>
+                <div id="epc-offer-cards"></div>
                 <div id="products_area" class="epc-part-search-results" role="region" aria-label="Part search results">
                     <table id="all_table_products" class="epc-ssr-warehouse-table notranslate"
                            translate="no"
@@ -733,11 +781,23 @@
   var brand = @JsonBrand;
   var genuine = @JsonGenuine;
   if (!article || !brand) return;
+  loadProductHero(brand, article);
   var progress = document.getElementById('epcSfPollProgress');
   var countEl = document.getElementById('epcSfPollCount');
   var totalEl = document.getElementById('epcSfPollTotal');
   var body = document.getElementById('epcSfOfferBody');
   if (!body) return;
+  var epcOfferView = 'grid';
+  var epcOfferSort = 'price-asc';
+  var viewsBar = document.getElementById('epcOfferViews');
+  if (viewsBar) {
+    viewsBar.querySelectorAll('[data-view]').forEach(function (b) {
+      b.onclick = function () { window.epcSetOfferView(b.getAttribute('data-view')); };
+    });
+    var sortSel = document.getElementById('epcOfferSort');
+    if (sortSel) sortSel.onchange = window.epcSortOffers;
+  }
+  window.epcSetOfferView('grid');
   var table = document.getElementById('all_table_products');
   var pricesVisible = !table || table.getAttribute('data-prices-visible') === '1';
   var showPurchase = table && table.getAttribute('data-show-purchase') === '1';
@@ -995,6 +1055,31 @@
     return '<div class="epc-product-actions epc-product-actions--quote-only" data-aid="' + aid + '">' + tools +
       quoteBtn + '</div>';
   }
+  window.epcProdTab = function (btn, pane) {
+    var wrap = btn.closest('.epc-prod');
+    wrap.querySelectorAll('.epc-prod-tab').forEach(function (t) { t.classList.remove('on'); });
+    wrap.querySelectorAll('.epc-prod-pane').forEach(function (p) { p.hidden = true; });
+    btn.classList.add('on');
+    wrap.querySelector('.epc-prod-pane[data-pane="' + pane + '"]').hidden = false;
+  }
+  window.epcProdMake = function (btn) {
+    var on = btn.classList.toggle('on');
+    btn.parentNode.querySelectorAll('.epc-veh-make').forEach(function (b) {
+      if (b !== btn) b.classList.remove('on');
+    });
+    var make = on ? btn.getAttribute('data-make') : '';
+    document.querySelectorAll('.epc-veh-row').forEach(function (r) {
+      r.style.display = (!make || r.getAttribute('data-make') === make) ? '' : 'none';
+    });
+  }
+  function loadProductHero(brand, article) {
+    var host = document.getElementById('epc-product-hero');
+    if (!host || !brand || !article) return;
+    fetch('/api/article_product?brand=' + encodeURIComponent(brand) + '&number=' + encodeURIComponent(article))
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (html) { if (html) host.innerHTML = html; })
+      .catch(function () {});
+  }
   function brandArticleGroupKey(mfr, art) {
     return String(mfr || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase() + '|' +
       String(art || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
@@ -1173,6 +1258,7 @@
     normalizeWarehouseGroups(kind);
     bumpCaption(kind);
     if (typeof window.epcBindSearchRowPhotoLoaders === 'function') window.epcBindSearchRowPhotoLoaders(body);
+    if (typeof window.epcSyncOfferCards === 'function') window.epcSyncOfferCards();
     // Per-row filter refresh hides cross-stock under a mid-merge price range (ACDELCO/19114114).
     if (!p.skipFilterRefresh
       && typeof window.epcWarehouseParity === 'object'
@@ -1181,6 +1267,116 @@
       window.epcWarehouseParity.applyFilters();
     }
   }
+  window.epcSetOfferView = function (view) {
+    epcOfferView = view;
+    var views = document.getElementById('epcOfferViews');
+    if (views) views.querySelectorAll('[data-view]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-view') === view); });
+    var area = document.getElementById('products_area');
+    var cards = document.getElementById('epc-offer-cards');
+    if (!area || !cards) return;
+    if (view === 'table') { area.hidden = false; cards.hidden = true; }
+    else { area.hidden = true; cards.hidden = false; cards.className = 'epc-offer-cards epc-offer-cards--' + view; }
+    renderOfferCards();
+  };
+  window.epcSortOffers = function () {
+    var sel = document.getElementById('epcOfferSort');
+    epcOfferSort = sel ? sel.value : 'price-asc';
+    renderOfferCards();
+  };
+  function offerGroups() {
+    var groups = [];
+    body.querySelectorAll('tr[data-offer-key]').forEach(function (tr) {
+      if (Number(tr.getAttribute('data-group-index') || 0) === 0) groups.push(tr);
+    });
+    return groups;
+  }
+  function cardPhotoHtml(tr) {
+    var cell = tr.querySelector('td.td_photo');
+    if (!cell) return '';
+    var img = cell.querySelector('img');
+    if (img) return '<img src="' + esc(img.getAttribute('src')) + '" alt="">';
+    var btn = cell.querySelector('button');
+    return btn ? btn.outerHTML : '';
+  }
+  function renderOfferCards() {
+    var cards = document.getElementById('epc-offer-cards');
+    if (!cards) return;
+    var rows = offerGroups().slice();
+    rows.sort(function (a, b) {
+      if (epcOfferSort === 'name') return String(a.getAttribute('data-name') || '').localeCompare(String(b.getAttribute('data-name') || ''));
+      var pa = Number(a.getAttribute('data-price') || 0), pb = Number(b.getAttribute('data-price') || 0);
+      return epcOfferSort === 'price-desc' ? pb - pa : pa - pb;
+    });
+    var countEl = document.getElementById('epcOfferCount');
+    if (countEl) countEl.textContent = 'Products: ' + rows.length;
+    if (epcOfferView === 'grid') {
+      cards.innerHTML = rows.map(function (tr) {
+        var p = productFromTr(tr);
+        var actions = tr.querySelector('.td_add_to_cart');
+        var kind = tr.classList.contains('epc-part-type-row--genuine') ? 'OE' : 'AM';
+        return '<div class="epc-offer-card" data-offer-key="' + esc(tr.getAttribute('data-offer-key') || '') + '">' +
+          '<div class="epc-offer-card__photo">' + cardPhotoHtml(tr) + '</div>' +
+          '<div class="epc-offer-card__title"><a href="' + partHref(p.manufacturer, p.articleShow || p.article) + '">' +
+            esc(p.manufacturer) + ' ' + esc(p.articleShow || p.article) + '</a><div class="epc-offer-card__name">' + esc(p.name || '') + '</div></div>' +
+          '<div class="epc-offer-card__buy">' +
+            '<span class="epc-offer-card__badge">' + kind + '</span>' +
+            (pricesVisible ? '<span class="epc-offer-card__exist">' + (p.exist > 0 ? p.exist + ' pcs' : '0') + '</span>' : '') +
+            '<span class="epc-offer-card__price">' + (pricesVisible ? Number(p.price || 0).toFixed(2) : '**') + '</span>' +
+            (actions ? actions.innerHTML : '') +
+          '</div></div>';
+      }).join('');
+    } else {
+      cards.innerHTML = rows.map(function (tr) {
+        var p = productFromTr(tr);
+        var actions = tr.querySelector('.td_add_to_cart');
+        var info = tr.querySelector('.td_info');
+        var wh = p.storage || '';
+        return '<div class="epc-offer-line" data-offer-key="' + esc(tr.getAttribute('data-offer-key') || '') + '">' +
+          '<div class="epc-offer-line__photo">' + cardPhotoHtml(tr) + '</div>' +
+          '<div class="epc-offer-line__mid"><a href="' + partHref(p.manufacturer, p.articleShow || p.article) + '"><b>' +
+            esc(p.manufacturer) + '</b> ' + esc(p.articleShow || p.article) + '</a>' +
+            '<div class="epc-offer-line__name">' + esc(p.name || '') + (wh ? ' · ' + esc(wh) : '') + '</div>' +
+            (info ? '<div class="epc-offer-line__info">' + info.innerHTML + '</div>' : '') + '</div>' +
+          '<div class="epc-offer-line__buy">' +
+            (pricesVisible ? '<span class="epc-offer-line__exist">' + (p.exist > 0 ? p.exist : '0') + '</span>' : '') +
+            '<span class="epc-offer-line__price">' + (pricesVisible ? Number(p.price || 0).toFixed(2) : '**') + '</span>' +
+            (actions ? actions.innerHTML : '') +
+          '</div></div>';
+      }).join('');
+    }
+    if (typeof window.epcBindSearchRowPhotoLoaders === 'function') window.epcBindSearchRowPhotoLoaders(cards);
+  }
+  // Card controls forward to the matching offer row — the row owns the cart/quote/qty handlers.
+  document.getElementById('epc-offer-cards').addEventListener('click', function (e) {
+    var card = e.target && e.target.closest ? e.target.closest('[data-offer-key]') : null;
+    if (!card) return;
+    var tr = body.querySelector('tr[data-offer-key="' + String(card.getAttribute('data-offer-key')).replace(/"/g, '\\"') + '"]');
+    if (!tr) return;
+    var btn = e.target.closest('button, a');
+    if (!btn) return;
+    var cls = ['epc-btn-cart', 'epc-btn-quote', 'count_need_minus', 'count_need_plus'].find(function (c) {
+      return btn.classList.contains(c) || (btn.closest && btn.closest('.' + c));
+    });
+    if (!cls) return;
+    e.preventDefault();
+    var cardQty = card.querySelector('.epc-qty-input');
+    var rowQty = tr.querySelector('.epc-qty-input');
+    if (cardQty && rowQty) rowQty.value = cardQty.value;
+    var src = tr.querySelector('.' + cls);
+    if (src) src.click();
+    if (cls.indexOf('count_need_') === 0 && cardQty && rowQty) cardQty.value = rowQty.value;
+  });
+  window.epcSyncOfferCards = function () {
+    var views = document.getElementById('epcOfferViews');
+    var area = document.getElementById('products_area');
+    var cards = document.getElementById('epc-offer-cards');
+    var has = offerGroups().length > 0;
+    if (views) views.hidden = !has;
+    if (area && has) area.hidden = epcOfferView !== 'table';
+    if (cards && has) cards.hidden = epcOfferView === 'table';
+    if (has && epcOfferView !== 'table') renderOfferCards();
+    else if (has) { var c = document.getElementById('epcOfferCount'); if (c) c.textContent = 'Products: ' + offerGroups().length; }
+  };
   function refreshOfferFilters() {
     if (typeof window.epcWarehouseParity === 'object'
       && typeof window.epcWarehouseParity.rebuildFilterOptions === 'function') {
