@@ -506,7 +506,7 @@
         }
         output.innerHTML = listSummary('Select exact vehicle modification.', items) + '<div class="epc-umapi-modwrap"><table class="epc-umapi-table epc-umapi-modtable"><thead><tr>' +
             '<th>L.</th><th>Model</th><th>Year</th><th>Engine type</th><th>Power</th><th>Drive</th></tr></thead><tbody>' + items.map(function (item, index) {
-            var litres = item.CAPACITY_LT || item.CAPACITY_TECH;
+            var litres = item.CAPACITY_LT || (item.CAPACITY_TECH ? item.CAPACITY_TECH / 1000 : 0);
             litres = litres ? (Math.round(litres * 100) / 100).toFixed(2).replace(/0+$/, '').replace(/\.$/, '') : '';
             var yearFrom = (item.CI_FROM || '').slice(0, 4);
             var yearTo = (item.CI_TO || '').slice(0, 4);
