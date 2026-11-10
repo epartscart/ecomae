@@ -322,6 +322,32 @@ public static class StorefrontPartsApiProduct
             }
         }
 
+        // EAN/barcode — umapi article payload first, then any row field.
+        var ean = "";
+        if (umapiArticle.ValueKind == JsonValueKind.Object)
+        {
+            ean = Text(umapiArticle, "EAN", "EAN_CODE", "GTIN", "ART_EAN") ?? "";
+            if (ean.Length == 0 && umapiArticle.TryGetProperty("EANS", out var eans) && eans.ValueKind == JsonValueKind.Array)
+            {
+                ean = eans.EnumerateArray().Select(x => Text(x, "EAN", "VALUE") ?? (x.ValueKind == JsonValueKind.String ? x.GetString() ?? "" : ""))
+                    .FirstOrDefault(x => x.Length >= 8) ?? "";
+            }
+        }
+
+        if (ean.Length == 0)
+        {
+            foreach (var row in fitmentRows.Concat(Rows(results.GetValueOrDefault("crosses"))).Concat(Rows(results.GetValueOrDefault("article"))))
+            {
+                ean = Text(row, "EAN", "EAN_CODE", "GTIN", "BARCODE", "ART_EAN") ?? "";
+                if (ean.Length >= 8)
+                {
+                    break;
+                }
+
+                ean = "";
+            }
+        }
+
         // Warehouse: same normalized-article lookup the part search uses, gated by
         // the shared storefront price visibility rule (guest/pending redacted).
         var access = await priceAccess.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
@@ -329,7 +355,7 @@ public static class StorefrontPartsApiProduct
             .ConfigureAwait(false);
 
         var html = Render(brand, number, artName, images, specs, vehicles, crosses,
-            stock, access);
+            stock, access, ean);
         context.Response.Headers.CacheControl = "no-store";
         return Results.Text(html, "text/html; charset=utf-8", Encoding.UTF8);
     }
@@ -474,10 +500,47 @@ public static class StorefrontPartsApiProduct
 
     private static string E(string? s) => System.Net.WebUtility.HtmlEncode(s ?? "");
 
+    // EAN-13 module pattern (95 modules): guard + 6 left (L/G) + center + 6 right (R) + guard.
+    private static bool[]? Ean13Bars(string ean)
+    {
+        var digits = new string(ean.Where(char.IsDigit).ToArray());
+        if (digits.Length == 12)
+        {
+            var sum = digits.Select((c, i) => (c - '0') * (i % 2 == 0 ? 1 : 3)).Sum();
+            digits += ((10 - sum % 10) % 10).ToString();
+        }
+
+        if (digits.Length != 13)
+        {
+            return null;
+        }
+
+        var d = digits.Select(c => c - '0').ToArray();
+        var firstG = new[] { "LLLLLL", "LLGLGG", "LLGGLG", "LLGGGL", "LGLLGG", "LGGLLG", "LGGGLL", "LGLGLG", "LGLGGL", "LGGLGL" };
+        var L = new[] { "0001101", "0011001", "0010011", "0111101", "0100011", "0110001", "0101111", "0111011", "0110111", "0001011" };
+        var G = new[] { "0100111", "0110011", "0011011", "0100001", "0011101", "0111001", "0000101", "0010001", "0001001", "0010111" };
+        var R = new[] { "1110010", "1100110", "1101100", "1000010", "1011100", "1001110", "1010000", "1000100", "1001000", "1110100" };
+        var pattern = firstG[d[0]];
+        var sb2 = new StringBuilder("101");
+        for (var i = 0; i < 6; i++)
+        {
+            sb2.Append(pattern[i] == 'L' ? L[d[i + 1]] : G[d[i + 1]]);
+        }
+
+        sb2.Append("01010");
+        for (var i = 0; i < 6; i++)
+        {
+            sb2.Append(R[d[i + 7]]);
+        }
+
+        sb2.Append("101");
+        return sb2.ToString().Select(c => c == '1').ToArray();
+    }
+
     private static string Render(string brand, string number, string name,
         List<string> images, List<(string Name, string Value)> specs,
         List<string[]> vehicles, List<string[]> crosses,
-        List<WarehouseRow> stock, StorefrontPriceAccessResult access)
+        List<WarehouseRow> stock, StorefrontPriceAccessResult access, string ean)
     {
         var wantedBrand = NormalizeBrand(brand);
         var inStock = stock.Exists(s => s.Exist > 0 && NormalizeBrand(s.Manufacturer) == wantedBrand);
@@ -516,13 +579,21 @@ public static class StorefrontPartsApiProduct
         sb.Append(".epc-prod .epc-oe-table td.brand{font-weight:700;text-align:center;background:#fafafa;white-space:nowrap}");
         sb.Append(".epc-prod .epc-oe-num{display:inline-block;margin:0 14px 6px 0;color:#333}");
         sb.Append(".epc-prod .epc-oe-num a{color:#e8600a;text-decoration:none}");
-        sb.Append(".epc-prod .epc-veh-makes{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}");
-        sb.Append(".epc-prod .epc-veh-make{width:52px;height:52px;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;font-size:10px;color:#555;text-align:center;background:#fff}");
-        sb.Append(".epc-prod .epc-veh-make.on{border:2px solid #e8600a;color:#e8600a}");
-        sb.Append(".epc-prod .epc-veh-sub{color:#e8600a;font-weight:700;margin:0 0 4px}");
-        sb.Append(".epc-prod .epc-veh-row{border-bottom:1px solid #eee;padding:8px 2px;font-size:13px}");
+        sb.Append(".epc-prod .epc-veh-makes{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}");
+        sb.Append(".epc-prod .epc-veh-make{width:56px;height:56px;border:1px solid #e0e0e0;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;font-size:10px;color:#555;text-align:center;background:#fff;padding:4px}");
+        sb.Append(".epc-prod .epc-veh-make.on{border:2px solid #e8600a;color:#e8600a;box-shadow:0 1px 4px rgba(232,96,10,.25)}");
+        sb.Append(".epc-prod .epc-veh-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 30px}");
+        sb.Append(".epc-prod .epc-veh-sub{color:#e8600a;font-weight:700;margin:0 0 6px;padding-bottom:4px;border-bottom:1px solid #eee}");
+        sb.Append(".epc-prod .epc-veh-row{display:grid;grid-template-columns:1fr 1fr;gap:0 30px;padding:9px 6px;font-size:13px;border-bottom:1px solid #f0f0f0}");
+        sb.Append(".epc-prod .epc-veh-row:nth-child(even){background:#faf6f2}");
+        sb.Append(".epc-prod .epc-veh-row:hover{background:#fdeadd}");
         sb.Append(".epc-prod .epc-veh-row b{color:#e8600a}");
         sb.Append(".epc-prod .epc-veh-mdl{color:#333}");
+        sb.Append(".epc-prod .epc-veh-eng{color:#444}");
+        sb.Append(".epc-prod .epc-ean{margin-top:18px}");
+        sb.Append(".epc-prod .epc-ean-label{color:#e8600a;font-weight:700}");
+        sb.Append(".epc-prod .epc-ean-code{font-size:15px;color:#333;margin:4px 0 6px}");
+        sb.Append(".epc-prod .epc-ean-bars{fill:#000}");
         sb.Append(".epc-prod .epc-empty{color:#888;padding:10px}");
         sb.Append("</style>");
 
@@ -626,6 +697,29 @@ public static class StorefrontPartsApiProduct
         {
             sb.Append("<div class=\"epc-empty\">Cross reference data is loading on first request.</div>");
         }
+        if (ean.Length >= 8)
+        {
+            sb.Append("<div class=\"epc-ean\"><span class=\"epc-ean-label\">Barcode (EAN):</span>")
+                .Append("<div class=\"epc-ean-code\">").Append(E(ean)).Append("</div>");
+            var bars = Ean13Bars(ean);
+            if (bars is not null)
+            {
+                const int w = 2, h = 46, q = 8;
+                var width = (bars.Length + q * 2) * w;
+                sb.Append("<svg class=\"epc-ean-bars\" width=\"").Append(width).Append("\" height=\"").Append(h + 12)
+                    .Append("\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"EAN barcode\">");
+                for (var i = 0; i < bars.Length; i++)
+                {
+                    if (bars[i])
+                    {
+                        sb.Append("<rect x=\"").Append((i + q) * w).Append("\" y=\"0\" width=\"").Append(w).Append("\" height=\"").Append(h).Append("\"/>");
+                    }
+                }
+                sb.Append("<text x=\"").Append(width / 2).Append("\" y=\"").Append(h + 10)
+                    .Append("\" text-anchor=\"middle\" font-size=\"11\" font-family=\"monospace\">").Append(E(ean)).Append("</text></svg>");
+            }
+            sb.Append("</div>");
+        }
         sb.Append("</div>");
 
         // Suitable vehicles pane
@@ -640,15 +734,16 @@ public static class StorefrontPartsApiProduct
                 sb.Append("<button type=\"button\" class=\"epc-veh-make\" onclick=\"epcProdMake(this)\" data-make=\"")
                     .Append(E(m)).Append("\">").Append(E(m.Length > 6 ? m[..6] : m)).Append("</button>");
             }
-            sb.Append("</div><div class=\"epc-veh-sub\">Model, Year</div><div id=\"epcVehRows\">");
+            sb.Append("</div><div class=\"epc-veh-grid\"><div class=\"epc-veh-col\"><div class=\"epc-veh-sub\">Model, Year</div></div><div class=\"epc-veh-col\"><div class=\"epc-veh-sub\">Engine</div></div></div><div id=\"epcVehRows\">");
             foreach (var v in vehicles)
             {
                 var years = (v[3] + (v[4].Length > 0 ? " - " + v[4] : "")).Trim(' ', '-');
-                sb.Append("<div class=\"epc-veh-row\" data-make=\"").Append(E(v[0])).Append("\"><b>")
+                sb.Append("<div class=\"epc-veh-row\" data-make=\"").Append(E(v[0])).Append("\"><div class=\"epc-veh-cell\"><b>")
                     .Append(E(v[1].Length > 0 ? v[1] : v[0])).Append("</b>")
-                    .Append(v[2].Length > 0 ? "<span class=\"epc-veh-mdl\">, " + E(v[2]) + "</span>" : "")
                     .Append(years.Length > 0 ? "<span class=\"epc-veh-mdl\">, " + E(years) + "</span>" : "")
-                    .Append("</div>");
+                    .Append("</div><div class=\"epc-veh-cell epc-veh-eng\">")
+                    .Append(v[2].Length > 0 ? E(v[2]) : "")
+                    .Append("</div></div>");
             }
             sb.Append("</div>");
         }
