@@ -2235,7 +2235,7 @@ public static class HomeCatalogWidgets
     private static int UmapiQueryInt(HttpContext context, string name)
         => int.TryParse(context.Request.Query[name], NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) ? parsed : 0;
 
-    private static async Task<string> UmapiAppKeyAsync(HttpContext context, DbConnection? connection, CancellationToken cancellationToken)
+    internal static async Task<string> UmapiAppKeyAsync(HttpContext context, DbConnection? connection, CancellationToken cancellationToken)
     {
         if (connection is not null)
         {
