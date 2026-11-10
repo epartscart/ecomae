@@ -1313,6 +1313,7 @@
       cards.innerHTML = rows.map(function (tr) {
         var p = productFromTr(tr);
         var actions = tr.querySelector('.td_add_to_cart');
+        var fitBtn = tr.querySelector('.epc-fitment-check-btn--row');
         var kind = tr.classList.contains('epc-part-type-row--genuine') ? 'OE' : 'AM';
         return '<div class="epc-offer-card" data-offer-key="' + esc(tr.getAttribute('data-offer-key') || '') + '">' +
           '<div class="epc-offer-card__photo">' + cardPhotoHtml(tr) + '</div>' +
@@ -1322,6 +1323,7 @@
             '<span class="epc-offer-card__badge">' + kind + '</span>' +
             (pricesVisible ? '<span class="epc-offer-card__exist">' + (p.exist > 0 ? p.exist + ' pcs' : '0') + '</span>' : '') +
             '<span class="epc-offer-card__price">' + (pricesVisible ? Number(p.price || 0).toFixed(2) : '**') + '</span>' +
+            (fitBtn ? fitBtn.outerHTML : '') +
             (actions ? actions.innerHTML : '') +
           '</div></div>';
       }).join('');
@@ -1329,6 +1331,7 @@
       cards.innerHTML = rows.map(function (tr) {
         var p = productFromTr(tr);
         var actions = tr.querySelector('.td_add_to_cart');
+        var fitBtn = tr.querySelector('.epc-fitment-check-btn--row');
         var info = tr.querySelector('.td_info');
         var wh = p.storage || '';
         return '<div class="epc-offer-line" data-offer-key="' + esc(tr.getAttribute('data-offer-key') || '') + '">' +
@@ -1340,6 +1343,7 @@
           '<div class="epc-offer-line__buy">' +
             (pricesVisible ? '<span class="epc-offer-line__exist">' + (p.exist > 0 ? p.exist : '0') + '</span>' : '') +
             '<span class="epc-offer-line__price">' + (pricesVisible ? Number(p.price || 0).toFixed(2) : '**') + '</span>' +
+            (fitBtn ? fitBtn.outerHTML : '') +
             (actions ? actions.innerHTML : '') +
           '</div></div>';
       }).join('');
