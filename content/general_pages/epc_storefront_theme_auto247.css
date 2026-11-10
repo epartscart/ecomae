@@ -565,6 +565,14 @@ body[class*="epc-storefront--auto247"] a[href*="katalogi-ucats"]::after {
 body[class*="epc-storefront--auto247"] a[href*="umapi_catalog"]::after {
     content: "Open AUTO247 Catalog"; font-size: 14px;
 }
+/* Suitable-vehicles rows deep-link into the catalog — keep their real content. */
+body[class*="epc-storefront--auto247"] .epc-veh-row[href*="umapi_catalog"],
+body[class*="epc-storefront--auto247"] .epc-veh-row[href*="umapi_catalog"] * {
+    font-size: revert !important;
+}
+body[class*="epc-storefront--auto247"] .epc-veh-row[href*="umapi_catalog"]::after {
+    content: none !important;
+}
 /* widget h1 title inside the e-catalog — hidden entirely for auto247 */
 body[class*="epc-storefront--auto247"] .epc-umapi-title {
     display: none !important;
