@@ -422,13 +422,16 @@ public static class StorefrontPartsApiProduct
             vehicles.Select(v => v[0]).Where(m => m.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
             cancellationToken).ConfigureAwait(false);
         var supLogoId = supId ?? await LoadSupplierLogoIdAsync(connections, context, brand, cancellationToken).ConfigureAwait(false);
+        var crossLogoIds = await LoadSupplierLogoIdsAsync(connections, context,
+            crosses.Select(c => c[0]).Where(b => b.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
+            cancellationToken).ConfigureAwait(false);
         var waHref = "https://wa.me/" + await LoadWhatsappNumberAsync(connections, context, cancellationToken).ConfigureAwait(false)
             + "?text=" + Uri.EscapeDataString(
                 "Price inquiry: " + brand + " " + number + (artName.Length > 0 ? " — " + artName : "")
                 + " https://" + context.Request.Host + "/en/parts/" + Uri.EscapeDataString(brand) + "/" + Uri.EscapeDataString(number));
 
         var html = Render(brand, number, artName, artCategory, images, specs, vehicles, crosses,
-            stock, access, ean, makeLogos, waHref, supLogoId);
+            stock, access, ean, makeLogos, waHref, supLogoId, crossLogoIds);
         context.Response.Headers.CacheControl = "no-store";
         return Results.Text(html, "text/html; charset=utf-8", Encoding.UTF8);
     }
@@ -640,6 +643,46 @@ public static class StorefrontPartsApiProduct
         }
     }
 
+    private static async Task<Dictionary<string, string>> LoadSupplierLogoIdsAsync(
+        ITenantDbConnectionFactory connections, HttpContext context, List<string> brands,
+        CancellationToken cancellationToken)
+    {
+        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (brands.Count == 0)
+        {
+            return map;
+        }
+
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken)
+                .ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `sup_id`, `brand` FROM `epc_umapi_brands`";
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var wanted = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var b in brands)
+            {
+                wanted[NormalizeBrand(b)] = b;
+            }
+
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var name = reader.IsDBNull(1) ? "" : reader.GetString(1);
+                if (wanted.TryGetValue(NormalizeBrand(name), out var label) && !map.ContainsKey(label))
+                {
+                    map[label] = reader.GetInt32(0).ToString(CultureInfo.InvariantCulture);
+                }
+            }
+        }
+        catch (Exception)
+        {
+        }
+
+        return map;
+    }
+
     private static async Task<string> LoadWhatsappNumberAsync(
         ITenantDbConnectionFactory connections, HttpContext context, CancellationToken cancellationToken)
     {
@@ -805,7 +848,8 @@ public static class StorefrontPartsApiProduct
         List<string> images, List<(string Name, string Value)> specs,
         List<string[]> vehicles, List<string[]> crosses,
         List<WarehouseRow> stock, StorefrontPriceAccessResult access, string ean,
-        Dictionary<string, int> makeLogos, string waHref, string? supId)
+        Dictionary<string, int> makeLogos, string waHref, string? supId,
+        Dictionary<string, string> crossLogoIds)
     {
         var wantedBrand = NormalizeBrand(brand);
         var inStock = stock.Exists(s => s.Exist > 0 && NormalizeBrand(s.Manufacturer) == wantedBrand);
@@ -847,6 +891,7 @@ public static class StorefrontPartsApiProduct
         sb.Append(".epc-prod .epc-oe-scroll{max-height:380px;overflow-y:auto;border:1px solid #eef0f3;border-radius:8px;padding:4px 10px}");
         sb.Append(".epc-prod .epc-oe-table td{border:1px solid #eee;padding:6px 10px;vertical-align:top}");
         sb.Append(".epc-prod .epc-oe-table td.brand{font-weight:700;text-align:center;background:#fafafa;white-space:nowrap}");
+        sb.Append(".epc-prod .epc-oe-logo{display:block;max-width:110px;max-height:28px;object-fit:contain;margin:0 auto 4px}");
         sb.Append(".epc-prod .epc-oe-num{display:inline-block;margin:0 14px 6px 0;color:#333}");
         sb.Append(".epc-prod .epc-oe-num a{color:#e8600a;text-decoration:none}");
         sb.Append(".epc-prod .epc-veh-makes{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}");
@@ -976,7 +1021,13 @@ public static class StorefrontPartsApiProduct
             sb.Append("<div class=\"epc-oe-scroll\"><table class=\"epc-oe-table\">");
             foreach (var grp in crosses.GroupBy(c => c[0], StringComparer.OrdinalIgnoreCase))
             {
-                sb.Append("<tr><td class=\"brand\">").Append(E(grp.Key)).Append("</td><td>");
+                sb.Append("<tr><td class=\"brand\">");
+                if (crossLogoIds.TryGetValue(grp.Key, out var crossLogoId))
+                {
+                    sb.Append("<img class=\"epc-oe-logo\" src=\"/api/umapi_image.php?kind=supplier&id=")
+                        .Append(E(crossLogoId)).Append("\" alt=\"\" loading=\"lazy\" onerror=\"this.style.display='none'\">");
+                }
+                sb.Append(E(grp.Key)).Append("</td><td>");
                 foreach (var c in grp)
                 {
                     sb.Append("<span class=\"epc-oe-num\"><a href=\"/en/parts/").Append(Uri.EscapeDataString(c[0].ToUpperInvariant()))
