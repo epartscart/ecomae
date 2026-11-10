@@ -2080,8 +2080,9 @@ public static class HomeCatalogWidgets
             "categories" => catalog + "/Categories?ID=" + Uri.EscapeDataString(context.Request.Query["ID"].ToString()) + "&type=PC",
             "products" => catalog + "/Products?CATEGORY_ID=" + Uri.EscapeDataString(context.Request.Query["CATEGORY_ID"].ToString()) + "&ID=" + Uri.EscapeDataString(context.Request.Query["ID"].ToString()) + "&type=PC",
             "articles" => catalog + "/Articles?PT_IDS=" + Uri.EscapeDataString(context.Request.Query["PT_IDS"].ToString()) + "&type=PC",
-            "brands" => catalog + "/BrandRefinement/" + Uri.EscapeDataString(context.Request.Query["article"].ToString()),
-            "analogs" => catalog + "/Analogs/" + Uri.EscapeDataString(context.Request.Query["article"].ToString()) + "/" + Uri.EscapeDataString(context.Request.Query["brand"].ToString()),
+            // UMAPI needs the OE number normalized (13101-54101 -> 1310154101).
+            "brands" => catalog + "/BrandRefinement/" + Uri.EscapeDataString(NormalizeArticle(context.Request.Query["article"].ToString())),
+            "analogs" => catalog + "/Analogs/" + Uri.EscapeDataString(NormalizeArticle(context.Request.Query["article"].ToString())) + "/" + Uri.EscapeDataString(context.Request.Query["brand"].ToString()),
             "article" => catalog + "/Article/" + Uri.EscapeDataString(context.Request.Query["id"].ToString()),
             "article_links" => catalog + "/ArticleLinks/" + Uri.EscapeDataString(context.Request.Query["id"].ToString()),
             "engines" => catalog + "/Engines?MFA_ID=" + Uri.EscapeDataString(context.Request.Query["MFA_ID"].ToString()),
