@@ -176,18 +176,21 @@
             try
             {
                 var decoded = await VinDecode.DecodeAsync(_vin, ct);
+                var source = "Live Laximo decode";
                 if (!decoded.Ok)
                 {
                     decoded = await PartsApiVinDecode.DecodeAndCacheAsync(PartsApi, Connections, _vin, ct);
+                    if (decoded.Ok)
+                    {
+                        source = "Live partsapi decode";
+                    }
                 }
 
                 if (decoded.Ok)
                 {
                     _manufacturer = decoded.Manufacturer ?? string.Empty;
                     _modelLabel = decoded.ModelLabel ?? string.Empty;
-                    _liveSource = decoded.VehicleCount > 0 && decoded.Vehicles.Count > 0 && string.IsNullOrEmpty(decoded.Vehicles[0].Catalog)
-                        ? "Live partsapi decode"
-                        : "Live Laximo decode";
+                    _liveSource = source;
                     if (_manufacturer.Length == 0 && _modelLabel.Length == 0)
                     {
                         _liveErr = decoded.Message;
