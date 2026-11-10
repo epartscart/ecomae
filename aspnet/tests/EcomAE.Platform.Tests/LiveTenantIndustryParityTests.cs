@@ -492,7 +492,7 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Contains("BuildCpOfficesDigestAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontOfficesApp.razor")), StringComparison.Ordinal);
         Assert.Contains("LookupVinAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVinApp.razor")), StringComparison.Ordinal);
         Assert.DoesNotContain("@page \"/en/katalog-laximo\"", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVinApp.razor")), StringComparison.Ordinal);
-        Assert.Contains("ListStorefrontGenuineBrandsAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontAvailableBrandsApp.razor")), StringComparison.Ordinal);
+        Assert.Contains("ListStorefrontBrandCardsAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontAvailableBrandsApp.razor")), StringComparison.Ordinal);
         Assert.Equal("/storefront/payment-app", PhpCustomerWrites.GuestOrderWriteHref);
     }
 
