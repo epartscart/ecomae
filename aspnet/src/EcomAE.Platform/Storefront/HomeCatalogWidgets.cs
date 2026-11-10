@@ -256,7 +256,7 @@ public static class HomeCatalogWidgets
 
                 if (root.TryGetProperty("rows", out var rows) && rows.ValueKind == JsonValueKind.Number)
                 {
-                    return rows.GetInt32() == 0;
+                    return rows.GetDouble() == 0;
                 }
             }
         }
@@ -1106,7 +1106,9 @@ public static class HomeCatalogWidgets
         }
 
         var body = raw.Substring(4, Math.Min(12, raw.Length - 4)).Trim();
-        if (body.Contains("1970"))
+        // Only the exact "01 Jan 1970" epoch is TecDoc's open-ended sentinel;
+        // a real 1970 date (e.g. "01 Jul 1970") must keep its value.
+        if (body.StartsWith("01 Jan 1970", StringComparison.Ordinal))
         {
             return "9999";
         }
