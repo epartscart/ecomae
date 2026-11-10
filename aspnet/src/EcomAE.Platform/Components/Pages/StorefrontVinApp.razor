@@ -3,8 +3,13 @@
 @using System.Text.Json
 @using EcomAE.Platform.Api.Catalog
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
+@using EcomAE.Platform.Erp
 @inject ICatalogOfflineCacheService OfflineCache
 @inject IHttpContextAccessor Http
+@inject ILaximoVinDecodeService VinDecode
+@inject IPartsApiService PartsApi
+@inject IErpWriteConnectionFactory Connections
 
 <PageTitle>VIN / Frame search · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
@@ -58,7 +63,7 @@
             <p style="margin:0 0 .65rem;font-weight:700">VIN / frame: @_vin</p>
             @if (_cacheHit || _manufacturer.Length > 0)
             {
-                <p style="margin:0 0 .35rem;color:#166534;font-weight:700">@(_cacheHit ? "Cached decode" : "Live Laximo decode")</p>
+                <p style="margin:0 0 .35rem;color:#166534;font-weight:700">@(_cacheHit ? "Cached decode" : _liveSource)</p>
                 <p style="margin:0 0 .35rem">Make: @(_manufacturer.Length > 0 ? _manufacturer : "—")</p>
                 <p style="margin:0 0 .85rem">Model: @(_modelLabel.Length > 0 ? _modelLabel : "—")</p>
             }
@@ -94,6 +99,7 @@
     private string _manufacturer = "";
     private string _modelLabel = "";
     private string _liveErr = "";
+    private string _liveSource = "Live decode";
 
     [SupplyParameterFromQuery(Name = "identString")]
     public string? IdentString { get; set; }
@@ -159,6 +165,45 @@
             {
                 _cacheHit = false;
                 _cacheCode = "vin_cache_invalid";
+            }
+        }
+
+        // Cache miss: run the live decode chain — Laximo first, then the umapi
+        // decode service's own miss, then partsapi.ru (saves into epc_umapi_vin_cache).
+        if (!_cacheHit && _vin.Length is >= 11 and <= 17)
+        {
+            var ct = ctx?.RequestAborted ?? default;
+            try
+            {
+                var decoded = await VinDecode.DecodeAsync(_vin, ct);
+                var source = "Live Laximo decode";
+                if (!decoded.Ok)
+                {
+                    decoded = await PartsApiVinDecode.DecodeAndCacheAsync(PartsApi, Connections, _vin, ct);
+                    if (decoded.Ok)
+                    {
+                        source = "Live partsapi decode";
+                    }
+                }
+
+                if (decoded.Ok)
+                {
+                    _manufacturer = decoded.Manufacturer ?? string.Empty;
+                    _modelLabel = decoded.ModelLabel ?? string.Empty;
+                    _liveSource = source;
+                    if (_manufacturer.Length == 0 && _modelLabel.Length == 0)
+                    {
+                        _liveErr = decoded.Message;
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(decoded.Message))
+                {
+                    _liveErr = decoded.Message;
+                }
+            }
+            catch (Exception)
+            {
+                _liveErr = "Decode service unavailable right now — submit Decode VIN to retry.";
             }
         }
     }

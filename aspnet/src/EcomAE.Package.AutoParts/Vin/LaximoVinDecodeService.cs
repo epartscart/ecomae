@@ -110,7 +110,7 @@ public sealed class LaximoVinDecodeService : ILaximoVinDecodeService
             return new LaximoVinDecodeResult(false, "miss", "No vehicle for this VIN.", vin, null, null, 0, []);
         }
 
-        await TryCacheAsync(vin, manufacturer, model, vehicles.Count, body, cancellationToken).ConfigureAwait(false);
+        await TryCacheAsync(vin, manufacturer, model, vehicles, body, cancellationToken).ConfigureAwait(false);
         return new LaximoVinDecodeResult(true, "ok", "Decoded", vin, manufacturer, model, vehicles.Count, vehicles);
     }
 
@@ -300,7 +300,7 @@ public sealed class LaximoVinDecodeService : ILaximoVinDecodeService
         string vin,
         string manufacturer,
         string model,
-        int count,
+        IReadOnlyList<LaximoVehicleRow> vehicles,
         string rawXml,
         CancellationToken cancellationToken)
     {
@@ -318,7 +318,25 @@ public sealed class LaximoVinDecodeService : ILaximoVinDecodeService
                 ErpDb.Positional(
                     "INSERT INTO `epc_umapi_vin_cache` (`vin`,`language`,`region`,`response_json`,`vehicle_count`,`manufacturer`,`model_label`,`http_status`,`updated_at`) VALUES (?,?,?,?,?,?,?,?,UTC_TIMESTAMP()) ON DUPLICATE KEY UPDATE `response_json`=VALUES(`response_json`), `vehicle_count`=VALUES(`vehicle_count`), `manufacturer`=VALUES(`manufacturer`), `model_label`=VALUES(`model_label`), `http_status`=VALUES(`http_status`), `updated_at`=UTC_TIMESTAMP()"),
                 cancellationToken,
-                vin, "en", "WWW", rawXml, count, manufacturer, model, 200).ConfigureAwait(false);
+                vin, "en", "WWW", System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        data = new
+                        {
+                            matchingManufacturers = new { array = new[] { new { manuName = manufacturer } } },
+                            matchingVehicles = new
+                            {
+                                array = vehicles.Select(v => new
+                                {
+                                    carName = (v.Brand + " " + v.Name).Trim(),
+                                    vehicleTypeDescription = v.Name,
+                                    catalog = v.Catalog,
+                                    ssd = v.Ssd
+                                }).ToArray()
+                            },
+                            matchingVehiclesCount = vehicles.Count
+                        },
+                        status = 200
+                    }), vehicles.Count, manufacturer, model, 200).ConfigureAwait(false);
         }
         catch
         {
