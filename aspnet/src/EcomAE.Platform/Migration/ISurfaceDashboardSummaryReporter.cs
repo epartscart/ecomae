@@ -646,6 +646,7 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Genuine OE brand keys (PHP <c>epc_genuine_build_frontend_index</c>).</summary>
     Task<StorefrontGenuineBrandsResult> ListStorefrontGenuineBrandsAsync(CancellationToken cancellationToken = default);
+    Task<StorefrontBrandCardsResult> ListStorefrontBrandCardsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>Office/storage bunches for progressive supplier poll (PHP <c>office_storage_bunches</c>).</summary>
     Task<StorefrontOfficeStorageBunchesResult> ListStorefrontOfficeStorageBunchesAsync(string article, string? brand, CancellationToken cancellationToken = default);

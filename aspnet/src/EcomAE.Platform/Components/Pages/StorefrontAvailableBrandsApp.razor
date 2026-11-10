@@ -39,10 +39,10 @@
         {
             try
             {
-                var brands = await Dashboards.ListStorefrontGenuineBrandsAsync(cancellation);
-                if (brands.Brands.Count > 0)
+                var cards = await Dashboards.ListStorefrontBrandCardsAsync(cancellation);
+                if (cards.Cards.Count > 0)
                 {
-                    _html = RenderBrandGrid(brands.Brands);
+                    _html = RenderBrandCards(cards.Cards);
                     return;
                 }
             }
@@ -74,17 +74,53 @@
         }
     }
 
-    private static string RenderBrandGrid(IReadOnlyList<string> brands)
+    private static string RenderBrandCards(IReadOnlyList<StorefrontBrandCard> cards)
     {
         var sb = new System.Text.StringBuilder();
-        sb.Append("<div class=\"epc-sf-brand-grid\" style=\"display:grid;grid-template-columns:repeat(auto-fill,minmax(8.5rem,1fr));gap:.45rem\">");
-        foreach (var brand in brands)
+        var countries = cards.Select(c => c.Country).Where(c => c.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(c => c, StringComparer.OrdinalIgnoreCase).ToList();
+        if (countries.Count > 1)
         {
-            var safe = WebUtility.HtmlEncode(brand);
-            var href = StorefrontSurfaceLinks.PartSearch + "?brend=" + Uri.EscapeDataString(brand);
-            sb.Append("<a href=\"").Append(href).Append("\" style=\"display:block;padding:.55rem .65rem;background:#fff;border:1px solid #e2e8f0;border-radius:.4rem;color:#0f172a;font-weight:700;text-decoration:none\">")
-              .Append(safe)
-              .Append("</a>");
+            sb.Append("<div style=\"margin:.35rem 0 .75rem\">"
+                + "<select id=\"epc-brand-country\" onchange=\""
+                + "var v=this.value;var c=document.querySelectorAll('.epc-brand-card');for(var i=0;i<c.length;i++){c[i].style.display=(!v||c[i].getAttribute('data-country')===v)?'':'none';}"
+                + "\" style=\"padding:.4rem .6rem;border:1px solid #cbd5e1;border-radius:.4rem\">"
+                + "<option value=\"\">All countries (").Append(countries.Count).Append(")</option>");
+            foreach (var country in countries)
+            {
+                sb.Append("<option value=\"").Append(WebUtility.HtmlEncode(country)).Append("\">")
+                  .Append(WebUtility.HtmlEncode(country)).Append("</option>");
+            }
+
+            sb.Append("</select></div>");
+        }
+
+        sb.Append("<div class=\"epc-sf-brand-grid\" style=\"display:grid;grid-template-columns:repeat(auto-fill,minmax(10rem,1fr));gap:.55rem\">");
+        foreach (var card in cards)
+        {
+            var safe = WebUtility.HtmlEncode(card.Brand);
+            var href = StorefrontSurfaceLinks.PartSearch + "?brend=" + Uri.EscapeDataString(card.Brand);
+            var logo = card.MfaId > 0
+                ? "/api/umapi_image.php?kind=manufacturer&id=" + card.MfaId
+                : "";
+            var detail = card.FullName.Length > 0 && !card.FullName.Equals(card.Brand, StringComparison.OrdinalIgnoreCase)
+                ? card.FullName
+                : card.Country;
+            sb.Append("<a class=\"epc-brand-card\" data-country=\"").Append(WebUtility.HtmlEncode(card.Country)).Append("\" href=\"").Append(href)
+              .Append("\" style=\"display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.7rem .6rem;background:#fff;border:1px solid #e2e8f0;border-radius:.4rem;color:#0f172a;text-decoration:none;text-align:center\">");
+            if (logo.Length > 0)
+            {
+                sb.Append("<img src=\"").Append(logo).Append("\" alt=\"").Append(safe)
+                  .Append("\" loading=\"lazy\" style=\"width:64px;height:40px;object-fit:contain\" onerror=\"this.style.display='none'\">");
+            }
+
+            sb.Append("<span style=\"font-weight:700\">").Append(safe).Append("</span>");
+            if (detail.Length > 0)
+            {
+                sb.Append("<span style=\"font-size:.75rem;color:#64748b\">").Append(WebUtility.HtmlEncode(detail)).Append("</span>");
+            }
+
+            sb.Append("</a>");
         }
 
         sb.Append("</div>");

@@ -6842,6 +6842,18 @@ public static class LegacySurfaceDashboardSql
         LIMIT 5000
         """;
 
+    public const string SelectStorefrontGenuineBrandCards = """
+        SELECT `manufacturer` AS brand,
+               MIN(`mfa_id`) AS mfa_id,
+               MAX(`manufacturer_ru`) AS full_name,
+               MAX(`country`) AS country
+        FROM `epc_umapi_manufacturers`
+        WHERE `section` IN ('passenger','commercial','motorbike')
+          AND IFNULL(`manufacturer`,'') <> ''
+        GROUP BY `manufacturer`
+        LIMIT 5000
+        """;
+
     /// <summary>Manufacturer synonym expansions for genuine brand matching.</summary>
     public const string SelectStorefrontManufacturerSynonyms = """
         SELECT IFNULL(m.`name`,'') AS name, IFNULL(s.`synonym`,'') AS synonym

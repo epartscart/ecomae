@@ -3026,6 +3026,18 @@ public sealed record StorefrontGenuineBrandsResult(
     string Source,
     string Message);
 
+public sealed record StorefrontBrandCard(
+    string Brand,
+    long MfaId,
+    string FullName,
+    string Country);
+
+public sealed record StorefrontBrandCardsResult(
+    IReadOnlyList<StorefrontBrandCard> Cards,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record StorefrontOfficeStorageBunchDigest(
     int OfficeId,
     int StorageId,
