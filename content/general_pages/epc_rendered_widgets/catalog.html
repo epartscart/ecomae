@@ -606,9 +606,11 @@
         var article = item.ART_ARTICLE_NR || item.ARTICLE || item.ART_NUMBER || item.OEN || '';
         var name = item.ART_PRODUCT_NAME || item.PRODUCT_NAME || item.DES || item.NAME || '';
         var searchUrl = shopSearchUrl(brand, article);
+        var productUrl = '/api/partsapi_product.php?brand=' + encodeURIComponent(brand) + '&number=' + encodeURIComponent(article);
         return '<tr data-search="' + esc([brand, article, name].join(' ')) + '">' +
             '<td>' + esc(brand) + '</td><td>' + esc(article) + '</td><td>' + esc(name) + '</td>' +
-            '<td><a class="btn btn-xs btn-primary" href="' + esc(searchUrl) + '" title="Search ' + esc(brand) + ' ' + esc(article) + ' in shop">Search</a></td></tr>';
+            '<td><a class="btn btn-xs btn-primary" href="' + esc(productUrl) + '" title="Open ' + esc(brand) + ' ' + esc(article) + ' product page">View</a>' +
+            ' <a class="btn btn-xs btn-default" href="' + esc(searchUrl) + '" title="Search ' + esc(brand) + ' ' + esc(article) + ' in shop">Search</a></td></tr>';
     }
 
     function renderBrandSearch(items, article) {
