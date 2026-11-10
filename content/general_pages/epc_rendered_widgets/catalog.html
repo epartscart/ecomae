@@ -982,9 +982,43 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
         }
     });
 
+    // Deep link from the product page's Suitable-vehicles list:
+    // /en/catalog?make=TOYOTA&model=Avensis — auto-drill to that car.
+    function initVehicleFromQuery() {
+        var params = new URLSearchParams(location.search);
+        var make = (params.get('make') || '').trim();
+        if (!make) { return false; }
+        var model = (params.get('model') || '').trim().toLowerCase();
+        loading('Loading ' + make + '...');
+        api('manufacturers', {}).then(function (items) {
+            items = apiItems(items) || [];
+            var m = items.filter(function (it) {
+                return String(it.MANUFACTURER || '').toLowerCase() === make.toLowerCase();
+            })[0] || items.filter(function (it) {
+                return String(it.MANUFACTURER || '').toLowerCase().indexOf(make.toLowerCase()) === 0;
+            })[0];
+            if (!m) { renderManufacturers(items); return; }
+            state.manufacturer = m;
+            state.vehicleType = chooseVehicleType(m);
+            loading('Loading models...');
+            api('models', { MFA_ID: m.MFA_ID }).then(function (mods) {
+                mods = apiItems(mods) || [];
+                if (!model) { renderModels(mods); return; }
+                var hit = mods.filter(function (it) {
+                    return String(it.MODEL_SERIES || '').toLowerCase().indexOf(model) === 0;
+                })[0] || mods.filter(function (it) {
+                    return String(it.MODEL_SERIES || '').toLowerCase().indexOf(model) !== -1;
+                })[0];
+                if (!hit) { renderModels(mods); return; }
+                loadModifications(hit);
+            }).catch(showError);
+        }).catch(showError);
+        return true;
+    }
+
     state.section = sectionFromHash();
     syncTabs();
-    if (!initVinFromQuery()) {
+    if (!initVehicleFromQuery() && !initVinFromQuery()) {
         loadManufacturers();
     }
 })();
