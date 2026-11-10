@@ -421,13 +421,14 @@ public static class StorefrontPartsApiProduct
         var makeLogos = await LoadMakeLogoIdsAsync(connections, context,
             vehicles.Select(v => v[0]).Where(m => m.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
             cancellationToken).ConfigureAwait(false);
+        var supLogoId = supId ?? await LoadSupplierLogoIdAsync(connections, context, brand, cancellationToken).ConfigureAwait(false);
         var waHref = "https://wa.me/" + await LoadWhatsappNumberAsync(connections, context, cancellationToken).ConfigureAwait(false)
             + "?text=" + Uri.EscapeDataString(
                 "Price inquiry: " + brand + " " + number + (artName.Length > 0 ? " — " + artName : "")
                 + " https://" + context.Request.Host + "/en/parts/" + Uri.EscapeDataString(brand) + "/" + Uri.EscapeDataString(number));
 
         var html = Render(brand, number, artName, artCategory, images, specs, vehicles, crosses,
-            stock, access, ean, makeLogos, waHref);
+            stock, access, ean, makeLogos, waHref, supLogoId);
         context.Response.Headers.CacheControl = "no-store";
         return Results.Text(html, "text/html; charset=utf-8", Encoding.UTF8);
     }
@@ -615,6 +616,30 @@ public static class StorefrontPartsApiProduct
         return map;
     }
 
+    private static async Task<string?> LoadSupplierLogoIdAsync(
+        ITenantDbConnectionFactory connections, HttpContext context, string brand,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken)
+                .ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `sup_id` FROM `epc_umapi_brands` WHERE UPPER(TRIM(`brand`)) = @brand LIMIT 1";
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@brand";
+            parameter.Value = brand.Trim().ToUpperInvariant();
+            command.Parameters.Add(parameter);
+            var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return value is null or DBNull ? null : Convert.ToString(value, CultureInfo.InvariantCulture);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
     private static async Task<string> LoadWhatsappNumberAsync(
         ITenantDbConnectionFactory connections, HttpContext context, CancellationToken cancellationToken)
     {
@@ -780,7 +805,7 @@ public static class StorefrontPartsApiProduct
         List<string> images, List<(string Name, string Value)> specs,
         List<string[]> vehicles, List<string[]> crosses,
         List<WarehouseRow> stock, StorefrontPriceAccessResult access, string ean,
-        Dictionary<string, int> makeLogos, string waHref)
+        Dictionary<string, int> makeLogos, string waHref, string? supId)
     {
         var wantedBrand = NormalizeBrand(brand);
         var inStock = stock.Exists(s => s.Exist > 0 && NormalizeBrand(s.Manufacturer) == wantedBrand);
@@ -798,6 +823,9 @@ public static class StorefrontPartsApiProduct
         sb.Append(".epc-prod .epc-prod-thumbs img{width:58px;height:58px;object-fit:contain;border:1px solid #e0e0e0;cursor:pointer}");
         sb.Append(".epc-prod .epc-prod-thumbs img:hover{border-color:#e8600a}");
         sb.Append(".epc-prod .epc-prod-info{flex:1 1 380px;min-width:280px}");
+        sb.Append(".epc-prod .epc-prod-brand{display:flex;align-items:center;gap:10px;margin:0 0 10px}");
+        sb.Append(".epc-prod .epc-prod-brand img{max-height:44px;max-width:140px;object-fit:contain}");
+        sb.Append(".epc-prod .epc-prod-brand span{font-weight:700;color:#333;font-size:14px}");
         sb.Append(".epc-prod .epc-prod-name{color:#e8600a;font-size:15px;font-weight:700;margin:0 0 8px}");
         sb.Append(".epc-prod .epc-prod-bullets{margin:0 0 12px;padding-left:18px;color:#333}");
         sb.Append(".epc-prod .epc-prod-bullets b{color:#000}");
@@ -873,6 +901,16 @@ public static class StorefrontPartsApiProduct
         sb.Append("</div>");
 
         sb.Append("<div class=\"epc-prod-info\">");
+        if (supId is not null && UmapiImageProxy.TryImageUrl("supplier", supId, out _))
+        {
+            sb.Append("<div class=\"epc-prod-brand\"><img src=\"/api/umapi_image.php?kind=supplier&id=")
+                .Append(E(supId)).Append("\" alt=\"").Append(E(brand)).Append("\" loading=\"lazy\" onerror=\"this.style.display='none'\">")
+                .Append("<span>").Append(E(brand)).Append("</span></div>");
+        }
+        else
+        {
+            sb.Append("<div class=\"epc-prod-brand\"><span>").Append(E(brand)).Append("</span></div>");
+        }
         sb.Append("<div class=\"epc-prod-name\">").Append(E(name.Length > 0 ? name : "Auto part")).Append("</div>");
         sb.Append("<ul class=\"epc-prod-bullets\"><li>").Append(E(brand)).Append(" ").Append(E(number))
             .Append(name.Length > 0 ? " — " + E(name) : "").Append("</li>");
