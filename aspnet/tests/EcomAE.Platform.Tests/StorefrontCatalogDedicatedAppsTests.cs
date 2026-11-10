@@ -36,7 +36,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
     }
 
     [Theory]
-    [InlineData("/en/umapi_catalog", "/storefront/umapi-catalog-app")]
+    [InlineData("/en/umapi_catalog", "/en/catalog")]
     [InlineData("/en/product-family", "/storefront/product-family-app")]
     [InlineData("/en/available-brands", "/storefront/available-brands-app")]
     [InlineData("/en/original-catalog", "/storefront/original-catalog-app")]
