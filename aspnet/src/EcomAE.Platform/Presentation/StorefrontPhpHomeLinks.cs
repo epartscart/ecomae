@@ -23,7 +23,7 @@ public static class StorefrontPhpHomeLinks
 
     public static string Parts(string langHref) => Prefix(langHref) + "/parts";
 
-    public static string UmapiCatalog(string langHref) => Prefix(langHref) + "/umapi_catalog";
+    public static string UmapiCatalog(string langHref) => Prefix(langHref) + "/catalog";
 
     public static string AvailableBrands(string langHref) => Prefix(langHref) + "/available-brands";
 

@@ -974,7 +974,7 @@ public static class StorefrontPartsApiProduct
             {
                 var years = (v[3] + (v[4].Length > 0 ? " - " + v[4] : "")).Trim(' ', '-');
                 // car-mod: clicking a vehicle opens that car's catalog drill-down.
-                var carUrl = "/en/umapi_catalog?make=" + Uri.EscapeDataString(v[0])
+                var carUrl = "/en/catalog?make=" + Uri.EscapeDataString(v[0])
                     + (v[1].Length > 0 ? "&model=" + Uri.EscapeDataString(v[1].Split('(')[0].Trim()) : "");
                 sb.Append("<a class=\"epc-veh-row\" data-make=\"").Append(E(v[0])).Append("\" href=\"").Append(E(carUrl)).Append("\"><div class=\"epc-veh-cell\"><b>")
                     .Append(E(v[1].Length > 0 ? v[1] : v[0])).Append("</b>")
