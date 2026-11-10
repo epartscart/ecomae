@@ -62,6 +62,19 @@ public static class PartsApiVinDecode
                 rows.Add(root);
             }
 
+            // Flatten [{data:[...]}, ...] envelopes into their vehicle rows.
+            for (var i = 0; i < rows.Count; i++)
+            {
+                if (rows[i].ValueKind == JsonValueKind.Object && rows[i].TryGetProperty("data", out var inner)
+                    && inner.ValueKind == JsonValueKind.Array)
+                {
+                    var expanded = inner.EnumerateArray().ToList();
+                    rows.RemoveAt(i);
+                    rows.InsertRange(i, expanded);
+                    i--;
+                }
+            }
+
             foreach (var row in rows)
             {
                 if (row.ValueKind != JsonValueKind.Object)
