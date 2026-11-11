@@ -61,7 +61,7 @@
     var summary = document.getElementById('epc-brands-summary');
     var output = document.getElementById('epc-brands-output');
     var mode = 'parts';
-    var activeLetter = 'A';
+    var activeLetter = 'All';
     var activeCountry = '';
     var countrySelect = document.getElementById('epc-brands-country');
     var cache = { parts: null, vehicles: null };
@@ -384,7 +384,7 @@
     Array.prototype.forEach.call(root.querySelectorAll('.epc-brands-tabs button'), function (button) {
         button.onclick = function () {
             mode = button.getAttribute('data-mode');
-            activeLetter = 'A';
+            activeLetter = 'All';
             activeCountry = '';
             Array.prototype.forEach.call(root.querySelectorAll('.epc-brands-tabs button'), function (item) {
                 item.classList.toggle('active', item === button);
