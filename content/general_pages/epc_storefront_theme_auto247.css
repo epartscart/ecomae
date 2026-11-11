@@ -62,8 +62,6 @@ body.epc-storefront--auto247 .epc-nero-top-actions .new-header-user-box a:hover 
 body.epc-storefront--auto247 .dropdown-cat-btn,
 body.epc-storefront--auto247 .header-cat-btn,
 body.epc-storefront--auto247 #dp_menu > a,
-body.epc-storefront--auto247 .header-call-box,
-body.epc-storefront--auto247 .header-call-box a,
 body.epc-storefront--auto247 .btn.btn-ar.btn-primary,
 body.epc-storefront--auto247 .btn.btn-xs.btn-primary,
 body.epc-storefront--auto247 .btn.btn-primary,
@@ -79,11 +77,21 @@ body.epc-storefront--auto247 .epc-vc-promo-vin-btn {
 
 body.epc-storefront--auto247 .dropdown-cat-btn:hover,
 body.epc-storefront--auto247 .header-cat-btn:hover,
-body.epc-storefront--auto247 .header-call-box:hover,
 body.epc-storefront--auto247 .btn.btn-primary:hover,
 body.epc-storefront--auto247 .section-vin__btn:hover {
     background: var(--auto247-blue-dark) !important;
     border-color: var(--auto247-blue-dark) !important;
+}
+
+/* "Request a call back" stays red like epartscart's top area */
+body.epc-storefront--auto247 .header-call-box a {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    box-shadow: 0 12px 26px rgba(239, 68, 68, .22) !important;
+}
+
+body.epc-storefront--auto247 .header-call-box a:hover {
+    background: #dc2626 !important;
 }
 
 /* Success/green actions -> sky blue (WhatsApp keeps green intent but goes brand-safe) */
