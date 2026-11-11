@@ -61,7 +61,7 @@
     var summary = document.getElementById('epc-brands-summary');
     var output = document.getElementById('epc-brands-output');
     var mode = 'parts';
-    var activeLetter = 'A';
+    var activeLetter = 'All';
     var activeCountry = '';
     var countrySelect = document.getElementById('epc-brands-country');
     var cache = { parts: null, vehicles: null };
@@ -215,7 +215,7 @@
         if (!item.logo) {
             return '<span class="epc-brand-logo-wrap">' + fallback + '</span>';
         }
-        return '<span class="epc-brand-logo-wrap"><img class="epc-brand-logo" alt="" loading="eager" decoding="async" src="' + esc(item.logo) + '" onload="var p=this.closest(\'.epc-brand-item\');if(p){p.classList.add(\'has-logo-loaded\');}" onerror="var p=this.closest(\'.epc-brand-item\');if(p){p.classList.add(\'is-logo-missing\');}this.remove();">' + fallback + '</span>';
+        return '<span class="epc-brand-logo-wrap"><img class="epc-brand-logo" alt="" loading="lazy" decoding="async" src="' + esc(item.logo) + '" onload="var p=this.closest(\'.epc-brand-item\');if(p){p.classList.add(\'has-logo-loaded\');}" onerror="var p=this.closest(\'.epc-brand-item\');if(p){p.classList.add(\'is-logo-missing\');}this.remove();">' + fallback + '</span>';
     }
 
     function populateCountries() {
@@ -384,7 +384,7 @@
     Array.prototype.forEach.call(root.querySelectorAll('.epc-brands-tabs button'), function (button) {
         button.onclick = function () {
             mode = button.getAttribute('data-mode');
-            activeLetter = 'A';
+            activeLetter = 'All';
             activeCountry = '';
             Array.prototype.forEach.call(root.querySelectorAll('.epc-brands-tabs button'), function (item) {
                 item.classList.toggle('active', item === button);

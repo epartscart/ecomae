@@ -60,7 +60,7 @@
     var summary = document.getElementById('epc-brands-summary');
     var output = document.getElementById('epc-brands-output');
     var mode = 'parts';
-    var activeLetter = 'A';
+    var activeLetter = 'All';
     var cache = { parts: null, vehicles: null };
     var pricesVisible = root.getAttribute('data-prices-visible') === '1';
     var priceLoginCta = "<span class=\"epc-price-login-cta\"><a href=\"/storefront/login\">Log in</a><span class=\"epc-price-login-cta__sep\"> or </span><a href=\"/storefront/register-app\">register</a><span class=\"epc-price-login-cta__hint\"> to see prices</span></span>";
@@ -211,7 +211,7 @@
         if (!item.logo) {
             return '<span class="epc-brand-logo-wrap">' + fallback + '</span>';
         }
-        return '<span class="epc-brand-logo-wrap"><img class="epc-brand-logo" alt="" loading="eager" decoding="async" src="' + esc(item.logo) + '" onload="var p=this.closest(\'.epc-brand-item\');if(p){p.classList.add(\'has-logo-loaded\');}" onerror="var p=this.closest(\'.epc-brand-item\');if(p){p.classList.add(\'is-logo-missing\');}this.remove();">' + fallback + '</span>';
+        return '<span class="epc-brand-logo-wrap"><img class="epc-brand-logo" alt="" loading="lazy" decoding="async" src="' + esc(item.logo) + '" onload="var p=this.closest(\'.epc-brand-item\');if(p){p.classList.add(\'has-logo-loaded\');}" onerror="var p=this.closest(\'.epc-brand-item\');if(p){p.classList.add(\'is-logo-missing\');}this.remove();">' + fallback + '</span>';
     }
 
     function render() {
@@ -345,7 +345,7 @@
     Array.prototype.forEach.call(root.querySelectorAll('.epc-brands-tabs button'), function (button) {
         button.onclick = function () {
             mode = button.getAttribute('data-mode');
-            activeLetter = 'A';
+            activeLetter = 'All';
             Array.prototype.forEach.call(root.querySelectorAll('.epc-brands-tabs button'), function (item) {
                 item.classList.toggle('active', item === button);
             });
