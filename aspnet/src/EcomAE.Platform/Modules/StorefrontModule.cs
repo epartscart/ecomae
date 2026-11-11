@@ -1988,23 +1988,23 @@ public sealed class StorefrontModule : ISurfaceModule
                 vin = LiveWriteFormBinder.Text(form, "vin", "identString", "ident_string");
             }
 
-            var decoded = await decode.DecodeAsync(vin, cancellationToken);
-            if (!decoded.Ok && !string.IsNullOrWhiteSpace(decoded.Vin))
+            // VIN provider order: umapi (partsapi) → Tur (emshcloud) → laximo.
+            var decoded = await PartsApiVinDecode.DecodeAndCacheAsync(partsApi, connections, vin ?? "", cancellationToken).ConfigureAwait(false);
+            if (!decoded.Ok)
             {
-                // Laximo is down or a miss: fall back to partsapi.ru VINdecode and
-                // stash the result so /storefront/vin-app's cached path lights up.
-                var parts = await PartsApiVinDecode.DecodeAndCacheAsync(partsApi, connections, decoded.Vin, cancellationToken).ConfigureAwait(false);
-                if (parts.Ok)
+                // Second: the shared emshcloud TecDoc subscription (auto247-Tur).
+                var ems = await EmshcloudVinDecode.DecodeAndCacheAsync(context, httpClientFactory, connections, vin ?? "", cancellationToken).ConfigureAwait(false);
+                if (ems.Ok)
                 {
-                    decoded = parts;
+                    decoded = ems;
                 }
                 else
                 {
-                    // Last resort: the shared emshcloud TecDoc subscription.
-                    var ems = await EmshcloudVinDecode.DecodeAndCacheAsync(context, httpClientFactory, connections, decoded.Vin, cancellationToken).ConfigureAwait(false);
-                    if (ems.Ok)
+                    // Last resort: Laximo OEM.
+                    var lax = await decode.DecodeAsync(vin, cancellationToken);
+                    if (lax.Ok)
                     {
-                        decoded = ems;
+                        decoded = lax;
                     }
                 }
             }
