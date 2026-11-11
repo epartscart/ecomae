@@ -215,7 +215,7 @@
         if (!item.logo) {
             return '<span class="epc-brand-logo-wrap">' + fallback + '</span>';
         }
-        return '<span class="epc-brand-logo-wrap"><img class="epc-brand-logo" alt="" loading="eager" decoding="async" src="' + esc(item.logo) + '" onload="var p=this.closest(\'.epc-brand-item\');if(p){p.classList.add(\'has-logo-loaded\');}" onerror="var p=this.closest(\'.epc-brand-item\');if(p){p.classList.add(\'is-logo-missing\');}this.remove();">' + fallback + '</span>';
+        return '<span class="epc-brand-logo-wrap"><img class="epc-brand-logo" alt="" loading="lazy" decoding="async" src="' + esc(item.logo) + '" onload="var p=this.closest(\'.epc-brand-item\');if(p){p.classList.add(\'has-logo-loaded\');}" onerror="var p=this.closest(\'.epc-brand-item\');if(p){p.classList.add(\'is-logo-missing\');}this.remove();">' + fallback + '</span>';
     }
 
     function populateCountries() {
