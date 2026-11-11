@@ -19,7 +19,7 @@ public sealed class Auto247SkinContributor : ICustomerSkinContributor
 
     public string PackageId => Auto247Package.PackageId;
 
-    public string StylesheetHref => "/platform-assets/epc-storefront-theme-auto247.css?v=20261110f";
+    public string StylesheetHref => "/platform-assets/epc-storefront-theme-auto247.css?v=20261111a";
 
     public string BodyClass => "epc-storefront--auto247";
 
