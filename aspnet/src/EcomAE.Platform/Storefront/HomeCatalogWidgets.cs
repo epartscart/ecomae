@@ -199,6 +199,7 @@ public static class HomeCatalogWidgets
         endpoints.MapMethods(UmapiProxyPath, ["GET", "POST"], UmapiProxyAsync);
         UmapiImageProxy.Map(endpoints);
         StorefrontPartsApiProduct.Map(endpoints);
+        EmshcloudCatalogProxy.Map(endpoints);
     }
 
     public static string UnavailableJson()
