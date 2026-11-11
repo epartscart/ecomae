@@ -87,12 +87,15 @@
                     var waSetting = await ErpDb.StringAsync(connection, null,
                         ErpDb.Positional(
                             "SELECT `setting_value` FROM `epc_settings` "
-                            + "WHERE `site_key` IN (?, ?) "
+                            + "WHERE (`site_key` = ? OR (? <> '' AND `site_key` = ?)) "
                             + "AND `setting_key` IN ('whatsapp_number','whatsapp','contact_whatsapp','epc_whatsapp_number','epc_contact_phone') "
-                            + "AND `setting_value` <> '' AND `setting_value` REGEXP '[0-9]' LIMIT 1"),
+                            + "AND `setting_value` <> '' AND `setting_value` REGEXP '[0-9]' "
+                            + "ORDER BY CASE WHEN `site_key` = ? THEN 0 ELSE 1 END LIMIT 1"),
                         ctx.RequestAborted,
                         host,
-                        siteKey);
+                        siteKey,
+                        siteKey,
+                        host);
                     salesDigits = new string((waSetting ?? "").Where(char.IsDigit).ToArray());
                     if (salesDigits.Length > 0)
                     {
