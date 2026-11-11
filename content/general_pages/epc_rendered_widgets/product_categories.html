@@ -74,8 +74,10 @@
 		path: [],          // stack of drilled nodes from root to current parent
 		leaf: null,        // leaf node whose articles are showing
 		parts: null,       // leaf parts payload
+		famLabels: null,   // warehouse product-family labels (loaded once, for stock merge)
 		loading: false
 	};
+	var FAMILY_API = '/content/shop/docpart/ajax_epc_product_family.php';
 
 	function esc(s) {
 		return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -142,7 +144,14 @@
 
 	function renderParts() {
 		var p = state.parts || { groups: [], parts: [] };
-		var rows = p.parts || [];
+		var stockRows = (p.stock || []).map(function (s) {
+			return { SUP_BRAND: s.brand, ARTICLE_NR: s.article, ART_PRODUCT_NAME: s.name, QTY: s.qty, OWN: true };
+		});
+		var have = {};
+		stockRows.forEach(function (r) { have[(r.SUP_BRAND + '|' + normArticle(r.ARTICLE_NR)).toUpperCase()] = true; });
+		var rows = stockRows.concat((p.parts || []).filter(function (r) {
+			return !have[((r.SUP_BRAND || r.SUP_ID || '') + '|' + normArticle(r.ARTICLE_NR)).toUpperCase()];
+		}));
 		var leafName = state.leaf ? state.leaf.DES : '';
 		var back = '<div class="epc-pf-cat-backbar">'
 			+ '<button type="button" class="btn btn-default btn-sm" id="epc-pc-back"><i class="fa fa-arrow-left"></i> Back</button>'
@@ -156,16 +165,19 @@
 			var search = [brand, r.ARTICLE_NR, r.ART_PRODUCT_NAME].join(' ');
 			return '<tr data-search="' + esc(search) + '"><td>'
 				+ '<img alt="" loading="lazy" style="max-height:22px;max-width:90px;object-fit:contain;vertical-align:middle;margin-right:8px" src="/api/umapi_image.php?kind=supplier&id=' + encodeURIComponent(brand) + '" onerror="this.remove()">'
-				+ '<strong>' + esc(brand) + '</strong></td>'
+				+ '<strong>' + esc(brand) + '</strong>'
+				+ (r.OWN ? ' <span style="background:#dcfce7;color:#166534;border-radius:4px;padding:0 5px;font-size:10px">stock</span>' : '')
+				+ '</td>'
 				+ '<td><a href="' + esc(partUrl(brand, r.ARTICLE_NR)) + '">' + esc(r.ARTICLE_NR) + '</a></td>'
 				+ '<td>' + esc(r.ART_PRODUCT_NAME) + '</td>'
+				+ '<td>' + (r.QTY != null ? esc(Math.round(r.QTY)) : '') + '</td>'
 				+ '<td><a class="btn btn-xs btn-primary" href="' + esc(partUrl(brand, r.ARTICLE_NR)) + '">Open</a></td></tr>';
 		}).join('');
 		return back
 			+ '<div class="epc-cm-catalog-head"><h1><em>' + esc(leafName) + '</em></h1></div>'
 			+ '<div class="epc-pf-panel">'
 			+ '<input type="search" class="form-control" id="epc-pc-grid-filter" placeholder="Filter by article, brand or name…" style="margin-bottom:10px;max-width:360px;">'
-			+ '<table class="epc-pf-table"><thead><tr><th>Brand</th><th>Article</th><th>Name</th><th></th></tr></thead>'
+			+ '<table class="epc-pf-table"><thead><tr><th>Brand</th><th>Article</th><th>Name</th><th>Qty</th><th></th></tr></thead>'
 			+ '<tbody>' + body + '</tbody></table></div>';
 	}
 
@@ -214,17 +226,52 @@
 					state.leaf = node;
 					state.loading = 'Loading articles for ' + node.DES + '…';
 					render();
-					api('catparts', { CATEGORY_ID: node.CATEGORY_ID }).then(function (data) {
+					Promise.all([
+						api('catparts', { CATEGORY_ID: node.CATEGORY_ID }).catch(function () { return { groups: [], parts: [] }; }),
+						loadStockParts(node.DES)
+					]).then(function (rs) {
 						state.loading = false;
+						var data = rs[0];
 						state.parts = (data && data.parts) ? data : { groups: [], parts: [] };
-						render();
-					}).catch(function () {
-						state.loading = false;
-						state.parts = { groups: [], parts: [] };
+						state.parts.stock = rs[1];
 						render();
 					});
 				}
 			};
+		});
+	}
+
+	// Map a TecDoc leaf name to the warehouse product-family label and load its
+	// stock rows — always in full, bypassing the upstream 500-row catalog cap.
+	function normLabel(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+	function loadStockParts(leafDes) {
+		var labelsP = state.famLabels
+			? Promise.resolve(state.famLabels)
+			: fetch(FAMILY_API + '?action=summary', { credentials: 'same-origin' })
+				.then(function (r) { return r.ok ? r.json() : null; })
+				.then(function (d) {
+					state.famLabels = (d && d.status && d.products) ? d.products.map(function (x) { return String(x.label || ''); }) : [];
+					return state.famLabels;
+				}).catch(function () { state.famLabels = []; return []; });
+		return labelsP.then(function (labels) {
+			var want = normLabel(leafDes);
+			var label = null;
+			labels.forEach(function (l) {
+				var nl = normLabel(l);
+				if (nl === want || nl === want + 's' || (want && want === nl + 's')) { label = l; }
+			});
+			if (!label) {
+				// second pass: containment either way (e.g. 'Ball Joint' ~ 'Ball joints')
+				labels.forEach(function (l) {
+					var nl = normLabel(l);
+					if (!label && want && nl && (nl.indexOf(want) !== -1 || want.indexOf(nl) !== -1)) { label = l; }
+				});
+			}
+			if (!label) { return []; }
+			return fetch(FAMILY_API + '?action=group&label=' + encodeURIComponent(label), { credentials: 'same-origin' })
+				.then(function (r) { return r.ok ? r.json() : null; })
+				.then(function (d) { return (d && d.status && d.group && d.group.parts) ? d.group.parts : []; })
+				.catch(function () { return []; });
 		});
 	}
 
