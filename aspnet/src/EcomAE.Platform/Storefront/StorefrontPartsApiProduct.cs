@@ -240,6 +240,8 @@ public static class StorefrontPartsApiProduct
             }
         }
 
+        images = images.Where(i => i.Length > 0).Distinct().ToList();
+
         var specs = new List<(string Name, string Value)>();
         foreach (var row in Rows(results.GetValueOrDefault("criteria")))
         {
@@ -1048,7 +1050,7 @@ public static class StorefrontPartsApiProduct
             if (images.Count > 1)
             {
                 sb.Append("<div class=\"epc-prod-thumbs\">");
-                foreach (var img in images.Take(6))
+                foreach (var img in images)
                 {
                     sb.Append("<img src=\"").Append(E(img)).Append("\" alt=\"\" onclick=\"document.getElementById('epcProdPic').src=this.src\">");
                 }
