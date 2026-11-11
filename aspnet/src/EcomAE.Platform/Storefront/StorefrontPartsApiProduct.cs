@@ -729,13 +729,19 @@ public static class StorefrontPartsApiProduct
             string T(string n) => r.TryGetProperty(n, out var v) && v.ValueKind == JsonValueKind.String ? (v.GetString() ?? "") : "";
             // Row-wise brand profile — each line renders as its own row, country excluded.
             var lines = new List<string>();
-            var company = T("ad1").Length > 0 ? T("ad1") : T("ad2");
+            var company = T("ad1");
+            var company2 = T("ad2");
+            if (company.Length == 0)
+            {
+                company = company2;
+                company2 = "";
+            }
             var address = string.Join(", ",
                 new[] { T("cadde1"), T("cadde2"), string.Join(" ", new[] { T("posta_kodu"), T("sehir1"), T("sehir2") }.Where(x => x.Length > 0)) }
                     .Where(x => x.Length > 0));
             var email = T("eposta");
             var site = T("web");
-            foreach (var piece in new[] { company, address, email, site })
+            foreach (var piece in new[] { company, company2, address, email, site })
             {
                 if (piece.Length > 0 && !lines.Contains(piece, StringComparer.OrdinalIgnoreCase))
                 {

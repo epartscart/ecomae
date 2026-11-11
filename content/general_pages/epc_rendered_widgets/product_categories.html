@@ -294,9 +294,10 @@
 						.filter(function (t) { return t.length > 1 && !STOP[t]; });
 					if (!keys.length) { return parts; }
 					return parts.filter(function (p) {
-						var name = String(p.name || '').toLowerCase();
+						var words = String(p.name || '').toLowerCase().split(/[^a-z0-9]+/);
 						return keys.every(function (k) {
-							return name.indexOf(k) !== -1 || name.indexOf(k.replace(/s$/, '')) !== -1;
+							var ks = k.replace(/s$/, '');
+							return words.some(function (w) { return w === k || w.replace(/s$/, '') === ks; });
 						});
 					});
 				})
