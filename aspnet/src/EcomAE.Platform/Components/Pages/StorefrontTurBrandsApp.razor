@@ -1,0 +1,30 @@
+@page "/storefront/tur-brands-app"
+@page "/en/brands-tur"
+@page "/brands-tur"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+
+<PageTitle>auto247-Tur Brands · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<StorefrontCatalogWidgetBody Title="auto247-Tur Brands"
+                            Subtitle="Aftermarket parts brands — supplier names, logos and catalog coverage."
+                            AnchorId="epc-turb"
+                            Html="@_html">
+    <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.TurCatalog">auto247-Tur catalog</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.AvailableBrands">Available brands</a>
+</StorefrontCatalogWidgetBody>
+
+@code {
+    private string _html = "";
+
+    protected override void OnInitialized()
+    {
+        _html = PhpHomeWidgetHtml.RenderStatic("content/general_pages/epc_rendered_widgets/brands_tur.html");
+        if (string.IsNullOrWhiteSpace(_html))
+        {
+            _html = "<p style=\"margin:0;color:#64748b\">Brands widget is unavailable in this environment.</p>";
+        }
+    }
+}

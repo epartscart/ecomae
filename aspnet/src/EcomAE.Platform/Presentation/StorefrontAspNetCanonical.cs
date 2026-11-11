@@ -36,6 +36,7 @@ public static class StorefrontAspNetCanonical
     public const string UmapiCatalog = "/en/catalog";
     /// <summary>emshcloud-powered UMAPI-style catalog (PHP twin: none — ASP.NET-only).</summary>
     public const string TurCatalog = "/en/catalog-tur";
+    public const string TurBrands = "/en/brands-tur";
     public const string UcatsService = "/storefront/ucats-app";
     public const string OriginalCatalog = "/storefront/original-catalog-app";
     public const string DemandIntelligence = "/storefront/demand-intelligence-app";

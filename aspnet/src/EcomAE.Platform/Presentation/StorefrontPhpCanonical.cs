@@ -27,6 +27,7 @@ public static class StorefrontPhpCanonical
     public const string UmapiCatalog = LangPrefix + "/catalog";
     /// <summary>ASP.NET-only emshcloud catalog — same path shape for non-ASP.NET link contexts.</summary>
     public const string TurCatalog = LangPrefix + "/catalog-tur";
+    public const string TurBrands = LangPrefix + "/brands-tur";
     public const string UcatsService = LangPrefix + "/shop/katalogi-ucats";
     public const string OriginalCatalog = LangPrefix + "/original-catalog";
     public const string DemandIntelligence = LangPrefix + "/demand-intelligence";

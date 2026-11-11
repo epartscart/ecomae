@@ -1,0 +1,96 @@
+<style>
+.epc-turb { margin: 0 0 30px; }
+.epc-turb-panel { background: #fff; border: 1px solid #e1e7ef; border-radius: 8px; padding: 16px; }
+.epc-turb-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+.epc-turb-toolbar input { min-width: 260px; max-width: 420px; }
+.epc-turb-letters { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+.epc-turb-letter { border: 1px solid #e1e7ef; background: #fff; color: #1e67b1; border-radius: 6px; min-width: 30px; min-height: 30px; font-weight: 700; cursor: pointer; padding: 0 8px; }
+.epc-turb-letter.active, .epc-turb-letter:hover { background: #2b78d6; border-color: #2b78d6; color: #fff; }
+.epc-turb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+.epc-turb-card { background: #fff; border: 1px solid #e1e7ef; border-radius: 8px; min-height: 76px; padding: 12px; cursor: pointer; transition: .15s ease; text-align: left; }
+.epc-turb-card:hover { border-color: #2b78d6; box-shadow: 0 4px 14px rgba(36,80,130,.12); }
+.epc-turb-card img { display: block; max-height: 30px; max-width: 90px; margin-bottom: 8px; }
+.epc-turb-card strong { display: block; color: #172536; }
+.epc-turb-card small { color: #758195; }
+.epc-turb-msg { background: #fff9e6; border: 1px solid #f0e2b6; border-radius: 8px; padding: 22px; color: #7a6420; }
+.epc-turb-summary { color: #657184; font-size: 13px; margin: -4px 0 14px; }
+</style>
+<div class="epc-turb" id="epc-turb">
+    <div class="epc-turb-panel">
+        <div class="epc-turb-toolbar">
+            <input type="search" class="form-control" id="epc-turb-filter" placeholder="Search brand name">
+        </div>
+        <div class="epc-turb-letters" id="epc-turb-letters"></div>
+        <div class="epc-turb-summary" id="epc-turb-summary"></div>
+        <div id="epc-turb-out"></div>
+    </div>
+</div>
+<script>
+(function () {
+    var root = document.getElementById('epc-turb');
+    var out = document.getElementById('epc-turb-out');
+    var filter = document.getElementById('epc-turb-filter');
+    var lettersBox = document.getElementById('epc-turb-letters');
+    var summary = document.getElementById('epc-turb-summary');
+    var items = [], letter = '';
+
+    function esc(v) {
+        return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+    function firstLetter(name) {
+        var c = (name || '').charAt(0).toUpperCase();
+        return /[A-Z]/.test(c) ? c : (/[0-9]/.test(c) ? '0-9' : '');
+    }
+    function renderLetters() {
+        var set = {};
+        items.forEach(function (i) { var l = firstLetter(i.SUP_BRAND); if (l) { set[l] = 1; } });
+        var keys = Object.keys(set).sort();
+        lettersBox.innerHTML = '<button type="button" class="epc-turb-letter' + (letter === '' ? ' active' : '') + '" data-l="">All</button>' +
+            keys.map(function (l) {
+                return '<button type="button" class="epc-turb-letter' + (letter === l ? ' active' : '') + '" data-l="' + esc(l) + '">' + esc(l) + '</button>';
+            }).join('');
+        Array.prototype.forEach.call(lettersBox.querySelectorAll('.epc-turb-letter'), function (b) {
+            b.onclick = function () { letter = b.getAttribute('data-l'); render(); };
+        });
+    }
+    function render() {
+        renderLetters();
+        var q = (filter.value || '').trim().toLowerCase();
+        var shown = items.filter(function (i) {
+            if (letter && firstLetter(i.SUP_BRAND) !== letter) { return false; }
+            if (q && (i.SUP_BRAND || '').toLowerCase().indexOf(q) === -1) { return false; }
+            return true;
+        });
+        summary.textContent = 'Showing ' + shown.length + ' of ' + items.length + ' available parts brands.';
+        if (!items.length) {
+            out.innerHTML = '<div class="epc-turb-msg">Brands unavailable right now.</div>';
+            return;
+        }
+        out.innerHTML = shown.length
+            ? '<div class="epc-turb-grid">' + shown.map(function (i) {
+                var logo = i.LOGO ? '<img alt="" loading="lazy" src="' + esc(i.LOGO) + '" onerror="this.style.display=\'none\';">' : '';
+                var parts = i.PARTS ? '<small>' + Number(i.PARTS).toLocaleString() + ' parts</small>' : '';
+                return '<button type="button" class="epc-turb-card" data-brand="' + esc(i.SUP_BRAND) + '">' + logo + '<strong>' + esc(i.SUP_BRAND) + '</strong>' + parts + '</button>';
+            }).join('') + '</div>'
+            : '<div class="epc-turb-msg">No brands match.</div>';
+        Array.prototype.forEach.call(out.querySelectorAll('.epc-turb-card'), function (card) {
+            card.onclick = function () {
+                window.location.href = '/en/catalog-tur';
+            };
+        });
+    }
+    out.innerHTML = '<div class="epc-turb-msg">Loading brands...</div>';
+    fetch('/api/emsh_proxy.php?action=partbrands', { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            items = Array.isArray(data) ? data : (data && data.data) || [];
+            render();
+        })
+        .catch(function () {
+            out.innerHTML = '<div class="epc-turb-msg">Brands unavailable right now.</div>';
+        });
+    filter.oninput = render;
+})();
+</script>
