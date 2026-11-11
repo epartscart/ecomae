@@ -297,7 +297,10 @@
 						var words = String(p.name || '').toLowerCase().split(/[^a-z0-9]+/);
 						return keys.every(function (k) {
 							var ks = k.replace(/s$/, '');
-							return words.some(function (w) { return w === k || w.replace(/s$/, '') === ks; });
+							return words.some(function (w) {
+								var ws = w.replace(/s$/, '');
+								return ws === ks || (ks.length > 1 && (w.indexOf(ks) === 0 || w.slice(-ks.length) === ks));
+							});
 						});
 					});
 				})
