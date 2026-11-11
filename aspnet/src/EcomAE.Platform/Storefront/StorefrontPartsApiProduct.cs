@@ -727,15 +727,28 @@ public static class StorefrontPartsApiProduct
 
             var r = sonuc[0];
             string T(string n) => r.TryGetProperty(n, out var v) && v.ValueKind == JsonValueKind.String ? (v.GetString() ?? "") : "";
-            var parts = new List<string>();
-            foreach (var piece in new[] { T("ad2"), T("sehir1"), T("web") })
+            // Row-wise brand profile — each line renders as its own row, country excluded.
+            var lines = new List<string>();
+            var company = T("ad1");
+            var company2 = T("ad2");
+            if (company.Length == 0)
             {
-                if (piece.Length > 0 && !parts.Contains(piece, StringComparer.OrdinalIgnoreCase))
+                company = company2;
+                company2 = "";
+            }
+            var address = string.Join(", ",
+                new[] { T("cadde1"), T("cadde2"), string.Join(" ", new[] { T("posta_kodu"), T("sehir1"), T("sehir2") }.Where(x => x.Length > 0)) }
+                    .Where(x => x.Length > 0));
+            var email = T("eposta");
+            var site = T("web");
+            foreach (var piece in new[] { company, company2, address, email, site })
+            {
+                if (piece.Length > 0 && !lines.Contains(piece, StringComparer.OrdinalIgnoreCase))
                 {
-                    parts.Add(piece);
+                    lines.Add(piece);
                 }
             }
-            return parts.Count == 0 ? null : string.Join(" · ", parts);
+            return lines.Count == 0 ? null : "\u0001" + string.Join("\u0001", lines);
         }
         catch (Exception)
         {
@@ -968,9 +981,11 @@ public static class StorefrontPartsApiProduct
         sb.Append(".epc-prod .epc-prod-thumbs img{width:58px;height:58px;object-fit:contain;border:1px solid #e0e0e0;cursor:pointer}");
         sb.Append(".epc-prod .epc-prod-thumbs img:hover{border-color:#e8600a}");
         sb.Append(".epc-prod .epc-prod-info{flex:1 1 380px;min-width:280px}");
-        sb.Append(".epc-prod .epc-prod-brand{display:flex;align-items:center;gap:10px;margin:0 0 10px}");
+        sb.Append(".epc-prod .epc-prod-brand{display:flex;align-items:flex-start;gap:10px;margin:0 0 10px}");
         sb.Append(".epc-prod .epc-prod-brand img{max-height:44px;max-width:140px;object-fit:contain}");
-        sb.Append(".epc-prod .epc-prod-brand span{font-weight:700;color:#333;font-size:14px}");
+        sb.Append(".epc-prod .epc-prod-brand .epc-prod-brand-name{display:block;font-weight:700;color:#333;font-size:14px}");
+        sb.Append(".epc-prod .epc-prod-brand-meta{display:block;margin-top:3px}");
+        sb.Append(".epc-prod .epc-prod-brand-meta-row{display:block;font-weight:400;color:#64748b;font-size:12px;line-height:1.5}");
         sb.Append(".epc-prod .epc-prod-name{color:#e8600a;font-size:15px;font-weight:700;margin:0 0 8px}");
         sb.Append(".epc-prod .epc-prod-bullets{margin:0 0 12px;padding-left:18px;color:#333}");
         sb.Append(".epc-prod .epc-prod-bullets b{color:#000}");
@@ -1047,16 +1062,23 @@ public static class StorefrontPartsApiProduct
         sb.Append("</div>");
 
         sb.Append("<div class=\"epc-prod-info\">");
-        var metaHtml = brandMeta is { Length: > 0 } ? "<small class=\"epc-prod-brand-meta\">" + E(brandMeta) + "</small>" : "";
+        var metaHtml = "";
+        if (brandMeta is { Length: > 0 })
+        {
+            metaHtml = "<span class=\"epc-prod-brand-meta\">" + string.Join("", brandMeta
+                .Split('\u0001', StringSplitOptions.RemoveEmptyEntries)
+                .Select(line => "<span class=\"epc-prod-brand-meta-row\">" + E(line) + "</span>")) + "</span>";
+        }
+        var brandBlock = "<span><span class=\"epc-prod-brand-name\">" + E(brand) + "</span>" + metaHtml + "</span>";
         if (supId is not null && UmapiImageProxy.TryImageUrl("supplier", supId, out _))
         {
             sb.Append("<div class=\"epc-prod-brand\"><img src=\"/api/umapi_image.php?kind=supplier&id=")
                 .Append(E(supId)).Append("\" alt=\"").Append(E(brand)).Append("\" loading=\"lazy\" onerror=\"this.style.display='none'\">")
-                .Append("<span>").Append(E(brand)).Append(metaHtml).Append("</span></div>");
+                .Append(brandBlock).Append("</div>");
         }
         else
         {
-            sb.Append("<div class=\"epc-prod-brand\"><span>").Append(E(brand)).Append(metaHtml).Append("</span></div>");
+            sb.Append("<div class=\"epc-prod-brand\">").Append(brandBlock).Append("</div>");
         }
         sb.Append("<div class=\"epc-prod-name\">").Append(E(name.Length > 0 ? name : "Auto part")).Append("</div>");
         sb.Append("<ul class=\"epc-prod-bullets\"><li>").Append(E(brand)).Append(" ").Append(E(number))
