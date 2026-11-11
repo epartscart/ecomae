@@ -35,7 +35,7 @@ public static class EmshcloudCatalogProxy
         CancellationToken cancellationToken)
     {
         var action = context.Request.Query["action"].ToString().Trim().ToLowerInvariant();
-        if (action is not ("manufacturers" or "models" or "modifications" or "categories" or "products" or "articles" or "vin" or "img" or "status"))
+        if (action is not ("manufacturers" or "models" or "modifications" or "categories" or "products" or "articles" or "brands" or "vin" or "img" or "status"))
         {
             return Json(400, HomeCatalogWidgets.UmapiUnknownJson());
         }
@@ -122,6 +122,7 @@ public static class EmshcloudCatalogProxy
             "categories" => "emsh|kat",
             "products" => "emsh|pg|" + context.Request.Query["ID"].ToString() + "|" + context.Request.Query["CATEGORY_ID"].ToString(),
             "vin" => "emsh|vin|" + context.Request.Query["vin"].ToString().Trim().ToUpperInvariant(),
+            "brands" => "emsh|oem|" + context.Request.Query["article"].ToString().Trim().ToUpperInvariant(),
             _ => null,
         };
 
@@ -231,6 +232,7 @@ public static class EmshcloudCatalogProxy
                            + "&kategori_id=" + Uri.EscapeDataString(context.Request.Query["CATEGORY_ID"].ToString())
                            + "&limit=500", "parca"),
             "vin" => ("vin?sasi=" + Uri.EscapeDataString(context.Request.Query["vin"].ToString().Trim().ToUpperInvariant()), "vin"),
+            "brands" => ("oem?kod=" + Uri.EscapeDataString(context.Request.Query["article"].ToString().Trim().ToUpperInvariant()), "oem"),
             _ => ("", ""),
         };
         if (call.endpoint.Length == 0)
@@ -239,7 +241,8 @@ public static class EmshcloudCatalogProxy
         }
 
         var client = factory.CreateClient();
-        using var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl + call.endpoint + "&dil=en");
+        var sep = call.endpoint.Contains('?') ? "&" : "?";
+        using var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl + call.endpoint + sep + "dil=en");
         request.Headers.TryAddWithoutValidation("X-API-Key", key);
         using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
         var raw = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -260,6 +263,7 @@ public static class EmshcloudCatalogProxy
                 "kat" => MapKategori(sonuc),
                 "parca" => MapParca(sonuc, context.Request.Query["CATEGORY_ID"].ToString()),
                 "vin" => MapVin(sonuc),
+                "oem" => MapOem(sonuc),
                 _ => null,
             };
         }
@@ -506,6 +510,51 @@ public static class EmshcloudCatalogProxy
         return JsonSerializer.Serialize(rows);
     }
 
+    /// <summary>emshcloud returns a few field values in Turkish even with dil=en — normalize the
+    /// recurring ones so the catalog stays English-only.</summary>
+    private static string En(string value)
+    {
+        if (value.Length == 0)
+        {
+            return value;
+        }
+        var v = value;
+        foreach (var (tr, en) in Translations)
+        {
+            v = System.Text.RegularExpressions.Regex.Replace(
+                v, "(?<![A-Za-zÇĞİÖŞÜçğıöşü])" + tr + "(?![A-Za-zÇĞİÖŞÜçğıöşü])", en,
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        }
+        return v;
+    }
+
+    private static readonly (string Tr, string En)[] Translations =
+    [
+        ("benzin/elektrikli", "Petrol/Electric"),
+        ("dizel/elektrikli", "Diesel/Electric"),
+        ("benzinli", "Petrol"),
+        ("benzin", "Petrol"),
+        ("dizel", "Diesel"),
+        ("elektrikli", "Electric"),
+        ("elektrik", "Electric"),
+        ("hibrit", "Hybrid"),
+        ("hidrojen", "Hydrogen"),
+        ("dogalgaz", "CNG"),
+        ("direksiyon", "Steering"),
+        ("sol direksiyon", "Left-hand drive"),
+        ("sag direksiyon", "Right-hand drive"),
+        ("otomatik", "Automatic"),
+        ("manuel", "Manual"),
+        ("kombi", "Estate"),
+        ("kasali", "Box"),
+        ("damperli", "Tipper"),
+        ("cift kabin", "Double cab"),
+        ("tek kabin", "Single cab"),
+        ("kapali kasa", "Box body"),
+        ("acik kasa", "Platform/chassis"),
+        ("yakit", "Fuel"),
+    ];
+
     private static string MapMotor(JsonElement sonuc)
     {
         var rows = new List<Dictionary<string, object?>>();
@@ -518,23 +567,44 @@ public static class EmshcloudCatalogProxy
             {
                 title += " " + motor;
             }
+            var fuel = En(Text(r, "yakit"));
             rows.Add(new Dictionary<string, object?>
             {
                 ["PC_ID"] = Num(r, "ktype"),
-                ["PASSENGER_CAR"] = title,
+                ["PASSENGER_CAR"] = En(title),
                 ["MODEL_SERIES"] = Text(r, "ad"),
-                ["ENGINE_TYPE"] = Text(r, "yakit"),
-                ["FUEL_TYPE"] = Text(r, "yakit"),
+                ["ENGINE_TYPE"] = fuel,
+                ["FUEL_TYPE"] = fuel,
                 ["POWER_KW"] = Num(r, "guc_kw") ?? 0,
                 ["POWER_PS"] = Num(r, "guc_hp") ?? 0,
                 ["CAPACITY_TECH"] = cc,
                 ["CAPACITY_LT"] = cc > 0 ? Math.Round(cc / 1000m, 1) : 0,
-                ["BODY_TYPE"] = Text(r, "kasa_tipi"),
+                ["BODY_TYPE"] = En(Text(r, "kasa_tipi")),
                 ["CI_FROM"] = Text(r, "uretim_bas"),
                 ["CI_TO"] = Text(r, "uretim_bit"),
             });
         }
         return JsonSerializer.Serialize(rows);
+    }
+
+    /// <summary>oem?kod → the article-search "brands" list (deduped by supplier).</summary>
+    private static string MapOem(JsonElement sonuc)
+    {
+        var brands = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+        foreach (var r in Rows(sonuc))
+        {
+            var name = Text(r, "marka_adi");
+            if (name.Length > 0 && !brands.ContainsKey(name))
+            {
+                brands[name] = Num(r, "marka_id") ?? 0;
+            }
+        }
+        return JsonSerializer.Serialize(brands.Select(b => new Dictionary<string, object?>
+        {
+            ["BRAND"] = b.Key,
+            ["SUP_BRAND"] = b.Key,
+            ["SUP_ID"] = b.Value > 0 ? b.Value.ToString(CultureInfo.InvariantCulture) : b.Key,
+        }).ToList());
     }
 
     /// <summary>Flat {id,parent_id,ad} list → nested {root:[{CATEGORY_ID,DES,CHILD}]}.</summary>
