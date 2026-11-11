@@ -35,7 +35,7 @@ public static class EmshcloudCatalogProxy
         CancellationToken cancellationToken)
     {
         var action = context.Request.Query["action"].ToString().Trim().ToLowerInvariant();
-        if (action is not ("manufacturers" or "models" or "modifications" or "categories" or "products" or "articles" or "brands" or "partbrands" or "vin" or "img" or "status"))
+        if (action is not ("manufacturers" or "models" or "modifications" or "categories" or "catparts" or "products" or "articles" or "brands" or "partbrands" or "vin" or "img" or "status"))
         {
             return Json(400, HomeCatalogWidgets.UmapiUnknownJson());
         }
@@ -83,7 +83,7 @@ public static class EmshcloudCatalogProxy
             if (body is null)
             {
                 var fetched = await FetchAsync(context, httpClientFactory, action, cancellationToken).ConfigureAwait(false);
-                body = fetched ?? (action == "categories" ? "{\"root\":[]}" : (action == "products" ? "{\"groups\":[],\"parts\":[]}" : "[]"));
+                body = fetched ?? (action == "categories" ? "{\"root\":[]}" : (action is "products" or "catparts" ? "{\"groups\":[],\"parts\":[]}" : "[]"));
                 if (fetched is not null && connection is not null && cacheKey is not null)
                 {
                     try
@@ -124,6 +124,7 @@ public static class EmshcloudCatalogProxy
             "vin" => "emsh|vin|" + context.Request.Query["vin"].ToString().Trim().ToUpperInvariant(),
             "brands" => "emsh|oem|" + NormalizeArticle(context.Request.Query["article"]),
             "partbrands" => "emsh|pmarka|all",
+            "catparts" => "emsh|kp|" + context.Request.Query["CATEGORY_ID"].ToString(),
             _ => null,
         };
 
@@ -241,6 +242,8 @@ public static class EmshcloudCatalogProxy
                 ("ara?kod=" + Uri.EscapeDataString(article), "oem"),
                 ("oem?kod=" + Uri.EscapeDataString(article), "oem"),
             },
+            // catparts: category → articles without a vehicle (TecDoc category catalog).
+            "catparts" => new() { ("kategori-parca?kategori_id=" + Uri.EscapeDataString(context.Request.Query["CATEGORY_ID"].ToString()) + "&limit=500", "parca") },
             "partbrands" => new() { ("marka-liste", "pmarka") },
             _ => new(),
         };

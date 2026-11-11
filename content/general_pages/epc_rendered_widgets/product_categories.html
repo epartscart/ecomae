@@ -1,0 +1,235 @@
+<link rel="stylesheet" href="/content/general_pages/epc_vc_catalog.css?v=20261019pc1">
+<link rel="stylesheet" href="/content/general_pages/epc_car_mod_theme.css?v=20261019pc1">
+<style>
+.epc-pc-cat-page .epc-pf-panel {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	margin-top: 12px;
+	padding: 14px 16px;
+}
+.epc-pc-cat-page .epc-pf-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.epc-pc-cat-page .epc-pf-table th,
+.epc-pc-cat-page .epc-pf-table td { border: 1px solid #e1e7ef; padding: 8px; vertical-align: top; }
+.epc-pc-cat-page .epc-pf-table th { background: #f5f7fa; color: #64748b; }
+.epc-pc-cat-page .epc-pf-brand-row { cursor: pointer; }
+.epc-pc-cat-page .epc-pf-brand-row:hover { background: #fff7ed; }
+.epc-pc-cat-page .epc-pf-loader,
+.epc-pc-cat-page .epc-pf-msg { padding: 28px; text-align: center; color: #64748b; }
+.epc-pc-cat-page .epc-pf-msg { background: #fff8e1; border: 1px solid #f0d98a; border-radius: 10px; }
+.epc-pc-cat-page .epc-pf-section-title { margin: 0 0 10px; font-size: 16px; font-weight: 800; color: #0f172a; }
+.epc-pc-cat-page .epc-pf-cat-backbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+.epc-pc-cat-page .epc-pf-cat-meta { margin-left: auto; color: #64748b; font-size: 12px; }
+</style>
+
+<div class="epc-pc-cat-page epc-cm" id="epc-product-categories" data-lang="/en">
+	<div id="epc-pc-main">
+		<div class="epc-pf-loader" id="epc-pc-loading"><i class="fa fa-spinner fa-spin"></i> Loading product categories…</div>
+	</div>
+</div>
+
+<script>
+(function () {
+	var root = document.getElementById('epc-product-categories');
+	if (!root) { return; }
+	var mainEl = document.getElementById('epc-pc-main');
+	var langHref = root.getAttribute('data-lang') || '/en';
+
+	var ICON_MAP = [
+		{ re: /filter/i, fa: 'fa-filter' },
+		{ re: /brake/i, fa: 'fa-stop-circle' },
+		{ re: /spark|glow|ignition|electri|lighting|lamp/i, fa: 'fa-bolt' },
+		{ re: /belt/i, fa: 'fa-circle-o' },
+		{ re: /fuel|mixture/i, fa: 'fa-tint' },
+		{ re: /radiat|cool/i, fa: 'fa-thermometer-half' },
+		{ re: /joint|bearing|axle|wheel|driv/i, fa: 'fa-compress' },
+		{ re: /engine|piston|gasket/i, fa: 'fa-cogs' },
+		{ re: /suspension|spring|damp|shock/i, fa: 'fa-arrows-v' },
+		{ re: /steer/i, fa: 'fa-dot-circle-o' },
+		{ re: /clutch/i, fa: 'fa-circle' },
+		{ re: /exhaust|emission/i, fa: 'fa-cloud' },
+		{ re: /transmission|gear/i, fa: 'fa-cog' },
+		{ re: /heat|ventil|air.?cond/i, fa: 'fa-fan' },
+		{ re: /body|clean|wip|glass|interior|mirror/i, fa: 'fa-car' },
+		{ re: /chemic|oil|lubric|fluid|service/i, fa: 'fa-flask' },
+		{ re: /tyre|tire/i, fa: 'fa-life-ring' },
+		{ re: /workshop|tool|accessor|universal|other/i, fa: 'fa-wrench' }
+	];
+
+	var state = {
+		tree: [],          // root nodes [{CATEGORY_ID,DES,CHILD}]
+		path: [],          // stack of drilled nodes from root to current parent
+		leaf: null,        // leaf node whose articles are showing
+		parts: null,       // leaf parts payload
+		loading: false
+	};
+
+	function esc(s) {
+		return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+	}
+	function normArticle(a) {
+		return String(a || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+	}
+	function partUrl(brand, article) {
+		var n = normArticle(article);
+		var b = String(brand || '').trim();
+		if (!b || !n) { return '#'; }
+		return langHref + '/parts/' + encodeURIComponent(b) + '/' + encodeURIComponent(n);
+	}
+	function iconFor(label) {
+		var name = String(label || '');
+		for (var i = 0; i < ICON_MAP.length; i++) {
+			if (ICON_MAP[i].re.test(name)) { return ICON_MAP[i].fa; }
+		}
+		return 'fa-wrench';
+	}
+	function api(action, params) {
+		var q = 'action=' + encodeURIComponent(action);
+		Object.keys(params || {}).forEach(function (k) {
+			q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+		});
+		return fetch('/api/emsh_proxy.php?' + q, { credentials: 'same-origin' })
+			.then(function (r) {
+				var type = (r.headers.get('content-type') || '').toLowerCase();
+				if (!r.ok || type.indexOf('json') === -1) {
+					throw new Error('Catalog returned HTTP ' + r.status);
+				}
+				return r.json();
+			});
+	}
+	function countLeaves(node) {
+		if (!node.CHILD || !node.CHILD.length) { return 1; }
+		var n = 0;
+		node.CHILD.forEach(function (c) { n += countLeaves(c); });
+		return n;
+	}
+
+
+	function cardHtml(node) {
+		var kids = (node.CHILD || []).length;
+		var meta = kids ? (kids + ' subcategories') : (countLeaves(node) + ' leaf');
+		var search = [node.DES].join(' ');
+		(node.CHILD || []).forEach(function (c) { search += ' ' + c.DES; });
+		return '<button type="button" class="epc-vc-cat-card" data-cat="' + esc(node.CATEGORY_ID) + '" data-search="' + esc(search) + '">'
+			+ '<div class="epc-vc-cat-icon"><i class="fa ' + iconFor(node.DES) + '"></i></div>'
+			+ '<strong>' + esc(node.DES) + '</strong>'
+			+ '<small style="display:block;color:#64748b;font-size:11px;font-weight:600;margin-top:4px">' + esc(meta) + '</small>'
+			+ '</button>';
+	}
+
+	function renderGrid() {
+		var parent = state.path.length ? state.path[state.path.length - 1] : null;
+		var nodes = parent ? (parent.CHILD || []) : state.tree;
+		var title = parent ? parent.DES : 'Catalog';
+		var back = parent
+			? '<div class="epc-pf-cat-backbar"><button type="button" class="btn btn-default btn-sm" id="epc-pc-back"><i class="fa fa-arrow-left"></i> Back</button>'
+				+ '<span class="epc-pf-cat-meta">' + esc(nodes.length) + ' subcategories</span></div>'
+			: '';
+		var cards = nodes.length
+			? '<div class="epc-cm-catalog-head"><h1><em>' + esc(title) + '</em> by category</h1></div>'
+				+ '<div class="epc-cm-cat-filter"><i class="fa fa-search" aria-hidden="true"></i>'
+				+ '<input type="search" class="form-control" id="epc-pc-grid-filter" placeholder="Search for a category." autocomplete="off"></div>'
+				+ '<div class="epc-vc-cat-grid">' + nodes.map(cardHtml).join('') + '</div>'
+			: '<div class="epc-pf-msg">No subcategories.</div>';
+		return back + cards;
+	}
+
+	function renderParts() {
+		var p = state.parts || { groups: [], parts: [] };
+		var rows = p.parts || [];
+		var leafName = state.leaf ? state.leaf.DES : '';
+		var back = '<div class="epc-pf-cat-backbar">'
+			+ '<button type="button" class="btn btn-default btn-sm" id="epc-pc-back"><i class="fa fa-arrow-left"></i> Back</button>'
+			+ '<span class="epc-pf-cat-meta">' + esc(leafName) + ' · ' + esc(rows.length) + ' articles</span></div>';
+		if (!rows.length) {
+			return back + '<div class="epc-pf-msg">No articles found in this category.</div>';
+		}
+		var body = rows.map(function (r) {
+			var brand = r.SUP_BRAND || r.SUP_ID || '';
+			var search = [brand, r.ARTICLE_NR, r.ART_PRODUCT_NAME].join(' ');
+			return '<tr data-search="' + esc(search) + '"><td>'
+				+ '<img alt="" loading="lazy" style="max-height:22px;max-width:90px;object-fit:contain;vertical-align:middle;margin-right:8px" src="/api/umapi_image.php?kind=supplier&id=' + encodeURIComponent(brand) + '" onerror="this.remove()">'
+				+ '<strong>' + esc(brand) + '</strong></td>'
+				+ '<td><a href="' + esc(partUrl(brand, r.ARTICLE_NR)) + '">' + esc(r.ARTICLE_NR) + '</a></td>'
+				+ '<td>' + esc(r.ART_PRODUCT_NAME) + '</td>'
+				+ '<td><a class="btn btn-xs btn-primary" href="' + esc(partUrl(brand, r.ARTICLE_NR)) + '">Open</a></td></tr>';
+		}).join('');
+		return back
+			+ '<div class="epc-cm-catalog-head"><h1><em>' + esc(leafName) + '</em></h1></div>'
+			+ '<div class="epc-pf-panel">'
+			+ '<input type="search" class="form-control" id="epc-pc-grid-filter" placeholder="Filter by article, brand or name…" style="margin-bottom:10px;max-width:360px;">'
+			+ '<table class="epc-pf-table"><thead><tr><th>Brand</th><th>Article</th><th>Name</th><th></th></tr></thead>'
+			+ '<tbody>' + body + '</tbody></table></div>';
+	}
+
+	function render() {
+		if (state.loading) {
+			mainEl.innerHTML = '<div class="epc-pf-loader"><i class="fa fa-spinner fa-spin"></i> ' + esc(state.loading) + '</div>';
+			return;
+		}
+		mainEl.innerHTML = state.leaf ? renderParts() : renderGrid();
+		bind();
+	}
+
+	function bind() {
+		var back = document.getElementById('epc-pc-back');
+		if (back) {
+			back.onclick = function () {
+				if (state.leaf) {
+					state.leaf = null;
+					state.parts = null;
+				} else {
+					state.path.pop();
+				}
+				render();
+			};
+		}
+		var filter = document.getElementById('epc-pc-grid-filter');
+		if (filter) {
+			filter.oninput = function () {
+				var q = String(filter.value || '').toLowerCase();
+				Array.prototype.forEach.call(mainEl.querySelectorAll('[data-search]'), function (el) {
+					el.style.display = (!q || (el.getAttribute('data-search') || '').toLowerCase().indexOf(q) !== -1) ? '' : 'none';
+				});
+			};
+		}
+		Array.prototype.forEach.call(mainEl.querySelectorAll('[data-cat]'), function (card) {
+			card.onclick = function () {
+				var id = card.getAttribute('data-cat');
+				var parent = state.path.length ? state.path[state.path.length - 1] : null;
+				var nodes = parent ? (parent.CHILD || []) : state.tree;
+				var node = nodes.filter(function (n) { return String(n.CATEGORY_ID) === String(id); })[0];
+				if (!node) { return; }
+				if (node.CHILD && node.CHILD.length) {
+					state.path.push(node);
+					render();
+				} else {
+					state.leaf = node;
+					state.loading = 'Loading articles for ' + node.DES + '…';
+					render();
+					api('catparts', { CATEGORY_ID: node.CATEGORY_ID }).then(function (data) {
+						state.loading = false;
+						state.parts = (data && data.parts) ? data : { groups: [], parts: [] };
+						render();
+					}).catch(function () {
+						state.loading = false;
+						state.parts = { groups: [], parts: [] };
+						render();
+					});
+				}
+			};
+		});
+	}
+
+	state.loading = 'Loading product categories…';
+	render();
+	api('categories', { vehicle_type: 'CAR' }).then(function (data) {
+		state.loading = false;
+		state.tree = (data && data.root) ? data.root : [];
+		render();
+	}).catch(function () {
+		state.loading = false;
+		mainEl.innerHTML = '<div class="epc-pf-msg">Product categories are temporarily unavailable.</div>';
+	});
+})();
+</script>
