@@ -30,18 +30,24 @@ else
             {
                 @* Same slot + order as PHP templates/nero/desktop.php home — rendered
                    BEFORE #sb-site so professional-shell #Container ink rules never
-                   darken the hero/VIN text (invisible-text live bug). *@
-                <PhpAspPistonBanner
-                    SearchHref="@_home.Parts"
-                    CatalogHref="@_home.Umapi"
-                    BrandsHref="@_home.Brands" />
-                <PhpAspHomeBanners
-                    PartsHref="@_home.Parts"
-                    BrandsHref="@_home.Brands"
-                    CatalogHref="@_home.Umapi"
-                    VinHref="@_home.Vin" />
-                <PhpVinRequestSection SellerHref="@_home.Vin" />
-                <PhpEpartFrontSections LangHref="@_home.Lang" />
+                   darken the hero/VIN text (invisible-text live bug).
+                   epartscart.com leads straight with the product-family category
+                   browser (hero, quick cards, VIN request, parts-expert and
+                   special-searches blocks are dropped for that tenant). *@
+                if (!_epartHome)
+                {
+                    <PhpAspPistonBanner
+                        SearchHref="@_home.Parts"
+                        CatalogHref="@_home.Umapi"
+                        BrandsHref="@_home.Brands" />
+                    <PhpAspHomeBanners
+                        PartsHref="@_home.Parts"
+                        BrandsHref="@_home.Brands"
+                        CatalogHref="@_home.Umapi"
+                        VinHref="@_home.Vin" />
+                    <PhpVinRequestSection SellerHref="@_home.Vin" />
+                }
+                <PhpEpartFrontSections LangHref="@_home.Lang" LeadWithFamily="@_epartHome" />
             }
         </HomeContent>
         <ChildContent>
@@ -63,6 +69,7 @@ else
 
 @code {
     private string? _phpHref;
+    private bool _epartHome;
     private string _pageTitle = "eParts Cart (Autoparts)";
     private string _tenantSnapshotHtml = string.Empty;
     private (string Lang, string Parts, string Umapi, string Brands, string Vin) _home =
@@ -72,6 +79,8 @@ else
     {
         var ctx = Http.HttpContext;
         var host = ctx?.Request.Host.Host ?? string.Empty;
+        var normalizedHost = host.Trim().TrimEnd('.').ToLowerInvariant();
+        _epartHome = normalizedHost == "epartscart.com" || normalizedHost.EndsWith(".epartscart.com", StringComparison.Ordinal);
         _pageTitle = StorefrontIndustryHostResolver.ResolveStorefrontTitle(host);
         var attrs = StorefrontIndustryHostResolver.Resolve(host);
         if (PhpTenantHomeSnapshots.IsCustomPackage(attrs.StorefrontPackage))
