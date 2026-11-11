@@ -31,6 +31,7 @@ public static class StorefrontSurfaceLinks
     public static string LevamOem => PreferAspNetApps ? StorefrontAspNetCanonical.LevamOem : StorefrontPhpCanonical.LevamOem;
     public static string UmapiCatalog => PreferAspNetApps ? StorefrontAspNetCanonical.UmapiCatalog : StorefrontPhpCanonical.UmapiCatalog;
     public static string TurCatalog => PreferAspNetApps ? StorefrontAspNetCanonical.TurCatalog : StorefrontPhpCanonical.TurCatalog;
+    public static string TurBrands => PreferAspNetApps ? StorefrontAspNetCanonical.TurBrands : StorefrontPhpCanonical.TurBrands;
     public static string UcatsService => PreferAspNetApps ? StorefrontAspNetCanonical.UcatsService : StorefrontPhpCanonical.UcatsService;
     /// <summary>Crossbase / cross-reference search (aftermarket ↔ OEM analogs).</summary>
     public static string CrossSearch => Routing.EcomAeRoutes.StorefrontCrossSearch;

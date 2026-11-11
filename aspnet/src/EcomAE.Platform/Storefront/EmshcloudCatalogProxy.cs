@@ -35,7 +35,7 @@ public static class EmshcloudCatalogProxy
         CancellationToken cancellationToken)
     {
         var action = context.Request.Query["action"].ToString().Trim().ToLowerInvariant();
-        if (action is not ("manufacturers" or "models" or "modifications" or "categories" or "products" or "articles" or "brands" or "vin" or "img" or "status"))
+        if (action is not ("manufacturers" or "models" or "modifications" or "categories" or "products" or "articles" or "brands" or "partbrands" or "vin" or "img" or "status"))
         {
             return Json(400, HomeCatalogWidgets.UmapiUnknownJson());
         }
@@ -123,6 +123,7 @@ public static class EmshcloudCatalogProxy
             "products" => "emsh|pg|" + context.Request.Query["ID"].ToString() + "|" + context.Request.Query["CATEGORY_ID"].ToString(),
             "vin" => "emsh|vin|" + context.Request.Query["vin"].ToString().Trim().ToUpperInvariant(),
             "brands" => "emsh|oem|" + NormalizeArticle(context.Request.Query["article"]),
+            "partbrands" => "emsh|pmarka|all",
             _ => null,
         };
 
@@ -240,6 +241,7 @@ public static class EmshcloudCatalogProxy
                 ("ara?kod=" + Uri.EscapeDataString(article), "oem"),
                 ("oem?kod=" + Uri.EscapeDataString(article), "oem"),
             },
+            "partbrands" => new() { ("marka-liste", "pmarka") },
             _ => new(),
         };
         if (calls.Count == 0)
@@ -283,6 +285,7 @@ public static class EmshcloudCatalogProxy
                     "parca" => MapParca(sonuc, context.Request.Query["CATEGORY_ID"].ToString()),
                     "vin" => MapVin(sonuc),
                     "oem" => MapOem(sonuc),
+                    "pmarka" => MapPartBrands(sonuc),
                     _ => null,
                 };
                 // An empty brands list falls through to the next lookup endpoint.
@@ -649,6 +652,34 @@ public static class EmshcloudCatalogProxy
             ["SUP_BRAND"] = b.Key,
             ["SUP_ID"] = b.Value > 0 ? b.Value.ToString(CultureInfo.InvariantCulture) : b.Key,
         }).ToList());
+    }
+
+    /// <summary>emshcloud marka-liste → [{SUP_ID,SUP_BRAND,PARTS,LOGO}] for the Tur brands page.
+    /// The marka id is the TecDoc supplier id, the same space our supplier-logo proxy serves.</summary>
+    private static string MapPartBrands(JsonElement sonuc)
+    {
+        var rows = new List<Dictionary<string, object?>>();
+        foreach (var r in Rows(sonuc))
+        {
+            var id = Num(r, "id") ?? 0;
+            var name = Text(r, "ad");
+            if (id <= 0 || name.Length == 0)
+            {
+                continue;
+            }
+            var row = new Dictionary<string, object?>
+            {
+                ["SUP_ID"] = id,
+                ["SUP_BRAND"] = name,
+                ["PARTS"] = Num(r, "parca_sayisi") ?? 0,
+            };
+            if (Text(r, "logo").Length > 0)
+            {
+                row["LOGO"] = "/api/umapi_image.php?kind=supplier&id=" + id.ToString(CultureInfo.InvariantCulture);
+            }
+            rows.Add(row);
+        }
+        return JsonSerializer.Serialize(rows.OrderBy(x => x["SUP_BRAND"]));
     }
 
     /// <summary>Flat {id,parent_id,ad} list → nested {root:[{CATEGORY_ID,DES,CHILD}]}.
