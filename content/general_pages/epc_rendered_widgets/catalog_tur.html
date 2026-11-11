@@ -367,7 +367,7 @@
     }
 
     function manufacturerCard(item, index) {
-        var logo = item.IS_LOGO ? '<img class="epc-umapi-logo" alt="" src="https://image.umapi.ru/MANUFACTURERS/' + encodeURIComponent(item.MFA_ID) + '.png" onerror="this.style.display=\'none\';">' : '';
+        var logo = item.EPC_LOGO ? '<img class="epc-umapi-logo" alt="" src="' + item.EPC_LOGO + '" onerror="this.style.display=\'none\';">' : '';
         return '<div class="epc-umapi-card epc-umapi-manufacturer-card" data-index="' + index + '" data-ccode="' + esc(countryCode(item.COUNTRY || '') || '') + '" data-search="' + esc(item.MANUFACTURER + ' ' + item.COUNTRY) + '">' +
             logo + '<strong>' + esc(item.MANUFACTURER) + '</strong><small>' + flagHtml(item.COUNTRY || '') + '</small></div>';
     }
@@ -491,7 +491,7 @@
         output.innerHTML = listSummary('Select model series for ' + (state.manufacturer ? state.manufacturer.MANUFACTURER : 'selected brand') + '.', items) + toolbar + '<div class="epc-umapi-model-grid">' + items.map(function (item, index) {
             var years = cleanDate(item.CI_FROM);
             if (years) { years += cleanDate(item.CI_TO) ? ' \u2014 ' + cleanDate(item.CI_TO) : ' \u2014 p.t.'; }
-            var img = item.MS_ID ? '<img class="epc-umapi-model-img" alt="" loading="lazy" src="/api/umapi_image.php?kind=model&id=' + encodeURIComponent(item.MS_ID) + '" onerror="this.remove()">' : '';
+            var img = item.EPC_LOGO ? '<img class="epc-umapi-model-img" alt="" loading="lazy" src="' + item.EPC_LOGO + '" onerror="this.remove()">' : '';
             var yFrom = parseInt((item.CI_FROM || '').slice(0, 4), 10) || 0;
             var yTo = parseInt((item.CI_TO || '').slice(0, 4), 10) || 9999;
             var first = (item.MODEL_SERIES || '').trim().charAt(0).toUpperCase();
