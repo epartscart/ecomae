@@ -58,7 +58,8 @@
 
 	var state = {
 		tree: [],          // root nodes [{CATEGORY_ID,DES,CHILD}]
-		node: null,        // currently drilled node (null = root)
+		path: [],          // stack of drilled nodes from root to current parent
+		leaf: null,        // leaf node whose articles are showing
 		parts: null,       // leaf parts payload
 		loading: false
 	};
@@ -88,7 +89,13 @@
 			q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
 		});
 		return fetch('/api/emsh_proxy.php?' + q, { credentials: 'same-origin' })
-			.then(function (r) { return r.json(); });
+			.then(function (r) {
+				var type = (r.headers.get('content-type') || '').toLowerCase();
+				if (!r.ok || type.indexOf('json') === -1) {
+					throw new Error('Catalog returned HTTP ' + r.status);
+				}
+				return r.json();
+			});
 	}
 	function countLeaves(node) {
 		if (!node.CHILD || !node.CHILD.length) { return 1; }
@@ -96,11 +103,7 @@
 		node.CHILD.forEach(function (c) { n += countLeaves(c); });
 		return n;
 	}
-	function countDesc(node) {
-		var n = 0;
-		(node.CHILD || []).forEach(function (c) { n += 1 + countDesc(c); });
-		return n;
-	}
+
 
 	function cardHtml(node) {
 		var kids = (node.CHILD || []).length;
@@ -115,9 +118,10 @@
 	}
 
 	function renderGrid() {
-		var nodes = state.node ? (state.node.CHILD || []) : state.tree;
-		var title = state.node ? state.node.DES : 'Catalog';
-		var back = state.node
+		var parent = state.path.length ? state.path[state.path.length - 1] : null;
+		var nodes = parent ? (parent.CHILD || []) : state.tree;
+		var title = parent ? parent.DES : 'Catalog';
+		var back = parent
 			? '<div class="epc-pf-cat-backbar"><button type="button" class="btn btn-default btn-sm" id="epc-pc-back"><i class="fa fa-arrow-left"></i> Back</button>'
 				+ '<span class="epc-pf-cat-meta">' + esc(nodes.length) + ' subcategories</span></div>'
 			: '';
@@ -133,9 +137,10 @@
 	function renderParts() {
 		var p = state.parts || { groups: [], parts: [] };
 		var rows = p.parts || [];
+		var leafName = state.leaf ? state.leaf.DES : '';
 		var back = '<div class="epc-pf-cat-backbar">'
-			+ '<button type="button" class="btn btn-default btn-sm" id="epc-pc-back"><i class="fa fa-arrow-left"></i> All categories</button>'
-			+ '<span class="epc-pf-cat-meta">' + esc(state.node ? state.node.DES : '') + ' · ' + esc(rows.length) + ' articles</span></div>';
+			+ '<button type="button" class="btn btn-default btn-sm" id="epc-pc-back"><i class="fa fa-arrow-left"></i> Back</button>'
+			+ '<span class="epc-pf-cat-meta">' + esc(leafName) + ' · ' + esc(rows.length) + ' articles</span></div>';
 		if (!rows.length) {
 			return back + '<div class="epc-pf-msg">No articles found in this category.</div>';
 		}
@@ -150,7 +155,7 @@
 				+ '<td><a class="btn btn-xs btn-primary" href="' + esc(partUrl(brand, r.ARTICLE_NR)) + '">Open</a></td></tr>';
 		}).join('');
 		return back
-			+ '<div class="epc-cm-catalog-head"><h1><em>' + esc(state.node.DES) + '</em></h1></div>'
+			+ '<div class="epc-cm-catalog-head"><h1><em>' + esc(leafName) + '</em></h1></div>'
 			+ '<div class="epc-pf-panel">'
 			+ '<input type="search" class="form-control" id="epc-pc-grid-filter" placeholder="Filter by article, brand or name…" style="margin-bottom:10px;max-width:360px;">'
 			+ '<table class="epc-pf-table"><thead><tr><th>Brand</th><th>Article</th><th>Name</th><th></th></tr></thead>'
@@ -162,7 +167,7 @@
 			mainEl.innerHTML = '<div class="epc-pf-loader"><i class="fa fa-spinner fa-spin"></i> ' + esc(state.loading) + '</div>';
 			return;
 		}
-		mainEl.innerHTML = state.parts ? renderParts() : renderGrid();
+		mainEl.innerHTML = state.leaf ? renderParts() : renderGrid();
 		bind();
 	}
 
@@ -170,8 +175,12 @@
 		var back = document.getElementById('epc-pc-back');
 		if (back) {
 			back.onclick = function () {
-				if (state.parts) { state.parts = null; }
-				else { state.node = null; }
+				if (state.leaf) {
+					state.leaf = null;
+					state.parts = null;
+				} else {
+					state.path.pop();
+				}
 				render();
 			};
 		}
@@ -187,15 +196,15 @@
 		Array.prototype.forEach.call(mainEl.querySelectorAll('[data-cat]'), function (card) {
 			card.onclick = function () {
 				var id = card.getAttribute('data-cat');
-				var nodes = state.node ? (state.node.CHILD || []) : state.tree;
+				var parent = state.path.length ? state.path[state.path.length - 1] : null;
+				var nodes = parent ? (parent.CHILD || []) : state.tree;
 				var node = nodes.filter(function (n) { return String(n.CATEGORY_ID) === String(id); })[0];
 				if (!node) { return; }
 				if (node.CHILD && node.CHILD.length) {
-					state.node = node;
-					state.parts = null;
+					state.path.push(node);
 					render();
 				} else {
-					state.node = node;
+					state.leaf = node;
 					state.loading = 'Loading articles for ' + node.DES + '…';
 					render();
 					api('catparts', { CATEGORY_ID: node.CATEGORY_ID }).then(function (data) {
