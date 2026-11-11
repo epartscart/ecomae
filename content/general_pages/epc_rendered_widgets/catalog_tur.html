@@ -625,7 +625,7 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
         items = apiItems(items);
         renderSteps('categories');
         if (!items || !items.length) {
-            output.innerHTML = '<div class="epc-umapi-message">No product groups found for this category.</div>';
+            output.innerHTML = '<div class="epc-umapi-message">No product groups found for this vehicle in this category.</div>';
             return;
         }
         // UMAPI repeats each product row once per brand — dedupe by product id.
@@ -755,6 +755,17 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
                 Array.prototype.forEach.call(output.querySelectorAll('.epc-cat-row.epc-cat-active'), function (r) { r.classList.remove('epc-cat-active'); });
                 var row = node.closest('.epc-cat-row');
                 if (row) { row.classList.add('epc-cat-active'); }
+                // Nodes with children expand/collapse instead of fetching products;
+                // only leaf categories map to upstream product groups.
+                var li = node.closest('.epc-cat-node');
+                var kids = li ? li.querySelector(':scope > .epc-cat-children') : null;
+                if (kids) {
+                    var toggle = li.querySelector(':scope > .epc-cat-row > button.epc-cat-toggle');
+                    var open = kids.hasAttribute('hidden');
+                    if (open) { kids.removeAttribute('hidden'); if (toggle) { toggle.textContent = '\u2212'; toggle.setAttribute('aria-expanded', 'true'); } }
+                    else { kids.setAttribute('hidden', ''); if (toggle) { toggle.textContent = '+'; toggle.setAttribute('aria-expanded', 'false'); } }
+                    return;
+                }
                 loadProducts(node.getAttribute('data-category'));
             };
         });
