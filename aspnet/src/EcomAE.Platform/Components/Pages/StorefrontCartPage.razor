@@ -75,20 +75,24 @@
             var salesDigits = new string(salesDisplay.Where(char.IsDigit).ToArray());
             if (salesDigits.Length == 0)
             {
-                // Tenant-scoped fallback: only per-host rows, never the shared
-                // ('' site_key) default — a shared DB must not leak another
-                // storefront's number.
+                // Tenant-scoped fallback: only rows for this host or its tenant
+                // site key — never the shared ('' site_key) default, which could
+                // leak another storefront's number. REGEXP guarantees the row
+                // actually contains digits.
                 try
                 {
                     var host = ctx.Request.Host.Host;
+                    var siteKey = (ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey]
+                        as EcomAE.Platform.Services.TenantContext)?.SiteKey ?? string.Empty;
                     var waSetting = await ErpDb.StringAsync(connection, null,
                         ErpDb.Positional(
                             "SELECT `setting_value` FROM `epc_settings` "
-                            + "WHERE `site_key` = ? "
+                            + "WHERE `site_key` IN (?, ?) "
                             + "AND `setting_key` IN ('whatsapp_number','whatsapp','contact_whatsapp','epc_whatsapp_number','epc_contact_phone') "
-                            + "AND `setting_value` <> '' LIMIT 1"),
+                            + "AND `setting_value` <> '' AND `setting_value` REGEXP '[0-9]' LIMIT 1"),
                         ctx.RequestAborted,
-                        host);
+                        host,
+                        siteKey);
                     salesDigits = new string((waSetting ?? "").Where(char.IsDigit).ToArray());
                     if (salesDigits.Length > 0)
                     {
