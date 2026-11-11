@@ -291,7 +291,7 @@
                     id: item.SUP_ID,
                     name: name,
                     detail: detail,
-                    logo: item.SUP_ID ? logoProxyUrl('supplier', item.SUP_ID) : '',
+                    logo: item.SUP_ID ? logoProxyUrl('supplier', item.SUP_ID) : logoProxyUrl('supplier', name),
                     search: (name + ' ' + detail + ' ' + item.SUP_ID).toLowerCase()
                 };
             }));
@@ -301,7 +301,10 @@
             var seenName = {};
             all.forEach(function (item) {
                 var key = (item.name || '').trim().toUpperCase();
-                if (!seenName[key] || String(item.id).localeCompare(String(seenName[key].id), undefined, { numeric: true }) < 0) {
+                var cur = seenName[key];
+                if (!cur
+                    || (!cur.id && item.id)
+                    || ((!!cur.id) === (!!item.id) && String(item.id).localeCompare(String(cur.id), undefined, { numeric: true }) < 0)) {
                     seenName[key] = item;
                 }
             });
