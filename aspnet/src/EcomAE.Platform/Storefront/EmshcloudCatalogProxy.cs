@@ -304,6 +304,66 @@ public static class EmshcloudCatalogProxy
         return null;
     }
 
+    /// <summary>emshcloud ara/oem brand lookup for an article number — the same
+    /// fallback the article picker and AI Parts Expert use. Returns mapped brand
+    /// rows [{BRAND,SUP_BRAND,SUP_ID}] or an empty list.</summary>
+    public static async Task<IReadOnlyList<Dictionary<string, object?>>> ArticleBrandsAsync(
+        HttpContext context,
+        IHttpClientFactory factory,
+        string article,
+        CancellationToken cancellationToken)
+    {
+        var key = await EmshcloudVinDecode.ApiKeyAsync(context, cancellationToken).ConfigureAwait(false);
+        if (key.Length == 0)
+        {
+            return [];
+        }
+
+        var client = factory.CreateClient();
+        var brands = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+        foreach (var endpoint in new[] { "ara", "oem" })
+        {
+            if (brands.Count > 0)
+            {
+                break;
+            }
+
+            try
+            {
+                using var request = new HttpRequestMessage(
+                    HttpMethod.Get,
+                    BaseUrl + endpoint + "?kod=" + Uri.EscapeDataString(article) + "&dil=en");
+                request.Headers.TryAddWithoutValidation("X-API-Key", key);
+                using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                {
+                    continue;
+                }
+
+                using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+                var sonuc = doc.RootElement.TryGetProperty("sonuc", out var s) ? s : doc.RootElement;
+                foreach (var r in Rows(sonuc))
+                {
+                    var name = Text(r, "marka_adi");
+                    if (name.Length > 0 && !brands.ContainsKey(name))
+                    {
+                        brands[name] = Num(r, "marka_id") ?? 0;
+                    }
+                }
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+            }
+        }
+
+        return brands.Select(b => new Dictionary<string, object?>
+        {
+            ["BRAND"] = b.Key,
+            ["SUP_BRAND"] = b.Key,
+            ["SUP_ID"] = b.Value > 0 ? b.Value.ToString(CultureInfo.InvariantCulture) : b.Key,
+        }).ToList();
+    }
+
     /// <summary>Article numbers carry no symbols anywhere in the business: IXU01-27 → IXU0127.</summary>
     private static string NormalizeArticle(string? value)
     {
