@@ -27,6 +27,8 @@ body.epc-storefront--auto247 {
 /* ---------- Top navigation: solid premium blue ---------- */
 body.epc-storefront--auto247 .navbar.navbar-default,
 body.epc-storefront--auto247 .navbar.navbar-default.navbar-header-full,
+body.epc-storefront--auto247 header.epc-nero-header .top-menu-line,
+body.epc-storefront--auto247 .epc-nero-shell .top-menu-line,
 body.epc-storefront--auto247 .top-menu-line {
     background: linear-gradient(90deg, var(--auto247-blue-deep) 0%, var(--auto247-blue-dark) 45%, var(--auto247-blue) 100%) !important;
     border-color: rgba(255, 255, 255, .14) !important;
@@ -103,6 +105,7 @@ body.epc-storefront--auto247 #dp_menu .vertical-tabs-right {
     border-color: var(--auto247-blue-line) !important;
 }
 
+body.epc-storefront--auto247 .header-box-mobile,
 body.epc-storefront--auto247 .header-box-mobile .navbar,
 body.epc-storefront--auto247 .mobile-search-div {
     background: linear-gradient(135deg, var(--auto247-blue-deep), var(--auto247-blue-dark)) !important;
