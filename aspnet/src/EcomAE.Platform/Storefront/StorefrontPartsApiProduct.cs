@@ -738,12 +738,8 @@ public static class StorefrontPartsApiProduct
                 company = company2;
                 company2 = "";
             }
-            var address = string.Join(", ",
-                new[] { T("cadde1"), T("cadde2"), string.Join(" ", new[] { T("posta_kodu"), T("sehir1"), T("sehir2") }.Where(x => x.Length > 0)) }
-                    .Where(x => x.Length > 0));
-            var email = T("eposta");
             var site = T("web");
-            foreach (var piece in new[] { company, company2, address, email, site })
+            foreach (var piece in new[] { company, company2, site })
             {
                 if (piece.Length > 0 && !lines.Contains(piece, StringComparer.OrdinalIgnoreCase))
                 {
