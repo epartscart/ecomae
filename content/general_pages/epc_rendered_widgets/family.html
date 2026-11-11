@@ -113,14 +113,25 @@
 		}
 		return '<i class="fa ' + fa + '"></i>';
 	}
-	function fetchJson(url, timeoutMs) {
+	function fetchJson(url, timeoutMs, attempt) {
 		timeoutMs = timeoutMs || 120000;
+		attempt = attempt || 0;
 		var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
 		var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
 		return fetch(url, { credentials: 'same-origin', signal: ctrl ? ctrl.signal : undefined })
 			.then(function (r) {
 				if (timer) { clearTimeout(timer); }
+				var type = (r.headers.get('content-type') || '').toLowerCase();
 				if (!r.ok) { throw new Error('Server returned HTTP ' + r.status); }
+				if (type.indexOf('json') === -1) {
+					// Interim HTML (challenge/error doc, deploy window) — retry once quietly.
+					if (attempt < 1) {
+						return new Promise(function (res, rej) {
+							setTimeout(function () { fetchJson(url, timeoutMs, attempt + 1).then(res).catch(rej); }, 1500);
+						});
+					}
+					throw new Error('Catalog is temporarily unavailable. Please refresh the page.');
+				}
 				return r.json();
 			})
 			.catch(function (e) {

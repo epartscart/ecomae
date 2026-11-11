@@ -22,7 +22,8 @@
 .epc-pc-cat-page .epc-pf-cat-meta { margin-left: auto; color: #64748b; font-size: 12px; }
 </style>
 
-<div class="epc-pc-cat-page epc-cm" id="epc-product-categories" data-lang="/en">
+<div class="epc-pc-cat-page epc-cm" id="epc-product-categories" data-lang="/en"
+	data-icon-base="/content/files/epc-cata/category-icons/">
 	<div id="epc-pc-main">
 		<div class="epc-pf-loader" id="epc-pc-loading"><i class="fa fa-spinner fa-spin"></i> Loading product categories…</div>
 	</div>
@@ -36,25 +37,37 @@
 	var langHref = root.getAttribute('data-lang') || '/en';
 
 	var ICON_MAP = [
-		{ re: /filter/i, fa: 'fa-filter' },
-		{ re: /brake/i, fa: 'fa-stop-circle' },
-		{ re: /spark|glow|ignition|electri|lighting|lamp/i, fa: 'fa-bolt' },
-		{ re: /belt/i, fa: 'fa-circle-o' },
-		{ re: /fuel|mixture/i, fa: 'fa-tint' },
-		{ re: /radiat|cool/i, fa: 'fa-thermometer-half' },
-		{ re: /joint|bearing|axle|wheel|driv/i, fa: 'fa-compress' },
-		{ re: /engine|piston|gasket/i, fa: 'fa-cogs' },
-		{ re: /suspension|spring|damp|shock/i, fa: 'fa-arrows-v' },
-		{ re: /steer/i, fa: 'fa-dot-circle-o' },
-		{ re: /clutch/i, fa: 'fa-circle' },
-		{ re: /exhaust|emission/i, fa: 'fa-cloud' },
-		{ re: /transmission|gear/i, fa: 'fa-cog' },
-		{ re: /heat|ventil|air.?cond/i, fa: 'fa-fan' },
-		{ re: /body|clean|wip|glass|interior|mirror/i, fa: 'fa-car' },
-		{ re: /chemic|oil|lubric|fluid|service/i, fa: 'fa-flask' },
-		{ re: /tyre|tire/i, fa: 'fa-life-ring' },
-		{ re: /workshop|tool|accessor|universal|other/i, fa: 'fa-wrench' }
+		{ re: /filter/i, id: 2, fa: 'fa-filter' },
+		{ re: /brake/i, id: 5, fa: 'fa-stop-circle' },
+		{ re: /spark|glow|ignition|electri|lighting|lamp|hybrid/i, id: 10, fa: 'fa-bolt' },
+		{ re: /belt/i, id: 8, fa: 'fa-circle-o' },
+		{ re: /fuel|mixture/i, id: 17, fa: 'fa-tint' },
+		{ re: /radiat|cool/i, id: 19, fa: 'fa-thermometer-half' },
+		{ re: /joint|bearing|axle|wheel|driv/i, id: 4, fa: 'fa-compress' },
+		{ re: /engine|piston|gasket/i, id: 3, fa: 'fa-cogs' },
+		{ re: /suspension|spring|damp|shock/i, id: 15, fa: 'fa-arrows-v' },
+		{ re: /steer/i, id: 14, fa: 'fa-dot-circle-o' },
+		{ re: /clutch|transmission|gear/i, id: 16, fa: 'fa-cog' },
+		{ re: /exhaust|emission/i, id: 9, fa: 'fa-cloud' },
+		{ re: /heat|ventil|air.?cond/i, id: 12, fa: 'fa-fan' },
+		{ re: /body|clean|wip|glass|interior|mirror|window/i, id: 11, fa: 'fa-car' },
+		{ re: /chemic|oil|lubric|fluid|service|maintenance/i, id: 13, fa: 'fa-flask' },
+		{ re: /tyre|tire/i, id: 18, fa: 'fa-life-ring' },
+		{ re: /access|tool|other|universal/i, id: 1, fa: 'fa-wrench' }
 	];
+	var iconBase = (root.getAttribute('data-icon-base') || '/content/files/epc-cata/category-icons/').replace(/\/?$/, '/');
+	function iconHtml(label) {
+		var name = String(label || '');
+		var meta = { id: 0, fa: 'fa-wrench' };
+		for (var i = 0; i < ICON_MAP.length; i++) {
+			if (ICON_MAP[i].re.test(name)) { meta = ICON_MAP[i]; break; }
+		}
+		if (meta.id > 0) {
+			return '<img src="' + esc(iconBase + meta.id + '.png') + '" alt="" loading="lazy" decoding="async"'
+				+ ' onerror="this.parentNode.innerHTML=\'<i class=\\\'fa ' + meta.fa + '\\\'></i>\'">';
+		}
+		return '<i class="fa ' + meta.fa + '"></i>';
+	}
 
 	var state = {
 		tree: [],          // root nodes [{CATEGORY_ID,DES,CHILD}]
@@ -75,13 +88,6 @@
 		var b = String(brand || '').trim();
 		if (!b || !n) { return '#'; }
 		return langHref + '/parts/' + encodeURIComponent(b) + '/' + encodeURIComponent(n);
-	}
-	function iconFor(label) {
-		var name = String(label || '');
-		for (var i = 0; i < ICON_MAP.length; i++) {
-			if (ICON_MAP[i].re.test(name)) { return ICON_MAP[i].fa; }
-		}
-		return 'fa-wrench';
 	}
 	function api(action, params) {
 		var q = 'action=' + encodeURIComponent(action);
@@ -111,7 +117,7 @@
 		var search = [node.DES].join(' ');
 		(node.CHILD || []).forEach(function (c) { search += ' ' + c.DES; });
 		return '<button type="button" class="epc-vc-cat-card" data-cat="' + esc(node.CATEGORY_ID) + '" data-search="' + esc(search) + '">'
-			+ '<div class="epc-vc-cat-icon"><i class="fa ' + iconFor(node.DES) + '"></i></div>'
+			+ '<div class="epc-vc-cat-icon">' + iconHtml(node.DES) + '</div>'
 			+ '<strong>' + esc(node.DES) + '</strong>'
 			+ '<small style="display:block;color:#64748b;font-size:11px;font-weight:600;margin-top:4px">' + esc(meta) + '</small>'
 			+ '</button>';
@@ -140,7 +146,8 @@
 		var leafName = state.leaf ? state.leaf.DES : '';
 		var back = '<div class="epc-pf-cat-backbar">'
 			+ '<button type="button" class="btn btn-default btn-sm" id="epc-pc-back"><i class="fa fa-arrow-left"></i> Back</button>'
-			+ '<span class="epc-pf-cat-meta">' + esc(leafName) + ' · ' + esc(rows.length) + ' articles</span></div>';
+			+ '<span class="epc-pf-cat-meta">' + esc(leafName) + ' · ' + esc(rows.length) + ' articles'
+			+ (rows.length >= 500 ? ' (first 500 shown — catalog cap)' : '') + '</span></div>';
 		if (!rows.length) {
 			return back + '<div class="epc-pf-msg">No articles found in this category.</div>';
 		}
