@@ -385,6 +385,20 @@ public static class StorefrontPartsApiProduct
             }
         }
 
+        // Shared-subscription fallback: when umapi is quota-capped and partsapi has no
+        // method key, emshcloud's one-shot parca-tam fills name/specs/OE/fitment/photos.
+        // Both calls cache forever in epc_umapi_cache — a repeat view costs 0 requests.
+        if (artName.Length == 0 || images.Count == 0 || specs.Count == 0 || crosses.Count == 0 || vehicles.Count == 0)
+        {
+            var emsName = await EmshcloudFillAsync(
+                context, httpClientFactory, connections, brand, number,
+                images, specs, crosses, vehicles, cancellationToken).ConfigureAwait(false);
+            if (artName.Length == 0 && emsName is not null)
+            {
+                artName = emsName;
+            }
+        }
+
         // EAN/barcode — umapi article payload first, then any row field.
         var ean = "";
         if (umapiArticle.ValueKind == JsonValueKind.Object)
@@ -706,6 +720,262 @@ public static class StorefrontPartsApiProduct
         }
 
         return "971567607011";
+    }
+
+    /// <summary>
+    /// Shared-subscription fill from tecdoc.emshcloud.com: resolve the part by number+brand
+    /// (<c>/v1/ara</c>, cached forever) then pull the 4-credit <c>/v1/parca-tam</c> bundle
+    /// (name, specs, OE numbers, fitment, photos — also cached forever). Only fills lists
+    /// that are still empty, so umapi/partsapi stay primary. Returns the article name when
+    /// the caller has none.
+    /// </summary>
+    private static async Task<string?> EmshcloudFillAsync(
+        HttpContext context,
+        IHttpClientFactory httpClientFactory,
+        ITenantDbConnectionFactory connections,
+        string brand,
+        string number,
+        List<string> images,
+        List<(string Name, string Value)> specs,
+        List<string[]> crosses,
+        List<string[]> vehicles,
+        CancellationToken cancellationToken)
+    {
+        var key = await EmshcloudVinDecode.ApiKeyAsync(context, cancellationToken).ConfigureAwait(false);
+        if (key.Length == 0 || !connections.IsConfigured)
+        {
+            return null;
+        }
+
+        var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        var wanted = NormalizeBrand(brand);
+
+        // Step 1: brand+number → emshcloud part id (cached).
+        var araKey = "emsh_ara|" + wanted + "|" + NormalizeBrand(number);
+        var araJson = await EmshCacheGetAsync(connections, tenant, araKey, cancellationToken).ConfigureAwait(false);
+        if (araJson is null)
+        {
+            araJson = await EmshGetAsync(httpClientFactory, key,
+                "https://tecdoc.emshcloud.com/v1/ara?kod=" + Uri.EscapeDataString(number) + "&dil=en",
+                cancellationToken).ConfigureAwait(false);
+            if (araJson is not null)
+            {
+                await EmshCachePutAsync(connections, tenant, araKey, "emsh_ara", araJson, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        if (araJson is null)
+        {
+            return null;
+        }
+
+        var emsId = "";
+        try
+        {
+            using var doc = JsonDocument.Parse(araJson);
+            if (doc.RootElement.TryGetProperty("sonuc", out var rows) && rows.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var row in rows.EnumerateArray())
+                {
+                    if (row.ValueKind == JsonValueKind.Object
+                        && NormalizeBrand(Str(row, "marka_adi")) == wanted)
+                    {
+                        emsId = Str(row, "id");
+                        break;
+                    }
+                }
+            }
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+
+        if (emsId.Length == 0)
+        {
+            return null;
+        }
+
+        // Step 2: the one-shot bundle — name/specs/OE/fitment/photos/EAN in 4 credits.
+        var tamKey = "emsh_tam|" + emsId;
+        var tamJson = await EmshCacheGetAsync(connections, tenant, tamKey, cancellationToken).ConfigureAwait(false);
+        if (tamJson is null)
+        {
+            tamJson = await EmshGetAsync(httpClientFactory, key,
+                "https://tecdoc.emshcloud.com/v1/parca-tam?id=" + Uri.EscapeDataString(emsId) + "&dil=en",
+                cancellationToken).ConfigureAwait(false);
+            if (tamJson is not null)
+            {
+                await EmshCachePutAsync(connections, tenant, tamKey, "emsh_tam", tamJson, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        if (tamJson is null)
+        {
+            return null;
+        }
+
+        string? emsName = null;
+        try
+        {
+            using var doc = JsonDocument.Parse(tamJson);
+            if (!doc.RootElement.TryGetProperty("sonuc", out var sonuc) || sonuc.ValueKind != JsonValueKind.Object)
+            {
+                return null;
+            }
+
+            emsName = Str(sonuc, "ad");
+            if (emsName.Length == 0)
+            {
+                emsName = null;
+            }
+
+            if (images.Count == 0 && sonuc.TryGetProperty("gorsel", out var gorsel) && gorsel.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var g in gorsel.EnumerateArray())
+                {
+                    var u = Str(g, "url");
+                    // "/v1/parca-gorsel-dosya?y=image/…" → the path part serves via our proxy.
+                    var yi = u.IndexOf("?y=", StringComparison.Ordinal);
+                    if (yi >= 0)
+                    {
+                        var path = Uri.UnescapeDataString(u[(yi + 3)..]);
+                        if (path.StartsWith("image/", StringComparison.Ordinal))
+                        {
+                            images.Add("/api/umapi_image.php?kind=emsh&id=" + Uri.EscapeDataString(path));
+                        }
+                    }
+                }
+            }
+
+            if (specs.Count == 0 && sonuc.TryGetProperty("kriter", out var kriter) && kriter.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var k in kriter.EnumerateArray())
+                {
+                    var n = Str(k, "baslik");
+                    if (n.Length > 0)
+                    {
+                        specs.Add((n, Str(k, "deger")));
+                    }
+                }
+            }
+
+            if (crosses.Count == 0 && sonuc.TryGetProperty("oem", out var oem) && oem.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var o in oem.EnumerateArray())
+                {
+                    var cb = Str(o, "oem_marka");
+                    var cn = Str(o, "oem_no");
+                    if ((cb + cn).Length > 0)
+                    {
+                        crosses.Add(new[] { cb, cn, "" });
+                    }
+                }
+            }
+
+            if (vehicles.Count == 0 && sonuc.TryGetProperty("uyumlu_arac", out var uyar) && uyar.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var v in uyar.EnumerateArray())
+                {
+                    var make = Str(v, "marka_ad");
+                    var model = Str(v, "model_tam_ad");
+                    if (model.Length == 0)
+                    {
+                        model = Str(v, "tam_ad");
+                        if (model.StartsWith(make, StringComparison.OrdinalIgnoreCase))
+                        {
+                            model = model[make.Length..].Trim();
+                        }
+                    }
+
+                    var mod = (Str(v, "hacim_cc") is { Length: > 0 } cc ? cc + "cc " : "")
+                        + (Str(v, "guc_hp") is { Length: > 0 } hp ? hp + "hp " : "")
+                        + Str(v, "motor_kodu");
+                    var yf = Str(v, "uretim_bas");
+                    var yt = Str(v, "uretim_bit");
+                    vehicles.Add(new[]
+                    {
+                        make, model, mod.Trim(),
+                        yf.Length >= 7 ? yf[..7] : yf,
+                        yt.Length >= 7 ? yt[..7] : yt,
+                    });
+                    if (vehicles.Count >= 300)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+        catch (JsonException)
+        {
+        }
+
+        return emsName;
+    }
+
+    private static string Str(JsonElement el, string name)
+        => el.ValueKind == JsonValueKind.Object && el.TryGetProperty(name, out var v)
+            && v.ValueKind is JsonValueKind.String or JsonValueKind.Number
+            ? v.ToString()
+            : "";
+
+    private static async Task<string?> EmshGetAsync(
+        IHttpClientFactory httpClientFactory, string key, string url, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var http = httpClientFactory.CreateClient();
+            http.Timeout = TimeSpan.FromSeconds(12);
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.TryAddWithoutValidation("X-API-Key", key);
+            using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            return response.IsSuccessStatusCode && body.StartsWith('{') ? body : null;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    private static async Task<string?> EmshCacheGetAsync(
+        ITenantDbConnectionFactory connections, TenantContext? tenant, string cacheKey, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT `response_json` FROM `epc_umapi_cache` WHERE `cache_key` = @k LIMIT 1";
+            var p = cmd.CreateParameter(); p.ParameterName = "@k"; p.Value = cacheKey; cmd.Parameters.Add(p);
+            var value = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return value is string s && s.Length > 0 ? s : null;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    private static async Task EmshCachePutAsync(
+        ITenantDbConnectionFactory connections, TenantContext? tenant, string cacheKey, string action, string json, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText =
+                "REPLACE INTO `epc_umapi_cache` (`cache_key`,`action`,`section`,`language`,`region`,`request_json`,`response_json`,`rows_count`,`http_status`,`last_sync`)"
+                + " VALUES (@k,@a,'catalog','en','WWW','',@j,0,200,UNIX_TIMESTAMP())";
+            foreach (var (n, v) in new (string, object)[] { ("@k", cacheKey), ("@a", action), ("@j", json) })
+            {
+                var p = cmd.CreateParameter(); p.ParameterName = n; p.Value = v; cmd.Parameters.Add(p);
+            }
+
+            await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+        }
     }
 
     private static string E(string? s) => System.Net.WebUtility.HtmlEncode(s ?? "");

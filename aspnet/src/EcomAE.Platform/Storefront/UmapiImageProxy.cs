@@ -19,6 +19,20 @@ public static class UmapiImageProxy
     {
         url = string.Empty;
         var normalized = AsciiLower(kind ?? string.Empty);
+        if (normalized == "emsh")
+        {
+            // emshcloud part photos: id is the image/… path from the gorsel payload.
+            var path = (id ?? string.Empty).Trim();
+            if (path.Length is < 10 or > 200 || !path.StartsWith("image/", StringComparison.Ordinal)
+                || path.Contains("..") || path.Any(c => !(char.IsAsciiLetterOrDigit(c) || c is '/' or '.' or '_' or '-')))
+            {
+                return false;
+            }
+
+            url = "https://tecdoc.emshcloud.com/v1/parca-gorsel-dosya?y=" + Uri.EscapeDataString(path);
+            return true;
+        }
+
         if (normalized == "article")
         {
             // Article photos are keyed by the MEDIA_FILE name from the Articles payload.
@@ -221,6 +235,14 @@ public static class UmapiImageProxy
             http.Timeout = TimeSpan.FromSeconds(10);
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.TryAddWithoutValidation("User-Agent", "ePartsCart-UmapiImage/1.0");
+            if (AsciiLower(kindValue ?? string.Empty) == "emsh")
+            {
+                var emshKey = await EmshcloudVinDecode.ApiKeyAsync(context, cancellationToken).ConfigureAwait(false);
+                if (emshKey.Length > 0)
+                {
+                    request.Headers.TryAddWithoutValidation("X-API-Key", emshKey);
+                }
+            }
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("image/*"));
             using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
             var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);

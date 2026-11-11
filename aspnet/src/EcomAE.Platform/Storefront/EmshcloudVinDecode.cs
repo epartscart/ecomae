@@ -141,29 +141,33 @@ public static class EmshcloudVinDecode
     {
         var connections = context.RequestServices.GetService<ITenantDbConnectionFactory>();
         var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-        if (connections is null || !connections.IsConfigured)
+        if (connections is not null && connections.IsConfigured)
         {
-            return "";
+            try
+            {
+                await using var owned = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+                var stored = await ErpDb.StringAsync(
+                    owned,
+                    null,
+                    ErpDb.Positional(
+                        "SELECT `setting_value` FROM `epc_settings` WHERE `setting_key` = 'emshcloud_api_key' "
+                        + "AND (`site_key` = '' OR `site_key` IS NULL OR `site_key` = ?) "
+                        + "ORDER BY CASE WHEN `site_key` IS NULL OR `site_key` = '' THEN 1 ELSE 0 END ASC LIMIT 1"),
+                    cancellationToken,
+                    context.Request.Host.Host).ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(stored))
+                {
+                    return stored.Trim();
+                }
+            }
+            catch (DbException)
+            {
+            }
         }
 
-        try
-        {
-            await using var owned = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
-            var stored = await ErpDb.StringAsync(
-                owned,
-                null,
-                ErpDb.Positional(
-                    "SELECT `setting_value` FROM `epc_settings` WHERE `setting_key` = 'emshcloud_api_key' "
-                    + "AND (`site_key` = '' OR `site_key` IS NULL OR `site_key` = ?) "
-                    + "ORDER BY CASE WHEN `site_key` IS NULL OR `site_key` = '' THEN 1 ELSE 0 END ASC LIMIT 1"),
-                cancellationToken,
-                context.Request.Host.Host).ConfigureAwait(false);
-            return stored?.Trim() ?? "";
-        }
-        catch (DbException)
-        {
-            return "";
-        }
+        // Shared-subscription fallback for tenants whose DB has no epc_settings.
+        var config = context.RequestServices.GetService<Microsoft.Extensions.Configuration.IConfiguration>();
+        return config?["EcomAE:Emshcloud:Key"]?.Trim() ?? "";
     }
 
     private static string Str(JsonElement row, string name)
