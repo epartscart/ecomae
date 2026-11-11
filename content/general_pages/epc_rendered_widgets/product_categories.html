@@ -289,7 +289,7 @@
 					var parts = (d && d.status && d.group && d.group.parts) ? d.group.parts : [];
 					// Only keep stock rows that agree with the leaf name (a 'Brake Pad'
 					// leaf must not inherit the whole 'Brake' family).
-					var STOP = { brake:1, system:1, part:1, parts:1, the:1, and:1, of:1, assembly:1 };
+					var STOP = { system:1, part:1, parts:1, the:1, and:1, of:1, assembly:1 };
 					var keys = String(leafDes).toLowerCase().split(/[^a-z]+/)
 						.filter(function (t) { return t.length > 1 && !STOP[t]; });
 					if (!keys.length) { return parts; }
