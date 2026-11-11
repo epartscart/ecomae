@@ -119,7 +119,7 @@ public static class EmshcloudCatalogProxy
             "manufacturers" => "emsh|marka|" + Section(context),
             "models" => "emsh|model|" + context.Request.Query["MFA_ID"].ToString(),
             "modifications" => "emsh|motor|" + context.Request.Query["MS_ID"].ToString(),
-            "categories" => "emsh|kat",
+            "categories" => "emsh|kat|" + VehicleTip(context),
             "products" => "emsh|pg|" + context.Request.Query["ID"].ToString() + "|" + context.Request.Query["CATEGORY_ID"].ToString(),
             "vin" => "emsh|vin|" + context.Request.Query["vin"].ToString().Trim().ToUpperInvariant(),
             "brands" => "emsh|oem|" + context.Request.Query["article"].ToString().Trim().ToUpperInvariant(),
@@ -260,7 +260,7 @@ public static class EmshcloudCatalogProxy
                 "marka" => MapMarka(sonuc, Section(context)),
                 "model" => MapModel(sonuc),
                 "motor" => MapMotor(sonuc),
-                "kat" => MapKategori(sonuc),
+                "kat" => MapKategori(sonuc, VehicleTip(context)),
                 "parca" => MapParca(sonuc, context.Request.Query["CATEGORY_ID"].ToString()),
                 "vin" => MapVin(sonuc),
                 "oem" => MapOem(sonuc),
@@ -607,13 +607,33 @@ public static class EmshcloudCatalogProxy
         }).ToList());
     }
 
-    /// <summary>Flat {id,parent_id,ad} list → nested {root:[{CATEGORY_ID,DES,CHILD}]}.</summary>
-    private static string MapKategori(JsonElement sonuc)
+    /// <summary>Flat {id,parent_id,ad} list → nested {root:[{CATEGORY_ID,DES,CHILD}]}.
+    /// The upstream list mixes several trees by agac_tipi (PassengerCar, CommercialVehicle,
+    /// Axle, Engine, Universal…) — only the vehicle type's own tree has parts via arac-parca.</summary>
+    private static string MapKategori(JsonElement sonuc, string tip)
     {
         var flat = new List<(long Id, long Parent, string Des)>();
         foreach (var r in Rows(sonuc))
         {
+            var tree = Text(r, "agac_tipi");
+            if (tree.Length > 0 && !string.Equals(tree, tip, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
             flat.Add((Num(r, "id") ?? 0, Num(r, "parent_id") ?? 0, Text(r, "ad")));
+        }
+
+        // A section whose own tree is absent (e.g. Motorbike) falls back to Universal.
+        if (flat.Count == 0)
+        {
+            foreach (var r in Rows(sonuc))
+            {
+                if (!string.Equals(Text(r, "agac_tipi"), "Universal", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+                flat.Add((Num(r, "id") ?? 0, Num(r, "parent_id") ?? 0, Text(r, "ad")));
+            }
         }
 
         var byParent = flat.GroupBy(f => f.Parent).ToDictionary(g => g.Key, g => g.ToList());
