@@ -378,7 +378,14 @@
             }
         }
 
-        _family = PhpHomeWidgetHtml.ProductFamily(lang);
+        // Same full category browser as /en/product-family (boxed category
+        // cards drilling to articles); the old single-family snapshot only
+        // listed stocked families.
+        _family = PhpHomeWidgetHtml.RenderStatic("content/general_pages/epc_rendered_widgets/product_categories.html");
+        if (string.IsNullOrWhiteSpace(_family))
+        {
+            _family = PhpHomeWidgetHtml.ProductFamily(lang);
+        }
         _catalog = PhpHomeWidgetHtml.UmapiCatalog(lang);
         _brands = PhpHomeWidgetHtml.AvailableBrands(pricesVisible, lang);
         _vehicle = PhpHomeWidgetHtml.VehicleCatalog(lang);
