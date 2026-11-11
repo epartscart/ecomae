@@ -1988,26 +1988,10 @@ public sealed class StorefrontModule : ISurfaceModule
                 vin = LiveWriteFormBinder.Text(form, "vin", "identString", "ident_string");
             }
 
-            // VIN provider order: umapi (partsapi) → Tur (emshcloud) → laximo.
-            var decoded = await PartsApiVinDecode.DecodeAndCacheAsync(partsApi, connections, vin ?? "", cancellationToken).ConfigureAwait(false);
-            if (!decoded.Ok)
-            {
-                // Second: the shared emshcloud TecDoc subscription (auto247-Tur).
-                var ems = await EmshcloudVinDecode.DecodeAndCacheAsync(context, httpClientFactory, connections, vin ?? "", cancellationToken).ConfigureAwait(false);
-                if (ems.Ok)
-                {
-                    decoded = ems;
-                }
-                else
-                {
-                    // Last resort: Laximo OEM.
-                    var lax = await decode.DecodeAsync(vin, cancellationToken);
-                    if (lax.Ok)
-                    {
-                        decoded = lax;
-                    }
-                }
-            }
+            vin = vin?.Trim().ToUpperInvariant();
+            var decoded = vin is null || vin.Length is < 11 or > 17
+                ? new LaximoVinDecodeResult(false, "invalid_vin", "Invalid VIN.", vin ?? "", null, null, 0, [])
+                : await DecodeVinChainAsync(context, decode, partsApi, connections, httpClientFactory, vin, cancellationToken).ConfigureAwait(false);
             var dest = "/storefront/vin-app?vin=" + Uri.EscapeDataString(decoded.Vin);
             if (decoded.Ok)
             {
@@ -3152,6 +3136,29 @@ public sealed class StorefrontModule : ISurfaceModule
         string? Complaint = null,
         int Odometer = 0,
         bool ConfirmWrites = false);
+
+    /// <summary>VIN provider order: umapi (partsapi) → Tur (emshcloud) → laximo. First success wins.</summary>
+    internal static async Task<LaximoVinDecodeResult> DecodeVinChainAsync(
+        HttpContext context,
+        ILaximoVinDecodeService decode,
+        IPartsApiService partsApi,
+        IErpWriteConnectionFactory connections,
+        IHttpClientFactory httpClientFactory,
+        string vin,
+        CancellationToken cancellationToken)
+    {
+        var decoded = await PartsApiVinDecode.DecodeAndCacheAsync(partsApi, connections, vin, cancellationToken).ConfigureAwait(false);
+        if (decoded.Ok)
+        {
+            return decoded;
+        }
+        var ems = await EmshcloudVinDecode.DecodeAndCacheAsync(context, httpClientFactory, connections, vin, cancellationToken).ConfigureAwait(false);
+        if (ems.Ok)
+        {
+            return ems;
+        }
+        return await decode.DecodeAsync(vin, cancellationToken).ConfigureAwait(false);
+    }
 
     private static StorefrontWorkshopBookRequest ToWorkshopBook(StorefrontWorkshopBookBody body)
         => new(

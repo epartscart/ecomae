@@ -173,30 +173,30 @@
             }
         }
 
-        // Cache miss: run the live decode chain — Laximo first, then the umapi
-        // decode service's own miss, then partsapi.ru (saves into epc_umapi_vin_cache).
+        // Cache miss: run the live decode chain — umapi (partsapi) first, then
+        // emshcloud (Tur), then Laximo (saves into epc_umapi_vin_cache).
         if (!_cacheHit && _vin.Length is >= 11 and <= 17)
         {
             var ct = ctx?.RequestAborted ?? default;
             try
             {
-                var decoded = await VinDecode.DecodeAsync(_vin, ct);
-                var source = "Live Laximo decode";
-                if (!decoded.Ok)
-                {
-                    decoded = await PartsApiVinDecode.DecodeAndCacheAsync(PartsApi, Connections, _vin, ct);
-                    if (decoded.Ok)
-                    {
-                        source = "Live partsapi decode";
-                    }
-                }
-
+                var decoded = await PartsApiVinDecode.DecodeAndCacheAsync(PartsApi, Connections, _vin, ct);
+                var source = "Live partsapi decode";
                 if (!decoded.Ok && Http.HttpContext is not null)
                 {
                     decoded = await EmshcloudVinDecode.DecodeAndCacheAsync(Http.HttpContext, HttpClientFactory, Connections, _vin, ct);
                     if (decoded.Ok)
                     {
                         source = "Live emshcloud decode";
+                    }
+                }
+
+                if (!decoded.Ok)
+                {
+                    decoded = await VinDecode.DecodeAsync(_vin, ct);
+                    if (decoded.Ok)
+                    {
+                        source = "Live Laximo decode";
                     }
                 }
 
