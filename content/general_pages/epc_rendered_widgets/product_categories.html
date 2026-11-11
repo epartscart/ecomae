@@ -296,11 +296,11 @@
 					return parts.filter(function (p) {
 						var words = String(p.name || '').toLowerCase().split(/[^a-z0-9]+/);
 						var joined = words.join('');
-						var allKeys = keys.join('');
+						var stemKeys = keys.map(function (k) { return k.replace(/s$/, ''); }).join('');
 						return keys.every(function (k) {
 							var ks = k.replace(/s$/, '');
 							return words.some(function (w) { return w === k || w.replace(/s$/, '') === ks; });
-						}) || joined.indexOf(allKeys) !== -1;
+						}) || (keys.length > 1 && joined.indexOf(stemKeys) !== -1);
 					});
 				})
 				.catch(function () { return []; });
