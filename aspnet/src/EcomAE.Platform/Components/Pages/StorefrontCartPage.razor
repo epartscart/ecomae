@@ -75,13 +75,31 @@
             var salesDigits = new string(salesDisplay.Where(char.IsDigit).ToArray());
             if (salesDigits.Length == 0)
             {
-                var waSetting = await ErpDb.StringAsync(connection, null,
-                    "SELECT `setting_value` FROM `epc_settings` WHERE `setting_key` IN ('whatsapp_number','whatsapp','contact_whatsapp','epc_whatsapp_number','epc_contact_phone') LIMIT 1",
-                    ctx.RequestAborted);
-                salesDigits = new string((waSetting ?? "").Where(char.IsDigit).ToArray());
-                if (salesDigits.Length > 0)
+                // Tenant-scoped fallback: per-host rows first, then the default
+                // ('' site_key) row; skip empty overrides and survive a missing
+                // epc_settings table.
+                try
                 {
-                    salesDisplay = waSetting!;
+                    var host = ctx.Request.Host.Host;
+                    var waSetting = await ErpDb.StringAsync(connection, null,
+                        ErpDb.Positional(
+                            "SELECT `setting_value` FROM `epc_settings` "
+                            + "WHERE (`site_key` = ? OR `site_key` = '') "
+                            + "AND `setting_key` IN ('whatsapp_number','whatsapp','contact_whatsapp','epc_whatsapp_number','epc_contact_phone') "
+                            + "AND `setting_value` <> '' "
+                            + "ORDER BY CASE WHEN `site_key` = ? THEN 0 ELSE 1 END LIMIT 1"),
+                        ctx.RequestAborted,
+                        host,
+                        host);
+                    salesDigits = new string((waSetting ?? "").Where(char.IsDigit).ToArray());
+                    if (salesDigits.Length > 0)
+                    {
+                        salesDisplay = waSetting!;
+                    }
+                }
+                catch (Exception)
+                {
+                    // epc_settings absent on this tenant — leave sharing hidden.
                 }
             }
             var input = new StorefrontCart.Input(
