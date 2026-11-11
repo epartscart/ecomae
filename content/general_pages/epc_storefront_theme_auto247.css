@@ -5,13 +5,13 @@
 /* Aliases live on body.epc-storefront--auto247 (not :root) so --epc-sf-* set on the
    same element — country theme defaults and CP sf_* tokens — resolve correctly. */
 body.epc-storefront--auto247 {
-  --auto247-blue: var(--epc-sf-primary, #0ea5e9);
-  --auto247-blue-dark: var(--epc-sf-primary-dark, #0369a1);
-  --auto247-blue-deep: var(--epc-sf-primary-deep, #0c4a6e);
-  --auto247-blue-light: var(--epc-sf-primary-light, #38bdf8);
-  --auto247-blue-sky: var(--epc-sf-sky, #7dd3fc);
+  --auto247-blue: var(--epc-sf-primary, #38bdf8);
+  --auto247-blue-dark: var(--epc-sf-primary-dark, #0ea5e9);
+  --auto247-blue-deep: var(--epc-sf-primary-deep, #0369a1);
+  --auto247-blue-light: var(--epc-sf-primary-light, #7dd3fc);
+  --auto247-blue-sky: var(--epc-sf-sky, #bae6fd);
   --auto247-blue-soft: var(--epc-sf-soft, #f0f9ff);
-  --auto247-blue-line: var(--epc-sf-line, #bae6fd);
+  --auto247-blue-line: var(--epc-sf-line, #e0f2fe);
   --auto247-white: #ffffff;
   --auto247-ink: #0b1220;
   --auto247-text: #1e293b;
@@ -27,6 +27,8 @@ body.epc-storefront--auto247 {
 /* ---------- Top navigation: solid premium blue ---------- */
 body.epc-storefront--auto247 .navbar.navbar-default,
 body.epc-storefront--auto247 .navbar.navbar-default.navbar-header-full,
+body.epc-storefront--auto247 header.epc-nero-header .top-menu-line,
+body.epc-storefront--auto247 .epc-nero-shell .top-menu-line,
 body.epc-storefront--auto247 .top-menu-line {
     background: linear-gradient(90deg, var(--auto247-blue-deep) 0%, var(--auto247-blue-dark) 45%, var(--auto247-blue) 100%) !important;
     border-color: rgba(255, 255, 255, .14) !important;
@@ -34,7 +36,7 @@ body.epc-storefront--auto247 .top-menu-line {
 }
 
 body.epc-storefront--auto247 .navbar-default .navbar-nav > li > a {
-    color: #dbeafe !important;
+    color: #f0f9ff !important;
 }
 
 body.epc-storefront--auto247 .navbar-default .navbar-nav > li > a:hover,
@@ -49,7 +51,7 @@ body.epc-storefront--auto247 .navbar-default .navbar-nav > li > a:after {
 }
 
 body.epc-storefront--auto247 .epc-nero-top-actions .new-header-user-box a {
-    color: #dbeafe !important;
+    color: #f0f9ff !important;
 }
 
 body.epc-storefront--auto247 .epc-nero-top-actions .new-header-user-box a:hover {
@@ -103,6 +105,7 @@ body.epc-storefront--auto247 #dp_menu .vertical-tabs-right {
     border-color: var(--auto247-blue-line) !important;
 }
 
+body.epc-storefront--auto247 .header-box-mobile,
 body.epc-storefront--auto247 .header-box-mobile .navbar,
 body.epc-storefront--auto247 .mobile-search-div {
     background: linear-gradient(135deg, var(--auto247-blue-deep), var(--auto247-blue-dark)) !important;
@@ -122,7 +125,7 @@ body.epc-storefront--auto247 #epc-header-search {
 }
 
 body.epc-storefront--auto247 .epc-header-search__tab {
-    color: #dbeafe !important;
+    color: #f0f9ff !important;
     border-color: rgba(255, 255, 255, .22) !important;
     background: rgba(255, 255, 255, .06) !important;
 }
@@ -248,7 +251,7 @@ html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto2
 }
 
 html[data-epc-storefront="automotive_spareparts_pro"] body.epc-storefront--auto247 .epc-engine-label {
-    color: #dbeafe !important;
+    color: #f0f9ff !important;
 }
 
 /* ---------- Home banners -> brand blues ---------- */
@@ -462,8 +465,32 @@ body.epc-storefront--auto247 .epc-footer,
 body.epc-storefront--auto247 footer,
 body.epc-storefront--auto247 .epc-bottom-dock,
 body.epc-storefront--auto247 .epc-footer-menu {
-    background: linear-gradient(90deg, var(--auto247-blue-deep), var(--auto247-blue-dark)) !important;
-    color: #dbeafe !important;
+    background: linear-gradient(90deg, var(--auto247-blue-dark), var(--auto247-blue)) !important;
+    color: #ffffff !important;
+}
+
+body.epc-storefront--auto247 #footer-widgets,
+body.epc-storefront--auto247 aside#footer-widgets {
+    background: linear-gradient(180deg, var(--auto247-blue-dark) 0%, var(--auto247-blue) 100%) !important;
+    color: #ffffff !important;
+}
+
+body.epc-storefront--auto247 #footer-widgets a { color: #f0f9ff !important; }
+body.epc-storefront--auto247 #footer-widgets a:hover { color: #ffffff !important; }
+body.epc-storefront--auto247 .footer-widget-title {
+    color: #ffffff !important;
+    border-bottom-color: rgba(255, 255, 255, .6) !important;
+}
+body.epc-storefront--auto247 .epc-footer-office,
+body.epc-storefront--auto247 .epc-footer-global {
+    background: rgba(255, 255, 255, .12) !important;
+    border-color: rgba(255, 255, 255, .3) !important;
+    color: #ffffff !important;
+}
+body.epc-storefront--auto247 .epc-footer-pay { color: #e0f2fe !important; }
+body.epc-storefront--auto247 footer#footer {
+    background: var(--auto247-blue-deep) !important;
+    color: #e0f2fe !important;
 }
 
 /* ---------- Inputs ---------- */
@@ -732,3 +759,21 @@ body.epc-storefront--auto247 .epc-cross-stock-results__head {
 }
 body.epc-storefront--auto247 .epc-cross-stock-results__head strong { color: var(--auto247-blue-deep) !important; }
 body.epc-storefront--auto247 .epc-cross-stock-results__head span { color: var(--auto247-blue-dark) !important; }
+
+/* ---------- AI expert panel / launcher -> sky ---------- */
+body.epc-storefront--auto247 .epc-ai-expert-widget__launcher {
+    background: linear-gradient(135deg, var(--auto247-blue-deep), var(--auto247-blue-dark)) !important;
+    box-shadow: 0 10px 24px rgba(3, 105, 161, .35) !important;
+}
+body.epc-storefront--auto247 .epc-ai-expert-widget__panel { border-color: var(--auto247-blue-line) !important; }
+body.epc-storefront--auto247 .epc-ai-expert-panel__head {
+    background: linear-gradient(135deg, var(--auto247-blue-dark), var(--auto247-blue)) !important;
+}
+body.epc-storefront--auto247 .epc-ai-expert-msg--bot {
+    background: var(--auto247-blue-soft) !important; border-color: var(--auto247-blue-line) !important; color: var(--auto247-blue-deep) !important;
+}
+body.epc-storefront--auto247 .epc-ai-expert-msg--user { background: var(--auto247-blue-dark) !important; }
+body.epc-storefront--auto247 .epc-ai-expert-msg a { color: var(--auto247-blue-dark) !important; }
+body.epc-storefront--auto247 .epc-ai-expert-panel__form { border-top-color: var(--auto247-blue-line) !important; }
+body.epc-storefront--auto247 .epc-ai-expert-panel__form input { border-color: var(--auto247-blue-light) !important; }
+body.epc-storefront--auto247 .epc-ai-expert-panel__form button { background: var(--auto247-blue-dark) !important; }
