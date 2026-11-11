@@ -779,9 +779,9 @@
             <div class="epc-ai-expert-panel__log" id="epc-ai-expert-log">
                 <div class="epc-ai-expert-msg epc-ai-expert-msg--bot">Hi! Type a part number (e.g. C110J, 90915-YZZE1) and I'll check warehouse stock and all catalogs for you.</div>
             </div>
-            <form class="epc-ai-expert-panel__form" id="epc-ai-expert-form" autocomplete="off">
-                <input type="text" id="epc-ai-expert-input" placeholder="Part number…" maxlength="64" required />
-                <button type="submit" id="epc-ai-expert-send">Send</button>
+            <form class="epc-ai-expert-panel__form" id="epc-ai-expert-panel-form" autocomplete="off">
+                <input type="text" id="epc-ai-expert-panel-input" placeholder="Part number…" maxlength="64" required />
+                <button type="submit" id="epc-ai-expert-panel-send">Send</button>
             </form>
         </div>
     </div>
@@ -789,8 +789,8 @@
     (function () {
         var panel = document.getElementById('epc-ai-expert-panel');
         var log = document.getElementById('epc-ai-expert-log');
-        var form = document.getElementById('epc-ai-expert-form');
-        var input = document.getElementById('epc-ai-expert-input');
+        var form = document.getElementById('epc-ai-expert-panel-form');
+        var input = document.getElementById('epc-ai-expert-panel-input');
         var csrf = null;
         var busy = false;
         function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -850,7 +850,12 @@
             ev.preventDefault();
             if (busy) return;
             var article = (input.value || '').replace(/\s+/g, ' ').trim();
-            if (article.length < 2) return;
+            var norm = article.replace(/[^A-Za-z0-9]/g, '');
+            if (norm.length < 3) {
+                bubble('Please enter a part number of at least 3 letters/digits.');
+                input.focus();
+                return;
+            }
             busy = true;
             input.value = '';
             bubble(esc(article), 'epc-ai-expert-msg--user');
