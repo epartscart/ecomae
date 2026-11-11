@@ -1494,6 +1494,7 @@ public static class HomeCatalogWidgets
                     var cached = await UmapiCachedPayloadAsync(connection, "engine_search", section, language, region, cacheParams, cancellationToken).ConfigureAwait(false);
                     if (cached is not null)
                     {
+                        await connection.DisposeAsync().ConfigureAwait(false);
                         return cached;
                     }
                 }
@@ -1503,97 +1504,109 @@ public static class HomeCatalogWidgets
         {
         }
 
-        var manufacturers = await EngineSearchManufacturersAsync(connection, httpClientFactory, section, language, region, context, mfaFilter, cancellationToken).ConfigureAwait(false);
-        if (manufacturers.Count == 0)
+        try
         {
-            return null;
-        }
-
-        var matches = new List<JsonElement>();
-        var scanned = 0;
-        var maxScan = mfaFilter > 0 ? 1 : 50;
-        foreach (var mfg in manufacturers)
-        {
-            if (matches.Count >= 25 || scanned >= maxScan)
+            var manufacturers = await EngineSearchManufacturersAsync(connection, httpClientFactory, section, language, region, context, mfaFilter, cancellationToken).ConfigureAwait(false);
+            if (manufacturers.Count == 0)
             {
-                break;
+                return null;
             }
 
-            var mfaId = UmapiInt(mfg, "MFA_ID");
-            if (mfaId <= 0)
+            var matches = new List<JsonElement>();
+            var scanned = 0;
+            var upstreamFailed = false;
+            var maxScan = mfaFilter > 0 ? 1 : 50;
+            foreach (var mfg in manufacturers)
             {
-                continue;
-            }
-
-            scanned++;
-            var engines = await EngineSearchEnginesAsync(connection, httpClientFactory, mfaId, section, language, region, context, cancellationToken).ConfigureAwait(false);
-            foreach (var engine in engines)
-            {
-                var engineCode = UmapiText(engine, "ENGINE_CODE");
-                if (engineCode.Length == 0)
+                if (matches.Count >= 25 || scanned >= maxScan)
                 {
-                    engineCode = UmapiText(engine, "ENG_CODE");
+                    break;
                 }
 
-                var code = UmapiCacheKeyBuilder.NormalizeEngineCode(engineCode);
-                if (code.Length == 0 || !code.StartsWith(needle, StringComparison.Ordinal))
+                var mfaId = UmapiInt(mfg, "MFA_ID");
+                if (mfaId <= 0)
                 {
                     continue;
                 }
 
-                matches.Add(engine.Clone());
-                if (matches.Count >= 25)
+                scanned++;
+                var engines = await EngineSearchEnginesAsync(connection, httpClientFactory, mfaId, section, language, region, context, cancellationToken).ConfigureAwait(false);
+                if (engines is null)
                 {
-                    break;
+                    upstreamFailed = true;
+                    continue;
+                }
+
+                foreach (var engine in engines)
+                {
+                    var engineCode = UmapiText(engine, "ENGINE_CODE");
+                    if (engineCode.Length == 0)
+                    {
+                        engineCode = UmapiText(engine, "ENG_CODE");
+                    }
+
+                    var code = UmapiCacheKeyBuilder.NormalizeEngineCode(engineCode);
+                    if (code.Length == 0 || !code.StartsWith(needle, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    matches.Add(engine.Clone());
+                    if (matches.Count >= 25)
+                    {
+                        break;
+                    }
                 }
             }
-        }
 
-        var payload = JsonSerializer.Serialize(new Dictionary<string, object?>
-        {
-            ["code"] = needle,
-            ["rows"] = matches.Count,
-            ["data"] = matches,
-            ["scanned_brands"] = scanned,
-            ["truncated"] = mfaFilter <= 0 && scanned >= maxScan && matches.Count < 25,
-        }, Json);
-
-        if (connection is not null)
-        {
-            try
+            var payload = JsonSerializer.Serialize(new Dictionary<string, object?>
             {
-                var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                var requestJson = JsonSerializer.Serialize(cacheParams.OrderBy(p => p.Key, StringComparer.Ordinal).ToDictionary(p => p.Key, p => p.Value), Json);
-                await ExecuteUmapiAsync(
-                    connection,
-                    """
-                    REPLACE INTO `epc_umapi_cache`
-                    (`cache_key`, `action`, `section`, `language`, `region`, `request_json`, `response_json`, `rows_count`, `http_status`, `last_sync`)
-                    VALUES (@key, @action, @section, @language, @region, @request, @response, @rows, @status, @now)
-                    """,
-                    cancellationToken,
-                    ("@key", UmapiCacheKeyBuilder.Build("engine_search", section, language, region, cacheParams)),
-                    ("@action", "engine_search"),
-                    ("@section", Cut(section, 20)),
-                    ("@language", language),
-                    ("@region", region),
-                    ("@request", requestJson),
-                    ("@response", payload),
-                    ("@rows", matches.Count),
-                    ("@status", 200),
-                    ("@now", now)).ConfigureAwait(false);
-            }
-            catch (DbException)
+                ["code"] = needle,
+                ["rows"] = matches.Count,
+                ["data"] = matches,
+                ["scanned_brands"] = scanned,
+                ["truncated"] = mfaFilter <= 0 && scanned >= maxScan && matches.Count < 25,
+            }, Json);
+
+            if (connection is not null && !upstreamFailed)
             {
+                try
+                {
+                    var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                    var requestJson = JsonSerializer.Serialize(cacheParams.OrderBy(p => p.Key, StringComparer.Ordinal).ToDictionary(p => p.Key, p => p.Value), Json);
+                    await ExecuteUmapiAsync(
+                        connection,
+                        """
+                        REPLACE INTO `epc_umapi_cache`
+                        (`cache_key`, `action`, `section`, `language`, `region`, `request_json`, `response_json`, `rows_count`, `http_status`, `last_sync`)
+                        VALUES (@key, @action, @section, @language, @region, @request, @response, @rows, @status, @now)
+                        """,
+                        cancellationToken,
+                        ("@key", UmapiCacheKeyBuilder.Build("engine_search", section, language, region, cacheParams)),
+                        ("@action", "engine_search"),
+                        ("@section", Cut(section, 20)),
+                        ("@language", language),
+                        ("@region", region),
+                        ("@request", requestJson),
+                        ("@response", payload),
+                        ("@rows", matches.Count),
+                        ("@status", 200),
+                        ("@now", now)).ConfigureAwait(false);
+                }
+                catch (DbException)
+                {
+                }
+            }
+
+            return payload;
+        }
+        finally
+        {
+            if (connection is not null)
+            {
+                await connection.DisposeAsync().ConfigureAwait(false);
             }
         }
-
-        if (connection is not null)
-        {
-            await connection.DisposeAsync().ConfigureAwait(false);
-        }
-
-        return payload;
     }
 
     private static async Task<string?> UmapiCachedPayloadAsync(
@@ -1667,8 +1680,13 @@ public static class HomeCatalogWidgets
 
         if (manufacturers.Count == 0)
         {
+            var typeQuery = section == "commercial"
+                ? "type=CV&type=Bus&type=E-Bus&type=Tractor"
+                : section == "motorbike"
+                    ? "type=Motorcycle&type=E-Motorcycle"
+                    : "type=PC&type=E-PC&type=LCV&type=E-LCV";
             var live = await EngineSearchLiveGetAsync(httpClientFactory, section, language, region, context,
-                "/Manufacturers?popular=false&type=PC&type=E-PC&type=LCV&type=E-LCV", cancellationToken).ConfigureAwait(false);
+                "/Manufacturers?popular=false&" + typeQuery, cancellationToken).ConfigureAwait(false);
             if (live is not null)
             {
                 manufacturers.AddRange(live);
@@ -1702,7 +1720,7 @@ public static class HomeCatalogWidgets
         return manufacturers;
     }
 
-    private static async Task<List<JsonElement>> EngineSearchEnginesAsync(
+    private static async Task<List<JsonElement>?> EngineSearchEnginesAsync(
         DbConnection? connection,
         IHttpClientFactory httpClientFactory,
         int mfaId,
@@ -1735,9 +1753,14 @@ public static class HomeCatalogWidgets
 
         var live = await EngineSearchLiveGetAsync(httpClientFactory, section, language, region, context,
             "/Engines?MFA_ID=" + mfaId.ToString(CultureInfo.InvariantCulture), cancellationToken).ConfigureAwait(false);
-        if (live is null || connection is null)
+        if (live is null)
         {
-            return live ?? [];
+            return null;
+        }
+
+        if (connection is null)
+        {
+            return live;
         }
 
         try
