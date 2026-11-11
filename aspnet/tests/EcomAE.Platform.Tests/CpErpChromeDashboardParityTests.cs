@@ -340,7 +340,7 @@ public sealed class CpErpChromeDashboardParityTests
         var after = src[(close + "</HeadContent>".Length)..];
         Assert.Contains("<style>", after, StringComparison.Ordinal);
         Assert.Contains("header-call-box a { background:#ef4444", after, StringComparison.Ordinal);
-        Assert.Contains("background:linear-gradient(135deg,#090f1d", after, StringComparison.Ordinal);
+        Assert.Contains("background:linear-gradient(135deg,#0b4fa8", after, StringComparison.Ordinal);
         Assert.Contains("color:rgba(255,255,255,.88) !important", after, StringComparison.Ordinal);
     }
 

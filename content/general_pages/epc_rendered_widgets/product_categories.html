@@ -1,5 +1,5 @@
-<link rel="stylesheet" href="/content/general_pages/epc_vc_catalog.css?v=20261019pc1">
-<link rel="stylesheet" href="/content/general_pages/epc_car_mod_theme.css?v=20261019pc1">
+<link rel="stylesheet" href="/content/general_pages/epc_vc_catalog.css?v=20261019pc2">
+<link rel="stylesheet" href="/content/general_pages/epc_car_mod_theme.css?v=20261019pc2">
 <style>
 .epc-pc-cat-page .epc-pf-panel {
 	background: #fff;
@@ -18,21 +18,50 @@
 .epc-pc-cat-page .epc-pf-msg { padding: 28px; text-align: center; color: #64748b; }
 .epc-pc-cat-page .epc-pf-msg { background: #fff8e1; border: 1px solid #f0d98a; border-radius: 10px; }
 .epc-pc-cat-page .epc-pf-section-title { margin: 0 0 10px; font-size: 16px; font-weight: 800; color: #0f172a; }
+/* auto247 sky-blue accents (epartscart keeps its own theme colors) */
+body.epc-storefront--auto247 .epc-pc-cat-page .epc-cm-catalog-head h1 em { color: #0284c7; }
+body.epc-storefront--auto247 .epc-pc-cat-page .epc-cm-catalog-head::after { background: linear-gradient(90deg, #0284c7, #38bdf8); }
+body.epc-storefront--auto247 .epc-pc-cat-page .epc-cm-cat-filter { border-color: #bae6fd; }
+body.epc-storefront--auto247 .epc-pc-cat-page .epc-cm-cat-filter .fa { color: #0284c7; }
+body.epc-storefront--auto247 .epc-pc-cat-page .epc-vc-cat-card .epc-pc-cat-name {
+	background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+}
+body.epc-storefront--auto247 .epc-pc-cat-page .epc-vc-cat-card .epc-pc-cat-name strong { color: #fff; }
+body.epc-storefront--auto247 .epc-pc-cat-page .epc-vc-cat-card .epc-pc-cat-name small { color: #cbe9fb !important; }
+body.epc-storefront--auto247 .epc-pc-cat-page .epc-vc-cat-card .epc-vc-cat-icon .fa { color: #0284c7; }
+body.epc-storefront--auto247 .epc-pc-cat-page .epc-vc-cat-card:hover { border-color: #0284c7; box-shadow: 0 10px 24px rgba(2, 132, 199, .18); }
 .epc-pc-cat-page .epc-pf-cat-backbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
 .epc-pc-cat-page .epc-pf-cat-meta { margin-left: auto; color: #64748b; font-size: 12px; }
-/* car-mod style: illustration on top, name strip below */
-.epc-pc-cat-page .epc-vc-cat-card { padding: 0; overflow: hidden; }
+/* car-mod style: big illustration on top, light name strip below (auto247 gets
+   sky-blue accents via body.epc-storefront--auto247 overrides above) */
+.epc-pc-cat-page .epc-vc-cat-grid {
+	gap: 16px 14px;
+	grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+}
+.epc-pc-cat-page .epc-vc-cat-card {
+	background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+	box-shadow: 0 6px 18px rgba(15, 23, 42, .06);
+	padding: 0; overflow: hidden;
+}
+.epc-pc-cat-page .epc-vc-cat-card:hover { border-color: #94a3b8; box-shadow: 0 10px 24px rgba(15, 23, 42, .12); }
 .epc-pc-cat-page .epc-vc-cat-card .epc-vc-cat-icon {
 	background: #fff; border-radius: 0; height: 190px; width: 100%; margin: 0;
+	display: flex; align-items: center; justify-content: center;
 }
 .epc-pc-cat-page .epc-vc-cat-card .epc-vc-cat-icon img {
-	height: 164px; max-width: 240px; width: auto;
+	height: 160px; max-width: 82%; width: auto;
 }
-.epc-pc-cat-page .epc-vc-cat-card .epc-vc-cat-icon .fa { font-size: 84px; }
+.epc-pc-cat-page .epc-vc-cat-card .epc-vc-cat-icon .fa { font-size: 76px; color: #64748b; }
 .epc-pc-cat-page .epc-vc-cat-card .epc-pc-cat-name {
-	border-top: 1px solid #eef2f7; padding: 10px 8px 12px;
+	background: #f1f5f9; border-top: 1px solid #e2e8f0; padding: 12px 10px 13px; text-align: center;
 }
-.epc-pc-cat-page .epc-vc-cat-card .epc-pc-cat-name strong { font-size: 13px; }
+.epc-pc-cat-page .epc-vc-cat-card .epc-pc-cat-name strong {
+	color: #0f172a; font-size: 13px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase;
+}
+.epc-pc-cat-page .epc-vc-cat-card .epc-pc-cat-name small {
+	color: #64748b; font-size: 11px; font-weight: 600; margin-top: 4px; display: block;
+}
+
 </style>
 
 <div class="epc-pc-cat-page epc-cm" id="epc-product-categories" data-lang="/en"
@@ -135,7 +164,7 @@
 			+ '<div class="epc-vc-cat-icon">' + iconHtml(node.DES) + '</div>'
 			+ '<div class="epc-pc-cat-name">'
 			+ '<strong>' + esc(node.DES) + '</strong>'
-			+ '<small style="display:block;color:#64748b;font-size:11px;font-weight:600;margin-top:4px">' + esc(meta) + '</small>'
+			+ '<small>' + esc(meta) + '</small>'
 			+ '</div>'
 			+ '</button>';
 	}
