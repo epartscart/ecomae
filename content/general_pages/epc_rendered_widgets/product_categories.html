@@ -295,7 +295,9 @@
 					if (!keys.length) { return parts; }
 					return parts.filter(function (p) {
 						var name = String(p.name || '').toLowerCase();
-						return keys.every(function (k) { return name.indexOf(k) !== -1; });
+						return keys.every(function (k) {
+							return name.indexOf(k) !== -1 || name.indexOf(k.replace(/s$/, '')) !== -1;
+						});
 					});
 				})
 				.catch(function () { return []; });
