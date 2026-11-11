@@ -250,13 +250,22 @@ public static class EmshcloudCatalogProxy
         var client = factory.CreateClient();
         foreach (var call in calls)
         {
-            var sep = call.endpoint.Contains('?') ? "&" : "?";
-            using var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl + call.endpoint + sep + "dil=en");
-            request.Headers.TryAddWithoutValidation("X-API-Key", key);
-            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            var raw = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode || raw.Length == 0)
+            string raw;
+            try
             {
+                var sep = call.endpoint.Contains('?') ? "&" : "?";
+                using var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl + call.endpoint + sep + "dil=en");
+                request.Headers.TryAddWithoutValidation("X-API-Key", key);
+                using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                raw = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode || raw.Length == 0)
+                {
+                    continue;
+                }
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // A failed endpoint must not block the fallback lookup.
                 continue;
             }
 

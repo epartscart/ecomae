@@ -4432,22 +4432,33 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             // `ara` indexes supplier article numbers; `oem` indexes OE/cross codes.
             foreach (var endpoint in new[] { "ara", "oem" })
             {
-                using var request = new HttpRequestMessage(
-                    HttpMethod.Get,
-                    "https://tecdoc.emshcloud.com/v1/" + endpoint + "?kod=" + Uri.EscapeDataString(article) + "&dil=en");
-                request.Headers.TryAddWithoutValidation("X-API-Key", key);
-                using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
-                if (!response.IsSuccessStatusCode)
+                System.Text.Json.JsonDocument? doc;
+                try
                 {
+                    using var request = new HttpRequestMessage(
+                        HttpMethod.Get,
+                        "https://tecdoc.emshcloud.com/v1/" + endpoint + "?kod=" + Uri.EscapeDataString(article) + "&dil=en");
+                    request.Headers.TryAddWithoutValidation("X-API-Key", key);
+                    using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        continue;
+                    }
+                    doc = System.Text.Json.JsonDocument.Parse(
+                        await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    // A failed endpoint must not block the other index.
                     continue;
                 }
-                using var doc = System.Text.Json.JsonDocument.Parse(
-                    await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
-                if (!doc.RootElement.TryGetProperty("sonuc", out var sonuc)
-                    || sonuc.ValueKind != System.Text.Json.JsonValueKind.Array)
+                using (doc)
                 {
-                    continue;
-                }
+                    if (!doc.RootElement.TryGetProperty("sonuc", out var sonuc)
+                        || sonuc.ValueKind != System.Text.Json.JsonValueKind.Array)
+                    {
+                        continue;
+                    }
 
                 var brands = new Dictionary<string, StorefrontArticleBrandDigest>(StringComparer.OrdinalIgnoreCase);
                 foreach (var row in sonuc.EnumerateArray())
@@ -4467,6 +4478,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 if (brands.Count > 0)
                 {
                     return brands.Values.OrderBy(b => b.Brand, StringComparer.OrdinalIgnoreCase).Take(limit).ToList();
+                }
                 }
             }
             return [];
