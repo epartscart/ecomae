@@ -885,11 +885,14 @@ public sealed class ShopOrderProtocolService : IShopOrderProtocolService
             if (config.TryGetValue(key, out var raw) && PhpNonEmpty(raw))
             {
                 var digits = StorefrontWhatsappNotifier.Digits(raw);
-                return digits.Length > 0 ? digits : "971567607011";
+                if (digits.Length > 0)
+                {
+                    return digits;
+                }
             }
         }
 
-        return "971567607011";
+        return string.Empty;
     }
 
     // ---- data ----
