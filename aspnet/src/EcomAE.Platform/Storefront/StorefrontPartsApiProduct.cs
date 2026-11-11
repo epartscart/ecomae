@@ -670,9 +670,10 @@ public static class StorefrontPartsApiProduct
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 var name = reader.IsDBNull(1) ? "" : reader.GetString(1);
-                if (wanted.TryGetValue(NormalizeBrand(name), out var label) && !map.ContainsKey(label))
+                var norm = NormalizeBrand(name);
+                if (wanted.ContainsKey(norm) && !map.ContainsKey(norm))
                 {
-                    map[label] = reader.GetInt32(0).ToString(CultureInfo.InvariantCulture);
+                    map[norm] = reader.GetInt32(0).ToString(CultureInfo.InvariantCulture);
                 }
             }
         }
@@ -1022,7 +1023,7 @@ public static class StorefrontPartsApiProduct
             foreach (var grp in crosses.GroupBy(c => c[0], StringComparer.OrdinalIgnoreCase))
             {
                 sb.Append("<tr><td class=\"brand\">");
-                if (crossLogoIds.TryGetValue(grp.Key, out var crossLogoId))
+                if (crossLogoIds.TryGetValue(NormalizeBrand(grp.Key), out var crossLogoId))
                 {
                     sb.Append("<img class=\"epc-oe-logo\" src=\"/api/umapi_image.php?kind=supplier&id=")
                         .Append(E(crossLogoId)).Append("\" alt=\"\" loading=\"lazy\" onerror=\"this.style.display='none'\">");
