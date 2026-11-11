@@ -2788,11 +2788,19 @@ public static class StorefrontPhpAjaxEndpoints
             brand = await FieldAsync(context, "manufacturer", cancellationToken).ConfigureAwait(false);
         }
 
+        var factory = context.RequestServices.GetService<IHttpClientFactory>();
         return await WithDbAsync(
             context,
             connections,
             cancellationToken,
-            (connection, token) => StorefrontPhpAjax.AiExpertSearchAsync(connection, article, brand, token),
+            (connection, token) => StorefrontPhpAjax.AiExpertSearchAsync(
+                connection,
+                article,
+                brand,
+                token,
+                factory is null
+                    ? null
+                    : (norm, ct) => EmshcloudCatalogProxy.ArticleBrandsAsync(context, factory, norm, ct)),
             new StorefrontPhpAjax.CodedJson(StatusCodes.Status503ServiceUnavailable, new StorefrontPhpAjax.OkMessage(false, StorefrontPhpAjax.AiDatabase))).ConfigureAwait(false);
     }
 

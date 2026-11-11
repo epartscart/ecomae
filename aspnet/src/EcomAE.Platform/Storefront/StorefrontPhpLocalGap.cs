@@ -289,16 +289,26 @@ public static partial class StorefrontPhpAjax
         DbConnection connection,
         string article,
         string? brand,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Func<string, CancellationToken, Task<IReadOnlyList<Dictionary<string, object?>>>>? catalogBrands = null)
     {
         var norm = NormalizePriceArticle(article);
         var stock = await LocalStockAsync(connection, norm, cancellationToken).ConfigureAwait(false);
+        var catalogBrandsList = catalogBrands is null
+            ? (IReadOnlyList<Dictionary<string, object?>>)[]
+            : await catalogBrands(norm, cancellationToken).ConfigureAwait(false);
         var fitBrand = string.IsNullOrWhiteSpace(brand)
-            ? (stock.Count > 0 ? stock[0].Brand : string.Empty)
+            ? (stock.Count > 0 ? stock[0].Brand : catalogBrandsList.Count > 0 ? Convert.ToString(catalogBrandsList[0]["BRAND"]) ?? string.Empty : string.Empty)
             : brand.Trim();
         var partUrl = fitBrand.Length > 0
             ? "/en/parts/" + Uri.EscapeDataString(fitBrand.ToUpperInvariant()) + "/" + Uri.EscapeDataString(norm)
             : stock.Count > 0 ? stock[0].Url : string.Empty;
+        var messages = new List<string> { AiCrossUnavailable, AiFitmentUnavailable };
+        if (stock.Count == 0 && catalogBrandsList.Count == 0)
+        {
+            messages.Add("Not in warehouse or aftermarket catalogs — likely an OEM-only part; check the original (dealer) catalog.");
+        }
+
         return new AiSearchBody(
             true,
             article.Trim(),
@@ -308,10 +318,10 @@ public static partial class StorefrontPhpAjax
             stock,
             [],
             null,
-            [],
+            catalogBrandsList.Cast<object>().ToList(),
             new AiFitment(false, [], 0, string.Empty, string.Empty),
-            new AiSources(true, false, false),
-            [AiCrossUnavailable, AiFitmentUnavailable]);
+            new AiSources(true, false, catalogBrandsList.Count > 0),
+            messages);
     }
 
     public static object AgentBootstrap()
