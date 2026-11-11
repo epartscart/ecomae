@@ -703,16 +703,41 @@
                         <div class="col-md-4">
                             <h3 class="footer-widget-title">Contacts</h3>
                             <div class="epc-footer-locations">
-                                <div class="epc-footer-office">
-                                    <strong><i class="fa fa-map-marker" aria-hidden="true"></i> Head Office</strong>
-                                    <span>Dubai, United Arab Emirates</span>
+                                @if (IsAuto247Host)
+                                {
+                                    <div class="epc-footer-office">
+                                        <strong><i class="fa fa-map-marker" aria-hidden="true"></i> Head Office</strong>
+                                        <span>ECOM GROUP FZE LLC</span>
+                                        <span>26th Floor, Amber Gem Tower, Sheikh Khalifa Street, Ajman, UAE</span>
+                                        <span>TRN 105633941700001</span>
+                                        <span>+971 54 484 9226</span>
+                                        <span>sales@auto247.ae — customers</span>
+                                        <span>order@auto247.ae — suppliers &amp; vendors</span>
+                                        <span>accounts@auto247.ae — finance</span>
+                                        <span>admin@auto247.ae — controls &amp; settings</span>
+                                    </div>
+                                    <div class="epc-footer-global">
+                                        <strong><i class="fa fa-globe" aria-hidden="true"></i> Locations</strong>
+                                        <span>UAE — www.auto247.ae</span>
+                                        <span>Oman — www.auto247.om</span>
+                                        <span>KSA — www.auto247.sa</span>
+                                        <span>Pakistan — www.auto247.pk</span>
+                                        <span>Country addresses &amp; phone — coming soon</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="epc-footer-office">
+                                        <strong><i class="fa fa-map-marker" aria-hidden="true"></i> Head Office</strong>
+                                        <span>Dubai, United Arab Emirates</span>
 
-                                    <span>info@epartscart.com</span>
-                                </div>
-                                <div class="epc-footer-global">
-                                    <strong><i class="fa fa-globe" aria-hidden="true"></i> Global locations</strong>
-                                    <span>15 countries, multiple locations</span>
-                                </div>
+                                        <span>info@epartscart.com</span>
+                                    </div>
+                                    <div class="epc-footer-global">
+                                        <strong><i class="fa fa-globe" aria-hidden="true"></i> Global locations</strong>
+                                        <span>15 countries, multiple locations</span>
+                                    </div>
+                                }
                             </div>
                             <h3 class="footer-widget-title">Working mode</h3>
                             <div>Mon-Fri from 9:00 to 18:00, Sat from 9:00 to 16:00, Sun - day off.</div>
@@ -874,6 +899,9 @@
     private bool IsEpartscartHost =>
         StorefrontPublicSeo.IsEpartscartHostname(Http.HttpContext?.Request.Host.Host);
 
+    private bool IsAuto247Host =>
+        _siteKey == "auto247";
+
     private string _siteKey = string.Empty;
 
     private bool _signedIn;
@@ -896,6 +924,9 @@
         }
 
         var presentation = await TenantPresentation.GetAsync(ctx, ctx.RequestAborted);
+        _siteKey =
+            (ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey]
+                as EcomAE.Platform.Services.TenantContext)?.SiteKey ?? string.Empty;
         var css = presentation.BuildCss();
         if (!string.IsNullOrWhiteSpace(css) || presentation.Values.Count > 0)
         {
