@@ -482,9 +482,7 @@
                                     </tr>
                                 </table>
                             </div>
-                            <div class="header-phone-box text-left">
-                                <a href="tel:+971567607011" class="phone call-me">+971-567607011</a>
-                            </div>
+
                         </div>
                         <div class="timetable-box text-left">
                             <table>
@@ -498,11 +496,7 @@
                     <div class="table-control epc-header-right-col">
                         <div class="epc-header-actions-row">
                             <div class="header-call-box"><a href="@StorefrontSurfaceLinks.SellerRequest">Request a call back</a></div>
-                            <div class="header-whatsapp-box">
-                                <a href="https://wa.me/971567607011" target="_blank" rel="noopener noreferrer" title="Chat on WhatsApp">
-                                    <i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp contact
-                                </a>
-                            </div>
+
                             <div class="header-bulk-upload-box">
                                 <a href="@StorefrontSurfaceLinks.BulkUpload"><i class="fa fa-file-excel-o" aria-hidden="true"></i> Excel bulk upload</a>
                             </div>
@@ -651,8 +645,7 @@
     <div class="header-box-mobile hidden-sm hidden-md hidden-lg">
         <div class="container">
             <a class="logo_min" href="/"><PhpSurfaceHostLogo Surface="cp" Variant="compact" ShowLabel="false" /></a>
-            <a class="mobile-box-phone" href="tel:+971567607011">+971-567607011</a>
-            <a class="mobile-box-whatsapp" href="https://wa.me/971567607011" target="_blank" rel="noopener noreferrer"><i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
+
             <a href="@StorefrontSurfaceLinks.OwnCatalog"><i class="fa fa-cubes" aria-hidden="true"></i> Own catalog</a>
             <a href="@StorefrontSurfaceLinks.PartSearch"><i class="fa fa-search" aria-hidden="true"></i> Search</a>
             <a href="@StorefrontSurfaceLinks.GarageLogin"><i class="fa fa-wrench" aria-hidden="true"></i> Garage</a>
@@ -740,7 +733,7 @@
                                 <div class="epc-footer-office">
                                     <strong><i class="fa fa-map-marker" aria-hidden="true"></i> Head Office</strong>
                                     <span>Dubai, United Arab Emirates</span>
-                                    <span>+971-567607011</span>
+
                                     <span>info@epartscart.com</span>
                                 </div>
                                 <div class="epc-footer-global">
@@ -1005,6 +998,8 @@
 
     private bool IsEpartscartHost =>
         StorefrontPublicSeo.IsEpartscartHostname(Http.HttpContext?.Request.Host.Host);
+
+    private string _siteKey = string.Empty;
 
     private bool _signedIn;
     private string _userLabel = "Account";

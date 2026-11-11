@@ -216,7 +216,7 @@
 		
         cart_html += '<div style="padding-top: 10px; text-align: right; font-size: 18px; font-weight: bold;"><span style="font-size: 14px; font-weight: normal;">{3503}:</span> '+sum_total+'</div>';
         cart_html += '<div style="text-align:right;margin-top:10px;">';
-        cart_html += '<button type="button" class="btn btn-sm epc-wa-share-btn" onclick="epcWaShareCart();"><i class="fa fa-whatsapp"></i> Share cart on WhatsApp</button>';
+        if (window.epcWaShare && String(window.epcWaShare.sales||'').replace(/\D/g,'').length > 0) { cart_html += '<button type="button" class="btn btn-sm epc-wa-share-btn" onclick="epcWaShareCart();"><i class="fa fa-whatsapp"></i> Share cart on WhatsApp</button>'; }
         cart_html += '</div>';
         
         

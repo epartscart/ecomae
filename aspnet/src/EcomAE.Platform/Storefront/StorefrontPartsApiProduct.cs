@@ -428,10 +428,13 @@ public static class StorefrontPartsApiProduct
         var crossLogoIds = await LoadSupplierLogoIdsAsync(connections, context,
             crosses.Select(c => c[0]).Where(b => b.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
             cancellationToken).ConfigureAwait(false);
-        var waHref = "https://wa.me/" + await LoadWhatsappNumberAsync(connections, context, cancellationToken).ConfigureAwait(false)
-            + "?text=" + Uri.EscapeDataString(
-                "Price inquiry: " + brand + " " + number + (artName.Length > 0 ? " — " + artName : "")
-                + " https://" + context.Request.Host + "/en/parts/" + Uri.EscapeDataString(brand) + "/" + Uri.EscapeDataString(number));
+        var waDigits = await LoadWhatsappNumberAsync(connections, context, cancellationToken).ConfigureAwait(false);
+        var waHref = waDigits.Length == 0
+            ? string.Empty
+            : "https://wa.me/" + waDigits
+                + "?text=" + Uri.EscapeDataString(
+                    "Price inquiry: " + brand + " " + number + (artName.Length > 0 ? " — " + artName : "")
+                    + " https://" + context.Request.Host + "/en/parts/" + Uri.EscapeDataString(brand) + "/" + Uri.EscapeDataString(number));
 
         var html = Render(brand, number, artName, artCategory, images, specs, vehicles, crosses,
             stock, access, ean, makeLogos, waHref, supLogoId, crossLogoIds, brandMeta);
@@ -816,7 +819,7 @@ public static class StorefrontPartsApiProduct
         {
         }
 
-        return "971567607011";
+        return string.Empty;
     }
 
     private static string E(string? s) => System.Net.WebUtility.HtmlEncode(s ?? "");
@@ -1126,7 +1129,10 @@ public static class StorefrontPartsApiProduct
             sb.Append("<span class=\"no\">Out of stock</span>");
         }
         sb.Append("</div>");
-        sb.Append("<a class=\"epc-prod-ask epc-prod-ask--wa\" href=\"" + E(waHref) + "\" target=\"_blank\" rel=\"noopener\"><i class=\"fa fa-whatsapp\" aria-hidden=\"true\"></i> WhatsApp inquiry</a>");
+        if (waHref.Length > 0)
+        {
+            sb.Append("<a class=\"epc-prod-ask epc-prod-ask--wa\" href=\"" + E(waHref) + "\" target=\"_blank\" rel=\"noopener\"><i class=\"fa fa-whatsapp\" aria-hidden=\"true\"></i> WhatsApp inquiry</a>");
+        }
         sb.Append("</div></div>");
 
         // Tabs

@@ -71,11 +71,41 @@
             }
 
             string C(string key, string fallback) => config.TryGetValue(key, out var value) && !string.IsNullOrEmpty(value) ? value : fallback;
-            var salesDisplay = C("epc_whatsapp_number", "+971 56 760 7011");
+            var salesDisplay = C("epc_whatsapp_number", "");
             var salesDigits = new string(salesDisplay.Where(char.IsDigit).ToArray());
             if (salesDigits.Length == 0)
             {
-                salesDigits = "971567607011";
+                // Tenant-scoped fallback: only rows for this host or its tenant
+                // site key — never the shared ('' site_key) default, which could
+                // leak another storefront's number. REGEXP guarantees the row
+                // actually contains digits.
+                try
+                {
+                    var host = ctx.Request.Host.Host;
+                    var siteKey = (ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey]
+                        as EcomAE.Platform.Services.TenantContext)?.SiteKey ?? string.Empty;
+                    var waSetting = await ErpDb.StringAsync(connection, null,
+                        ErpDb.Positional(
+                            "SELECT `setting_value` FROM `epc_settings` "
+                            + "WHERE (`site_key` = ? OR (? <> '' AND `site_key` = ?)) "
+                            + "AND `setting_key` IN ('whatsapp_number','whatsapp','contact_whatsapp','epc_whatsapp_number','epc_contact_phone') "
+                            + "AND `setting_value` <> '' AND `setting_value` REGEXP '[0-9]' "
+                            + "ORDER BY CASE WHEN `site_key` = ? THEN 0 ELSE 1 END LIMIT 1"),
+                        ctx.RequestAborted,
+                        host,
+                        siteKey,
+                        siteKey,
+                        host);
+                    salesDigits = new string((waSetting ?? "").Where(char.IsDigit).ToArray());
+                    if (salesDigits.Length > 0)
+                    {
+                        salesDisplay = waSetting!;
+                    }
+                }
+                catch (Exception)
+                {
+                    // epc_settings absent on this tenant — leave sharing hidden.
+                }
             }
             var input = new StorefrontCart.Input(
                 shopper.UserId,
