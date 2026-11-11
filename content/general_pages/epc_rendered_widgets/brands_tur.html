@@ -64,6 +64,10 @@
             return true;
         });
         summary.textContent = 'Showing ' + shown.length + ' of ' + items.length + ' available parts brands.';
+        if (!items.length) {
+            out.innerHTML = '<div class="epc-turb-msg">Brands unavailable right now.</div>';
+            return;
+        }
         out.innerHTML = shown.length
             ? '<div class="epc-turb-grid">' + shown.map(function (i) {
                 var logo = i.LOGO ? '<img alt="" loading="lazy" src="' + esc(i.LOGO) + '" onerror="this.style.display=\'none\';">' : '';
