@@ -4397,7 +4397,76 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return new(normalized, [], 0, "migration", unboundMessage);
         }
 
+        // Catalog fallback: when neither the warehouse nor CP crosses know the article,
+        // show which brands exist for the number via the emshcloud OE index so the
+        // customer still lands on product pages ("any cross available" concept).
+        var catalog = await TryCatalogArticleBrandsAsync(normalized, safeLimit, cancellationToken)
+            .ConfigureAwait(false);
+        if (catalog.Count > 0)
+        {
+            return new(normalized, catalog, catalog.Count, "catalog", string.Empty);
+        }
+
         return new(normalized, [], 0, "database", string.Empty);
+    }
+
+    /// <summary>emshcloud <c>oem?kod=</c> → brands carrying this article/OE number. One request
+    /// per article, only when the tenant DB has nothing.</summary>
+    private async Task<IReadOnlyList<StorefrontArticleBrandDigest>> TryCatalogArticleBrandsAsync(
+        string article, int limit, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var ctx = _httpContextAccessor?.HttpContext;
+            if (ctx is null)
+            {
+                return [];
+            }
+            var key = await Storefront.EmshcloudVinDecode.ApiKeyAsync(ctx, cancellationToken).ConfigureAwait(false);
+            if (key.Length == 0)
+            {
+                return [];
+            }
+            var factory = ctx.RequestServices.GetService<IHttpClientFactory>();
+            var http = factory?.CreateClient() ?? new HttpClient();
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://tecdoc.emshcloud.com/v1/oem?kod=" + Uri.EscapeDataString(article) + "&dil=en");
+            request.Headers.TryAddWithoutValidation("X-API-Key", key);
+            using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                return [];
+            }
+            using var doc = System.Text.Json.JsonDocument.Parse(
+                await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+            if (!doc.RootElement.TryGetProperty("sonuc", out var sonuc)
+                || sonuc.ValueKind != System.Text.Json.JsonValueKind.Array)
+            {
+                return [];
+            }
+
+            var brands = new Dictionary<string, StorefrontArticleBrandDigest>(StringComparer.OrdinalIgnoreCase);
+            foreach (var row in sonuc.EnumerateArray())
+            {
+                if (row.ValueKind != System.Text.Json.JsonValueKind.Object
+                    || !row.TryGetProperty("marka_adi", out var m)
+                    || m.ValueKind != System.Text.Json.JsonValueKind.String)
+                {
+                    continue;
+                }
+                var name = m.GetString() ?? "";
+                if (name.Length > 0 && !brands.ContainsKey(name))
+                {
+                    brands[name] = new StorefrontArticleBrandDigest(name);
+                }
+            }
+            return brands.Values.OrderBy(b => b.Brand, StringComparer.OrdinalIgnoreCase).Take(limit).ToList();
+        }
+        catch (Exception)
+        {
+            return [];
+        }
     }
 
     public async Task<StorefrontBrandArticlesResult> ListStorefrontBrandArticlesAsync(
