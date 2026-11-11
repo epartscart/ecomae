@@ -20,6 +20,19 @@
 .epc-pc-cat-page .epc-pf-section-title { margin: 0 0 10px; font-size: 16px; font-weight: 800; color: #0f172a; }
 .epc-pc-cat-page .epc-pf-cat-backbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
 .epc-pc-cat-page .epc-pf-cat-meta { margin-left: auto; color: #64748b; font-size: 12px; }
+/* car-mod style: illustration on top, name strip below */
+.epc-pc-cat-page .epc-vc-cat-card { padding: 0; overflow: hidden; }
+.epc-pc-cat-page .epc-vc-cat-card .epc-vc-cat-icon {
+	background: #fff; border-radius: 0; height: 110px; width: 100%; margin: 0;
+}
+.epc-pc-cat-page .epc-vc-cat-card .epc-vc-cat-icon img {
+	height: 92px; max-width: 130px; width: auto;
+}
+.epc-pc-cat-page .epc-vc-cat-card .epc-vc-cat-icon .fa { font-size: 40px; }
+.epc-pc-cat-page .epc-vc-cat-card .epc-pc-cat-name {
+	border-top: 1px solid #eef2f7; padding: 10px 8px 12px;
+}
+.epc-pc-cat-page .epc-vc-cat-card .epc-pc-cat-name strong { font-size: 12px; }
 </style>
 
 <div class="epc-pc-cat-page epc-cm" id="epc-product-categories" data-lang="/en"
@@ -120,8 +133,10 @@
 		(node.CHILD || []).forEach(function (c) { search += ' ' + c.DES; });
 		return '<button type="button" class="epc-vc-cat-card" data-cat="' + esc(node.CATEGORY_ID) + '" data-search="' + esc(search) + '">'
 			+ '<div class="epc-vc-cat-icon">' + iconHtml(node.DES) + '</div>'
+			+ '<div class="epc-pc-cat-name">'
 			+ '<strong>' + esc(node.DES) + '</strong>'
 			+ '<small style="display:block;color:#64748b;font-size:11px;font-weight:600;margin-top:4px">' + esc(meta) + '</small>'
+			+ '</div>'
 			+ '</button>';
 	}
 
@@ -270,7 +285,19 @@
 			if (!label) { return []; }
 			return fetch(FAMILY_API + '?action=group&label=' + encodeURIComponent(label), { credentials: 'same-origin' })
 				.then(function (r) { return r.ok ? r.json() : null; })
-				.then(function (d) { return (d && d.status && d.group && d.group.parts) ? d.group.parts : []; })
+				.then(function (d) {
+					var parts = (d && d.status && d.group && d.group.parts) ? d.group.parts : [];
+					// Only keep stock rows that agree with the leaf name (a 'Brake Pad'
+					// leaf must not inherit the whole 'Brake' family).
+					var STOP = { brake:1, system:1, part:1, parts:1, the:1, and:1, of:1, assembly:1 };
+					var keys = String(leafDes).toLowerCase().split(/[^a-z]+/)
+						.filter(function (t) { return t.length > 1 && !STOP[t]; });
+					if (!keys.length) { return parts; }
+					return parts.filter(function (p) {
+						var name = String(p.name || '').toLowerCase();
+						return keys.every(function (k) { return name.indexOf(k) !== -1; });
+					});
+				})
 				.catch(function () { return []; });
 		});
 	}

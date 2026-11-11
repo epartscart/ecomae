@@ -25,12 +25,13 @@
     protected override void OnInitialized()
     {
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
-        _html = PhpHomeWidgetHtml.ProductFamily();
-        var categories = PhpHomeWidgetHtml.RenderStatic("content/general_pages/epc_rendered_widgets/product_categories.html");
-        if (!string.IsNullOrWhiteSpace(categories))
+        // TecDoc "Catalog - find by category or assembly" grid leads the page;
+        // the warehouse family widget follows below.
+        _html = PhpHomeWidgetHtml.RenderStatic("content/general_pages/epc_rendered_widgets/product_categories.html");
+        var family = PhpHomeWidgetHtml.ProductFamily();
+        if (!string.IsNullOrWhiteSpace(family))
         {
-            // TecDoc "Catalog - find by category or assembly" grid under the warehouse families.
-            _html += "<hr style=\"margin:28px 0 18px;border:none;border-top:1px solid #e2e8f0\">" + categories;
+            _html += "<hr style=\"margin:28px 0 18px;border:none;border-top:1px solid #e2e8f0\">" + family;
         }
         if (string.IsNullOrWhiteSpace(_html))
         {
