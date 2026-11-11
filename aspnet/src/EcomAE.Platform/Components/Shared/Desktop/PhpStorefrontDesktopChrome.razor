@@ -850,7 +850,7 @@
             ev.preventDefault();
             if (busy) return;
             var article = (input.value || '').replace(/\s+/g, ' ').trim();
-            var norm = article.replace(/[^A-Za-z0-9]/g, '');
+            var norm = article.replace(/[ \-_`'"\\\.,#\r\n\t/]/g, '');
             if (norm.length < 3) {
                 bubble('Please enter a part number of at least 3 letters/digits.');
                 input.focus();
