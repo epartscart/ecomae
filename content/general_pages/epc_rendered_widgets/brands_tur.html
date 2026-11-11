@@ -77,9 +77,35 @@
             : '<div class="epc-turb-msg">No brands match.</div>';
         Array.prototype.forEach.call(out.querySelectorAll('.epc-turb-card'), function (card) {
             card.onclick = function () {
-                window.location.href = '/en/catalog-tur';
+                loadBrandParts(card.getAttribute('data-brand'));
             };
         });
+    }
+    function renderBrandParts(brand, data) {
+        var rows = (data && data.data) || [];
+        summary.textContent = 'Part numbers for ' + brand + ': ' + rows.length + ' of ' + (data && data.rows || 0) + '.';
+        var head = '<div class="epc-brand-parts-head"><button type="button" class="btn btn-default" id="epc-turb-back">Back to brands</button> <strong>' + esc(brand) + '</strong></div>';
+        if (!rows.length) {
+            out.innerHTML = head + '<div class="epc-turb-msg">No loaded part numbers for this brand yet.</div>';
+        } else {
+            out.innerHTML = head + '<table class="epc-brand-parts-table"><thead><tr><th>Brand</th><th>Part number</th><th>Name</th><th>Stock</th><th>Price</th><th></th></tr></thead><tbody>' +
+                rows.map(function (row) {
+                    var article = String(row.article_show || row.article || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+                    var url = '/en/parts/' + encodeURIComponent(brand) + '/' + encodeURIComponent(article);
+                    return '<tr><td>' + esc(row.manufacturer || brand) + '</td><td><strong>' + esc(article) + '</strong></td><td>' + esc(row.name || '') + '</td><td>' + esc(row.exist || '**') + '</td><td>' + esc(row.price || '**') + '</td><td><a class="btn btn-xs btn-primary" href="' + url + '">Open</a></td></tr>';
+                }).join('') + '</tbody></table>';
+        }
+        var back = document.getElementById('epc-turb-back');
+        if (back) {
+            back.onclick = render;
+        }
+    }
+    function loadBrandParts(brand) {
+        summary.textContent = 'Loading part numbers for ' + brand + '...';
+        fetch('/api/umapi_proxy.php?action=brand_parts&brand=' + encodeURIComponent(brand) + '&limit=200', { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) { renderBrandParts(brand, data); })
+            .catch(function () { renderBrandParts(brand, { data: [], rows: 0 }); });
     }
     out.innerHTML = '<div class="epc-turb-msg">Loading brands...</div>';
     fetch('/api/emsh_proxy.php?action=partbrands', { credentials: 'same-origin' })
