@@ -680,7 +680,8 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
     }
 
     function normalizeArticleForUrl(article) {
-        return String(article || '').replace(/[\s\-_`\/'"\\.,#]/g, '').toUpperCase();
+        // Article numbers are matched and linked without any symbols: IXU01-27 -> IXU0127.
+        return String(article || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
     }
     function shopSearchUrl(brand, article) {
         var articleNorm = normalizeArticleForUrl(article);
@@ -710,7 +711,7 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
             return '<span><strong>' + esc(c.CRI_DES || c.CRI_SHORT_DES || '') + ':</strong> ' + esc(c.VALUE || c.DES || '') + '</span>';
         }).join(' ');
         var searchUrl = shopSearchUrl(brand, article);
-        var productUrl = '/en/parts/' + encodeURIComponent(String(brand).toUpperCase()) + '/' + encodeURIComponent(article);
+        var productUrl = '/en/parts/' + encodeURIComponent(String(brand).toUpperCase()) + '/' + encodeURIComponent(normalizeArticleForUrl(article) || article);
         return '<div class="epc-art-card" data-search="' + esc([brand, article, name].join(' ')) + '">' +
             '<a class="epc-art-thumb" href="' + esc(productUrl) + '">' + img + '</a>' +
             '<div class="epc-art-body"><a class="epc-art-title" href="' + esc(productUrl) + '">' + esc(article) + ' <small>' + esc(brand) + '</small></a>' +
@@ -737,7 +738,7 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
             // UMAPI's Analogs endpoint is broken upstream (500 on every call);
             // car-mod.com lands on the part detail page, and so do we.
             window.location.href = '/en/parts/' + encodeURIComponent(String(brand).toUpperCase()) +
-                '/' + encodeURIComponent(article);
+                '/' + encodeURIComponent(normalizeArticleForUrl(article) || article);
         });
     }
 
@@ -951,7 +952,7 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
     }
 
     function articleSearch() {
-        var article = articleInput.value.trim();
+        var article = normalizeArticleForUrl(articleInput.value);
         if (!article) {
             articleInput.focus();
             return;

@@ -4429,39 +4429,59 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
             var factory = ctx.RequestServices.GetService<IHttpClientFactory>();
             var http = factory?.CreateClient() ?? new HttpClient();
-            using var request = new HttpRequestMessage(
-                HttpMethod.Get,
-                "https://tecdoc.emshcloud.com/v1/oem?kod=" + Uri.EscapeDataString(article) + "&dil=en");
-            request.Headers.TryAddWithoutValidation("X-API-Key", key);
-            using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode)
+            // `ara` indexes supplier article numbers; `oem` indexes OE/cross codes.
+            foreach (var endpoint in new[] { "ara", "oem" })
             {
-                return [];
-            }
-            using var doc = System.Text.Json.JsonDocument.Parse(
-                await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
-            if (!doc.RootElement.TryGetProperty("sonuc", out var sonuc)
-                || sonuc.ValueKind != System.Text.Json.JsonValueKind.Array)
-            {
-                return [];
-            }
-
-            var brands = new Dictionary<string, StorefrontArticleBrandDigest>(StringComparer.OrdinalIgnoreCase);
-            foreach (var row in sonuc.EnumerateArray())
-            {
-                if (row.ValueKind != System.Text.Json.JsonValueKind.Object
-                    || !row.TryGetProperty("marka_adi", out var m)
-                    || m.ValueKind != System.Text.Json.JsonValueKind.String)
+                System.Text.Json.JsonDocument? doc;
+                try
                 {
+                    using var request = new HttpRequestMessage(
+                        HttpMethod.Get,
+                        "https://tecdoc.emshcloud.com/v1/" + endpoint + "?kod=" + Uri.EscapeDataString(article) + "&dil=en");
+                    request.Headers.TryAddWithoutValidation("X-API-Key", key);
+                    using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        continue;
+                    }
+                    doc = System.Text.Json.JsonDocument.Parse(
+                        await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    // A failed endpoint must not block the other index.
                     continue;
                 }
-                var name = m.GetString() ?? "";
-                if (name.Length > 0 && !brands.ContainsKey(name))
+                using (doc)
                 {
-                    brands[name] = new StorefrontArticleBrandDigest(name);
+                    if (!doc.RootElement.TryGetProperty("sonuc", out var sonuc)
+                        || sonuc.ValueKind != System.Text.Json.JsonValueKind.Array)
+                    {
+                        continue;
+                    }
+
+                var brands = new Dictionary<string, StorefrontArticleBrandDigest>(StringComparer.OrdinalIgnoreCase);
+                foreach (var row in sonuc.EnumerateArray())
+                {
+                    if (row.ValueKind != System.Text.Json.JsonValueKind.Object
+                        || !row.TryGetProperty("marka_adi", out var m)
+                        || m.ValueKind != System.Text.Json.JsonValueKind.String)
+                    {
+                        continue;
+                    }
+                    var name = m.GetString() ?? "";
+                    if (name.Length > 0 && !brands.ContainsKey(name))
+                    {
+                        brands[name] = new StorefrontArticleBrandDigest(name);
+                    }
+                }
+                if (brands.Count > 0)
+                {
+                    return brands.Values.OrderBy(b => b.Brand, StringComparer.OrdinalIgnoreCase).Take(limit).ToList();
+                }
                 }
             }
-            return brands.Values.OrderBy(b => b.Brand, StringComparer.OrdinalIgnoreCase).Take(limit).ToList();
+            return [];
         }
         catch (Exception)
         {

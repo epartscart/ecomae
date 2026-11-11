@@ -122,7 +122,7 @@ public static class EmshcloudCatalogProxy
             "categories" => "emsh|kat|" + VehicleTip(context),
             "products" => "emsh|pg|" + context.Request.Query["ID"].ToString() + "|" + context.Request.Query["CATEGORY_ID"].ToString(),
             "vin" => "emsh|vin|" + context.Request.Query["vin"].ToString().Trim().ToUpperInvariant(),
-            "brands" => "emsh|oem|" + context.Request.Query["article"].ToString().Trim().ToUpperInvariant(),
+            "brands" => "emsh|oem|" + NormalizeArticle(context.Request.Query["article"]),
             _ => null,
         };
 
@@ -221,56 +221,100 @@ public static class EmshcloudCatalogProxy
         }
 
         var tip = VehicleTip(context);
-        (string endpoint, string shape) call = action switch
+        var article = NormalizeArticle(context.Request.Query["article"]);
+        // brands: supplier article numbers live under `ara` (parca_no search);
+        // OE/cross codes under `oem` — try ara first, fall back to oem.
+        List<(string endpoint, string shape)> calls = action switch
         {
-            "manufacturers" => ("arac-marka?tip=" + tip, "marka"),
-            "models" => ("arac-model?marka=" + Uri.EscapeDataString(context.Request.Query["MFA_ID"].ToString()), "model"),
-            "modifications" => ("arac-motor?model=" + Uri.EscapeDataString(context.Request.Query["MS_ID"].ToString()), "motor"),
-            "categories" => ("tecdoc-kategori", "kat"),
-            "products" => ("arac-parca?tip=" + tip
+            "manufacturers" => new() { ("arac-marka?tip=" + tip, "marka") },
+            "models" => new() { ("arac-model?marka=" + Uri.EscapeDataString(context.Request.Query["MFA_ID"].ToString()), "model") },
+            "modifications" => new() { ("arac-motor?model=" + Uri.EscapeDataString(context.Request.Query["MS_ID"].ToString()), "motor") },
+            "categories" => new() { ("tecdoc-kategori", "kat") },
+            "products" => new() { ("arac-parca?tip=" + tip
                            + "&ktype=" + Uri.EscapeDataString(context.Request.Query["ID"].ToString())
                            + "&kategori_id=" + Uri.EscapeDataString(context.Request.Query["CATEGORY_ID"].ToString())
-                           + "&limit=500", "parca"),
-            "vin" => ("vin?sasi=" + Uri.EscapeDataString(context.Request.Query["vin"].ToString().Trim().ToUpperInvariant()), "vin"),
-            "brands" => ("oem?kod=" + Uri.EscapeDataString(context.Request.Query["article"].ToString().Trim().ToUpperInvariant()), "oem"),
-            _ => ("", ""),
+                           + "&limit=500", "parca") },
+            "vin" => new() { ("vin?sasi=" + Uri.EscapeDataString(context.Request.Query["vin"].ToString().Trim().ToUpperInvariant()), "vin") },
+            "brands" => new()
+            {
+                ("ara?kod=" + Uri.EscapeDataString(article), "oem"),
+                ("oem?kod=" + Uri.EscapeDataString(article), "oem"),
+            },
+            _ => new(),
         };
-        if (call.endpoint.Length == 0)
+        if (calls.Count == 0)
         {
             return null;
         }
 
         var client = factory.CreateClient();
-        var sep = call.endpoint.Contains('?') ? "&" : "?";
-        using var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl + call.endpoint + sep + "dil=en");
-        request.Headers.TryAddWithoutValidation("X-API-Key", key);
-        using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
-        var raw = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        if (!response.IsSuccessStatusCode || raw.Length == 0)
+        var swallowEndpointFailure = calls.Count > 1;
+        foreach (var call in calls)
         {
-            return null;
-        }
-
-        try
-        {
-            using var doc = JsonDocument.Parse(raw);
-            var sonuc = doc.RootElement.TryGetProperty("sonuc", out var s) ? s : doc.RootElement;
-            return call.shape switch
+            string raw;
+            try
             {
-                "marka" => MapMarka(sonuc, Section(context)),
-                "model" => MapModel(sonuc),
-                "motor" => MapMotor(sonuc),
-                "kat" => MapKategori(sonuc, VehicleTip(context)),
-                "parca" => MapParca(sonuc, context.Request.Query["CATEGORY_ID"].ToString()),
-                "vin" => MapVin(sonuc),
-                "oem" => MapOem(sonuc),
-                _ => null,
-            };
+                var sep = call.endpoint.Contains('?') ? "&" : "?";
+                using var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl + call.endpoint + sep + "dil=en");
+                request.Headers.TryAddWithoutValidation("X-API-Key", key);
+                using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                raw = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode || raw.Length == 0)
+                {
+                    continue;
+                }
+            }
+            catch (Exception ex) when (swallowEndpointFailure && ex is not OperationCanceledException)
+            {
+                // A failed endpoint must not block the fallback lookup.
+                continue;
+            }
+
+            try
+            {
+                using var doc = JsonDocument.Parse(raw);
+                var sonuc = doc.RootElement.TryGetProperty("sonuc", out var s) ? s : doc.RootElement;
+                var mapped = call.shape switch
+                {
+                    "marka" => MapMarka(sonuc, Section(context)),
+                    "model" => MapModel(sonuc),
+                    "motor" => MapMotor(sonuc),
+                    "kat" => MapKategori(sonuc, VehicleTip(context)),
+                    "parca" => MapParca(sonuc, context.Request.Query["CATEGORY_ID"].ToString()),
+                    "vin" => MapVin(sonuc),
+                    "oem" => MapOem(sonuc),
+                    _ => null,
+                };
+                // An empty brands list falls through to the next lookup endpoint.
+                if (mapped is not null && !(call.shape == "oem" && mapped == "[]"))
+                {
+                    return mapped;
+                }
+            }
+            catch (JsonException)
+            {
+            }
         }
-        catch (JsonException)
+        return null;
+    }
+
+    /// <summary>Article numbers carry no symbols anywhere in the business: IXU01-27 → IXU0127.</summary>
+    private static string NormalizeArticle(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
         {
-            return null;
+            return string.Empty;
         }
+        var chars = new char[value.Length];
+        var n = 0;
+        foreach (var c in value.Trim())
+        {
+            if (char.IsLetterOrDigit(c))
+            {
+                chars[n++] = char.ToUpperInvariant(c);
+            }
+        }
+        return new string(chars, 0, n);
     }
 
     // ---- emshcloud → umapi-shape mappers ----
