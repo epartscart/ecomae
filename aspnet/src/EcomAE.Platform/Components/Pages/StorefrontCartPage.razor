@@ -73,6 +73,17 @@
             string C(string key, string fallback) => config.TryGetValue(key, out var value) && !string.IsNullOrEmpty(value) ? value : fallback;
             var salesDisplay = C("epc_whatsapp_number", "");
             var salesDigits = new string(salesDisplay.Where(char.IsDigit).ToArray());
+            if (salesDigits.Length == 0)
+            {
+                var waSetting = await ErpDb.StringAsync(connection, null,
+                    "SELECT `setting_value` FROM `epc_settings` WHERE `setting_key` IN ('whatsapp_number','whatsapp','contact_whatsapp','epc_whatsapp_number','epc_contact_phone') LIMIT 1",
+                    ctx.RequestAborted);
+                salesDigits = new string((waSetting ?? "").Where(char.IsDigit).ToArray());
+                if (salesDigits.Length > 0)
+                {
+                    salesDisplay = waSetting!;
+                }
+            }
             var input = new StorefrontCart.Input(
                 shopper.UserId,
                 shopper.SessionRecordId,
