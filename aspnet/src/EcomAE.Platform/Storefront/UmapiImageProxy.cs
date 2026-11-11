@@ -146,7 +146,34 @@ public static class UmapiImageProxy
     {
         var kind = context.Request.Query["kind"];
         var id = context.Request.Query["id"];
-        if (!TryImageUrl(kind.Count > 0 ? kind[^1] : null, id.Count > 0 ? id[^1] : null, out var url))
+        var kindValue = kind.Count > 0 ? kind[^1] : null;
+        var idValue = id.Count > 0 ? id[^1] : null;
+        // kind=supplier also accepts a brand name — resolve it through epc_umapi_brands.
+        if (string.Equals(kindValue, "supplier", StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrWhiteSpace(idValue) && PhpIntCast(idValue) < 1
+            && connections.IsConfigured)
+        {
+            try
+            {
+                await using var lookup = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+                await using var cmd = lookup.CreateCommand();
+                cmd.CommandText = "SELECT `sup_id` FROM `epc_umapi_brands` WHERE UPPER(TRIM(`brand`)) = @brand LIMIT 1";
+                var bp = cmd.CreateParameter();
+                bp.ParameterName = "@brand";
+                bp.Value = idValue.Trim().ToUpperInvariant();
+                cmd.Parameters.Add(bp);
+                var found = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                if (found is not null and not DBNull)
+                {
+                    idValue = Convert.ToString(found, CultureInfo.InvariantCulture);
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        if (!TryImageUrl(kindValue, idValue, out var url))
         {
             return Results.Text("Bad request", "text/plain; charset=utf-8", Encoding.UTF8, StatusCodes.Status400BadRequest);
         }

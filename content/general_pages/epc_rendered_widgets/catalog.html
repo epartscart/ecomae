@@ -71,7 +71,9 @@
 .epc-umapi-tree button { border: 0; background: transparent; color: #1e67b1; padding: 3px 0; text-align: left; }
 .epc-umapi-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
 .epc-umapi-products button { white-space: normal; text-align: left; }
-.epc-art-brand { background: #fdf0e4; color: #e07b39; font-weight: 700; letter-spacing: .04em; padding: 8px 14px; border-radius: 4px; margin: 14px 0 0; }
+.epc-art-brand { background: #fdf0e4; color: #e07b39; font-weight: 700; letter-spacing: .04em; padding: 8px 14px; border-radius: 4px; margin: 14px 0 0; display: flex; align-items: center; gap: 10px; }
+.epc-art-brand img { max-height: 26px; max-width: 110px; object-fit: contain; background: #fff; border-radius: 3px; padding: 2px 6px; }
+.epc-umapi-card img { display: block; max-height: 30px; max-width: 110px; object-fit: contain; margin: 0 auto 6px; }
 .epc-art-card { display: flex; align-items: center; gap: 16px; border: 1px solid #e7edf5; border-radius: 6px; padding: 14px 16px; margin-top: 6px; background: #fff; }
 .epc-art-thumb { flex: 0 0 110px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
 .epc-art-img { max-width: 110px; max-height: 90px; object-fit: contain; }
@@ -669,7 +671,9 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
         groups.sort();
         output.innerHTML = '<button type="button" class="btn btn-default" id="epc-umapi-back-categories">Back to categories</button>' +
             groups.map(function (brand) {
-                return '<div class="epc-art-brand">' + esc(brand || 'Aftermarket') + '</div>' +
+                var supId = (byBrand[brand].find(function (i) { return i.SUP_ID; }) || {}).SUP_ID || '';
+            var logo = supId ? '<img alt="" loading="lazy" src="/api/umapi_image.php?kind=supplier&id=' + encodeURIComponent(supId) + '" onerror="this.style.display=\'none\';">' : '';
+            return '<div class="epc-art-brand">' + logo + esc(brand || 'Aftermarket') + '</div>' +
                     byBrand[brand].map(function (item) { return articleCard(item, brand); }).join('');
             }).join('');
         document.getElementById('epc-umapi-back-categories').onclick = function () { renderCategories(state.categories); };
@@ -724,7 +728,9 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
         output.innerHTML = '<h3>Choose brand for ' + esc(article) + '</h3><div class="epc-umapi-grid">' +
             items.map(function (item, index) {
                 var brand = item.BRAND || item.SUP_BRAND || item.MANUFACTURER || item.BRAND_NAME || item.DES || '';
-                return '<div class="epc-umapi-card" data-index="' + index + '" data-search="' + esc(brand) + '"><strong>' + esc(brand) + '</strong></div>';
+                var supId = item.SUP_ID || item.SUPPLIER_ID || '';
+                var logo = supId ? '<img alt="" loading="lazy" src="/api/umapi_image.php?kind=supplier&id=' + encodeURIComponent(supId) + '" onerror="this.style.display=\'none\';">' : '';
+                return '<div class="epc-umapi-card" data-index="' + index + '" data-search="' + esc(brand) + '">' + logo + '<strong>' + esc(brand) + '</strong></div>';
             }).join('') + '</div>';
         bindIndexed('.epc-umapi-card', items, function (item) {
             var brand = item.BRAND || item.SUP_BRAND || item.MANUFACTURER || item.BRAND_NAME || item.DES || '';

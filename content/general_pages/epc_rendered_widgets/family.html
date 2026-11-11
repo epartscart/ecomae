@@ -184,7 +184,9 @@
 			html += '<h3 class="epc-pf-section-title">Brands in this family — click a row</h3>'
 				+ '<table class="epc-pf-table"><thead><tr><th>Brand</th><th>Part lines</th><th>UAE qty</th></tr></thead><tbody>'
 				+ brands.map(function (b) {
-					return '<tr class="epc-pf-brand-row" data-brand="' + esc(b.brand) + '"><td><strong>' + esc(b.brand) + '</strong></td>'
+					return '<tr class="epc-pf-brand-row" data-brand="' + esc(b.brand) + '"><td>'
+						+ '<img alt="" loading="lazy" style="max-height:22px;max-width:90px;object-fit:contain;vertical-align:middle;margin-right:8px" src="/api/umapi_image.php?kind=supplier&id=' + encodeURIComponent(b.brand) + '" onerror="this.remove()">'
+						+ '<strong>' + esc(b.brand) + '</strong></td>'
 						+ '<td>' + esc(b.parts_count || 0) + '</td><td>' + esc(Math.round(b.total_qty || 0)) + '</td></tr>';
 				}).join('') + '</tbody></table>';
 		}
@@ -199,7 +201,9 @@
 				+ '<table class="epc-pf-table"><thead><tr><th>Brand</th><th>Article</th><th>Name</th><th>Qty</th><th></th></tr></thead><tbody id="epc-pf-parts-body">'
 				+ showParts.map(function (p) {
 					var search = [p.brand, p.article, p.name].join(' ');
-					return '<tr data-search="' + esc(search) + '"><td><strong>' + esc(p.brand) + '</strong></td>'
+					return '<tr data-search="' + esc(search) + '"><td>'
+						+ '<img alt="" loading="lazy" style="max-height:22px;max-width:90px;object-fit:contain;vertical-align:middle;margin-right:8px" src="/api/umapi_image.php?kind=supplier&id=' + encodeURIComponent(p.brand) + '" onerror="this.remove()">'
+						+ '<strong>' + esc(p.brand) + '</strong></td>'
 						+ '<td><a href="' + esc(shopUrl(p.brand, p.article)) + '">' + esc(p.article) + '</a></td>'
 						+ '<td>' + esc(p.name) + '</td><td>' + esc(p.qty) + '</td>'
 						+ '<td><a class="btn btn-xs btn-primary" href="' + esc(shopUrl(p.brand, p.article)) + '">Open</a></td></tr>';
