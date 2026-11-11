@@ -330,7 +330,17 @@
             if (all.length < rows && batch.length) {
                 return loadParts(offset + batch.length, all, rows);
             }
-            cache.parts = all.sort(function (a, b) { return a.name.localeCompare(b.name); });
+            // Dedupe by normalized brand name — umapi and Tur catalogs overlap, keep
+            // one card per unique brand (lowest supplier id = the umapi entry with logo).
+            var seenName = {};
+            all.forEach(function (item) {
+                var key = (item.name || '').trim().toUpperCase();
+                if (!seenName[key] || String(item.id).localeCompare(String(seenName[key].id), undefined, { numeric: true }) < 0) {
+                    seenName[key] = item;
+                }
+            });
+            cache.parts = Object.keys(seenName).map(function (key) { return seenName[key]; })
+                .sort(function (a, b) { return a.name.localeCompare(b.name); });
             render();
         });
     }

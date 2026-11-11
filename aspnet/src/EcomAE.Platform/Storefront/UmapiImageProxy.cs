@@ -266,11 +266,22 @@ public static class UmapiImageProxy
     /// <summary>image.umapi.ru answers HTTP 200 with a generic "no photo" JPEG for every missing
     /// image — all supplier logos included — so bytes must be checked, not the status code.</summary>
     private static bool IsUmapiPlaceholder(byte[] body)
-        => body.Length == 43525
+    {
+        if (body.Length == 147)
+        {
+            // Blank 1-bit PNG used by image.umapi.ru for makes/models without a real logo —
+            // invisible on the white tiles, so treat as missing (the tile shows its text fallback).
+            return string.Equals(
+                System.Convert.ToHexString(System.Security.Cryptography.MD5.HashData(body)).ToLowerInvariant(),
+                "e5694a7736114da0959fb112969b0083",
+                StringComparison.Ordinal);
+        }
+        return body.Length == 43525
             && string.Equals(
                 System.Convert.ToHexString(System.Security.Cryptography.MD5.HashData(body)).ToLowerInvariant(),
                 "04c19007f273129fe271a162913f1de5",
                 StringComparison.Ordinal);
+    }
 
     private static async Task EnsureImageCacheAsync(System.Data.Common.DbConnection connection, CancellationToken cancellationToken)
     {
