@@ -422,6 +422,7 @@ public static class StorefrontPartsApiProduct
             vehicles.Select(v => v[0]).Where(m => m.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
             cancellationToken).ConfigureAwait(false);
         var supLogoId = supId ?? await LoadSupplierLogoIdAsync(connections, context, brand, cancellationToken).ConfigureAwait(false);
+        var brandMeta = await LoadBrandMetaAsync(connections, context, httpClientFactory, supLogoId, cancellationToken).ConfigureAwait(false);
         var crossLogoIds = await LoadSupplierLogoIdsAsync(connections, context,
             crosses.Select(c => c[0]).Where(b => b.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
             cancellationToken).ConfigureAwait(false);
@@ -431,7 +432,7 @@ public static class StorefrontPartsApiProduct
                 + " https://" + context.Request.Host + "/en/parts/" + Uri.EscapeDataString(brand) + "/" + Uri.EscapeDataString(number));
 
         var html = Render(brand, number, artName, artCategory, images, specs, vehicles, crosses,
-            stock, access, ean, makeLogos, waHref, supLogoId, crossLogoIds);
+            stock, access, ean, makeLogos, waHref, supLogoId, crossLogoIds, brandMeta);
         context.Response.Headers.CacheControl = "no-store";
         return Results.Text(html, "text/html; charset=utf-8", Encoding.UTF8);
     }
@@ -636,6 +637,105 @@ public static class StorefrontPartsApiProduct
             command.Parameters.Add(parameter);
             var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
             return value is null or DBNull ? null : Convert.ToString(value, CultureInfo.InvariantCulture);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Supplier profile line (company name · city · website) via emshcloud <c>marka-adres</c>.
+    /// Fetched once per brand into epc_emsh_cache — the subscription is per-request,
+    /// so a brand's profile is only ever fetched a single time.
+    /// </summary>
+    private static async Task<string?> LoadBrandMetaAsync(
+        ITenantDbConnectionFactory connections, HttpContext context, IHttpClientFactory httpClientFactory,
+        string? supId, CancellationToken cancellationToken)
+    {
+        if (supId is null || UmapiImageProxy.PhpIntCast(supId) < 1)
+        {
+            return null;
+        }
+
+        var cacheKey = "emsh|madr|" + supId;
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            await using (var ddl = connection.CreateCommand())
+            {
+                ddl.CommandText =
+                    "CREATE TABLE IF NOT EXISTS `epc_emsh_cache` (" +
+                    "`cache_key` VARCHAR(191) NOT NULL PRIMARY KEY," +
+                    "`response_json` LONGTEXT NULL," +
+                    "`last_sync` INT UNSIGNED NOT NULL DEFAULT 0" +
+                    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+                await ddl.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            string? body = null;
+            await using (var get = connection.CreateCommand())
+            {
+                get.CommandText = "SELECT `response_json` FROM `epc_emsh_cache` WHERE `cache_key` = @k LIMIT 1";
+                var p = get.CreateParameter();
+                p.ParameterName = "@k";
+                p.Value = cacheKey;
+                get.Parameters.Add(p);
+                var v = await get.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                body = v as string;
+            }
+
+            if (body is null)
+            {
+                var key = await EmshcloudVinDecode.ApiKeyAsync(context, cancellationToken).ConfigureAwait(false);
+                if (key.Length == 0)
+                {
+                    return null;
+                }
+                var client = httpClientFactory.CreateClient();
+                using var request = new HttpRequestMessage(
+                    HttpMethod.Get, "https://tecdoc.emshcloud.com/v1/marka-adres?id=" + Uri.EscapeDataString(supId) + "&dil=en");
+                request.Headers.TryAddWithoutValidation("X-API-Key", key);
+                using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                {
+                    return null;
+                }
+                body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                await using var put = connection.CreateCommand();
+                put.CommandText =
+                    "INSERT INTO `epc_emsh_cache` (`cache_key`, `response_json`, `last_sync`) VALUES (@k, @b, UNIX_TIMESTAMP()) " +
+                    "ON DUPLICATE KEY UPDATE `response_json` = VALUES(`response_json`), `last_sync` = VALUES(`last_sync`)";
+                var k = put.CreateParameter();
+                k.ParameterName = "@k";
+                k.Value = cacheKey;
+                put.Parameters.Add(k);
+                var b = put.CreateParameter();
+                b.ParameterName = "@b";
+                b.Value = body;
+                put.Parameters.Add(b);
+                await put.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            using var doc = JsonDocument.Parse(body);
+            if (!doc.RootElement.TryGetProperty("sonuc", out var sonuc)
+                || sonuc.ValueKind != JsonValueKind.Array || sonuc.GetArrayLength() == 0)
+            {
+                return null;
+            }
+
+            var r = sonuc[0];
+            string T(string n) => r.TryGetProperty(n, out var v) && v.ValueKind == JsonValueKind.String ? (v.GetString() ?? "") : "";
+            var parts = new List<string>();
+            foreach (var piece in new[] { T("ad2"), T("sehir1"), T("web") })
+            {
+                if (piece.Length > 0 && !parts.Contains(piece, StringComparer.OrdinalIgnoreCase))
+                {
+                    parts.Add(piece);
+                }
+            }
+            return parts.Count == 0 ? null : string.Join(" · ", parts);
         }
         catch (Exception)
         {
@@ -850,7 +950,7 @@ public static class StorefrontPartsApiProduct
         List<string[]> vehicles, List<string[]> crosses,
         List<WarehouseRow> stock, StorefrontPriceAccessResult access, string ean,
         Dictionary<string, int> makeLogos, string waHref, string? supId,
-        Dictionary<string, string> crossLogoIds)
+        Dictionary<string, string> crossLogoIds, string? brandMeta = null)
     {
         var wantedBrand = NormalizeBrand(brand);
         var inStock = stock.Exists(s => s.Exist > 0 && NormalizeBrand(s.Manufacturer) == wantedBrand);
@@ -947,15 +1047,16 @@ public static class StorefrontPartsApiProduct
         sb.Append("</div>");
 
         sb.Append("<div class=\"epc-prod-info\">");
+        var metaHtml = brandMeta is { Length: > 0 } ? "<small class=\"epc-prod-brand-meta\">" + E(brandMeta) + "</small>" : "";
         if (supId is not null && UmapiImageProxy.TryImageUrl("supplier", supId, out _))
         {
             sb.Append("<div class=\"epc-prod-brand\"><img src=\"/api/umapi_image.php?kind=supplier&id=")
                 .Append(E(supId)).Append("\" alt=\"").Append(E(brand)).Append("\" loading=\"lazy\" onerror=\"this.style.display='none'\">")
-                .Append("<span>").Append(E(brand)).Append("</span></div>");
+                .Append("<span>").Append(E(brand)).Append(metaHtml).Append("</span></div>");
         }
         else
         {
-            sb.Append("<div class=\"epc-prod-brand\"><span>").Append(E(brand)).Append("</span></div>");
+            sb.Append("<div class=\"epc-prod-brand\"><span>").Append(E(brand)).Append(metaHtml).Append("</span></div>");
         }
         sb.Append("<div class=\"epc-prod-name\">").Append(E(name.Length > 0 ? name : "Auto part")).Append("</div>");
         sb.Append("<ul class=\"epc-prod-bullets\"><li>").Append(E(brand)).Append(" ").Append(E(number))
