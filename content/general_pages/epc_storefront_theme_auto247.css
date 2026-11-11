@@ -650,3 +650,85 @@ body[class*="epc-storefront--auto247"] .epart-front-section-catalog .epart-front
 
 /* cross reference group headers */
 #epc-cross-ref-list .epc-cross-ref-group { list-style: none; margin: 14px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: #0f6ad0; }
+
+/* --- auto247: product-page lower frame — reds -> brand blue (scoped) --- */
+/* Add-to-cart / quote buttons (shared shell ships them red). */
+body.epc-storefront--auto247 .epc-product-actions .epc-btn-cart,
+body.epc-storefront--auto247 .btn-danger.epc-btn-cart {
+    background: var(--auto247-blue) !important;
+    border-color: var(--auto247-blue-dark) !important;
+    color: #fff !important;
+}
+body.epc-storefront--auto247 .epc-product-actions .epc-btn-quote {
+    background: var(--auto247-blue-dark) !important;
+    border-color: var(--auto247-blue-deep) !important;
+    color: #fff !important;
+}
+body.epc-storefront--auto247 .btn-danger {
+    background: linear-gradient(180deg, var(--auto247-blue-light), var(--auto247-blue)) !important;
+    border-color: var(--auto247-blue) !important;
+    color: #fff !important;
+}
+
+/* Header search tab underline + icon accents in the professional shell. */
+body.epc-storefront--auto247 .epc-header-search__tab.active {
+    box-shadow: inset 0 -3px 0 var(--auto247-blue) !important;
+}
+body.epc-storefront--auto247 .geo-point-box i,
+body.epc-storefront--auto247 .timetable-box i {
+    color: var(--auto247-blue) !important;
+}
+
+/* Menu hover: red glow -> blue glow, matching the restored chrome. */
+body.epc-storefront--auto247 header .schearch-line .menu-box-item a:hover,
+body.epc-storefront--auto247 .menu-box-item a:hover {
+    background:
+        linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.04)),
+        linear-gradient(135deg, var(--auto247-blue) 0%, var(--auto247-blue-dark) 100%) !important;
+    box-shadow: 0 18px 38px rgba(14,165,233,.26) !important;
+}
+
+/* Vertical catalog menu active/hover + box links. */
+body.epc-storefront--auto247 #dp_menu .vertical-tabs-right .vertical-tab-list ul.nav > li > a:hover,
+body.epc-storefront--auto247 #dp_menu .vertical-tabs-right .vertical-tab-list ul.nav > li.active > a,
+body.epc-storefront--auto247 #dp_menu .vertical-tabs-right .vertical-tab-list ul.nav > li.active > a:hover,
+body.epc-storefront--auto247 #dp_menu .vertical-tabs-right .vertical-tab-list ul.nav > li.active > a:focus {
+    background: var(--auto247-blue) !important;
+    color: #fff !important;
+}
+body.epc-storefront--auto247 #dp_menu .box_line a:hover {
+    color: var(--auto247-blue) !important;
+}
+
+/* Footer widget accents (red underline/bar/CTA in shared shell). */
+body.epc-storefront--auto247 #footer-widgets .module_caption {
+    border-bottom-color: var(--auto247-blue-light) !important;
+}
+body.epc-storefront--auto247 #footer-widgets .footer-widget-title:after {
+    background: var(--auto247-blue-light) !important;
+}
+body.epc-storefront--auto247 #footer-widgets .btn-primary {
+    background: var(--auto247-blue) !important;
+    border-color: var(--auto247-blue) !important;
+    box-shadow: 0 14px 28px rgba(14,165,233,.22) !important;
+}
+
+/* Cross-stock panel + search CTA: green -> brand blue for one-frame look. */
+body.epc-storefront--auto247 .epc-cross-search-btn {
+    background: linear-gradient(135deg, var(--auto247-blue), var(--auto247-blue-dark)) !important;
+    box-shadow: 0 12px 26px rgba(14,165,233,.24) !important;
+}
+body.epc-storefront--auto247 .epc-cross-search-btn:hover:not(:disabled),
+body.epc-storefront--auto247 .epc-cross-search-btn:focus:not(:disabled) {
+    background: linear-gradient(135deg, var(--auto247-blue-dark), var(--auto247-blue-deep)) !important;
+}
+body.epc-storefront--auto247 .epc-sf-cross-stock {
+    background: var(--auto247-blue-soft) !important;
+    border-color: var(--auto247-blue-line) !important;
+}
+body.epc-storefront--auto247 .epc-cross-stock-results__head {
+    background: linear-gradient(135deg, var(--auto247-blue-soft), #f8fafc) !important;
+    border-bottom-color: var(--auto247-blue-line) !important;
+}
+body.epc-storefront--auto247 .epc-cross-stock-results__head strong { color: var(--auto247-blue-deep) !important; }
+body.epc-storefront--auto247 .epc-cross-stock-results__head span { color: var(--auto247-blue-dark) !important; }
