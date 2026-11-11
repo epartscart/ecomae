@@ -213,6 +213,8 @@
 
 
 <div class="container epart-front-original-data">
+	@if (!LeadWithFamily)
+	{
 	<section class="epart-front-section" aria-label="Parts expert">
 		<div class="epart-front-section-head">
 			<h2 class="epart-front-section-title">Parts expert</h2>
@@ -245,6 +247,7 @@
 			}
 		</ul>
 	</section>
+	}
 
 	<!-- 1. Family Product -->
 	<section class="epart-front-section epart-front-section-family" aria-label="Family Product">
@@ -343,6 +346,9 @@
 
 @code {
     [Parameter] public string LangHref { get; set; } = "/en";
+    /// <summary>epartscart.com home leads with the product-family category
+    /// browser; the parts-expert and special-searches blocks are dropped.</summary>
+    [Parameter] public bool LeadWithFamily { get; set; }
 
     private string _family = string.Empty;
     private string _catalog = string.Empty;
