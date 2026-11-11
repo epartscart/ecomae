@@ -25,14 +25,11 @@
     protected override void OnInitialized()
     {
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
-        // TecDoc "Catalog - find by category or assembly" grid leads the page;
-        // the warehouse family widget follows below.
+        // Full TecDoc "Catalog - find by category or assembly" package: boxed
+        // category cards drilling to articles (warehouse stock merges into leaf
+        // views inside the widget). The old single-family widget is dropped — it
+        // only listed stocked families.
         _html = PhpHomeWidgetHtml.RenderStatic("content/general_pages/epc_rendered_widgets/product_categories.html");
-        var family = PhpHomeWidgetHtml.ProductFamily();
-        if (!string.IsNullOrWhiteSpace(family))
-        {
-            _html += "<hr style=\"margin:28px 0 18px;border:none;border-top:1px solid #e2e8f0\">" + family;
-        }
         if (string.IsNullOrWhiteSpace(_html))
         {
             _html = "<p style=\"margin:0;color:#64748b\">Product family widget is unavailable in this environment. "
