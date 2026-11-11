@@ -26,6 +26,12 @@
     {
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
         _html = PhpHomeWidgetHtml.ProductFamily();
+        var categories = PhpHomeWidgetHtml.RenderStatic("content/general_pages/epc_rendered_widgets/product_categories.html");
+        if (!string.IsNullOrWhiteSpace(categories))
+        {
+            // TecDoc "Catalog - find by category or assembly" grid under the warehouse families.
+            _html += "<hr style=\"margin:28px 0 18px;border:none;border-top:1px solid #e2e8f0\">" + categories;
+        }
         if (string.IsNullOrWhiteSpace(_html))
         {
             _html = "<p style=\"margin:0;color:#64748b\">Product family widget is unavailable in this environment. "
