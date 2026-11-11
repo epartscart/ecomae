@@ -84,7 +84,7 @@
         align-items:center; display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end; width:100%;
     }
     .schearch-line {
-        background:linear-gradient(135deg,#0b4fa8 0%,#1261c9 100%) !important;
+        background:linear-gradient(135deg,#0284c7 0%,#38bdf8 100%) !important;
         box-shadow:0 18px 36px rgba(11,79,168,.22); padding:14px 0 16px !important;
     }
     .epc-header-search {
@@ -123,8 +123,8 @@
         overflow:auto; padding:18px 0;
     }
     #dp_menu.is-open { display:block; }
-    #dp_menu .vertical-tabs-right { display:table; width:100%; background:#0b4fa8; border-radius:18px; overflow:hidden; }
-    #dp_menu .vertical-tab-list { display:table-cell; min-width:240px; vertical-align:top; background:#0b4fa8; }
+    #dp_menu .vertical-tabs-right { display:table; width:100%; background:#0284c7; border-radius:18px; overflow:hidden; }
+    #dp_menu .vertical-tab-list { display:table-cell; min-width:240px; vertical-align:top; background:#0284c7; }
     #dp_menu .vertical-tab-list ul.nav { list-style:none; margin:0; padding:0; }
     #dp_menu .vertical-tab-list li { border-bottom:1px solid rgba(255,255,255,.08); }
     #dp_menu .vertical-tab-list a { display:block; color:rgba(255,255,255,.86); font-weight:800; padding:12px 14px; text-decoration:none; }
@@ -145,7 +145,7 @@
         background:#ef4444 !important; border-color:#ef4444 !important; color:#fff !important; font-weight:800;
     }
     header .schearch-line .menu-box-item a, .menu-box-item a {
-        background:linear-gradient(135deg,#0d55b8 0%,#1e6fe0 100%) !important;
+        background:linear-gradient(135deg,#0284c7 0%,#38bdf8 100%) !important;
         border:1px solid rgba(255,255,255,.22) !important; border-radius:16px !important;
         color:#fff !important; display:inline-flex !important; align-items:center; justify-content:center;
         height:52px !important; min-width:46px; font-size:20px;
@@ -180,7 +180,7 @@
     header.epc-nero-header .top-menu-line,
     .epc-nero-shell .top-menu-line {
         display:block !important; visibility:visible !important; opacity:1 !important;
-        background:linear-gradient(135deg,#0b4fa8 0%,#1261c9 54%,#1e6fe0 100%) !important;
+        background:linear-gradient(135deg,#0284c7 0%,#0ea5e9 55%,#38bdf8 100%) !important;
         border-bottom:1px solid rgba(255,255,255,.14) !important;
         box-shadow:0 10px 28px rgba(11,79,168,.25);
         color:#fff !important; min-height:42px; padding:0;
@@ -294,30 +294,36 @@
         display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap;
         padding:.7rem .85rem; border:1px dashed #fca5a5; border-radius:.45rem; background:#fff;
     }
-    .header-box-mobile { background:#0b4fa8; color:#fff; padding:.65rem 0; }
+    .header-box-mobile { background:#0284c7; color:#fff; padding:.65rem 0; }
     .header-box-mobile .container { display:flex; flex-wrap:wrap; gap:.55rem .85rem; align-items:center; font-size:.78rem; font-weight:700; }
     .header-box-mobile a { color:#fff !important; }
     #Container { padding:1rem 0 2rem; }
-    #footer-widgets { padding:1.5rem 0 1.25rem; }
-    #footer-widgets a { color:#dbeafe; }
-    #footer-widgets a:hover { color:#fff; }
-    .footer-widget-title { font-size:.95rem; font-weight:800; color:#fff; margin:1rem 0 .55rem; }
-    .epc-footer-menu { list-style:none; margin:0; padding:0; font-size:.82rem; }
-    .epc-footer-menu li { margin:.25rem 0; }
-    .epc-footer-office, .epc-footer-global { display:flex; flex-direction:column; gap:.2rem; font-size:.82rem; margin-bottom:.75rem; }
-    .epc-footer-pay { font-size:.82rem; color:#bcd4f7; }
-    #footer { padding:.85rem 0; font-size:.8rem; }
+    #footer-widgets { padding:2rem 0 1.5rem; }
+    #footer-widgets a { color:#e0f2fe; }
+    #footer-widgets a:hover { color:#fff; text-decoration:underline; }
+    .footer-widget-title {
+        font-size:.92rem; font-weight:800; color:#fff; letter-spacing:.06em; text-transform:uppercase;
+        margin:1rem 0 .6rem; padding-bottom:.4rem; border-bottom:2px solid rgba(224,242,254,.55); display:inline-block;
+    }
+    .epc-footer-menu { list-style:none; margin:0; padding:0; font-size:.85rem; }
+    .epc-footer-menu li { margin:.35rem 0; }
+    .epc-footer-office, .epc-footer-global {
+        display:flex; flex-direction:column; gap:.25rem; font-size:.83rem; margin-bottom:.75rem;
+        background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18); border-radius:.55rem; padding:.65rem .8rem;
+    }
+    .epc-footer-pay { font-size:.83rem; color:#e0f2fe; }
+    #footer { padding:.9rem 0; font-size:.8rem; border-top:1px solid rgba(255,255,255,.12); }
     #footer p { margin:0; }
     .epc-ai-expert-widget { position:fixed; right:1rem; bottom:4.25rem; z-index:40; }
     .epc-ai-expert-widget__launcher {
         display:inline-flex; align-items:center; gap:.45rem; padding:.65rem .9rem; border-radius:999px;
-        background:linear-gradient(135deg,#0b4fa8,#1e6fe0); color:#fff !important; font-weight:800; font-size:.8rem;
-        box-shadow:0 10px 24px rgba(11,79,168,.35);
+        background:linear-gradient(135deg,#0284c7,#0ea5e9); color:#fff !important; font-weight:800; font-size:.8rem;
+        box-shadow:0 10px 24px rgba(2,132,199,.35);
     }
     .epc-ai-expert-widget__live { background:#22c55e; color:#052e16; border-radius:999px; padding:.1rem .4rem; font-size:.65rem; }
     .epc-bottom-dock {
         position:fixed; left:0; right:0; bottom:0; z-index:45;
-        background:#083a7d; color:#fff; border-top:1px solid #1261c9; padding:.45rem .5rem; margin:0;
+        background:#075985; color:#fff; border-top:1px solid #38bdf8; padding:.45rem .5rem; margin:0;
         border-radius:0;
     }
     .epc-bottom-dock .container-fluid {
@@ -660,7 +666,7 @@
                 </div>
             </div>
 
-            <aside id="footer-widgets" style="background:linear-gradient(180deg,#0d55b8 0%,#0a4a9e 100%);color:#e7efff;">
+            <aside id="footer-widgets" style="background:linear-gradient(180deg,#0284c7 0%,#0369a1 100%);color:#f0f9ff;">
                 <div class="container">
                     <div class="row epc-footer-widgets-row">
                         <div class="col-md-8">
@@ -730,7 +736,7 @@
                 </div>
             </aside>
 
-            <footer id="footer" style="background:#083a7d;color:#bcd4f7;">
+            <footer id="footer" style="background:#075985;color:#e0f2fe;">
                 <div class="container">
                     <p>&copy; @DateTime.UtcNow.Year eParts Cart</p>
                 </div>
