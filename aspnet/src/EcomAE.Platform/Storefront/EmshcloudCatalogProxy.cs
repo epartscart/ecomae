@@ -248,6 +248,7 @@ public static class EmshcloudCatalogProxy
         }
 
         var client = factory.CreateClient();
+        var swallowEndpointFailure = calls.Count > 1;
         foreach (var call in calls)
         {
             string raw;
@@ -263,7 +264,7 @@ public static class EmshcloudCatalogProxy
                     continue;
                 }
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            catch (Exception ex) when (swallowEndpointFailure && ex is not OperationCanceledException)
             {
                 // A failed endpoint must not block the fallback lookup.
                 continue;
