@@ -121,10 +121,30 @@ public static class StorefrontPartsApiProduct
             }
 
             var langName = lang == "16" ? "en" : lang;
-            var cachedArticle = await offlineCache.LookupArticleAsync("passenger", artIdInt, langName, region, cancellationToken).ConfigureAwait(false);
-            if (cachedArticle.Ok && cachedArticle.Payload is JsonElement cached && cached.ValueKind == JsonValueKind.Object)
+            JsonElement? cachedPayload = null;
+            try
             {
-                umapiArticle = cached.Clone();
+                var cachedArticle = await offlineCache.LookupArticleAsync("passenger", artIdInt, langName, region, cancellationToken).ConfigureAwait(false);
+                if (cachedArticle.Ok && cachedArticle.Payload is JsonElement cached && cached.ValueKind == JsonValueKind.Object)
+                {
+                    cachedPayload = cached;
+                }
+            }
+            catch (Exception)
+            {
+                // Missing cache table or DB error — fall through to the live fetch.
+            }
+
+            // The id-matched cache query accepts LIKE prefixes: reject a hit
+            // whose payload carries a different article id (e.g. 1234 for 123).
+            if (cachedPayload.HasValue && !PayloadArticleIdMatches(cachedPayload.Value, artIdInt))
+            {
+                cachedPayload = null;
+            }
+
+            if (cachedPayload.HasValue)
+            {
+                umapiArticle = cachedPayload.Value.Clone();
             }
             else
             {
@@ -370,6 +390,15 @@ public static class StorefrontPartsApiProduct
             catch (Exception)
             {
             }
+        }
+
+        // Same product under another brand (brand+article = unique product):
+        // when the requested article has no photo, reuse a crossed article's
+        // saved catalog image — cache reads only, zero provider calls.
+        if (images.Count == 0 && crosses.Count > 0)
+        {
+            images = await LoadCrossFallbackImagesAsync(connections, context, crosses, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         // EAN/barcode — umapi article payload first, then any row field.
@@ -1309,6 +1338,151 @@ public static class StorefrontPartsApiProduct
 
         sb.Append("</div>");
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Finds a saved catalog photo for the same part under a crossed brand.
+    /// Reads <c>epc_umapi_cache</c> only — never an upstream call.
+    /// </summary>
+    private static async Task<List<string>> LoadCrossFallbackImagesAsync(
+        ITenantDbConnectionFactory connections, HttpContext context,
+        List<string[]> crosses, CancellationToken cancellationToken)
+    {
+        var images = new List<string>();
+        if (crosses.Count == 0)
+        {
+            return images;
+        }
+
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken)
+                .ConfigureAwait(false);
+
+            foreach (var cross in crosses.Take(12))
+            {
+                var crossNumber = cross[1];
+                if (crossNumber.Length == 0)
+                {
+                    continue;
+                }
+
+                await using var command = connection.CreateCommand();
+                command.CommandText =
+                    "SELECT `response_json` FROM `epc_umapi_cache` WHERE `action` = 'article' AND `response_json` LIKE @like LIMIT 10";
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = "@like";
+                parameter.Value = "%" + crossNumber + "%";
+                command.Parameters.Add(parameter);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var json = reader.IsDBNull(0) ? "" : reader.GetString(0);
+                    if (json.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(json);
+                        var root = doc.RootElement.ValueKind == JsonValueKind.Object
+                            && doc.RootElement.TryGetProperty("data", out var data) ? data : doc.RootElement;
+                        if (root.ValueKind != JsonValueKind.Object)
+                        {
+                            continue;
+                        }
+
+                        var payloadNumber = Text(root, "ART_NUM", "ARTICLE_NR", "number") ?? "";
+                        if (!NormalizeBrand(payloadNumber).Equals(NormalizeBrand(crossNumber), StringComparison.Ordinal))
+                        {
+                            continue;
+                        }
+
+                        var payloadBrand = NormalizeBrand(Text(root, "SUP_BRAND", "BRAND", "ART_SUP_BRAND") ?? "");
+                        if (payloadBrand.Length > 0 && cross[0].Length > 0
+                            && !payloadBrand.Equals(NormalizeBrand(cross[0]), StringComparison.Ordinal))
+                        {
+                            continue;
+                        }
+
+                        if (root.TryGetProperty("MEDIAS", out var medias) && medias.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var m in medias.EnumerateArray())
+                            {
+                                var file = Text(m, "FILE_NAME", "MEDIA_FILE", "file") ?? "";
+                                if (file.Length > 0)
+                                {
+                                    images.Add("https://image.umapi.ru/ARTICLES/" + file);
+                                }
+                            }
+                        }
+
+                        if (images.Count == 0)
+                        {
+                            var file = Text(root, "MEDIA_FILE") ?? "";
+                            if (file.Length > 0)
+                            {
+                                images.Add("https://image.umapi.ru/ARTICLES/" + file);
+                            }
+                        }
+                    }
+                    catch (JsonException)
+                    {
+                    }
+
+                    if (images.Count >= 3)
+                    {
+                        break;
+                    }
+                }
+
+                if (images.Count >= 3)
+                {
+                    break;
+                }
+            }
+        }
+        catch (Exception)
+        {
+        }
+
+        return images.Distinct().Take(3).ToList();
+    }
+
+    /// <summary>True when the article payload's own id equals the requested id.</summary>
+    private static bool PayloadArticleIdMatches(JsonElement payload, int articleId)
+    {
+        var root = payload.ValueKind == JsonValueKind.Object && payload.TryGetProperty("data", out var data)
+            ? data
+            : payload;
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
+
+        foreach (var name in new[] { "ART_ID", "id", "ID" })
+        {
+            if (!root.TryGetProperty(name, out var el))
+            {
+                continue;
+            }
+
+            if (el.ValueKind == JsonValueKind.Number && el.TryGetInt64(out var n))
+            {
+                return n == articleId;
+            }
+
+            if (el.ValueKind == JsonValueKind.String
+                && int.TryParse(el.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var s))
+            {
+                return s == articleId;
+            }
+        }
+
+        // No id field at all — trust the row rather than discard a good hit.
+        return true;
     }
 
     /// <summary>Read a fetch-once UMAPI payload saved in the tenant cache.</summary>
