@@ -5821,6 +5821,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var contactPhone = body.ContactPhone;
             var mfaId = body.MfaId;
             var msId = body.MsId;
+            var catalogIdsProvided = body.MfaId > 0 || body.MsId > 0;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -5858,6 +5859,8 @@ public sealed class ControlPanelModule : ISurfaceModule
                 contactPhone = LiveWriteFormBinder.Text(form, "contactPhone", "contact_phone");
                 mfaId = LiveWriteFormBinder.Long(form, "mfaId", "mfa_id", "mfa");
                 msId = LiveWriteFormBinder.Long(form, "msId", "ms_id", "ms");
+                catalogIdsProvided = form.ContainsKey("mfaId") || form.ContainsKey("mfa_id") || form.ContainsKey("mfa")
+                    || form.ContainsKey("msId") || form.ContainsKey("ms_id") || form.ContainsKey("ms");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
 
                 var categorySlug = LiveWriteFormBinder.Text(form, "category");
@@ -5922,7 +5925,8 @@ public sealed class ControlPanelModule : ISurfaceModule
                     sellerType,
                     contactPhone,
                     mfaId,
-                    msId),
+                    msId,
+                    catalogIdsProvided),
                 cancellationToken);
             if (written.Succeeded && written.Id > 0 && context.Request.HasFormContentType
                 && context.Request.Form["returnUrl"].ToString() is { } ret

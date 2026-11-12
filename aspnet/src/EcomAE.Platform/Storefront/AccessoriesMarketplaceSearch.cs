@@ -232,7 +232,7 @@ public static class AccessoriesMarketplaceSearch
                 if (filters.Make.Length > 0)
                 {
                     // keep legacy rows (mfa_id = 0) that carry the same make name
-                    where.Add("(l.`mfa_id` = ? OR l.`make` = ?)");
+                    where.Add("(l.`mfa_id` = ? OR (l.`mfa_id` = 0 AND l.`make` = ?))");
                     args.Add(filters.MfaId);
                     args.Add(filters.Make);
                 }
@@ -247,7 +247,7 @@ public static class AccessoriesMarketplaceSearch
             {
                 if (filters.Model.Length > 0)
                 {
-                    where.Add("(l.`ms_id` = ? OR l.`model` = ?)");
+                    where.Add("(l.`ms_id` = ? OR (l.`ms_id` = 0 AND l.`model` = ?))");
                     args.Add(filters.MsId);
                     args.Add(filters.Model);
                 }
@@ -621,7 +621,7 @@ public static class AccessoriesMarketplaceSearch
                 ErpDb.Positional("""
                     INSERT INTO `epc_acc_categories` (`parent_id`, `slug`, `label`, `pw_id`, `sort_order`, `active`)
                     VALUES (?, ?, ?, ?, ?, 1)
-                    ON DUPLICATE KEY UPDATE `label` = VALUES(`label`), `pw_id` = VALUES(`pw_id`), `sort_order` = VALUES(`sort_order`), `active` = 1
+                    ON DUPLICATE KEY UPDATE `label` = VALUES(`label`), `pw_id` = VALUES(`pw_id`), `sort_order` = VALUES(`sort_order`)
                     """),
                 cancellationToken,
                 0,
@@ -650,7 +650,7 @@ public static class AccessoriesMarketplaceSearch
                     ErpDb.Positional("""
                         INSERT INTO `epc_acc_categories` (`parent_id`, `slug`, `label`, `pw_id`, `sort_order`, `active`)
                         VALUES (?, ?, ?, ?, ?, 1)
-                        ON DUPLICATE KEY UPDATE `label` = VALUES(`label`), `pw_id` = VALUES(`pw_id`), `sort_order` = VALUES(`sort_order`), `active` = 1
+                        ON DUPLICATE KEY UPDATE `label` = VALUES(`label`), `pw_id` = VALUES(`pw_id`), `sort_order` = VALUES(`sort_order`)
                         """),
                     cancellationToken,
                     parentId,

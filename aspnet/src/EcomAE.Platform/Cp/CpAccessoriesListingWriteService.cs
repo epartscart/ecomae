@@ -46,7 +46,8 @@ public sealed record CpAccessoriesListingWriteRequest(
     string? SellerType = null,
     string? ContactPhone = null,
     long MfaId = 0,
-    long MsId = 0);
+    long MsId = 0,
+    bool CatalogIdsProvided = false);
 
 public sealed class CpAccessoriesListingWriteService : ICpAccessoriesListingWriteService
 {
@@ -131,7 +132,7 @@ public sealed class CpAccessoriesListingWriteService : ICpAccessoriesListingWrit
                         `photo_count` = ?, `featured` = ?, `stock_qty` = ?, `status` = ?, `updated_at` = ?,
                         `mileage_km` = ?, `body_type` = ?, `fuel_type` = ?, `transmission` = ?, `engine` = ?,
                         `drive_type` = ?, `exterior_color` = ?, `doors` = ?, `seats` = ?, `seller_type` = ?,
-                        `contact_phone` = ?, `mfa_id` = IF(? > 0, ?, `mfa_id`), `ms_id` = IF(? > 0, ?, `ms_id`)
+                        `contact_phone` = ?, `mfa_id` = IF(?, ?, `mfa_id`), `ms_id` = IF(?, ?, `ms_id`)
                     WHERE `id` = ?
                     """),
                 cancellationToken,
@@ -165,9 +166,9 @@ public sealed class CpAccessoriesListingWriteService : ICpAccessoriesListingWrit
                 request.Seats < 0 ? 0 : request.Seats,
                 sellerType,
                 (request.ContactPhone ?? string.Empty).Trim(),
-                request.MfaId,
+                request.CatalogIdsProvided ? 1 : 0,
                 request.MfaId < 0 ? 0 : request.MfaId,
-                request.MsId,
+                request.CatalogIdsProvided ? 1 : 0,
                 request.MsId < 0 ? 0 : request.MsId,
                 request.ListingId).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok("Listing updated.", request.ListingId);
