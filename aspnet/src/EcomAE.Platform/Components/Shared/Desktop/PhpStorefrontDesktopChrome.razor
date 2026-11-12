@@ -118,8 +118,8 @@
     .header-zone-box { position:relative; border:1px solid rgba(255,255,255,.55); border-radius:12px; padding:14px 10px 8px; margin-top:10px; vertical-align:top; }
     .header-zone-box__label { position:absolute; top:-11px; left:12px; padding:1px 10px; border-radius:999px; background:#fff; color:#0c4a8a; font-size:11px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; line-height:1.6; white-space:nowrap; }
     .header-zone-box__label--parts { z-index:3; }
-    body.epc-storefront--auto247 .epc-header-search { position:relative; border:1px solid rgba(255,255,255,.55); border-radius:12px; padding:18px 10px 8px !important; margin-top:14px; }
-    body.epc-storefront--auto247 .epc-header-search .header-zone-box__label--parts { top:-12px; left:14px; z-index:5; }
+    body.epc-storefront--auto247 .epc-header-search { position:relative; border:1px solid rgba(255,255,255,.55); border-radius:12px; padding:8px 10px 8px !important; margin-top:14px; }
+    body.epc-storefront--auto247 .epc-header-search .header-zone-box__label--parts { position:static; display:inline-block; margin:0 0 6px 2px; top:auto; left:auto; }
     .header-car-btn {
         color:#fff !important; border-radius:12px !important; font-weight:800;
         min-height:24px; padding:6px 16px !important; font-size:12px; line-height:1.15;
@@ -809,22 +809,26 @@
                                         <span>accounts@auto247.ae — finance</span>
                                         <span>admin@auto247.ae — controls &amp; settings</span>
                                     </div>
-                                    <div class="epc-footer-global">
-                                        <strong><i class="fa fa-globe" aria-hidden="true"></i> Locations</strong>
-                                        <span>UAE — www.auto247.ae</span>
-                                        <span>Oman — www.auto247.om</span>
-                                        <span>KSA — www.auto247.sa</span>
-                                        <span>Pakistan — www.auto247.pk</span>
-                                        <span>Country addresses &amp; phone — coming soon</span>
-                                    </div>
-                                    <div class="epc-footer-global">
-                                        <strong><i class="fa fa-university" aria-hidden="true"></i> Banking details</strong>
-                                        <span>Account holder — to be added</span>
-                                        <span>Account number — to be added</span>
-                                        <span>Bank address — to be added</span>
-                                        <span>IBAN — to be added</span>
-                                        <span>SWIFT — to be added</span>
-                                    </div>
+                                    <details class="epc-footer-toggle">
+                                        <summary><i class="fa fa-globe" aria-hidden="true"></i> Locations</summary>
+                                        <div class="epc-footer-toggle-body">
+                                            <span>UAE — www.auto247.ae</span>
+                                            <span>Oman — www.auto247.om</span>
+                                            <span>KSA — www.auto247.sa</span>
+                                            <span>Pakistan — www.auto247.pk</span>
+                                            <span>Country addresses &amp; phone — coming soon</span>
+                                        </div>
+                                    </details>
+                                    <details class="epc-footer-toggle">
+                                        <summary><i class="fa fa-university" aria-hidden="true"></i> Banking details</summary>
+                                        <div class="epc-footer-toggle-body">
+                                            <span>Account holder — to be added</span>
+                                            <span>Account number — to be added</span>
+                                            <span>Bank address — to be added</span>
+                                            <span>IBAN — to be added</span>
+                                            <span>SWIFT — to be added</span>
+                                        </div>
+                                    </details>
                                 }
                                 else
                                 {
