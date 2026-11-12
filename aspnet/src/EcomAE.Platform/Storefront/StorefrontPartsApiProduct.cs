@@ -1364,7 +1364,7 @@ public static class StorefrontPartsApiProduct
             // repeat the same unindexed JSON search on every image-less view.
             var wanted = crosses
                 .Select(c => (Brand: NormalizeBrand(c[0]), Number: c[1]))
-                .Where(c => c.Number.Length >= 3)
+                .Where(c => c.Number.Length > 0)
                 .Take(12)
                 .ToList();
             if (wanted.Count == 0)
