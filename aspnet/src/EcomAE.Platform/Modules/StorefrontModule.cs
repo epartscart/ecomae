@@ -425,7 +425,7 @@ public sealed class StorefrontModule : ISurfaceModule
             });
         });
 
-        // PHP ajax_epc_sku_media_public lookup — CHPU Spec splash + Photos gallery + row photos.
+        // SKU media lookup — CHPU Spec splash + Photos gallery + row photos.
         async Task<IResult> SkuMediaLookup(
             string? brand,
             string? brend,
@@ -472,7 +472,7 @@ public sealed class StorefrontModule : ISurfaceModule
                     },
                 source = result.Source,
                 message = result.Message,
-                note = "PHP ajax_epc_sku_media_public twin (CP sku_media, then UMAPI article cache)."
+                note = "SKU media lookup (CP sku_media, then UMAPI article cache)."
             });
         }
 
