@@ -545,7 +545,17 @@ public static class AccessoriesMarketplaceSearch
     {
         var rows = await ReadCategoriesAsync(connection, cancellationToken).ConfigureAwait(false);
         var tax = LoadTaxonomy(env);
-        var present = new HashSet<string>(rows.Where(r => r.ParentId == 0).Select(r => r.Slug), StringComparer.OrdinalIgnoreCase);
+        var present = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        await using (var slugCommand = connection.CreateCommand())
+        {
+            // include inactive rows so an admin-disabled parent is not endlessly reseeded
+            slugCommand.CommandText = "SELECT `slug` FROM `epc_acc_categories` WHERE `parent_id` = 0";
+            await using var reader = await slugCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                present.Add(reader.GetString(0));
+            }
+        }
         if (tax.Categories.Any(p => p.Slug.Length > 0 && !present.Contains(p.Slug)))
         {
             await SeedCategoriesAsync(connection, env, cancellationToken).ConfigureAwait(false);

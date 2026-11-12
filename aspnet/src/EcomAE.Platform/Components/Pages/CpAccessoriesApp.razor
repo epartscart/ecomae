@@ -295,7 +295,6 @@ else if (_view == "edit")
                                         <option value="@l.Model" selected>@l.Model</option>
                                     }
                                 </select>
-                                <input type="hidden" name="ms_id" id="epcAccMs" value="@(l?.MsId ?? 0)" />
                             }
                             else if (_modelTerms.Count > 0)
                             {
@@ -311,6 +310,7 @@ else if (_view == "edit")
                             {
                                 <input class="form-control" name="model" value="@(l?.Model ?? "")" />
                             }
+                            <input type="hidden" name="ms_id" id="epcAccMs" value="@(l?.MsId ?? 0)" />
                         </div>
                         @if (VehicleMakes.Count > 0)
                         {
