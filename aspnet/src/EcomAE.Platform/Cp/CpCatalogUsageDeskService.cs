@@ -64,7 +64,10 @@ public sealed record CpCatalogUsageDeskView(
     public const long VinReserve = 1_000;
 
     public long VinReserveLeft => Math.Max(0, VinReserve - TodayVinCalls);
-    public long TodayPercent => Math.Min(100, TodayCalls * 100 / DailyQuota);
+
+    /// <summary>Only live upstream calls consume provider quota — cache hits and
+    /// quota-blocked attempts never reach the provider.</summary>
+    public long TodayPercent => Math.Min(100, TodayLive * 100 / DailyQuota);
 }
 
 public sealed class CpCatalogUsageDeskService : ICpCatalogUsageDeskService
@@ -141,7 +144,7 @@ public sealed class CpCatalogUsageDeskService : ICpCatalogUsageDeskService
             + "FROM `epc_umapi_usage_log` WHERE `usage_date` = CURDATE()";
         await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
         return await reader.ReadAsync(ct).ConfigureAwait(false)
-            ? new Totals(reader.GetInt64(0), reader.GetInt64(1), reader.GetInt64(2), reader.GetInt64(3))
+            ? new Totals(Int64(reader, 0), Int64(reader, 1), Int64(reader, 2), Int64(reader, 3))
             : new Totals(0, 0, 0, 0);
     }
 
@@ -149,7 +152,8 @@ public sealed class CpCatalogUsageDeskService : ICpCatalogUsageDeskService
     {
         await using var command = connection.CreateCommand();
         command.CommandText =
-            "SELECT COUNT(*) FROM `epc_umapi_usage_log` WHERE `usage_date` = CURDATE() AND `action` LIKE 'vin%'";
+            "SELECT COUNT(*) FROM `epc_umapi_usage_log` WHERE `usage_date` = CURDATE() AND `action` LIKE 'vin%' "
+            + "AND `is_live` = 1 AND `from_cache` = 0 AND `quota_blocked` = 0";
         return Convert.ToInt64(await command.ExecuteScalarAsync(ct).ConfigureAwait(false));
     }
 
@@ -166,8 +170,8 @@ public sealed class CpCatalogUsageDeskService : ICpCatalogUsageDeskService
         while (await reader.ReadAsync(ct).ConfigureAwait(false))
         {
             rows.Add(new CpCatalogUsageActionRow(
-                reader.GetString(0), reader.GetInt64(1), reader.GetInt64(2),
-                reader.GetInt64(3), reader.GetInt64(4)));
+                reader.GetString(0), Int64(reader, 1), Int64(reader, 2),
+                Int64(reader, 3), Int64(reader, 4)));
         }
 
         return rows;
@@ -184,7 +188,7 @@ public sealed class CpCatalogUsageDeskService : ICpCatalogUsageDeskService
         await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
         while (await reader.ReadAsync(ct).ConfigureAwait(false))
         {
-            rows.Add(new CpCatalogUsageSourceRow(reader.GetString(0), reader.GetInt64(1), reader.GetInt64(2)));
+            rows.Add(new CpCatalogUsageSourceRow(reader.GetString(0), Int64(reader, 1), Int64(reader, 2)));
         }
 
         return rows;
@@ -197,7 +201,7 @@ public sealed class CpCatalogUsageDeskService : ICpCatalogUsageDeskService
         await using var command = connection.CreateCommand();
         command.CommandText =
             "SELECT `usage_date`, COUNT(*), COALESCE(SUM(is_live),0), COALESCE(SUM(from_cache),0), "
-            + "COALESCE(SUM(quota_blocked),0), COALESCE(SUM(`action` LIKE 'vin%'),0) "
+            + "COALESCE(SUM(quota_blocked),0), COALESCE(SUM(`action` LIKE 'vin%' AND is_live = 1 AND from_cache = 0 AND quota_blocked = 0),0) "
             + "FROM `epc_umapi_usage_log` WHERE `usage_date` >= CURDATE() - INTERVAL @days DAY "
             + "GROUP BY `usage_date` ORDER BY `usage_date` DESC";
         Add(command, "@days", days - 1);
@@ -206,8 +210,8 @@ public sealed class CpCatalogUsageDeskService : ICpCatalogUsageDeskService
         {
             rows.Add(new CpCatalogUsageDayRow(
                 Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture) ?? string.Empty,
-                reader.GetInt64(1), reader.GetInt64(2), reader.GetInt64(3),
-                reader.GetInt64(4), reader.GetInt64(5)));
+                Int64(reader, 1), Int64(reader, 2), Int64(reader, 3),
+                Int64(reader, 4), Int64(reader, 5)));
         }
 
         return rows;
@@ -239,6 +243,9 @@ public sealed class CpCatalogUsageDeskService : ICpCatalogUsageDeskService
 
         return rows;
     }
+
+    private static long Int64(DbDataReader reader, int ordinal)
+        => Convert.ToInt64(reader.GetValue(ordinal), CultureInfo.InvariantCulture);
 
     private static void Add(DbCommand command, string name, object value)
     {
