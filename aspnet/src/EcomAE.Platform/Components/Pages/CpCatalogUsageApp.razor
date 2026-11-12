@@ -1,0 +1,191 @@
+@page "/cp/catalog-usage-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Presentation
+@inject ICpCatalogUsageDeskService Desk
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Catalog usage · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+
+<style>
+    .epc-cu-hero { background:linear-gradient(135deg,#0f172a,#1d4ed8); color:#fff; border-radius:10px; padding:18px 20px; margin-bottom:16px }
+    .epc-cu-hero h3 { margin:0 0 6px; font-weight:600 }
+    .epc-cu-stat { text-align:center; }
+    .epc-cu-stat strong { display:block; font-size:22px; }
+    .epc-cu-stat .text-muted { font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+    .epc-cu-bar { height:8px; background:#e2e8f0; border-radius:99px; overflow:hidden; margin-top:6px }
+    .epc-cu-bar > div { height:100%; background:#1d4ed8; }
+    .epc-cu-bar.epc-cu-bar--warn > div { background:#d97706; }
+    .epc-cu-bar.epc-cu-bar--full > div { background:#dc2626; }
+    .epc-cu-tag { display:inline-block; padding:1px 7px; border-radius:99px; font-size:11px; font-weight:700 }
+    .epc-cu-tag--cache { background:#dcfce7; color:#166534 }
+    .epc-cu-tag--blocked { background:#fee2e2; color:#b91c1c }
+</style>
+
+<div class="col-lg-12">
+    <div class="epc-portal-settings">
+        <div class="hpanel">
+            <div class="panel-body">
+                <div class="epc-cu-hero">
+                    <h3><i class="fa fa-tachometer"></i> Catalog provider usage</h3>
+                    <p style="margin:0;opacity:.92">
+                        Where this tenant's daily catalog-provider quota goes — every storefront and API-client
+                        request to the catalog provider is logged with its action, source and outcome.
+                        Daily provider quota: @CpCatalogUsageDeskView.DailyQuota.ToString("N0") calls;
+                        @CpCatalogUsageDeskView.VinReserve.ToString("N0") held in reserve for VIN requests only.
+                    </p>
+                </div>
+
+                @if (!_isAdmin)
+                {
+                    <div class="alert alert-warning">Please <a href="/cp/login?returnUrl=/cp/catalog-usage-app">log in to Super CP</a>.</div>
+                }
+                else if (!string.IsNullOrWhiteSpace(_message))
+                {
+                    <div class="alert alert-warning">@_message</div>
+                }
+                else if (_view is not null)
+                {
+                    <div class="row" style="margin-bottom:14px">
+                        <div class="col-sm-2 col-xs-6"><div class="well well-sm epc-cu-stat"><span class="text-muted small">Calls today</span><strong>@_view.TodayCalls.ToString("N0")</strong></div></div>
+                        <div class="col-sm-2 col-xs-6"><div class="well well-sm epc-cu-stat"><span class="text-muted small">Live (quota)</span><strong>@_view.TodayLive.ToString("N0")</strong></div></div>
+                        <div class="col-sm-2 col-xs-6"><div class="well well-sm epc-cu-stat"><span class="text-muted small">Cache hits</span><strong>@_view.TodayCached.ToString("N0")</strong></div></div>
+                        <div class="col-sm-2 col-xs-6"><div class="well well-sm epc-cu-stat"><span class="text-muted small">Quota blocked</span><strong>@_view.TodayQuotaBlocked.ToString("N0")</strong></div></div>
+                        <div class="col-sm-2 col-xs-6"><div class="well well-sm epc-cu-stat"><span class="text-muted small">VIN calls</span><strong>@_view.TodayVinCalls.ToString("N0")</strong></div></div>
+                        <div class="col-sm-2 col-xs-6"><div class="well well-sm epc-cu-stat"><span class="text-muted small">VIN reserve left</span><strong>@_view.VinReserveLeft.ToString("N0")</strong></div></div>
+                    </div>
+
+                    <div class="well well-sm">
+                        <div class="text-muted small">Daily quota used — live calls only</div>
+                        <div class="epc-cu-bar @(_view.TodayPercent >= 90 ? "epc-cu-bar--full" : _view.TodayPercent >= 70 ? "epc-cu-bar--warn" : "")">
+                            <div style="width:@_view.TodayPercent.ToString(CultureInfo.InvariantCulture)%"></div>
+                        </div>
+                        <div class="text-muted" style="margin-top:4px;font-size:12px">
+                            @_view.TodayLive.ToString("N0") / @CpCatalogUsageDeskView.DailyQuota.ToString("N0") (@_view.TodayPercent%)
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Today by action</h4>
+                            <table class="table table-condensed table-striped">
+                                <thead><tr><th>Action</th><th>Calls</th><th>Live</th><th>Cached</th><th>Blocked</th></tr></thead>
+                                <tbody>
+                                    @if (_view.TodayByAction.Count == 0)
+                                    {
+                                        <tr><td colspan="5" class="text-muted">No calls today.</td></tr>
+                                    }
+                                    @foreach (var row in _view.TodayByAction)
+                                    {
+                                        <tr>
+                                            <td>@row.Action</td>
+                                            <td>@row.Calls.ToString("N0")</td>
+                                            <td>@row.LiveCalls.ToString("N0")</td>
+                                            <td>@row.CachedHits.ToString("N0")</td>
+                                            <td>@row.QuotaBlocked.ToString("N0")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Today by source</h4>
+                            <table class="table table-condensed table-striped">
+                                <thead><tr><th>Source</th><th>Calls</th><th>Blocked</th></tr></thead>
+                                <tbody>
+                                    @if (_view.TodayBySource.Count == 0)
+                                    {
+                                        <tr><td colspan="3" class="text-muted">No calls today.</td></tr>
+                                    }
+                                    @foreach (var row in _view.TodayBySource)
+                                    {
+                                        <tr><td>@row.Source</td><td>@row.Calls.ToString("N0")</td><td>@row.QuotaBlocked.ToString("N0")</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <h4>Per day — last @_view.Days days</h4>
+                    <table class="table table-condensed table-striped">
+                        <thead><tr><th>Date</th><th>Calls</th><th>Live (quota)</th><th>Cached</th><th>Blocked</th><th>VIN</th></tr></thead>
+                        <tbody>
+                            @foreach (var row in _view.Daily)
+                            {
+                                <tr>
+                                    <td>@row.UsageDate</td>
+                                    <td>@row.Calls.ToString("N0")</td>
+                                    <td>@row.LiveCalls.ToString("N0")</td>
+                                    <td>@row.CachedHits.ToString("N0")</td>
+                                    <td>@row.QuotaBlocked.ToString("N0")</td>
+                                    <td>@row.VinCalls.ToString("N0")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <h4>Recent calls</h4>
+                    <table class="table table-condensed table-striped">
+                        <thead><tr><th>Time (UTC)</th><th>Action</th><th>Source</th><th>HTTP</th><th></th><th>Message</th></tr></thead>
+                        <tbody>
+                            @foreach (var row in _view.Recent)
+                            {
+                                <tr>
+                                    <td>@row.CreatedAt</td>
+                                    <td>@row.Action</td>
+                                    <td>@row.Source</td>
+                                    <td>@row.HttpStatus</td>
+                                    <td>
+                                        @if (row.QuotaBlocked)
+                                        {
+                                            <span class="epc-cu-tag epc-cu-tag--blocked">quota</span>
+                                        }
+                                        @if (row.FromCache)
+                                        {
+                                            <span class="epc-cu-tag epc-cu-tag--cache">cache</span>
+                                        }
+                                    </td>
+                                    <td class="text-muted">@row.Message</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+</PhpCpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private CpCatalogUsageDeskView? _view;
+    private string _message = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        var daysText = ctx.Request.Query["days"].ToString();
+        var days = int.TryParse(daysText, out var parsed) ? parsed : 14;
+        _view = await Desk.LoadAsync(days, ctx.RequestAborted);
+        _message = _view.Error;
+    }
+}

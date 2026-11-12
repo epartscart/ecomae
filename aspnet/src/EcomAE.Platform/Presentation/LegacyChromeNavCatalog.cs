@@ -54,6 +54,7 @@ public static class LegacyChromeNavCatalog
         new("Storages list", "/cp/storages-app"),
         new("Admin sessions list", "/cp/admin-sessions-app"),
         new("API clients list", "/cp/api-clients-app"),
+        new("Catalog usage", "/cp/catalog-usage-app"),
         new("Power BI list", "/cp/power-bi-app"),
         new("Mobile apps summary", "/cp/mobile-apps-app"),
         new("Metabase list", "/cp/metabase-app"),
