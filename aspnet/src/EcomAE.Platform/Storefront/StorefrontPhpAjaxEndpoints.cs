@@ -3872,7 +3872,7 @@ public static class StorefrontPhpAjaxEndpoints
         var config = PhpConfig(context);
         var tech = config.TryGetValue("tech_key", out var key) ? key : string.Empty;
         config.TryGetValue("backend_dir", out var backend);
-        var root = context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.PhpDocRoot ?? string.Empty;
+        var root = context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.DocRootOrEnv() ?? string.Empty;
         return WithDbAsync(
             context,
             connections,
@@ -3899,7 +3899,7 @@ public static class StorefrontPhpAjaxEndpoints
         var tech = config.TryGetValue("tech_key", out var key) ? key : string.Empty;
         config.TryGetValue("backend_dir", out var backend);
         config.TryGetValue("tmp_dir_prices_upload", out var tmp);
-        var root = context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.PhpDocRoot ?? string.Empty;
+        var root = context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.DocRootOrEnv() ?? string.Empty;
         return WithDbAsync(
             context,
             connections,
@@ -3981,7 +3981,7 @@ public static class StorefrontPhpAjaxEndpoints
         var tech = config.TryGetValue("tech_key", out var key) ? key : string.Empty;
         config.TryGetValue("backend_dir", out var backend);
         config.TryGetValue("tmp_dir_prices_upload", out var tmp);
-        var root = context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.PhpDocRoot ?? string.Empty;
+        var root = context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.DocRootOrEnv() ?? string.Empty;
         var session = context.Request.Cookies["admin_session"];
         var user = context.Request.Cookies["admin_u_id"];
         var postedKey = context.Request.Query["key"].ToString();
@@ -4917,7 +4917,7 @@ public static class StorefrontPhpAjaxEndpoints
         CancellationToken cancellationToken)
     {
         var config = PhpConfig(context);
-        var root = context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.PhpDocRoot ?? string.Empty;
+        var root = context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.DocRootOrEnv() ?? string.Empty;
         return WithDbAsync(
             context,
             connections,
@@ -5226,7 +5226,7 @@ public static class StorefrontPhpAjaxEndpoints
             }
         }
 
-        var root = context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.PhpDocRoot ?? string.Empty;
+        var root = context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.DocRootOrEnv() ?? string.Empty;
         var capturedName = fileName;
         var capturedBytes = bytes;
         var capturedCsrf = csrf;
@@ -5261,7 +5261,7 @@ public static class StorefrontPhpAjaxEndpoints
                 context.Request.Cookies["admin_u_id"],
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
                 await OptionalPostedAsync(context, "import_options", token).ConfigureAwait(false),
-                context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.PhpDocRoot ?? string.Empty,
+                context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.DocRootOrEnv() ?? string.Empty,
                 token).ConfigureAwait(false),
             new StorefrontPhpAjax.CodedJson(503, new StorefrontPhpAjax.FlagBody(false, "No DB connect")));
 
@@ -5324,7 +5324,7 @@ public static class StorefrontPhpAjaxEndpoints
                     options = await OptionalPostedAsync(context, "export_options", token).ConfigureAwait(false) ?? string.Empty;
                 }
 
-                var root = context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.PhpDocRoot ?? string.Empty;
+                var root = context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.DocRootOrEnv() ?? string.Empty;
                 return await StorefrontPhpAjax.YmlExportAsync(
                     connection,
                     context.Request.Cookies["admin_session"],

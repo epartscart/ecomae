@@ -187,7 +187,7 @@ public sealed class CpConfigEditorService : ICpConfigEditorService
     {
         get
         {
-            var root = (_reference.PhpDocRoot ?? Environment.GetEnvironmentVariable("ECOMAE_PHP_DOCROOT") ?? string.Empty).Trim();
+            var root = _reference.DocRootOrEnv();
             return root.Length == 0 ? string.Empty : Path.Combine(root, "config.php");
         }
     }

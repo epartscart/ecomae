@@ -44,7 +44,7 @@ public sealed class CpPlatformMailer : ICpPlatformMailer
 
     public IReadOnlyDictionary<string, string> ReadConfig()
     {
-        var root = (_reference.PhpDocRoot ?? Environment.GetEnvironmentVariable("ECOMAE_PHP_DOCROOT") ?? string.Empty).Trim();
+        var root = _reference.DocRootOrEnv();
         if (root.Length == 0)
         {
             return new Dictionary<string, string>(StringComparer.Ordinal);
