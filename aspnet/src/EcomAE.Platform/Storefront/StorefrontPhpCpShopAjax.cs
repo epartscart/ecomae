@@ -1631,7 +1631,12 @@ public static partial class StorefrontPhpAjax
 
         var tempRoot = Path.GetFullPath(Path.GetTempPath());
         var root = Path.GetFullPath(string.IsNullOrWhiteSpace(docRoot) ? tempRoot : docRoot);
-        if (!root.StartsWith(tempRoot, StringComparison.Ordinal))
+        var docRootFull = string.IsNullOrWhiteSpace(docRoot) ? null : Path.GetFullPath(docRoot.TrimEnd(Path.DirectorySeparatorChar));
+        var underTemp = root.StartsWith(tempRoot, StringComparison.Ordinal);
+        var underDocRoot = docRootFull is not null
+            && (root.Equals(docRootFull, StringComparison.Ordinal)
+                || root.StartsWith(docRootFull + Path.DirectorySeparatorChar, StringComparison.Ordinal));
+        if (!underTemp && !underDocRoot)
         {
             return new JsonObject { ["status"] = false, ["message"] = "Could not upload file" };
         }
