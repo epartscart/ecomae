@@ -2,9 +2,11 @@ using System.Data.Common;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using EcomAE.Platform.Auth;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Cp;
 using EcomAE.Platform.Erp;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
 namespace EcomAE.Platform.Storefront;
@@ -112,17 +114,20 @@ public sealed partial class StorefrontNotifyDispatcher : IStorefrontNotifyDispat
     private readonly ICpPlatformMailer _mailer;
     private readonly ICpSmsGateway? _sms;
     private readonly IStorefrontWhatsappNotifier? _whatsapp;
+    private readonly IHttpContextAccessor? _http;
     private readonly string _docRoot;
 
     public StorefrontNotifyDispatcher(
         ICpPlatformMailer mailer,
         IOptions<PhpReferenceOptions>? reference = null,
         ICpSmsGateway? sms = null,
-        IStorefrontWhatsappNotifier? whatsapp = null)
+        IStorefrontWhatsappNotifier? whatsapp = null,
+        IHttpContextAccessor? http = null)
     {
         _mailer = mailer;
         _sms = sms;
         _whatsapp = whatsapp;
+        _http = http;
         _docRoot = (reference?.Value.PhpDocRoot ?? Environment.GetEnvironmentVariable("ECOMAE_PHP_DOCROOT") ?? string.Empty).Trim();
     }
 
@@ -204,6 +209,7 @@ public sealed partial class StorefrontNotifyDispatcher : IStorefrontNotifyDispat
         }
 
         var waNotify = new StorefrontWhatsappNotify(name, emailOn, smsOn);
+        var smtpOverlay = await TenantSmtpOverlayAsync(connection, cancellationToken).ConfigureAwait(false);
 
         var results = new List<StorefrontNotifyPersonResult>(persons.Count);
         foreach (var person in persons)
@@ -215,7 +221,7 @@ public sealed partial class StorefrontNotifyDispatcher : IStorefrontNotifyDispat
             if (contacts.Email.Length > 0 && emailOn)
             {
                 wrapped ??= await WrapAsync(connection, translator, subject, body, cancellationToken).ConfigureAwait(false);
-                var sent = await _mailer.SendHtmlAsync(contacts.Email, subject, wrapped, cancellationToken).ConfigureAwait(false);
+                var sent = await _mailer.SendHtmlAsync(contacts.Email, subject, wrapped, smtpOverlay, cancellationToken).ConfigureAwait(false);
                 result = new StorefrontNotifyPersonResult(person, true, sent.Ok, sent.Message);
             }
 
@@ -241,6 +247,80 @@ public sealed partial class StorefrontNotifyDispatcher : IStorefrontNotifyDispat
         }
 
         return new StorefrontNotifyAnswer(true, string.Empty, results);
+    }
+
+    /// <summary>
+    /// Per-site <c>integrations.smtp</c> overlay (CP → Tenant e-mail settings): when a site enables its
+    /// own SMTP, every storefront notification for that tenant leaves from the tenant mailbox instead of
+    /// the platform config.php sender. Prefers the row matching the request host; falls back to the
+    /// tenant DB's first site row so background sends (no HttpContext) still use the tenant mailbox.
+    /// </summary>
+    internal async Task<IReadOnlyDictionary<string, string>?> TenantSmtpOverlayAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var host = (_http?.HttpContext?.Request.Host.Host ?? string.Empty).Trim().ToLowerInvariant();
+            var aliases = new List<string>();
+            if (host.Length > 0)
+            {
+                aliases.Add(host);
+                var bare = host.StartsWith("www.", StringComparison.Ordinal) ? host[4..] : "www." + host;
+                if (!aliases.Contains(bare, StringComparer.Ordinal))
+                {
+                    aliases.Add(bare);
+                }
+            }
+
+            string? matched = null;
+            string? firstConfigured = null;
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `host`, IFNULL(`integrations_json`, '') FROM `epc_portal_site_settings` ORDER BY `host` ASC";
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<(string Host, string Json)>();
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add((reader.IsDBNull(0) ? string.Empty : (Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture) ?? string.Empty).Trim().ToLowerInvariant(),
+                    reader.IsDBNull(1) ? string.Empty : Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? string.Empty));
+            }
+
+            string? aliasJson = null;
+            foreach (var row in rows)
+            {
+                if (firstConfigured is null && AuthEmailOtp.TenantOverlay(row.Json).Count > 0)
+                {
+                    firstConfigured = row.Json;
+                }
+
+                if (host.Length > 0 && row.Host == host)
+                {
+                    matched = row.Json;
+                }
+                else if (aliasJson is null && aliases.Contains(row.Host, StringComparer.Ordinal))
+                {
+                    aliasJson = row.Json;
+                }
+            }
+
+            // Preference order: exact host row, then an alias row, then whichever site row carries
+            // saved SMTP settings (CP saves them on the first row). Each level applies only when
+            // it actually yields a tenant SMTP overlay.
+            var overlay = AuthEmailOtp.TenantOverlay(matched ?? string.Empty);
+            if (overlay.Count == 0 && aliasJson is not null)
+            {
+                overlay = AuthEmailOtp.TenantOverlay(aliasJson);
+            }
+
+            if (overlay.Count == 0 && firstConfigured is not null)
+            {
+                overlay = AuthEmailOtp.TenantOverlay(firstConfigured);
+            }
+
+            return overlay.Count > 0 ? overlay : null;
+        }
+        catch (Exception ex) when (ex is DbException or InvalidOperationException)
+        {
+            return null;
+        }
     }
 
     /// <summary>
