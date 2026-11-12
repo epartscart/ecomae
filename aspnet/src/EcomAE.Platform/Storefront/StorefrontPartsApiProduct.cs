@@ -1360,82 +1360,100 @@ public static class StorefrontPartsApiProduct
             await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken)
                 .ConfigureAwait(false);
 
-            foreach (var cross in crosses.Take(12))
+            // One bounded scan for all cross numbers — per-cross queries would
+            // repeat the same unindexed JSON search on every image-less view.
+            var wanted = crosses
+                .Select(c => (Brand: NormalizeBrand(c[0]), Number: c[1]))
+                .Where(c => c.Number.Length >= 3)
+                .Take(12)
+                .ToList();
+            if (wanted.Count == 0)
             {
-                var crossNumber = cross[1];
-                if (crossNumber.Length == 0)
+                return images;
+            }
+
+            await using var command = connection.CreateCommand();
+            var likes = new List<string>();
+            for (var i = 0; i < wanted.Count; i++)
+            {
+                var name = "@like" + i;
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = name;
+                parameter.Value = "%" + wanted[i].Number + "%";
+                command.Parameters.Add(parameter);
+                likes.Add("`response_json` LIKE " + name);
+            }
+
+            command.CommandText =
+                "SELECT `response_json` FROM `epc_umapi_cache` WHERE `action` = 'article' AND (" +
+                string.Join(" OR ", likes) + ") LIMIT 100";
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var json = reader.IsDBNull(0) ? "" : reader.GetString(0);
+                if (json.Length == 0)
                 {
                     continue;
                 }
 
-                await using var command = connection.CreateCommand();
-                command.CommandText =
-                    "SELECT `response_json` FROM `epc_umapi_cache` WHERE `action` = 'article' AND `response_json` LIKE @like LIMIT 10";
-                var parameter = command.CreateParameter();
-                parameter.ParameterName = "@like";
-                parameter.Value = "%" + crossNumber + "%";
-                command.Parameters.Add(parameter);
-                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                try
                 {
-                    var json = reader.IsDBNull(0) ? "" : reader.GetString(0);
-                    if (json.Length == 0)
+                    using var doc = JsonDocument.Parse(json);
+                    var root = doc.RootElement.ValueKind == JsonValueKind.Object
+                        && doc.RootElement.TryGetProperty("data", out var data) ? data : doc.RootElement;
+                    if (root.ValueKind != JsonValueKind.Object)
                     {
                         continue;
                     }
 
-                    try
+                    var payloadNumber = NormalizeBrand(Text(root, "ART_NUM", "ARTICLE_NR", "number") ?? "");
+                    var payloadBrand = NormalizeBrand(Text(root, "SUP_BRAND", "BRAND", "ART_SUP_BRAND") ?? "");
+                    if (payloadNumber.Length == 0 || payloadBrand.Length == 0)
                     {
-                        using var doc = JsonDocument.Parse(json);
-                        var root = doc.RootElement.ValueKind == JsonValueKind.Object
-                            && doc.RootElement.TryGetProperty("data", out var data) ? data : doc.RootElement;
-                        if (root.ValueKind != JsonValueKind.Object)
-                        {
-                            continue;
-                        }
+                        continue;
+                    }
 
-                        var payloadNumber = Text(root, "ART_NUM", "ARTICLE_NR", "number") ?? "";
-                        if (!NormalizeBrand(payloadNumber).Equals(NormalizeBrand(crossNumber), StringComparison.Ordinal))
+                    var matched = false;
+                    foreach (var w in wanted)
+                    {
+                        // Brand must prove itself: same normalized number under a
+                        // different brand would show the wrong product's photo.
+                        if (w.Brand.Length > 0 && payloadBrand == w.Brand
+                            && payloadNumber == NormalizeBrand(w.Number))
                         {
-                            continue;
+                            matched = true;
+                            break;
                         }
+                    }
 
-                        var payloadBrand = NormalizeBrand(Text(root, "SUP_BRAND", "BRAND", "ART_SUP_BRAND") ?? "");
-                        if (payloadBrand.Length > 0 && cross[0].Length > 0
-                            && !payloadBrand.Equals(NormalizeBrand(cross[0]), StringComparison.Ordinal))
-                        {
-                            continue;
-                        }
+                    if (!matched)
+                    {
+                        continue;
+                    }
 
-                        if (root.TryGetProperty("MEDIAS", out var medias) && medias.ValueKind == JsonValueKind.Array)
+                    if (root.TryGetProperty("MEDIAS", out var medias) && medias.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var m in medias.EnumerateArray())
                         {
-                            foreach (var m in medias.EnumerateArray())
-                            {
-                                var file = Text(m, "FILE_NAME", "MEDIA_FILE", "file") ?? "";
-                                if (file.Length > 0)
-                                {
-                                    images.Add("https://image.umapi.ru/ARTICLES/" + file);
-                                }
-                            }
-                        }
-
-                        if (images.Count == 0)
-                        {
-                            var file = Text(root, "MEDIA_FILE") ?? "";
+                            var file = Text(m, "FILE_NAME", "MEDIA_FILE", "file") ?? "";
                             if (file.Length > 0)
                             {
                                 images.Add("https://image.umapi.ru/ARTICLES/" + file);
                             }
                         }
                     }
-                    catch (JsonException)
-                    {
-                    }
 
-                    if (images.Count >= 3)
+                    if (images.Count == 0)
                     {
-                        break;
+                        var file = Text(root, "MEDIA_FILE") ?? "";
+                        if (file.Length > 0)
+                        {
+                            images.Add("https://image.umapi.ru/ARTICLES/" + file);
+                        }
                     }
+                }
+                catch (JsonException)
+                {
                 }
 
                 if (images.Count >= 3)
