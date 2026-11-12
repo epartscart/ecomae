@@ -541,7 +541,15 @@
                             <tr>
                                 <td>
                                     <a class="header-home-btn" href="/" aria-label="Home"><i class="fa fa-home" aria-hidden="true"></i></a>
-                                    <a class="header-cat-btn" href="@StorefrontSurfaceLinks.OwnCatalog" onclick="if(typeof showCatalogMenu==='function'){showCatalogMenu();return false;}"><i class="fa fa-bars" aria-hidden="true"></i> Catalog <span class="hidden-sm">of products</span></a>
+                                    @if (IsAuto247Host)
+                                    {
+                                        <a class="header-cat-btn" href="/en/new-cars"><i class="fa fa-car" aria-hidden="true"></i> New Car</a>
+                                        <a class="header-cat-btn" href="/en/used-cars" style="margin-left:8px;"><i class="fa fa-car" aria-hidden="true"></i> Used Car</a>
+                                    }
+                                    else
+                                    {
+                                        <a class="header-cat-btn" href="@StorefrontSurfaceLinks.OwnCatalog" onclick="if(typeof showCatalogMenu==='function'){showCatalogMenu();return false;}"><i class="fa fa-bars" aria-hidden="true"></i> Catalog <span class="hidden-sm">of products</span></a>
+                                    }
                                 </td>
                                 <td class="search-table-td">
                                     <div class="header-search-box epc-header-search" data-active-mode="1" id="epc-header-search">
@@ -663,9 +671,13 @@
             {
                 <a class="mobile-box-phone" href="tel:+971544849226">+971 54 484 9226</a>
                 <a class="mobile-box-whatsapp" href="https://wa.me/971544849226" target="_blank" rel="noopener noreferrer"><i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
+                <a href="/en/new-cars"><i class="fa fa-car" aria-hidden="true"></i> New Car</a>
+                <a href="/en/used-cars"><i class="fa fa-car" aria-hidden="true"></i> Used Car</a>
             }
-
-            <a href="@StorefrontSurfaceLinks.OwnCatalog"><i class="fa fa-cubes" aria-hidden="true"></i> Own catalog</a>
+            else
+            {
+                <a href="@StorefrontSurfaceLinks.OwnCatalog"><i class="fa fa-cubes" aria-hidden="true"></i> Own catalog</a>
+            }
             <a href="@StorefrontSurfaceLinks.PartSearch"><i class="fa fa-search" aria-hidden="true"></i> Search</a>
             <a href="@StorefrontSurfaceLinks.GarageLogin"><i class="fa fa-wrench" aria-hidden="true"></i> Garage</a>
             <a class="mobile-box-erp-login" href="/erp"><i class="fa fa-line-chart" aria-hidden="true"></i> ERP Login</a>
