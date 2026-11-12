@@ -7,6 +7,7 @@
 	var api = root.getAttribute('data-api') || '';
 	var lang = root.getAttribute('data-lang') || '/en';
 	var pageBase = root.getAttribute('data-base') || ((lang || '/en') + '/accessories-spare-parts');
+	var isCars = root.getAttribute('data-car-mode') === '1';
 	var SAVE_KEY = 'epc_acc_saved_ads';
 	var NOTIFY_KEY = 'epc_acc_notify_alerts';
 	var els = {
@@ -40,6 +41,13 @@
 		vApply: document.getElementById('epc-acc-vehicle-apply'),
 		vClear: document.getElementById('epc-acc-vehicle-clear'),
 		savedBar: document.getElementById('epc-acc-saved-bar'),
+		bodies: document.getElementById('epc-acc-bodies'),
+		fuels: document.getElementById('epc-acc-fuels'),
+		gears: document.getElementById('epc-acc-gears'),
+		sellers: document.getElementById('epc-acc-sellers'),
+		yearFrom: document.getElementById('epc-acc-year-from'),
+		yearTo: document.getElementById('epc-acc-year-to'),
+		mileageMax: document.getElementById('epc-acc-mileage-max'),
 		savedCount: document.getElementById('epc-acc-saved-count'),
 		showSaved: document.getElementById('epc-acc-show-saved'),
 		notifyOpen: document.getElementById('epc-acc-notify-open'),
@@ -53,6 +61,7 @@
 		q: '', category: '', subcategory: '', make: '', model: '', city: '',
 		condition: '', price_min: '', price_max: '', id: '', sort: 'updated-desc', page: 1, view: 'grid',
 		year: '', showSavedOnly: false,
+		body: '', fuel: '', transmission: '', seller: '', year_from: '', year_to: '', mileage_max: '',
 		taxonomy: [], makes: [], cities: []
 	};
 
@@ -101,6 +110,12 @@
 	/** Canonical storefront detail URL — never use category browse external_url. */
 	function listingHref(item) {
 		if (!item || !item.id) return pageBase;
+		if (isCars) {
+			var href = pageBase + (pageBase.indexOf('?') >= 0 ? '&' : '?') + 'id=' + encodeURIComponent(item.id);
+			if (item.category) href += '&category=' + encodeURIComponent(item.category);
+			if (item.subcategory) href += '&subcategory=' + encodeURIComponent(item.subcategory);
+			return href;
+		}
 		if (item.detail_url) return String(item.detail_url);
 		if (item.url && String(item.url).indexOf('id=') >= 0) return String(item.url);
 		var href = pageBase + (pageBase.indexOf('?') >= 0 ? '&' : '?') + 'id=' + encodeURIComponent(item.id);
@@ -188,11 +203,21 @@
 			+ '<tr><th scope="row">City</th><td>' + esc(item.city || '—') + '</td></tr>'
 			+ '<tr><th scope="row">Condition</th><td>' + esc(item.condition === 'used' ? 'Used' : 'New') + '</td></tr>'
 			+ '<tr><th scope="row">Category</th><td>' + esc([item.category_label, item.subcategory_label].filter(Boolean).join(' / ') || '—') + '</td></tr>'
+			+ (isCars && item.mileage_km > 0 ? '<tr><th scope="row">Mileage</th><td>' + esc(Number(item.mileage_km).toLocaleString() + ' km') + '</td></tr>' : '')
+			+ (isCars && item.body_type ? '<tr><th scope="row">Body type</th><td>' + esc(item.body_type) + '</td></tr>' : '')
+			+ (isCars && item.fuel_type ? '<tr><th scope="row">Fuel</th><td>' + esc(item.fuel_type) + '</td></tr>' : '')
+			+ (isCars && item.transmission ? '<tr><th scope="row">Transmission</th><td>' + esc(item.transmission) + '</td></tr>' : '')
+			+ (isCars && item.engine ? '<tr><th scope="row">Engine</th><td>' + esc(item.engine) + '</td></tr>' : '')
+			+ (isCars && item.drive_type ? '<tr><th scope="row">Drive</th><td>' + esc(item.drive_type) + '</td></tr>' : '')
+			+ (isCars && item.exterior_color ? '<tr><th scope="row">Color</th><td>' + esc(item.exterior_color) + '</td></tr>' : '')
+			+ (isCars && (item.doors > 0 || item.seats > 0) ? '<tr><th scope="row">Doors / Seats</th><td>' + esc((item.doors || '—') + ' / ' + (item.seats || '—')) + '</td></tr>' : '')
+			+ (isCars && item.seller_type ? '<tr><th scope="row">Seller</th><td>' + esc(item.seller_type === 'private' ? 'Private seller' : 'Dealer') + '</td></tr>' : '')
 			+ '</tbody></table></div>'
 			+ (desc ? '<div class="epc-acc__detail-desc"><h3>Details</h3><p>' + esc(desc) + '</p></div>' : '')
 			+ '<div class="epc-acc__actions epc-acc__detail-actions">'
 			+ '<button type="button" class="secondary epc-acc__save' + (saved ? ' is-saved' : '') + '" data-id="' + esc(item.id) + '" id="epc-acc-detail-save">'
 			+ (saved ? 'Saved' : 'Save Ad') + '</button>'
+			+ (isCars ? '<a class="primary epc-acc__enquire" href="/en/zapros-prodavczu?item=car-' + encodeURIComponent(item.id) + '">Enquire about this car</a>' : '')
 			+ (item.external_url ? '<a class="primary" href="' + esc(item.external_url) + '" target="_blank" rel="noopener">Seller link</a>' : '')
 			+ '</div>'
 			+ '</div></div>';
@@ -253,9 +278,12 @@
 	function readUrl() {
 		try {
 			var u = new URL(window.location.href);
-			['q','category','subcategory','make','model','city','condition','price_min','price_max','id','sort','page'].forEach(function (k) {
+			['q','category','subcategory','make','model','city','condition','price_min','price_max','id','sort','page','body','fuel','transmission','seller','year_from','year_to','mileage_max'].forEach(function (k) {
 				if (u.searchParams.has(k)) { state[k] = u.searchParams.get(k) || ''; }
 			});
+			if (els.yearFrom) els.yearFrom.value = state.year_from;
+			if (els.yearTo) els.yearTo.value = state.year_to;
+			if (els.mileageMax) els.mileageMax.value = state.mileage_max;
 			if (els.q) els.q.value = state.q;
 			if (els.sort) els.sort.value = state.sort || 'updated-desc';
 			if (els.model) els.model.value = state.model;
@@ -338,6 +366,32 @@
 			load();
 		}, 'Any condition');
 
+		if (isCars) {
+			facetList(els.bodies, facets.bodies || [], 'value', 'value', state.body, function (v) {
+				state.body = (state.body === v) ? '' : v;
+				state.page = 1;
+				load();
+			}, 'Any body');
+			facetList(els.fuels, facets.fuels || [], 'value', 'value', state.fuel, function (v) {
+				state.fuel = (state.fuel === v) ? '' : v;
+				state.page = 1;
+				load();
+			}, 'Any fuel');
+			facetList(els.gears, facets.transmissions || [], 'value', 'value', state.transmission, function (v) {
+				state.transmission = (state.transmission === v) ? '' : v;
+				state.page = 1;
+				load();
+			}, 'Any gearbox');
+			var sellerRows = (facets.sellers || []).map(function (s) {
+				return { value: s.value, label: s.value === 'private' ? 'Private seller' : 'Dealer', count: s.count };
+			});
+			facetList(els.sellers, sellerRows, 'value', 'label', state.seller, function (v) {
+				state.seller = (state.seller === v) ? '' : v;
+				state.page = 1;
+				load();
+			}, 'Any seller');
+		}
+
 		if (els.browseCats) {
 			els.browseCats.innerHTML = cats.map(function (c) {
 				return '<button type="button" data-cat="' + esc(c.slug) + '">' + esc(c.label) + (c.count ? ' (' + c.count + ')' : '') + '</button>';
@@ -373,8 +427,9 @@
 			});
 		}
 		if (els.browseMakes) {
+			var noun = isCars ? '' : ' Parts and Accessories';
 			els.browseMakes.innerHTML = makes.map(function (m) {
-				return '<button type="button" data-make="' + esc(m.make) + '">' + esc(m.make) + ' Parts and Accessories' + (m.count ? ' (' + m.count + ')' : '') + '</button>';
+				return '<button type="button" data-make="' + esc(m.make) + '">' + esc(m.make) + noun + (m.count ? ' (' + m.count + ')' : '') + '</button>';
 			}).join('');
 			Array.prototype.forEach.call(els.browseMakes.querySelectorAll('button'), function (btn) {
 				btn.addEventListener('click', function () {
@@ -388,7 +443,7 @@
 		if (els.browseCities) {
 			var cities = (facets && facets.cities) || [];
 			els.browseCities.innerHTML = cities.map(function (c) {
-				return '<button type="button" data-city="' + esc(c.city) + '">Parts and Accessories in ' + esc(c.city) + (c.count ? ' (' + c.count + ')' : '') + '</button>';
+				return '<button type="button" data-city="' + esc(c.city) + '">' + (isCars ? 'Cars in ' : 'Parts and Accessories in ') + esc(c.city) + (c.count ? ' (' + c.count + ')' : '') + '</button>';
 			}).join('');
 			Array.prototype.forEach.call(els.browseCities.querySelectorAll('button'), function (btn) {
 				btn.addEventListener('click', function () {
@@ -398,6 +453,16 @@
 				});
 			});
 		}
+	}
+
+	function carSpecs(item) {
+		var bits = [];
+		if (item.year) bits.push(item.year);
+		if (item.mileage_km > 0) bits.push(Number(item.mileage_km).toLocaleString() + ' km');
+		if (item.fuel_type) bits.push(item.fuel_type);
+		if (item.transmission) bits.push(item.transmission);
+		if (item.body_type) bits.push(item.body_type);
+		return bits;
 	}
 
 	function renderCards(items, emptyCatalog) {
@@ -442,10 +507,18 @@
 				? '<span class="epc-acc__compare">' + esc(money(item.compare_price, item.currency)) + '</span>'
 				: '';
 			var vehicleBits = [item.make, item.model, item.year].filter(Boolean).join(' · ');
+			var specs = isCars ? carSpecs(item) : [];
+			var specLine = specs.length
+				? '<div class="epc-acc__specs">' + specs.map(function (s) { return '<span>' + esc(s) + '</span>'; }).join('') + '</div>'
+				: '';
+			var sellerBadge = isCars && item.seller_type
+				? '<span class="epc-acc__seller">' + esc(item.seller_type === 'private' ? 'Private' : 'Dealer') + '</span>'
+				: '';
 			return '<article class="epc-acc__card' + (item.featured ? ' is-featured' : '') + '" id="epc-acc-listing-' + esc(item.id) + '" data-listing-id="' + esc(item.id) + '" style="animation-delay:' + (Math.min(idx, 8) * 0.03) + 's">'
 				+ '<div class="epc-acc__media">'
 				+ (item.featured ? '<span class="epc-acc__featured">Featured</span>' : '')
 				+ '<span class="epc-acc__media-badge">' + esc(item.condition === 'used' ? 'Used' : 'New') + '</span>'
+				+ sellerBadge
 				+ '<span class="epc-acc__photos"><i class="fa fa-camera" aria-hidden="true"></i> ' + esc(item.photo_count || listingPhotos(item).length || 1) + '</span>'
 				+ img
 				+ '</div><div class="epc-acc__body">'
@@ -456,6 +529,7 @@
 				+ '</div>'
 				+ '<h3 class="epc-acc__title"><a href="' + esc(href) + '">' + esc(item.title) + '</a></h3>'
 				+ '<p class="epc-acc__article">' + esc(vehicleBits) + (item.updated_at ? ' · ' + esc(relativeUpdated(item.updated_at)) : '') + '</p>'
+				+ specLine
 				+ '<div class="epc-acc__price-row-card"><div class="epc-acc__price">' + esc(money(item.price, item.currency)) + compareHtml + '</div></div>'
 				+ '<div class="epc-acc__actions">'
 				+ '<a class="primary" href="' + esc(href) + '">View ad</a>'
@@ -498,7 +572,7 @@
 		els.count.textContent = 'Loading…';
 		syncUrl();
 		var params = new URLSearchParams();
-		['q','category','subcategory','make','model','city','condition','price_min','price_max','id','sort','page'].forEach(function (k) {
+		['q','category','subcategory','make','model','city','condition','price_min','price_max','id','sort','page','body','fuel','transmission','seller','year_from','year_to','mileage_max'].forEach(function (k) {
 			if (state[k] !== '' && state[k] != null) params.set(k, state[k]);
 		});
 		params.set('per_page', '24');
@@ -553,13 +627,19 @@
 			if (els.vModel) els.vModel.value = state.model;
 			state.price_min = els.priceMin ? els.priceMin.value : '';
 			state.price_max = els.priceMax ? els.priceMax.value : '';
+			state.year_from = els.yearFrom ? els.yearFrom.value : '';
+			state.year_to = els.yearTo ? els.yearTo.value : '';
+			state.mileage_max = els.mileageMax ? els.mileageMax.value : '';
 			state.page = 1;
 			load();
 		});
 	}
 	if (els.reset) {
 		els.reset.addEventListener('click', function () {
-			state = { q:'', category:'', subcategory:'', make:'', model:'', city:'', condition:'', price_min:'', price_max:'', id:'', sort:'updated-desc', page:1, view:state.view, year:'', showSavedOnly:false, taxonomy:state.taxonomy, makes:state.makes, cities:state.cities };
+			state = { q:'', category:'', subcategory:'', make:'', model:'', city:'', condition: state.condition || (isCars ? root.getAttribute('data-preset-condition') || '' : ''), price_min:'', price_max:'', id:'', sort:'updated-desc', page:1, view:state.view, year:'', showSavedOnly:false, taxonomy:state.taxonomy, makes:state.makes, cities:state.cities, body:'', fuel:'', transmission:'', seller:'', year_from:'', year_to:'', mileage_max:'' };
+			if (els.yearFrom) els.yearFrom.value = '';
+			if (els.yearTo) els.yearTo.value = '';
+			if (els.mileageMax) els.mileageMax.value = '';
 			if (els.q) els.q.value = '';
 			if (els.model) els.model.value = '';
 			if (els.vMake) els.vMake.value = '';

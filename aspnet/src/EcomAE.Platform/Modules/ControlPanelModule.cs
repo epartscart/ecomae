@@ -5766,6 +5766,17 @@ public sealed class ControlPanelModule : ISurfaceModule
             var featured = body.Featured;
             var stockQty = body.StockQty;
             var status = body.Status;
+            var mileageKm = body.MileageKm;
+            var bodyType = body.BodyType;
+            var fuelType = body.FuelType;
+            var transmission = body.Transmission;
+            var engine = body.Engine;
+            var driveType = body.DriveType;
+            var exteriorColor = body.ExteriorColor;
+            var doors = body.Doors;
+            var seats = body.Seats;
+            var sellerType = body.SellerType;
+            var contactPhone = body.ContactPhone;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -5790,6 +5801,17 @@ public sealed class ControlPanelModule : ISurfaceModule
                 featured = LiveWriteFormBinder.Flag(form, "featured");
                 stockQty = LiveWriteFormBinder.Int(form, "stockQty", "stock_qty");
                 status = LiveWriteFormBinder.Text(form, "status");
+                mileageKm = LiveWriteFormBinder.Int(form, "mileageKm", "mileage_km");
+                bodyType = LiveWriteFormBinder.Text(form, "bodyType", "body_type");
+                fuelType = LiveWriteFormBinder.Text(form, "fuelType", "fuel_type");
+                transmission = LiveWriteFormBinder.Text(form, "transmission");
+                engine = LiveWriteFormBinder.Text(form, "engine");
+                driveType = LiveWriteFormBinder.Text(form, "driveType", "drive_type");
+                exteriorColor = LiveWriteFormBinder.Text(form, "exteriorColor", "exterior_color");
+                doors = LiveWriteFormBinder.Int(form, "doors");
+                seats = LiveWriteFormBinder.Int(form, "seats");
+                sellerType = LiveWriteFormBinder.Text(form, "sellerType", "seller_type");
+                contactPhone = LiveWriteFormBinder.Text(form, "contactPhone", "contact_phone");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
 
                 var categorySlug = LiveWriteFormBinder.Text(form, "category");
@@ -5841,7 +5863,18 @@ public sealed class ControlPanelModule : ISurfaceModule
                     photoCount == 0 ? 1 : photoCount,
                     featured,
                     stockQty,
-                    status),
+                    status,
+                    mileageKm,
+                    bodyType,
+                    fuelType,
+                    transmission,
+                    engine,
+                    driveType,
+                    exteriorColor,
+                    doors,
+                    seats,
+                    sellerType,
+                    contactPhone),
                 cancellationToken);
             if (written.Succeeded && written.Id > 0 && context.Request.HasFormContentType
                 && context.Request.Form["returnUrl"].ToString() is { } ret
@@ -17684,6 +17717,17 @@ public sealed class ControlPanelModule : ISurfaceModule
         bool Featured = false,
         int StockQty = 0,
         string? Status = null,
+        int MileageKm = 0,
+        string? BodyType = null,
+        string? FuelType = null,
+        string? Transmission = null,
+        string? Engine = null,
+        string? DriveType = null,
+        string? ExteriorColor = null,
+        int Doors = 0,
+        int Seats = 0,
+        string? SellerType = null,
+        string? ContactPhone = null,
         bool ConfirmWrites = false);
     private sealed record CpVersionClearUpdatesBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpReturnActionBody(

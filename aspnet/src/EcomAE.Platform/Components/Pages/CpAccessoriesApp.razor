@@ -354,6 +354,77 @@ else if (_view == "edit")
                             <input class="form-control" type="number" min="1" name="photo_count" id="epcAccPhotoCount" value="@Math.Max(1, l?.PhotoCount ?? 1)" readonly title="Updated automatically from uploaded photos" />
                             <small class="muted">Auto-updated from gallery</small>
                         </div>
+                        <div class="full"><strong style="display:block;margin:.5rem 0 .25rem;">Vehicle details <span class="muted" style="font-weight:400;">(used on the New / Used Automotive pages)</span></strong></div>
+                        <div>
+                            <label>Body type</label>
+                            <select name="body_type" class="form-control">
+                                <option value="">—</option>
+                                @foreach (var b in new[] { "Sedan", "Hatchback", "SUV", "Crossover", "Coupe", "Convertible", "Pickup Truck", "Van / Minivan", "Wagon", "Electric" })
+                                {
+                                    <option value="@b" selected="@(l?.BodyType == b)">@b</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label>Fuel type</label>
+                            <select name="fuel_type" class="form-control">
+                                <option value="">—</option>
+                                @foreach (var f in new[] { "Petrol", "Diesel", "Hybrid", "Plug-in Hybrid", "Electric", "LPG" })
+                                {
+                                    <option value="@f" selected="@(l?.FuelType == f)">@f</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label>Transmission</label>
+                            <select name="transmission" class="form-control">
+                                <option value="">—</option>
+                                @foreach (var t in new[] { "Automatic", "Manual", "CVT", "Tiptronic" })
+                                {
+                                    <option value="@t" selected="@(l?.Transmission == t)">@t</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label>Engine</label>
+                            <input class="form-control" name="engine" maxlength="80" value="@(l?.Engine ?? "")" placeholder="2.0L V4" />
+                        </div>
+                        <div>
+                            <label>Drive</label>
+                            <select name="drive_type" class="form-control">
+                                <option value="">—</option>
+                                @foreach (var d in new[] { "FWD", "RWD", "AWD", "4WD" })
+                                {
+                                    <option value="@d" selected="@(l?.DriveType == d)">@d</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label>Exterior color</label>
+                            <input class="form-control" name="exterior_color" maxlength="60" value="@(l?.ExteriorColor ?? "")" placeholder="Pearl White" />
+                        </div>
+                        <div>
+                            <label>Mileage (km)</label>
+                            <input class="form-control" type="number" min="0" name="mileage_km" value="@(l?.MileageKm ?? 0)" />
+                        </div>
+                        <div>
+                            <label>Doors / Seats</label>
+                            <div style="display:flex;gap:8px;">
+                                <input class="form-control" type="number" min="0" name="doors" value="@(l?.Doors ?? 0)" placeholder="Doors" />
+                                <input class="form-control" type="number" min="0" name="seats" value="@(l?.Seats ?? 0)" placeholder="Seats" />
+                            </div>
+                        </div>
+                        <div>
+                            <label>Seller type</label>
+                            <select name="seller_type" class="form-control">
+                                <option value="dealer" selected="@((l?.SellerType ?? "dealer") == "dealer")">Dealer</option>
+                                <option value="private" selected="@(l?.SellerType == "private")">Private seller</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Seller phone</label>
+                            <input class="form-control" name="contact_phone" maxlength="60" value="@(l?.ContactPhone ?? "")" placeholder="+971 5x xxx xxxx" />
+                        </div>
                         <div>
                             <label>Featured</label>
                             <select name="featured" class="form-control">
