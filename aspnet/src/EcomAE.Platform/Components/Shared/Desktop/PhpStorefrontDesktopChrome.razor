@@ -115,6 +115,10 @@
         display:inline-flex; align-items:center; gap:.35rem; cursor:pointer;
     }
     .header-car-stack { display:inline-flex; flex-direction:column; gap:6px; vertical-align:middle; }
+    .header-zone-box { position:relative; border:1px solid rgba(255,255,255,.55); border-radius:12px; padding:14px 10px 8px; margin-top:10px; vertical-align:top; }
+    .header-zone-box__label { position:absolute; top:-11px; left:12px; padding:1px 10px; border-radius:999px; background:#fff; color:#0c4a8a; font-size:11px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; line-height:1.6; white-space:nowrap; }
+    .header-zone-box__label--parts { z-index:3; }
+    body.epc-storefront--auto247 .epc-header-search { position:relative; border:1px solid rgba(255,255,255,.55); border-radius:12px; padding:14px 10px 8px !important; margin-top:10px; }
     .header-car-btn {
         color:#fff !important; border-radius:12px !important; font-weight:800;
         min-height:24px; padding:6px 16px !important; font-size:12px; line-height:1.15;
@@ -564,9 +568,12 @@
                                     <a class="header-home-btn" href="/" aria-label="Home"><i class="fa fa-home" aria-hidden="true"></i></a>
                                     @if (IsAuto247Host)
                                     {
+                                        <div class="header-zone-box">
+                                            <span class="header-zone-box__label">Automotive</span>
                                         <div class="header-car-stack">
-                                            <a class="header-car-btn header-car-btn--new" href="/en/new-cars"><i class="fa fa-car" aria-hidden="true"></i> New Car</a>
-                                            <a class="header-car-btn header-car-btn--used" href="/en/used-cars"><i class="fa fa-automobile" aria-hidden="true"></i> Used Car</a>
+                                            <a class="header-car-btn header-car-btn--new" href="/en/new-cars"><i class="fa fa-car" aria-hidden="true"></i> New Automotive</a>
+                                            <a class="header-car-btn header-car-btn--used" href="/en/used-cars"><i class="fa fa-automobile" aria-hidden="true"></i> Used Automotive</a>
+                                        </div>
                                         </div>
                                     }
                                     else
@@ -576,6 +583,10 @@
                                 </td>
                                 <td class="search-table-td">
                                     <div class="header-search-box epc-header-search" data-active-mode="1" id="epc-header-search">
+                                        @if (IsAuto247Host)
+                                        {
+                                            <span class="header-zone-box__label header-zone-box__label--parts">Automotive Parts</span>
+                                        }
                                         <div class="epc-header-search__tabs" role="tablist" aria-label="Search type">
                                             <button type="button" class="epc-header-search__tab active" data-search-mode="1" role="tab" aria-selected="true"><i class="fa fa-barcode" aria-hidden="true"></i><span>Part number</span></button>
                                             <button type="button" class="epc-header-search__tab" data-search-mode="3" role="tab" aria-selected="false"><i class="fa fa-id-card" aria-hidden="true"></i><span>VIN</span></button>
@@ -694,8 +705,8 @@
             {
                 <a class="mobile-box-phone" href="tel:+971544849226">+971 54 484 9226</a>
                 <a class="mobile-box-whatsapp" href="https://wa.me/971544849226" target="_blank" rel="noopener noreferrer"><i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
-                <a class="header-car-btn header-car-btn--new" href="/en/new-cars"><i class="fa fa-car" aria-hidden="true"></i> New Car</a>
-                <a class="header-car-btn header-car-btn--used" href="/en/used-cars"><i class="fa fa-automobile" aria-hidden="true"></i> Used Car</a>
+                <a class="header-car-btn header-car-btn--new" href="/en/new-cars"><i class="fa fa-car" aria-hidden="true"></i> New Automotive</a>
+                <a class="header-car-btn header-car-btn--used" href="/en/used-cars"><i class="fa fa-automobile" aria-hidden="true"></i> Used Automotive</a>
             }
             else
             {
