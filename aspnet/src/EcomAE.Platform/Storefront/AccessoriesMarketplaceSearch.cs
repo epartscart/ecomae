@@ -185,6 +185,48 @@ public static class AccessoriesMarketplaceSearch
                 args.Add(filters.PriceMax);
             }
 
+            if (filters.YearFrom > 0)
+            {
+                where.Add("CAST(l.`year` AS UNSIGNED) >= ?");
+                args.Add(filters.YearFrom);
+            }
+
+            if (filters.YearTo > 0)
+            {
+                where.Add("CAST(l.`year` AS UNSIGNED) <= ?");
+                args.Add(filters.YearTo);
+            }
+
+            if (filters.MileageMax > 0)
+            {
+                where.Add("l.`mileage_km` > 0 AND l.`mileage_km` <= ?");
+                args.Add(filters.MileageMax);
+            }
+
+            if (filters.BodyType.Length > 0)
+            {
+                where.Add("l.`body_type` = ?");
+                args.Add(filters.BodyType);
+            }
+
+            if (filters.FuelType.Length > 0)
+            {
+                where.Add("l.`fuel_type` = ?");
+                args.Add(filters.FuelType);
+            }
+
+            if (filters.Transmission.Length > 0)
+            {
+                where.Add("l.`transmission` = ?");
+                args.Add(filters.Transmission);
+            }
+
+            if (filters.SellerType.Length > 0)
+            {
+                where.Add("l.`seller_type` = ?");
+                args.Add(filters.SellerType);
+            }
+
             if (filters.Q.Length > 0)
             {
                 where.Add("(l.`title` LIKE ? OR l.`description` LIKE ? OR l.`make` LIKE ? OR l.`model` LIKE ?)");
@@ -256,6 +298,17 @@ public static class AccessoriesMarketplaceSearch
                 subcategory = row.SubcategorySlug,
                 subcategory_label = row.SubcategoryLabel,
                 updated_at = row.UpdatedAt,
+                mileage_km = row.MileageKm,
+                body_type = row.BodyType,
+                fuel_type = row.FuelType,
+                transmission = row.Transmission,
+                engine = row.Engine,
+                drive_type = row.DriveType,
+                exterior_color = row.ExteriorColor,
+                doors = row.Doors,
+                seats = row.Seats,
+                seller_type = row.SellerType,
+                contact_phone = row.ContactPhone,
             });
         }
 
@@ -277,6 +330,10 @@ public static class AccessoriesMarketplaceSearch
                 makes = facets.Makes,
                 cities = facets.Cities,
                 conditions = facets.Conditions,
+                bodies = facets.Bodies,
+                fuels = facets.Fuels,
+                transmissions = facets.Transmissions,
+                sellers = facets.Sellers,
             },
             taxonomy = facets.Categories,
             makes = facets.MakeLabels,
@@ -339,6 +396,17 @@ public static class AccessoriesMarketplaceSearch
                 `status` VARCHAR(32) NOT NULL DEFAULT 'published',
                 `created_at` INT UNSIGNED NOT NULL DEFAULT 0,
                 `updated_at` INT UNSIGNED NOT NULL DEFAULT 0,
+                `mileage_km` INT NOT NULL DEFAULT 0,
+                `body_type` VARCHAR(60) NOT NULL DEFAULT '',
+                `fuel_type` VARCHAR(60) NOT NULL DEFAULT '',
+                `transmission` VARCHAR(60) NOT NULL DEFAULT '',
+                `engine` VARCHAR(80) NOT NULL DEFAULT '',
+                `drive_type` VARCHAR(60) NOT NULL DEFAULT '',
+                `exterior_color` VARCHAR(60) NOT NULL DEFAULT '',
+                `doors` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+                `seats` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+                `seller_type` VARCHAR(32) NOT NULL DEFAULT 'dealer',
+                `contact_phone` VARCHAR(60) NOT NULL DEFAULT '',
                 PRIMARY KEY (`id`),
                 KEY `category_id` (`category_id`),
                 KEY `subcategory_id` (`subcategory_id`),
@@ -377,6 +445,60 @@ public static class AccessoriesMarketplaceSearch
                 KEY `listing_primary` (`listing_id`, `is_primary`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
             """, cancellationToken).ConfigureAwait(false);
+        await EnsureListingColumnsAsync(connection, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Adds the vehicle columns to <c>epc_acc_listings</c> on tenants created
+    /// before the car marketplace shipped. Idempotent per column.
+    /// </summary>
+    internal static async Task EnsureListingColumnsAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        var existing = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = """
+                SELECT COLUMN_NAME FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'epc_acc_listings'
+                """;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var name = reader.IsDBNull(0) ? string.Empty : Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture) ?? string.Empty;
+                if (name.Length > 0)
+                {
+                    existing.Add(name);
+                }
+            }
+        }
+
+        (string Name, string Definition)[] columns =
+        [
+            ("mileage_km", "INT NOT NULL DEFAULT 0"),
+            ("body_type", "VARCHAR(60) NOT NULL DEFAULT ''"),
+            ("fuel_type", "VARCHAR(60) NOT NULL DEFAULT ''"),
+            ("transmission", "VARCHAR(60) NOT NULL DEFAULT ''"),
+            ("engine", "VARCHAR(80) NOT NULL DEFAULT ''"),
+            ("drive_type", "VARCHAR(60) NOT NULL DEFAULT ''"),
+            ("exterior_color", "VARCHAR(60) NOT NULL DEFAULT ''"),
+            ("doors", "TINYINT UNSIGNED NOT NULL DEFAULT 0"),
+            ("seats", "TINYINT UNSIGNED NOT NULL DEFAULT 0"),
+            ("seller_type", "VARCHAR(32) NOT NULL DEFAULT 'dealer'"),
+            ("contact_phone", "VARCHAR(60) NOT NULL DEFAULT ''"),
+        ];
+        foreach (var (name, definition) in columns)
+        {
+            if (existing.Contains(name))
+            {
+                continue;
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                "ALTER TABLE `epc_acc_listings` ADD COLUMN `" + name + "` " + definition,
+                cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private static async Task<List<AccCategory>> CategoryTreeAsync(DbConnection connection, IWebHostEnvironment env, CancellationToken cancellationToken)
@@ -539,7 +661,9 @@ public static class AccessoriesMarketplaceSearch
         command.CommandText = ErpDb.Positional(
             "SELECT l.`id`, l.`title`, l.`description`, l.`make`, l.`model`, l.`year`, l.`city`, l.`condition_type`, " +
             "l.`price`, l.`compare_price`, l.`currency`, l.`image_url`, l.`external_url`, l.`photo_count`, l.`featured`, " +
-            "l.`stock_qty`, c.`slug`, c.`label`, s.`slug`, s.`label`, l.`updated_at` " +
+            "l.`stock_qty`, c.`slug`, c.`label`, s.`slug`, s.`label`, l.`updated_at`, " +
+            "l.`mileage_km`, l.`body_type`, l.`fuel_type`, l.`transmission`, l.`engine`, l.`drive_type`, " +
+            "l.`exterior_color`, l.`doors`, l.`seats`, l.`seller_type`, l.`contact_phone` " +
             "FROM `epc_acc_listings` l " +
             "LEFT JOIN `epc_acc_categories` c ON c.id = l.category_id " +
             "LEFT JOIN `epc_acc_categories` s ON s.id = l.subcategory_id " +
@@ -571,7 +695,18 @@ public static class AccessoriesMarketplaceSearch
                 Text(reader, 17),
                 Text(reader, 18),
                 Text(reader, 19),
-                reader.IsDBNull(20) ? 0 : Convert.ToInt64(reader.GetValue(20), CultureInfo.InvariantCulture)));
+                reader.IsDBNull(20) ? 0 : Convert.ToInt64(reader.GetValue(20), CultureInfo.InvariantCulture),
+                reader.IsDBNull(21) ? 0 : Convert.ToInt32(reader.GetValue(21), CultureInfo.InvariantCulture),
+                Text(reader, 22),
+                Text(reader, 23),
+                Text(reader, 24),
+                Text(reader, 25),
+                Text(reader, 26),
+                Text(reader, 27),
+                reader.IsDBNull(28) ? 0 : Convert.ToInt32(reader.GetValue(28), CultureInfo.InvariantCulture),
+                reader.IsDBNull(29) ? 0 : Convert.ToInt32(reader.GetValue(29), CultureInfo.InvariantCulture),
+                Text(reader, 30),
+                Text(reader, 31)));
         }
 
         return rows;
@@ -683,6 +818,7 @@ public static class AccessoriesMarketplaceSearch
         var makeLabels = await TermLabelsAsync(connection, env, "make", cancellationToken).ConfigureAwait(false);
         var cityLabels = await TermLabelsAsync(connection, env, "city", cancellationToken).ConfigureAwait(false);
         var conditions = await ConditionFacetsAsync(connection, cancellationToken).ConfigureAwait(false);
+        var carFacets = await CarSpecFacetsAsync(connection, cancellationToken).ConfigureAwait(false);
         var facetMakes = new List<object>();
         foreach (var name in makeLabels)
         {
@@ -711,7 +847,7 @@ public static class AccessoriesMarketplaceSearch
             }
         }
 
-        return new AccFacets(categories, facetMakes, facetCities, conditions, makeLabels, cityLabels);
+        return new AccFacets(categories, facetMakes, facetCities, conditions, makeLabels, cityLabels, carFacets.Bodies, carFacets.Fuels, carFacets.Transmissions, carFacets.Sellers);
     }
 
     private static async Task<List<string>> TermLabelsAsync(DbConnection connection, IWebHostEnvironment env, string type, CancellationToken cancellationToken)
@@ -798,6 +934,42 @@ public static class AccessoriesMarketplaceSearch
             value,
             label,
             sort);
+
+    private static async Task<(List<object> Bodies, List<object> Fuels, List<object> Transmissions, List<object> Sellers)> CarSpecFacetsAsync(
+        DbConnection connection, CancellationToken cancellationToken)
+    {
+        var bodies = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var fuels = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var gears = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var sellers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT l.`body_type`, l.`fuel_type`, l.`transmission`, l.`seller_type`, COUNT(*) AS cnt
+            FROM `epc_acc_listings` l
+            LEFT JOIN `epc_acc_categories` c ON c.id = l.category_id
+            WHERE l.`status` = 'published' AND c.`slug` = 'cars'
+            GROUP BY l.`body_type`, l.`fuel_type`, l.`transmission`, l.`seller_type`
+            """;
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var cnt = reader.IsDBNull(4) ? 0 : Convert.ToInt32(reader.GetValue(4), CultureInfo.InvariantCulture);
+            var body = Text(reader, 0);
+            var fuel = Text(reader, 1);
+            var gear = Text(reader, 2);
+            var seller = Text(reader, 3);
+            if (body.Length > 0) bodies[body] = bodies.GetValueOrDefault(body) + cnt;
+            if (fuel.Length > 0) fuels[fuel] = fuels.GetValueOrDefault(fuel) + cnt;
+            if (gear.Length > 0) gears[gear] = gears.GetValueOrDefault(gear) + cnt;
+            if (seller.Length > 0) sellers[seller] = sellers.GetValueOrDefault(seller) + cnt;
+        }
+
+        List<object> Pack(Dictionary<string, int> map)
+            => map.OrderByDescending(p => p.Value).ThenBy(p => p.Key)
+                .Select(p => (object)new { value = p.Key, count = p.Value }).ToList();
+
+        return (Pack(bodies), Pack(fuels), Pack(gears), Pack(sellers));
+    }
 
     private static async Task<List<object>> ConditionFacetsAsync(DbConnection connection, CancellationToken cancellationToken)
     {
@@ -905,6 +1077,9 @@ public static class AccessoriesMarketplaceSearch
         _ = int.TryParse(Field("page"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var page);
         _ = double.TryParse(Field("price_min"), NumberStyles.Float, CultureInfo.InvariantCulture, out var priceMin);
         _ = double.TryParse(Field("price_max"), NumberStyles.Float, CultureInfo.InvariantCulture, out var priceMax);
+        _ = int.TryParse(Field("year_from"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var yearFrom);
+        _ = int.TryParse(Field("year_to"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var yearTo);
+        _ = int.TryParse(Field("mileage_max"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var mileageMax);
         var sort = Field("sort");
         return new AccFilters(
             Field("q"),
@@ -919,7 +1094,14 @@ public static class AccessoriesMarketplaceSearch
             listingId,
             sort.Length == 0 ? "updated-desc" : sort,
             Math.Max(1, page == 0 ? 1 : page),
-            NormalizePerPage(Field("per_page").Length == 0 ? null : Field("per_page")));
+            NormalizePerPage(Field("per_page").Length == 0 ? null : Field("per_page")),
+            yearFrom,
+            yearTo,
+            mileageMax,
+            Field("body"),
+            Field("fuel"),
+            Field("transmission"),
+            Field("seller"));
     }
 
     private static string Unavailable()
@@ -969,7 +1151,14 @@ public static class AccessoriesMarketplaceSearch
         long ListingId,
         string Sort,
         int Page,
-        int PerPage);
+        int PerPage,
+        int YearFrom,
+        int YearTo,
+        int MileageMax,
+        string BodyType,
+        string FuelType,
+        string Transmission,
+        string SellerType);
 
     private sealed record AccCategory(long Id, long ParentId, string Slug, string Label, int PwId, List<AccCategory> Children);
 
@@ -994,7 +1183,18 @@ public static class AccessoriesMarketplaceSearch
         string CategoryLabel,
         string SubcategorySlug,
         string SubcategoryLabel,
-        long UpdatedAt);
+        long UpdatedAt,
+        int MileageKm,
+        string BodyType,
+        string FuelType,
+        string Transmission,
+        string Engine,
+        string DriveType,
+        string ExteriorColor,
+        int Doors,
+        int Seats,
+        string SellerType,
+        string ContactPhone);
 
     private sealed record AccPhoto(long Id, string Url, bool IsPrimary);
 
@@ -1004,7 +1204,11 @@ public static class AccessoriesMarketplaceSearch
         object Cities,
         object Conditions,
         IReadOnlyList<string> MakeLabels,
-        IReadOnlyList<string> CityLabels);
+        IReadOnlyList<string> CityLabels,
+        object Bodies,
+        object Fuels,
+        object Transmissions,
+        object Sellers);
 
     private sealed record AccTaxonomy(IReadOnlyList<AccTaxCategory> Categories, List<string> Makes, List<string> Cities);
 

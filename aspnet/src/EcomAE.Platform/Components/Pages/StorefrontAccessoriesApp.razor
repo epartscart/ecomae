@@ -7,7 +7,7 @@
 <PageTitle>@(string.IsNullOrWhiteSpace(PageTitleText) ? "Accessories & spare parts · eParts Cart" : PageTitleText)</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 
-    <link rel="stylesheet" href="/platform-assets/epc_accessories.css?v=20260808acc" />
+    <link rel="stylesheet" href="/platform-assets/epc_accessories.css?v=20261112cars" />
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
 <StorefrontTenantChrome>
@@ -16,7 +16,8 @@
              data-lang="/en"
              data-base="@(string.IsNullOrWhiteSpace(BasePath) ? "/storefront/accessories-app" : BasePath)"
              data-preset-category="@(PresetCategory ?? "")"
-             data-preset-condition="@(PresetCondition ?? "")">
+             data-preset-condition="@(PresetCondition ?? "")"
+             data-car-mode="@(CarMode ? "1" : "")">
 
         <div class="epc-acc__hero">
             <div class="container">
@@ -26,7 +27,7 @@
                 <div class="epc-acc__hero-cta">
                     <form class="epc-acc__search" id="epc-acc-search-form" role="search">
                         <label class="sr-only" for="epc-acc-q">Search accessories</label>
-                        <input id="epc-acc-q" name="q" type="search" placeholder="Search accessories and spare parts" maxlength="80" />
+                        <input id="epc-acc-q" name="q" type="search" placeholder="@(CarMode ? "Search by make, model or keyword" : "Search accessories and spare parts")" maxlength="80" />
                         <button type="submit"><i class="fa fa-search" aria-hidden="true"></i> Search</button>
                     </form>
                     <button type="button" class="epc-acc__btn epc-acc__btn--ghost" id="epc-acc-notify-open">Notify Me</button>
@@ -90,6 +91,35 @@
                         <h3>Condition</h3>
                         <ul class="epc-acc__facet-list" id="epc-acc-condition"></ul>
                     </div>
+                    @if (CarMode)
+                    {
+                        <div class="epc-acc__facet">
+                            <h3>Body type</h3>
+                            <ul class="epc-acc__facet-list" id="epc-acc-bodies"></ul>
+                        </div>
+                        <div class="epc-acc__facet">
+                            <h3>Fuel type</h3>
+                            <ul class="epc-acc__facet-list" id="epc-acc-fuels"></ul>
+                        </div>
+                        <div class="epc-acc__facet">
+                            <h3>Transmission</h3>
+                            <ul class="epc-acc__facet-list" id="epc-acc-gears"></ul>
+                        </div>
+                        <div class="epc-acc__facet">
+                            <h3>Seller</h3>
+                            <ul class="epc-acc__facet-list" id="epc-acc-sellers"></ul>
+                        </div>
+                        <div class="epc-acc__facet">
+                            <h3>Year &amp; mileage</h3>
+                            <div class="epc-acc__price-row">
+                                <input type="number" id="epc-acc-year-from" min="1990" max="2035" step="1" placeholder="Year from" />
+                                <input type="number" id="epc-acc-year-to" min="1990" max="2035" step="1" placeholder="Year to" />
+                            </div>
+                            <div class="epc-acc__price-row">
+                                <input type="number" id="epc-acc-mileage-max" min="0" step="1000" placeholder="Max mileage (km)" />
+                            </div>
+                        </div>
+                    }
                     <div class="epc-acc__facet">
                         <h3>Price range</h3>
                         <div class="epc-acc__price-row">
@@ -166,7 +196,7 @@
 </StorefrontTenantChrome>
 
 @* Marketplace JS (PHP twin). MarkupString so Blazor SSR does not strip the tag. *@
-@((MarkupString)"""<script src="/platform-assets/epc_accessories_marketplace.js?v=20260808acc"></script>""")
+@((MarkupString)"""<script src="/platform-assets/epc_accessories_marketplace.js?v=20261112cars"></script>""")
 
 @code {
     /// <summary>Optional page title override when this component is embedded (e.g. car listing pages).</summary>
@@ -189,4 +219,7 @@
 
     /// <summary>Condition pinned when the page loads: "new" or "used" (empty = any).</summary>
     [Parameter] public string? PresetCondition { get; set; }
+
+    /// <summary>True on the New / Used Automotive pages — renders the vehicle filter facets.</summary>
+    [Parameter] public bool CarMode { get; set; }
 }

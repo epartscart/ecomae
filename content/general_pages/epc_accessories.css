@@ -822,3 +822,37 @@
 	.epc-acc__search { flex-direction: column; }
 	.epc-acc__vehicle-row { grid-template-columns: 1fr; }
 }
+
+/* Car marketplace (new/used cars) extras */
+.epc-acc__seller {
+	position: absolute;
+	left: 10px;
+	top: 34px;
+	background: #0c4a8a;
+	color: #fff;
+	font-size: 11px;
+	font-weight: 800;
+	border-radius: 999px;
+	padding: 4px 8px;
+	z-index: 1;
+}
+.epc-acc__specs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin: 6px 0 0;
+}
+.epc-acc__specs span {
+	background: #f1f5f9;
+	border: 1px solid #e2e8f0;
+	border-radius: 999px;
+	color: #334155;
+	font-size: 11px;
+	font-weight: 700;
+	padding: 2px 8px;
+	white-space: nowrap;
+}
+.epc-acc__enquire {
+	background: linear-gradient(135deg, #0ea5e9, #0c4a8a);
+	border: 0;
+}
