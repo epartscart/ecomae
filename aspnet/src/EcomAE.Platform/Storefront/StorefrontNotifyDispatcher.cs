@@ -283,6 +283,7 @@ public sealed partial class StorefrontNotifyDispatcher : IStorefrontNotifyDispat
                     reader.IsDBNull(1) ? string.Empty : Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? string.Empty));
             }
 
+            string? aliasJson = null;
             foreach (var row in rows)
             {
                 if (firstConfigured is null && AuthEmailOtp.TenantOverlay(row.Json).Count > 0)
@@ -293,18 +294,22 @@ public sealed partial class StorefrontNotifyDispatcher : IStorefrontNotifyDispat
                 if (host.Length > 0 && row.Host == host)
                 {
                     matched = row.Json;
-                    break;
                 }
-
-                if (matched is null && aliases.Contains(row.Host, StringComparer.Ordinal))
+                else if (aliasJson is null && aliases.Contains(row.Host, StringComparer.Ordinal))
                 {
-                    matched = row.Json;
+                    aliasJson = row.Json;
                 }
             }
 
-            // The request host's own row wins; if it has no tenant SMTP (or no row exists), fall back
-            // to whichever site row carries the saved settings — CP saves them on the first row.
+            // Preference order: exact host row, then an alias row, then whichever site row carries
+            // saved SMTP settings (CP saves them on the first row). Each level applies only when
+            // it actually yields a tenant SMTP overlay.
             var overlay = AuthEmailOtp.TenantOverlay(matched ?? string.Empty);
+            if (overlay.Count == 0 && aliasJson is not null)
+            {
+                overlay = AuthEmailOtp.TenantOverlay(aliasJson);
+            }
+
             if (overlay.Count == 0 && firstConfigured is not null)
             {
                 overlay = AuthEmailOtp.TenantOverlay(firstConfigured);
