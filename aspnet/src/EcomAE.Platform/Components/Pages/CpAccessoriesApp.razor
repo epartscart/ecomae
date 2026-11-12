@@ -603,21 +603,30 @@ else if (_view == "edit")
                 });
             });
         }
+        function appendModelOption(name, selected) {
+            var o = document.createElement('option');
+            o.value = name;
+            o.textContent = name;
+            if (selected) o.selected = true;
+            model.appendChild(o);
+        }
         function loadModels(keep) {
             model.innerHTML = '<option value="">—</option>';
             if (mfa.value === '0') {
-                if (keep) { model.innerHTML = '<option value="' + keep.replace(/"/g, '') + '" selected>' + keep + '</option>'; }
+                if (keep) { appendModelOption(keep, true); }
                 return;
             }
             load('/cp/accessories/vehicle-data?mfa_id=' + mfa.value, function (d) {
+                var matched = false;
                 (d.models || []).forEach(function (m) {
                     var o = document.createElement('option');
                     o.value = m.name;
                     o.setAttribute('data-ms', m.msId);
                     o.textContent = m.name + ((m.yearFrom || m.yearTo) ? ' (' + (m.yearFrom || '') + '-' + (m.yearTo || 'p.t.') + ')' : '');
-                    if (keep === m.name) { o.selected = true; }
+                    if (keep === m.name) { o.selected = true; matched = true; }
                     model.appendChild(o);
                 });
+                if (keep && !matched) { appendModelOption(keep, true); }
                 syncMs();
                 loadMods();
             });

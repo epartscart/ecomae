@@ -229,14 +229,33 @@ public static class AccessoriesMarketplaceSearch
 
             if (filters.MfaId > 0)
             {
-                where.Add("l.`mfa_id` = ?");
-                args.Add(filters.MfaId);
+                if (filters.Make.Length > 0)
+                {
+                    // keep legacy rows (mfa_id = 0) that carry the same make name
+                    where.Add("(l.`mfa_id` = ? OR l.`make` = ?)");
+                    args.Add(filters.MfaId);
+                    args.Add(filters.Make);
+                }
+                else
+                {
+                    where.Add("l.`mfa_id` = ?");
+                    args.Add(filters.MfaId);
+                }
             }
 
             if (filters.MsId > 0)
             {
-                where.Add("l.`ms_id` = ?");
-                args.Add(filters.MsId);
+                if (filters.Model.Length > 0)
+                {
+                    where.Add("(l.`ms_id` = ? OR l.`model` = ?)");
+                    args.Add(filters.MsId);
+                    args.Add(filters.Model);
+                }
+                else
+                {
+                    where.Add("l.`ms_id` = ?");
+                    args.Add(filters.MsId);
+                }
             }
 
             if (filters.Q.Length > 0)
@@ -525,7 +544,9 @@ public static class AccessoriesMarketplaceSearch
     private static async Task<List<AccCategory>> CategoryTreeAsync(DbConnection connection, IWebHostEnvironment env, CancellationToken cancellationToken)
     {
         var rows = await ReadCategoriesAsync(connection, cancellationToken).ConfigureAwait(false);
-        if (rows.Count == 0)
+        var tax = LoadTaxonomy(env);
+        var present = new HashSet<string>(rows.Where(r => r.ParentId == 0).Select(r => r.Slug), StringComparer.OrdinalIgnoreCase);
+        if (tax.Categories.Any(p => p.Slug.Length > 0 && !present.Contains(p.Slug)))
         {
             await SeedCategoriesAsync(connection, env, cancellationToken).ConfigureAwait(false);
             rows = await ReadCategoriesAsync(connection, cancellationToken).ConfigureAwait(false);
