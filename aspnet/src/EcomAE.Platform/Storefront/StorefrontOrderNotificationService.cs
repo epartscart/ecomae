@@ -146,7 +146,7 @@ public sealed class StorefrontOrderNotificationService : IStorefrontOrderNotific
                 await using var command = connection.CreateCommand();
                 command.CommandText = "SELECT IFNULL(`contact_json`,'') FROM `epc_portal_site_settings` WHERE `host` IN ("
                     + string.Join(", ", aliases.Select((_, i) => "@p" + i.ToString(CultureInfo.InvariantCulture)))
-                    + ") ORDER BY `id` ASC LIMIT 1";
+                    + ") ORDER BY `host` ASC LIMIT 1";
                 ErpDb.AddParameters(command, aliases.Cast<object?>().ToArray());
                 contactJson = Convert.ToString(await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false), CultureInfo.InvariantCulture) ?? string.Empty;
             }
@@ -158,7 +158,7 @@ public sealed class StorefrontOrderNotificationService : IStorefrontOrderNotific
                 contactJson = Convert.ToString(await ErpDb.StringAsync(
                     connection,
                     null,
-                    "SELECT IFNULL(`contact_json`,'') FROM `epc_portal_site_settings` ORDER BY `id` ASC LIMIT 1",
+                    "SELECT IFNULL(`contact_json`,'') FROM `epc_portal_site_settings` ORDER BY `host` ASC LIMIT 1",
                     cancellationToken).ConfigureAwait(false), CultureInfo.InvariantCulture) ?? string.Empty;
             }
         }

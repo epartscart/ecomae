@@ -229,6 +229,15 @@ public sealed class CpPlatformMailer : ICpPlatformMailer
             }
         }
 
+        // A tenant-selected SMTP host must never inherit the platform mailbox credentials:
+        // an overlay that names smtp_host replaces the credential pair as a group, even when it
+        // leaves username/password empty — otherwise a hostile tenant server would receive them.
+        if (configOverride.TryGetValue("smtp_host", out var overlayHost) && !string.IsNullOrWhiteSpace(overlayHost))
+        {
+            merged["smtp_username"] = configOverride.TryGetValue("smtp_username", out var u) ? u : string.Empty;
+            merged["smtp_password"] = configOverride.TryGetValue("smtp_password", out var p) ? p : string.Empty;
+        }
+
         return merged;
     }
 

@@ -255,7 +255,7 @@ public sealed partial class StorefrontNotifyDispatcher : IStorefrontNotifyDispat
     /// the platform config.php sender. Prefers the row matching the request host; falls back to the
     /// tenant DB's first site row so background sends (no HttpContext) still use the tenant mailbox.
     /// </summary>
-    private async Task<IReadOnlyDictionary<string, string>?> TenantSmtpOverlayAsync(DbConnection connection, CancellationToken cancellationToken)
+    internal async Task<IReadOnlyDictionary<string, string>?> TenantSmtpOverlayAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         try
         {
@@ -273,7 +273,7 @@ public sealed partial class StorefrontNotifyDispatcher : IStorefrontNotifyDispat
 
             var fallback = string.Empty;
             await using var command = connection.CreateCommand();
-            command.CommandText = "SELECT `host`, IFNULL(`integrations_json`, '') FROM `epc_portal_site_settings` ORDER BY `id` ASC";
+            command.CommandText = "SELECT `host`, IFNULL(`integrations_json`, '') FROM `epc_portal_site_settings` ORDER BY `host` ASC";
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             var rows = new List<(string Host, string Json)>();
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
