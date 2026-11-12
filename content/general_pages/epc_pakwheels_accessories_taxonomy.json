@@ -3,6 +3,75 @@
   "crawled_note": "Accessories category tree adapted for ePartsCart UAE. City filters use UAE emirates/cities; listing prices display in AED.",
   "categories": [
     {
+      "slug": "cars",
+      "pw_id": 990001,
+      "label": "Cars",
+      "page_label": "Cars for sale",
+      "href": "/en/new-cars",
+      "children": [
+        {
+          "slug": "sedan",
+          "pw_id": 990101,
+          "label": "Sedan",
+          "href": "/en/new-cars?subcategory=sedan"
+        },
+        {
+          "slug": "hatchback",
+          "pw_id": 990102,
+          "label": "Hatchback",
+          "href": "/en/new-cars?subcategory=hatchback"
+        },
+        {
+          "slug": "suv",
+          "pw_id": 990103,
+          "label": "SUV",
+          "href": "/en/new-cars?subcategory=suv"
+        },
+        {
+          "slug": "crossover",
+          "pw_id": 990104,
+          "label": "Crossover",
+          "href": "/en/new-cars?subcategory=crossover"
+        },
+        {
+          "slug": "coupe",
+          "pw_id": 990105,
+          "label": "Coupe",
+          "href": "/en/new-cars?subcategory=coupe"
+        },
+        {
+          "slug": "convertible",
+          "pw_id": 990106,
+          "label": "Convertible",
+          "href": "/en/new-cars?subcategory=convertible"
+        },
+        {
+          "slug": "pickup-truck",
+          "pw_id": 990107,
+          "label": "Pickup Truck",
+          "href": "/en/new-cars?subcategory=pickup-truck"
+        },
+        {
+          "slug": "van",
+          "pw_id": 990108,
+          "label": "Van / Minivan",
+          "href": "/en/new-cars?subcategory=van"
+        },
+        {
+          "slug": "wagon",
+          "pw_id": 990109,
+          "label": "Wagon",
+          "href": "/en/new-cars?subcategory=wagon"
+        },
+        {
+          "slug": "electric",
+          "pw_id": 990110,
+          "label": "Electric",
+          "href": "/en/new-cars?subcategory=electric"
+        }
+      ]
+    },
+    {
       "slug": "car-care",
       "pw_id": 165146,
       "label": "Car Care",

@@ -399,6 +399,8 @@ public sealed class IndustryStorefrontSlugMiddleware
                || only.StartsWith("health", StringComparison.OrdinalIgnoreCase)
                || only.StartsWith("marketing", StringComparison.OrdinalIgnoreCase)
                || only.StartsWith("accessories-spare-parts", StringComparison.OrdinalIgnoreCase)
+               || only.Equals("new-cars", StringComparison.OrdinalIgnoreCase)
+               || only.Equals("used-cars", StringComparison.OrdinalIgnoreCase)
                || only.Equals("umapi_catalog", StringComparison.OrdinalIgnoreCase)
                || only.Equals("product-family", StringComparison.OrdinalIgnoreCase)
                || only.Equals("available-brands", StringComparison.OrdinalIgnoreCase)
