@@ -63,6 +63,8 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
     [InlineData("/en/shop/katalogi-ucats/shiny")]
     [InlineData("/en/demand-intelligence")]
     [InlineData("/en/accessories-spare-parts")]
+    [InlineData("/en/new-cars")]
+    [InlineData("/en/used-cars")]
     [InlineData("/en/parts")]
     [InlineData("/en/vehicle-catalog")]
     [InlineData("/en/katalog-laximo")]
@@ -93,6 +95,13 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         AssertPage("StorefrontDemandIntelligenceApp.razor", "/en/demand-intelligence", "/storefront/demand-intelligence-app");
         AssertPage("StorefrontPreviewApp.razor", "/en", "/storefront/app");
         AssertPage("StorefrontAccessoriesApp.razor", "/en/accessories-spare-parts", "/storefront/accessories-app");
+
+        var cars = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCarsApp.razor"));
+        Assert.Contains("@page \"/en/new-cars\"", cars, StringComparison.Ordinal);
+        Assert.Contains("@page \"/en/used-cars\"", cars, StringComparison.Ordinal);
+        Assert.Contains("@page \"/storefront/cars-app\"", cars, StringComparison.Ordinal);
+        Assert.Contains("PresetCategory=\"cars\"", cars, StringComparison.Ordinal);
+        Assert.Contains("PresetCondition", cars, StringComparison.Ordinal);
     }
 
     [Fact]

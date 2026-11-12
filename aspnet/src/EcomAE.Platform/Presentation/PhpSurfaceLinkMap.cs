@@ -1106,6 +1106,8 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/parts", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/accessories-spare-parts", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/accessories", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/new-cars", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/used-cars", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/eparts-cata", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/eparts-mod", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/partsapi-catalog", StringComparison.OrdinalIgnoreCase)
@@ -1495,6 +1497,8 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/demand-intelligence", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/accessories-spare-parts", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/accessories", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/new-cars", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/used-cars", StringComparison.OrdinalIgnoreCase)
             // Exact /parts is brand-in-stock. /parts?article= remains part search (not this page).
             || (path.Equals("/parts", StringComparison.OrdinalIgnoreCase) && qIndex < 0)
             || path.Equals("/shop/katalogi-ucats", StringComparison.OrdinalIgnoreCase)

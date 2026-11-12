@@ -71,7 +71,8 @@ public sealed class StorefrontAccessoriesTopMenuTests
         var app = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontAccessoriesApp.razor"));
         Assert.Contains("@page \"/storefront/accessories-app\"", app, StringComparison.Ordinal);
         Assert.Contains("id=\"epc-accessories\"", app, StringComparison.Ordinal);
-        Assert.Contains("data-base=\"/storefront/accessories-app\"", app, StringComparison.Ordinal);
+        Assert.Contains("\"/storefront/accessories-app\"", app, StringComparison.Ordinal);
+        Assert.Contains("data-base=", app, StringComparison.Ordinal);
         Assert.Contains("epc_accessories_marketplace.js", app, StringComparison.Ordinal);
         Assert.Contains("ajax_epc_accessories_search.php", app, StringComparison.Ordinal);
     }

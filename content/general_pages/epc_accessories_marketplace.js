@@ -666,6 +666,12 @@
 	if (els.viewGrid) els.viewGrid.addEventListener('click', function () { setView('grid'); });
 	if (els.viewList) els.viewList.addEventListener('click', function () { setView('list'); });
 
+	// Server-rendered pages may pin starting filters (e.g. /en/new-cars pins
+	// condition=new, category=cars). Explicit URL params still override them.
+	['q','category','subcategory','make','model','city','condition','sort'].forEach(function (k) {
+		var preset = root.getAttribute('data-preset-' + k);
+		if (preset && (state[k] === '' || state[k] == null)) { state[k] = preset; }
+	});
 	readUrl();
 	updateSavedBar();
 	setView(state.view || 'grid');

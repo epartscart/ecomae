@@ -1,0 +1,41 @@
+@page "/en/new-cars"
+@page "/en/used-cars"
+@page "/storefront/cars-app"
+@layout Layout.PhpChromeLayout
+@inject NavigationManager Nav
+
+@* Car marketplace — reuses the accessories listings engine (epc_acc_*),
+   pinned to the "cars" category with the condition preset per route. *@
+<StorefrontAccessoriesApp
+    PageTitleText="@PageTitleText"
+    HeroTitle="@HeroTitle"
+    HeroSub="@HeroSub"
+    ListingNoun="cars"
+    BasePath="@BasePath"
+    PresetCategory="cars"
+    PresetCondition="@Condition" />
+
+@code {
+    private string RoutePath
+        => Uri.TryCreate(Nav.Uri, UriKind.Absolute, out var uri)
+            ? uri.AbsolutePath.TrimEnd('/')
+            : string.Empty;
+
+    private bool IsNew => RoutePath.EndsWith("/new-cars", StringComparison.OrdinalIgnoreCase);
+
+    private bool IsUsed => RoutePath.EndsWith("/used-cars", StringComparison.OrdinalIgnoreCase);
+
+    private string Condition => IsNew ? "new" : IsUsed ? "used" : string.Empty;
+
+    private string BasePath => IsNew ? "/en/new-cars" : IsUsed ? "/en/used-cars" : "/storefront/cars-app";
+
+    private string PageTitleText => IsNew ? "New cars" : IsUsed ? "Used cars" : "Cars for sale";
+
+    private string HeroTitle => PageTitleText;
+
+    private string HeroSub => IsNew
+        ? "Browse new cars for sale — filter by make, model, year, city and price."
+        : IsUsed
+            ? "Browse used cars for sale — filter by make, model, year, city and price."
+            : "Browse new and used cars for sale — filter by make, model, year, city and price.";
+}
