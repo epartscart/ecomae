@@ -87,6 +87,7 @@ public static class PhpSuperCpBocNav
         new("auto_price", "Auto Price AI", "commerce", "fa-line-chart", "control/portal/epc_auto_price_engine", "Multi-source compare"),
         new("price_configs", "Price configs", "commerce", "fa-percent", "control/portal/epc_super_cp_price_configs", "Markup rules"),
         new("api_clients", "API clients", "commerce", "fa-key", "control/portal/epc_api_clients_manage", "Keys & quotas"),
+        new("catalog_usage", "Catalog usage", "commerce", "fa-tachometer", "control/portal/epc_catalog_usage", "Provider quota per tenant"),
         new("pos_overview", "POS overview", "commerce", "fa-credit-card", "control/portal/epc_pos_tenant_manage", "POS per tenant"),
         new("promotions", "Promotions", "commerce", "fa-tags", "control/portal/epc_promotions_engine", "Promo engine"),
         new("marketplace", "Marketplace", "commerce", "fa-shopping-cart", "control/portal/epc_marketplace", "Marketplace hub"),

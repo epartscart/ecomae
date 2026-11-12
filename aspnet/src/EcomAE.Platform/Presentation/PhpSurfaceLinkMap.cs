@@ -208,6 +208,7 @@ public static class PhpSurfaceLinkMap
         ("control/portal/epc_marketplace", "/cp/marketplace-apps-app"),
         ("control/portal/epc_ai_copilot", "/cp/ai-service-app"),
         ("control/portal/epc_ai_classification", "/cp/ai-service-app"),
+        ("control/portal/epc_catalog_usage", "/cp/catalog-usage-app"),
         ("control/portal/epc_document_vault", "/cp/document-control-app"),
         ("control/portal/epc_bi_metrics", "/cp/metabase-app"),
         ("control/portal/epc_readiness_score", "/bos/fleet-readiness-app"),
