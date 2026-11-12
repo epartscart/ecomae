@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using EcomAE.Platform.Api.Catalog;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Middleware;
@@ -26,6 +27,10 @@ public static class StorefrontPartsApiProduct
         endpoints.MapGet(Path, HandleAsync).AllowAnonymous();
         endpoints.MapGet(FragmentPath, HandleAsyncLegacy).AllowAnonymous();
         endpoints.MapGet("/api/article_product", HandleAsyncLegacy).AllowAnonymous();
+        // Fitment is click-gated: the "Suitable vehicles" tab calls this once
+        // per article, so product page views never burn provider quota on it.
+        endpoints.MapGet("/api/article_fitment.php", HandleFitmentAsync).AllowAnonymous();
+        endpoints.MapGet("/api/article_fitment", HandleFitmentAsync).AllowAnonymous();
     }
 
     private static IResult HandleAsync(HttpContext context)
@@ -47,6 +52,7 @@ public static class StorefrontPartsApiProduct
         IHttpClientFactory httpClientFactory,
         ITenantDbConnectionFactory connections,
         IStorefrontPriceAccess priceAccess,
+        ICatalogOfflineCacheService offlineCache,
         CancellationToken cancellationToken)
     {
         var brand = context.Request.Query["brand"].ToString().Trim();
@@ -93,8 +99,6 @@ public static class StorefrontPartsApiProduct
                 new Dictionary<string, string> { ["LANG"] = lang, ["ART_NUM"] = number, ["SUP_ID"] = supId }), cancellationToken)));
         }
 
-        calls.Add(("fitment", partsApi.ExecuteAsync(new PartsApiRequest("getApplicability",
-            new Dictionary<string, string> { ["sku"] = number, ["brand"] = brand }), cancellationToken)));
 
         var results = new Dictionary<string, PartsApiResult>();
         foreach (var (key, task) in calls)
@@ -105,35 +109,48 @@ public static class StorefrontPartsApiProduct
 
         // UMAPI is the paid primary: its /Article/{id} payload carries the part
         // name, webp photo and the full criteria table in one call — prefer it
-        // and let partsapi fill only what umapi lacks.
+        // and let partsapi fill only what umapi lacks. Fetch-once: the saved
+        // epc_umapi_cache row serves every view after the first upstream hit.
         JsonElement umapiArticle = default;
-        if (artId.Length > 0)
+        if (int.TryParse(artId, NumberStyles.Integer, CultureInfo.InvariantCulture, out var artIdInt))
         {
-            try
+            var region = context.Request.Query["region"].ToString().Trim();
+            if (region.Length == 0)
             {
-                var region = context.Request.Query["region"].ToString().Trim();
-                if (region.Length == 0)
-                {
-                    region = "WWW";
-                }
-
-                var langName = lang == "16" ? "en" : lang;
-                var http = httpClientFactory.CreateClient();
-                http.Timeout = TimeSpan.FromSeconds(12);
-                using var request = new HttpRequestMessage(HttpMethod.Get,
-                    "https://api.umapi.ru/v2/autocatalog/" + langName + "-" + region.ToUpperInvariant() + "/Article/" + Uri.EscapeDataString(artId));
-                request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                request.Headers.TryAddWithoutValidation("X-App-Key", await HomeCatalogWidgets.UmapiAppKeyAsync(context, null, cancellationToken).ConfigureAwait(false));
-                using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
-                var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-                if (response.IsSuccessStatusCode && body.StartsWith('{'))
-                {
-                    using var doc = JsonDocument.Parse(body);
-                    umapiArticle = doc.RootElement.Clone();
-                }
+                region = "WWW";
             }
-            catch (Exception)
+
+            var langName = lang == "16" ? "en" : lang;
+            var cachedArticle = await offlineCache.LookupArticleAsync("passenger", artIdInt, langName, region, cancellationToken).ConfigureAwait(false);
+            if (cachedArticle.Ok && cachedArticle.Payload is JsonElement cached && cached.ValueKind == JsonValueKind.Object)
             {
+                umapiArticle = cached.Clone();
+            }
+            else
+            {
+                try
+                {
+                    var http = httpClientFactory.CreateClient();
+                    http.Timeout = TimeSpan.FromSeconds(12);
+                    using var request = new HttpRequestMessage(HttpMethod.Get,
+                        "https://api.umapi.ru/v2/autocatalog/" + langName + "-" + region.ToUpperInvariant() + "/Article/" + Uri.EscapeDataString(artId));
+                    request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    request.Headers.TryAddWithoutValidation("X-App-Key", await HomeCatalogWidgets.UmapiAppKeyAsync(context, null, cancellationToken).ConfigureAwait(false));
+                    using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                    var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                    if (response.IsSuccessStatusCode && body.StartsWith('{'))
+                    {
+                        using var doc = JsonDocument.Parse(body);
+                        umapiArticle = doc.RootElement.Clone();
+                        await WriteUmapiCacheAsync(connections, context,
+                            "article:" + langName + ":" + region + ":" + artIdInt,
+                            "article", "passenger", langName, region, body,
+                            (int)response.StatusCode, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                catch (Exception)
+                {
+                }
             }
         }
 
@@ -152,7 +169,9 @@ public static class StorefrontPartsApiProduct
             }
         }
 
-        // Name fallback when partsapi is throttled: BrandRefinement returns TITLE per brand.
+        // Name fallback when partsapi is throttled: BrandRefinement returns TITLE
+        // per brand. Fetch-once too — the payload is persisted so repeat views
+        // spend zero UMAPI calls.
         if (artName.Length == 0)
         {
             try
@@ -164,15 +183,28 @@ public static class StorefrontPartsApiProduct
                 }
 
                 var langName2 = lang == "16" ? "en" : lang;
-                var http = httpClientFactory.CreateClient();
-                http.Timeout = TimeSpan.FromSeconds(12);
-                using var request = new HttpRequestMessage(HttpMethod.Get,
-                    "https://api.umapi.ru/v2/autocatalog/" + langName2 + "-" + region2.ToUpperInvariant() + "/BrandRefinement/" + Uri.EscapeDataString(number));
-                request.Headers.TryAddWithoutValidation("X-App-Key", await HomeCatalogWidgets.UmapiAppKeyAsync(context, null, cancellationToken).ConfigureAwait(false));
-                using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
-                if (response.IsSuccessStatusCode)
+                var refinementKey = "brandrefinement:" + langName2 + ":" + region2 + ":" + number;
+                var body = await ReadUmapiCacheAsync(connections, context, refinementKey, cancellationToken).ConfigureAwait(false);
+                if (body is null)
                 {
-                    using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+                    var http = httpClientFactory.CreateClient();
+                    http.Timeout = TimeSpan.FromSeconds(12);
+                    using var request = new HttpRequestMessage(HttpMethod.Get,
+                        "https://api.umapi.ru/v2/autocatalog/" + langName2 + "-" + region2.ToUpperInvariant() + "/BrandRefinement/" + Uri.EscapeDataString(number));
+                    request.Headers.TryAddWithoutValidation("X-App-Key", await HomeCatalogWidgets.UmapiAppKeyAsync(context, null, cancellationToken).ConfigureAwait(false));
+                    using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                        await WriteUmapiCacheAsync(connections, context, refinementKey,
+                            "brands", "passenger", langName2, region2, body,
+                            (int)response.StatusCode, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+
+                if (body is not null)
+                {
+                    using var doc = JsonDocument.Parse(body);
                     var rows = doc.RootElement.ValueKind == JsonValueKind.Array ? doc.RootElement
                         : doc.RootElement.ValueKind == JsonValueKind.Object && doc.RootElement.TryGetProperty("data", out var d) && d.ValueKind == JsonValueKind.Array ? d
                         : doc.RootElement.ValueKind == JsonValueKind.Object && doc.RootElement.TryGetProperty("rows", out var r) && r.ValueKind == JsonValueKind.Array ? r
@@ -304,53 +336,6 @@ public static class StorefrontPartsApiProduct
             }
         }
 
-        var vehicles = new List<string[]>();
-        var fitmentRows = Rows(results.GetValueOrDefault("fitment"));
-        if (!fitmentRows.Any())
-        {
-            // getApplicability needs the brand parameter some suppliers don't
-            // publish; getApplicability2 keys on the number alone and returns
-            // the full linked-vehicle list.
-            try
-            {
-                results["fitment2"] = await partsApi.ExecuteAsync(new PartsApiRequest("getApplicability2",
-                    new Dictionary<string, string> { ["sku"] = number }), cancellationToken).ConfigureAwait(false);
-                fitmentRows = Rows(results["fitment2"]);
-            }
-            catch (Exception)
-            {
-            }
-        }
-
-        foreach (var row in fitmentRows)
-        {
-            var carName = Text(row, "carName") ?? "";
-            var sp = carName.IndexOf(' ');
-            var cells = new[]
-            {
-                Text(row, "make", "makeName", "MFA_BRAND", "manufacturer")
-                    ?? (sp > 0 ? carName[..sp] : (carName.Length > 0 ? carName : "")),
-                Text(row, "model", "modelName", "MOD_CDS_TEXT")
-                    ?? (sp > 0 ? carName[(sp + 1)..] : ""),
-                Text(row, "modification", "type", "engine")
-                    ?? (Text(row, "carName") is null ? ""
-                        : (((Text(row, "CAPACITY") ?? "") is { Length: > 0 } cap ? cap + "cc " : "")
-                            + ((Text(row, "POWER_KW") ?? "") is { Length: > 0 } kw ? kw + "kW " : "")
-                            + (Text(row, "PC_ENG_CODES") ?? "")).Trim()),
-                Text(row, "yearsFrom", "yearFrom", "yearStart", "from") ?? "",
-                Text(row, "yearsTo", "yearTo", "yearEnd", "to") ?? "",
-            };
-            if (cells.Any(c => c.Length > 0))
-            {
-                vehicles.Add(cells);
-            }
-
-            if (vehicles.Count >= 300)
-            {
-                break;
-            }
-        }
-
         var crosses = new List<string[]>();
         foreach (var row in Rows(results.GetValueOrDefault("crosses")))
         {
@@ -420,9 +405,6 @@ public static class StorefrontPartsApiProduct
         var access = await priceAccess.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
         var stock = await LoadWarehouseStockAsync(connections, context, number, brand, cancellationToken)
             .ConfigureAwait(false);
-        var makeLogos = await LoadMakeLogoIdsAsync(connections, context,
-            vehicles.Select(v => v[0]).Where(m => m.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
-            cancellationToken).ConfigureAwait(false);
         var supLogoId = supId ?? await LoadSupplierLogoIdAsync(connections, context, brand, cancellationToken).ConfigureAwait(false);
         var brandMeta = await LoadBrandMetaAsync(connections, context, httpClientFactory, supLogoId, cancellationToken).ConfigureAwait(false);
         var crossLogoIds = await LoadSupplierLogoIdsAsync(connections, context,
@@ -436,8 +418,8 @@ public static class StorefrontPartsApiProduct
                     "Price inquiry: " + brand + " " + number + (artName.Length > 0 ? " — " + artName : "")
                     + " https://" + context.Request.Host + "/en/parts/" + Uri.EscapeDataString(brand) + "/" + Uri.EscapeDataString(number));
 
-        var html = Render(brand, number, artName, artCategory, images, specs, vehicles, crosses,
-            stock, access, ean, makeLogos, waHref, supLogoId, crossLogoIds, brandMeta);
+        var html = Render(brand, number, artName, artCategory, images, specs, crosses,
+            stock, access, ean, waHref, supLogoId, crossLogoIds, brandMeta);
         context.Response.Headers.CacheControl = "no-store";
         return Results.Text(html, "text/html; charset=utf-8", Encoding.UTF8);
     }
@@ -961,9 +943,9 @@ public static class StorefrontPartsApiProduct
 
     private static string Render(string brand, string number, string name, string category,
         List<string> images, List<(string Name, string Value)> specs,
-        List<string[]> vehicles, List<string[]> crosses,
+        List<string[]> crosses,
         List<WarehouseRow> stock, StorefrontPriceAccessResult access, string ean,
-        Dictionary<string, int> makeLogos, string waHref, string? supId,
+        string waHref, string? supId,
         Dictionary<string, string> crossLogoIds, string? brandMeta = null)
     {
         var wantedBrand = NormalizeBrand(brand);
@@ -1088,20 +1070,6 @@ public static class StorefrontPartsApiProduct
         {
             sb.Append("<li>Category: <b>").Append(E(category)).Append("</b></li>");
         }
-        // Grouped applicability — "TOYOTA - Avensis, Camry; LIFAN - 620, X50; …"
-        var grouped = vehicles
-            .GroupBy(v => v[0], StringComparer.OrdinalIgnoreCase)
-            .Where(g => g.Key.Length > 0)
-            .Take(6)
-            .Select(g => g.Key.ToUpperInvariant() + " - " + string.Join(", ",
-                g.Select(v => v[1]).Where(m => m.Length > 0).Distinct().Take(6)))
-            .Where(s => s.TrimEnd() != "-" && !s.EndsWith("- ", StringComparison.Ordinal))
-            .ToList();
-        if (grouped.Count > 0)
-        {
-            sb.Append("<li>").Append(E(string.Join("; ", grouped)))
-                .Append(vehicles.Count > grouped.Count ? " — see Suitable vehicles" : "").Append("</li>");
-        }
         sb.Append("</ul>");
         if (specs.Count > 0)
         {
@@ -1194,53 +1162,225 @@ public static class StorefrontPartsApiProduct
         }
         sb.Append("</div>");
 
-        // Suitable vehicles pane
-        sb.Append("<div class=\"epc-prod-pane\" data-pane=\"veh\" hidden>");
-        if (vehicles.Count > 0)
-        {
-            var makeList = vehicles.Select(v => v[0]).Where(m => m.Length > 0)
-                .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-            sb.Append("<div class=\"epc-veh-makes\">");
-            foreach (var m in makeList)
-            {
-                sb.Append("<button type=\"button\" class=\"epc-veh-make\" onclick=\"epcProdMake(this)\" data-make=\"")
-                    .Append(E(m)).Append("\" title=\"").Append(E(m)).Append("\">");
-                if (makeLogos.TryGetValue(m, out var logoId))
-                {
-                    sb.Append("<img src=\"/api/umapi_image.php?kind=manufacturer&id=").Append(logoId)
-                        .Append("\" alt=\"").Append(E(m)).Append("\" style=\"max-width:100%;max-height:100%;object-fit:contain\" onerror=\"this.outerHTML='" + E((m.Length > 6 ? m[..6] : m).Replace("\\", "\\\\").Replace("'", "\\'").Replace("<", "")) + "'\">");
-                }
-                else
-                {
-                    sb.Append(E(m.Length > 6 ? m[..6] : m));
-                }
-                sb.Append("</button>");
-            }
-            sb.Append("</div><div class=\"epc-veh-grid\"><div class=\"epc-veh-col\"><div class=\"epc-veh-sub\">Model, Year</div></div><div class=\"epc-veh-col\"><div class=\"epc-veh-sub\">Engine</div></div></div><div id=\"epcVehRows\">");
-            foreach (var v in vehicles)
-            {
-                var years = (v[3] + (v[4].Length > 0 ? " - " + v[4] : "")).Trim(' ', '-');
-                // car-mod: clicking a vehicle opens that car's catalog drill-down.
-                var carUrl = "/en/catalog?make=" + Uri.EscapeDataString(v[0])
-                    + (v[1].Length > 0 ? "&model=" + Uri.EscapeDataString(v[1].Split('(')[0].Trim()) : "");
-                sb.Append("<a class=\"epc-veh-row\" data-make=\"").Append(E(v[0])).Append("\" href=\"").Append(E(carUrl)).Append("\"><div class=\"epc-veh-cell\"><b>")
-                    .Append(E(v[1].Length > 0 ? v[1] : v[0])).Append("</b>")
-                    .Append(years.Length > 0 ? "<span class=\"epc-veh-mdl\">, " + E(years) + "</span>" : "")
-                    .Append("</div><div class=\"epc-veh-cell epc-veh-eng\">")
-                    .Append(v[2].Length > 0 ? E(v[2]) : "")
-                    .Append("</div></a>");
-            }
-            sb.Append("</div>");
-        }
-        else
-        {
-            sb.Append("<div class=\"epc-empty\">No vehicle applicability found for this article.</div>");
-        }
-        sb.Append("</div>");
+        // Suitable vehicles pane — content loads on first tab open via
+        // /api/article_fitment.php so plain page views cost no provider call.
+        sb.Append("<div class=\"epc-prod-pane\" data-pane=\"veh\" hidden>")
+            .Append("<div class=\"epc-veh-lazy\" data-loaded=\"0\" data-article=\"").Append(E(number))
+            .Append("\" data-brand=\"").Append(E(brand)).Append("\">")
+            .Append("<div class=\"epc-empty\">Open this tab to load suitable vehicles.</div>")
+            .Append("</div></div>");
 
         // Reviews pane
         sb.Append("<div class=\"epc-prod-pane\" data-pane=\"rev\" hidden><div class=\"epc-empty\">No reviews yet for this product.</div></div>");
         sb.Append("</div>");
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// <c>/api/article_fitment.php?article=&brand=</c> — click-gated fitment
+    /// fragment for the "Suitable vehicles" tab. partsapi answers are cached
+    /// fetch-once in <c>epc_partsapi_cache</c>, so repeat clicks are free.
+    /// </summary>
+    private static async Task<IResult> HandleFitmentAsync(
+        HttpContext context,
+        IPartsApiService partsApi,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var brand = context.Request.Query["brand"].ToString().Trim();
+        var number = context.Request.Query["article"].ToString().Trim();
+        if (number.Length == 0)
+        {
+            number = context.Request.Query["number"].ToString().Trim();
+        }
+
+        if (brand.Length == 0 || number.Length == 0)
+        {
+            return Results.Text("brand and article are required", "text/plain; charset=utf-8",
+                Encoding.UTF8, StatusCodes.Status400BadRequest);
+        }
+
+        var vehicles = await LoadVehiclesAsync(partsApi, number, brand, cancellationToken).ConfigureAwait(false);
+        var makeLogos = await LoadMakeLogoIdsAsync(connections, context,
+            vehicles.Select(v => v[0]).Where(m => m.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
+            cancellationToken).ConfigureAwait(false);
+        context.Response.Headers.CacheControl = "no-store";
+        return Results.Text(RenderVehicleRows(vehicles, makeLogos), "text/html; charset=utf-8", Encoding.UTF8);
+    }
+
+    private static async Task<List<string[]>> LoadVehiclesAsync(
+        IPartsApiService partsApi, string number, string brand,
+        CancellationToken cancellationToken)
+    {
+        var vehicles = new List<string[]>();
+        var fitment = await partsApi.ExecuteAsync(new PartsApiRequest("getApplicability",
+            new Dictionary<string, string> { ["sku"] = number, ["brand"] = brand }), cancellationToken).ConfigureAwait(false);
+        var fitmentRows = Rows(fitment);
+        if (!fitmentRows.Any())
+        {
+            // getApplicability needs the brand parameter some suppliers don't
+            // publish; getApplicability2 keys on the number alone and returns
+            // the full linked-vehicle list.
+            try
+            {
+                var fitment2 = await partsApi.ExecuteAsync(new PartsApiRequest("getApplicability2",
+                    new Dictionary<string, string> { ["sku"] = number }), cancellationToken).ConfigureAwait(false);
+                fitmentRows = Rows(fitment2);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        foreach (var row in fitmentRows)
+        {
+            var carName = Text(row, "carName") ?? "";
+            var sp = carName.IndexOf(' ');
+            var cells = new[]
+            {
+                Text(row, "make", "makeName", "MFA_BRAND", "manufacturer")
+                    ?? (sp > 0 ? carName[..sp] : (carName.Length > 0 ? carName : "")),
+                Text(row, "model", "modelName", "MOD_CDS_TEXT")
+                    ?? (sp > 0 ? carName[(sp + 1)..] : ""),
+                Text(row, "modification", "type", "engine")
+                    ?? (Text(row, "carName") is null ? ""
+                        : (((Text(row, "CAPACITY") ?? "") is { Length: > 0 } cap ? cap + "cc " : "")
+                            + ((Text(row, "POWER_KW") ?? "") is { Length: > 0 } kw ? kw + "kW " : "")
+                            + (Text(row, "PC_ENG_CODES") ?? "")).Trim()),
+                Text(row, "yearsFrom", "yearFrom", "yearStart", "from") ?? "",
+                Text(row, "yearsTo", "yearTo", "yearEnd", "to") ?? "",
+            };
+            if (cells.Any(c => c.Length > 0))
+            {
+                vehicles.Add(cells);
+            }
+
+            if (vehicles.Count >= 300)
+            {
+                break;
+            }
+        }
+
+        return vehicles;
+    }
+
+    private static string RenderVehicleRows(List<string[]> vehicles, Dictionary<string, int> makeLogos)
+    {
+        var sb = new StringBuilder(8000);
+        if (vehicles.Count == 0)
+        {
+            sb.Append("<div class=\"epc-empty\">No vehicle applicability found for this article.</div>");
+            return sb.ToString();
+        }
+
+        var makeList = vehicles.Select(v => v[0]).Where(m => m.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        sb.Append("<div class=\"epc-veh-makes\">");
+        foreach (var m in makeList)
+        {
+            sb.Append("<button type=\"button\" class=\"epc-veh-make\" onclick=\"epcProdMake(this)\" data-make=\"")
+                .Append(E(m)).Append("\" title=\"").Append(E(m)).Append("\">");
+            if (makeLogos.TryGetValue(m, out var logoId))
+            {
+                sb.Append("<img src=\"/api/umapi_image.php?kind=manufacturer&id=").Append(logoId)
+                    .Append("\" alt=\"").Append(E(m)).Append("\" style=\"max-width:100%;max-height:100%;object-fit:contain\" onerror=\"this.outerHTML='" + E((m.Length > 6 ? m[..6] : m).Replace("\\", "\\\\").Replace("'", "\\'").Replace("<", "")) + "'\">");
+            }
+            else
+            {
+                sb.Append(E(m.Length > 6 ? m[..6] : m));
+            }
+            sb.Append("</button>");
+        }
+
+        sb.Append("</div><div class=\"epc-veh-grid\"><div class=\"epc-veh-col\"><div class=\"epc-veh-sub\">Model, Year</div></div><div class=\"epc-veh-col\"><div class=\"epc-veh-sub\">Engine</div></div></div><div id=\"epcVehRows\">");
+        foreach (var v in vehicles)
+        {
+            var years = (v[3] + (v[4].Length > 0 ? " - " + v[4] : "")).Trim(' ', '-');
+            // car-mod: clicking a vehicle opens that car's catalog drill-down.
+            var carUrl = "/en/catalog?make=" + Uri.EscapeDataString(v[0])
+                + (v[1].Length > 0 ? "&model=" + Uri.EscapeDataString(v[1].Split('(')[0].Trim()) : "");
+            sb.Append("<a class=\"epc-veh-row\" data-make=\"").Append(E(v[0])).Append("\" href=\"").Append(E(carUrl)).Append("\"><div class=\"epc-veh-cell\"><b>")
+                .Append(E(v[1].Length > 0 ? v[1] : v[0])).Append("</b>")
+                .Append(years.Length > 0 ? "<span class=\"epc-veh-mdl\">, " + E(years) + "</span>" : "")
+                .Append("</div><div class=\"epc-veh-cell epc-veh-eng\">")
+                .Append(v[2].Length > 0 ? E(v[2]) : "")
+                .Append("</div></a>");
+        }
+
+        sb.Append("</div>");
+        return sb.ToString();
+    }
+
+    /// <summary>Read a fetch-once UMAPI payload saved in the tenant cache.</summary>
+    private static async Task<string?> ReadUmapiCacheAsync(
+        ITenantDbConnectionFactory connections, HttpContext context, string cacheKey,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken)
+                .ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `response_json` FROM `epc_umapi_cache` WHERE `cache_key` = @key LIMIT 1";
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@key";
+            parameter.Value = cacheKey;
+            command.Parameters.Add(parameter);
+            var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            var text = Convert.ToString(value, CultureInfo.InvariantCulture);
+            return string.IsNullOrWhiteSpace(text) ? null : text;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Persist an upstream UMAPI payload so the next view is free.</summary>
+    private static async Task WriteUmapiCacheAsync(
+        ITenantDbConnectionFactory connections, HttpContext context, string cacheKey,
+        string action, string section, string language, string region,
+        string responseJson, int httpStatus, CancellationToken cancellationToken)
+    {
+        if (responseJson.Length == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken)
+                .ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                REPLACE INTO `epc_umapi_cache`
+                (`cache_key`, `action`, `section`, `language`, `region`, `request_json`, `response_json`, `rows_count`, `http_status`, `last_sync`)
+                VALUES (@key, @action, @section, @language, @region, '', @response, 0, @status, UNIX_TIMESTAMP())
+                """;
+            foreach (var (name, value) in new (string Name, object Value)[]
+            {
+                ("@key", cacheKey),
+                ("@action", action),
+                ("@section", section),
+                ("@language", language),
+                ("@region", region),
+                ("@response", responseJson),
+                ("@status", httpStatus),
+            })
+            {
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = name;
+                parameter.Value = value;
+                command.Parameters.Add(parameter);
+            }
+
+            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // Cache persistence is best-effort; the page already has the payload.
+        }
     }
 }

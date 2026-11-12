@@ -1061,6 +1061,20 @@
     wrap.querySelectorAll('.epc-prod-pane').forEach(function (p) { p.hidden = true; });
     btn.classList.add('on');
     wrap.querySelector('.epc-prod-pane[data-pane="' + pane + '"]').hidden = false;
+    // Fitment is click-gated: fetch once when the tab is first opened so plain
+    // product views never spend catalog-provider calls on it.
+    if (pane === 'veh') {
+      var lazy = wrap.querySelector('.epc-veh-lazy[data-loaded="0"]');
+      if (lazy) {
+        lazy.setAttribute('data-loaded', '1');
+        lazy.innerHTML = '<div class="epc-empty">Loading suitable vehicles…</div>';
+        fetch('/api/article_fitment.php?article=' + encodeURIComponent(lazy.getAttribute('data-article')) +
+              '&brand=' + encodeURIComponent(lazy.getAttribute('data-brand')))
+          .then(function (r) { return r.text(); })
+          .then(function (html) { lazy.innerHTML = html; })
+          .catch(function () { lazy.innerHTML = '<div class="epc-empty">Fitment could not be loaded.</div>'; });
+      }
+    }
   }
   window.epcProdMake = function (btn) {
     var on = btn.classList.toggle('on');
