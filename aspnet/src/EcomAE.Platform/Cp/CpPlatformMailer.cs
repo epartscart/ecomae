@@ -18,6 +18,19 @@ public interface ICpPlatformMailer
     IReadOnlyDictionary<string, string> ReadConfig();
 
     Task<CpSmsSendOutcome> SendHtmlAsync(string to, string subject, string htmlBody, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Same as <see cref="SendHtmlAsync"/> but <paramref name="configOverride"/> values win over
+    /// config.php — used for the per-tenant <c>integrations.smtp</c> overlay so each tenant's mail
+    /// leaves from its own mailbox.
+    /// </summary>
+    Task<CpSmsSendOutcome> SendHtmlAsync(
+        string to,
+        string subject,
+        string htmlBody,
+        IReadOnlyDictionary<string, string>? configOverride,
+        CancellationToken cancellationToken = default)
+        => SendHtmlAsync(to, subject, htmlBody, cancellationToken);
 }
 
 public sealed class CpPlatformMailer : ICpPlatformMailer
@@ -57,13 +70,21 @@ public sealed class CpPlatformMailer : ICpPlatformMailer
         }
     }
 
-    public async Task<CpSmsSendOutcome> SendHtmlAsync(
+    public Task<CpSmsSendOutcome> SendHtmlAsync(
         string to,
         string subject,
         string htmlBody,
         CancellationToken cancellationToken = default)
+        => SendHtmlAsync(to, subject, htmlBody, null, cancellationToken);
+
+    public async Task<CpSmsSendOutcome> SendHtmlAsync(
+        string to,
+        string subject,
+        string htmlBody,
+        IReadOnlyDictionary<string, string>? configOverride,
+        CancellationToken cancellationToken = default)
     {
-        var config = ReadConfig();
+        var config = MergeConfig(ReadConfig(), configOverride);
         if (!CpCommunicationsDeskService.SmtpComplete(config))
         {
             return CpSmsSendOutcome.Fail("SMTP is not fully configured — fill the e-mail group in Configuration first.");
@@ -188,6 +209,27 @@ public sealed class CpPlatformMailer : ICpPlatformMailer
             + "\r\n.\r\n").AsMemory(), cancellationToken).ConfigureAwait(false);
         await ExpectSmtpAsync(reader, 250, cancellationToken).ConfigureAwait(false);
         await writer.WriteLineAsync("QUIT".AsMemory(), cancellationToken).ConfigureAwait(false);
+    }
+
+    public static IReadOnlyDictionary<string, string> MergeConfig(
+        IReadOnlyDictionary<string, string> baseConfig,
+        IReadOnlyDictionary<string, string>? configOverride)
+    {
+        if (configOverride is null || configOverride.Count == 0)
+        {
+            return baseConfig;
+        }
+
+        var merged = new Dictionary<string, string>(baseConfig, StringComparer.Ordinal);
+        foreach (var (key, value) in configOverride)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                merged[key] = value;
+            }
+        }
+
+        return merged;
     }
 
     private static async Task ExpectSmtpAsync(StreamReader reader, int expected, CancellationToken cancellationToken)

@@ -150,6 +150,17 @@ public sealed class StorefrontOrderNotificationService : IStorefrontOrderNotific
                 ErpDb.AddParameters(command, aliases.Cast<object?>().ToArray());
                 contactJson = Convert.ToString(await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false), CultureInfo.InvariantCulture) ?? string.Empty;
             }
+
+            if (contactJson.Length == 0)
+            {
+                // Multi-tenant ASP.NET hosts share one config.php whose domain_path names only one site —
+                // fall back to the tenant DB's own first site row so each tenant's admin mailbox is used.
+                contactJson = Convert.ToString(await ErpDb.StringAsync(
+                    connection,
+                    null,
+                    "SELECT IFNULL(`contact_json`,'') FROM `epc_portal_site_settings` ORDER BY `id` ASC LIMIT 1",
+                    cancellationToken).ConfigureAwait(false), CultureInfo.InvariantCulture) ?? string.Empty;
+            }
         }
         catch (DbException)
         {
