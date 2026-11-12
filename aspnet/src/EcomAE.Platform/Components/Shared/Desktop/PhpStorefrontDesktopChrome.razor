@@ -482,6 +482,12 @@
                                     </tr>
                                 </table>
                             </div>
+                            @if (IsAuto247Host)
+                            {
+                                <div class="header-phone-box text-left">
+                                    <a class="phone" href="tel:+971544849226"><i class="fa fa-phone" aria-hidden="true"></i> +971 54 484 9226</a>
+                                </div>
+                            }
 
                         </div>
                         <div class="timetable-box text-left">
@@ -496,6 +502,14 @@
                     <div class="table-control epc-header-right-col">
                         <div class="epc-header-actions-row">
                             <div class="header-call-box"><a href="@StorefrontSurfaceLinks.SellerRequest">Request a call back</a></div>
+                            @if (IsAuto247Host)
+                            {
+                                <div class="header-whatsapp-box">
+                                    <a href="https://wa.me/971544849226" target="_blank" rel="noopener noreferrer" title="Chat on WhatsApp">
+                                        <i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp contact
+                                    </a>
+                                </div>
+                            }
 
                             <div class="header-bulk-upload-box">
                                 <a href="@StorefrontSurfaceLinks.BulkUpload"><i class="fa fa-file-excel-o" aria-hidden="true"></i> Excel bulk upload</a>
@@ -645,6 +659,11 @@
     <div class="header-box-mobile hidden-sm hidden-md hidden-lg">
         <div class="container">
             <a class="logo_min" href="/"><PhpSurfaceHostLogo Surface="cp" Variant="compact" ShowLabel="false" /></a>
+            @if (IsAuto247Host)
+            {
+                <a class="mobile-box-phone" href="tel:+971544849226">+971 54 484 9226</a>
+                <a class="mobile-box-whatsapp" href="https://wa.me/971544849226" target="_blank" rel="noopener noreferrer"><i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
+            }
 
             <a href="@StorefrontSurfaceLinks.OwnCatalog"><i class="fa fa-cubes" aria-hidden="true"></i> Own catalog</a>
             <a href="@StorefrontSurfaceLinks.PartSearch"><i class="fa fa-search" aria-hidden="true"></i> Search</a>
