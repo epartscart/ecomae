@@ -57,6 +57,19 @@ public sealed class PhpReferenceOptions
     /// </summary>
     public string? PhpDocRoot { get; set; }
 
+    /// <summary>
+    /// Effective PHP docroot: the configured value when non-empty, else the
+    /// <c>ECOMAE_PHP_DOCROOT</c> environment variable. An empty appsettings value must NOT
+    /// shadow the env fallback — prod sets the path via the unit's EnvironmentFile.
+    /// </summary>
+    public string DocRootOrEnv()
+    {
+        var configured = (PhpDocRoot ?? string.Empty).Trim();
+        return configured.Length > 0
+            ? configured
+            : (System.Environment.GetEnvironmentVariable("ECOMAE_PHP_DOCROOT") ?? string.Empty).Trim();
+    }
+
     /// <summary>Operator note shown on boards.</summary>
     public string Note { get; set; } =
         "ASP.NET Core is product-primary (PreferAspNetStorefrontApps=true). PHP stays installed only as /php-reference/* for gap-finding until dual-sample + separate ReadyToRemovePhp / readyForPhpRemoval gate. cutoverAllowed=false. PreferAspNetStorefrontApps ≠ PHP source deletion. TemporarilyDeactivatePhpServing only pauses PHP HTTP for deep tests.";

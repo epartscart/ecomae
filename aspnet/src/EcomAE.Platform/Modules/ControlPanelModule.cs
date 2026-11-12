@@ -17042,7 +17042,7 @@ public sealed class ControlPanelModule : ISurfaceModule
     }
 
     private static string PhpDocRoot(PhpReferenceOptions reference)
-        => (reference.PhpDocRoot ?? Environment.GetEnvironmentVariable("ECOMAE_PHP_DOCROOT") ?? string.Empty).Trim();
+        => reference.DocRootOrEnv();
 
     /// <summary>PHP <c>data_value[name]</c> posted as <c>dv[name]</c> form fields.</summary>
     private static Dictionary<string, string> DataValueFromForm(IFormCollection form)

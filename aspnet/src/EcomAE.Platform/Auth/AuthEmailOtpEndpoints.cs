@@ -511,7 +511,7 @@ public static class AuthEmailOtpEndpoints
 
     private static string? ReadDocRootFile(PhpReferenceOptions php, string name)
     {
-        var root = (php.PhpDocRoot ?? Environment.GetEnvironmentVariable("ECOMAE_PHP_DOCROOT") ?? string.Empty).Trim();
+        var root = php.DocRootOrEnv();
         if (root.Length == 0)
         {
             return null;

@@ -1128,7 +1128,7 @@ public static class CpPhpConfig
 {
     public static IReadOnlyDictionary<string, string> Read(PhpReferenceOptions reference)
     {
-        var root = (reference.PhpDocRoot ?? string.Empty).Trim();
+        var root = reference.DocRootOrEnv();
         if (root.Length == 0)
         {
             root = (Environment.GetEnvironmentVariable("ECOMAE_PHP_DOCROOT") ?? string.Empty).Trim();

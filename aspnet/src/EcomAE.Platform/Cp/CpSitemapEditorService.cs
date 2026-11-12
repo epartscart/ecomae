@@ -75,7 +75,7 @@ public sealed class CpSitemapEditorService : ICpSitemapEditorService
         _reference = reference.Value;
     }
 
-    private string OutputDirectory => (_reference.PhpDocRoot ?? Environment.GetEnvironmentVariable("ECOMAE_PHP_DOCROOT") ?? string.Empty).Trim();
+    private string OutputDirectory => _reference.DocRootOrEnv();
 
     private (string DomainPath, string ProductUrlMode) ReadConfig()
     {

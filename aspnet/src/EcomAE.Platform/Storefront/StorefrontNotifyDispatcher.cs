@@ -128,7 +128,7 @@ public sealed partial class StorefrontNotifyDispatcher : IStorefrontNotifyDispat
         _sms = sms;
         _whatsapp = whatsapp;
         _http = http;
-        _docRoot = (reference?.Value.PhpDocRoot ?? Environment.GetEnvironmentVariable("ECOMAE_PHP_DOCROOT") ?? string.Empty).Trim();
+        _docRoot = reference?.Value.DocRootOrEnv() ?? string.Empty;
     }
 
     public async Task<StorefrontNotifyOutcome> SendDirectEmailAsync(
