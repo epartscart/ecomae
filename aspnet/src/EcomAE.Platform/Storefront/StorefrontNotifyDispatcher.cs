@@ -285,14 +285,20 @@ public sealed partial class StorefrontNotifyDispatcher : IStorefrontNotifyDispat
 
             foreach (var row in rows)
             {
-                if (aliases.Contains(row.Host, StringComparer.Ordinal))
-                {
-                    matched = row.Json;
-                }
-
                 if (firstConfigured is null && AuthEmailOtp.TenantOverlay(row.Json).Count > 0)
                 {
                     firstConfigured = row.Json;
+                }
+
+                if (host.Length > 0 && row.Host == host)
+                {
+                    matched = row.Json;
+                    break;
+                }
+
+                if (matched is null && aliases.Contains(row.Host, StringComparer.Ordinal))
+                {
+                    matched = row.Json;
                 }
             }
 
