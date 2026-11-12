@@ -44,7 +44,10 @@ public sealed record CpAccessoriesListingWriteRequest(
     int Doors = 0,
     int Seats = 0,
     string? SellerType = null,
-    string? ContactPhone = null);
+    string? ContactPhone = null,
+    long MfaId = 0,
+    long MsId = 0,
+    bool CatalogIdsProvided = false);
 
 public sealed class CpAccessoriesListingWriteService : ICpAccessoriesListingWriteService
 {
@@ -129,7 +132,7 @@ public sealed class CpAccessoriesListingWriteService : ICpAccessoriesListingWrit
                         `photo_count` = ?, `featured` = ?, `stock_qty` = ?, `status` = ?, `updated_at` = ?,
                         `mileage_km` = ?, `body_type` = ?, `fuel_type` = ?, `transmission` = ?, `engine` = ?,
                         `drive_type` = ?, `exterior_color` = ?, `doors` = ?, `seats` = ?, `seller_type` = ?,
-                        `contact_phone` = ?
+                        `contact_phone` = ?, `mfa_id` = IF(?, ?, `mfa_id`), `ms_id` = IF(?, ?, `ms_id`)
                     WHERE `id` = ?
                     """),
                 cancellationToken,
@@ -163,6 +166,10 @@ public sealed class CpAccessoriesListingWriteService : ICpAccessoriesListingWrit
                 request.Seats < 0 ? 0 : request.Seats,
                 sellerType,
                 (request.ContactPhone ?? string.Empty).Trim(),
+                request.CatalogIdsProvided ? 1 : 0,
+                request.MfaId < 0 ? 0 : request.MfaId,
+                request.CatalogIdsProvided ? 1 : 0,
+                request.MsId < 0 ? 0 : request.MsId,
                 request.ListingId).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok("Listing updated.", request.ListingId);
         }
@@ -177,8 +184,8 @@ public sealed class CpAccessoriesListingWriteService : ICpAccessoriesListingWrit
                  `price`, `compare_price`, `currency`, `image_url`, `external_url`, `photo_count`, `featured`,
                  `stock_qty`, `status`, `created_at`, `updated_at`,
                  `mileage_km`, `body_type`, `fuel_type`, `transmission`, `engine`,
-                 `drive_type`, `exterior_color`, `doors`, `seats`, `seller_type`, `contact_phone`)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 `drive_type`, `exterior_color`, `doors`, `seats`, `seller_type`, `contact_phone`, `mfa_id`, `ms_id`)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """),
             cancellationToken,
             request.CategoryId,
@@ -211,7 +218,9 @@ public sealed class CpAccessoriesListingWriteService : ICpAccessoriesListingWrit
             request.Doors < 0 ? 0 : request.Doors,
             request.Seats < 0 ? 0 : request.Seats,
             sellerType,
-            (request.ContactPhone ?? string.Empty).Trim()).ConfigureAwait(false);
+            (request.ContactPhone ?? string.Empty).Trim(),
+            request.MfaId < 0 ? 0 : request.MfaId,
+            request.MsId < 0 ? 0 : request.MsId).ConfigureAwait(false);
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Listing created.", id);
     }

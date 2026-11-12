@@ -45,7 +45,13 @@ public sealed record CpAccListingRow(
     int Doors = 0,
     int Seats = 0,
     string SellerType = "",
-    string ContactPhone = "");
+    string ContactPhone = "",
+    long MfaId = 0,
+    long MsId = 0);
+
+public sealed record CpAccVehicleMake(long MfaId, string Name);
+public sealed record CpAccVehicleModel(long MsId, string Name, string YearFrom, string YearTo);
+public sealed record CpAccVehicleMod(string Title, string YearFrom, string YearTo, string FuelType, string PowerKw, string CapacityLt);
 
 public sealed record CpAccPhoto(long Id, long ListingId, string FileName, string Url, int SortOrder, bool IsPrimary);
 
@@ -69,6 +75,12 @@ public interface ICpAccessoriesListService
     Task<CpAccListingRow?> GetListingAsync(long id, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<CpAccPhoto>> PhotosAsync(long listingId, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CpAccVehicleMake>> VehicleMakesAsync(CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CpAccVehicleModel>> VehicleModelsAsync(long mfaId, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CpAccVehicleMod>> VehicleModificationsAsync(long msId, CancellationToken cancellationToken = default);
 }
 
 public sealed class CpAccessoriesListService : ICpAccessoriesListService
@@ -391,7 +403,7 @@ public sealed class CpAccessoriesListService : ICpAccessoriesListService
         "l.`title`, IFNULL(l.`description`,''), l.`make`, l.`model`, l.`year`, l.`city`, l.`condition_type`, l.`price`, l.`compare_price`, l.`currency`, " +
         "l.`image_url`, l.`external_url`, l.`photo_count`, l.`featured`, l.`stock_qty`, l.`status`, l.`created_at`, l.`updated_at`, " +
         "l.`mileage_km`, l.`body_type`, l.`fuel_type`, l.`transmission`, l.`engine`, l.`drive_type`, " +
-        "l.`exterior_color`, l.`doors`, l.`seats`, l.`seller_type`, l.`contact_phone` " +
+        "l.`exterior_color`, l.`doors`, l.`seats`, l.`seller_type`, l.`contact_phone`, l.`mfa_id`, l.`ms_id` " +
         "FROM `epc_acc_listings` l " +
         "LEFT JOIN `epc_acc_categories` c ON c.`id` = l.`category_id` " +
         "LEFT JOIN `epc_acc_categories` s ON s.`id` = l.`subcategory_id`";
@@ -400,7 +412,100 @@ public sealed class CpAccessoriesListService : ICpAccessoriesListService
         L(r, 0), L(r, 1), L(r, 2), S(r, 3), S(r, 4), S(r, 5), S(r, 6),
         S(r, 7), S(r, 8), S(r, 9), S(r, 10), S(r, 11), S(r, 12), S(r, 13),
         D(r, 14), D(r, 15), S(r, 16), S(r, 17), S(r, 18), I(r, 19), I(r, 20) == 1, I(r, 21), S(r, 22), L(r, 23), L(r, 24),
-        I(r, 25), S(r, 26), S(r, 27), S(r, 28), S(r, 29), S(r, 30), S(r, 31), I(r, 32), I(r, 33), S(r, 34), S(r, 35));
+        I(r, 25), S(r, 26), S(r, 27), S(r, 28), S(r, 29), S(r, 30), S(r, 31), I(r, 32), I(r, 33), S(r, 34), S(r, 35), L(r, 36), L(r, 37));
+
+    public async Task<IReadOnlyList<CpAccVehicleMake>> VehicleMakesAsync(CancellationToken cancellationToken = default)
+    {
+        var rows = new List<CpAccVehicleMake>();
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var c = connection.CreateCommand();
+            c.CommandText = """
+                SELECT `mfa_id`, `manufacturer` FROM `epc_umapi_manufacturers`
+                WHERE `section` = 'passenger'
+                ORDER BY `popular` DESC, `manufacturer` ASC
+                LIMIT 300
+                """;
+            await using var r = await c.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await r.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new CpAccVehicleMake(L(r, 0), S(r, 1)));
+            }
+        }
+        catch
+        {
+            // umapi catalog cache absent on this tenant.
+        }
+
+        return rows;
+    }
+
+    public async Task<IReadOnlyList<CpAccVehicleModel>> VehicleModelsAsync(long mfaId, CancellationToken cancellationToken = default)
+    {
+        var rows = new List<CpAccVehicleModel>();
+        if (mfaId <= 0)
+        {
+            return rows;
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var c = connection.CreateCommand();
+            c.CommandText = ErpDb.Positional("""
+                SELECT `ms_id`, `model_series`, `year_from`, `year_to` FROM `epc_umapi_models`
+                WHERE `section` = 'passenger' AND `mfa_id` = ?
+                ORDER BY `model_series` ASC
+                LIMIT 400
+                """);
+            ErpDb.AddParameters(c, mfaId);
+            await using var r = await c.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await r.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new CpAccVehicleModel(L(r, 0), S(r, 1), S(r, 2), S(r, 3)));
+            }
+        }
+        catch
+        {
+            // umapi catalog cache absent on this tenant.
+        }
+
+        return rows;
+    }
+
+    public async Task<IReadOnlyList<CpAccVehicleMod>> VehicleModificationsAsync(long msId, CancellationToken cancellationToken = default)
+    {
+        var rows = new List<CpAccVehicleMod>();
+        if (msId <= 0)
+        {
+            return rows;
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var c = connection.CreateCommand();
+            c.CommandText = ErpDb.Positional("""
+                SELECT `title`, `year_from`, `year_to`, `fuel_type`, `power_kw`, `capacity_lt` FROM `epc_umapi_modifications`
+                WHERE `section` = 'passenger' AND `ms_id` = ?
+                ORDER BY `title` ASC
+                LIMIT 200
+                """);
+            ErpDb.AddParameters(c, msId);
+            await using var r = await c.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await r.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new CpAccVehicleMod(S(r, 0), S(r, 1), S(r, 2), S(r, 3), S(r, 4), S(r, 5)));
+            }
+        }
+        catch
+        {
+            // umapi catalog cache absent on this tenant.
+        }
+
+        return rows;
+    }
 
     private static int I(DbDataReader r, int i) => r.IsDBNull(i) ? 0 : Convert.ToInt32(r.GetValue(i), CultureInfo.InvariantCulture);
     private static long L(DbDataReader r, int i) => r.IsDBNull(i) ? 0 : Convert.ToInt64(r.GetValue(i), CultureInfo.InvariantCulture);

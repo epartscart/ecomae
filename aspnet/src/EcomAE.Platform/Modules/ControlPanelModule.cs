@@ -5732,6 +5732,48 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.CpAccessoriesVehicleData, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpAccessoriesListService reads,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Results.Json(new { status = false, message = "Admin CP capability required." }, statusCode: StatusCodes.Status401Unauthorized);
+            }
+
+            var q = context.Request.Query;
+            var mfaId = long.TryParse(q["mfa_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var mfa) ? mfa : 0;
+            var msId = long.TryParse(q["ms_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var ms) ? ms : 0;
+            if (msId > 0)
+            {
+                var mods = await reads.VehicleModificationsAsync(msId, cancellationToken);
+                return Results.Json(new
+                {
+                    status = true,
+                    mods = mods.Select(m => new { m.Title, m.YearFrom, m.YearTo, m.FuelType, m.PowerKw, m.CapacityLt }),
+                });
+            }
+
+            if (mfaId > 0)
+            {
+                var models = await reads.VehicleModelsAsync(mfaId, cancellationToken);
+                return Results.Json(new
+                {
+                    status = true,
+                    models = models.Select(m => new { m.MsId, m.Name, m.YearFrom, m.YearTo }),
+                });
+            }
+
+            var makes = await reads.VehicleMakesAsync(cancellationToken);
+            return Results.Json(new
+            {
+                status = true,
+                makes = makes.Select(m => new { m.MfaId, m.Name }),
+            });
+        });
         endpoints.MapPost(EcomAeRoutes.CpAccessoriesListingsWrite, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -5777,6 +5819,9 @@ public sealed class ControlPanelModule : ISurfaceModule
             var seats = body.Seats;
             var sellerType = body.SellerType;
             var contactPhone = body.ContactPhone;
+            var mfaId = body.MfaId;
+            var msId = body.MsId;
+            var catalogIdsProvided = body.MfaId > 0 || body.MsId > 0;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -5812,6 +5857,10 @@ public sealed class ControlPanelModule : ISurfaceModule
                 seats = LiveWriteFormBinder.Int(form, "seats");
                 sellerType = LiveWriteFormBinder.Text(form, "sellerType", "seller_type");
                 contactPhone = LiveWriteFormBinder.Text(form, "contactPhone", "contact_phone");
+                mfaId = LiveWriteFormBinder.Long(form, "mfaId", "mfa_id", "mfa");
+                msId = LiveWriteFormBinder.Long(form, "msId", "ms_id", "ms");
+                catalogIdsProvided = form.ContainsKey("mfaId") || form.ContainsKey("mfa_id") || form.ContainsKey("mfa")
+                    || form.ContainsKey("msId") || form.ContainsKey("ms_id") || form.ContainsKey("ms");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
 
                 var categorySlug = LiveWriteFormBinder.Text(form, "category");
@@ -5874,7 +5923,10 @@ public sealed class ControlPanelModule : ISurfaceModule
                     doors,
                     seats,
                     sellerType,
-                    contactPhone),
+                    contactPhone,
+                    mfaId,
+                    msId,
+                    catalogIdsProvided),
                 cancellationToken);
             if (written.Succeeded && written.Id > 0 && context.Request.HasFormContentType
                 && context.Request.Form["returnUrl"].ToString() is { } ret
@@ -17728,6 +17780,8 @@ public sealed class ControlPanelModule : ISurfaceModule
         int Seats = 0,
         string? SellerType = null,
         string? ContactPhone = null,
+        long MfaId = 0,
+        long MsId = 0,
         bool ConfirmWrites = false);
     private sealed record CpVersionClearUpdatesBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpReturnActionBody(
