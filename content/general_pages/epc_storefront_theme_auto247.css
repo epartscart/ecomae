@@ -485,15 +485,57 @@ body.epc-storefront--auto247 aside#footer-widgets {
 
 body.epc-storefront--auto247 #footer-widgets a { color: #f0f9ff !important; }
 body.epc-storefront--auto247 #footer-widgets a:hover { color: #ffffff !important; }
-body.epc-storefront--auto247 .footer-widget-title {
+body.epc-storefront--auto247 #footer-widgets .footer-widget-title,
+body.epc-storefront--auto247 #footer-widgets h3.footer-widget-title {
     color: #111111 !important;
     border-bottom-color: rgba(0, 0, 0, .35) !important;
+    margin: .5rem 0 .35rem !important;
+    padding-bottom: .3rem !important;
 }
+body.epc-storefront--auto247 #footer-widgets { padding: 1.1rem 0 .8rem !important; }
+body.epc-storefront--auto247 .epc-footer-menu { font-size: .78rem !important; }
+body.epc-storefront--auto247 .epc-footer-menu li { margin: .18rem 0 !important; }
 body.epc-storefront--auto247 .epc-footer-office,
 body.epc-storefront--auto247 .epc-footer-global {
     background: rgba(255, 255, 255, .12) !important;
     border-color: rgba(255, 255, 255, .3) !important;
     color: #ffffff !important;
+    font-size: .76rem !important;
+    gap: .12rem !important;
+    margin-bottom: .45rem !important;
+    padding: .45rem .6rem !important;
+}
+body.epc-storefront--auto247 details.epc-footer-toggle {
+    background: rgba(255, 255, 255, .12) !important;
+    border: 1px solid rgba(255, 255, 255, .3) !important;
+    border-radius: .55rem;
+    margin-bottom: .45rem;
+    font-size: .76rem;
+    color: #ffffff !important;
+}
+body.epc-storefront--auto247 details.epc-footer-toggle > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: .5rem .6rem;
+    font-weight: 800;
+    color: #111111 !important;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+body.epc-storefront--auto247 details.epc-footer-toggle > summary::-webkit-details-marker { display: none; }
+body.epc-storefront--auto247 details.epc-footer-toggle > summary::after {
+    content: "\25B8";
+    margin-left: auto;
+    transition: transform .15s ease;
+    color: #111111;
+}
+body.epc-storefront--auto247 details.epc-footer-toggle[open] > summary::after { transform: rotate(90deg); }
+body.epc-storefront--auto247 details.epc-footer-toggle .epc-footer-toggle-body {
+    display: flex;
+    flex-direction: column;
+    gap: .12rem;
+    padding: 0 .6rem .5rem;
 }
 body.epc-storefront--auto247 .epc-footer-office strong,
 body.epc-storefront--auto247 .epc-footer-global strong {
