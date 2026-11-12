@@ -271,7 +271,8 @@ public sealed partial class StorefrontNotifyDispatcher : IStorefrontNotifyDispat
                 }
             }
 
-            var fallback = string.Empty;
+            string? matched = null;
+            string? firstConfigured = null;
             await using var command = connection.CreateCommand();
             command.CommandText = "SELECT `host`, IFNULL(`integrations_json`, '') FROM `epc_portal_site_settings` ORDER BY `host` ASC";
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -286,17 +287,23 @@ public sealed partial class StorefrontNotifyDispatcher : IStorefrontNotifyDispat
             {
                 if (aliases.Contains(row.Host, StringComparer.Ordinal))
                 {
-                    fallback = row.Json;
-                    break;
+                    matched = row.Json;
+                }
+
+                if (firstConfigured is null && AuthEmailOtp.TenantOverlay(row.Json).Count > 0)
+                {
+                    firstConfigured = row.Json;
                 }
             }
 
-            if (fallback.Length == 0 && rows.Count > 0)
+            // The request host's own row wins; if it has no tenant SMTP (or no row exists), fall back
+            // to whichever site row carries the saved settings — CP saves them on the first row.
+            var overlay = AuthEmailOtp.TenantOverlay(matched ?? string.Empty);
+            if (overlay.Count == 0 && firstConfigured is not null)
             {
-                fallback = rows[0].Json;
+                overlay = AuthEmailOtp.TenantOverlay(firstConfigured);
             }
 
-            var overlay = AuthEmailOtp.TenantOverlay(fallback);
             return overlay.Count > 0 ? overlay : null;
         }
         catch (Exception ex) when (ex is DbException or InvalidOperationException)

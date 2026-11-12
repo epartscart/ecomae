@@ -180,12 +180,12 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-            var id = await ErpDb.LongAsync(
+            var siteHost = (await ErpDb.StringAsync(
                 connection,
                 null,
-                "SELECT `id` FROM `epc_portal_site_settings` ORDER BY `id` ASC LIMIT 1",
-                cancellationToken).ConfigureAwait(false);
-            if (id <= 0)
+                "SELECT `host` FROM `epc_portal_site_settings` ORDER BY `host` ASC LIMIT 1",
+                cancellationToken).ConfigureAwait(false) ?? string.Empty).Trim();
+            if (siteHost.Length == 0)
             {
                 return ErpSimpleWriteResult.Fail("missing", "Site settings row is missing. Schema ensure is not available on this page.");
             }
@@ -193,9 +193,9 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
             var raw = await ErpDb.StringAsync(
                 connection,
                 null,
-                "SELECT IFNULL(`integrations_json`, '') FROM `epc_portal_site_settings` WHERE `id` = @p0 LIMIT 1",
+                "SELECT IFNULL(`integrations_json`, '') FROM `epc_portal_site_settings` WHERE `host` = @p0 LIMIT 1",
                 cancellationToken,
-                id).ConfigureAwait(false) ?? string.Empty;
+                siteHost).ConfigureAwait(false) ?? string.Empty;
 
             JsonNode? root = null;
             if (!string.IsNullOrWhiteSpace(raw))
@@ -215,14 +215,14 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
             var writes = await ErpDb.ExecuteAsync(
                 connection,
                 null,
-                ErpDb.Positional("UPDATE `epc_portal_site_settings` SET `integrations_json` = ?, `updated_at` = ? WHERE `id` = ?"),
+                ErpDb.Positional("UPDATE `epc_portal_site_settings` SET `integrations_json` = ?, `updated_at` = ? WHERE `host` = ?"),
                 cancellationToken,
                 json,
                 DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                id).ConfigureAwait(false);
+                siteHost).ConfigureAwait(false);
 
             return writes > 0
-                ? ErpSimpleWriteResult.Ok("SMTP settings saved.", id)
+                ? ErpSimpleWriteResult.Ok("SMTP settings saved.", 1)
                 : ErpSimpleWriteResult.Fail("unchanged", "SMTP settings were not updated.");
         }
         catch (Exception ex)
