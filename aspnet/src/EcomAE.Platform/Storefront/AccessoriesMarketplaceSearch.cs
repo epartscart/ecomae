@@ -227,6 +227,18 @@ public static class AccessoriesMarketplaceSearch
                 args.Add(filters.SellerType);
             }
 
+            if (filters.MfaId > 0)
+            {
+                where.Add("l.`mfa_id` = ?");
+                args.Add(filters.MfaId);
+            }
+
+            if (filters.MsId > 0)
+            {
+                where.Add("l.`ms_id` = ?");
+                args.Add(filters.MsId);
+            }
+
             if (filters.Q.Length > 0)
             {
                 where.Add("(l.`title` LIKE ? OR l.`description` LIKE ? OR l.`make` LIKE ? OR l.`model` LIKE ?)");
@@ -309,10 +321,14 @@ public static class AccessoriesMarketplaceSearch
                 seats = row.Seats,
                 seller_type = row.SellerType,
                 contact_phone = row.ContactPhone,
+                mfa_id = row.MfaId,
+                ms_id = row.MsId,
             });
         }
 
-        var facets = await FacetsAsync(connection, env, tree, cancellationToken).ConfigureAwait(false);
+        var isCarsCategory = tree.Any(p => p.Slug == "cars" && (p.Id == categoryId || p.Children.Any(c => c.Id == subcategoryId || c.Id == categoryId)))
+            || filters.Category == "cars";
+        var facets = await FacetsAsync(connection, env, tree, isCarsCategory, filters.Make, filters.MfaId, cancellationToken).ConfigureAwait(false);
         var from = total == 0 ? 0 : offset + 1;
         var to = Math.Min(total, offset + items.Count);
         var payload = new
@@ -334,6 +350,7 @@ public static class AccessoriesMarketplaceSearch
                 fuels = facets.Fuels,
                 transmissions = facets.Transmissions,
                 sellers = facets.Sellers,
+                models = facets.Models,
             },
             taxonomy = facets.Categories,
             makes = facets.MakeLabels,
@@ -407,6 +424,8 @@ public static class AccessoriesMarketplaceSearch
                 `seats` TINYINT UNSIGNED NOT NULL DEFAULT 0,
                 `seller_type` VARCHAR(32) NOT NULL DEFAULT 'dealer',
                 `contact_phone` VARCHAR(60) NOT NULL DEFAULT '',
+                `mfa_id` BIGINT NOT NULL DEFAULT 0,
+                `ms_id` BIGINT NOT NULL DEFAULT 0,
                 PRIMARY KEY (`id`),
                 KEY `category_id` (`category_id`),
                 KEY `subcategory_id` (`subcategory_id`),
@@ -485,6 +504,8 @@ public static class AccessoriesMarketplaceSearch
             ("seats", "TINYINT UNSIGNED NOT NULL DEFAULT 0"),
             ("seller_type", "VARCHAR(32) NOT NULL DEFAULT 'dealer'"),
             ("contact_phone", "VARCHAR(60) NOT NULL DEFAULT ''"),
+            ("mfa_id", "BIGINT NOT NULL DEFAULT 0"),
+            ("ms_id", "BIGINT NOT NULL DEFAULT 0"),
         ];
         foreach (var (name, definition) in columns)
         {
@@ -663,7 +684,7 @@ public static class AccessoriesMarketplaceSearch
             "l.`price`, l.`compare_price`, l.`currency`, l.`image_url`, l.`external_url`, l.`photo_count`, l.`featured`, " +
             "l.`stock_qty`, c.`slug`, c.`label`, s.`slug`, s.`label`, l.`updated_at`, " +
             "l.`mileage_km`, l.`body_type`, l.`fuel_type`, l.`transmission`, l.`engine`, l.`drive_type`, " +
-            "l.`exterior_color`, l.`doors`, l.`seats`, l.`seller_type`, l.`contact_phone` " +
+            "l.`exterior_color`, l.`doors`, l.`seats`, l.`seller_type`, l.`contact_phone`, l.`mfa_id`, l.`ms_id` " +
             "FROM `epc_acc_listings` l " +
             "LEFT JOIN `epc_acc_categories` c ON c.id = l.category_id " +
             "LEFT JOIN `epc_acc_categories` s ON s.id = l.subcategory_id " +
@@ -706,7 +727,9 @@ public static class AccessoriesMarketplaceSearch
                 reader.IsDBNull(28) ? 0 : Convert.ToInt32(reader.GetValue(28), CultureInfo.InvariantCulture),
                 reader.IsDBNull(29) ? 0 : Convert.ToInt32(reader.GetValue(29), CultureInfo.InvariantCulture),
                 Text(reader, 30),
-                Text(reader, 31)));
+                Text(reader, 31),
+                reader.IsDBNull(32) ? 0 : Convert.ToInt64(reader.GetValue(32), CultureInfo.InvariantCulture),
+                reader.IsDBNull(33) ? 0 : Convert.ToInt64(reader.GetValue(33), CultureInfo.InvariantCulture)));
         }
 
         return rows;
@@ -757,6 +780,9 @@ public static class AccessoriesMarketplaceSearch
         DbConnection connection,
         IWebHostEnvironment env,
         IReadOnlyList<AccCategory> tree,
+        bool isCarsCategory,
+        string selectedMake,
+        long selectedMfaId,
         CancellationToken cancellationToken)
     {
         var catCounts = new Dictionary<long, int>();
@@ -847,7 +873,135 @@ public static class AccessoriesMarketplaceSearch
             }
         }
 
-        return new AccFacets(categories, facetMakes, facetCities, conditions, makeLabels, cityLabels, carFacets.Bodies, carFacets.Fuels, carFacets.Transmissions, carFacets.Sellers);
+        object models = Array.Empty<object>();
+        if (isCarsCategory)
+        {
+            var umapiMakes = await UmapiCarMakesAsync(connection, makeCounts, cancellationToken).ConfigureAwait(false);
+            if (umapiMakes.Count > 0)
+            {
+                facetMakes = umapiMakes;
+            }
+
+            var modelsFacet = await UmapiCarModelsAsync(connection, selectedMake, selectedMfaId, cancellationToken).ConfigureAwait(false);
+            if (modelsFacet.Count > 0)
+            {
+                models = modelsFacet;
+            }
+        }
+
+        return new AccFacets(categories, facetMakes, facetCities, conditions, makeLabels, cityLabels, carFacets.Bodies, carFacets.Fuels, carFacets.Transmissions, carFacets.Sellers, models);
+    }
+
+    /// <summary>
+    /// Make facet driven by the synced umapi vehicle catalog (epc_umapi_manufacturers),
+    /// so car listings share the same make names as the parts catalog.
+    /// Falls back to taxonomy terms when the catalog cache is absent.
+    /// </summary>
+    private static async Task<List<object>> UmapiCarMakesAsync(
+        DbConnection connection,
+        IReadOnlyDictionary<string, int> makeCounts,
+        CancellationToken cancellationToken)
+    {
+        var rows = new List<object>();
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT `mfa_id`, `manufacturer`, `popular`
+                FROM `epc_umapi_manufacturers`
+                WHERE `section` = 'passenger'
+                ORDER BY `popular` DESC, `manufacturer` ASC
+                LIMIT 200
+                """;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var name = Text(reader, 1);
+                if (name.Length == 0)
+                {
+                    continue;
+                }
+
+                rows.Add(new
+                {
+                    make = name,
+                    mfa_id = reader.IsDBNull(0) ? 0 : Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
+                    count = makeCounts.GetValueOrDefault(name),
+                });
+            }
+        }
+        catch
+        {
+            // Catalog cache table missing on this tenant — taxonomy fallback applies.
+        }
+
+        return rows;
+    }
+
+    /// <summary>
+    /// Model facet from the synced umapi model series for the selected make,
+    /// with year ranges so the storefront can show e.g. "Camry (2017-2024)".
+    /// </summary>
+    private static async Task<List<object>> UmapiCarModelsAsync(
+        DbConnection connection,
+        string selectedMake,
+        long selectedMfaId,
+        CancellationToken cancellationToken)
+    {
+        var rows = new List<object>();
+        var mfaId = selectedMfaId;
+        try
+        {
+            if (mfaId <= 0 && selectedMake.Length > 0)
+            {
+                mfaId = await ErpDb.LongAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("SELECT `mfa_id` FROM `epc_umapi_manufacturers` WHERE `section` = 'passenger' AND `manufacturer` = ? LIMIT 1"),
+                    cancellationToken,
+                    selectedMake).ConfigureAwait(false);
+            }
+
+            if (mfaId <= 0)
+            {
+                return rows;
+            }
+
+            await using var command = connection.CreateCommand();
+            command.CommandText = ErpDb.Positional("""
+                SELECT `ms_id`, `model_series`, `year_from`, `year_to`
+                FROM `epc_umapi_models`
+                WHERE `section` = 'passenger' AND `mfa_id` = ?
+                ORDER BY `model_series` ASC
+                LIMIT 300
+                """);
+            ErpDb.AddParameters(command, mfaId);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var name = Text(reader, 1);
+                if (name.Length == 0)
+                {
+                    continue;
+                }
+
+                var yearFrom = Text(reader, 2);
+                var yearTo = Text(reader, 3);
+                rows.Add(new
+                {
+                    model = name,
+                    ms_id = reader.IsDBNull(0) ? 0 : Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
+                    year_from = yearFrom,
+                    year_to = yearTo,
+                });
+            }
+        }
+        catch
+        {
+            // Catalog cache table missing on this tenant.
+        }
+
+        return rows;
     }
 
     private static async Task<List<string>> TermLabelsAsync(DbConnection connection, IWebHostEnvironment env, string type, CancellationToken cancellationToken)
@@ -1080,6 +1234,8 @@ public static class AccessoriesMarketplaceSearch
         _ = int.TryParse(Field("year_from"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var yearFrom);
         _ = int.TryParse(Field("year_to"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var yearTo);
         _ = int.TryParse(Field("mileage_max"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var mileageMax);
+        _ = long.TryParse(Field("mfa_id").Length == 0 ? Field("mfa") : Field("mfa_id"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var mfaId);
+        _ = long.TryParse(Field("ms_id").Length == 0 ? Field("ms") : Field("ms_id"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var msId);
         var sort = Field("sort");
         return new AccFilters(
             Field("q"),
@@ -1101,7 +1257,9 @@ public static class AccessoriesMarketplaceSearch
             Field("body"),
             Field("fuel"),
             Field("transmission"),
-            Field("seller"));
+            Field("seller"),
+            mfaId,
+            msId);
     }
 
     private static string Unavailable()
@@ -1158,7 +1316,9 @@ public static class AccessoriesMarketplaceSearch
         string BodyType,
         string FuelType,
         string Transmission,
-        string SellerType);
+        string SellerType,
+        long MfaId,
+        long MsId);
 
     private sealed record AccCategory(long Id, long ParentId, string Slug, string Label, int PwId, List<AccCategory> Children);
 
@@ -1194,7 +1354,9 @@ public static class AccessoriesMarketplaceSearch
         int Doors,
         int Seats,
         string SellerType,
-        string ContactPhone);
+        string ContactPhone,
+        long MfaId,
+        long MsId);
 
     private sealed record AccPhoto(long Id, string Url, bool IsPrimary);
 
@@ -1208,7 +1370,8 @@ public static class AccessoriesMarketplaceSearch
         object Bodies,
         object Fuels,
         object Transmissions,
-        object Sellers);
+        object Sellers,
+        object Models);
 
     private sealed record AccTaxonomy(IReadOnlyList<AccTaxCategory> Categories, List<string> Makes, List<string> Cities);
 

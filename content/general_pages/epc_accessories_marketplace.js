@@ -41,6 +41,7 @@
 		vApply: document.getElementById('epc-acc-vehicle-apply'),
 		vClear: document.getElementById('epc-acc-vehicle-clear'),
 		savedBar: document.getElementById('epc-acc-saved-bar'),
+		models: document.getElementById('epc-acc-models'),
 		bodies: document.getElementById('epc-acc-bodies'),
 		fuels: document.getElementById('epc-acc-fuels'),
 		gears: document.getElementById('epc-acc-gears'),
@@ -61,7 +62,7 @@
 		q: '', category: '', subcategory: '', make: '', model: '', city: '',
 		condition: '', price_min: '', price_max: '', id: '', sort: 'updated-desc', page: 1, view: 'grid',
 		year: '', showSavedOnly: false,
-		body: '', fuel: '', transmission: '', seller: '', year_from: '', year_to: '', mileage_max: '',
+		body: '', fuel: '', transmission: '', seller: '', year_from: '', year_to: '', mileage_max: '', mfa_id: '', ms_id: '',
 		taxonomy: [], makes: [], cities: []
 	};
 
@@ -264,7 +265,7 @@
 	function syncUrl() {
 		try {
 			var u = new URL(window.location.href);
-			['q','category','subcategory','make','model','city','condition','price_min','price_max','id','sort','page'].forEach(function (k) {
+			['q','category','subcategory','make','model','city','condition','price_min','price_max','id','sort','page','body','fuel','transmission','seller','year_from','year_to','mileage_max','mfa_id','ms_id'].forEach(function (k) {
 				var v = state[k];
 				if (v && String(v) !== '' && !(k === 'page' && String(v) === '1') && !(k === 'sort' && v === 'updated-desc')) {
 					u.searchParams.set(k, v);
@@ -278,7 +279,7 @@
 	function readUrl() {
 		try {
 			var u = new URL(window.location.href);
-			['q','category','subcategory','make','model','city','condition','price_min','price_max','id','sort','page','body','fuel','transmission','seller','year_from','year_to','mileage_max'].forEach(function (k) {
+			['q','category','subcategory','make','model','city','condition','price_min','price_max','id','sort','page','body','fuel','transmission','seller','year_from','year_to','mileage_max','mfa_id','ms_id'].forEach(function (k) {
 				if (u.searchParams.has(k)) { state[k] = u.searchParams.get(k) || ''; }
 			});
 			if (els.yearFrom) els.yearFrom.value = state.year_from;
@@ -346,11 +347,28 @@
 		var makes = (facets && facets.makes) || [];
 		facetList(els.makes, makes, 'make', 'make', state.make, function (v) {
 			state.make = (state.make === v) ? '' : v;
+			var hit = makes.find(function (m) { return String(m.make) === String(v); });
+			state.mfa_id = (state.make && hit && hit.mfa_id) ? hit.mfa_id : '';
+			state.ms_id = '';
+			state.model = '';
 			if (els.vMake) els.vMake.value = state.make;
 			state.page = 1;
 			load();
 		}, 'All makes');
 		fillVehicleMakes(makes);
+
+		if (isCars && els.models) {
+			var modelRows = (facets && facets.models) || [];
+			facetList(els.models, modelRows.map(function (m) {
+				return { model: m.model, label: m.model + ((m.year_from || m.year_to) ? ' (' + (m.year_from || '') + '-' + (m.year_to || 'p.t.') + ')' : ''), ms_id: m.ms_id };
+			}), 'model', 'label', state.model, function (v) {
+				state.model = (state.model === v) ? '' : v;
+				var hit = modelRows.find(function (m) { return String(m.model) === String(v); });
+				state.ms_id = (state.model && hit && hit.ms_id) ? hit.ms_id : '';
+				state.page = 1;
+				load();
+			}, 'All models');
+		}
 
 		facetList(els.cities, (facets && facets.cities) || [], 'city', 'city', state.city, function (v) {
 			state.city = (state.city === v) ? '' : v;
@@ -572,7 +590,7 @@
 		els.count.textContent = 'Loading…';
 		syncUrl();
 		var params = new URLSearchParams();
-		['q','category','subcategory','make','model','city','condition','price_min','price_max','id','sort','page','body','fuel','transmission','seller','year_from','year_to','mileage_max'].forEach(function (k) {
+		['q','category','subcategory','make','model','city','condition','price_min','price_max','id','sort','page','body','fuel','transmission','seller','year_from','year_to','mileage_max','mfa_id','ms_id'].forEach(function (k) {
 			if (state[k] !== '' && state[k] != null) params.set(k, state[k]);
 		});
 		params.set('per_page', '24');

@@ -260,18 +260,44 @@ else if (_view == "edit")
                             <textarea class="form-control" name="description" rows="3">@(l?.Description ?? "")</textarea>
                         </div>
                         <div>
-                            <label>Make</label>
-                            <select name="make" class="form-control">
+                            <label>Make <span class="muted">@(VehicleMakes.Count > 0 ? "(vehicle catalog)" : "")</span></label>
+                            <select name="make" id="epcAccMake" class="form-control">
                                 <option value="">—</option>
-                                @foreach (var m in _makeTerms)
+                                @if (VehicleMakes.Count > 0)
                                 {
-                                    <option value="@m.Label" selected="@(l?.Make == m.Label)">@m.Label</option>
+                                    @foreach (var m in VehicleMakes)
+                                    {
+                                        <option value="@m.Name" data-mfa="@m.MfaId" selected="@(l?.Make == m.Name)">@m.Name</option>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(l?.Make) && VehicleMakes.All(m => m.Name != l.Make))
+                                    {
+                                        <option value="@l.Make" selected>@l.Make</option>
+                                    }
+                                }
+                                else
+                                {
+                                    @foreach (var m in _makeTerms)
+                                    {
+                                        <option value="@m.Label" selected="@(l?.Make == m.Label)">@m.Label</option>
+                                    }
                                 }
                             </select>
+                            <input type="hidden" name="mfa_id" id="epcAccMfa" value="@(l?.MfaId ?? 0)" />
                         </div>
                         <div>
                             <label>Model</label>
-                            @if (_modelTerms.Count > 0)
+                            @if (VehicleMakes.Count > 0)
+                            {
+                                <select name="model" id="epcAccModel" class="form-control" data-current="@(l?.Model ?? "")">
+                                    <option value="">—</option>
+                                    @if (!string.IsNullOrWhiteSpace(l?.Model))
+                                    {
+                                        <option value="@l.Model" selected>@l.Model</option>
+                                    }
+                                </select>
+                                <input type="hidden" name="ms_id" id="epcAccMs" value="@(l?.MsId ?? 0)" />
+                            }
+                            else if (_modelTerms.Count > 0)
                             {
                                 <select name="model" class="form-control">
                                     <option value="">—</option>
@@ -286,6 +312,16 @@ else if (_view == "edit")
                                 <input class="form-control" name="model" value="@(l?.Model ?? "")" />
                             }
                         </div>
+                        @if (VehicleMakes.Count > 0)
+                        {
+                            <div>
+                                <label>Trim / modification</label>
+                                <select id="epcAccMod" class="form-control">
+                                    <option value="">— pick to autofill —</option>
+                                </select>
+                                <small class="muted">Catalog trim: fills year, engine and fuel</small>
+                            </div>
+                        }
                         <div>
                             <label>Year</label>
                             @if (_yearTerms.Count > 0)
@@ -542,6 +578,67 @@ else if (_view == "edit")
         cat.addEventListener('change', function () { fill(false); });
         fill(true);
     })();
+    (function () {
+        var make = document.getElementById('epcAccMake');
+        var model = document.getElementById('epcAccModel');
+        var mfa = document.getElementById('epcAccMfa');
+        var ms = document.getElementById('epcAccMs');
+        var mod = document.getElementById('epcAccMod');
+        if (!make || !model || !mfa) return;
+        function load(url, cb) { fetch(url, { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(cb).catch(function () {}); }
+        function syncMfa() { var o = make.options[make.selectedIndex]; mfa.value = o && o.getAttribute('data-mfa') ? o.getAttribute('data-mfa') : '0'; }
+        function syncMs() { if (!ms) return; var o = model.options[model.selectedIndex]; ms.value = o && o.getAttribute('data-ms') ? o.getAttribute('data-ms') : '0'; }
+        function loadMods() {
+            if (!mod) return;
+            mod.innerHTML = '<option value="">— pick to autofill —</option>';
+            if (!ms || ms.value === '0') return;
+            load('/cp/accessories/vehicle-data?ms_id=' + ms.value, function (d) {
+                (d.mods || []).forEach(function (m) {
+                    var o = document.createElement('option');
+                    o.value = m.title || '';
+                    o.setAttribute('data-yf', m.yearFrom || '');
+                    o.setAttribute('data-fuel', m.fuelType || '');
+                    o.textContent = m.title + (m.yearFrom ? ' (' + m.yearFrom + ')' : '');
+                    mod.appendChild(o);
+                });
+            });
+        }
+        function loadModels(keep) {
+            model.innerHTML = '<option value="">—</option>';
+            if (mfa.value === '0') {
+                if (keep) { model.innerHTML = '<option value="' + keep.replace(/"/g, '') + '" selected>' + keep + '</option>'; }
+                return;
+            }
+            load('/cp/accessories/vehicle-data?mfa_id=' + mfa.value, function (d) {
+                (d.models || []).forEach(function (m) {
+                    var o = document.createElement('option');
+                    o.value = m.name;
+                    o.setAttribute('data-ms', m.msId);
+                    o.textContent = m.name + ((m.yearFrom || m.yearTo) ? ' (' + (m.yearFrom || '') + '-' + (m.yearTo || 'p.t.') + ')' : '');
+                    if (keep === m.name) { o.selected = true; }
+                    model.appendChild(o);
+                });
+                syncMs();
+                loadMods();
+            });
+        }
+        make.addEventListener('change', function () { syncMfa(); loadModels(''); if (ms) ms.value = '0'; if (mod) mod.innerHTML = '<option value="">— pick to autofill —</option>'; });
+        model.addEventListener('change', function () { syncMs(); loadMods(); });
+        if (mod) {
+            mod.addEventListener('change', function () {
+                var o = mod.options[mod.selectedIndex];
+                if (!o || !o.value) return;
+                var y = document.querySelector('[name=year]');
+                if (y && o.getAttribute('data-yf')) y.value = o.getAttribute('data-yf');
+                var e = document.querySelector('[name=engine]');
+                if (e && !e.value) e.value = o.value;
+                var f = document.querySelector('[name=fuel_type]');
+                if (f && o.getAttribute('data-fuel')) f.value = o.getAttribute('data-fuel');
+            });
+        }
+        syncMfa();
+        if (mfa.value !== '0' || model.getAttribute('data-current')) { loadModels(model.getAttribute('data-current') || ''); }
+    })();
     </script>
 }
 else
@@ -791,6 +888,7 @@ else
     private IReadOnlyList<CpAccTerm> _terms = [];
     private CpAccListingRow? _listing;
     private IReadOnlyList<CpAccPhoto> _photos = [];
+    private IReadOnlyList<CpAccVehicleMake> VehicleMakes = [];
 
     private string TermTypeLabel => CpAccessoriesListService.TermTypes.First(t => t.Key == _termType).Label;
 
@@ -923,6 +1021,7 @@ else
         {
             _view = "edit";
             _modelTerms = await Acc.TermsAsync("model", false, ctx.RequestAborted);
+            VehicleMakes = await Acc.VehicleMakesAsync(ctx.RequestAborted);
             _yearTerms = await Acc.TermsAsync("year", false, ctx.RequestAborted);
             _cityTerms = await Acc.TermsAsync("city", false, ctx.RequestAborted);
             _conditionTerms = await Acc.TermsAsync("condition", false, ctx.RequestAborted);
