@@ -42,6 +42,7 @@ public static class LegacyChromeNavCatalog
         new("Dashboard summary KPIs", "/cp/dashboard-summary-app"),
         new("Orders (OMS)", "/cp/orders"),
         new("Abandoned carts", "/cp/abandoned-carts-app"),
+        new("Catalog usage", "/cp/catalog-usage-app"),
         new("Users list", "/cp/users-app"),
         new("Groups list", "/cp/groups-app"),
         new("Modules list", "/cp/modules-app"),

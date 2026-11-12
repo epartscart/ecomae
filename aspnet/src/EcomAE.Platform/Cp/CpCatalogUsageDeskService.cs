@@ -140,7 +140,7 @@ public sealed class CpCatalogUsageDeskService : ICpCatalogUsageDeskService
     {
         await using var command = connection.CreateCommand();
         command.CommandText =
-            "SELECT COUNT(*), COALESCE(SUM(is_live),0), COALESCE(SUM(from_cache),0), COALESCE(SUM(quota_blocked),0) "
+            "SELECT COUNT(*), COALESCE(SUM(is_live = 1 AND from_cache = 0 AND quota_blocked = 0),0), COALESCE(SUM(from_cache),0), COALESCE(SUM(quota_blocked),0) "
             + "FROM `epc_umapi_usage_log` WHERE `usage_date` = CURDATE()";
         await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
         return await reader.ReadAsync(ct).ConfigureAwait(false)
@@ -163,7 +163,7 @@ public sealed class CpCatalogUsageDeskService : ICpCatalogUsageDeskService
         var rows = new List<CpCatalogUsageActionRow>();
         await using var command = connection.CreateCommand();
         command.CommandText =
-            "SELECT `action`, COUNT(*), COALESCE(SUM(is_live),0), COALESCE(SUM(from_cache),0), "
+            "SELECT `action`, COUNT(*), COALESCE(SUM(is_live = 1 AND from_cache = 0 AND quota_blocked = 0),0), COALESCE(SUM(from_cache),0), "
             + "COALESCE(SUM(quota_blocked),0) FROM `epc_umapi_usage_log` "
             + "WHERE `usage_date` = CURDATE() GROUP BY `action` ORDER BY COUNT(*) DESC";
         await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
@@ -200,7 +200,7 @@ public sealed class CpCatalogUsageDeskService : ICpCatalogUsageDeskService
         var rows = new List<CpCatalogUsageDayRow>();
         await using var command = connection.CreateCommand();
         command.CommandText =
-            "SELECT `usage_date`, COUNT(*), COALESCE(SUM(is_live),0), COALESCE(SUM(from_cache),0), "
+            "SELECT `usage_date`, COUNT(*), COALESCE(SUM(is_live = 1 AND from_cache = 0 AND quota_blocked = 0),0), COALESCE(SUM(from_cache),0), "
             + "COALESCE(SUM(quota_blocked),0), COALESCE(SUM(`action` LIKE 'vin%' AND is_live = 1 AND from_cache = 0 AND quota_blocked = 0),0) "
             + "FROM `epc_umapi_usage_log` WHERE `usage_date` >= CURDATE() - INTERVAL @days DAY "
             + "GROUP BY `usage_date` ORDER BY `usage_date` DESC";
