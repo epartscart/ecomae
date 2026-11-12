@@ -486,14 +486,18 @@ body.epc-storefront--auto247 aside#footer-widgets {
 body.epc-storefront--auto247 #footer-widgets a { color: #f0f9ff !important; }
 body.epc-storefront--auto247 #footer-widgets a:hover { color: #ffffff !important; }
 body.epc-storefront--auto247 .footer-widget-title {
-    color: #ffffff !important;
-    border-bottom-color: rgba(255, 255, 255, .6) !important;
+    color: #111111 !important;
+    border-bottom-color: rgba(0, 0, 0, .35) !important;
 }
 body.epc-storefront--auto247 .epc-footer-office,
 body.epc-storefront--auto247 .epc-footer-global {
     background: rgba(255, 255, 255, .12) !important;
     border-color: rgba(255, 255, 255, .3) !important;
     color: #ffffff !important;
+}
+body.epc-storefront--auto247 .epc-footer-office strong,
+body.epc-storefront--auto247 .epc-footer-global strong {
+    color: #111111 !important;
 }
 body.epc-storefront--auto247 .epc-footer-pay { color: #e0f2fe !important; }
 body.epc-storefront--auto247 footer#footer {
