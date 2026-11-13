@@ -1,21 +1,20 @@
 @page "/storefront/eparts-cata-app"
 @page "/en/eparts-cata"
 @page "/en/partsapi-catalog"
+@page "/en/papi-catalog"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
 
-<PageTitle>EParts CATA · eParts Cart</PageTitle>
+<PageTitle>PAPI Catalog · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<StorefrontCatalogWidgetBody Title="EParts CATA"
-                            Subtitle="Unified parts catalog — vehicle tree plus aftermarket brand catalog."
-                            AnchorId="epc-eparts-cata"
-                            Html="@_html"
-                            PhpComparePath="@StorefrontPhpCanonical.EpartsCata">
-    <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle catalog</a>
-    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.UmapiCatalog">Epart Catalog</a>
-    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.EpartsMod">EParts Mod</a>
+<StorefrontCatalogWidgetBody Title="PAPI Catalog"
+                            Subtitle="PartsAPI TecDoc vehicle tree — makes, models, modifications, parts groups and articles."
+                            AnchorId="epc-papi-catalog"
+                            Html="@_html">
+    <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.UmapiCatalog">UMAPI Catalog</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.TurCatalog">TUR Catalog</a>
     <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
 </StorefrontCatalogWidgetBody>
 
@@ -24,18 +23,11 @@
 
     protected override void OnInitialized()
     {
-        var vehicle = PhpHomeWidgetHtml.VehicleCatalog();
-        var umapi = PhpHomeWidgetHtml.UmapiCatalog();
-        if (string.IsNullOrWhiteSpace(vehicle) && string.IsNullOrWhiteSpace(umapi))
+        _html = PhpHomeWidgetHtml.RenderStatic("content/general_pages/epc_rendered_widgets/catalog_papi.html");
+        if (string.IsNullOrWhiteSpace(_html))
         {
-            _html = "<p style=\"margin:0;color:#64748b\">EParts CATA widgets are unavailable in this environment. "
+            _html = "<p style=\"margin:0;color:#64748b\">PAPI Catalog is unavailable in this environment. "
                   + "<a href=\"" + StorefrontSurfaceLinks.PartSearch + "\">Open part search</a>.</p>";
-            return;
         }
-
-        _html = "<div class=\"epc-cata-stack\">"
-              + (string.IsNullOrWhiteSpace(vehicle) ? "" : "<section aria-label=\"Vehicle tree\">" + vehicle + "</section>")
-              + (string.IsNullOrWhiteSpace(umapi) ? "" : "<section aria-label=\"Aftermarket catalog\" style=\"margin-top:1rem\">" + umapi + "</section>")
-              + "</div>";
     }
 }
