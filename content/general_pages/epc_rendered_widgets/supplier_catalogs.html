@@ -146,6 +146,7 @@
                 restore();
                 return;
             }
+            show('');
             searchOffset += (res.data || []).length;
             renderHits(res.data || [], true);
             if (res.hasMore) {
