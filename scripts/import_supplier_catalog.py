@@ -92,6 +92,8 @@ def main():
 
     base = os.path.basename(a.pdf)
     cid = a.id or re.sub(r"[^a-z0-9]+", "-", os.path.splitext(base)[0].lower()).strip("-")
+    if not cid:
+        sys.exit("catalog id resolved empty — pass --id explicitly (filename has no latin chars)")
     supplier = a.supplier or re.split(r"[_\-\s]", os.path.splitext(base)[0])[0].upper()
     dest = os.path.join(a.out_dir, cid)
     tmp = dest + ".importing"
