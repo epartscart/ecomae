@@ -142,6 +142,11 @@ def main():
         "version": ver,
         "edition": edition,
         "itemCount": sum(len(p["refs"]) for p in pages),
+        # Single-version policy: re-importing a supplier's newer edition into
+        # the same <id> replaces the whole directory — only the latest
+        # catalog is ever kept. To add a new brand, pick a new --id.
+        "imported": __import__("datetime").datetime.now(
+            __import__("datetime").timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     }
     with open(os.path.join(dest, "catalog.json"), "w") as f:
         json.dump({"meta": meta, "pages": pages}, f, ensure_ascii=False)

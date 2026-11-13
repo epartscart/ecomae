@@ -68,6 +68,7 @@
         if (m.catNo) { bits.push('<span class="epc-supcat-chip epc-supcat-ver">Cat. No. ' + esc(m.catNo) + '</span>'); }
         if (m.version) { bits.push('<span class="epc-supcat-chip epc-supcat-ver">' + esc(m.version) + '</span>'); }
         if (m.edition) { bits.push('<span class="epc-supcat-chip">Edition ' + esc(m.edition) + '</span>'); }
+        if (m.imported) { bits.push('<span class="epc-supcat-chip">Imported ' + esc(m.imported) + '</span>'); }
         bits.push('<span class="epc-supcat-chip">' + esc(m.pages) + ' pages</span>');
         if (m.searchable) { bits.push('<span class="epc-supcat-chip">' + esc(m.itemCount) + ' items</span>'); }
         else { bits.push('<span class="epc-supcat-chip">PDF only</span>'); }

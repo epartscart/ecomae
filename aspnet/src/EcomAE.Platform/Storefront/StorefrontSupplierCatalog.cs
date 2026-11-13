@@ -30,6 +30,7 @@ public static class StorefrontSupplierCatalog
         public string Version { get; set; } = "";
         public string Edition { get; set; } = "";
         public int ItemCount { get; set; }
+        public string Imported { get; set; } = "";
     }
 
     public sealed class SupplierCatalogPage
@@ -147,7 +148,7 @@ public static class StorefrontSupplierCatalog
             data = metas.Select(m => new
             {
                 m.Id, m.Supplier, m.Title, m.CatNo, m.Version, m.Edition,
-                m.Pages, m.ItemCount,
+                m.Pages, m.ItemCount, m.Imported,
                 searchable = m.ItemCount > 0,
                 url = FilePrefix + m.File,
             }).ToList(),
@@ -168,7 +169,7 @@ public static class StorefrontSupplierCatalog
             data = new
             {
                 m.Id, m.Supplier, m.Title, m.CatNo, m.Version, m.Edition,
-                m.Pages, m.ItemCount,
+                m.Pages, m.ItemCount, m.Imported,
                 searchable = m.ItemCount > 0,
                 url = FilePrefix + m.File,
             },
