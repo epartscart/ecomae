@@ -286,7 +286,7 @@ public static class StorefrontPartsApiProduct
                     var file = Text(m, "FILE_NAME", "MEDIA_FILE", "file") ?? "";
                     if (file.Length > 0)
                     {
-                        images.Add("https://image.umapi.ru/ARTICLES/" + file);
+                        images.Add(ArticleImageUrl(file));
                     }
                 }
             }
@@ -296,7 +296,7 @@ public static class StorefrontPartsApiProduct
                 var file = Text(umapiArticle, "MEDIA_FILE") ?? "";
                 if (file.Length > 0)
                 {
-                    images.Add("https://image.umapi.ru/ARTICLES/" + file);
+                    images.Add(ArticleImageUrl(file));
                 }
             }
         }
@@ -438,7 +438,7 @@ public static class StorefrontPartsApiProduct
                     var img = Text(row, "img", "IMG") ?? "";
                     if (images.Count == 0 && img.Length > 0)
                     {
-                        images.Add(img.StartsWith('/') ? "https://image.umapi.ru" + img : img);
+                        images.Add(ArticleImageUrl(img));
                     }
                 }
                 else if (crosses.Count == 0 && (cb + cn).Length > 0)
@@ -456,6 +456,15 @@ public static class StorefrontPartsApiProduct
             images = await LoadCrossFallbackImagesAsync(connections, context, crosses, cancellationToken)
                 .ConfigureAwait(false);
         }
+
+        // Real photos first: image.umapi.ru serves a generic "no photo" JPEG
+        // for missing files, so externally-hosted media (img.autodatabases.ru
+        // et al) outranks umapi URLs — and umapi files go through the image
+        // proxy, whose placeholder detector turns the fake 200 into a 404.
+        images = images
+            .OrderBy(i => i.StartsWith("/api/umapi_image.php", StringComparison.Ordinal)
+                || i.Contains("image.umapi.ru", StringComparison.OrdinalIgnoreCase) ? 1 : 0)
+            .ToList();
 
         // EAN/barcode — umapi article payload first, then any row field.
         var ean = "";
@@ -1112,13 +1121,19 @@ public static class StorefrontPartsApiProduct
         sb.Append("<div class=\"epc-prod-gallery\">");
         if (images.Count > 0)
         {
-            sb.Append("<img class=\"epc-prod-pic\" id=\"epcProdPic\" src=\"").Append(E(images[0])).Append("\" alt=\"").Append(E(number)).Append("\">");
+            // Cycle through candidate photos on error (e.g. proxy 404 for the CDN's
+            // "no photo" placeholder); when every source fails show "No photo yet".
+            // Alternates ride in a newline-joined data attribute — E()-escaped, so a
+            // hostile URL from a provider payload can't inject markup or script.
+            var altList = string.Join("\n", images.Skip(1));
+            sb.Append("<img class=\"epc-prod-pic\" id=\"epcProdPic\" src=\"").Append(E(images[0])).Append("\" alt=\"").Append(E(number))
+                .Append("\" data-alt=\"").Append(E(altList)).Append("\" onerror=\"var l=(this.dataset.alt||'').split('\\n');var a=l.shift();this.dataset.alt=l.join('\\n');if(a){this.src=a}else{this.onerror=null;this.outerHTML='<div class=&quot;epc-prod-pic&quot; style=&quot;display:flex;align-items:center;justify-content:center;color:#aaa;border:1px dashed #ddd&quot;>No photo yet</div>'}\">");
             if (images.Count > 1)
             {
                 sb.Append("<div class=\"epc-prod-thumbs\">");
                 foreach (var img in images)
                 {
-                    sb.Append("<img src=\"").Append(E(img)).Append("\" alt=\"\" onclick=\"document.getElementById('epcProdPic').src=this.src\">");
+                    sb.Append("<img src=\"").Append(E(img)).Append("\" alt=\"\" onclick=\"var p=document.getElementById('epcProdPic');if(p){p._alt=[];p.src=this.src}\" onerror=\"this.remove()\">");
                 }
                 sb.Append("</div>");
             }
@@ -1334,6 +1349,7 @@ public static class StorefrontPartsApiProduct
                             + (Text(row, "PC_ENG_CODES") ?? "")).Trim()),
                 Text(row, "yearsFrom", "yearFrom", "yearStart", "from") ?? "",
                 Text(row, "yearsTo", "yearTo", "yearEnd", "to") ?? "",
+                Text(row, "carId", "CAR_ID", "PC_ID", "CV_ID", "MTB_ID", "TYP_ID", "typ_id", "modId", "id") ?? "",
             };
             if (cells.Any(c => c.Length > 0))
             {
@@ -1383,7 +1399,8 @@ public static class StorefrontPartsApiProduct
             var years = (v[3] + (v[4].Length > 0 ? " - " + v[4] : "")).Trim(' ', '-');
             // car-mod: clicking a vehicle opens that car's catalog drill-down.
             var carUrl = "/en/catalog?make=" + Uri.EscapeDataString(v[0])
-                + (v[1].Length > 0 ? "&model=" + Uri.EscapeDataString(v[1].Split('(')[0].Trim()) : "");
+                + (v[1].Length > 0 ? "&model=" + Uri.EscapeDataString(v[1].Split('(')[0].Trim()) : "")
+                + (v.Length > 5 && v[5].Length > 0 ? "&mod=" + Uri.EscapeDataString(v[5]) : "");
             sb.Append("<a class=\"epc-veh-row\" data-make=\"").Append(E(v[0])).Append("\" href=\"").Append(E(carUrl)).Append("\"><div class=\"epc-veh-cell\"><b>")
                 .Append(E(v[1].Length > 0 ? v[1] : v[0])).Append("</b>")
                 .Append(years.Length > 0 ? "<span class=\"epc-veh-mdl\">, " + E(years) + "</span>" : "")
@@ -1494,7 +1511,7 @@ public static class StorefrontPartsApiProduct
                             var file = Text(m, "FILE_NAME", "MEDIA_FILE", "file") ?? "";
                             if (file.Length > 0)
                             {
-                                images.Add("https://image.umapi.ru/ARTICLES/" + file);
+                                images.Add(ArticleImageUrl(file));
                             }
                         }
                     }
@@ -1504,7 +1521,7 @@ public static class StorefrontPartsApiProduct
                         var file = Text(root, "MEDIA_FILE") ?? "";
                         if (file.Length > 0)
                         {
-                            images.Add("https://image.umapi.ru/ARTICLES/" + file);
+                            images.Add(ArticleImageUrl(file));
                         }
                     }
                 }
@@ -1523,6 +1540,30 @@ public static class StorefrontPartsApiProduct
         }
 
         return images.Distinct().Take(3).ToList();
+    }
+
+    /// <summary>
+    /// Routes image.umapi.ru article files through <see cref="UmapiImageProxy"/> so the
+    /// CDN's generic "no photo" JPEG becomes a real 404 (placeholder detection) and real
+    /// photos are byte-cached tenant-side. Non-umapi URLs pass through untouched.
+    /// </summary>
+    private static string ArticleImageUrl(string fileOrUrl)
+    {
+        var file = fileOrUrl;
+        if (file.Contains("://", StringComparison.Ordinal)
+            && !file.Contains("image.umapi.ru", StringComparison.OrdinalIgnoreCase))
+        {
+            return file;
+        }
+
+        const string marker = "/ARTICLES/";
+        var idx = file.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        if (idx >= 0)
+        {
+            file = file[(idx + marker.Length)..];
+        }
+
+        return "/api/umapi_image.php?kind=article&id=" + Uri.EscapeDataString(file);
     }
 
     /// <summary>True when the article payload's own id equals the requested id.</summary>

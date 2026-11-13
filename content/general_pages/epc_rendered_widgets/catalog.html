@@ -995,6 +995,7 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
         var make = (params.get('make') || '').trim();
         if (!make) { return false; }
         var model = (params.get('model') || '').trim().toLowerCase();
+        var modId = (params.get('mod') || '').trim();
         loading('Loading ' + make + '...');
         api('manufacturers', {}).then(function (items) {
             items = apiItems(items) || [];
@@ -1025,7 +1026,35 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
                     return String(it.MODEL_SERIES || '').toLowerCase().indexOf(model) !== -1;
                 })[0];
                 if (!hit) { renderModels(mods); return; }
-                loadModifications(hit);
+                // Deep link targets the exact modification — open its parts
+                // catalog instead of stopping at the modification list. Match
+                // by modification id when present, else by the model-name
+                // remainder ("FLYER 0.8" → "0.8").
+                var rem = model.replace(String(hit.MODEL_SERIES || '').toLowerCase(), '').trim();
+                if (!modId && !rem) { loadModifications(hit); return; }
+                state.model = hit;
+                state.modification = null;
+                loading('Loading vehicle...');
+                api('modifications', { MS_ID: hit.MS_ID }).then(function (mitems) {
+                    mitems = apiItems(mitems) || [];
+                    var exact = modId ? mitems.filter(function (it) {
+                        return String(getModificationId(it)) === modId;
+                    })[0] : null;
+                    if (!exact && rem) {
+                        var words = rem.split(/\s+/);
+                        // Only auto-open when exactly one modification matches —
+                        // an ambiguous hit stays on the list so the visitor
+                        // can't land in the wrong vehicle's parts catalog.
+                        var remHits = mitems.filter(function (it) {
+                            var t = (getModificationTitle(it) + ' ' + (it.MODEL_SERIES || '')
+                                + ' ' + (it.PC_ENG_CODES || '') + ' ' + (it.DES || '')).toLowerCase();
+                            return words.every(function (w) { return t.indexOf(w) !== -1; });
+                        });
+                        if (remHits.length === 1) { exact = remHits[0]; }
+                    }
+                    if (exact) { loadCategories(exact); return; }
+                    renderModifications(mitems);
+                }).catch(showError);
             }).catch(showError);
         }).catch(showError);
         return true;
