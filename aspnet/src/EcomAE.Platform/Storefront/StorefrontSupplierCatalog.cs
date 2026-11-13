@@ -136,6 +136,7 @@ public static class StorefrontSupplierCatalog
         return Results.Json(payload, new JsonSerializerOptions
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         });
     }
 

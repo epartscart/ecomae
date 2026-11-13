@@ -28,6 +28,9 @@
         {
             _html = "<p style=\"margin:0;color:#64748b\">Supplier catalogs are unavailable in this environment.</p>";
         }
-        _html = _html.Replace("__CATALOG_ID__", CatalogId ?? "");
+        // The id goes into a quoted HTML attribute — strip anything that is
+        // not part of a catalog id so a crafted URL cannot inject markup.
+        _html = _html.Replace("__CATALOG_ID__",
+            System.Text.RegularExpressions.Regex.Replace(CatalogId ?? "", "[^a-z0-9-]", ""));
     }
 }

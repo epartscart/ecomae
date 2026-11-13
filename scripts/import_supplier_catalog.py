@@ -48,15 +48,21 @@ def clean(tok):
     return t
 
 
-def tokens(text):
+def clean_tokens(text):
     out = []
     for raw in re.split(r"[\s\u00a0]+", text):
         t = clean(raw)
-        if PART_NO.match(t) and t not in STOP and not t.isdigit() or (
-            PART_NO.match(t) and t.isdigit() and 5 <= len(t) <= 8
-        ):
+        if t:
             out.append(t)
     return out
+
+
+def is_part_no(t):
+    if t in STOP:
+        return False
+    if t.isdigit():
+        return 5 <= len(t) <= 8
+    return bool(PART_NO.match(t))
 
 
 def detect_meta(pdf_text_first, pdf_text_last, filename, supplier):
@@ -88,8 +94,12 @@ def main():
     cid = a.id or re.sub(r"[^a-z0-9]+", "-", os.path.splitext(base)[0].lower()).strip("-")
     supplier = a.supplier or re.split(r"[_\-\s]", os.path.splitext(base)[0])[0].upper()
     dest = os.path.join(a.out_dir, cid)
-    os.makedirs(dest, exist_ok=True)
-    shutil_pdf = os.path.join(dest, "catalog.pdf")
+    tmp = dest + ".importing"
+    # Build the whole catalog in a temp dir first; only swap into place once
+    # the import succeeded so a bad PDF never destroys the published one.
+    subprocess.run(["rm", "-rf", tmp], check=True)
+    os.makedirs(tmp, exist_ok=True)
+    shutil_pdf = os.path.join(tmp, "catalog.pdf")
     subprocess.run(["cp", a.pdf, shutil_pdf], check=True)
 
     n_pages = int(re.search(r"Pages:\s*(\d+)",
@@ -114,20 +124,20 @@ def main():
     pages = []
     for i, txt in enumerate(all_text_pages, start=1):
         refs, oems, makes = [], [], set()
-        for t in tokens(txt):
+        for t in clean_tokens(txt):
             if t in MAKE_ALTS:
                 makes.add(MAKE_ALTS[t])
             elif t in MAKES:
                 makes.add(t)
-            else:
+            elif is_part_no(t):
                 refs.append(t)
         for m in re.finditer(r"(?:O\.?\s?E\.?\s?M\.?|OEN|O\.E\.)\s*(?:No\.?|N[°ºo]?\.?)?\s*[:\-]?\s*([A-Z0-9\-/\.]{5,20})",
                              txt, re.I):
             oems.append(clean(m.group(1)))
         pages.append({
             "n": i,
-            "refs": sorted(set(refs))[:60],
-            "oems": sorted(set(oems))[:30],
+            "refs": sorted(set(refs)),
+            "oems": sorted(set(oems)),
             "makes": sorted(makes),
             "excerpt": re.sub(r"\s+", " ", txt).strip()[:400],
         })
@@ -148,8 +158,10 @@ def main():
         "imported": __import__("datetime").datetime.now(
             __import__("datetime").timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     }
-    with open(os.path.join(dest, "catalog.json"), "w") as f:
+    with open(os.path.join(tmp, "catalog.json"), "w") as f:
         json.dump({"meta": meta, "pages": pages}, f, ensure_ascii=False)
+    subprocess.run(["rm", "-rf", dest], check=True)
+    os.replace(tmp, dest)
     print(json.dumps(meta))
 
 
