@@ -62,7 +62,11 @@ def is_part_no(t):
         return False
     if t.isdigit():
         return 5 <= len(t) <= 8
-    return bool(PART_NO.match(t))
+    if not PART_NO.match(t):
+        return False
+    # Plain words (ABSORBER, COMFORT) are not part numbers — require a digit
+    # or a separator (-, /, .) that catalog numbers carry.
+    return any(c.isdigit() for c in t) or any(c in "-/." for c in t)
 
 
 def detect_meta(pdf_text_first, pdf_text_last, filename, supplier):
