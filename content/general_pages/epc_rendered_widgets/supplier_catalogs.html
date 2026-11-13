@@ -12,7 +12,9 @@
 </div>
 <style>
 #epc-supcat .epc-supcat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-top:14px}
-#epc-supcat .epc-supcat-card{border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;background:#fff;display:flex;flex-direction:column;gap:6px}
+#epc-supcat .epc-supcat-card{border:1px solid #e2e8f0;border-radius:10px;padding:0;background:#fff;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+#epc-supcat .epc-supcat-cover{display:block;width:100%;height:170px;object-fit:cover;object-position:top;background:#f1f5f9;border-bottom:1px solid #e2e8f0}
+#epc-supcat .epc-supcat-cardbody{padding:10px 16px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
 #epc-supcat .epc-supcat-card:hover{border-color:#94a3b8;box-shadow:0 2px 8px rgba(15,23,42,.08)}
 #epc-supcat .epc-supcat-sup{font-weight:700;font-size:15px;color:#0f172a}
 #epc-supcat .epc-supcat-title{color:#334155;font-size:13px}
@@ -75,14 +77,19 @@
         return bits.join('');
     }
     function card(m) {
+        var cover = '/supplier-catalogs/' + esc(m.id) + '/cover.png';
         return '<div class="epc-supcat-card">' +
+            '<a href="/en/supplier-catalog/' + esc(m.id) + '" title="Open ' + esc(m.supplier) + ' catalog">' +
+            '<img class="epc-supcat-cover" src="' + cover + '" alt="' + esc(m.supplier) + ' catalog cover" loading="lazy"' +
+            ' onerror="this.parentNode.style.display=\'none\'" /></a>' +
+            '<div class="epc-supcat-cardbody">' +
             '<div class="epc-supcat-sup">' + esc(m.supplier) + '</div>' +
             '<div class="epc-supcat-title">' + esc(m.title) + '</div>' +
             '<div class="epc-supcat-meta">' + versionLine(m) + '</div>' +
             '<div class="epc-supcat-actions">' +
             '<a class="btn btn-sm btn-primary" href="/en/supplier-catalog/' + esc(m.id) + '">Open catalog</a>' +
             '<a class="btn btn-sm btn-default" href="' + esc(m.url) + '" target="_blank" rel="noopener">PDF</a>' +
-            '</div></div>';
+            '</div></div></div>';
     }
     function hitRow(h) {
         var refChips = (h.refs || []).map(function (r) {
@@ -112,10 +119,45 @@
     function renderList(metas) {
         body.innerHTML = '<div class="epc-supcat-grid">' + metas.map(card).join('') + '</div>';
     }
-    function renderHits(hits) {
-        body.innerHTML = hits.length
-            ? '<div class="epc-supcat-hits">' + hits.map(hitRow).join('') + '</div>'
-            : '<div class="epc-umapi-status" style="margin-top:14px">No matches. Try the part or OEM number without separators.</div>';
+    function renderHits(hits, append) {
+        if (!hits.length && !append) {
+            body.innerHTML = '<div class="epc-umapi-status" style="margin-top:14px">No matches. Try the part or OEM number without separators.</div>';
+            return;
+        }
+        if (!append) {
+            body.innerHTML = '<div class="epc-supcat-hits"></div>';
+        }
+        var wrap = body.querySelector('.epc-supcat-hits');
+        if (!wrap) { return; }
+        wrap.insertAdjacentHTML('beforeend', hits.map(hitRow).join(''));
+        var more = document.getElementById('epc-supcat-more');
+        if (more) { more.parentNode.removeChild(more); }
+    }
+    var searchQ = '', searchOffset = 0;
+    function doSearchMore() {
+        var btn = document.getElementById('epc-supcat-more');
+        if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+        var restore = function () {
+            if (btn) { btn.disabled = false; btn.textContent = 'Show more'; }
+        };
+        call({ action: 'search', q: searchQ, catalog_id: catalogId, offset: searchOffset }).then(function (res) {
+            if (!res || res.success === false) {
+                show(res && res.error ? res.error : 'Search failed.', true);
+                restore();
+                return;
+            }
+            show('');
+            searchOffset += (res.data || []).length;
+            renderHits(res.data || [], true);
+            if (res.hasMore) {
+                body.insertAdjacentHTML('beforeend',
+                    '<button type="button" id="epc-supcat-more" class="btn btn-default" style="display:block;margin:14px auto 0">Show more (' + esc(searchOffset) + ' of ' + esc(res.total) + ')</button>');
+                document.getElementById('epc-supcat-more').addEventListener('click', doSearchMore);
+            }
+        }).catch(function () {
+            show('Search failed.', true);
+            restore();
+        });
     }
     function openCatalog(id) {
         show('Loading catalog…');
@@ -126,7 +168,11 @@
             }
             var m = res.data;
             show('');
+            var cover = '/supplier-catalogs/' + esc(m.id) + '/cover.png';
             body.innerHTML = '<div class="epc-supcat-card" style="max-width:720px">' +
+                '<img class="epc-supcat-cover" style="height:210px" src="' + cover + '" alt="' + esc(m.supplier) + ' catalog cover"' +
+                ' onerror="this.style.display=\'none\'" />' +
+                '<div class="epc-supcat-cardbody">' +
                 '<div class="epc-supcat-sup">' + esc(m.supplier) + '</div>' +
                 '<div class="epc-supcat-title">' + esc(m.title) + '</div>' +
                 '<div class="epc-supcat-meta">' + versionLine(m) + '</div>' +
@@ -135,21 +181,28 @@
                 '<a class="btn btn-sm btn-primary" href="' + esc(m.url) + '" target="_blank" rel="noopener">Open PDF</a>' +
                 '</div>' +
                 '<p style="color:#64748b;font-size:13px;margin:8px 0 0">Type a part number, OEM reference or vehicle above to search inside this catalog — every result links straight to a warehouse search.</p>' +
-                '</div>';
+                '</div></div>';
         });
     }
     function doSearch() {
         var q = (qInput.value || '').trim();
         if (q.length < 2) { show('Type at least 2 characters.', true); return; }
         show('Searching…');
+        searchQ = q; searchOffset = 0;
         call({ action: 'search', q: q, catalog_id: catalogId }).then(function (res) {
             if (!res || res.success === false) {
                 show(res && res.error ? res.error : 'Search failed.', true);
                 return;
             }
-            show(res.data.length ? 'Found ' + res.data.length + ' page matches' +
-                (res.data.length >= 120 ? ' (showing first 120)' : '') : '');
-            renderHits(res.data || []);
+            searchOffset = (res.data || []).length;
+            show(res.total ? 'Found ' + res.total + ' page matches — showing ' + searchOffset +
+                (res.hasMore ? ' (Show more below)' : '') : '');
+            renderHits(res.data || [], false);
+            if (res.hasMore) {
+                body.insertAdjacentHTML('beforeend',
+                    '<button type="button" id="epc-supcat-more" class="btn btn-default" style="display:block;margin:14px auto 0">Show more (' + searchOffset + ' of ' + esc(res.total) + ')</button>');
+                document.getElementById('epc-supcat-more').addEventListener('click', doSearchMore);
+            }
         });
     }
     document.getElementById('epc-supcat-search').addEventListener('click', doSearch);
