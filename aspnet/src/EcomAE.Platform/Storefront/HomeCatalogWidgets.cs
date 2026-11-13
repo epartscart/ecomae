@@ -2661,9 +2661,10 @@ public static class HomeCatalogWidgets
                         return stored.Trim();
                     }
                 }
-                catch (DbException)
+                catch (Exception)
                 {
-                    // Tenant DB unreachable — fall through to config.php/default key.
+                    // Tenant DB unreachable or tenant misconfigured — fall through
+                    // to config.php/default key (any failure mode, not only DbException).
                 }
             }
         }
