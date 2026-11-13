@@ -226,7 +226,10 @@ public static class StorefrontSupplierCatalog
                 var oemHit = p.Oems.Where(o => Norm(o).Contains(qNorm)).Take(8).ToList();
                 var makeHit = p.Makes.Any(mk => mk.Contains(qNorm, StringComparison.OrdinalIgnoreCase));
                 var textHit = p.Excerpt.Contains(q, StringComparison.OrdinalIgnoreCase);
-                if (refHit.Count == 0 && oemHit.Count == 0 && !makeHit && !textHit)
+                // Only surface item pages that carry a part/OEM reference; pages without
+                // references (covers, notices, pure text) are ignored per catalog policy.
+                if ((refHit.Count == 0 && oemHit.Count == 0 && !makeHit && !textHit)
+                    || (p.Refs.Count == 0 && p.Oems.Count == 0))
                 {
                     continue;
                 }
