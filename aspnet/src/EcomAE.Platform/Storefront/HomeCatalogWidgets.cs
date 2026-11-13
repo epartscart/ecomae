@@ -2471,9 +2471,10 @@ public static class HomeCatalogWidgets
             "categories" => catalog + "/Categories?ID=" + Uri.EscapeDataString(context.Request.Query["ID"].ToString()) + "&type=" + PartsApiCarType(section),
             "products" => catalog + "/Products?CATEGORY_ID=" + Uri.EscapeDataString(context.Request.Query["CATEGORY_ID"].ToString()) + "&ID=" + Uri.EscapeDataString(context.Request.Query["ID"].ToString()) + "&type=" + PartsApiCarType(section),
             // Upstream 500s unless ID, limit and offset are all present.
+            // Upstream 400s when limit > 100 ("Лимит выборки - значение не может быть больше 100").
             "articles" => catalog + "/Articles?PT_IDS=" + Uri.EscapeDataString(context.Request.Query["PT_IDS"].ToString())
                 + "&ID=" + Uri.EscapeDataString(context.Request.Query["ID"].ToString())
-                + "&type=" + PartsApiCarType(section) + "&limit=" + (int.TryParse(context.Request.Query["limit"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var lim) ? Math.Clamp(lim, 1, 500) : 200).ToString(CultureInfo.InvariantCulture)
+                + "&type=" + PartsApiCarType(section) + "&limit=" + (int.TryParse(context.Request.Query["limit"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var lim) ? Math.Clamp(lim, 1, 100) : 100).ToString(CultureInfo.InvariantCulture)
                 + "&offset=" + (int.TryParse(context.Request.Query["offset"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var off) ? Math.Max(off, 0) : 0).ToString(CultureInfo.InvariantCulture),
             // UMAPI needs the OE number normalized (13101-54101 -> 1310154101).
             "brands" => catalog + "/BrandRefinement/" + Uri.EscapeDataString(NormalizeArticle(context.Request.Query["article"].ToString())),
