@@ -166,6 +166,14 @@ def main():
     }
     with open(os.path.join(tmp, "catalog.json"), "w") as f:
         json.dump({"meta": meta, "pages": pages}, f, ensure_ascii=False)
+    # Best-effort cover thumbnail (first page) for the search-bar results.
+    try:
+        subprocess.run(
+            ["pdftoppm", "-png", "-f", "1", "-singlefile", "-scale-to", "320",
+             a.pdf, os.path.join(tmp, "cover")],
+            check=False, capture_output=True, timeout=60)
+    except Exception:
+        pass
     subprocess.run(["rm", "-rf", dest], check=True)
     os.replace(tmp, dest)
     print(json.dumps(meta))

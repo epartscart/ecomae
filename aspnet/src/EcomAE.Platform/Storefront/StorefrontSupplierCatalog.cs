@@ -250,13 +250,19 @@ public static class StorefrontSupplierCatalog
 
     public static IResult ServeFile(HttpContext context, string id, string file)
     {
-        if (!IdPattern.IsMatch(id) || file != "catalog.pdf")
+        var (name, contentType) = file switch
+        {
+            "catalog.pdf" => ("catalog.pdf", "application/pdf"),
+            "cover.png" => ("cover.png", "image/png"),
+            _ => (null, null),
+        };
+        if (!IdPattern.IsMatch(id) || name is null)
         {
             return Results.NotFound();
         }
-        var path = Path.Combine(RootDir, id, "catalog.pdf");
+        var path = Path.Combine(RootDir, id, name);
         return !File.Exists(path)
             ? Results.NotFound()
-            : Results.File(path, "application/pdf", enableRangeProcessing: true);
+            : Results.File(path, contentType!, enableRangeProcessing: true);
     }
 }

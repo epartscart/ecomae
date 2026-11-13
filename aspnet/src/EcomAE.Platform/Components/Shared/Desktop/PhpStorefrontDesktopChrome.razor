@@ -319,7 +319,30 @@
     .header_search_form_3.hidden,
     .header_search_form_engine.hidden,
     .header_search_form_car.hidden,
-    .header_search_form_attr.hidden { display:none !important; }
+    .header_search_form_attr.hidden,
+    .header_search_form_supcat.hidden { display:none !important; }
+    .epc-supcat-results { margin-top:.5rem; max-height:22rem; overflow-y:auto; border-radius:.45rem; }
+    .epc-supcat-results:empty { display:none; }
+    .epc-supcat-row {
+        display:grid; grid-template-columns:3.4rem 8.5rem 1fr auto; gap:.6rem; align-items:center;
+        padding:.5rem .6rem; margin-bottom:.35rem; border-radius:.45rem; background:#fff;
+        border:1px solid #e2e8f0; border-left:4px solid var(--supcat-c,#6366f1); box-shadow:0 1px 2px rgba(15,23,42,.06);
+    }
+    .epc-supcat-row__cover { width:3.4rem; height:4.4rem; object-fit:cover; border-radius:.25rem; border:1px solid #e2e8f0; background:#f1f5f9; }
+    .epc-supcat-row__brand { font-weight:800; font-size:.8rem; color:#fff; background:var(--supcat-c,#6366f1); border-radius:.3rem; padding:.3rem .45rem; text-align:center; letter-spacing:.02em; overflow:hidden; text-overflow:ellipsis; }
+    .epc-supcat-row__meta { min-width:0; }
+    .epc-supcat-row__title { font-weight:700; font-size:.8rem; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .epc-supcat-row__sub { font-size:.7rem; color:#64748b; margin-top:.1rem; display:flex; gap:.35rem; flex-wrap:wrap; }
+    .epc-supcat-chip { display:inline-block; padding:.08rem .4rem; border-radius:999px; background:#eef2ff; color:#4338ca; font-weight:600; }
+    .epc-supcat-chip--ver { background:#dcfce7; color:#15803d; }
+    .epc-supcat-row__refs { grid-column:1 / -1; display:flex; gap:.3rem; flex-wrap:wrap; }
+    .epc-supcat-ref { font-size:.72rem; font-weight:700; padding:.15rem .5rem; border-radius:999px; background:#fef2f2; color:#b91c1c; text-decoration:none; border:1px solid #fecaca; }
+    .epc-supcat-ref:hover { background:#b91c1c; color:#fff; }
+    .epc-supcat-oem { font-size:.72rem; font-weight:600; padding:.15rem .5rem; border-radius:999px; background:#eff6ff; color:#1d4ed8; text-decoration:none; border:1px solid #bfdbfe; }
+    .epc-supcat-oem:hover { background:#1d4ed8; color:#fff; }
+    .epc-supcat-open { font-size:.72rem; font-weight:700; color:#fff; background:#0f172a; padding:.35rem .6rem; border-radius:.3rem; text-decoration:none; white-space:nowrap; }
+    .epc-supcat-open:hover { background:#334155; color:#fff; }
+    .epc-supcat-status { font-size:.75rem; color:#64748b; padding:.4rem .2rem; }
     .epc-header-search__car-link {
         display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap;
         padding:.7rem .85rem; border:1px dashed #fca5a5; border-radius:.45rem; background:#fff;
@@ -599,6 +622,7 @@
                                             <button type="button" class="epc-header-search__tab" data-search-mode="engine" role="tab" aria-selected="false"><i class="fa fa-cogs" aria-hidden="true"></i><span>Engine</span></button>
                                             <button type="button" class="epc-header-search__tab" data-search-mode="car" role="tab" aria-selected="false"><i class="fa fa-car" aria-hidden="true"></i><span>By car</span></button>
                                             <button type="button" class="epc-header-search__tab" data-search-mode="attr" role="tab" aria-selected="false"><i class="fa fa-sliders" aria-hidden="true"></i><span>More info</span></button>
+                                            <button type="button" class="epc-header-search__tab" data-search-mode="supcat" role="tab" aria-selected="false"><i class="fa fa-file-pdf-o" aria-hidden="true"></i><span>PDF Catalog</span></button>
                                         </div>
                                         <div class="epc-header-search__body">
                                             <form action="@StorefrontSurfaceLinks.PartSearch" method="get" class="header_search_form_1">
@@ -668,6 +692,15 @@
                                                         </span>
                                                     </div>
                                                 </div>
+                                            </form>
+                                            <form class="header_search_form_supcat hidden" onsubmit="return window.epcHeaderSupcatSubmit(this);">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control epc-header-search__supcat-input" name="q" maxlength="80" placeholder="Part no, OEM or model — search supplier PDF catalogs" autocomplete="off" aria-label="Supplier PDF catalog search" />
+                                                    <span class="input-group-btn">
+                                                        <button class="btn btn-ar btn-primary" type="submit">Search</button>
+                                                    </span>
+                                                </div>
+                                                <div class="epc-supcat-results" aria-live="polite"></div>
                                             </form>
                                         </div>
                                     </div>
@@ -1020,12 +1053,13 @@
             '3': '.header_search_form_3',
             'engine': '.header_search_form_engine',
             'car': '.header_search_form_car',
-            'attr': '.header_search_form_attr'
+            'attr': '.header_search_form_attr',
+            'supcat': '.header_search_form_supcat'
         }[mode] || '.header_search_form_1';
     }
     window.change_header_search_form = function (mode) {
         mode = String(mode || '1');
-        var modes = ['1', '2', '3', 'engine', 'car', 'attr'];
+        var modes = ['1', '2', '3', 'engine', 'car', 'attr', 'supcat'];
         for (var i = 0; i < modes.length; i++) {
             var nodes = document.querySelectorAll(mapSelector(modes[i]));
             for (var j = 0; j < nodes.length; j++) {
@@ -1082,6 +1116,57 @@
         }
         return true;
     };
+    window.epcHeaderSupcatSubmit = function (form) {
+        if (!form) return false;
+        var input = form.querySelector('input[name="q"]');
+        var box = form.querySelector('.epc-supcat-results');
+        var q = String(input && input.value || '').replace(/\s+/g, ' ').trim();
+        if (q.length < 2) {
+            alert('Enter at least 2 characters to search the supplier catalogs.');
+            if (input) input.focus();
+            return false;
+        }
+        if (!box) return false;
+        var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var palette = ['#dc2626', '#2563eb', '#059669', '#d97706', '#7c3aed', '#0891b2', '#be185d', '#4f46e5'];
+        var colorFor = function (s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return palette[h % palette.length]; };
+        box.innerHTML = '<div class="epc-supcat-status">Searching supplier catalogs…</div>';
+        fetch('/api/supplier_catalogs.php?action=search&q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                var hits = (res && res.data) || [];
+                if (!hits.length) {
+                    box.innerHTML = '<div class="epc-supcat-status">No match for <strong>' + esc(q) + '</strong> in the supplier catalogs. <a href="/en/supplier-catalogs" style="font-weight:700;color:#2563eb">Browse all catalogs</a></div>';
+                    return;
+                }
+                var html = '<div class="epc-supcat-status">' + hits.length + (hits.length >= 120 ? '+' : '') + ' match' + (hits.length === 1 ? '' : 'es') + ' — <a href="/en/supplier-catalogs?q=' + encodeURIComponent(q) + '" style="font-weight:700;color:#2563eb">open in catalog browser</a></div>';
+                hits.slice(0, 30).forEach(function (h) {
+                    var c = colorFor(h.supplier || 'X');
+                    var refHtml = (h.refs || []).slice(0, 6).map(function (r) {
+                        return '<a class="epc-supcat-ref" href="/en/shop/part_search?article=' + encodeURIComponent(r) + '&brend=' + encodeURIComponent(h.supplier) + '" title="Search warehouse for ' + esc(r) + '">' + esc(r) + '</a>';
+                    }).join('');
+                    var oemHtml = (h.oems || []).slice(0, 4).map(function (o) {
+                        return '<a class="epc-supcat-oem" href="/en/shop/part_search?article=' + encodeURIComponent(o) + '" title="OE ref ' + esc(o) + '">OE ' + esc(o) + '</a>';
+                    }).join('');
+                    var ver = [h.catNo ? 'Cat. ' + esc(h.catNo) : '', h.edition ? esc(h.edition) : ''].filter(Boolean).join(' · ');
+                    html += '<div class="epc-supcat-row" style="--supcat-c:' + c + '">'
+                        + '<img class="epc-supcat-row__cover" src="/supplier-catalogs/' + esc(h.catalog) + '/cover.png" alt="" loading="lazy" onerror="this.style.display=\'none\'" />'
+                        + '<span class="epc-supcat-row__brand">' + esc(h.supplier) + '</span>'
+                        + '<span class="epc-supcat-row__meta">'
+                        + '<span class="epc-supcat-row__title">' + esc(h.title) + '</span>'
+                        + '<span class="epc-supcat-row__sub">' + (ver ? '<span class="epc-supcat-chip epc-supcat-chip--ver">' + ver + '</span>' : '') + '<span class="epc-supcat-chip">page ' + h.page + '</span>' + ((h.makes || []).length ? '<span class="epc-supcat-chip">' + esc(h.makes.slice(0, 4).join(', ')) + '</span>' : '') + '</span>'
+                        + '</span>'
+                        + '<a class="epc-supcat-open" href="' + esc(h.pdf) + '#page=' + h.page + '" target="_blank" rel="noopener">Open PDF p.' + h.page + '</a>'
+                        + '<span class="epc-supcat-row__refs">' + refHtml + oemHtml + '</span>'
+                        + '</div>';
+                });
+                box.innerHTML = html;
+            })
+            .catch(function () {
+                box.innerHTML = '<div class="epc-supcat-status">Catalog search is unavailable right now — <a href="/en/supplier-catalogs" style="font-weight:700;color:#2563eb">open the catalog browser</a>.</div>';
+            });
+        return false;
+    };
     document.addEventListener('click', function (ev) {
         var tab = ev.target && ev.target.closest ? ev.target.closest('.epc-header-search__tab') : null;
         if (!tab) return;
@@ -1091,8 +1176,8 @@
     document.addEventListener('DOMContentLoaded', function () {
         var params = new URLSearchParams(window.location.search || '');
         var mode = params.get('mode');
-        if (mode === 'attr' || mode === 'vin' || mode === 'engine' || mode === 'car' || mode === 'name') {
-            window.change_header_search_form(mode === 'name' ? '2' : (mode === 'vin' ? '3' : mode));
+        if (mode === 'attr' || mode === 'vin' || mode === 'engine' || mode === 'car' || mode === 'name' || mode === 'supcat' || mode === 'pdfcatalog') {
+            window.change_header_search_form(mode === 'name' ? '2' : (mode === 'vin' ? '3' : (mode === 'pdfcatalog' ? 'supcat' : mode)));
         }
     });
 })();
