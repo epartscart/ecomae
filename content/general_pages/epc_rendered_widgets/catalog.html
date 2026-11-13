@@ -1042,11 +1042,15 @@ var EPC_CAT_ICONS = {"body": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA
                     })[0] : null;
                     if (!exact && rem) {
                         var words = rem.split(/\s+/);
-                        exact = mitems.filter(function (it) {
+                        // Only auto-open when exactly one modification matches —
+                        // an ambiguous hit stays on the list so the visitor
+                        // can't land in the wrong vehicle's parts catalog.
+                        var remHits = mitems.filter(function (it) {
                             var t = (getModificationTitle(it) + ' ' + (it.MODEL_SERIES || '')
                                 + ' ' + (it.PC_ENG_CODES || '') + ' ' + (it.DES || '')).toLowerCase();
                             return words.every(function (w) { return t.indexOf(w) !== -1; });
-                        })[0];
+                        });
+                        if (remHits.length === 1) { exact = remHits[0]; }
                     }
                     if (exact) { loadCategories(exact); return; }
                     renderModifications(mitems);
