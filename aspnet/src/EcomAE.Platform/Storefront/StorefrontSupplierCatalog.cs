@@ -197,6 +197,38 @@ public static class StorefrontSupplierCatalog
         };
     }
 
+    /// <summary>Count pages carrying a part/OEM reference matching the query (used for the
+    /// part-search fallback notice — does not allocate hit rows).</summary>
+    public static int CountHits(string q)
+    {
+        var qNorm = Norm((q ?? string.Empty).Trim());
+        if (qNorm.Length < 2)
+        {
+            return 0;
+        }
+        var total = 0;
+        foreach (var m in ListCatalogs())
+        {
+            var doc = Load(m.Id);
+            if (doc is null)
+            {
+                continue;
+            }
+            foreach (var p in doc.Pages)
+            {
+                if (p.Refs.Count == 0 && p.Oems.Count == 0)
+                {
+                    continue;
+                }
+                if (p.Refs.Any(r => Norm(r).Contains(qNorm)) || p.Oems.Any(o => Norm(o).Contains(qNorm)))
+                {
+                    total++;
+                }
+            }
+        }
+        return total;
+    }
+
     private static object SearchPayload(string id, string q, string offsetRaw)
     {
         q = (q ?? string.Empty).Trim();
