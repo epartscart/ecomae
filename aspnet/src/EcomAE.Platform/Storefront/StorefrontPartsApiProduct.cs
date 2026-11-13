@@ -1123,9 +1123,11 @@ public static class StorefrontPartsApiProduct
         {
             // Cycle through candidate photos on error (e.g. proxy 404 for the CDN's
             // "no photo" placeholder); when every source fails show "No photo yet".
-            var altList = string.Join("','", images.Skip(1).Select(i => i.Replace("\\", "\\\\").Replace("'", "\\'")));
+            // Alternates ride in a newline-joined data attribute — E()-escaped, so a
+            // hostile URL from a provider payload can't inject markup or script.
+            var altList = string.Join("\n", images.Skip(1));
             sb.Append("<img class=\"epc-prod-pic\" id=\"epcProdPic\" src=\"").Append(E(images[0])).Append("\" alt=\"").Append(E(number))
-                .Append("\" onerror=\"var a=(this._alt||(this._alt=['").Append(altList).Append("'])).shift();if(a){this.src=a}else{this.onerror=null;this.outerHTML='<div class=&quot;epc-prod-pic&quot; style=&quot;display:flex;align-items:center;justify-content:center;color:#aaa;border:1px dashed #ddd&quot;>No photo yet</div>'}\">");
+                .Append("\" data-alt=\"").Append(E(altList)).Append("\" onerror=\"var l=(this.dataset.alt||'').split('\\n');var a=l.shift();this.dataset.alt=l.join('\\n');if(a){this.src=a}else{this.onerror=null;this.outerHTML='<div class=&quot;epc-prod-pic&quot; style=&quot;display:flex;align-items:center;justify-content:center;color:#aaa;border:1px dashed #ddd&quot;>No photo yet</div>'}\">");
             if (images.Count > 1)
             {
                 sb.Append("<div class=\"epc-prod-thumbs\">");
@@ -1548,15 +1550,17 @@ public static class StorefrontPartsApiProduct
     private static string ArticleImageUrl(string fileOrUrl)
     {
         var file = fileOrUrl;
+        if (file.Contains("://", StringComparison.Ordinal)
+            && !file.Contains("image.umapi.ru", StringComparison.OrdinalIgnoreCase))
+        {
+            return file;
+        }
+
         const string marker = "/ARTICLES/";
         var idx = file.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
         if (idx >= 0)
         {
             file = file[(idx + marker.Length)..];
-        }
-        else if (file.Contains("://", StringComparison.Ordinal))
-        {
-            return file;
         }
 
         return "/api/umapi_image.php?kind=article&id=" + Uri.EscapeDataString(file);
