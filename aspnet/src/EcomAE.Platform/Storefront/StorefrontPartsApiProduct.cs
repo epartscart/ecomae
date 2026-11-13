@@ -1334,6 +1334,7 @@ public static class StorefrontPartsApiProduct
                             + (Text(row, "PC_ENG_CODES") ?? "")).Trim()),
                 Text(row, "yearsFrom", "yearFrom", "yearStart", "from") ?? "",
                 Text(row, "yearsTo", "yearTo", "yearEnd", "to") ?? "",
+                Text(row, "carId", "CAR_ID", "PC_ID", "CV_ID", "MTB_ID", "TYP_ID", "typ_id", "modId", "id") ?? "",
             };
             if (cells.Any(c => c.Length > 0))
             {
@@ -1383,7 +1384,8 @@ public static class StorefrontPartsApiProduct
             var years = (v[3] + (v[4].Length > 0 ? " - " + v[4] : "")).Trim(' ', '-');
             // car-mod: clicking a vehicle opens that car's catalog drill-down.
             var carUrl = "/en/catalog?make=" + Uri.EscapeDataString(v[0])
-                + (v[1].Length > 0 ? "&model=" + Uri.EscapeDataString(v[1].Split('(')[0].Trim()) : "");
+                + (v[1].Length > 0 ? "&model=" + Uri.EscapeDataString(v[1].Split('(')[0].Trim()) : "")
+                + (v.Length > 5 && v[5].Length > 0 ? "&mod=" + Uri.EscapeDataString(v[5]) : "");
             sb.Append("<a class=\"epc-veh-row\" data-make=\"").Append(E(v[0])).Append("\" href=\"").Append(E(carUrl)).Append("\"><div class=\"epc-veh-cell\"><b>")
                 .Append(E(v[1].Length > 0 ? v[1] : v[0])).Append("</b>")
                 .Append(years.Length > 0 ? "<span class=\"epc-veh-mdl\">, " + E(years) + "</span>" : "")
