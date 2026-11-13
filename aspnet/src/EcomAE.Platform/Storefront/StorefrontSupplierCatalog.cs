@@ -130,7 +130,8 @@ public static class StorefrontSupplierCatalog
         {
             "catalog" => CatalogPayload(id),
             "page" => PagePayload(id, context.Request.Query["page"].ToString()),
-            "search" => SearchPayload(id, context.Request.Query["q"].ToString()),
+            "search" => SearchPayload(id, context.Request.Query["q"].ToString(),
+                context.Request.Query["offset"].ToString()),
             _ => ListPayload(),
         };
         return Results.Json(payload, new JsonSerializerOptions
@@ -196,7 +197,7 @@ public static class StorefrontSupplierCatalog
         };
     }
 
-    private static object SearchPayload(string id, string q)
+    private static object SearchPayload(string id, string q, string offsetRaw)
     {
         q = (q ?? string.Empty).Trim();
         if (q.Length < 2)
@@ -207,20 +208,20 @@ public static class StorefrontSupplierCatalog
             ? ListCatalogs().Select(m => Load(m.Id)).Where(d => d is not null).ToList()
             : new List<SupplierCatalogDoc?> { Load(id) };
         var qNorm = Norm(q);
+        _ = int.TryParse(offsetRaw, out var offset);
+        if (offset < 0) { offset = 0; }
+        const int pageSize = 120;
         var hits = new List<object>();
-        const int maxHits = 120;
+        var total = 0;
+        var skipped = 0;
         foreach (var doc in docs)
         {
-            if (doc is null || hits.Count >= maxHits)
+            if (doc is null)
             {
                 continue;
             }
             foreach (var p in doc.Pages)
             {
-                if (hits.Count >= maxHits)
-                {
-                    break;
-                }
                 var refHit = p.Refs.Where(r => Norm(r).Contains(qNorm)).Take(8).ToList();
                 var oemHit = p.Oems.Where(o => Norm(o).Contains(qNorm)).Take(8).ToList();
                 var makeHit = p.Makes.Any(mk => mk.Contains(qNorm, StringComparison.OrdinalIgnoreCase));
@@ -229,6 +230,9 @@ public static class StorefrontSupplierCatalog
                 {
                     continue;
                 }
+                total++;
+                if (skipped < offset) { skipped++; continue; }
+                if (hits.Count >= pageSize) { continue; }
                 hits.Add(new
                 {
                     catalog = doc.Meta.Id,
@@ -245,7 +249,7 @@ public static class StorefrontSupplierCatalog
                 });
             }
         }
-        return new { success = true, data = hits, q };
+        return new { success = true, data = hits, q, total, hasMore = offset + hits.Count < total };
     }
 
     public static IResult ServeFile(HttpContext context, string id, string file)

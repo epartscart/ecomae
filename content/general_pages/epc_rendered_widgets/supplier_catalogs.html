@@ -119,10 +119,37 @@
     function renderList(metas) {
         body.innerHTML = '<div class="epc-supcat-grid">' + metas.map(card).join('') + '</div>';
     }
-    function renderHits(hits) {
-        body.innerHTML = hits.length
-            ? '<div class="epc-supcat-hits">' + hits.map(hitRow).join('') + '</div>'
-            : '<div class="epc-umapi-status" style="margin-top:14px">No matches. Try the part or OEM number without separators.</div>';
+    function renderHits(hits, append) {
+        if (!hits.length && !append) {
+            body.innerHTML = '<div class="epc-umapi-status" style="margin-top:14px">No matches. Try the part or OEM number without separators.</div>';
+            return;
+        }
+        if (!append) {
+            body.innerHTML = '<div class="epc-supcat-hits"></div>';
+        }
+        var wrap = body.querySelector('.epc-supcat-hits');
+        if (!wrap) { return; }
+        wrap.insertAdjacentHTML('beforeend', hits.map(hitRow).join(''));
+        var more = document.getElementById('epc-supcat-more');
+        if (more) { more.parentNode.removeChild(more); }
+    }
+    var searchQ = '', searchOffset = 0;
+    function doSearchMore() {
+        var btn = document.getElementById('epc-supcat-more');
+        if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+        call({ action: 'search', q: searchQ, catalog_id: catalogId, offset: searchOffset }).then(function (res) {
+            if (!res || res.success === false) {
+                show(res && res.error ? res.error : 'Search failed.', true);
+                return;
+            }
+            searchOffset += (res.data || []).length;
+            renderHits(res.data || [], true);
+            if (res.hasMore) {
+                body.insertAdjacentHTML('beforeend',
+                    '<button type="button" id="epc-supcat-more" class="btn btn-default" style="display:block;margin:14px auto 0">Show more (' + esc(searchOffset) + ' of ' + esc(res.total) + ')</button>');
+                document.getElementById('epc-supcat-more').addEventListener('click', doSearchMore);
+            }
+        });
     }
     function openCatalog(id) {
         show('Loading catalog…');
@@ -153,14 +180,21 @@
         var q = (qInput.value || '').trim();
         if (q.length < 2) { show('Type at least 2 characters.', true); return; }
         show('Searching…');
+        searchQ = q; searchOffset = 0;
         call({ action: 'search', q: q, catalog_id: catalogId }).then(function (res) {
             if (!res || res.success === false) {
                 show(res && res.error ? res.error : 'Search failed.', true);
                 return;
             }
-            show(res.data.length ? 'Found ' + res.data.length + ' page matches' +
-                (res.data.length >= 120 ? ' (showing first 120)' : '') : '');
-            renderHits(res.data || []);
+            searchOffset = (res.data || []).length;
+            show(res.total ? 'Found ' + res.total + ' page matches — showing ' + searchOffset +
+                (res.hasMore ? ' (Show more below)' : '') : '');
+            renderHits(res.data || [], false);
+            if (res.hasMore) {
+                body.insertAdjacentHTML('beforeend',
+                    '<button type="button" id="epc-supcat-more" class="btn btn-default" style="display:block;margin:14px auto 0">Show more (' + searchOffset + ' of ' + esc(res.total) + ')</button>');
+                document.getElementById('epc-supcat-more').addEventListener('click', doSearchMore);
+            }
         });
     }
     document.getElementById('epc-supcat-search').addEventListener('click', doSearch);
