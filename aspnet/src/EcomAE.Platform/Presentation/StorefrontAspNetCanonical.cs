@@ -32,6 +32,7 @@ public static class StorefrontAspNetCanonical
     public const string EpartsCata = "/storefront/eparts-cata-app";
     public const string EpartsMod = "/storefront/eparts-mod-app";
     public const string PartsApiCatalog = "/storefront/eparts-cata-app";
+    public const string SupplierCatalogs = "/en/supplier-catalogs";
     public const string LevamOem = "/storefront/original-catalog-app";
     public const string UmapiCatalog = "/en/catalog";
     /// <summary>emshcloud-powered UMAPI-style catalog (PHP twin: none — ASP.NET-only).</summary>

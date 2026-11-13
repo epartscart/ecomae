@@ -1,0 +1,36 @@
+@page "/en/supplier-catalogs"
+@page "/en/supplier-catalog/{CatalogId}"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+
+<PageTitle>Supplier Catalogs · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<StorefrontCatalogWidgetBody Title="Supplier Catalogs"
+                            Subtitle="Original supplier PDF catalogs — search any part number, OEM reference or vehicle, then match it against warehouse stock."
+                            AnchorId="epc-supplier-catalogs"
+                            Html="@_html">
+    <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.UmapiCatalog">UMAPI Catalog</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartsApiCatalog">PAPI Catalog</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+</StorefrontCatalogWidgetBody>
+
+@code {
+    [Parameter] public string? CatalogId { get; set; }
+
+    private string _html = "";
+
+    protected override void OnParametersSet()
+    {
+        _html = PhpHomeWidgetHtml.RenderStatic("content/general_pages/epc_rendered_widgets/supplier_catalogs.html");
+        if (string.IsNullOrWhiteSpace(_html))
+        {
+            _html = "<p style=\"margin:0;color:#64748b\">Supplier catalogs are unavailable in this environment.</p>";
+        }
+        // The id goes into a quoted HTML attribute — strip anything that is
+        // not part of a catalog id so a crafted URL cannot inject markup.
+        _html = _html.Replace("__CATALOG_ID__",
+            System.Text.RegularExpressions.Regex.Replace(CatalogId ?? "", "[^a-z0-9-]", ""));
+    }
+}

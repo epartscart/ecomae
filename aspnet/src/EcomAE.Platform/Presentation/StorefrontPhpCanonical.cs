@@ -23,6 +23,7 @@ public static class StorefrontPhpCanonical
     public const string EpartsCata = LangPrefix + "/eparts-cata";
     public const string EpartsMod = LangPrefix + "/eparts-mod";
     public const string PartsApiCatalog = LangPrefix + "/partsapi-catalog";
+    public const string SupplierCatalogs = LangPrefix + "/supplier-catalogs";
     public const string LevamOem = LangPrefix + "/levam-oem";
     public const string UmapiCatalog = LangPrefix + "/catalog";
     /// <summary>ASP.NET-only emshcloud catalog — same path shape for non-ASP.NET link contexts.</summary>

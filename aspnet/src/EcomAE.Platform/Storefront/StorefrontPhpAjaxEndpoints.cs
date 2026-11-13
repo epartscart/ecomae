@@ -236,6 +236,11 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.PartsApiProxyPath, ["GET", "POST"], PartsApiProxyAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapGet(StorefrontSupplierCatalog.ApiPath, StorefrontSupplierCatalog.Api)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapGet(StorefrontSupplierCatalog.FilePrefix + "{id}/catalog.pdf",
+                (HttpContext ctx, string id) => StorefrontSupplierCatalog.ServeFile(ctx, id, "catalog.pdf"))
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.PriceUploadPath, ["GET", "POST"], PriceUploadApiAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.SkuMediaAdminPath, ["GET", "POST"], SkuMediaAdminAsync)
