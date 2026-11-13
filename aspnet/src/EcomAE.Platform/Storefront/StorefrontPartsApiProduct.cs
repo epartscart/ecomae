@@ -67,19 +67,42 @@ public static class StorefrontPartsApiProduct
         var search = await partsApi.ExecuteAsync(new PartsApiRequest("searchArticles",
             new Dictionary<string, string> { ["SEARCH_NUMBER"] = number, ["LANG"] = lang }), cancellationToken).ConfigureAwait(false);
         var wanted = NormalizeBrand(brand);
+        var wantedNum = NormalizeBrand(number);
+        JsonElement? firstRow = null;
+        JsonElement? wantedRow = null;
         foreach (var row in Rows(search))
         {
+            firstRow ??= row;
             var b = NormalizeBrand(Text(row, "ART_SUP_BRAND", "SUP_BRAND", "brand", "BRAND") ?? "");
-            if (artId.Length == 0 || b == wanted)
+            if (b != wanted)
             {
-                artId = Text(row, "ART_ID", "artId") ?? artId;
-                supId = Text(row, "ART_SUP_ID", "SUP_ID", "supId") ?? supId;
-                artName = Text(row, "ART_PRODUCT_NAME", "ART_NAME", "artName", "name") ?? artName;
-                if (b == wanted)
-                {
-                    break;
-                }
+                continue;
             }
+
+            // brand+article is the unique product: exact number wins; otherwise
+            // a same-brand prefix variant (store "110J" vs catalog "C110J") still
+            // counts as the same product — never borrow another brand's article.
+            var rn = NormalizeBrand(Text(row, "ART_ARTICLE_NR", "ART_DISPLAY_NR", "ARTICLE_NR", "ART_NUM", "number") ?? "");
+            if (rn == wantedNum)
+            {
+                wantedRow = row;
+                break;
+            }
+
+            if (wantedRow is null && rn.Length > 0
+                && (rn.EndsWith(wantedNum, StringComparison.Ordinal)
+                    || wantedNum.EndsWith(rn, StringComparison.Ordinal)))
+            {
+                wantedRow = row;
+            }
+        }
+
+        var resolved = wantedRow ?? firstRow;
+        if (resolved is JsonElement resolvedRow)
+        {
+            artId = Text(resolvedRow, "ART_ID", "artId") ?? artId;
+            supId = Text(resolvedRow, "ART_SUP_ID", "SUP_ID", "supId") ?? supId;
+            artName = Text(resolvedRow, "ART_PRODUCT_NAME", "ART_NAME", "artName", "name") ?? artName;
         }
 
         var calls = new List<(string Key, Task<PartsApiResult> Task)>();
