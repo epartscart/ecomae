@@ -345,9 +345,13 @@
                     return Promise.reject({ message: 'PartsAPI articles for this group are not cached and the provider is unreachable.' });
                 }
                 return umapiCall('products', { CATEGORY_ID: params.PT_IDS, ID: params.ID }).then(function (prod) {
-                    var ids = (apiItems(prod) || []).map(function (p) {
-                        return p.PT_ID || (p.PT_IDS && p.PT_IDS[0]) || p.ID;
-                    }).filter(Boolean).join(',');
+                    var seen = {};
+                    (apiItems(prod) || []).forEach(function (p) {
+                        [].concat(p.PT_ID || [], p.PT_IDS || [], p.ID || []).forEach(function (id) {
+                            if (id) { seen[id] = true; }
+                        });
+                    });
+                    var ids = Object.keys(seen).join(',');
                     if (!ids) { return []; }
                     return umapiCall('articles', { PT_IDS: ids, ID: params.ID, limit: 100, offset: 0 });
                 });
