@@ -276,7 +276,8 @@
                 return umapiCall('modifications', { MS_ID: params.MS_ID });
             }).then(function (data) {
                 return apiItems(data).map(function (x) {
-                    if (x.PASSENGER_CAR !== undefined) { return x; }
+                    if (x.PASSENGER_CAR !== undefined || x.COMMERCIAL_VEHICLE !== undefined
+                        || x.MOTORBIKE !== undefined || x.PC_ID !== undefined) { return x; }
                     var lt = (String(x.CAPACITY || '').match(/([\d.]+)\s*l/) || [])[1] || '';
                     return {
                         PC_ID: String(x.CAR_ID),
@@ -299,7 +300,11 @@
             });
         }
         if (action === 'categories') {
-            return papiCall('getSearchTree', { carId: params.ID, carType: ct, lang: '16' }).catch(function () {
+            return papiCall('getSearchTree', { carId: params.ID, carType: ct, lang: '16' }).then(function (data) {
+                state._papiTree = true;
+                return data;
+            }).catch(function () {
+                state._papiTree = false;
                 return umapiCall('categories', { ID: params.ID });
             }).then(function (data) {
                 // UMAPI-cache fallback already returns the nested {root,quic} tree.
@@ -333,15 +338,22 @@
                 carId: params.ID,
                 carType: ct
             }).catch(function () {
-                return umapiCall('articles', {
-                    PT_IDS: params.PT_IDS,
-                    ID: params.ID,
-                    limit: 100,
-                    offset: 0
+                // UMAPI needs its own category/product-group ids — only usable
+                // when the tree itself came from the UMAPI fallback. A
+                // PartsAPI strId would fetch an unrelated group's articles.
+                if (state._papiTree) {
+                    return Promise.reject({ message: 'PartsAPI articles for this group are not cached and the provider is unreachable.' });
+                }
+                return umapiCall('products', { CATEGORY_ID: params.PT_IDS, ID: params.ID }).then(function (prod) {
+                    var ids = (apiItems(prod) || []).map(function (p) {
+                        return p.PT_ID || (p.PT_IDS && p.PT_IDS[0]) || p.ID;
+                    }).filter(Boolean).join(',');
+                    if (!ids) { return []; }
+                    return umapiCall('articles', { PT_IDS: ids, ID: params.ID, limit: 100, offset: 0 });
                 });
             }).then(function (data) {
                 return apiItems(data).map(function (x) {
-                    if (x.ART_ARTICLE_NR !== undefined) { return x; }
+                    if (x.SUP_BRAND !== undefined || x.BRAND !== undefined) { return x; }
                     return {
                         SUP_BRAND: x.ART_SUP_BRAND || x.SUP_BRAND || '',
                         SUP_ID: x.SUP_ID || '',
