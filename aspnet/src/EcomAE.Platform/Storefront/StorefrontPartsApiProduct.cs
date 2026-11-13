@@ -286,7 +286,7 @@ public static class StorefrontPartsApiProduct
                     var file = Text(m, "FILE_NAME", "MEDIA_FILE", "file") ?? "";
                     if (file.Length > 0)
                     {
-                        images.Add("https://image.umapi.ru/ARTICLES/" + file);
+                        images.Add(ArticleImageUrl(file));
                     }
                 }
             }
@@ -296,7 +296,7 @@ public static class StorefrontPartsApiProduct
                 var file = Text(umapiArticle, "MEDIA_FILE") ?? "";
                 if (file.Length > 0)
                 {
-                    images.Add("https://image.umapi.ru/ARTICLES/" + file);
+                    images.Add(ArticleImageUrl(file));
                 }
             }
         }
@@ -438,7 +438,7 @@ public static class StorefrontPartsApiProduct
                     var img = Text(row, "img", "IMG") ?? "";
                     if (images.Count == 0 && img.Length > 0)
                     {
-                        images.Add(img.StartsWith('/') ? "https://image.umapi.ru" + img : img);
+                        images.Add(ArticleImageUrl(img));
                     }
                 }
                 else if (crosses.Count == 0 && (cb + cn).Length > 0)
@@ -456,6 +456,15 @@ public static class StorefrontPartsApiProduct
             images = await LoadCrossFallbackImagesAsync(connections, context, crosses, cancellationToken)
                 .ConfigureAwait(false);
         }
+
+        // Real photos first: image.umapi.ru serves a generic "no photo" JPEG
+        // for missing files, so externally-hosted media (img.autodatabases.ru
+        // et al) outranks umapi URLs — and umapi files go through the image
+        // proxy, whose placeholder detector turns the fake 200 into a 404.
+        images = images
+            .OrderBy(i => i.StartsWith("/api/umapi_image.php", StringComparison.Ordinal)
+                || i.Contains("image.umapi.ru", StringComparison.OrdinalIgnoreCase) ? 1 : 0)
+            .ToList();
 
         // EAN/barcode — umapi article payload first, then any row field.
         var ean = "";
@@ -1112,13 +1121,17 @@ public static class StorefrontPartsApiProduct
         sb.Append("<div class=\"epc-prod-gallery\">");
         if (images.Count > 0)
         {
-            sb.Append("<img class=\"epc-prod-pic\" id=\"epcProdPic\" src=\"").Append(E(images[0])).Append("\" alt=\"").Append(E(number)).Append("\">");
+            // Cycle through candidate photos on error (e.g. proxy 404 for the CDN's
+            // "no photo" placeholder); when every source fails show "No photo yet".
+            var altList = string.Join("','", images.Skip(1).Select(i => i.Replace("\\", "\\\\").Replace("'", "\\'")));
+            sb.Append("<img class=\"epc-prod-pic\" id=\"epcProdPic\" src=\"").Append(E(images[0])).Append("\" alt=\"").Append(E(number))
+                .Append("\" onerror=\"var a=(this._alt||(this._alt=['").Append(altList).Append("'])).shift();if(a){this.src=a}else{this.onerror=null;this.outerHTML='<div class=&quot;epc-prod-pic&quot; style=&quot;display:flex;align-items:center;justify-content:center;color:#aaa;border:1px dashed #ddd&quot;>No photo yet</div>'}\">");
             if (images.Count > 1)
             {
                 sb.Append("<div class=\"epc-prod-thumbs\">");
                 foreach (var img in images)
                 {
-                    sb.Append("<img src=\"").Append(E(img)).Append("\" alt=\"\" onclick=\"document.getElementById('epcProdPic').src=this.src\">");
+                    sb.Append("<img src=\"").Append(E(img)).Append("\" alt=\"\" onclick=\"var p=document.getElementById('epcProdPic');if(p){p._alt=[];p.src=this.src}\" onerror=\"this.remove()\">");
                 }
                 sb.Append("</div>");
             }
@@ -1496,7 +1509,7 @@ public static class StorefrontPartsApiProduct
                             var file = Text(m, "FILE_NAME", "MEDIA_FILE", "file") ?? "";
                             if (file.Length > 0)
                             {
-                                images.Add("https://image.umapi.ru/ARTICLES/" + file);
+                                images.Add(ArticleImageUrl(file));
                             }
                         }
                     }
@@ -1506,7 +1519,7 @@ public static class StorefrontPartsApiProduct
                         var file = Text(root, "MEDIA_FILE") ?? "";
                         if (file.Length > 0)
                         {
-                            images.Add("https://image.umapi.ru/ARTICLES/" + file);
+                            images.Add(ArticleImageUrl(file));
                         }
                     }
                 }
@@ -1525,6 +1538,28 @@ public static class StorefrontPartsApiProduct
         }
 
         return images.Distinct().Take(3).ToList();
+    }
+
+    /// <summary>
+    /// Routes image.umapi.ru article files through <see cref="UmapiImageProxy"/> so the
+    /// CDN's generic "no photo" JPEG becomes a real 404 (placeholder detection) and real
+    /// photos are byte-cached tenant-side. Non-umapi URLs pass through untouched.
+    /// </summary>
+    private static string ArticleImageUrl(string fileOrUrl)
+    {
+        var file = fileOrUrl;
+        const string marker = "/ARTICLES/";
+        var idx = file.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        if (idx >= 0)
+        {
+            file = file[(idx + marker.Length)..];
+        }
+        else if (file.Contains("://", StringComparison.Ordinal))
+        {
+            return file;
+        }
+
+        return "/api/umapi_image.php?kind=article&id=" + Uri.EscapeDataString(file);
     }
 
     /// <summary>True when the article payload's own id equals the requested id.</summary>
