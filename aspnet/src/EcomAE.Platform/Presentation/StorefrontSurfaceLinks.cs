@@ -28,6 +28,7 @@ public static class StorefrontSurfaceLinks
     public static string EpartsCata => PreferAspNetApps ? StorefrontAspNetCanonical.EpartsCata : StorefrontPhpCanonical.EpartsCata;
     public static string EpartsMod => PreferAspNetApps ? StorefrontAspNetCanonical.EpartsMod : StorefrontPhpCanonical.EpartsMod;
     public static string PartsApiCatalog => PreferAspNetApps ? StorefrontAspNetCanonical.PartsApiCatalog : StorefrontPhpCanonical.PartsApiCatalog;
+    public static string SupplierCatalogs => PreferAspNetApps ? StorefrontAspNetCanonical.SupplierCatalogs : StorefrontPhpCanonical.SupplierCatalogs;
     public static string LevamOem => PreferAspNetApps ? StorefrontAspNetCanonical.LevamOem : StorefrontPhpCanonical.LevamOem;
     public static string UmapiCatalog => PreferAspNetApps ? StorefrontAspNetCanonical.UmapiCatalog : StorefrontPhpCanonical.UmapiCatalog;
     public static string TurCatalog => PreferAspNetApps ? StorefrontAspNetCanonical.TurCatalog : StorefrontPhpCanonical.TurCatalog;

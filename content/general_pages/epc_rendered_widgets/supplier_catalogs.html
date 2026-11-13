@@ -1,0 +1,172 @@
+<div class="epc-umapi" id="epc-supcat" data-catalog="__CATALOG_ID__">
+    <h1 class="epc-umapi-title">Supplier Catalogs</h1>
+    <div class="epc-umapi-search">
+        <div class="epc-umapi-search-row">
+            <input type="text" id="epc-supcat-q" class="form-control"
+                   placeholder="Part number, OEM reference, vehicle or keyword — e.g. 341251, 90919-01164, PAJERO">
+            <button type="button" class="btn btn-primary" id="epc-supcat-search">Search catalogs</button>
+        </div>
+    </div>
+    <div id="epc-supcat-status" class="epc-umapi-status" style="display:none"></div>
+    <div id="epc-supcat-body"></div>
+</div>
+<style>
+#epc-supcat .epc-supcat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-top:14px}
+#epc-supcat .epc-supcat-card{border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;background:#fff;display:flex;flex-direction:column;gap:6px}
+#epc-supcat .epc-supcat-card:hover{border-color:#94a3b8;box-shadow:0 2px 8px rgba(15,23,42,.08)}
+#epc-supcat .epc-supcat-sup{font-weight:700;font-size:15px;color:#0f172a}
+#epc-supcat .epc-supcat-title{color:#334155;font-size:13px}
+#epc-supcat .epc-supcat-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+#epc-supcat .epc-supcat-chip{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;padding:2px 10px;font-size:11px;color:#475569}
+#epc-supcat .epc-supcat-chip.epc-supcat-ver{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8;font-weight:600}
+#epc-supcat .epc-supcat-actions{margin-top:auto;padding-top:8px;display:flex;gap:8px}
+#epc-supcat .epc-supcat-hits{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+#epc-supcat .epc-supcat-hit{border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;background:#fff}
+#epc-supcat .epc-supcat-hithead{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:6px}
+#epc-supcat .epc-supcat-hithead b{color:#0f172a}
+#epc-supcat .epc-supcat-refs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+#epc-supcat .epc-supcat-ref{border:1px solid #cbd5e1;border-radius:8px;padding:3px 8px;font-size:12px;background:#f8fafc;color:#0f172a}
+#epc-supcat .epc-supcat-ref a{color:#1d4ed8;text-decoration:none;font-weight:600}
+#epc-supcat .epc-supcat-ref span{color:#94a3b8;font-size:10px;display:block}
+#epc-supcat .epc-supcat-exc{color:#64748b;font-size:12px;margin-top:4px}
+#epc-supcat .epc-umapi-status{padding:10px 12px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;margin-top:10px}
+#epc-supcat .epc-umapi-status.epc-supcat-err{background:#fef2f2;border-color:#fecaca;color:#b91c1c}
+</style>
+<script>
+(function () {
+    'use strict';
+    var root = document.getElementById('epc-supcat');
+    if (!root) { return; }
+    var API = '/api/supplier_catalogs.php';
+    var PART_SEARCH = '/en/shop/part_search';
+    var catalogId = root.getAttribute('data-catalog') || '';
+    var body = document.getElementById('epc-supcat-body');
+    var status = document.getElementById('epc-supcat-status');
+    var qInput = document.getElementById('epc-supcat-q');
+
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+    function call(params) {
+        var q = new URLSearchParams();
+        Object.keys(params).forEach(function (k) {
+            if (params[k] !== undefined && params[k] !== null && params[k] !== '') { q.set(k, params[k]); }
+        });
+        return fetch(API + '?' + q.toString(), { credentials: 'same-origin' }).then(function (r) {
+            return r.json();
+        });
+    }
+    function show(msg, err) {
+        status.style.display = msg ? 'block' : 'none';
+        status.textContent = msg || '';
+        status.className = 'epc-umapi-status' + (err ? ' epc-supcat-err' : '');
+    }
+    function versionLine(m) {
+        var bits = [];
+        if (m.catNo) { bits.push('<span class="epc-supcat-chip epc-supcat-ver">Cat. No. ' + esc(m.catNo) + '</span>'); }
+        if (m.version) { bits.push('<span class="epc-supcat-chip epc-supcat-ver">' + esc(m.version) + '</span>'); }
+        if (m.edition) { bits.push('<span class="epc-supcat-chip">Edition ' + esc(m.edition) + '</span>'); }
+        bits.push('<span class="epc-supcat-chip">' + esc(m.pages) + ' pages</span>');
+        if (m.searchable) { bits.push('<span class="epc-supcat-chip">' + esc(m.itemCount) + ' items</span>'); }
+        else { bits.push('<span class="epc-supcat-chip">PDF only</span>'); }
+        return bits.join('');
+    }
+    function card(m) {
+        return '<div class="epc-supcat-card">' +
+            '<div class="epc-supcat-sup">' + esc(m.supplier) + '</div>' +
+            '<div class="epc-supcat-title">' + esc(m.title) + '</div>' +
+            '<div class="epc-supcat-meta">' + versionLine(m) + '</div>' +
+            '<div class="epc-supcat-actions">' +
+            '<a class="btn btn-sm btn-primary" href="/en/supplier-catalog/' + esc(m.id) + '">Open catalog</a>' +
+            '<a class="btn btn-sm btn-default" href="' + esc(m.url) + '" target="_blank" rel="noopener">PDF</a>' +
+            '</div></div>';
+    }
+    function hitRow(h) {
+        var refChips = (h.refs || []).map(function (r) {
+            return '<span class="epc-supcat-ref"><a href="' + PART_SEARCH +
+                '?article=' + encodeURIComponent(r) + '&brend=' + encodeURIComponent(h.supplier) +
+                '" title="Search this number in warehouse">' + esc(r) + '</a>' +
+                '<span>warehouse ›</span></span>';
+        }).join('');
+        var oemChips = (h.oems || []).map(function (o) {
+            return '<span class="epc-supcat-ref"><a href="' + PART_SEARCH +
+                '?article=' + encodeURIComponent(o) + '" title="Search this OEM reference">' + esc(o) + '</a>' +
+                '<span>OEM ›</span></span>';
+        }).join('');
+        var makes = (h.makes || []).length
+            ? '<div class="epc-supcat-meta">' + h.makes.map(function (mk) {
+                return '<span class="epc-supcat-chip">' + esc(mk) + '</span>'; }).join('') + '</div>' : '';
+        return '<div class="epc-supcat-hit">' +
+            '<div class="epc-supcat-hithead"><b>' + esc(h.supplier) + '</b> ' + esc(h.title) +
+            (h.catNo ? ' <span class="epc-supcat-chip epc-supcat-ver">Cat. No. ' + esc(h.catNo) + '</span>' : '') +
+            ' <span class="epc-supcat-chip">p.' + esc(h.page) + '</span>' +
+            ' <a href="' + esc(h.pdf) + '#page=' + esc(h.page) + '" target="_blank" rel="noopener">open page ›</a></div>' +
+            (refChips ? '<div class="epc-supcat-refs">' + refChips + '</div>' : '') +
+            (oemChips ? '<div class="epc-supcat-refs">' + oemChips + '</div>' : '') +
+            makes +
+            '<div class="epc-supcat-exc">' + esc(h.excerpt || '') + '</div></div>';
+    }
+    function renderList(metas) {
+        body.innerHTML = '<div class="epc-supcat-grid">' + metas.map(card).join('') + '</div>';
+    }
+    function renderHits(hits) {
+        body.innerHTML = hits.length
+            ? '<div class="epc-supcat-hits">' + hits.map(hitRow).join('') + '</div>'
+            : '<div class="epc-umapi-status" style="margin-top:14px">No matches. Try the part or OEM number without separators.</div>';
+    }
+    function openCatalog(id) {
+        show('Loading catalog…');
+        call({ action: 'catalog', catalog_id: id }).then(function (res) {
+            if (!res || res.success === false) {
+                show('Catalog not found.', true);
+                return;
+            }
+            var m = res.data;
+            show('');
+            body.innerHTML = '<div class="epc-supcat-card" style="max-width:720px">' +
+                '<div class="epc-supcat-sup">' + esc(m.supplier) + '</div>' +
+                '<div class="epc-supcat-title">' + esc(m.title) + '</div>' +
+                '<div class="epc-supcat-meta">' + versionLine(m) + '</div>' +
+                '<div class="epc-supcat-actions">' +
+                '<a class="btn btn-sm btn-default" href="/en/supplier-catalogs">‹ All catalogs</a>' +
+                '<a class="btn btn-sm btn-primary" href="' + esc(m.url) + '" target="_blank" rel="noopener">Open PDF</a>' +
+                '</div>' +
+                '<p style="color:#64748b;font-size:13px;margin:8px 0 0">Type a part number, OEM reference or vehicle above to search inside this catalog — every result links straight to a warehouse search.</p>' +
+                '</div>';
+        });
+    }
+    function doSearch() {
+        var q = (qInput.value || '').trim();
+        if (q.length < 2) { show('Type at least 2 characters.', true); return; }
+        show('Searching…');
+        call({ action: 'search', q: q, catalog_id: catalogId }).then(function (res) {
+            if (!res || res.success === false) {
+                show(res && res.error ? res.error : 'Search failed.', true);
+                return;
+            }
+            show(res.data.length ? 'Found ' + res.data.length + ' page matches' +
+                (res.data.length >= 120 ? ' (showing first 120)' : '') : '');
+            renderHits(res.data || []);
+        });
+    }
+    document.getElementById('epc-supcat-search').addEventListener('click', doSearch);
+    qInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { doSearch(); } });
+    if (catalogId) {
+        openCatalog(catalogId);
+    } else {
+        show('Loading catalogs…');
+        call({ action: 'list' }).then(function (res) {
+            show('');
+            if (!res || res.success === false || !(res.data || []).length) {
+                show('No supplier catalogs are published yet.', true);
+                return;
+            }
+            renderList(res.data);
+        });
+    }
+    var params = new URLSearchParams(location.search);
+    if (params.get('q')) { qInput.value = params.get('q'); doSearch(); }
+})();
+</script>
