@@ -225,6 +225,9 @@
                             COUNTRY: u.COUNTRY || '',
                             IS_LOGO: u.IS_LOGO || 1,
                             POPULAR: u.POPULAR || 0,
+                            POPULAR_PC: u.POPULAR_PC || u.POPULAR || 0,
+                            POPULAR_CV: u.POPULAR_CV || 0,
+                            POPULAR_MTB: u.POPULAR_MTB || 0,
                             EPART_TYPES: u.EPART_TYPES
                         } : it;
                     });
@@ -318,7 +321,7 @@
             return papiCall('searchArticles', { SEARCH_NUMBER: params.article, LANG: '16' }).then(function (data) {
                 return apiItems(data).map(function (x) {
                     return {
-                        SUP_BRAND: x.SUP_BRAND || x.BRAND || x.brandName || '',
+                        SUP_BRAND: x.SUP_BRAND || x.ART_SUP_BRAND || x.BRAND || x.brandName || '',
                         SUP_ID: x.SUP_ID || x.brandId || '',
                         ART_ARTICLE_NR: x.ART_ARTICLE_NR || x.articleNumber || ''
                     };
