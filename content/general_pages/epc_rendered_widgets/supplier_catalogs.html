@@ -137,9 +137,13 @@
     function doSearchMore() {
         var btn = document.getElementById('epc-supcat-more');
         if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+        var restore = function () {
+            if (btn) { btn.disabled = false; btn.textContent = 'Show more'; }
+        };
         call({ action: 'search', q: searchQ, catalog_id: catalogId, offset: searchOffset }).then(function (res) {
             if (!res || res.success === false) {
                 show(res && res.error ? res.error : 'Search failed.', true);
+                restore();
                 return;
             }
             searchOffset += (res.data || []).length;
@@ -149,6 +153,9 @@
                     '<button type="button" id="epc-supcat-more" class="btn btn-default" style="display:block;margin:14px auto 0">Show more (' + esc(searchOffset) + ' of ' + esc(res.total) + ')</button>');
                 document.getElementById('epc-supcat-more').addEventListener('click', doSearchMore);
             }
+        }).catch(function () {
+            show('Search failed.', true);
+            restore();
         });
     }
     function openCatalog(id) {
