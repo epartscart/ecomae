@@ -359,6 +359,14 @@
                             {
                                 <div class="epc-brand-picker-empty">
                                     No manufacturers found for this article (warehouse + local crosses). Try another part number.
+                                    @if (_supcatHits > 0)
+                                    {
+                                        <div style="margin-top:.7rem;padding:.6rem .8rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;">
+                                            <i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+                                            This number exists in our supplier <strong>PDF Catalogs</strong> — @_supcatHits page match@(_supcatHits == 1 ? "" : "es").
+                                            <a href="/en/supplier-catalogs?q=@Uri.EscapeDataString(_normalized)" style="font-weight:700;color:#2563eb">Please check ›</a>
+                                        </div>
+                                    }
                                     @if (!string.IsNullOrWhiteSpace(_message))
                                     {
                                         <div style="margin-top:.5rem;color:#92400e;">Brand lookup: <strong>@_source</strong> — @_message</div>
@@ -1896,6 +1904,7 @@
     private string _heroSubtitle = "Search by article, choose a brand, then open warehouse prices.";
     private string _normalized = "";
     private bool _showBrandPicker;
+    private int _supcatHits;
     private IReadOnlyList<StorefrontArticleBrandDigest> _brands = [];
     private IReadOnlyList<StorefrontPartOfferDigest> _rows = [];
     private IReadOnlyList<StorefrontPartOfferDigest> _genuineRows = [];
@@ -2217,6 +2226,12 @@
             _showBrandPicker = true;
             _source = brandsResult.Source;
             _message = brandsResult.Message;
+            _supcatHits = 0;
+            if (_brands.Count == 0)
+            {
+                try { _supcatHits = StorefrontSupplierCatalog.CountHits(_normalized); }
+                catch { /* supplier catalog index unavailable — hide the hint */ }
+            }
 
             // PHP: single manufacturer → open prices directly (SQL or php-chpu bridge).
             if (_brands.Count == 1
