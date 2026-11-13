@@ -193,12 +193,30 @@
         params.method = method;
         return papiFetch('/api/partsapi_proxy.php', params);
     }
+    // PartsAPI is TecDoc like UMAPI and shares the same ids, so when the
+    // provider throttles our IP every level can fall back to the cached
+    // UMAPI data (fetch-once, free) instead of showing an empty catalog.
+    function umapiCall(action, params) {
+        params = params || {};
+        params.action = action;
+        params.section = state.section;
+        params.language = 'en';
+        params.region = 'WWW';
+        if (state.vehicleType && ['models', 'modifications', 'categories', 'articles'].indexOf(action) !== -1) {
+            params.vehicle_type = state.vehicleType;
+        }
+        return papiFetch('/api/umapi_proxy.php', params);
+    }
     function api(action, params) {
         params = params || {};
         var ct = papiCarType();
         if (action === 'manufacturers') {
-            return papiCall('getMakes', { carType: ct, lang: '16' }).then(function (data) {
+            return papiCall('getMakes', { carType: ct, lang: '16' }).catch(function () {
+                return umapiCall('manufacturers', {});
+            }).then(function (data) {
                 var items = apiItems(data).map(function (mk) {
+                    // UMAPI-cache fallback rows are already in UI shape — pass through.
+                    if (mk.MANUFACTURER !== undefined) { return mk; }
                     return {
                         MFA_ID: String(mk.makeId),
                         MANUFACTURER: mk.makeName || '',
@@ -211,9 +229,7 @@
                 // Enrich from the cached UMAPI manufacturer list (fetch-once,
                 // served from the local cache) so Popular / Country / logo
                 // flags work on the same TecDoc manufacturer ids.
-                return papiFetch('/api/umapi_proxy.php', {
-                    action: 'manufacturers', section: state.section, language: 'en', region: 'WWW'
-                }).then(function (um) {
+                return umapiCall('manufacturers', {}).then(function (um) {
                     var byId = {};
                     apiItems(um).forEach(function (u) { byId[String(u.MFA_ID)] = u; });
                     return items.map(function (it) {
@@ -235,8 +251,11 @@
             });
         }
         if (action === 'models') {
-            return papiCall('getModels', { carType: ct, makeId: params.MFA_ID, lang: '16' }).then(function (data) {
+            return papiCall('getModels', { carType: ct, makeId: params.MFA_ID, lang: '16' }).catch(function () {
+                return umapiCall('models', { MFA_ID: params.MFA_ID });
+            }).then(function (data) {
                 return apiItems(data).map(function (x) {
+                    if (x.MODEL_SERIES !== undefined) { return x; }
                     return {
                         MS_ID: String(x.modelId),
                         MODEL_SERIES: x.modelName || x.shortModelName || '',
@@ -253,8 +272,11 @@
                 makeId: state.manufacturer ? state.manufacturer.MFA_ID : '',
                 modelId: params.MS_ID,
                 lang: '16'
+            }).catch(function () {
+                return umapiCall('modifications', { MS_ID: params.MS_ID });
             }).then(function (data) {
                 return apiItems(data).map(function (x) {
+                    if (x.PASSENGER_CAR !== undefined) { return x; }
                     var lt = (String(x.CAPACITY || '').match(/([\d.]+)\s*l/) || [])[1] || '';
                     return {
                         PC_ID: String(x.CAR_ID),
@@ -277,7 +299,13 @@
             });
         }
         if (action === 'categories') {
-            return papiCall('getSearchTree', { carId: params.ID, carType: ct, lang: '16' }).then(function (data) {
+            return papiCall('getSearchTree', { carId: params.ID, carType: ct, lang: '16' }).catch(function () {
+                return umapiCall('categories', { ID: params.ID });
+            }).then(function (data) {
+                // UMAPI-cache fallback already returns the nested {root,quic} tree.
+                if (data && (data.root || (data.data && data.data.root))) {
+                    return data.root ? data : data.data;
+                }
                 var nodes = {};
                 var rootNodes = [];
                 apiItems(data).forEach(function (r) {
@@ -304,8 +332,16 @@
                 strId: params.PT_IDS,
                 carId: params.ID,
                 carType: ct
+            }).catch(function () {
+                return umapiCall('articles', {
+                    PT_IDS: params.PT_IDS,
+                    ID: params.ID,
+                    limit: 100,
+                    offset: 0
+                });
             }).then(function (data) {
                 return apiItems(data).map(function (x) {
+                    if (x.ART_ARTICLE_NR !== undefined) { return x; }
                     return {
                         SUP_BRAND: x.ART_SUP_BRAND || x.SUP_BRAND || '',
                         SUP_ID: x.SUP_ID || '',
@@ -318,8 +354,11 @@
             });
         }
         if (action === 'brands') {
-            return papiCall('searchArticles', { SEARCH_NUMBER: params.article, LANG: '16' }).then(function (data) {
+            return papiCall('searchArticles', { SEARCH_NUMBER: params.article, LANG: '16' }).catch(function () {
+                return umapiCall('brands', { article: params.article });
+            }).then(function (data) {
                 return apiItems(data).map(function (x) {
+                    if (x.SUP_BRAND !== undefined || x.BRAND !== undefined) { return x; }
                     return {
                         SUP_BRAND: x.SUP_BRAND || x.ART_SUP_BRAND || x.BRAND || x.brandName || '',
                         SUP_ID: x.SUP_ID || x.brandId || '',
