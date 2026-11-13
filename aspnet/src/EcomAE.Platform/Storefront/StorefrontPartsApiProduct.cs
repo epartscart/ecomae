@@ -415,6 +415,39 @@ public static class StorefrontPartsApiProduct
             }
         }
 
+        // Partsapi throttle fallback: umapi's cross catalog answers brand+article
+        // even when no ART_ID resolved — restores the part's name, photo and
+        // cross-reference list so the panes never render empty on an outage.
+        if (crosses.Count == 0 || images.Count == 0 || artName.Length == 0)
+        {
+            var analogs = await LoadUmapiCrossAnalogsAsync(connections, context, httpClientFactory,
+                brand, number, lang, cancellationToken).ConfigureAwait(false);
+            foreach (var row in analogs)
+            {
+                var isSearch = row.TryGetProperty("isSearch", out var s) && s.ValueKind == JsonValueKind.True;
+                var cb = Text(row, "brand", "BRAND") ?? "";
+                var cn = Text(row, "article", "ARTICLE_NR") ?? "";
+                var cname = Text(row, "title", "TITLE") ?? "";
+                if (isSearch)
+                {
+                    if (artName.Length == 0)
+                    {
+                        artName = cname;
+                    }
+
+                    var img = Text(row, "img", "IMG") ?? "";
+                    if (images.Count == 0 && img.Length > 0)
+                    {
+                        images.Add(img.StartsWith('/') ? "https://image.umapi.ru" + img : img);
+                    }
+                }
+                else if (crosses.Count == 0 && (cb + cn).Length > 0)
+                {
+                    crosses.Add(new[] { cb, cn, cname });
+                }
+            }
+        }
+
         // Same product under another brand (brand+article = unique product):
         // when the requested article has no photo, reuse a crossed article's
         // saved catalog image — cache reads only, zero provider calls.
@@ -1527,6 +1560,65 @@ public static class StorefrontPartsApiProduct
     }
 
     /// <summary>Read a fetch-once UMAPI payload saved in the tenant cache.</summary>
+    /// <summary>
+    /// Partsapi throttle fallback: umapi's cross catalog answers brand+article
+    /// directly, returning the searched part's own row (isSearch) plus its
+    /// analogs. Fetch-once — the payload is persisted to epc_umapi_cache.
+    /// </summary>
+    private static async Task<List<JsonElement>> LoadUmapiCrossAnalogsAsync(
+        ITenantDbConnectionFactory connections, HttpContext context,
+        IHttpClientFactory httpClientFactory,
+        string brand, string number, string lang,
+        CancellationToken cancellationToken)
+    {
+        var rows = new List<JsonElement>();
+        try
+        {
+            var region = context.Request.Query["region"].ToString().Trim();
+            if (region.Length == 0)
+            {
+                region = "WWW";
+            }
+
+            var langName = lang == "16" ? "en" : lang;
+            var cacheKey = "crossanalogs:" + langName + ":" + region + ":" + brand + ":" + number;
+            var body = await ReadUmapiCacheAsync(connections, context, cacheKey, cancellationToken).ConfigureAwait(false);
+            if (body is null)
+            {
+                var http = httpClientFactory.CreateClient();
+                http.Timeout = TimeSpan.FromSeconds(12);
+                using var request = new HttpRequestMessage(HttpMethod.Get,
+                    "https://api.umapi.ru/v2/cross/parts/Analogs/pro/" + Uri.EscapeDataString(number)
+                        + "/" + Uri.EscapeDataString(brand) + "/0");
+                request.Headers.TryAddWithoutValidation("X-App-Key", await HomeCatalogWidgets.UmapiAppKeyAsync(context, null, cancellationToken).ConfigureAwait(false));
+                using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                {
+                    return rows;
+                }
+
+                body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                await WriteUmapiCacheAsync(connections, context, cacheKey,
+                    "analogs", "passenger", langName, region, body,
+                    (int)response.StatusCode, cancellationToken).ConfigureAwait(false);
+            }
+
+            using var doc = JsonDocument.Parse(body);
+            if (doc.RootElement.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var row in doc.RootElement.EnumerateArray())
+                {
+                    rows.Add(row.Clone());
+                }
+            }
+        }
+        catch (Exception)
+        {
+        }
+
+        return rows;
+    }
+
     private static async Task<string?> ReadUmapiCacheAsync(
         ITenantDbConnectionFactory connections, HttpContext context, string cacheKey,
         CancellationToken cancellationToken)
