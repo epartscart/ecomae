@@ -123,9 +123,8 @@ public interface ICpWebTrackerCollectService
 
 /// <summary>
 /// Native twin of <c>epc-web-tracker-collect.php</c> / <c>epc_web_tracker_ingest</c>.
-/// Writes into every distinct tracker DB that already has the sessions table so the
-/// freshest-DB dashboard picker cannot hide new days behind a historical copy.
-/// Does not CREATE TABLE.
+/// Tenant-isolation law: each beacon lands only in the owning tenant's DB — never
+/// broadcast into shared stores. Creates the tracker tables when a tenant DB lacks them.
 /// </summary>
 public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
 {
@@ -381,54 +380,221 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
             return new(false, 0, 0, 0, 503, "db");
         }
 
-        var opened = new List<DbConnection>();
+        // Tenant-isolation law: visitor sessions are tenant transactional data — each
+        // beacon lands ONLY in that site's own tenant DB, never broadcast to shared
+        // stores. Routing keys on the server-resolved tenant (trustedSiteKey): a
+        // caller on a platform host can no longer pick another tenant's DB by
+        // claiming its site_key — untrusted keys stay on the registry store.
+        DbConnection conn;
         try
         {
-            await TryOpen(opened, _connections.OpenRegistryAsync, cancellationToken).ConfigureAwait(false);
-            await TryOpen(opened, ct => _connections.OpenAsync(null, ct), cancellationToken).ConfigureAwait(false);
-            await TryOpen(opened, ct => _connections.OpenAsync("docpart", ct), cancellationToken).ConfigureAwait(false);
-
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            CpWebTrackerIngestResult? lastOk = null;
-            var anyTable = false;
-            foreach (var conn in opened)
+            if (string.IsNullOrEmpty(trustedSiteKey))
             {
-                var dbKey = string.IsNullOrEmpty(conn.Database) ? conn.ConnectionString ?? "unknown" : conn.Database;
-                if (!seen.Add(dbKey))
+                // Untrusted beacon key on a platform host: if it happens to name a
+                // tenant, restamp it under the platform bucket so forged beacons can
+                // never be counted as that tenant's traffic in shared reports.
+                if (await ResolveTenantSiteKeyAsync(_connections, payload.SiteKey, cancellationToken).ConfigureAwait(false) is not null)
                 {
-                    continue;
+                    payload.SiteKey = "ecomae";
                 }
-
-                if (!await SessionsTableExistsAsync(conn, cancellationToken).ConfigureAwait(false))
-                {
-                    continue;
-                }
-
-                anyTable = true;
-                try
-                {
-                    lastOk = await WriteBatchAsync(conn, payload, request, cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    _log.LogWarning(ex, "Web tracker ingest failed on {Database}", conn.Database);
-                }
+                conn = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             }
-
-            if (lastOk is { } ok)
+            else
             {
-                return ok;
+                // Stamp rows under the tenant's canonical site_key (auto247, not
+                // auto247_ae) so storage and dashboard filtering agree.
+                var canon = await ResolveTenantSiteKeyAsync(_connections, payload.SiteKey, cancellationToken).ConfigureAwait(false);
+                if (canon is not null)
+                {
+                    payload.SiteKey = canon;
+                }
+                conn = await TryOpenSiteDbAsync(_connections, payload.SiteKey, _log, cancellationToken).ConfigureAwait(false)
+                    ?? await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             }
-
-            return new(false, 0, 0, 0, 503, anyTable ? "ingest_failed" : "db");
         }
-        finally
+        catch (Exception ex)
         {
-            foreach (var conn in opened)
+            _log.LogWarning(ex, "Web tracker ingest could not resolve site db for {SiteKey}", payload.SiteKey);
+            return new(false, 0, 0, 0, 503, "db");
+        }
+
+        await using (conn)
+        {
+            try
             {
-                await conn.DisposeAsync().ConfigureAwait(false);
+                if (!await TrackerTablesExistAsync(conn, cancellationToken).ConfigureAwait(false))
+                {
+                    await EnsureTrackerTablesAsync(conn, cancellationToken).ConfigureAwait(false);
+                }
+                return await WriteBatchAsync(conn, payload, request, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning(ex, "Web tracker ingest failed on {Database}", conn.Database);
+                return new(false, 0, 0, 0, 503, "ingest_failed");
             }
         }
+    }
+
+    /// <summary>
+    /// Opens the owning tenant DB for a site_key, or null when the key maps to no
+    /// tenant record (platform/unknown keys). Shared by ingest and the tracker
+    /// dashboard so both resolve a site to the same store.
+    /// </summary>
+    internal static async Task<DbConnection?> TryOpenSiteDbAsync(
+        ITenantDbConnectionFactory connections,
+        string? siteKey,
+        ILogger? log,
+        CancellationToken ct)
+    {
+        var key = NormalizeSiteKey(siteKey);
+        if (key.Length == 0)
+        {
+            return null;
+        }
+
+        var variants = SiteKeyVariants(key);
+        string? dbName = null, dbUser = null, dbPass = null;
+        try
+        {
+            await using var reg = await connections.OpenRegistryAsync(ct).ConfigureAwait(false);
+            var marks = string.Join(",", variants.Select(_ => "?"));
+            await using var cmd = reg.CreateCommand();
+            cmd.CommandText = ErpDb.Positional(
+                "SELECT `db_name`,`db_user`,`db_password` FROM `epc_portal_tenants`"
+                + " WHERE `site_key` IN (" + marks + ") AND `is_active` = 1"
+                // Exact key wins over stripped prefixes so an 'auto247_ae' claim
+                // can't be routed into the 'auto247' tenant DB when both exist.
+                + " ORDER BY FIELD(`site_key`," + marks + ") LIMIT 1");
+            ErpDb.AddParameters(cmd, variants.Cast<object>().Concat(variants.Cast<object>()).ToArray());
+            await using var r = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            if (await r.ReadAsync(ct).ConfigureAwait(false))
+            {
+                dbName = r.IsDBNull(0) ? null : r.GetString(0);
+                dbUser = r.IsDBNull(1) ? null : r.GetString(1);
+                dbPass = r.IsDBNull(2) ? null : r.GetString(2);
+            }
+        }
+        catch (DbException ex)
+        {
+            log?.LogWarning(ex, "Tenant registry lookup failed for site {SiteKey}", key);
+            return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(dbName))
+        {
+            return null;
+        }
+        return !string.IsNullOrWhiteSpace(dbUser) && !string.IsNullOrWhiteSpace(dbPass)
+            ? await connections.OpenAsync(dbName, dbUser, dbPass, ct).ConfigureAwait(false)
+            : await connections.OpenAsync(dbName, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>site_key + progressively stripped prefixes (auto247_ae→auto247, stylenlook_ecomae_com→stylenlook).</summary>
+    internal static List<string> SiteKeyVariants(string key)
+    {
+        var variants = new List<string> { key };
+        var k = key;
+        // Bound the expansion: site_key is user-supplied on platform beacons, so a
+        // key full of underscores must not grow the retained list unboundedly.
+        while (k.Contains('_', StringComparison.Ordinal) && variants.Count < 8)
+        {
+            k = k[..k.LastIndexOf('_')];
+            if (k.Length > 0 && !variants.Contains(k))
+            {
+                variants.Add(k);
+            }
+        }
+        return variants;
+    }
+
+    /// <summary>Returns the canonical tenant site_key that <paramref name="siteKey"/> maps to, or null.</summary>
+    internal static async Task<string?> ResolveTenantSiteKeyAsync(
+        ITenantDbConnectionFactory connections,
+        string? siteKey,
+        CancellationToken ct)
+    {
+        var key = NormalizeSiteKey(siteKey);
+        if (key.Length == 0)
+        {
+            return null;
+        }
+        var variants = SiteKeyVariants(key);
+        try
+        {
+            await using var reg = await connections.OpenRegistryAsync(ct).ConfigureAwait(false);
+            var marks = string.Join(",", variants.Select(_ => "?"));
+            await using var cmd = reg.CreateCommand();
+            cmd.CommandText = ErpDb.Positional(
+                "SELECT `site_key` FROM `epc_portal_tenants` WHERE `site_key` IN (" + marks + ") AND `is_active` = 1"
+                + " ORDER BY FIELD(`site_key`," + marks + ") LIMIT 1");
+            ErpDb.AddParameters(cmd, variants.Cast<object>().Concat(variants.Cast<object>()).ToArray());
+            return await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false) is { } v ? Convert.ToString(v, CultureInfo.InvariantCulture) : null;
+        }
+        catch (DbException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Creates the three tracker tables in a tenant DB that never received them (production DDL).</summary>
+    private static async Task EnsureTrackerTablesAsync(DbConnection conn, CancellationToken ct)
+    {
+        const string sessions =
+            "CREATE TABLE IF NOT EXISTS `epc_web_tracker_sessions` ("
+            + "`id` bigint unsigned NOT NULL AUTO_INCREMENT, `session_uid` char(36) NOT NULL,"
+            + "`visitor_uid` char(36) NOT NULL DEFAULT '', `site_key` varchar(64) NOT NULL,"
+            + "`hostname` varchar(255) NOT NULL DEFAULT '', `user_id` int unsigned NOT NULL DEFAULT '0',"
+            + "`is_registered` tinyint(1) NOT NULL DEFAULT '0', `first_seen_at` int unsigned NOT NULL DEFAULT '0',"
+            + "`last_seen_at` int unsigned NOT NULL DEFAULT '0', `pageview_count` int unsigned NOT NULL DEFAULT '0',"
+            + "`event_count` int unsigned NOT NULL DEFAULT '0', `duration_ms` int unsigned NOT NULL DEFAULT '0',"
+            + "`landing_path` varchar(512) NOT NULL DEFAULT '', `landing_title` varchar(255) NOT NULL DEFAULT '',"
+            + "`exit_path` varchar(512) NOT NULL DEFAULT '', `referrer` varchar(1024) NOT NULL DEFAULT '',"
+            + "`referrer_host` varchar(255) NOT NULL DEFAULT '', `utm_source` varchar(128) NOT NULL DEFAULT '',"
+            + "`utm_medium` varchar(128) NOT NULL DEFAULT '', `utm_campaign` varchar(128) NOT NULL DEFAULT '',"
+            + "`utm_term` varchar(128) NOT NULL DEFAULT '', `utm_content` varchar(128) NOT NULL DEFAULT '',"
+            + "`ip` varchar(45) NOT NULL DEFAULT '', `country_code` varchar(8) NOT NULL DEFAULT '',"
+            + "`country_name` varchar(64) NOT NULL DEFAULT '', `region` varchar(128) NOT NULL DEFAULT '',"
+            + "`city` varchar(128) NOT NULL DEFAULT '', `ua` varchar(512) NOT NULL DEFAULT '',"
+            + "`device_type` varchar(16) NOT NULL DEFAULT '', `browser` varchar(64) NOT NULL DEFAULT '',"
+            + "`os` varchar(64) NOT NULL DEFAULT '', `screen_w` smallint unsigned NOT NULL DEFAULT '0',"
+            + "`screen_h` smallint unsigned NOT NULL DEFAULT '0', `language` varchar(32) NOT NULL DEFAULT '',"
+            + "`timezone` varchar(64) NOT NULL DEFAULT '',"
+            + "PRIMARY KEY (`id`), UNIQUE KEY `uq_site_session` (`site_key`,`session_uid`),"
+            + "KEY `idx_site_last` (`site_key`,`last_seen_at`), KEY `idx_site_first` (`site_key`,`first_seen_at`),"
+            + "KEY `idx_country` (`site_key`,`country_code`), KEY `idx_user` (`site_key`,`user_id`),"
+            + "KEY `idx_visitor` (`site_key`,`visitor_uid`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        const string pageviews =
+            "CREATE TABLE IF NOT EXISTS `epc_web_tracker_pageviews` ("
+            + "`id` bigint unsigned NOT NULL AUTO_INCREMENT, `session_id` bigint unsigned NOT NULL DEFAULT '0',"
+            + "`session_uid` char(36) NOT NULL, `site_key` varchar(64) NOT NULL,"
+            + "`user_id` int unsigned NOT NULL DEFAULT '0', `ts` int unsigned NOT NULL DEFAULT '0',"
+            + "`path` varchar(512) NOT NULL DEFAULT '', `query_string` varchar(1024) NOT NULL DEFAULT '',"
+            + "`title` varchar(255) NOT NULL DEFAULT '', `referrer` varchar(1024) NOT NULL DEFAULT '',"
+            + "`load_time_ms` int unsigned NOT NULL DEFAULT '0', `time_on_page_ms` int unsigned NOT NULL DEFAULT '0',"
+            + "`scroll_max_pct` tinyint unsigned NOT NULL DEFAULT '0', `viewport_w` smallint unsigned NOT NULL DEFAULT '0',"
+            + "`viewport_h` smallint unsigned NOT NULL DEFAULT '0',"
+            + "PRIMARY KEY (`id`), KEY `idx_site_ts` (`site_key`,`ts`), KEY `idx_session` (`session_id`),"
+            + "KEY `idx_path` (`site_key`,`path`(191))) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        const string events =
+            "CREATE TABLE IF NOT EXISTS `epc_web_tracker_events` ("
+            + "`id` bigint unsigned NOT NULL AUTO_INCREMENT, `session_id` bigint unsigned NOT NULL DEFAULT '0',"
+            + "`pageview_id` bigint unsigned NOT NULL DEFAULT '0', `session_uid` char(36) NOT NULL,"
+            + "`site_key` varchar(64) NOT NULL, `user_id` int unsigned NOT NULL DEFAULT '0',"
+            + "`ts` int unsigned NOT NULL DEFAULT '0', `event_type` varchar(32) NOT NULL DEFAULT '',"
+            + "`path` varchar(512) NOT NULL DEFAULT '', `x` int NOT NULL DEFAULT '0', `y` int NOT NULL DEFAULT '0',"
+            + "`page_x` int NOT NULL DEFAULT '0', `page_y` int NOT NULL DEFAULT '0',"
+            + "`element_tag` varchar(32) NOT NULL DEFAULT '', `element_id` varchar(128) NOT NULL DEFAULT '',"
+            + "`element_class` varchar(255) NOT NULL DEFAULT '', `element_text` varchar(255) NOT NULL DEFAULT '',"
+            + "`element_href` varchar(1024) NOT NULL DEFAULT '', `element_name` varchar(128) NOT NULL DEFAULT '',"
+            + "`css_path` varchar(512) NOT NULL DEFAULT '', `search_query` varchar(512) NOT NULL DEFAULT '',"
+            + "`search_context` varchar(64) NOT NULL DEFAULT '', `meta_json` text,"
+            + "PRIMARY KEY (`id`), KEY `idx_site_ts` (`site_key`,`ts`), KEY `idx_session` (`session_id`),"
+            + "KEY `idx_type` (`site_key`,`event_type`,`ts`), KEY `idx_search` (`site_key`,`search_query`(191))"
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        await ErpDb.ExecuteAsync(conn, null, sessions, ct).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(conn, null, pageviews, ct).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(conn, null, events, ct).ConfigureAwait(false);
     }
 
     private static async Task TryOpen(
@@ -446,13 +612,16 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
         }
     }
 
-    private static async Task<bool> SessionsTableExistsAsync(DbConnection connection, CancellationToken cancellationToken)
+    private static async Task<bool> TrackerTablesExistAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         try
         {
-            await ErpDb.ScalarAsync(connection, null, "SELECT 1 FROM `epc_web_tracker_sessions` LIMIT 1", cancellationToken)
-                .ConfigureAwait(false);
-            return true;
+            var n = await ErpDb.ScalarAsync(
+                connection, null,
+                "SELECT COUNT(*) FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE()"
+                + " AND `TABLE_NAME` IN ('epc_web_tracker_sessions','epc_web_tracker_pageviews','epc_web_tracker_events')",
+                cancellationToken).ConfigureAwait(false);
+            return Convert.ToInt64(n, CultureInfo.InvariantCulture) == 3;
         }
         catch (DbException)
         {
