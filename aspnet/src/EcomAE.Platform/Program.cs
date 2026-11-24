@@ -1525,16 +1525,18 @@ app.Use(async (context, next) =>
         var storefrontCountry = storefrontCountrySvc is not null && (subdomain is not null || hostSeedPresent)
             ? await storefrontCountrySvc.ResolveAsync(context.Request.Host.Host, context.RequestAborted).ConfigureAwait(false)
             : null;
-        // The host IS a country storefront when its mapped country code resolves to an
-        // active non-default country of the SAME code. Comparing country.Subdomain to the
-        // host's token would mis-handle a renamed subdomain; skipping the code check would
-        // let a deactivated country's fallback resolution lock an unrelated currency.
+        // The host IS a country storefront when its mapped country resolves to an active
+        // non-default row — either the row's own saved subdomain is the host's alias (an
+        // operator may assign 'pk' to another country's row), or its code equals the host's
+        // mapped code. A deactivated/removed country resolves to a different-code fallback
+        // whose subdomain also differs, so neither side fires and no currency is locked.
         var hostIsCountryStorefront = storefrontCountry is { IsDefault: false }
-            && hostMappedCode is not null
-            && string.Equals(
-                EcomAE.Platform.Storefront.StorefrontCountryDefaults.CanonicalCode(storefrontCountry.CountryCode),
-                hostMappedCode,
-                StringComparison.OrdinalIgnoreCase);
+            && (string.Equals(storefrontCountry.Subdomain, subdomain, StringComparison.OrdinalIgnoreCase)
+                || (hostMappedCode is not null
+                    && string.Equals(
+                        EcomAE.Platform.Storefront.StorefrontCountryDefaults.CanonicalCode(storefrontCountry.CountryCode),
+                        hostMappedCode,
+                        StringComparison.OrdinalIgnoreCase)));
 
         var parts = rawCookieHeader
             .Split(';', StringSplitOptions.RemoveEmptyEntries).ToList();
