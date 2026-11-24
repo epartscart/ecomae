@@ -56,7 +56,7 @@ public static partial class StorefrontPhpAjax
     /// the caller's pending operation (else <c>{"result":false,"code":2}</c>), then the hidden form to the crypto page
     /// (nowpayments), the "Configure gateway" alert (live mode) or the hidden form to the demo pay page.
     /// </summary>
-    public static async Task<object> GoToPayAsync(DbConnection connection, string? handlerName, GatewayPageRequest request, CancellationToken cancellationToken)
+    public static async Task<object> GoToPayAsync(DbConnection connection, string? handlerName, GatewayPageRequest request, CancellationToken cancellationToken, Func<HttpClient>? stripeClient = null, string? baseUrl = null)
     {
         if (string.IsNullOrEmpty(handlerName))
         {
@@ -120,6 +120,24 @@ public static partial class StorefrontPhpAjax
                 + Inputs("\t\t")
                 + "\t</form>\n\t<script>document.forms['pay_form'].submit();</script>\n\t",
                 GatewayHtmlType);
+        }
+
+        if (handler == "stripe" && !demoMode && stripeClient is not null && baseUrl is not null)
+        {
+            var secretKey = (parameters.Values.TryGetValue("secret_key", out var sk) ? sk : string.Empty).Trim();
+            var sumDecimal = (decimal)PhpFloatCast(amount);
+            if (secretKey.Length > 0 && sumDecimal > 0m)
+            {
+                var notifyUrl = baseUrl + PaymentSystemsPath + "/stripe/notification.php?operation_id=" + operationId.ToString(CultureInfo.InvariantCulture) + "&session_id={CHECKOUT_SESSION_ID}";
+                var cancelUrl = baseUrl + request.LangHref.TrimStart('/') + "/shop/balans";
+                var checkoutUrl = await StorefrontStripeGateway.CreateCheckoutSessionAsync(
+                    stripeClient(), secretKey, currency, sumDecimal, description, notifyUrl, cancelUrl,
+                    operationId.ToString(CultureInfo.InvariantCulture), cancellationToken).ConfigureAwait(false);
+                if (checkoutUrl is not null)
+                {
+                    return new GatewayRedirect(checkoutUrl);
+                }
+            }
         }
 
         if (!demoMode)
@@ -433,7 +451,9 @@ public static partial class StorefrontPhpAjax
         IStorefrontPaymentWriteService payments,
         string? handlerName,
         GatewayPageRequest request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Func<HttpClient>? stripeClient = null,
+        string? baseUrl = null)
     {
         if (string.IsNullOrEmpty(handlerName))
         {
@@ -442,6 +462,35 @@ public static partial class StorefrontPhpAjax
 
         var operationId = ShopPayForOrderService.PhpIntCast(
             request.Form.TryGetValue("operation_id", out var posted) ? posted : request.Query.TryGetValue("operation_id", out var queried) ? queried : null);
+
+        // Stripe Checkout success URL: the shopper is bounced back here with the session id; the session is
+        // re-fetched from Stripe with the tenant's secret key so only a genuinely paid session credits the order.
+        if (string.Equals(handlerName, "stripe", StringComparison.Ordinal)
+            && request.Query.TryGetValue("session_id", out var sessionId)
+            && sessionId.StartsWith("cs_", StringComparison.Ordinal)
+            && stripeClient is not null
+            && operationId > 0)
+        {
+            var stripeParams = (await StorefrontPaymentAccounts.ParametersAsync(connection, operationId, "stripe", request.Config.ContainsKey("wholesaler"), cancellationToken)
+                .ConfigureAwait(false)).Values;
+            var secretKey = (stripeParams.TryGetValue("secret_key", out var sk) ? sk : string.Empty).Trim();
+            var session = secretKey.Length > 0
+                ? await StorefrontStripeGateway.RetrieveSessionAsync(stripeClient(), secretKey, sessionId, cancellationToken).ConfigureAwait(false)
+                : null;
+            if (session is not null
+                && string.Equals(session.PaymentStatus, "paid", StringComparison.Ordinal)
+                && string.Equals(session.ClientReferenceId, operationId.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal))
+            {
+                var paid = StorefrontStripeGateway.MajorUnits(session.AmountTotal, session.Currency);
+                await payments.ApplyIpnAsync(connection, operationId, paid, cancellationToken).ConfigureAwait(false);
+                var stripeTranslator = new StorefrontPhpTranslator(connection, GatewayLang(request.LangHref));
+                var paidMessage = await stripeTranslator.TextAsync(4355, cancellationToken).ConfigureAwait(false);
+                return new GatewayRedirect(Config(request.Config, "domain_path") + request.LangHref.TrimStart('/') + "/shop/balans?success_message=" + OAuthStart.PhpUrlEncode(paidMessage));
+            }
+
+            return new RawHttp("Forbidden", GatewayHtmlType);
+        }
+
         var sum = request.Form.TryGetValue("sum", out var postedSum) ? PhpFloatCast(postedSum) : 0d;
         var token = request.Form.TryGetValue("demo_token", out var postedToken) ? postedToken : string.Empty;
         if (token != StorefrontPaymentWriteService.DemoToken)

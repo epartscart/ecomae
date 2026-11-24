@@ -51,10 +51,12 @@ public static class StorefrontPhpPaymentGatewayEndpoints
     private static async Task<IResult> GoToPayAsync(HttpContext context, ITenantDbConnectionFactory connections, string handler, CancellationToken cancellationToken)
     {
         var request = await RequestAsync(context, cancellationToken).ConfigureAwait(false);
+        var stripeClient = StripeClient(context);
+        var baseUrl = context.Request.Scheme + "://" + context.Request.Host;
         return await WithDbAsync(
             context,
             connections,
-            (connection, ct) => StorefrontPhpAjax.GoToPayAsync(connection, handler, request, ct),
+            (connection, ct) => StorefrontPhpAjax.GoToPayAsync(connection, handler, request, ct, stripeClient, baseUrl),
             Results.Text("{\"result\":false}", HtmlType),
             cancellationToken).ConfigureAwait(false);
     }
@@ -90,10 +92,12 @@ public static class StorefrontPhpPaymentGatewayEndpoints
     {
         var request = await RequestAsync(context, cancellationToken).ConfigureAwait(false);
         var payments = Payments(context);
+        var stripeClient = StripeClient(context);
+        var baseUrl = context.Request.Scheme + "://" + context.Request.Host;
         return await WithDbAsync(
             context,
             connections,
-            (connection, ct) => StorefrontPhpAjax.GatewayNotificationAsync(connection, payments, handler, request, ct),
+            (connection, ct) => StorefrontPhpAjax.GatewayNotificationAsync(connection, payments, handler, request, ct, stripeClient, baseUrl),
             Results.Text("{\"result\":false}", HtmlType),
             cancellationToken).ConfigureAwait(false);
     }
@@ -118,6 +122,11 @@ public static class StorefrontPhpPaymentGatewayEndpoints
             Results.Text("{\"result\":false}", HtmlType, statusCode: StatusCodes.Status500InternalServerError),
             cancellationToken).ConfigureAwait(false);
     }
+
+    private static Func<HttpClient>? StripeClient(HttpContext context)
+        => context.RequestServices.GetService<IHttpClientFactory>() is { } http
+            ? () => { var c = http.CreateClient(); c.Timeout = TimeSpan.FromSeconds(30); return c; }
+            : (Func<HttpClient>?)(() => new HttpClient { Timeout = TimeSpan.FromSeconds(30) });
 
     private static IStorefrontPaymentWriteService Payments(HttpContext context)
         => context.RequestServices.GetService<IStorefrontPaymentWriteService>()
