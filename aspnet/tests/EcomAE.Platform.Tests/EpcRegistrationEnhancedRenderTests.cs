@@ -34,10 +34,20 @@ public sealed class EpcRegistrationEnhancedRenderTests
         {
             "social" => Social(c),
             "country" => Country(c),
-            "tabs" => EpcRegistrationEnhancedRender.AccountTabs(),
+            "tabs" => EpcRegistrationEnhancedRender.AccountTabs("AE"),
             "uae" => EpcRegistrationEnhancedRender.UaePanel(),
             var fn => throw new InvalidOperationException(fn),
         };
+
+        if (Environment.GetEnvironmentVariable("UPDATE_GOLDENS") == "1")
+        {
+            var goldensPath = Path.Combine(FixtureDir, "goldens.json");
+            var map = new Dictionary<string, JsonElement>();
+            foreach (var prop in JsonDocument.Parse(File.ReadAllText(goldensPath)).RootElement.EnumerateObject()) map[prop.Name] = prop.Value;
+            map[name] = JsonSerializer.SerializeToElement(html);
+            File.WriteAllText(goldensPath, JsonSerializer.Serialize(map));
+            return;
+        }
 
         Assert.Equal(golden, html);
     }

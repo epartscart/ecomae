@@ -93,7 +93,19 @@ public sealed class StorefrontRegFormTests
             DomainPath = c.GetProperty("domain_path").GetString()!,
         };
 
-        Assert.Equal(golden, StorefrontRegForm.Render(input, id => T(id.ToString())));
+        var actual = StorefrontRegForm.Render(input, id => T(id.ToString()));
+        if (Environment.GetEnvironmentVariable("UPDATE_GOLDENS") == "1")
+        {
+            var goldensPath = Path.Combine(FixtureDir, "goldens.json");
+            var goldens = JsonDocument.Parse(File.ReadAllText(goldensPath)).RootElement.Clone();
+            var map = new Dictionary<string, JsonElement>();
+            foreach (var prop in goldens.EnumerateObject()) map[prop.Name] = prop.Value;
+            map[name] = JsonSerializer.SerializeToElement(actual);
+            File.WriteAllText(goldensPath, JsonSerializer.Serialize(map));
+            return;
+        }
+
+        Assert.Equal(golden, actual);
     }
 
     private static string? Text(JsonElement obj, string key) =>
