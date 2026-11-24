@@ -198,7 +198,7 @@ public static class CpWebTrackerDashboardBuilder
             var siteParams = new List<(string Name, object Value)>();
             if (!allSites && !string.IsNullOrEmpty(filters.SiteKey) && filters.SiteKey != "_all")
             {
-                siteSql = " AND `site_key` IN (@site, @sitevar) ";
+                siteSql = " AND (`site_key` IN (@site,@sitevar) OR `site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) ";
                 siteParams.Add(("@site", filters.SiteKey));
                 siteParams.Add(("@sitevar", siteVar));
             }
@@ -810,14 +810,14 @@ public static class CpWebTrackerDashboardBuilder
             if (filtersActive)
             {
                 join = " INNER JOIN `epc_web_tracker_sessions` s ON s.`id` = e.`session_id` ";
-                where = " AND s.`site_key` IN (@site,@sitevar) " + filterSqlS;
+                where = " AND (s.`site_key` IN (@site,@sitevar) OR s.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) " + filterSqlS;
                 p.Add(("@site", siteKey));
                 p.Add(("@sitevar", siteVar));
                 p.AddRange(filterParamsS);
             }
             else
             {
-                where = " AND e.`site_key` IN (@site,@sitevar) ";
+                where = " AND (e.`site_key` IN (@site,@sitevar) OR e.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) ";
                 p.Add(("@site", siteKey));
                 p.Add(("@sitevar", siteVar));
             }
@@ -895,14 +895,14 @@ public static class CpWebTrackerDashboardBuilder
             if (filtersActive)
             {
                 join = " INNER JOIN `epc_web_tracker_sessions` s ON s.`id` = p.`session_id` ";
-                where = " AND s.`site_key` IN (@site,@sitevar) " + filterSqlS;
+                where = " AND (s.`site_key` IN (@site,@sitevar) OR s.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) " + filterSqlS;
                 p.Add(("@site", filters.SiteKey));
                 p.Add(("@sitevar", siteVar));
                 p.AddRange(filterParamsS);
             }
             else
             {
-                where = " AND p.`site_key` IN (@site,@sitevar) ";
+                where = " AND (p.`site_key` IN (@site,@sitevar) OR p.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) ";
                 p.Add(("@site", filters.SiteKey));
                 p.Add(("@sitevar", siteVar));
             }
@@ -1011,14 +1011,14 @@ public static class CpWebTrackerDashboardBuilder
             if (filtersActive)
             {
                 join = " INNER JOIN `epc_web_tracker_sessions` s ON s.`id` = e.`session_id` ";
-                where = " AND s.`site_key` IN (@site,@sitevar) " + filterSqlS;
+                where = " AND (s.`site_key` IN (@site,@sitevar) OR s.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) " + filterSqlS;
                 p.Add(("@site", siteKey));
                 p.Add(("@sitevar", siteVar));
                 p.AddRange(filterParamsS);
             }
             else
             {
-                where = " AND e.`site_key` IN (@site,@sitevar) ";
+                where = " AND (e.`site_key` IN (@site,@sitevar) OR e.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) ";
                 p.Add(("@site", siteKey));
                 p.Add(("@sitevar", siteVar));
             }
@@ -1065,14 +1065,14 @@ public static class CpWebTrackerDashboardBuilder
             if (filtersActive)
             {
                 join = " INNER JOIN `epc_web_tracker_sessions` s ON s.`id` = e.`session_id` ";
-                where = " AND s.`site_key` IN (@site,@sitevar) " + filterSqlS;
+                where = " AND (s.`site_key` IN (@site,@sitevar) OR s.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) " + filterSqlS;
                 p.Add(("@site", siteKey));
                 p.Add(("@sitevar", siteVar));
                 p.AddRange(filterParamsS);
             }
             else
             {
-                where = " AND e.`site_key` IN (@site,@sitevar) ";
+                where = " AND (e.`site_key` IN (@site,@sitevar) OR e.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) ";
                 p.Add(("@site", siteKey));
                 p.Add(("@sitevar", siteVar));
             }
@@ -1209,7 +1209,7 @@ public static class CpWebTrackerDashboardBuilder
         var baseParams = new List<(string Name, object Value)> { ("@from", fromUnix), ("@to", toUnix) };
         if (!allSites && !string.IsNullOrEmpty(siteKey) && siteKey != "_all")
         {
-            facetSite = " AND `site_key` IN (@site,@sitevar) ";
+            facetSite = " AND (`site_key` IN (@site,@sitevar) OR `site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) ";
             baseParams.Add(("@site", siteKey));
             baseParams.Add(("@sitevar", siteVar));
         }
