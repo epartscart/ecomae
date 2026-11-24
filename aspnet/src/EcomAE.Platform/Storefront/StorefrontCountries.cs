@@ -73,6 +73,11 @@ public interface IStorefrontCountryService
     /// <summary>Every configured country (falls back to the built-in GCC set when the table is empty/missing).</summary>
     Task<IReadOnlyList<StorefrontCountry>> ListAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>Country code only when the host explicitly resolves to a country storefront
+    /// ({cc}. subdomain or an epc_tenant_domains row) — null for plain domains like auto247.com,
+    /// unlike <see cref="ResolveAsync"/> which returns the default country for any host.</summary>
+    Task<string?> ResolveMappedCountryCodeAsync(string host, CancellationToken cancellationToken = default);
+
     Task<(bool Ok, string Message)> SaveAsync(StorefrontCountryWrite write, CancellationToken cancellationToken = default);
 
     Task<(bool Ok, string Message)> DeleteAsync(string countryCode, CancellationToken cancellationToken = default);
@@ -331,6 +336,18 @@ public sealed class StorefrontCountryService : IStorefrontCountryService
         }
 
         return StorefrontCountryDefaults.Default(null);
+    }
+
+    public async Task<string?> ResolveMappedCountryCodeAsync(string host, CancellationToken cancellationToken = default)
+    {
+        // Null for hosts with no explicit country mapping so callers can tell a real
+        // country storefront (auto247.pk, pk.auto247.ae) from a plain domain (auto247.com).
+        if (StorefrontCountryDefaults.SubdomainOf(host) is null
+            && (await ResolveDomainMapCountryCodeAsync(host, cancellationToken).ConfigureAwait(false)) is not { Length: 2 })
+        {
+            return null;
+        }
+        return (await ResolveAsync(host, cancellationToken).ConfigureAwait(false)).CountryCode;
     }
 
     public async Task<IReadOnlyList<StorefrontCountry>> ListAsync(CancellationToken cancellationToken = default)

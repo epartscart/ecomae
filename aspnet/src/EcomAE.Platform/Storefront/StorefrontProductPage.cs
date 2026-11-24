@@ -540,13 +540,16 @@ public static class StorefrontProductPage
 
         // Storage country: ensured lazily — render only when the warehouse row names a country. A warehouse
         // tagged with a country sells only on that country's domains; an untagged one sells everywhere.
-        // The filter goes into the SQL (before ORDER/LIMIT) so an eligible row can never be cut off by LIMIT.
+        // The filter goes into the SQL (before ORDER/LIMIT) so an eligible row can never be cut off
+        // by LIMIT — and only when the column really exists, so a DB that refuses the lazy ALTER
+        // keeps serving unfiltered stock instead of breaking the whole product page.
+        var hasCountryColumn = await StorefrontStockCountry.EnsureColumnAsync(connection, cancellationToken).ConfigureAwait(false);
         var stockCountries = await StorefrontStockCountry.LoadAsync(connection, cancellationToken).ConfigureAwait(false);
         var visitorCc = (request.CountryCookie ?? string.Empty).Trim().ToUpperInvariant();
-        var countryFilter = visitorCc.Length > 0
+        var countryFilter = hasCountryColumn && visitorCc.Length > 0
             ? " AND (s.`country_code` IS NULL OR s.`country_code`='' OR UPPER(s.`country_code`)=?)"
             : string.Empty;
-        var args = visitorCc.Length > 0 ? new List<object> { productId, offices[0], visitorCc } : [productId, offices[0]];
+        var args = hasCountryColumn && visitorCc.Length > 0 ? new List<object> { productId, offices[0], visitorCc } : [productId, offices[0]];
 
         var rows = await RowsAsync(connection,
             "SELECT m.`office_id`,d.`storage_id`,d.`id`,d.`price`*IFNULL(c.`rate`,1)*(1+(m.`markup`/100)),d.`exist`,d.`reserved`,"

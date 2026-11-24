@@ -359,8 +359,9 @@
         }
         try
         {
-            var country = await StorefrontCountriesSvc.ResolveAsync(ctx.Request.Host.Host, ctx.RequestAborted).ConfigureAwait(false);
-            return country?.CountryCode;
+            // Only an explicit country storefront (auto247.pk, pk.auto247.ae) scopes stock —
+            // a plain domain like auto247.com keeps every warehouse's offers.
+            return await StorefrontCountriesSvc.ResolveMappedCountryCodeAsync(ctx.Request.Host.Host, ctx.RequestAborted).ConfigureAwait(false);
         }
         catch
         {
