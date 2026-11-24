@@ -164,18 +164,22 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
             return Finish(reg, wsId, agentId, agentName, trigger, "quota_blocked", "", 0, 0, 0, started, "daily_token_cap", corr, cancellationToken);
         }
 
-        // Gather authorized context (read-only business snapshot through tenant DB).
-        var context = await GatherTenantContextAsync(tenantDbName ?? tenantKey, templateKey, cancellationToken).ConfigureAwait(false);
+        // Guest chats never receive the internal business snapshot and cannot escalate to the platform.
+        var isGuest = string.Equals(trigger, "guest", StringComparison.OrdinalIgnoreCase);
+        var context = isGuest ? "(public storefront visitor — no internal data attached)"
+            : await GatherTenantContextAsync(tenantDbName ?? tenantKey, templateKey, cancellationToken).ConfigureAwait(false);
         var system = AiSystemContext.SYSTEM_CONTEXT + instructions + "\n\nYou operate inside tenant '" + tenantKey + "'. "
             + "Never request or fabricate another tenant's data. Reply concise, structured: findings, risks, recommended actions (each marked AUTO or NEEDS-APPROVAL). "
-            + "If the task is a request for a new module, feature or platform-level improvement that you cannot fulfil inside the tenant, "
-            + "append one line starting 'ESCALATE:' with a one-sentence hand-off to the platform AI Manager.";
+            + (isGuest
+                ? "You are replying to a PUBLIC storefront visitor. NEVER reveal internal metrics, counts, costs, staff data or system internals — answer like a human sales/support rep about products, orders policy, services and site help only."
+                : "If the task is a request for a new module, feature or platform-level improvement that you cannot fulfil inside the tenant, "
+                + "append one line starting 'ESCALATE:' with a one-sentence hand-off to the platform AI Manager.");
         var result = await _model.CompleteAsync(DefaultModel, system, "Task: " + taskText + "\n\nTenant snapshot (authorized):\n" + context, cancellationToken).ConfigureAwait(false);
 
         var status = result.Error is null ? "completed" : "failed";
 
-        // Auto-escalation: agent flagged a platform-level request -> platform workspace inbox (audited).
-        var escalate = string.IsNullOrEmpty(result.Text) ? null : result.Text.Split('\n')
+        // Auto-escalation: agent flagged a platform-level request -> platform workspace inbox (audited). Guests cannot escalate.
+        var escalate = isGuest || string.IsNullOrEmpty(result.Text) ? null : result.Text.Split('\n')
             .Select(l => l.Trim())
             .FirstOrDefault(l => l.StartsWith("ESCALATE:", StringComparison.OrdinalIgnoreCase));
         if (escalate is not null && !string.Equals(tenantKey, "platform", StringComparison.OrdinalIgnoreCase))
@@ -215,6 +219,7 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
             var orders = await Scalar(c, "SELECT COUNT(*) FROM `orders`", ct);
             var users = await Scalar(c, "SELECT COUNT(*) FROM `users`", ct);
             var products = await Scalar(c, "SELECT COUNT(*) FROM `products`", ct);
+            var industry = await ScalarText(c, "SELECT `value` FROM `settings` WHERE `key` IN ('industry','business_pack','pack') LIMIT 1", ct);
             var sb = new StringBuilder("orders=" + orders + " users=" + users + " products=" + products);
             if (templateKey == "operations_agent")
             {
@@ -234,11 +239,27 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
                 }
                 catch (DbException) { sb.Append(" unavailable"); }
             }
+            sb.Append("\nindustry: " + industry);
             return sb.ToString();
         }
         catch (DbException)
         {
             return "tenant_db_unavailable";
+        }
+    }
+
+    private static async Task<string> ScalarText(DbConnection c, string sql, CancellationToken ct)
+    {
+        try
+        {
+            await using var cmd = c.CreateCommand();
+            cmd.CommandText = sql;
+            var v = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+            return Convert.ToString(v) ?? "auto-parts";
+        }
+        catch (DbException)
+        {
+            return "auto-parts";
         }
     }
 

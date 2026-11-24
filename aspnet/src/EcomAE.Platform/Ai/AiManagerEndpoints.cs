@@ -63,7 +63,12 @@ public static class AiManagerEndpoints
         var ws = await ai.WorkspaceForAsync(key, tenant?.DisplayName ?? ctx.Request.Host.Host, ctx.RequestAborted).ConfigureAwait(false);
 
         // Rate limit: 10 guest messages per hour per IP per workspace.
-        var ip = ctx.Connection.RemoteIpAddress?.ToString() ?? "?";
+        // Behind nginx, RemoteIpAddress is loopback — take the client IP from X-Forwarded-For's first hop.
+        var ip = (ctx.Request.Headers["X-Forwarded-For"].ToString().Split(',').FirstOrDefault() ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(ip))
+        {
+            ip = ctx.Connection.RemoteIpAddress?.ToString() ?? "?";
+        }
         var actor = "guest:" + ip;
         var recent = await ai.MessagesAsync(ws.Id, 300, ctx.RequestAborted).ConfigureAwait(false);
         var hourAgo = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 3600;
@@ -78,7 +83,7 @@ public static class AiManagerEndpoints
             : (agents.FirstOrDefault(a => a.TemplateKey == "support_agent") ?? agents.FirstOrDefault(a => a.IsManager) ?? agents.FirstOrDefault());
         var mid = await ai.PostMessageAsync(new AiMessage(0, ws.Id, "inbound", null, actor, agent?.Id, text, null, "open", "", 0), ctx.RequestAborted).ConfigureAwait(false);
         var flash = "Our assistant is unavailable right now — please try again shortly.";
-        if (agent is not null)
+        if (agent is not null && agent.Status == "active")
         {
             var row = await runtime.RunAsync(ws.TenantKey, tenant?.DatabaseName, agent.Id, "guest", text, ctx.RequestAborted).ConfigureAwait(false);
             if (row.OutputSummary is not null)
@@ -86,10 +91,16 @@ public static class AiManagerEndpoints
                 await ai.PostMessageAsync(new AiMessage(0, ws.Id, "outbound", agent.Id, agent.Name, null, row.OutputSummary, mid, "answered", "", 0), ctx.RequestAborted).ConfigureAwait(false);
                 flash = row.OutputSummary;
             }
-            else if (row.Error is not null)
+            else if (row.Error is not null && row.Error != "agent_suspended")
             {
                 flash = "Assistant error: " + row.Error;
             }
+        }
+        // Replies ride in the redirect URL — cap it so long/non-ASCII answers can't break the next request.
+        const int MaxFlashChars = 600;
+        if (flash.Length > MaxFlashChars)
+        {
+            flash = flash[..MaxFlashChars] + "…";
         }
         return Results.Redirect(back + "?m=" + Uri.EscapeDataString(flash));
     }
