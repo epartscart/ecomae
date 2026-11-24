@@ -563,8 +563,10 @@ public static partial class StorefrontPhpAjax
         IReadOnlyDictionary<string, string> parameters,
         CancellationToken cancellationToken)
     {
+        // Same fallback as GoToPayAsync: a blank configured currency means sessions are created in AED.
         var configuredCurrency = (parameters.TryGetValue("currency", out var configured) ? configured : string.Empty).Trim();
-        if (configuredCurrency.Length == 0 || !string.Equals(configuredCurrency, session.Currency, StringComparison.OrdinalIgnoreCase))
+        var effectiveCurrency = configuredCurrency.Length > 0 ? configuredCurrency : "AED";
+        if (!string.Equals(effectiveCurrency, session.Currency, StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
@@ -611,7 +613,9 @@ public static partial class StorefrontPhpAjax
                 ? PhpJsonScalarString(value)
                 : null;
 
-        if (!string.Equals(Field(json, "type"), "checkout.session.completed", StringComparison.Ordinal)
+        // checkout.session.completed for instant methods; checkout.session.async_payment_succeeded for delayed ones.
+        var eventType = Field(json, "type") ?? string.Empty;
+        if (eventType is not ("checkout.session.completed" or "checkout.session.async_payment_succeeded")
             || !json.TryGetProperty("data", out var data)
             || !data.TryGetProperty("object", out var sessionObj))
         {
@@ -622,7 +626,12 @@ public static partial class StorefrontPhpAjax
         var parameters = (await StorefrontPaymentAccounts.ParametersAsync(connection, operationId, "stripe", request.Config.ContainsKey("wholesaler"), cancellationToken)
             .ConfigureAwait(false)).Values;
         var webhookSecret = (parameters.TryGetValue("webhook_secret", out var wh) ? wh : string.Empty).Trim();
-        if (operationId <= 0 || !StorefrontStripeGateway.VerifyWebhookSignature(rawBody, signatureHeader, webhookSecret))
+        // Demo mode and the seeded dummy secret are public values: they must never credit a real payment.
+        var demoMode = ShopPayForOrderService.PhpTruthy(parameters.TryGetValue("demo_mode", out var demo) ? demo : null);
+        if (operationId <= 0
+            || demoMode
+            || webhookSecret.StartsWith("whsec_epc_dummy", StringComparison.OrdinalIgnoreCase)
+            || !StorefrontStripeGateway.VerifyWebhookSignature(rawBody, signatureHeader, webhookSecret))
         {
             return new RawHttp("{\"result\":false,\"message\":\"webhook rejected\"}", "application/json", StatusCodes.Status400BadRequest);
         }

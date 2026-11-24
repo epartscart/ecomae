@@ -409,21 +409,10 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
             return Fail("forbidden", "Forbidden");
         }
 
-        var pending = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM `shop_users_accounting` WHERE `id` = ? AND `active` = 0;"),
-            cancellationToken,
-            operationId).ConfigureAwait(false);
-        if (pending != 1)
-        {
-            return new StorefrontPaymentWriteResult(false, "already", "Operation is not pending", operationId, SanitizeHandler(handler), 0);
-        }
-
         var opUser = await ErpDb.LongAsync(
             connection,
             null,
-            ErpDb.Positional("SELECT `user_id` FROM `shop_users_accounting` WHERE `id`=?"),
+            ErpDb.Positional("SELECT `user_id` FROM `shop_users_accounting` WHERE `id`=? AND `active` = 0;"),
             cancellationToken,
             operationId).ConfigureAwait(false);
         // Anonymous callers may settle guest operations only — a fixed demo token must not
@@ -431,6 +420,18 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
         if (opUser != userId)
         {
             return Fail("forbidden", "Forbidden");
+        }
+
+        // Atomically claim the pending operation so a concurrent IPN/browser callback cannot activate it twice.
+        var claimed = await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("UPDATE `shop_users_accounting` SET `active` = 1 WHERE `id` = ? AND `active` = 0;"),
+            cancellationToken,
+            operationId).ConfigureAwait(false);
+        if (claimed != 1)
+        {
+            return new StorefrontPaymentWriteResult(false, "already", "Operation is not pending", operationId, SanitizeHandler(handler), 0);
         }
 
         var (writes, message, config) = await ActivateAndPayAsync(connection, operationId, sum, cancellationToken).ConfigureAwait(false);
@@ -475,13 +476,13 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
         decimal sum,
         CancellationToken cancellationToken = default)
     {
-        var pending = await ErpDb.LongAsync(
+        var claimed = await ErpDb.ExecuteAsync(
             connection,
             null,
-            ErpDb.Positional("SELECT COUNT(*) FROM `shop_users_accounting` WHERE `id` = ? AND `active` = 0;"),
+            ErpDb.Positional("UPDATE `shop_users_accounting` SET `active` = 1 WHERE `id` = ? AND `active` = 0;"),
             cancellationToken,
             operationId).ConfigureAwait(false);
-        if (pending != 1)
+        if (claimed != 1)
         {
             return new StorefrontPaymentWriteResult(true, "already", "already processed", operationId, "nowpayments", 0);
         }
