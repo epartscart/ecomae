@@ -83,7 +83,7 @@ public static class AiModelPricing
 public interface IAiAgentRuntime
 {
     /// <summary>Run one agent once; the tenant is resolved server-side — never from model input.</summary>
-    Task<AiExecutionRow> RunAsync(string tenantKey, long agentId, string trigger, string taskText, CancellationToken cancellationToken = default);
+    Task<AiExecutionRow> RunAsync(string tenantKey, string? tenantDbName, long agentId, string trigger, string taskText, CancellationToken cancellationToken = default);
 }
 
 public sealed class AiAgentRuntime : IAiAgentRuntime
@@ -103,7 +103,7 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
 
     private string DefaultModel => _config["AI_MODEL_DEFAULT"] ?? "gpt-4o-mini";
 
-    public async Task<AiExecutionRow> RunAsync(string tenantKey, long agentId, string trigger, string taskText, CancellationToken cancellationToken = default)
+    public async Task<AiExecutionRow> RunAsync(string tenantKey, string? tenantDbName, long agentId, string trigger, string taskText, CancellationToken cancellationToken = default)
     {
         await using var reg = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
         var wsId = await ErpDb.LongAsync(reg, null, ErpDb.Positional(
@@ -150,7 +150,7 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
         }
 
         // Gather authorized context (read-only business snapshot through tenant DB).
-        var context = await GatherTenantContextAsync(tenantKey, cancellationToken).ConfigureAwait(false);
+        var context = await GatherTenantContextAsync(tenantDbName ?? tenantKey, cancellationToken).ConfigureAwait(false);
         var system = instructions + "\n\nYou operate inside tenant '" + tenantKey + "'. "
             + "Never request or fabricate another tenant's data. Reply concise, structured: findings, risks, recommended actions (each marked AUTO or NEEDS-APPROVAL). "
             + "If the task is a request for a new module, feature or platform-level improvement that you cannot fulfil inside the tenant, "

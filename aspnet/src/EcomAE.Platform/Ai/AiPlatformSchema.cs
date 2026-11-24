@@ -143,6 +143,8 @@ public static class AiPlatformSchema
         + "`created_at` INT NOT NULL DEFAULT 0,"
         + "PRIMARY KEY(`id`), KEY `ix_ai_know_ws` (`workspace_id`)"
         + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+        // Race-safe uniqueness for concurrent first provisions (no-op once applied).
+        "ALTER TABLE `ai_agents` ADD UNIQUE KEY `uq_ai_agents_ws_tpl` (`workspace_id`,`template_key`)",
         // Speak layer: user<->agent chat, agent<->agent, and tenant->platform escalation (audited).
         "CREATE TABLE IF NOT EXISTS `ai_agent_messages` ("
         + "`id` BIGINT NOT NULL AUTO_INCREMENT,"

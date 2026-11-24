@@ -104,7 +104,7 @@ public sealed class AiPlatform : IAiPlatform
             if (exists > 0) continue;
             await using var ins = c.CreateCommand();
             ins.CommandText = ErpDb.Positional(
-                "INSERT INTO `ai_agents` (`workspace_id`,`template_key`,`name`,`is_manager`,`created_at`,`updated_at`)"
+                "INSERT IGNORE INTO `ai_agents` (`workspace_id`,`template_key`,`name`,`is_manager`,`created_at`,`updated_at`)"
                 + " VALUES (?,?,?,?,?,?)");
             ErpDb.AddParameters(ins, id, key, TemplateName(key), key is "ai_manager" or "platform_ai_manager" ? 1 : 0, Now(), Now());
             await ins.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
