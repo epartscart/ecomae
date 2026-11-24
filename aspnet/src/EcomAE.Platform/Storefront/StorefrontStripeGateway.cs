@@ -38,9 +38,9 @@ public static class StorefrontStripeGateway
         string operationId,
         CancellationToken cancellationToken)
     {
-        // Idempotent per operation: reopening a pending pay link replays the same request and Stripe
-        // returns the original session instead of minting a second payable session for one payment.
-        var idempotencyKey = "epc-checkout-" + operationId;
+        // Idempotent per operation + amount: reopening a pending pay link replays the same request and
+        // Stripe returns the original session; a changed amount mints a new one instead of erroring.
+        var idempotencyKey = "epc-checkout-" + operationId + "-" + MinorUnits(amount, currency).ToString(CultureInfo.InvariantCulture) + "-" + currency.ToLowerInvariant();
         var fields = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["mode"] = "payment",
