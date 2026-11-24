@@ -626,10 +626,9 @@ public static partial class StorefrontPhpAjax
         var parameters = (await StorefrontPaymentAccounts.ParametersAsync(connection, operationId, "stripe", request.Config.ContainsKey("wholesaler"), cancellationToken)
             .ConfigureAwait(false)).Values;
         var webhookSecret = (parameters.TryGetValue("webhook_secret", out var wh) ? wh : string.Empty).Trim();
-        // Demo mode and the seeded dummy secret are public values: they must never credit a real payment.
-        var demoMode = ShopPayForOrderService.PhpTruthy(parameters.TryGetValue("demo_mode", out var demo) ? demo : null);
+        // The seeded dummy secret is a public value: it must never credit a real payment. A real,
+        // properly signed event is accepted even in demo mode so sessions opened live still settle.
         if (operationId <= 0
-            || demoMode
             || webhookSecret.StartsWith("whsec_epc_dummy", StringComparison.OrdinalIgnoreCase)
             || !StorefrontStripeGateway.VerifyWebhookSignature(rawBody, signatureHeader, webhookSecret))
         {

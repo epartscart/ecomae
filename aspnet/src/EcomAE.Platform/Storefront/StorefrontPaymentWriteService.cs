@@ -434,7 +434,20 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
             return new StorefrontPaymentWriteResult(false, "already", "Operation is not pending", operationId, SanitizeHandler(handler), 0);
         }
 
-        var (writes, message, config) = await ActivateAndPayAsync(connection, operationId, sum, cancellationToken).ConfigureAwait(false);
+        int writes;
+        string message;
+        ShopPayForOrderConfig config;
+        try
+        {
+            (writes, message, config) = await ActivateAndPayAsync(connection, operationId, sum, cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            // Release the claim so a retry can still credit the payment.
+            await TryUnclaimAsync(connection, operationId, cancellationToken).ConfigureAwait(false);
+            throw;
+        }
+
         try
         {
             writes += await SettleAsync(connection, operationId, sum, SanitizeHandler(handler), config.Wholesaler, cancellationToken).ConfigureAwait(false);
@@ -487,8 +500,37 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
             return new StorefrontPaymentWriteResult(true, "already", "already processed", operationId, "nowpayments", 0);
         }
 
-        var (writes, message, _) = await ActivateAndPayAsync(connection, operationId, sum, cancellationToken).ConfigureAwait(false);
-        return new StorefrontPaymentWriteResult(true, "ok", message, operationId, "nowpayments", writes);
+        try
+        {
+            var (writes, message, _) = await ActivateAndPayAsync(connection, operationId, sum, cancellationToken).ConfigureAwait(false);
+            return new StorefrontPaymentWriteResult(true, "ok", message, operationId, "nowpayments", writes);
+        }
+        catch
+        {
+            // Release the claim so a retry can still credit the payment.
+            await TryUnclaimAsync(connection, operationId, cancellationToken).ConfigureAwait(false);
+            throw;
+        }
+    }
+
+    /// <summary>Best-effort release of the atomic pending claim when the pay tail failed before crediting.</summary>
+    private static async Task TryUnclaimAsync(
+        System.Data.Common.DbConnection connection,
+        long operationId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `shop_users_accounting` SET `active` = 0 WHERE `id` = ? AND `active` = 1;"),
+                cancellationToken,
+                operationId).ConfigureAwait(false);
+        }
+        catch (System.Data.Common.DbException)
+        {
+        }
     }
 
     /// <summary>
