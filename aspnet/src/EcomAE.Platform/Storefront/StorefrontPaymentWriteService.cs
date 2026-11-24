@@ -422,18 +422,6 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
             return Fail("forbidden", "Forbidden");
         }
 
-        // Atomically claim the pending operation so a concurrent IPN/browser callback cannot activate it twice.
-        var claimed = await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional("UPDATE `shop_users_accounting` SET `active` = 1 WHERE `id` = ? AND `active` = 0;"),
-            cancellationToken,
-            operationId).ConfigureAwait(false);
-        if (claimed != 1)
-        {
-            return new StorefrontPaymentWriteResult(false, "already", "Operation is not pending", operationId, SanitizeHandler(handler), 0);
-        }
-
         int writes;
         string message;
         ShopPayForOrderConfig config;
@@ -441,11 +429,9 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
         {
             (writes, message, config) = await ActivateAndPayAsync(connection, operationId, sum, cancellationToken).ConfigureAwait(false);
         }
-        catch
+        catch (OperationAlreadyClaimedException)
         {
-            // Release the claim so a retry can still credit the payment.
-            await TryUnclaimAsync(connection, operationId, cancellationToken).ConfigureAwait(false);
-            throw;
+            return new StorefrontPaymentWriteResult(false, "already", "Operation is not pending", operationId, SanitizeHandler(handler), 0);
         }
 
         try
@@ -489,29 +475,19 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
         decimal sum,
         CancellationToken cancellationToken = default)
     {
-        var claimed = await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional("UPDATE `shop_users_accounting` SET `active` = 1 WHERE `id` = ? AND `active` = 0;"),
-            cancellationToken,
-            operationId).ConfigureAwait(false);
-        if (claimed != 1)
-        {
-            return new StorefrontPaymentWriteResult(true, "already", "already processed", operationId, "nowpayments", 0);
-        }
-
         try
         {
             var (writes, message, _) = await ActivateAndPayAsync(connection, operationId, sum, cancellationToken).ConfigureAwait(false);
             return new StorefrontPaymentWriteResult(true, "ok", message, operationId, "nowpayments", writes);
         }
-        catch
+        catch (OperationAlreadyClaimedException)
         {
-            // Release the claim so a retry can still credit the payment.
-            await TryUnclaimAsync(connection, operationId, cancellationToken).ConfigureAwait(false);
-            throw;
+            return new StorefrontPaymentWriteResult(true, "already", "already processed", operationId, "nowpayments", 0);
         }
     }
+
+    /// <summary>Thrown when the atomic pending claim found the operation already active — the callbacks map it to <c>already</c>.</summary>
+    private sealed class OperationAlreadyClaimedException : Exception;
 
     /// <summary>Best-effort release of the atomic pending claim when the pay tail failed before crediting.</summary>
     private static async Task TryUnclaimAsync(
@@ -544,32 +520,48 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
         decimal sum,
         CancellationToken cancellationToken)
     {
-        var opAmount = await ErpDb.StringAsync(
+        // Atomically claim the pending operation so a concurrent IPN/browser callback cannot activate it twice.
+        var claimed = await ErpDb.ExecuteAsync(
             connection,
             null,
-            ErpDb.Positional("SELECT `amount` FROM `shop_users_accounting` WHERE `id`=?"),
-            cancellationToken,
-            operationId).ConfigureAwait(false) ?? "0";
-        var amount = sum > 0 ? StorefrontOrderNotificationService.PhpFloat(sum) : opAmount;
-
-        await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional("UPDATE `shop_users_accounting` SET `active` = 1 WHERE `id` = ?;"),
+            ErpDb.Positional("UPDATE `shop_users_accounting` SET `active` = 1 WHERE `id` = ? AND `active` = 0;"),
             cancellationToken,
             operationId).ConfigureAwait(false);
-        var writes = 1;
-
-        if (_notify is not null)
+        if (claimed != 1)
         {
-            try
+            throw new OperationAlreadyClaimedException();
+        }
+
+        string amount;
+        try
+        {
+            var opAmount = await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `amount` FROM `shop_users_accounting` WHERE `id`=?"),
+                cancellationToken,
+                operationId).ConfigureAwait(false) ?? "0";
+            amount = sum > 0 ? StorefrontOrderNotificationService.PhpFloat(sum) : opAmount;
+
+            if (_notify is not null)
             {
-                await PayBySiteAsync(connection, operationId, amount, cancellationToken).ConfigureAwait(false);
-            }
-            catch (System.Data.Common.DbException)
-            {
+                try
+                {
+                    await PayBySiteAsync(connection, operationId, amount, cancellationToken).ConfigureAwait(false);
+                }
+                catch (System.Data.Common.DbException)
+                {
+                }
             }
         }
+        catch
+        {
+            // The credit never landed — release the claim so a retry can still pay the order.
+            await TryUnclaimAsync(connection, operationId, cancellationToken).ConfigureAwait(false);
+            throw;
+        }
+
+        var writes = 1;
 
         var message = "Payment applied";
         var config = ShopPayForOrderConfig.From(_mailer?.ReadConfig() ?? new Dictionary<string, string>());

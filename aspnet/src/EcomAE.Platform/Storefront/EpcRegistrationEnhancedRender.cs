@@ -291,7 +291,7 @@ public static class EpcRegistrationEnhancedRender
         sb.Append("\t\t\t\t\t</div>\n");
         sb.Append("\t\t\t\t\t<div class=\"form-group\">\n");
         sb.Append("\t\t\t\t\t\t<label for=\"epc_wholesale_city\" class=\"col-sm-4 col-lg-3 control-label\">City*</label>\n");
-        sb.Append("\t\t\t\t\t\t<div class=\"col-sm-8 col-lg-9\" style=\"padding:5px;\"><input type=\"text\" class=\"form-control epc-reg-wholesale-req\" name=\"epc_wholesale_city\" id=\"epc_wholesale_city\" maxlength=\"80\" value=\"Dubai\" /></div>\n");
+        sb.Append("\t\t\t\t\t\t<div class=\"col-sm-8 col-lg-9\" style=\"padding:5px;\"><input type=\"text\" class=\"form-control epc-reg-wholesale-req\" name=\"epc_wholesale_city\" id=\"epc_wholesale_city\" maxlength=\"80\" value=\"" + H(hostCountry == "AE" ? "Dubai" : hostCountry == "PK" ? "Karachi" : string.Empty) + "\" /></div>\n");
         sb.Append("\t\t\t\t\t</div>\n");
         sb.Append("\t\t\t\t\t<div class=\"form-group\">\n");
         sb.Append("\t\t\t\t\t\t<label for=\"epc_wholesale_address\" class=\"col-sm-4 col-lg-3 control-label\">Business address*</label>\n");
@@ -366,11 +366,11 @@ public static class EpcRegistrationEnhancedRender
         sb.Append("\t\t\t\t\t<p class=\"help-block\" style=\"margin:0 0 12px;\"><strong>KYC / AML &amp; e-invoice documents</strong> — required for wholesale approval under " + H(countryLabel) + " compliance practice. Not shown for retail customers. PDF or image, max 8&nbsp;MB each.</p>\n");
         sb.Append("\t\t\t\t\t<div class=\"form-group\">\n");
         sb.Append("\t\t\t\t\t\t<label for=\"epc_emirates_id_no\" class=\"col-sm-4 col-lg-3 control-label\">" + H(nationalId) + " no.</label>\n");
-        sb.Append("\t\t\t\t\t\t<div class=\"col-sm-8 col-lg-9\" style=\"padding:5px;\"><input type=\"text\" class=\"form-control\" name=\"epc_emirates_id_no\" id=\"epc_emirates_id_no\" maxlength=\"20\" placeholder=\"784-XXXX-XXXXXXX-X\" /></div>\n");
+        sb.Append("\t\t\t\t\t\t<div class=\"col-sm-8 col-lg-9\" style=\"padding:5px;\"><input type=\"text\" class=\"form-control\" name=\"epc_emirates_id_no\" id=\"epc_emirates_id_no\" maxlength=\"20\" placeholder=\"" + H(hostCountry == "AE" ? "784-XXXX-XXXXXXX-X" : hostCountry == "PK" ? "35202-XXXXXXX-X" : "ID number") + "\" /></div>\n");
         sb.Append("\t\t\t\t\t</div>\n");
         sb.Append("\t\t\t\t\t<div class=\"form-group\">\n");
         sb.Append("\t\t\t\t\t\t<label for=\"epc_authorized_signatory\" class=\"col-sm-4 col-lg-3 control-label\">Authorized signatory</label>\n");
-        sb.Append("\t\t\t\t\t\t<div class=\"col-sm-8 col-lg-9\" style=\"padding:5px;\"><input type=\"text\" class=\"form-control\" name=\"epc_authorized_signatory\" id=\"epc_authorized_signatory\" maxlength=\"120\" placeholder=\"Full name as on Emirates ID / passport\" /></div>\n");
+        sb.Append("\t\t\t\t\t\t<div class=\"col-sm-8 col-lg-9\" style=\"padding:5px;\"><input type=\"text\" class=\"form-control\" name=\"epc_authorized_signatory\" id=\"epc_authorized_signatory\" maxlength=\"120\" placeholder=\"" + H("Full name as on " + nationalId + " / passport") + "\" /></div>\n");
         sb.Append("\t\t\t\t\t</div>\n");
         sb.Append("\t\t\t\t\t<div class=\"form-group\">\n");
         sb.Append("\t\t\t\t\t\t<label for=\"epc_authorized_signatory_id\" class=\"col-sm-4 col-lg-3 control-label\">Signatory ID no.</label>\n");
