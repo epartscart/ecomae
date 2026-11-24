@@ -96,7 +96,7 @@ public sealed class AiPlatform : IAiPlatform
             ? ["platform_ai_manager","platform_tenant_agent","platform_infra_agent","platform_bi_agent"]
             : ["ai_manager","website_agent","cp_agent","erp_agent","support_agent","sales_agent",
                "purchase_agent","inventory_agent","accounts_agent","finance_agent","marketing_agent",
-               "it_monitor_agent","bi_agent"];
+               "it_monitor_agent","bi_agent","operations_agent"];
         foreach (var key in specs)
         {
             var exists = await ErpDb.LongAsync(c, null, ErpDb.Positional(
@@ -127,6 +127,7 @@ public sealed class AiPlatform : IAiPlatform
         "marketing_agent" => "Marketing Agent",
         "it_monitor_agent" => "IT & Technical Monitoring Agent",
         "bi_agent" => "Business Intelligence & Reporting Agent",
+        "operations_agent" => "Operations Agent",
         "platform_ai_manager" => "Ecomae AI Manager",
         "platform_tenant_agent" => "Tenant Management Agent",
         "platform_infra_agent" => "IT & Infrastructure Agent",
@@ -303,6 +304,7 @@ public sealed class AiPlatform : IAiPlatform
             ("marketing_agent", "Marketing Agent", "tenant", "marketing", "SEO/marketing monitoring and recommendations for the tenant. Publishing requires approval.", "write"),
             ("it_monitor_agent", "IT Monitoring Agent", "tenant", "it", "Monitor tenant infrastructure signals and scheduled jobs. Report incidents.", "read"),
             ("bi_agent", "BI & Reporting Agent", "tenant", "reporting", "Produce daily/weekly/monthly tenant business summaries and improvement advice.", "read"),
+            ("operations_agent", "Operations Agent", "tenant", "operations", "You are the operations orchestrator. For each customer order you track its full lifecycle: check payment status with the finance agent, check item fulfilment and supplier status with the purchase agent, follow inbound material until order confirmation, then shipment and tracking until delivered. Flag any order stuck at a stage, name the stage and the responsible agent, and propose the unblocking action. Prepare a daily order-flow report for the AI Manager.", "write"),
             // Platform scope
             ("platform_ai_manager", "Ecomae AI Manager", "platform", "management", "Coordinate all platform agents and tenant AI health across the fleet. Report to management daily.", "read"),
             ("platform_tenant_agent", "Tenant Management Agent", "platform", "tenants", "Monitor tenant onboarding, health, lifecycle and provisioning.", "read"),
