@@ -545,17 +545,27 @@ public static class StorefrontProductPage
             + "JOIN `shop_offices_storages_map` m ON m.`storage_id`=d.`storage_id` "
             + "LEFT JOIN `shop_storages` s ON s.`id`=d.`storage_id` LEFT JOIN `shop_currencies` c ON c.`iso_code`=s.`currency` "
             + "WHERE d.`product_id`=? AND m.`office_id`=? ORDER BY (d.`price`>0) DESC,"
-            + "(d.`price`*IFNULL(c.`rate`,1)*(1+(m.`markup`/100))),d.`id` LIMIT 1",
+            + "(d.`price`*IFNULL(c.`rate`,1)*(1+(m.`markup`/100))),d.`id` LIMIT 20",
             [productId, offices[0]], cancellationToken).ConfigureAwait(false);
         if (rows.Count == 0)
         {
             return null;
         }
 
-        var r = rows[0];
-        // Storage country: ensured lazily — render only when the warehouse row names a country.
+        // Storage country: ensured lazily — render only when the warehouse row names a country. A warehouse
+        // tagged with a country sells only on that country's domains; an untagged one sells everywhere.
         var stockCountries = await StorefrontStockCountry.LoadAsync(connection, cancellationToken).ConfigureAwait(false);
-        var country = stockCountries.TryGetValue(L(r[1]), out var cc) ? cc : string.Empty;
+        var visitorCc = (request.CountryCookie ?? string.Empty).Trim().ToUpperInvariant();
+        var r = rows.FirstOrDefault(row =>
+        {
+            var cc = stockCountries.TryGetValue(L(row[1]), out var c) ? c : string.Empty;
+            return cc.Length == 0 || visitorCc.Length == 0 || string.Equals(cc, visitorCc, StringComparison.OrdinalIgnoreCase);
+        });
+        if (r is null)
+        {
+            return null;
+        }
+        var country = stockCountries.TryGetValue(L(r[1]), out var sel) ? sel : string.Empty;
         return new(
             L(r[0]), L(r[1]), L(r[2]), D(r[3]), L(r[4]), L(r[5]), L(r[6]),
             r[7], r[8], r[9], r[10], r[11], D(r[12]), country);

@@ -13,7 +13,8 @@ public sealed record CpStorageListRow(
     int InterfaceType,
     string InterfaceTypeName,
     int ProductType,
-    string PriceList)
+    string PriceList,
+    string CountryCode = "")
 {
     /// <summary>PHP storages.php <c>$product_types</c>.</summary>
     public string ProductTypeName => ProductType switch { 1 => "Catalog", 2 => "Price list", _ => string.Empty };
@@ -101,6 +102,7 @@ public sealed class CpStorageEditorService : ICpStorageEditorService
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             var total = (int)await ErpDb.LongAsync(connection, null, "SELECT COUNT(*) FROM `shop_storages`", cancellationToken).ConfigureAwait(false);
+            var hasCountry = await Storefront.StorefrontStockCountry.EnsureColumnAsync(connection, cancellationToken).ConfigureAwait(false);
             var rows = new List<CpStorageListRow>();
             var optionsByRow = new Dictionary<long, string>();
             await using (var cmd = connection.CreateCommand())
@@ -108,7 +110,8 @@ public sealed class CpStorageEditorService : ICpStorageEditorService
                 cmd.CommandText =
                     "SELECT s.`id`, IFNULL(s.`name`,''), IFNULL(s.`short_name`,''), IFNULL(s.`hidden`,0), IFNULL(s.`interface_type`,0), IFNULL(s.`connection_options`,''), " +
                     "IFNULL((SELECT t.`name` FROM `shop_storages_interfaces_types` t WHERE t.`id` = s.`interface_type`),''), " +
-                    "IFNULL((SELECT t.`product_type` FROM `shop_storages_interfaces_types` t WHERE t.`id` = s.`interface_type`),0) " +
+                    "IFNULL((SELECT t.`product_type` FROM `shop_storages_interfaces_types` t WHERE t.`id` = s.`interface_type`),0), " +
+                    (hasCountry ? "IFNULL(s.`country_code`,'')" : "''") + " " +
                     "FROM `shop_storages` s ORDER BY s.`id` LIMIT " + ((page - 1) * pageSize).ToString(CultureInfo.InvariantCulture) + ", " + pageSize.ToString(CultureInfo.InvariantCulture);
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -118,7 +121,8 @@ public sealed class CpStorageEditorService : ICpStorageEditorService
                     rows.Add(new CpStorageListRow(id, reader.GetString(1), reader.GetString(2),
                         Convert.ToInt32(reader.GetValue(3), CultureInfo.InvariantCulture),
                         Convert.ToInt32(reader.GetValue(4), CultureInfo.InvariantCulture), reader.GetString(6),
-                        Convert.ToInt32(reader.GetValue(7), CultureInfo.InvariantCulture), string.Empty));
+                        Convert.ToInt32(reader.GetValue(7), CultureInfo.InvariantCulture), string.Empty,
+                        reader.GetString(8).Trim().ToUpperInvariant()));
                 }
             }
 

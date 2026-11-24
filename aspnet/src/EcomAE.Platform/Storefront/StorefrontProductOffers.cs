@@ -24,7 +24,8 @@ public static class StorefrontProductOffers
         long Now,
         string PriceRounding,
         string TechKey,
-        Func<double, string>? DisplayPrice = null);
+        Func<double, string>? DisplayPrice = null,
+        string? VisitorCountryCode = null);
 
     /// <summary>
     /// The product page's offers block followed by the <c>common_add_to_basket.php</c> script, translated for the
@@ -54,7 +55,8 @@ public static class StorefrontProductOffers
             DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             config.TryGetValue("price_rounding", out var rounding) ? rounding : string.Empty,
             config.TryGetValue("tech_key", out var techKey) ? techKey : string.Empty,
-            displayPrice);
+            displayPrice,
+            countryCookie);
         var offers = await RenderAsync(connection, request, (key, ct) => translator.TextAsync(key, ct), cancellationToken).ConfigureAwait(false);
 
         var csrf = string.Empty;
@@ -184,8 +186,17 @@ public static class StorefrontProductOffers
                 .Append("</span>\n\t\t\t</div>\n\t\t\t");
 
             var rows = await RowsAsync(connection, officeId, request.ProductId, cancellationToken).ConfigureAwait(false);
+            var visitorCc = (request.VisitorCountryCode ?? string.Empty).Trim().ToUpperInvariant();
             foreach (var row in rows)
             {
+                // Country-scoped stock: a warehouse tagged with a country only sells on that country's domains.
+                if (visitorCc.Length > 0
+                    && stockCountries.TryGetValue(row.StorageId, out var rowCountry)
+                    && rowCountry.Length > 0
+                    && !string.Equals(rowCountry, visitorCc, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
                 var divId = officeId.ToString(CultureInfo.InvariantCulture) + "_" + row.StorageId.ToString(CultureInfo.InvariantCulture) + "_" + row.Id.ToString(CultureInfo.InvariantCulture);
                 var price = await PriceAsync(connection, officeId, row, groupId, request.PriceRounding, cancellationToken).ConfigureAwait(false);
                 var timeToExe = TimeToExe(row, request.Now);
