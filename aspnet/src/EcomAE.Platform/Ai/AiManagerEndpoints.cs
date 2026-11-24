@@ -11,8 +11,10 @@ public static class AiManagerEndpoints
 {
     public static WebApplication MapAiManagerEndpoints(this WebApplication app)
     {
-        // Same surface as the page that submits — /cp/ routes get platform fallback on directory hosts.
-        app.MapPost("/ai-manager-action", HandleAsync);
+        // Same surface as the page that submits: /cp/ for the CP screen, /en/ for the storefront /AI page.
+        // Both prefixes are nginx-proxied to the app; a root-level path is not (it rewrites to /storefront/app).
+        app.MapPost("/cp/ai-manager-action", HandleAsync);
+        app.MapPost("/en/ai-manager-action", HandleAsync);
         return app;
     }
 
