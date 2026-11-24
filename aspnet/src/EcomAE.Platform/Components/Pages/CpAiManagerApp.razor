@@ -1,0 +1,200 @@
+@page "/cp/ai-manager-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Ai
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Middleware
+@inject IAiPlatform Ai
+@inject IAiAgentRuntime Runtime
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject Microsoft.Extensions.Configuration.IConfiguration Config
+
+<PageTitle>AI Manager · Control Panel</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+
+<style>
+    .epc-ai-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+    .epc-ai-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px}
+    .epc-ai-card b{display:block;font-size:20px;color:#0f172a}
+    .epc-ai-card span{font-size:12px;color:#64748b}
+    .epc-ai-run{display:flex;gap:8px;margin:10px 0}
+    .epc-ai-run input{flex:1}
+    .epc-ai-badge{padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
+    .epc-ai-ok{background:#dcfce7;color:#166534}.epc-ai-err{background:#fee2e2;color:#991b1b}.epc-ai-warn{background:#fef9c3;color:#854d0e}
+</style>
+
+<div class="col-lg-12">
+    <div class="hpanel"><div class="panel-body">
+        <h3 style="margin-top:0">@(_isPlatform ? "AI Control Center" : "AI Manager") <small>@_ws?.DisplayName</small></h3>
+        @if (_msg is not null) { <div class="alert alert-info">@_msg</div> }
+        <div class="epc-ai-cards">
+            <div class="epc-ai-card"><b>@_usage.ActiveAgents</b><span>Active agents</span></div>
+            <div class="epc-ai-card"><b>@_usage.ExecutionsToday</b><span>Runs today</span></div>
+            <div class="epc-ai-card"><b>@_usage.TodayTokens</b><span>Tokens today</span></div>
+            <div class="epc-ai-card"><b>$@_usage.TodayCostUsd.ToString("F3")</b><span>Cost today</span></div>
+            <div class="epc-ai-card"><b>$@_usage.MonthCostUsd.ToString("F2")</b><span>Cost this month</span></div>
+            <div class="epc-ai-card"><b>@_usage.PendingApprovals</b><span>Pending approvals</span></div>
+        </div>
+
+        <h4>Agents</h4>
+        <table class="table table-condensed"><thead><tr><th>Agent</th><th>Status</th><th></th></tr></thead><tbody>
+        @foreach (var a in _agents)
+        {
+            <tr>
+                <td>@a.Name @(a.IsManager ? "★" : "") <small class="text-muted">@a.TemplateKey</small></td>
+                <td><span class="epc-ai-badge @(a.Status=="active"?"epc-ai-ok":"epc-ai-warn")">@a.Status</span></td>
+                <td>
+                    <button class="btn btn-xs btn-default" @onclick="() => RunAgent(a)">Run</button>
+                    <button class="btn btn-xs btn-default" @onclick="() => Toggle(a)">@(a.Status=="active"?"Suspend":"Activate")</button>
+                </td>
+            </tr>
+        }
+        </tbody></table>
+
+        <div class="epc-ai-run">
+            <input class="form-control" placeholder="Task for an agent run… (e.g. daily health check)" @bind="_task" />
+        </div>
+
+        <h4>Talk to your AI Manager</h4>
+        <div class="epc-ai-run">
+            <input class="form-control" placeholder="Ask anything about your business…" @bind="_chat" />
+            <button class="btn btn-primary btn-sm" @onclick="SendChat" disabled="@_busy">Send</button>
+            @if (!_isPlatform) { <button class="btn btn-warning btn-sm" @onclick="Escalate" title="Send to Ecomae platform AI">Escalate to Ecomae</button> }
+        </div>
+        @foreach (var m in _messages.OrderBy(x => x.Id))
+        {
+            <div style="margin:4px 0"><span class="epc-ai-badge @(m.Direction=="inbound"?"epc-ai-warn":m.Direction=="escalate"?"epc-ai-err":"epc-ai-ok")">@(m.Direction=="inbound"?"You":m.Direction=="escalate"?"→ Ecomae":m.FromActor)</span> @m.Body</div>
+        }
+
+        @if (_approvals.Count > 0)
+        {
+            <h4>Pending approvals</h4>
+            <table class="table table-condensed"><thead><tr><th>Agent</th><th>Action</th><th>Risk</th><th></th></tr></thead><tbody>
+            @foreach (var p in _approvals)
+            {
+                <tr><td>@p.AgentName</td><td>@p.Action — @p.Reason</td><td>@p.Risk</td>
+                    <td><button class="btn btn-xs btn-success" @onclick="() => ApproveAsync(p.Id)">Approve</button>
+                        <button class="btn btn-xs btn-danger" @onclick="() => RejectAsync(p.Id)">Reject</button></td></tr>
+            }
+            </tbody></table>
+        }
+
+        <h4>Recent executions</h4>
+        <table class="table table-condensed"><thead><tr><th>Agent</th><th>Trigger</th><th>Status</th><th>Tokens</th><th>Cost</th><th>Result</th></tr></thead><tbody>
+        @foreach (var e in _execs)
+        {
+            <tr>
+                <td>@e.AgentName</td><td>@e.Trigger</td>
+                <td><span class="epc-ai-badge @(e.Status=="completed"?"epc-ai-ok":e.Status=="running"?"epc-ai-warn":"epc-ai-err")">@e.Status</span></td>
+                <td>@(e.TokensIn + e.TokensOut)</td><td>$@e.CostUsd.ToString("F4")</td>
+                <td style="max-width:420px;white-space:pre-wrap;font-size:12px">@(e.Error ?? e.OutputSummary)</td>
+            </tr>
+        }
+        </tbody></table>
+    </div></div>
+</div>
+</PhpCpDesktopChrome>
+
+@code {
+    private bool _isAdmin, _isPlatform;
+    private AiWorkspace? _ws;
+    private List<AiAgentRow> _agents = [];
+    private List<AiExecutionRow> _execs = [];
+    private List<AiApprovalRow> _approvals = [];
+    private AiUsageSummary _usage = new(0,0,0,0,0,0,0);
+    private string _task = "Daily health check and improvement advice";
+    private string _chat = "";
+    private bool _busy;
+    private List<AiMessage> _messages = [];
+    private string? _msg;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext; if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = EcomAE.Platform.Presentation.PhpParityDumpCatalog.HasStaffAccess(session);
+        var host = ctx.Request.Host.Host.ToLowerInvariant();
+        _isPlatform = host.StartsWith("cp.ecomae") || host.Contains("ecomae");
+        var tenant = ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] as EcomAE.Platform.Services.TenantContext;
+        var key = _isPlatform ? "platform" : (tenant?.DatabaseName ?? host);
+        _ws = await Ai.WorkspaceForAsync(key, tenant?.DisplayName ?? host, ctx.RequestAborted);
+        await Load(ctx.RequestAborted);
+    }
+
+    private async Task Load(CancellationToken ct)
+    {
+        if (_ws is null) return;
+        _agents = (await Ai.AgentsAsync(_ws.Id, ct)).ToList();
+        _execs = (await Ai.RecentExecutionsAsync(_ws.Id, 30, ct)).ToList();
+        _approvals = (await Ai.PendingApprovalsAsync(_ws.Id, ct)).ToList();
+        _usage = await Ai.UsageSummaryAsync(_ws.Id, ct);
+        _messages = (await Ai.MessagesAsync(_ws.Id, 50, ct)).ToList();
+    }
+
+    private async Task SendChat()
+    {
+        var ctx = Http.HttpContext; if (ctx is null || _ws is null || string.IsNullOrWhiteSpace(_chat) || _busy) return;
+        _busy = true;
+        try
+        {
+            var manager = _agents.FirstOrDefault(a => a.IsManager) ?? _agents.FirstOrDefault();
+            var mid = await Ai.PostMessageAsync(new AiMessage(0, _ws.Id, "inbound", null, "cp-user", manager?.Id, _chat, null, "open", "", 0), ctx.RequestAborted);
+            if (manager is not null)
+            {
+                var row = await Runtime.RunAsync(_ws.TenantKey, manager.Id, "chat", _chat, ctx.RequestAborted);
+                if (row.OutputSummary is not null)
+                {
+                    await Ai.PostMessageAsync(new AiMessage(0, _ws.Id, "outbound", manager.Id, manager.Name, null, row.OutputSummary, mid, "answered", "", 0), ctx.RequestAborted);
+                }
+                _msg = manager.Name + ": " + row.Status + " (" + (row.TokensIn+row.TokensOut) + " tokens, $" + row.CostUsd.ToString("F4") + ")";
+            }
+            _chat = "";
+            await Load(ctx.RequestAborted);
+        }
+        finally { _busy = false; }
+    }
+
+    private async Task Escalate()
+    {
+        var ctx = Http.HttpContext; if (ctx is null || _ws is null || string.IsNullOrWhiteSpace(_chat) || _busy) return;
+        _busy = true;
+        try
+        {
+            // Tenant -> platform escalation: lands in the platform workspace inbox, audited.
+            var platform = await Ai.WorkspaceForAsync("platform", "Ecomae Platform", ctx.RequestAborted);
+            await Ai.PostMessageAsync(new AiMessage(0, platform.Id, "escalate", null, "tenant:" + _ws.TenantKey, null, _chat, null, "open", "", 0), ctx.RequestAborted);
+            await Ai.PostMessageAsync(new AiMessage(0, _ws.Id, "escalate", null, "cp-user", null, _chat, null, "open", "", 0), ctx.RequestAborted);
+            _chat = "";
+            _msg = "Escalated to Ecomae platform AI.";
+            await Load(ctx.RequestAborted);
+        }
+        finally { _busy = false; }
+    }
+
+    private async Task RunAgent(AiAgentRow a)
+    {
+        var ctx = Http.HttpContext; if (ctx is null || _ws is null) return;
+        _msg = "Running " + a.Name + "…";
+        var row = await Runtime.RunAsync(_ws.TenantKey, a.Id, "manual", _task, ctx.RequestAborted);
+        _msg = a.Name + ": " + row.Status + (row.Error is not null ? " — " + row.Error : " (" + (row.TokensIn+row.TokensOut) + " tokens, $" + row.CostUsd.ToString("F4") + ")");
+        await Load(ctx.RequestAborted);
+    }
+
+    private async Task Toggle(AiAgentRow a)
+    {
+        var ctx = Http.HttpContext; if (ctx is null) return;
+        await Ai.SetAgentStatusAsync(a.Id, a.Status == "active" ? "suspended" : "active", "cp-user", ctx.RequestAborted);
+        await Load(ctx.RequestAborted);
+    }
+
+    private Task ApproveAsync(long id) => Decide(id, "approve");
+    private Task RejectAsync(long id) => Decide(id, "reject");
+
+    private async Task Decide(long id, string d)
+    {
+        var ctx = Http.HttpContext; if (ctx is null) return;
+        await Ai.DecideApprovalAsync(id, d, "cp-user", ctx.RequestAborted);
+        await Load(ctx.RequestAborted);
+    }
+}

@@ -1021,6 +1021,9 @@ builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontVendorRegisterW
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontConfirmContactWriteService, EcomAE.Platform.Storefront.StorefrontConfirmContactWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpApiClientWriteService, EcomAE.Platform.Cp.CpApiClientWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpApiClientsDeskService, EcomAE.Platform.Cp.CpApiClientsDeskService>();
+builder.Services.AddSingleton<EcomAE.Platform.Ai.IAiModelClient, EcomAE.Platform.Ai.OpenAiModelClient>();
+builder.Services.AddSingleton<EcomAE.Platform.Ai.IAiPlatform, EcomAE.Platform.Ai.AiPlatform>();
+builder.Services.AddSingleton<EcomAE.Platform.Ai.IAiAgentRuntime, EcomAE.Platform.Ai.AiAgentRuntime>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCatalogUsageDeskService, EcomAE.Platform.Cp.CpCatalogUsageDeskService>();
 builder.Services.AddSingleton<EcomAE.Platform.Cp.ICpApiClientKeyVault, EcomAE.Platform.Cp.CpApiClientKeyVault>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCommunicationsDeskService, EcomAE.Platform.Cp.CpCommunicationsDeskService>();
