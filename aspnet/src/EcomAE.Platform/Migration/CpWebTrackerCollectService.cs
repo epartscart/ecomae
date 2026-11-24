@@ -116,7 +116,9 @@ public interface ICpWebTrackerCollectService
     Task<CpWebTrackerIngestResult> IngestAsync(
         string? rawJson,
         HttpRequest request,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        string? trustedSiteKey = null,
+        int trustedUserId = -1);
 }
 
 /// <summary>
@@ -311,7 +313,7 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
         return (code, name, string.Empty, string.Empty);
     }
 
-    public static bool TryParsePayload(string? raw, out CpWebTrackerCollectPayload? payload, out string? error)
+    public static bool TryParsePayload(string? raw, out CpWebTrackerCollectPayload? payload, out string? error, string? trustedSiteKey = null, int trustedUserId = -1)
     {
         payload = null;
         error = "bad_json";
@@ -342,6 +344,17 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
         }
 
         payload.SiteKey = siteKey;
+        // Server-trusted attribution wins over visitor-supplied values: site and shopper
+        // ids are resolved from the request host and the authenticated session, so a
+        // forged beacon cannot file activity under another storefront or user.
+        if (!string.IsNullOrEmpty(trustedSiteKey))
+        {
+            payload.SiteKey = trustedSiteKey;
+        }
+        if (trustedUserId >= 0)
+        {
+            payload.UserId = trustedUserId;
+        }
         if (!IsUuidOk(payload.VisitorUid))
         {
             payload.VisitorUid = string.Empty;
@@ -354,9 +367,11 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
     public async Task<CpWebTrackerIngestResult> IngestAsync(
         string? rawJson,
         HttpRequest request,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? trustedSiteKey = null,
+        int trustedUserId = -1)
     {
-        if (!TryParsePayload(rawJson, out var payload, out var error) || payload is null)
+        if (!TryParsePayload(rawJson, out var payload, out var error, trustedSiteKey, trustedUserId) || payload is null)
         {
             return new(false, 0, 0, 0, 400, error ?? "bad_json");
         }

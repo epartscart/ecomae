@@ -3200,6 +3200,8 @@ public sealed class StorefrontModule : ISurfaceModule
         HttpContext context,
         ICpWebTrackerCollectService collect,
         CpWebTrackerCollectRateLimiter rateLimiter,
+        ITenantResolver tenants,
+        LegacySessionContext session,
         CancellationToken cancellationToken)
     {
         context.Response.Headers.CacheControl = "no-store";
@@ -3234,7 +3236,11 @@ public sealed class StorefrontModule : ISurfaceModule
             raw = await reader.ReadToEndAsync(cancellationToken);
         }
 
-        var result = await collect.IngestAsync(raw, context.Request, cancellationToken);
+        // Attribution is server-derived: site key from the resolved tenant for this
+        // host, shopper id from the authenticated session — the beacon can't forge either.
+        var tenant = await tenants.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
+        var result = await collect.IngestAsync(raw, context.Request, cancellationToken,
+            tenant?.SiteKey, session?.IsAuthenticated == true ? session.UserId : 0);
         return Results.Json(
             new { ok = result.Ok, session_id = result.SessionId, pageviews = result.Pageviews, events = result.Events, error = result.Error },
             statusCode: result.Status);
