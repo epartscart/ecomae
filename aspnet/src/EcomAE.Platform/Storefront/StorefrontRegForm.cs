@@ -185,6 +185,22 @@ public static class StorefrontRegForm
             sb.Append("                </div> <!-- panel panel-primary -->\n");
             sb.Append("                ");
         }
+        if (input.Enhanced)
+        {
+            // Simple flow: the Retail/Wholesale tabs pick the matching variant — the selector stays hidden.
+            sb.Append("\t\t<script>\n");
+            sb.Append("\t\tdocument.getElementById('RegVariantsSelector').style.display='none';\n");
+            sb.Append("\t\tfunction epcSyncRegVariant(t){\n");
+            sb.Append("\t\t\tvar sel=document.getElementById('reg_variant_selector');if(!sel)return;\n");
+            sb.Append("\t\t\tvar picks=t==='wholesale'?[/entity|company|llc|business/i,/entrepreneur/i]:[/individual/i];\n");
+            sb.Append("\t\t\tfor(var p=0;p<picks.length;p++){for(var i=0;i<sel.options.length;i++){if(picks[p].test(sel.options[i].text)){sel.selectedIndex=i;break;}}}\n");
+            sb.Append("\t\t\tif(t==='wholesale'){for(var j=0;j<sel.options.length;j++){if(/entity|company|llc|business/i.test(sel.options[j].text)){sel.selectedIndex=j;break;}}}\n");
+            sb.Append("\t\t\tif(typeof regenerateFields==='function'){regenerateFields();}\n");
+            sb.Append("\t\t}\n");
+            sb.Append("\t\tdocument.querySelectorAll('[data-epc-type]').forEach(function(el){el.addEventListener('click',function(){epcSyncRegVariant(el.getAttribute('data-epc-type'));});});\n");
+            sb.Append("\t\tepcSyncRegVariant('retail');\n");
+            sb.Append("\t\t</script>\n");
+        }
         sb.Append("        </div>\n");
         sb.Append("        \n");
         sb.Append("        \n");
