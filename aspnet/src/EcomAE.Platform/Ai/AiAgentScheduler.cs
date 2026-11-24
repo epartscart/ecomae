@@ -29,6 +29,7 @@ public sealed class AiAgentScheduler : BackgroundService
     {
         ["operations_agent"] = 60,
         ["it_monitor_agent"] = 60,
+        ["storefront_agent"] = 240,
         ["ai_manager"] = 24 * 60,
         ["platform_ai_manager"] = 24 * 60,
         ["platform_tenant_agent"] = 24 * 60,
@@ -46,6 +47,7 @@ public sealed class AiAgentScheduler : BackgroundService
         ["platform_tenant_agent"] = "Daily tenant onboarding check: new or idle workspaces, provisioning gaps, tenants needing outreach.",
         ["platform_infra_agent"] = "Daily infrastructure check: deploy health, service and job failures, capacity risks. Report incidents as URGENT.",
         ["platform_bi_agent"] = "Daily BI digest: platform KPIs, tenant AI usage/cost trend, anomalies worth surfacing.",
+        ["storefront_agent"] = "Visitor engagement sweep: review the warm visitor sessions attached, identify leads to convert, draft a short personalized outreach message per lead (NEEDS-APPROVAL), and note which sources/pages bring engaged visitors.",
     };
 
     private readonly IServiceScopeFactory _scopes;
@@ -81,6 +83,7 @@ public sealed class AiAgentScheduler : BackgroundService
             await using var scope = _scopes.CreateAsyncScope();
             var connections = scope.ServiceProvider.GetRequiredService<ITenantDbConnectionFactory>();
             var runtime = scope.ServiceProvider.GetRequiredService<IAiAgentRuntime>();
+            var ai = scope.ServiceProvider.GetRequiredService<IAiPlatform>();
 
             await using var reg = await connections.OpenRegistryAsync(ct).ConfigureAwait(false);
             // Join the tenant registry for the real tenant DB name and to drop workspaces
@@ -102,6 +105,10 @@ public sealed class AiAgentScheduler : BackgroundService
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             foreach (var (wsId, tenantKey, dbName) in workspaces)
             {
+                // Top-up provisioning: adds newly introduced agent templates to existing workspaces
+                // so scheduled sweeps cover every agent without anyone visiting the AI page.
+                await ai.WorkspaceForAsync(tenantKey, tenantKey, ct).ConfigureAwait(false);
+
                 var agents = new List<(long Id, string TemplateKey, string Status)>();
                 await using (var cmd = reg.CreateCommand())
                 {
