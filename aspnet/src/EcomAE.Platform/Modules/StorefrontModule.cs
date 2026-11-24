@@ -3247,7 +3247,7 @@ public sealed class StorefrontModule : ISurfaceModule
         }
         var session = await validator.ValidateAsync(context, cancellationToken).ConfigureAwait(false);
         var result = await collect.IngestAsync(raw, context.Request, cancellationToken,
-            siteKey, session?.IsAuthenticated == true ? session.UserId : 0);
+            siteKey, session?.Kind == LegacySessionKind.Customer ? session.UserId : 0);
         return Results.Json(
             new { ok = result.Ok, session_id = result.SessionId, pageviews = result.Pageviews, events = result.Events, error = result.Error },
             statusCode: result.Status);
