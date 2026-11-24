@@ -54,6 +54,9 @@ else
         color:#fff !important; font-weight:700; font-size:13px;
     }
     .epc-cp-header-actions { display:flex; gap:.75rem; align-items:center; font-size:13px; font-weight:600; }
+    /* Body-inline CSS paints the bar white; shared skin still forces links white -> keep them dark. */
+    .epc-cp-header-bar { color:#0f172a; }
+    .epc-cp-header-bar a:not(.epc-cp-topbar-cta):not(.epc-cp-header-login) { color:#0f172a !important; }
     .epc-cp-header-login { color:var(--epc-cp-primary) !important; }
     .epc-cp-main-pane { padding:1rem 1.25rem 2rem; font-size:14px; }
     .epc-cp-main-pane h1 { font-size:22px; }
@@ -91,6 +94,8 @@ else
         color:#fff !important; font-weight:700; font-size:13px;
     }
     .epc-cp-header-actions { display:flex; gap:.75rem; align-items:center; font-size:13px; font-weight:600; }
+    .epc-cp-header-bar { color:#0f172a; }
+    .epc-cp-header-bar a:not(.epc-cp-topbar-cta):not(.epc-cp-header-login) { color:#0f172a !important; }
     .epc-cp-header-login { color:var(--epc-cp-primary) !important; }
     .epc-cp-main-pane { padding:1rem 1.25rem 2rem; font-size:14px; }
     .epc-cp-main-pane h1 { font-size:22px; }

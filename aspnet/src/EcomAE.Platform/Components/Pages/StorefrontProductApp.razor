@@ -15,6 +15,7 @@
 @inject IStorefrontGuestSessionService Guests
 @inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
 @inject Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions> PhpReference
+@inject IStorefrontCountryService StorefrontCountriesSvc
 
 <PageTitle>@(_product?.Caption ?? "Product") · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
@@ -347,6 +348,27 @@
         }
     }
 
+    /// <summary>Visitor country for stock scoping: an explicit epc_country pick wins, else the host's
+    /// resolved country (auto247.pk → PK even when the cookie middleware never seeded one).</summary>
+    private async Task<string?> VisitorCountryCodeAsync(HttpContext ctx)
+    {
+        var picked = ctx.Request.Cookies["epc_country"];
+        if (!string.IsNullOrWhiteSpace(picked))
+        {
+            return picked.Trim().ToUpperInvariant();
+        }
+        try
+        {
+            // Only an explicit country storefront (auto247.pk, pk.auto247.ae) scopes stock —
+            // a plain domain like auto247.com keeps every warehouse's offers.
+            return await StorefrontCountriesSvc.ResolveMappedCountryCodeAsync(ctx.Request.Host.Host, ctx.RequestAborted).ConfigureAwait(false);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     /// <summary>The PHP customer product page offers block and <c>common_add_to_basket.php</c>.</summary>
     private async Task LoadOffersAsync(HttpContext ctx, long productId)
     {
@@ -381,7 +403,7 @@
                     StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.CompareName, StorefrontIntListCookie.CompareMax).Select(x => (long)x).ToHashSet(),
                     config,
                     ctx.Request.Cookies["epc_currency"],
-                    ctx.Request.Cookies["epc_country"]),
+                    await VisitorCountryCodeAsync(ctx).ConfigureAwait(false)),
                 (key, ct) => translator.TextAsync(key, ct),
                 ctx.RequestAborted);
         }

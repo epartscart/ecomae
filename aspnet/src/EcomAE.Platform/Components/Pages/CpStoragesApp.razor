@@ -400,6 +400,7 @@
                                 <th>Name</th>
                                 <th>Short name</th>
                                 <th>Price list</th>
+                                <th>Country</th>
                                 <th>Interface type</th>
                                 <th></th>
                                 <th>Product type</th>
@@ -408,7 +409,7 @@
                         <tbody>
                         @if (_list.Rows.Count == 0)
                         {
-                            <tr><td colspan="9">No records yet.</td></tr>
+                            <tr><td colspan="10">No records yet.</td></tr>
                         }
                         else
                         {
@@ -423,6 +424,7 @@
                                     <td><a href="@open">@s.Name</a></td>
                                     <td><a href="@open">@s.ShortName</a></td>
                                     <td><a href="@open">@s.PriceList</a></td>
+                                    <td>@if (s.CountryCode.Length > 0) { <span class="label label-primary" title="Stock from this warehouse is offered only on @s.CountryCode country domains">@s.CountryCode</span> } else { <span class="text-muted" title="Stock is offered on every country domain">All</span> }</td>
                                     <td><a href="@open">@s.InterfaceTypeName</a></td>
                                     <td style="width:40px;text-align:center">@if (s.Icon.Length > 0) { <i class="@s.Icon" style="font-size:20px" aria-hidden="true"></i> }</td>
                                     <td><a href="@open">@s.ProductTypeName</a></td>

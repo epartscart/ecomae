@@ -43,6 +43,11 @@
     .epc-erp-topbar__brand { display:flex; flex-direction:row; flex-wrap:nowrap; align-items:center; gap:.35rem; font-weight:800; font-size:15px; margin:0 .1rem 0 0; white-space:nowrap; }
     .epc-erp-topbar__brand img { height:30px; }
     .epc-erp-topbar__nav, .epc-erp-topbar__user { display:flex; gap:.7rem; font-size:13px; font-weight:600; color:#334155; margin-left:auto; }
+    /* Inline CSS paints the bar white; shared skin still forces links white -> keep them dark. */
+    .epc-erp-topbar { color:#0f172a; }
+    .epc-erp-topbar a:not(.btn):not(.epc-erp-global-search__hit),
+    .epc-erp-topbar__nav, .epc-erp-topbar__user, .epc-erp-topbar__brand,
+    .epc-erp-topbar .epc-erp-landing, .epc-erp-topbar .epc-erp-landing label { color:#0f172a !important; }
     .epc-erp-sandbox-banner { background:#b45309; color:#fff; font-size:12px; font-weight:700; letter-spacing:.04em; text-align:center; padding:.3rem .7rem; text-transform:uppercase; }
     /* epc-erp-right-clip: stay inside the viewport — do not size to 100vw then shift. */
     .epc-erp-main { max-width:none; width:100%; min-width:0; padding:0; box-sizing:border-box; }
@@ -87,6 +92,11 @@
     .epc-erp-topbar__brand { display:flex; flex-direction:row; flex-wrap:nowrap; align-items:center; gap:.35rem; font-weight:800; font-size:15px; margin:0 .1rem 0 0; white-space:nowrap; }
     .epc-erp-topbar__brand img { height:30px; }
     .epc-erp-topbar__nav, .epc-erp-topbar__user { display:flex; gap:.7rem; font-size:13px; font-weight:600; color:#334155; margin-left:auto; }
+    /* Inline CSS paints the bar white; shared skin still forces links white -> keep them dark. */
+    .epc-erp-topbar { color:#0f172a; }
+    .epc-erp-topbar a:not(.btn):not(.epc-erp-global-search__hit),
+    .epc-erp-topbar__nav, .epc-erp-topbar__user, .epc-erp-topbar__brand,
+    .epc-erp-topbar .epc-erp-landing, .epc-erp-topbar .epc-erp-landing label { color:#0f172a !important; }
     .epc-erp-sandbox-banner { background:#b45309; color:#fff; font-size:12px; font-weight:700; letter-spacing:.04em; text-align:center; padding:.3rem .7rem; text-transform:uppercase; }
     /* epc-erp-right-clip: stay inside the viewport — do not size to 100vw then shift. */
     .epc-erp-main { max-width:none; width:100%; min-width:0; padding:0; box-sizing:border-box; }

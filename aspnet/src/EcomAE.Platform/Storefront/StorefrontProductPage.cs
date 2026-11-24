@@ -538,24 +538,35 @@ public static class StorefrontProductPage
             return null;
         }
 
+        // Storage country: ensured lazily — render only when the warehouse row names a country. A warehouse
+        // tagged with a country sells only on that country's domains; an untagged one sells everywhere.
+        // The filter goes into the SQL (before ORDER/LIMIT) so an eligible row can never be cut off
+        // by LIMIT — and only when the column really exists, so a DB that refuses the lazy ALTER
+        // keeps serving unfiltered stock instead of breaking the whole product page.
+        var hasCountryColumn = await StorefrontStockCountry.EnsureColumnAsync(connection, cancellationToken).ConfigureAwait(false);
+        var stockCountries = await StorefrontStockCountry.LoadAsync(connection, cancellationToken).ConfigureAwait(false);
+        var visitorCc = (request.CountryCookie ?? string.Empty).Trim().ToUpperInvariant();
+        var countryFilter = hasCountryColumn && visitorCc.Length > 0
+            ? " AND (s.`country_code` IS NULL OR s.`country_code`='' OR UPPER(s.`country_code`)=?)"
+            : string.Empty;
+        var args = hasCountryColumn && visitorCc.Length > 0 ? new List<object> { productId, offices[0], visitorCc } : [productId, offices[0]];
+
         var rows = await RowsAsync(connection,
             "SELECT m.`office_id`,d.`storage_id`,d.`id`,d.`price`*IFNULL(c.`rate`,1)*(1+(m.`markup`/100)),d.`exist`,d.`reserved`,"
             + "d.`time_to_exe`,IFNULL(d.`article`,''),IFNULL(d.`manufacturer`,''),IFNULL(c.`iso_code`,''),IFNULL(c.`sign`,''),"
             + "IFNULL(c.`caption_short`,''),IFNULL(c.`rate`,1) FROM `shop_storages_data` d "
             + "JOIN `shop_offices_storages_map` m ON m.`storage_id`=d.`storage_id` "
             + "LEFT JOIN `shop_storages` s ON s.`id`=d.`storage_id` LEFT JOIN `shop_currencies` c ON c.`iso_code`=s.`currency` "
-            + "WHERE d.`product_id`=? AND m.`office_id`=? ORDER BY (d.`price`>0) DESC,"
+            + "WHERE d.`product_id`=? AND m.`office_id`=?" + countryFilter + " ORDER BY (d.`price`>0) DESC,"
             + "(d.`price`*IFNULL(c.`rate`,1)*(1+(m.`markup`/100))),d.`id` LIMIT 1",
-            [productId, offices[0]], cancellationToken).ConfigureAwait(false);
+            [.. args], cancellationToken).ConfigureAwait(false);
         if (rows.Count == 0)
         {
             return null;
         }
 
         var r = rows[0];
-        // Storage country: ensured lazily — render only when the warehouse row names a country.
-        var stockCountries = await StorefrontStockCountry.LoadAsync(connection, cancellationToken).ConfigureAwait(false);
-        var country = stockCountries.TryGetValue(L(r[1]), out var cc) ? cc : string.Empty;
+        var country = stockCountries.TryGetValue(L(r[1]), out var sel) ? sel : string.Empty;
         return new(
             L(r[0]), L(r[1]), L(r[2]), D(r[3]), L(r[4]), L(r[5]), L(r[6]),
             r[7], r[8], r[9], r[10], r[11], D(r[12]), country);
