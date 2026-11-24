@@ -296,6 +296,8 @@ public static class CpWebTrackerDashboardBuilder
 
             var session = ReadRecent(reader);
             var allSites = isSuper && (siteKey is "" or "_all");
+            await reader.DisposeAsync().ConfigureAwait(false);
+
             if (!allSites && !string.IsNullOrEmpty(siteKey))
             {
                 var scopeKeys = await ResolveSiteKeySetAsync(connection, connections, siteKey, origSiteKey, cancellationToken).ConfigureAwait(false);
@@ -304,8 +306,6 @@ public static class CpWebTrackerDashboardBuilder
                     return new(false, null, [], [], "database", "Session not in scope.");
                 }
             }
-
-            await reader.DisposeAsync().ConfigureAwait(false);
 
             var pageviews = new List<CpWebTrackerPageviewDetail>();
             await using (var pv = connection.CreateCommand())
