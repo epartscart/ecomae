@@ -479,7 +479,8 @@ public static partial class StorefrontPhpAjax
                 : null;
             if (session is not null
                 && string.Equals(session.PaymentStatus, "paid", StringComparison.Ordinal)
-                && string.Equals(session.ClientReferenceId, operationId.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal))
+                && string.Equals(session.ClientReferenceId, operationId.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+                && await StripeAmountMatchesAsync(connection, operationId, session, stripeParams, cancellationToken).ConfigureAwait(false))
             {
                 var paid = StorefrontStripeGateway.MajorUnits(session.AmountTotal, session.Currency);
                 await payments.ApplyIpnAsync(connection, operationId, paid, cancellationToken).ConfigureAwait(false);
@@ -551,6 +552,94 @@ public static partial class StorefrontPhpAjax
         }
 
         var result = await payments.ApplyIpnAsync(connection, operationId, (decimal)sum, cancellationToken).ConfigureAwait(false);
+        return new RawHttp(result.Code == "already" ? "{\"result\":true,\"message\":\"already processed\"}" : "{\"result\":true}", "application/json");
+    }
+
+    /// <summary>The Stripe session's amount+currency must equal the pending operation's amount in the configured currency.</summary>
+    private static async Task<bool> StripeAmountMatchesAsync(
+        DbConnection connection,
+        long operationId,
+        StorefrontStripeGateway.StripeSession session,
+        IReadOnlyDictionary<string, string> parameters,
+        CancellationToken cancellationToken)
+    {
+        var configuredCurrency = (parameters.TryGetValue("currency", out var configured) ? configured : string.Empty).Trim();
+        if (configuredCurrency.Length == 0 || !string.Equals(configuredCurrency, session.Currency, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        string? amount = null;
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = ErpDb.Positional("SELECT `amount` FROM `shop_users_accounting` WHERE `id` = ? LIMIT 1;");
+            ErpDb.AddParameters(command, operationId);
+            var raw = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            amount = raw?.ToString();
+        }
+
+        var expected = PhpFloatCast(amount);
+        return expected > 0d && session.AmountTotal == StorefrontStripeGateway.MinorUnits((decimal)expected, session.Currency);
+    }
+
+    /// <summary>
+    /// Stripe webhook <c>stripe/webhook.php</c>: signature over the raw body with the tenant's
+    /// <c>webhook_secret</c>, then <c>checkout.session.completed</c> credits the operation — the
+    /// server-side completion path for shoppers who never return to the success URL.
+    /// </summary>
+    public static async Task<object> StripeWebhookAsync(
+        DbConnection connection,
+        IStorefrontPaymentWriteService payments,
+        GatewayPageRequest request,
+        string rawBody,
+        string? signatureHeader,
+        CancellationToken cancellationToken)
+    {
+        JsonElement json;
+        try
+        {
+            using var doc = JsonDocument.Parse(string.IsNullOrEmpty(rawBody) ? "null" : rawBody);
+            json = doc.RootElement.Clone();
+        }
+        catch (JsonException)
+        {
+            return new RawHttp("{\"result\":false}", "application/json", StatusCodes.Status400BadRequest);
+        }
+
+        string? Field(JsonElement obj, string name)
+            => obj.ValueKind == JsonValueKind.Object && obj.TryGetProperty(name, out var value) && value.ValueKind != JsonValueKind.Null
+                ? PhpJsonScalarString(value)
+                : null;
+
+        if (!string.Equals(Field(json, "type"), "checkout.session.completed", StringComparison.Ordinal)
+            || !json.TryGetProperty("data", out var data)
+            || !data.TryGetProperty("object", out var sessionObj))
+        {
+            return new RawHttp("{\"result\":true}", "application/json");
+        }
+
+        var operationId = ShopPayForOrderService.PhpIntCast(Field(sessionObj, "client_reference_id"));
+        var parameters = (await StorefrontPaymentAccounts.ParametersAsync(connection, operationId, "stripe", request.Config.ContainsKey("wholesaler"), cancellationToken)
+            .ConfigureAwait(false)).Values;
+        var webhookSecret = (parameters.TryGetValue("webhook_secret", out var wh) ? wh : string.Empty).Trim();
+        if (operationId <= 0 || !StorefrontStripeGateway.VerifyWebhookSignature(rawBody, signatureHeader, webhookSecret))
+        {
+            return new RawHttp("{\"result\":false,\"message\":\"webhook rejected\"}", "application/json", StatusCodes.Status400BadRequest);
+        }
+
+        var session = new StorefrontStripeGateway.StripeSession(
+            Field(sessionObj, "payment_status") ?? string.Empty,
+            sessionObj.TryGetProperty("amount_total", out var at) && at.ValueKind == JsonValueKind.Number ? at.GetInt64() : 0,
+            Field(sessionObj, "currency") ?? string.Empty,
+            Field(sessionObj, "client_reference_id") ?? string.Empty);
+        if (!string.Equals(session.PaymentStatus, "paid", StringComparison.Ordinal)
+            || !await StripeAmountMatchesAsync(connection, operationId, session, parameters, cancellationToken).ConfigureAwait(false))
+        {
+            return new RawHttp("{\"result\":false,\"message\":\"webhook rejected\"}", "application/json", StatusCodes.Status400BadRequest);
+        }
+
+        var paid = StorefrontStripeGateway.MajorUnits(session.AmountTotal, session.Currency);
+        var result = await payments.ApplyIpnAsync(connection, operationId, paid, cancellationToken).ConfigureAwait(false);
         return new RawHttp(result.Code == "already" ? "{\"result\":true,\"message\":\"already processed\"}" : "{\"result\":true}", "application/json");
     }
 

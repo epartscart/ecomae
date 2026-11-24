@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace EcomAE.Platform.Storefront;
@@ -36,6 +38,9 @@ public static class StorefrontStripeGateway
         string operationId,
         CancellationToken cancellationToken)
     {
+        // Idempotent per operation: reopening a pending pay link replays the same request and Stripe
+        // returns the original session instead of minting a second payable session for one payment.
+        var idempotencyKey = "epc-checkout-" + operationId;
         var fields = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["mode"] = "payment",
@@ -55,6 +60,7 @@ public static class StorefrontStripeGateway
                 Content = new FormUrlEncodedContent(fields)
             };
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", secretKey);
+            request.Headers.TryAddWithoutValidation("Idempotency-Key", idempotencyKey);
             using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
             var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
@@ -80,6 +86,46 @@ public static class StorefrontStripeGateway
     }
 
     public sealed record StripeSession(string PaymentStatus, long AmountTotal, string Currency, string ClientReferenceId);
+
+    /// <summary>Verifies a Stripe-Signature header (t=…,v1=…) over the raw webhook body, ±5 min tolerance.</summary>
+    public static bool VerifyWebhookSignature(string rawBody, string? signatureHeader, string webhookSecret)
+    {
+        if (webhookSecret.Length == 0 || string.IsNullOrEmpty(signatureHeader))
+        {
+            return false;
+        }
+
+        string? timestamp = null;
+        var signatures = new List<string>();
+        foreach (var part in signatureHeader.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var kv = part.Split('=', 2);
+            if (kv.Length != 2)
+            {
+                continue;
+            }
+
+            if (kv[0] == "t")
+            {
+                timestamp = kv[1];
+            }
+            else if (kv[0] == "v1")
+            {
+                signatures.Add(kv[1]);
+            }
+        }
+
+        if (timestamp is null || signatures.Count == 0
+            || !long.TryParse(timestamp, NumberStyles.Integer, CultureInfo.InvariantCulture, out var ts)
+            || Math.Abs(DateTimeOffset.UtcNow.ToUnixTimeSeconds() - ts) > 300)
+        {
+            return false;
+        }
+
+        var expected = Convert.ToHexStringLower(
+            HMACSHA256.HashData(Encoding.UTF8.GetBytes(webhookSecret), Encoding.UTF8.GetBytes(timestamp + "." + rawBody)));
+        return signatures.Any(sig => CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(expected), Encoding.UTF8.GetBytes(sig)));
+    }
 
     /// <summary>Retrieves a Checkout Session so the success URL can be trusted (server-side, not shopper-supplied).</summary>
     public static async Task<StripeSession?> RetrieveSessionAsync(
