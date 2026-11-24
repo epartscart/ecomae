@@ -27,8 +27,18 @@
 <div class="col-lg-12">
     <div class="hpanel"><div class="panel-body">
         <h3 style="margin-top:0">@(_isPlatform ? "AI Control Center" : "AI Manager") <small>@_ws?.DisplayName</small></h3>
-        @if (!_isAdmin) { <div class="alert alert-warning">Sign in with an administrator account to manage AI agents.</div> }
         @if (!string.IsNullOrEmpty(_flash)) { <div class="alert alert-info">@_flash</div> }
+        @if (!_isAdmin)
+        {
+            <h4>Chat with our AI assistant</h4>
+            <p class="text-muted">Ask about products, orders, services or the site — our assistant answers instantly.</p>
+            <form method="post" action="/en/ai-guest-chat" class="epc-ai-run">
+                <input class="form-control" name="text" maxlength="2000" placeholder="How can we help you today?" />
+                <button class="btn btn-primary btn-sm" type="submit">Send</button>
+            </form>
+        }
+        else
+        {
         <div class="epc-ai-cards">
             <div class="epc-ai-card"><b>@_usage.ActiveAgents</b><span>Active agents</span></div>
             <div class="epc-ai-card"><b>@_usage.ExecutionsToday</b><span>Runs today</span></div>
@@ -106,6 +116,7 @@
             </tr>
         }
         </tbody></table>
+        }
     </div></div>
 </div>
 </PhpCpDesktopChrome>

@@ -83,19 +83,24 @@ public sealed class AiAgentScheduler : BackgroundService
             var runtime = scope.ServiceProvider.GetRequiredService<IAiAgentRuntime>();
 
             await using var reg = await connections.OpenRegistryAsync(ct).ConfigureAwait(false);
-            var workspaces = new List<(long Id, string TenantKey)>();
+            // Join the tenant registry for the real tenant DB name and to drop workspaces
+            // whose tenant was deleted in Super CP (they'd keep spending tokens otherwise).
+            var workspaces = new List<(long Id, string TenantKey, string? DbName)>();
             await using (var cmd = reg.CreateCommand())
             {
-                cmd.CommandText = "SELECT `id`, `tenant_key` FROM `ai_tenant_workspaces`";
+                cmd.CommandText =
+                    "SELECT w.`id`, w.`tenant_key`, t.`db_name` FROM `ai_tenant_workspaces` w"
+                    + " LEFT JOIN `epc_portal_tenants` t ON t.`site_key` = w.`tenant_key`"
+                    + " WHERE w.`tenant_key` = 'platform' OR (t.`id` IS NOT NULL AND t.`is_active` = 1)";
                 await using var r = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
                 while (await r.ReadAsync(ct).ConfigureAwait(false))
                 {
-                    workspaces.Add((r.GetInt64(0), r.GetString(1)));
+                    workspaces.Add((r.GetInt64(0), r.GetString(1), r.IsDBNull(2) ? null : r.GetString(2)));
                 }
             }
 
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            foreach (var (wsId, tenantKey) in workspaces)
+            foreach (var (wsId, tenantKey, dbName) in workspaces)
             {
                 var agents = new List<(long Id, string TemplateKey, string Status)>();
                 await using (var cmd = reg.CreateCommand())
@@ -126,7 +131,7 @@ public sealed class AiAgentScheduler : BackgroundService
                     var task = Tasks.TryGetValue(templateKey, out var t) ? t : "Scheduled run: health check and improvement advice for your area.";
                     try
                     {
-                        await runtime.RunAsync(tenantKey, null, agentId, "schedule", task, ct).ConfigureAwait(false);
+                        await runtime.RunAsync(tenantKey, dbName, agentId, "schedule", task, ct).ConfigureAwait(false);
                     }
                     catch (Exception e) when (e is not OperationCanceledException)
                     {
