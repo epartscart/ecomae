@@ -248,6 +248,94 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
         await ErpUaeTaxComplianceSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpProcurementSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpRfqSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await SeedStorefrontReferenceAsync(connection, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// New tenants must inherit the storefront reference data (delivery modes,
+    /// order/item statuses, notification templates, a default office, payment
+    /// systems) or checkout, order emails and payments silently cannot run.
+    /// Rows are copied from the reference tenant database when reachable; the
+    /// embedded fallbacks cover the smallest runnable set. Existing rows are
+    /// never touched — each table is seeded only while empty.
+    /// </summary>
+    private static async Task SeedStorefrontReferenceAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        // Verbatim copies from the reference tenant (same MySQL server).
+        foreach (var table in new[]
+        {
+            "shop_obtaining_modes",
+            "shop_orders_statuses_ref",
+            "shop_orders_items_statuses_ref",
+            "notifications_settings",
+            "templates",
+            "shop_payment_systems",
+        })
+        {
+            try
+            {
+                var count = await ErpDb.LongAsync(
+                    connection,
+                    null,
+                    "SELECT COUNT(*) FROM `" + table + "`",
+                    cancellationToken).ConfigureAwait(false);
+                if (count > 0)
+                {
+                    continue;
+                }
+
+                await ErpDb.TryExecuteAsync(
+                    connection,
+                    "INSERT INTO `" + table + "` SELECT * FROM `ecomae`.`" + table + "`",
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                // Table or reference DB missing — embedded fallbacks below.
+            }
+        }
+
+        // Fallback: minimum delivery modes.
+        try
+        {
+            var modes = await ErpDb.LongAsync(
+                connection,
+                null,
+                "SELECT COUNT(*) FROM `shop_obtaining_modes`",
+                cancellationToken).ConfigureAwait(false);
+            if (modes == 0)
+            {
+                await ErpDb.TryExecuteAsync(
+                    connection,
+                    "INSERT INTO `shop_obtaining_modes` (`id`,`caption`,`handler`,`order`,`available`,`parameters`,`parameters_values`,`control_available`) VALUES "
+                    + "(1,1900,'get_in_office',1,1,'[]','[]',1),"
+                    + "(2,1901,'simple_delivery',2,1,'[]','[]',1)",
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch
+        {
+        }
+
+        // Fallback: a default pickup office so office-bound checkout works.
+        try
+        {
+            var offices = await ErpDb.LongAsync(
+                connection,
+                null,
+                "SELECT COUNT(*) FROM `shop_offices`",
+                cancellationToken).ConfigureAwait(false);
+            if (offices == 0)
+            {
+                await ErpDb.TryExecuteAsync(
+                    connection,
+                    "INSERT INTO `shop_offices` (`name`,`country`,`city`,`address`,`active`) VALUES ('Main Office','','','',1)",
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch
+        {
+        }
     }
 
     /// <summary>
