@@ -432,6 +432,12 @@
     <style>@((MarkupString)_tenantCss)</style>
 }
 <div class="epc-nero-shell epc-php-font-root @(_tenantAttrs is not null ? "epc-tenant-tokens" : null)"@attributes="_tenantAttrs">
+    @if (IsEpartscartHost)
+    {
+        <div style="background:#dc2626;color:#fff;text-align:center;font-weight:800;font-size:14px;letter-spacing:.06em;padding:7px 10px;text-transform:uppercase;">
+            Demo store — orders placed here are not processed
+        </div>
+    }
     @* PHP templates/nero/desktop.php — google_translate_top.php above header *@
     <PhpGoogleTranslateTop />
     <header class="hidden-xs epc-nero-header">
