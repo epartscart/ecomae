@@ -167,7 +167,8 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
         // Guest chats never receive the internal business snapshot and cannot escalate to the platform.
         var isGuest = string.Equals(trigger, "guest", StringComparison.OrdinalIgnoreCase);
         var context = isGuest ? "(public storefront visitor — no internal data attached)"
-            : await GatherTenantContextAsync(tenantDbName ?? tenantKey, templateKey, cancellationToken).ConfigureAwait(false);
+            : await GatherTenantContextAsync(tenantDbName ?? tenantKey, templateKey, cancellationToken).ConfigureAwait(false)
+                + await RegistryMetricsAsync(reg, wsId, cancellationToken).ConfigureAwait(false);
         var system = AiSystemContext.SYSTEM_CONTEXT + instructions + "\n\nYou operate inside tenant '" + tenantKey + "'. "
             + "Never request or fabricate another tenant's data. Reply concise, structured: findings, risks, recommended actions (each marked AUTO or NEEDS-APPROVAL). "
             + (isGuest
@@ -207,6 +208,27 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
             await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
         }
         return row;
+    }
+
+    /// <summary>Registry-side metrics every scheduled/audit run needs: open escalations, recent failures, today's usage.</summary>
+    private static async Task<string> RegistryMetricsAsync(DbConnection reg, long wsId, CancellationToken ct)
+    {
+        var dayAgo = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 86400;
+        var dayStart = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero).ToUnixTimeSeconds();
+        var escalations = await ErpDb.LongAsync(reg, null, ErpDb.Positional(
+            "SELECT COUNT(*) FROM `ai_agent_messages` WHERE `workspace_id` = ? AND `direction` = 'escalate' AND `status` = 'open'"),
+            ct, wsId).ConfigureAwait(false);
+        var failedRuns = await ErpDb.LongAsync(reg, null, ErpDb.Positional(
+            "SELECT COUNT(*) FROM `ai_agent_executions` WHERE `workspace_id` = ? AND `status` = 'failed' AND `started_at` >= ?"),
+            ct, wsId, dayAgo).ConfigureAwait(false);
+        var tokensToday = await ErpDb.LongAsync(reg, null, ErpDb.Positional(
+            "SELECT COALESCE(SUM(`tokens_in`+`tokens_out`),0) FROM `ai_agent_executions` WHERE `workspace_id` = ? AND `started_at` >= ?"),
+            ct, wsId, dayStart).ConfigureAwait(false);
+        var pendingApprovals = await ErpDb.LongAsync(reg, null, ErpDb.Positional(
+            "SELECT COUNT(*) FROM `ai_approvals` WHERE `workspace_id` = ? AND `status` = 'pending'"),
+            ct, wsId).ConfigureAwait(false);
+        return "\nregistry_metrics: open_escalations=" + escalations + " failed_executions_24h=" + failedRuns
+            + " tokens_today=" + tokensToday + " pending_approvals=" + pendingApprovals;
     }
 
     /// <summary>Read-only tenant snapshot via tenant DB — cheap counts; order-lifecycle rows for the operations orchestrator.</summary>
