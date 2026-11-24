@@ -192,7 +192,7 @@ public static class StorefrontRegForm
             sb.Append("\t\tdocument.getElementById('RegVariantsSelector').style.display='none';\n");
             sb.Append("\t\tfunction epcSyncRegVariant(t){\n");
             sb.Append("\t\t\tvar sel=document.getElementById('reg_variant_selector');if(!sel)return;\n");
-            sb.Append("\t\t\tvar picks=t==='wholesale'?[/entity|company|llc|business/i,/entrepreneur/i]:[/individual/i];\n");
+            sb.Append("\t\t\tvar picks=t==='wholesale'?[/entity|company|llc|business/i,/entrepreneur/i]:[/^\\s*individual\\s*$/i,/customer|retail|private|individual/i];\n");
             sb.Append("\t\t\touter: for(var p=0;p<picks.length;p++){for(var i=0;i<sel.options.length;i++){if(picks[p].test(sel.options[i].text)){sel.selectedIndex=i;break outer;}}}\n");
             sb.Append("\t\t\tif(typeof regenerateFields==='function'){regenerateFields();}\n");
             sb.Append("\t\t}\n");
