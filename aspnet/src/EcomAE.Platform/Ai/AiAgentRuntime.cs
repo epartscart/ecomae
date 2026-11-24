@@ -160,7 +160,7 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
         var status = result.Error is null ? "completed" : "failed";
 
         // Auto-escalation: agent flagged a platform-level request -> platform workspace inbox (audited).
-        var escalate = result.Text is null ? null : result.Text.Split('\n')
+        var escalate = string.IsNullOrEmpty(result.Text) ? null : result.Text.Split('\n')
             .Select(l => l.Trim())
             .FirstOrDefault(l => l.StartsWith("ESCALATE:", StringComparison.OrdinalIgnoreCase));
         if (escalate is not null && !string.Equals(tenantKey, "platform", StringComparison.OrdinalIgnoreCase))
