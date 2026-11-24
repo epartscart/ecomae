@@ -466,7 +466,7 @@ public sealed class CpUserEditorService : ICpUserEditorService
         try
         {
             await using var command = connection.CreateCommand();
-            command.CommandText = "SHOW TABLES LIKE '" + table + "'";
+            command.CommandText = "SHOW TABLES LIKE '" + table.Replace("'", "''", StringComparison.Ordinal) + "'";
             var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
             return value is not null && value is not DBNull;
         }

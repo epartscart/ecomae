@@ -611,7 +611,7 @@ public sealed class CpStorageEditorService : ICpStorageEditorService
     private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        command.CommandText = "SHOW TABLES LIKE '" + table + "'";
+        command.CommandText = "SHOW TABLES LIKE '" + table.Replace("'", "''", StringComparison.Ordinal) + "'";
         var found = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
         return found is not null and not DBNull;
     }

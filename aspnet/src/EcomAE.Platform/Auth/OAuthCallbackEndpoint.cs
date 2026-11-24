@@ -350,8 +350,8 @@ public static class OAuthCallbackEndpoint
         context.Response.Cookies.Append("epc_oauth_last_google_email", email, new CookieOptions
         {
             Path = "/",
-            HttpOnly = false,
-            Secure = false,
+            HttpOnly = true,
+            Secure = true,
             SameSite = SameSiteMode.Lax,
             Expires = DateTimeOffset.UtcNow.AddDays(60),
         });

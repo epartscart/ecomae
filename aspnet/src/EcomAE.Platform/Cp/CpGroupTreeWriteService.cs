@@ -415,7 +415,7 @@ public sealed class CpGroupTreeWriteService : ICpGroupTreeWriteService
     private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        command.CommandText = "SHOW TABLES LIKE '" + table + "'";
+        command.CommandText = "SHOW TABLES LIKE '" + table.Replace("'", "''", StringComparison.Ordinal) + "'";
         var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
         return value is not null and not DBNull;
     }
