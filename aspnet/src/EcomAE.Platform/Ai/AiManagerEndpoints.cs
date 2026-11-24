@@ -20,6 +20,23 @@ public static class AiManagerEndpoints
 
     private static async Task<IResult> HandleAsync(HttpContext ctx, IAiPlatform ai, IAiAgentRuntime runtime, ILegacySessionValidator sessions)
     {
+        // Cross-site write protection — this cookie-authenticated endpoint sits outside the admin-surface guard.
+        var secSite = ctx.Request.Headers["Sec-Fetch-Site"].ToString();
+        if (string.Equals(secSite, "cross-site", StringComparison.OrdinalIgnoreCase))
+        {
+            return Results.StatusCode(StatusCodes.Status403Forbidden);
+        }
+        var src = ctx.Request.Headers.Origin.ToString();
+        if (string.IsNullOrWhiteSpace(src) || string.Equals(src, "null", StringComparison.OrdinalIgnoreCase))
+        {
+            src = ctx.Request.Headers.Referer.ToString();
+        }
+        if (!string.IsNullOrWhiteSpace(src)
+            && (!Uri.TryCreate(src, UriKind.Absolute, out var su) || !string.Equals(su.Host, ctx.Request.Host.Host, StringComparison.OrdinalIgnoreCase)))
+        {
+            return Results.StatusCode(StatusCodes.Status403Forbidden);
+        }
+
         var session = await sessions.ValidateAsync(ctx, ctx.RequestAborted).ConfigureAwait(false);
         if (!PhpParityDumpCatalog.HasStaffAccess(session))
         {
