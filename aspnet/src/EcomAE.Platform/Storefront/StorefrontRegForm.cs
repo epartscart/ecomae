@@ -196,7 +196,8 @@ public static class StorefrontRegForm
             sb.Append("\t\t\tvar rtRe=/individual|customer|retail|private|person|personal/i;\n");
             sb.Append("\t\t\tvar pick=-1,i,tx;\n");
             sb.Append("\t\t\tif(t==='wholesale'){\n");
-            sb.Append("\t\t\t\tfor(i=0;i<sel.options.length;i++){if(wsRe.test(sel.options[i].text)){pick=i;break;}}\n");
+            sb.Append("\t\t\t\tfor(i=0;i<sel.options.length;i++){tx=sel.options[i].text;if(wsRe.test(tx)&&!rtRe.test(tx)){pick=i;break;}}\n");
+            sb.Append("\t\t\t\tif(pick<0){for(i=0;i<sel.options.length;i++){if(wsRe.test(sel.options[i].text)){pick=i;break;}}}\n");
             sb.Append("\t\t\t\tif(pick<0){for(i=sel.options.length-1;i>=0;i--){if(!rtRe.test(sel.options[i].text)){pick=i;break;}}}\n");
             sb.Append("\t\t\t}else{\n");
             sb.Append("\t\t\t\tfor(i=0;i<sel.options.length;i++){tx=sel.options[i].text;if(rtRe.test(tx)&&!wsRe.test(tx)){pick=i;break;}}\n");
