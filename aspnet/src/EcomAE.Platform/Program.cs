@@ -1024,6 +1024,8 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpApiClientsDeskService, EcomAE.P
 builder.Services.AddSingleton<EcomAE.Platform.Ai.IAiModelClient, EcomAE.Platform.Ai.OpenAiModelClient>();
 builder.Services.AddSingleton<EcomAE.Platform.Ai.IAiPlatform, EcomAE.Platform.Ai.AiPlatform>();
 builder.Services.AddSingleton<EcomAE.Platform.Ai.IAiAgentRuntime, EcomAE.Platform.Ai.AiAgentRuntime>();
+builder.Services.Configure<EcomAE.Platform.Ai.AiAgentSchedulerOptions>(builder.Configuration.GetSection(EcomAE.Platform.Ai.AiAgentSchedulerOptions.SectionName));
+builder.Services.AddHostedService<EcomAE.Platform.Ai.AiAgentScheduler>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCatalogUsageDeskService, EcomAE.Platform.Cp.CpCatalogUsageDeskService>();
 builder.Services.AddSingleton<EcomAE.Platform.Cp.ICpApiClientKeyVault, EcomAE.Platform.Cp.CpApiClientKeyVault>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCommunicationsDeskService, EcomAE.Platform.Cp.CpCommunicationsDeskService>();
