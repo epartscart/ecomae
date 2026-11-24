@@ -1517,8 +1517,11 @@ app.Use(async (context, next) =>
         var storefrontCountry = storefrontCountrySvc is not null && (subdomain is not null || hostSeedPresent)
             ? await storefrontCountrySvc.ResolveAsync(context.Request.Host.Host, context.RequestAborted).ConfigureAwait(false)
             : null;
-        var hostIsCountryStorefront = storefrontCountry is not null
-            && string.Equals(storefrontCountry.Subdomain, subdomain, StringComparison.OrdinalIgnoreCase);
+        // The host IS a country storefront when it resolves to a non-default country — by
+        // built-in {cc}. alias OR domain map. Comparing country.Subdomain to the host's
+        // subdomain token would mis-handle an operator renaming a country's subdomain (the
+        // built-in alias still resolves the same country code).
+        var hostIsCountryStorefront = storefrontCountry is { IsDefault: false };
 
         var parts = rawCookieHeader
             .Split(';', StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -1535,14 +1538,14 @@ app.Use(async (context, next) =>
         // Locked country storefront: a non-default mapped country (auto247.pk → PK, or a {cc}.
         // subdomain the tenant runs). The currency picker only offers the country's currency,
         // so foreign currency/country cookies can never pin prices to another currency.
-        if (hostIsCountryStorefront && !storefrontCountry!.IsDefault)
+        if (hostIsCountryStorefront)
         {
-            var lockIso = EcomAE.Platform.Storefront.EpcCurrency.IsoForAlpha(storefrontCountry.CurrencyCode)
-                ?? (EcomAE.Platform.Storefront.EpcCurrency.CountryMap.TryGetValue(storefrontCountry.CountryCode, out var lockMapped) ? lockMapped : null);
+            var lockIso = EcomAE.Platform.Storefront.EpcCurrency.IsoForAlpha(storefrontCountry!.CurrencyCode)
+                ?? (EcomAE.Platform.Storefront.EpcCurrency.CountryMap.TryGetValue(storefrontCountry!.CountryCode, out var lockMapped) ? lockMapped : null);
 
             // A foreign epc_country pick can't pin its currency here.
             if (userCountry is not null
-                && !string.Equals(userCountry, storefrontCountry.CountryCode, StringComparison.OrdinalIgnoreCase))
+                && !string.Equals(userCountry, storefrontCountry!.CountryCode, StringComparison.OrdinalIgnoreCase))
             {
                 parts = parts.Where(p => !p.TrimStart().StartsWith("epc_country=", StringComparison.OrdinalIgnoreCase)).ToList();
                 context.Request.Headers.Cookie = string.Join("; ", parts);
