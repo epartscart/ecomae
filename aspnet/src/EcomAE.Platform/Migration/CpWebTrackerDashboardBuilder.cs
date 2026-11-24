@@ -174,9 +174,7 @@ public static class CpWebTrackerDashboardBuilder
         try
         {
             // Host-derived keys (auto247_ae, stylenlook_ecomae_com) resolve to the
-            // canonical tenant site_key so sessions stored under it are found;
-            // the requested variant stays in the filter so rows still stamped
-            // with it aren't hidden either.
+            // canonical tenant site_key so sessions stored under it are found.
             var siteVar = filters.SiteKey;
             var canon = await CpWebTrackerCollectService.ResolveTenantSiteKeyAsync(connections, filters.SiteKey, cancellationToken).ConfigureAwait(false);
             if (!string.IsNullOrEmpty(canon) && !string.Equals(canon, filters.SiteKey, StringComparison.OrdinalIgnoreCase))
@@ -187,6 +185,12 @@ public static class CpWebTrackerDashboardBuilder
             const string dbLabel = "tracker";
 
             var allSites = filters.IsSuper && (filters.SiteKey is "" or "_all");
+            // Concrete alias set: canon + requested + stored '<canon>_*' keys that
+            // are NOT registered tenants (a real 'stylenlook_uk' tenant must never
+            // be swept into 'stylenlook' reports).
+            var siteKeys = allSites
+                ? new List<string>()
+                : await ResolveSiteKeySetAsync(connection, connections, filters.SiteKey, siteVar, cancellationToken).ConfigureAwait(false);
             var siteOptions = filters.IsSuper
                 ? await LoadSiteOptionsAsync(connection, connections, cancellationToken).ConfigureAwait(false)
                 : new List<string> { filters.SiteKey };
@@ -198,9 +202,7 @@ public static class CpWebTrackerDashboardBuilder
             var siteParams = new List<(string Name, object Value)>();
             if (!allSites && !string.IsNullOrEmpty(filters.SiteKey) && filters.SiteKey != "_all")
             {
-                siteSql = " AND (`site_key` IN (@site,@sitevar) OR `site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) ";
-                siteParams.Add(("@site", filters.SiteKey));
-                siteParams.Add(("@sitevar", siteVar));
+                siteSql = SiteInClause("`site_key`", siteKeys, siteParams);
             }
 
             var scopeParams = new List<(string Name, object Value)>
@@ -213,21 +215,21 @@ public static class CpWebTrackerDashboardBuilder
 
             var summary = await ReadSummaryAsync(connection, siteSql + filterSql, scopeParams, cancellationToken).ConfigureAwait(false);
             var (clicks, searches) = await ReadClickSearchAsync(
-                connection, allSites, filters.SiteKey, siteVar, filterSqlS, filterParamsS, filtersActive, fromUnix, toUnix, cancellationToken).ConfigureAwait(false);
+                connection, allSites, siteKeys, filterSqlS, filterParamsS, filtersActive, fromUnix, toUnix, cancellationToken).ConfigureAwait(false);
             summary = summary with { Clicks = clicks, Searches = searches, Events = Math.Max(summary.Events, clicks + searches) };
 
             var daily = await ReadDailyAsync(connection, siteSql + filterSql, scopeParams, cancellationToken).ConfigureAwait(false);
-            var topPages = await ReadTopPagesAsync(connection, allSites, filters, siteVar, filterSqlS, filterParamsS, filtersActive, fromUnix, toUnix, cancellationToken).ConfigureAwait(false);
+            var topPages = await ReadTopPagesAsync(connection, allSites, filters, siteKeys, filterSqlS, filterParamsS, filtersActive, fromUnix, toUnix, cancellationToken).ConfigureAwait(false);
             var geo = await ReadGeoAsync(connection, siteSql + filterSql, scopeParams, cancellationToken).ConfigureAwait(false);
             var devices = await ReadDevicesAsync(connection, siteSql + filterSql, scopeParams, cancellationToken).ConfigureAwait(false);
-            var searchRows = await ReadSearchesAsync(connection, allSites, filters.SiteKey, siteVar, filterSqlS, filterParamsS, filtersActive, fromUnix, toUnix, cancellationToken).ConfigureAwait(false);
-            var topClicks = await ReadTopClicksAsync(connection, allSites, filters.SiteKey, siteVar, filterSqlS, filterParamsS, filtersActive, fromUnix, toUnix, cancellationToken).ConfigureAwait(false);
+            var searchRows = await ReadSearchesAsync(connection, allSites, siteKeys, filterSqlS, filterParamsS, filtersActive, fromUnix, toUnix, cancellationToken).ConfigureAwait(false);
+            var topClicks = await ReadTopClicksAsync(connection, allSites, siteKeys, filterSqlS, filterParamsS, filtersActive, fromUnix, toUnix, cancellationToken).ConfigureAwait(false);
             var referrers = await ReadReferrersAsync(connection, siteSql + filterSql, scopeParams, cancellationToken).ConfigureAwait(false);
             var recent = await ReadRecentSessionsAsync(connection, siteSql + filterSql, scopeParams, cancellationToken).ConfigureAwait(false);
             var byTenant = allSites
                 ? await ReadByTenantAsync(connection, filterSql, fromUnix, toUnix, filterParams, cancellationToken).ConfigureAwait(false)
                 : Array.Empty<CpWebTrackerTenantRow>();
-            var facets = await ReadFacetsAsync(connection, allSites, filters.SiteKey, siteVar, fromUnix, toUnix, cancellationToken).ConfigureAwait(false);
+            var facets = await ReadFacetsAsync(connection, allSites, siteKeys, fromUnix, toUnix, cancellationToken).ConfigureAwait(false);
 
             return new(
                 true, allSites ? "_all" : filters.SiteKey, fromUnix, toUnix, filters.IsSuper, dbLabel, summary,
@@ -294,11 +296,13 @@ public static class CpWebTrackerDashboardBuilder
 
             var session = ReadRecent(reader);
             var allSites = isSuper && (siteKey is "" or "_all");
-            if (!allSites && !string.IsNullOrEmpty(siteKey)
-                && !string.Equals(session.SiteKey, siteKey, StringComparison.OrdinalIgnoreCase)
-                && !string.Equals(session.SiteKey, origSiteKey, StringComparison.OrdinalIgnoreCase))
+            if (!allSites && !string.IsNullOrEmpty(siteKey))
             {
-                return new(false, null, [], [], "database", "Session not in scope.");
+                var scopeKeys = await ResolveSiteKeySetAsync(connection, connections, siteKey, origSiteKey, cancellationToken).ConfigureAwait(false);
+                if (!scopeKeys.Contains(session.SiteKey, StringComparer.OrdinalIgnoreCase))
+                {
+                    return new(false, null, [], [], "database", "Session not in scope.");
+                }
             }
 
             await reader.DisposeAsync().ConfigureAwait(false);
@@ -793,8 +797,7 @@ public static class CpWebTrackerDashboardBuilder
     private static async Task<(long Clicks, long Searches)> ReadClickSearchAsync(
         DbConnection connection,
         bool allSites,
-        string siteKey,
-        string siteVar,
+        IReadOnlyList<string> siteKeys,
         string filterSqlS,
         List<(string Name, object Value)> filterParamsS,
         bool filtersActive,
@@ -805,21 +808,17 @@ public static class CpWebTrackerDashboardBuilder
         var join = string.Empty;
         var where = string.Empty;
         var p = new List<(string Name, object Value)> { ("@from", fromUnix), ("@to", toUnix) };
-        if (!allSites && !string.IsNullOrEmpty(siteKey) && siteKey != "_all")
+        if (!allSites && siteKeys.Count > 0)
         {
             if (filtersActive)
             {
                 join = " INNER JOIN `epc_web_tracker_sessions` s ON s.`id` = e.`session_id` ";
-                where = " AND (s.`site_key` IN (@site,@sitevar) OR s.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) " + filterSqlS;
-                p.Add(("@site", siteKey));
-                p.Add(("@sitevar", siteVar));
+                where = SiteInClause("s.`site_key`", siteKeys, p) + filterSqlS;
                 p.AddRange(filterParamsS);
             }
             else
             {
-                where = " AND (e.`site_key` IN (@site,@sitevar) OR e.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) ";
-                p.Add(("@site", siteKey));
-                p.Add(("@sitevar", siteVar));
+                where = SiteInClause("e.`site_key`", siteKeys, p);
             }
         }
         else if (filtersActive)
@@ -879,7 +878,7 @@ public static class CpWebTrackerDashboardBuilder
         DbConnection connection,
         bool allSites,
         CpWebTrackerFilterQuery filters,
-        string siteVar,
+        IReadOnlyList<string> siteKeys,
         string filterSqlS,
         List<(string Name, object Value)> filterParamsS,
         bool filtersActive,
@@ -890,21 +889,17 @@ public static class CpWebTrackerDashboardBuilder
         var join = string.Empty;
         var where = string.Empty;
         var p = new List<(string Name, object Value)> { ("@from", fromUnix), ("@to", toUnix) };
-        if (!allSites && !string.IsNullOrEmpty(filters.SiteKey) && filters.SiteKey != "_all")
+        if (!allSites && siteKeys.Count > 0)
         {
             if (filtersActive)
             {
                 join = " INNER JOIN `epc_web_tracker_sessions` s ON s.`id` = p.`session_id` ";
-                where = " AND (s.`site_key` IN (@site,@sitevar) OR s.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) " + filterSqlS;
-                p.Add(("@site", filters.SiteKey));
-                p.Add(("@sitevar", siteVar));
+                where = SiteInClause("s.`site_key`", siteKeys, p) + filterSqlS;
                 p.AddRange(filterParamsS);
             }
             else
             {
-                where = " AND (p.`site_key` IN (@site,@sitevar) OR p.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) ";
-                p.Add(("@site", filters.SiteKey));
-                p.Add(("@sitevar", siteVar));
+                where = SiteInClause("p.`site_key`", siteKeys, p);
             }
         }
         else if (filtersActive)
@@ -1000,27 +995,23 @@ public static class CpWebTrackerDashboardBuilder
     }
 
     private static async Task<IReadOnlyList<CpWebTrackerSearchRow>> ReadSearchesAsync(
-        DbConnection connection, bool allSites, string siteKey, string siteVar, string filterSqlS,
+        DbConnection connection, bool allSites, IReadOnlyList<string> siteKeys, string filterSqlS,
         List<(string Name, object Value)> filterParamsS, bool filtersActive, long fromUnix, long toUnix, CancellationToken cancellationToken)
     {
         var join = string.Empty;
         var where = string.Empty;
         var p = new List<(string Name, object Value)> { ("@from", fromUnix), ("@to", toUnix) };
-        if (!allSites && !string.IsNullOrEmpty(siteKey) && siteKey != "_all")
+        if (!allSites && siteKeys.Count > 0)
         {
             if (filtersActive)
             {
                 join = " INNER JOIN `epc_web_tracker_sessions` s ON s.`id` = e.`session_id` ";
-                where = " AND (s.`site_key` IN (@site,@sitevar) OR s.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) " + filterSqlS;
-                p.Add(("@site", siteKey));
-                p.Add(("@sitevar", siteVar));
+                where = SiteInClause("s.`site_key`", siteKeys, p) + filterSqlS;
                 p.AddRange(filterParamsS);
             }
             else
             {
-                where = " AND (e.`site_key` IN (@site,@sitevar) OR e.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) ";
-                p.Add(("@site", siteKey));
-                p.Add(("@sitevar", siteVar));
+                where = SiteInClause("e.`site_key`", siteKeys, p);
             }
         }
         else if (filtersActive)
@@ -1054,27 +1045,23 @@ public static class CpWebTrackerDashboardBuilder
     }
 
     private static async Task<IReadOnlyList<CpWebTrackerClickRow>> ReadTopClicksAsync(
-        DbConnection connection, bool allSites, string siteKey, string siteVar, string filterSqlS,
+        DbConnection connection, bool allSites, IReadOnlyList<string> siteKeys, string filterSqlS,
         List<(string Name, object Value)> filterParamsS, bool filtersActive, long fromUnix, long toUnix, CancellationToken cancellationToken)
     {
         var join = string.Empty;
         var where = string.Empty;
         var p = new List<(string Name, object Value)> { ("@from", fromUnix), ("@to", toUnix) };
-        if (!allSites && !string.IsNullOrEmpty(siteKey) && siteKey != "_all")
+        if (!allSites && siteKeys.Count > 0)
         {
             if (filtersActive)
             {
                 join = " INNER JOIN `epc_web_tracker_sessions` s ON s.`id` = e.`session_id` ";
-                where = " AND (s.`site_key` IN (@site,@sitevar) OR s.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) " + filterSqlS;
-                p.Add(("@site", siteKey));
-                p.Add(("@sitevar", siteVar));
+                where = SiteInClause("s.`site_key`", siteKeys, p) + filterSqlS;
                 p.AddRange(filterParamsS);
             }
             else
             {
-                where = " AND (e.`site_key` IN (@site,@sitevar) OR e.`site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) ";
-                p.Add(("@site", siteKey));
-                p.Add(("@sitevar", siteVar));
+                where = SiteInClause("e.`site_key`", siteKeys, p);
             }
         }
         else if (filtersActive)
@@ -1203,16 +1190,10 @@ public static class CpWebTrackerDashboardBuilder
     }
 
     private static async Task<CpWebTrackerFacets> ReadFacetsAsync(
-        DbConnection connection, bool allSites, string siteKey, string siteVar, long fromUnix, long toUnix, CancellationToken cancellationToken)
+        DbConnection connection, bool allSites, IReadOnlyList<string> siteKeys, long fromUnix, long toUnix, CancellationToken cancellationToken)
     {
-        var facetSite = string.Empty;
         var baseParams = new List<(string Name, object Value)> { ("@from", fromUnix), ("@to", toUnix) };
-        if (!allSites && !string.IsNullOrEmpty(siteKey) && siteKey != "_all")
-        {
-            facetSite = " AND (`site_key` IN (@site,@sitevar) OR `site_key` LIKE CONCAT(REPLACE(@site,'_','\\_'),'\\_%')) ";
-            baseParams.Add(("@site", siteKey));
-            baseParams.Add(("@sitevar", siteVar));
-        }
+        var facetSite = allSites ? string.Empty : SiteInClause("`site_key`", siteKeys, baseParams);
 
         var countries = new List<CpWebTrackerFacetRow>();
         await using (var cmd = connection.CreateCommand())
@@ -1270,6 +1251,89 @@ public static class CpWebTrackerDashboardBuilder
         }
 
         return new(countries, devices, browsers);
+    }
+
+    /// <summary>site_key IN-clause over the resolved alias set; binds @site0..N into p.</summary>
+    private static string SiteInClause(string column, IReadOnlyList<string> keys, List<(string Name, object Value)> p)
+    {
+        if (keys.Count == 0)
+        {
+            return string.Empty;
+        }
+        var marks = new List<string>(keys.Count);
+        for (var i = 0; i < keys.Count; i++)
+        {
+            var n = "@site" + i;
+            p.Add((n, keys[i]));
+            marks.Add(n);
+        }
+        return $" AND {column} IN ({string.Join(',', marks)}) ";
+    }
+
+    /// <summary>
+    /// The keys a site filter may match: the canonical tenant key, the requested
+    /// key, and stored '<canon>_*' alias keys that are NOT registered tenants —
+    /// a real 'stylenlook_uk' tenant is never swept into 'stylenlook' reports.
+    /// </summary>
+    private static async Task<List<string>> ResolveSiteKeySetAsync(
+        DbConnection connection,
+        ITenantDbConnectionFactory connections,
+        string? canonicalSiteKey,
+        string? requestedSiteKey,
+        CancellationToken ct)
+    {
+        var keys = new List<string>();
+        void Add(string? k)
+        {
+            if (!string.IsNullOrEmpty(k) && k != "_all" && !keys.Contains(k, StringComparer.OrdinalIgnoreCase))
+            {
+                keys.Add(k);
+            }
+        }
+        Add(canonicalSiteKey);
+        Add(requestedSiteKey);
+        if (keys.Count == 0)
+        {
+            return keys;
+        }
+        try
+        {
+            var tenants = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            await using (var reg = await connections.OpenRegistryAsync(ct).ConfigureAwait(false))
+            {
+                await using var rc = reg.CreateCommand();
+                rc.CommandText = "SELECT `site_key` FROM `epc_portal_tenants` WHERE `is_active` = 1";
+                await using var rr = await rc.ExecuteReaderAsync(ct).ConfigureAwait(false);
+                while (await rr.ReadAsync(ct).ConfigureAwait(false))
+                {
+                    var sk = Convert.ToString(rr["site_key"], CultureInfo.InvariantCulture);
+                    if (!string.IsNullOrEmpty(sk))
+                    {
+                        tenants.Add(sk);
+                    }
+                }
+            }
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandTimeout = 30;
+            cmd.CommandText = ErpDb.Positional(
+                "SELECT DISTINCT `site_key` FROM `epc_web_tracker_sessions`"
+                + " WHERE `site_key` LIKE CONCAT(REPLACE(?,'_','\\_'),'\\_%') LIMIT 200");
+            ErpDb.AddParameters(cmd, canonicalSiteKey);
+            await using var r = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            while (await r.ReadAsync(ct).ConfigureAwait(false))
+            {
+                var sk = Convert.ToString(r[0], CultureInfo.InvariantCulture);
+                if (!string.IsNullOrEmpty(sk) && !tenants.Contains(sk))
+                {
+                    Add(sk);
+                }
+            }
+        }
+        catch
+        {
+            // alias discovery is best-effort; canonical+requested keys still apply
+        }
+        return keys;
     }
 
     private static async Task<IReadOnlyList<string>> LoadSiteOptionsAsync(DbConnection connection, ITenantDbConnectionFactory connections, CancellationToken cancellationToken)
