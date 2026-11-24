@@ -2329,6 +2329,7 @@ EcomAE.Platform.Erp.ErpAppAssets.Map(app);
 // Blazor SSR ops console (exact /migration/console). Interim improvement UI — not product chrome cutover.
 app.MapRazorComponents<App>();
 
+EcomAE.Platform.Ai.AiManagerEndpoints.MapAiManagerEndpoints(app);
 app.Run();
 
 public partial class Program;

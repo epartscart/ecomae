@@ -80,23 +80,23 @@ public sealed class AiPlatform : IAiPlatform
         await using var c = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
         var id = await ErpDb.LongAsync(c, null, ErpDb.Positional(
             "SELECT `id` FROM `ai_tenant_workspaces` WHERE `tenant_key` = ? LIMIT 1"), cancellationToken, tenantKey).ConfigureAwait(false);
-        if (id > 0)
+        if (id <= 0)
         {
-            return id;
+            await using var cmd = c.CreateCommand();
+            cmd.CommandText = ErpDb.Positional(
+                "INSERT INTO `ai_tenant_workspaces` (`tenant_key`,`display_name`,`created_at`,`updated_at`) VALUES (?,?,?,?)");
+            ErpDb.AddParameters(cmd, tenantKey, displayName, Now(), Now());
+            await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            id = await ErpDb.LongAsync(c, null, ErpDb.Positional(
+                "SELECT `id` FROM `ai_tenant_workspaces` WHERE `tenant_key` = ? LIMIT 1"), cancellationToken, tenantKey).ConfigureAwait(false);
         }
 
-        await using var cmd = c.CreateCommand();
-        cmd.CommandText = ErpDb.Positional(
-            "INSERT INTO `ai_tenant_workspaces` (`tenant_key`,`display_name`,`created_at`,`updated_at`) VALUES (?,?,?,?)");
-        ErpDb.AddParameters(cmd, tenantKey, displayName, Now(), Now());
-        await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-        id = await ErpDb.LongAsync(c, null, ErpDb.Positional(
-            "SELECT `id` FROM `ai_tenant_workspaces` WHERE `tenant_key` = ? LIMIT 1"), cancellationToken, tenantKey).ConfigureAwait(false);
-
-        // Tenant agent set: AI Manager + department specialists.
-        string[] specs = ["ai_manager","website_agent","cp_agent","erp_agent","support_agent","sales_agent",
-                          "purchase_agent","inventory_agent","accounts_agent","finance_agent","marketing_agent",
-                          "it_monitor_agent","bi_agent"];
+        // Idempotent seeding: safe to re-run after an interrupted first provision.
+        string[] specs = tenantKey == "platform"
+            ? ["platform_ai_manager","platform_tenant_agent","platform_infra_agent","platform_bi_agent"]
+            : ["ai_manager","website_agent","cp_agent","erp_agent","support_agent","sales_agent",
+               "purchase_agent","inventory_agent","accounts_agent","finance_agent","marketing_agent",
+               "it_monitor_agent","bi_agent"];
         foreach (var key in specs)
         {
             var exists = await ErpDb.LongAsync(c, null, ErpDb.Positional(
@@ -106,7 +106,7 @@ public sealed class AiPlatform : IAiPlatform
             ins.CommandText = ErpDb.Positional(
                 "INSERT INTO `ai_agents` (`workspace_id`,`template_key`,`name`,`is_manager`,`created_at`,`updated_at`)"
                 + " VALUES (?,?,?,?,?,?)");
-            ErpDb.AddParameters(ins, id, key, TemplateName(key), key == "ai_manager" ? 1 : 0, Now(), Now());
+            ErpDb.AddParameters(ins, id, key, TemplateName(key), key is "ai_manager" or "platform_ai_manager" ? 1 : 0, Now(), Now());
             await ins.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
         }
         return id;
@@ -127,6 +127,10 @@ public sealed class AiPlatform : IAiPlatform
         "marketing_agent" => "Marketing Agent",
         "it_monitor_agent" => "IT & Technical Monitoring Agent",
         "bi_agent" => "Business Intelligence & Reporting Agent",
+        "platform_ai_manager" => "Ecomae AI Manager",
+        "platform_tenant_agent" => "Tenant Management Agent",
+        "platform_infra_agent" => "IT & Infrastructure Agent",
+        "platform_bi_agent" => "Reporting & BI Agent",
         _ => key,
     };
 
