@@ -52,6 +52,9 @@ public static class StorefrontRegForm
 
         public string DomainPath { get; init; } = string.Empty;
 
+        /// <summary>ISO-2 country resolved from the request host (e.g. PK on auto247.pk); empty when unmapped.</summary>
+        public string HostCountry { get; init; } = string.Empty;
+
         public StorefrontAuthPartials.AuthLayout Layout { get; init; } = new();
     }
 
@@ -288,7 +291,7 @@ public static class StorefrontRegForm
         sb.Append("\t\t");
         if (input.Enhanced)
         {
-            sb.Append(EpcRegistrationEnhancedRender.AccountTabs());
+            sb.Append(EpcRegistrationEnhancedRender.AccountTabs(input.HostCountry));
         }
         else
         {

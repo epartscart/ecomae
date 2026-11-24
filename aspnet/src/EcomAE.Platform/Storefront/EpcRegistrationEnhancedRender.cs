@@ -171,8 +171,23 @@ public static class EpcRegistrationEnhancedRender
     }
 
     /// <summary>PHP <c>epc_reg_render_account_tabs()</c>, which ends with <see cref="TabScripts"/>.</summary>
-    public static string AccountTabs()
+    public static string AccountTabs() => AccountTabs(string.Empty);
+
+    /// <summary>
+    /// <paramref name="hostCountry"/> preselects the country and localizes the tax-ID / KYC copy so
+    /// auto247.pk shows Pakistan labels (CNIC / NTN) instead of UAE law text.
+    /// </summary>
+    public static string AccountTabs(string hostCountry)
     {
+        var countryLabel = hostCountry.Length == 0
+            ? "your country"
+            : EpcCountries.RegistrationOptions.FirstOrDefault(c => c.Key == hostCountry).Value ?? hostCountry;
+        var nationalId = hostCountry == "AE" ? "Emirates ID" : hostCountry == "PK" ? "CNIC" : "National ID";
+        var trnHelp = hostCountry == "AE"
+            ? "UAE companies must provide a 15-digit TRN. Other countries may enter TRN or mark as not available."
+            : hostCountry == "PK"
+                ? "Pakistan companies should provide their NTN / sales-tax registration number; you may also mark as not available."
+                : "Companies should provide their tax registration number, or mark it as not available.";
         var sb = new StringBuilder();
         sb.Append("\t<input type=\"hidden\" name=\"epc_customer_type\" id=\"epc_customer_type_field\" value=\"retail\" />\n");
         sb.Append("\t<div class=\"panel panel-primary epc-reg-account-panel\">\n");
@@ -200,7 +215,7 @@ public static class EpcRegistrationEnhancedRender
         sb.Append("\t\t\t\t\t<div class=\"form-group\">\n");
         sb.Append("\t\t\t\t\t\t<label for=\"epc_retail_country\" class=\"col-sm-4 col-lg-3 control-label\">Country*</label>\n");
         sb.Append("\t\t\t\t\t\t<div class=\"col-sm-8 col-lg-9\" style=\"padding:5px;\">");
-        sb.Append(CountrySelect("epc_retail_country", string.Empty, "epc_retail_country"));
+        sb.Append(CountrySelect("epc_retail_country", hostCountry, "epc_retail_country"));
         sb.Append("</div>\n");
         sb.Append("\t\t\t\t\t</div>\n");
         sb.Append("\t\t\t\t\t<div class=\"form-group\">\n");
@@ -271,7 +286,7 @@ public static class EpcRegistrationEnhancedRender
         sb.Append("\t\t\t\t\t<div class=\"form-group\">\n");
         sb.Append("\t\t\t\t\t\t<label for=\"epc_wholesale_country\" class=\"col-sm-4 col-lg-3 control-label\">Country*</label>\n");
         sb.Append("\t\t\t\t\t\t<div class=\"col-sm-8 col-lg-9\" style=\"padding:5px;\">");
-        sb.Append(CountrySelect("epc_wholesale_country", string.Empty, "epc_wholesale_country"));
+        sb.Append(CountrySelect("epc_wholesale_country", hostCountry, "epc_wholesale_country"));
         sb.Append("</div>\n");
         sb.Append("\t\t\t\t\t</div>\n");
         sb.Append("\t\t\t\t\t<div class=\"form-group\">\n");
@@ -320,7 +335,7 @@ public static class EpcRegistrationEnhancedRender
         sb.Append("\t\t\t\t\t<div class=\"form-group\" id=\"epc_wholesale_trn_block\">\n");
         sb.Append("\t\t\t\t\t\t<label class=\"col-sm-4 col-lg-3 control-label\">Tax registration (TRN)</label>\n");
         sb.Append("\t\t\t\t\t\t<div class=\"col-sm-8 col-lg-9\" style=\"padding:5px;\">\n");
-        sb.Append("\t\t\t\t\t\t\t<p class=\"help-block\" style=\"margin-top:0;\" id=\"epc_trn_help\">UAE companies must provide a 15-digit TRN. Other countries may enter TRN or mark as not available.</p>\n");
+        sb.Append("\t\t\t\t\t\t\t<p class=\"help-block\" style=\"margin-top:0;\" id=\"epc_trn_help\">" + H(trnHelp) + "</p>\n");
         sb.Append("\t\t\t\t\t\t\t<div id=\"epc_trn_uae_only\" style=\"display:none\">\n");
         sb.Append("\t\t\t\t\t\t\t\t<input type=\"text\" class=\"form-control\" name=\"epc_wholesale_trn\" id=\"epc_wholesale_trn\" maxlength=\"15\" placeholder=\"e.g. 100123456700003\" />\n");
         sb.Append("\t\t\t\t\t\t\t</div>\n");
@@ -348,9 +363,9 @@ public static class EpcRegistrationEnhancedRender
         sb.Append("\n");
         sb.Append("\t\t\t\t\t<hr style=\"margin:18px 0 12px;border-top:1px solid #e5e7eb;\" />\n");
         sb.Append("\t\t\t\t\t<p class=\"help-block\" style=\"margin:0 0 4px;font-size:15px;font-weight:700;color:#0f172a;\">Additional information (wholesale only)</p>\n");
-        sb.Append("\t\t\t\t\t<p class=\"help-block\" style=\"margin:0 0 12px;\"><strong>KYC / AML &amp; e-invoice documents</strong> — required for wholesale approval under UAE compliance practice. Not shown for retail customers. PDF or image, max 8&nbsp;MB each.</p>\n");
+        sb.Append("\t\t\t\t\t<p class=\"help-block\" style=\"margin:0 0 12px;\"><strong>KYC / AML &amp; e-invoice documents</strong> — required for wholesale approval under " + H(countryLabel) + " compliance practice. Not shown for retail customers. PDF or image, max 8&nbsp;MB each.</p>\n");
         sb.Append("\t\t\t\t\t<div class=\"form-group\">\n");
-        sb.Append("\t\t\t\t\t\t<label for=\"epc_emirates_id_no\" class=\"col-sm-4 col-lg-3 control-label\">Emirates ID no.</label>\n");
+        sb.Append("\t\t\t\t\t\t<label for=\"epc_emirates_id_no\" class=\"col-sm-4 col-lg-3 control-label\">" + H(nationalId) + " no.</label>\n");
         sb.Append("\t\t\t\t\t\t<div class=\"col-sm-8 col-lg-9\" style=\"padding:5px;\"><input type=\"text\" class=\"form-control\" name=\"epc_emirates_id_no\" id=\"epc_emirates_id_no\" maxlength=\"20\" placeholder=\"784-XXXX-XXXXXXX-X\" /></div>\n");
         sb.Append("\t\t\t\t\t</div>\n");
         sb.Append("\t\t\t\t\t<div class=\"form-group\">\n");
@@ -384,7 +399,7 @@ public static class EpcRegistrationEnhancedRender
         sb.Append("\t\t\t\t\t\t<div class=\"col-sm-8 col-lg-9\" style=\"padding:5px;\"><input type=\"file\" class=\"form-control epc-reg-wholesale-file\" name=\"epc_doc_trade_licence\" id=\"epc_doc_trade_licence\" accept=\".pdf,.jpg,.jpeg,.png,.webp\" /></div>\n");
         sb.Append("\t\t\t\t\t</div>\n");
         sb.Append("\t\t\t\t\t<div class=\"form-group\">\n");
-        sb.Append("\t\t\t\t\t\t<label for=\"epc_doc_emirates_id\" class=\"col-sm-4 col-lg-3 control-label\">Emirates ID copy*</label>\n");
+        sb.Append("\t\t\t\t\t\t<label for=\"epc_doc_emirates_id\" class=\"col-sm-4 col-lg-3 control-label\">" + H(nationalId) + " copy*</label>\n");
         sb.Append("\t\t\t\t\t\t<div class=\"col-sm-8 col-lg-9\" style=\"padding:5px;\"><input type=\"file\" class=\"form-control epc-reg-wholesale-file\" name=\"epc_doc_emirates_id\" id=\"epc_doc_emirates_id\" accept=\".pdf,.jpg,.jpeg,.png,.webp\" /></div>\n");
         sb.Append("\t\t\t\t\t</div>\n");
         sb.Append("\t\t\t\t\t<div class=\"form-group\">\n");
@@ -463,7 +478,7 @@ public static class EpcRegistrationEnhancedRender
         sb.Append("\t\t\tif(uae)uae.style.display='';\n");
         sb.Append("\t\t\tif(non)non.style.display='none';\n");
         sb.Append("\t\t\tif(emRow)emRow.style.display='';\n");
-        sb.Append("\t\t\tif(help)help.textContent='UAE B2B: 15-digit TRN is mandatory for e-invoicing.';\n");
+        sb.Append("\t\t\tif(help)help.textContent='A 15-digit TRN is mandatory for e-invoicing in the UAE.';\n");
         sb.Append("\t\t}else{\n");
         sb.Append("\t\t\tif(uae)uae.style.display='none';\n");
         sb.Append("\t\t\tif(non)non.style.display='';\n");
@@ -562,7 +577,7 @@ public static class EpcRegistrationEnhancedRender
         sb.Append("\t\t\tif(countryEl.value==='AE'){\n");
         sb.Append("\t\t\t\tvar trn=(document.getElementById('epc_wholesale_trn')||{}).value||'';\n");
         sb.Append("\t\t\t\ttrn=trn.replace(/\\D/g,'');\n");
-        sb.Append("\t\t\t\tif(trn.length!==15){alert('UAE TRN must be 15 digits.');return false;}\n");
+        sb.Append("\t\t\t\tif(trn.length!==15){alert('TRN must be 15 digits.');return false;}\n");
         sb.Append("\t\t\t}else{\n");
         sb.Append("\t\t\t\tvar mode=document.querySelector('#epc_reg_tab_wholesale input[name=\"epc_reg_trn_mode\"]:checked');\n");
         sb.Append("\t\t\t\tif(!mode){alert('Please choose TRN status: enter TRN or Not available.');return false;}\n");
@@ -576,7 +591,7 @@ public static class EpcRegistrationEnhancedRender
         sb.Append("\t\t\tvar tlFile=document.getElementById('epc_doc_trade_licence');\n");
         sb.Append("\t\t\tvar eidFile=document.getElementById('epc_doc_emirates_id');\n");
         sb.Append("\t\t\tif(!tlFile||!tlFile.files||!tlFile.files.length){alert('Please upload your trade licence scan.');if(tlFile){try{tlFile.focus();}catch(e){}}return false;}\n");
-        sb.Append("\t\t\tif(!eidFile||!eidFile.files||!eidFile.files.length){alert('Please upload your Emirates ID copy.');if(eidFile){try{eidFile.focus();}catch(e){}}return false;}\n");
+        sb.Append("\t\t\tif(!eidFile||!eidFile.files||!eidFile.files.length){alert('Please upload your national ID copy.');if(eidFile){try{eidFile.focus();}catch(e){}}return false;}\n");
         sb.Append("\t\t}\n");
         sb.Append("\t\tepcRegSyncCountryHidden();\n");
         sb.Append("\t\treturn true;\n");
