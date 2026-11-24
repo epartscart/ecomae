@@ -83,6 +83,7 @@ public sealed class AiAgentScheduler : BackgroundService
             await using var scope = _scopes.CreateAsyncScope();
             var connections = scope.ServiceProvider.GetRequiredService<ITenantDbConnectionFactory>();
             var runtime = scope.ServiceProvider.GetRequiredService<IAiAgentRuntime>();
+            var ai = scope.ServiceProvider.GetRequiredService<IAiPlatform>();
 
             await using var reg = await connections.OpenRegistryAsync(ct).ConfigureAwait(false);
             // Join the tenant registry for the real tenant DB name and to drop workspaces
@@ -104,6 +105,10 @@ public sealed class AiAgentScheduler : BackgroundService
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             foreach (var (wsId, tenantKey, dbName) in workspaces)
             {
+                // Top-up provisioning: adds newly introduced agent templates to existing workspaces
+                // so scheduled sweeps cover every agent without anyone visiting the AI page.
+                await ai.WorkspaceForAsync(tenantKey, tenantKey, ct).ConfigureAwait(false);
+
                 var agents = new List<(long Id, string TemplateKey, string Status)>();
                 await using (var cmd = reg.CreateCommand())
                 {
