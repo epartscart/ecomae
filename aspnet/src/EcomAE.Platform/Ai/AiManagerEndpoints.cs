@@ -15,24 +15,100 @@ public static class AiManagerEndpoints
         // Both prefixes are nginx-proxied to the app; a root-level path is not (it rewrites to /storefront/app).
         app.MapPost("/cp/ai-manager-action", HandleAsync);
         app.MapPost("/en/ai-manager-action", HandleAsync);
+        // Public storefront assistant — no staff gate, rate-limited per IP.
+        app.MapPost("/en/ai-guest-chat", GuestChatAsync);
         return app;
     }
 
-    private static async Task<IResult> HandleAsync(HttpContext ctx, IAiPlatform ai, IAiAgentRuntime runtime, ILegacySessionValidator sessions)
+    /// <summary>Cross-site write protection shared by the AI POST endpoints.</summary>
+    private static bool CrossSite(HttpContext ctx)
     {
-        // Cross-site write protection — this cookie-authenticated endpoint sits outside the admin-surface guard.
         var secSite = ctx.Request.Headers["Sec-Fetch-Site"].ToString();
         if (string.Equals(secSite, "cross-site", StringComparison.OrdinalIgnoreCase))
         {
-            return Results.StatusCode(StatusCodes.Status403Forbidden);
+            return true;
         }
         var src = ctx.Request.Headers.Origin.ToString();
         if (string.IsNullOrWhiteSpace(src) || string.Equals(src, "null", StringComparison.OrdinalIgnoreCase))
         {
             src = ctx.Request.Headers.Referer.ToString();
         }
-        if (!string.IsNullOrWhiteSpace(src)
-            && (!Uri.TryCreate(src, UriKind.Absolute, out var su) || !string.Equals(su.Host, ctx.Request.Host.Host, StringComparison.OrdinalIgnoreCase)))
+        return !string.IsNullOrWhiteSpace(src)
+            && (!Uri.TryCreate(src, UriKind.Absolute, out var su) || !string.Equals(su.Host, ctx.Request.Host.Host, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>Visitor chat on the tenant storefront — routes to the Support Agent (platform AI Manager on ecomae.com).</summary>
+    private static async Task<IResult> GuestChatAsync(HttpContext ctx, IAiPlatform ai, IAiAgentRuntime runtime)
+    {
+        if (CrossSite(ctx))
+        {
+            return Results.StatusCode(StatusCodes.Status403Forbidden);
+        }
+        var form = await ctx.Request.ReadFormAsync(ctx.RequestAborted).ConfigureAwait(false);
+        var text = (form["text"].ToString() ?? "").Trim();
+        var back = "/en/AI";
+        var referer = ctx.Request.Headers.Referer.ToString();
+        if (referer.Contains("/AI", StringComparison.OrdinalIgnoreCase) && Uri.TryCreate(referer, UriKind.Absolute, out var ru))
+        {
+            back = ru.PathAndQuery.Split('?')[0];
+        }
+        if (text.Length == 0 || text.Length > 2000)
+        {
+            return Results.Redirect(back);
+        }
+
+        var tenant = ctx.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        var isPlatform = tenant?.SiteKey == "platform" || tenant?.Mode == TenantMode.Platform;
+        var key = isPlatform ? "platform" : (tenant?.SiteKey ?? tenant?.DatabaseName ?? ctx.Request.Host.Host);
+        var ws = await ai.WorkspaceForAsync(key, tenant?.DisplayName ?? ctx.Request.Host.Host, ctx.RequestAborted).ConfigureAwait(false);
+
+        // Rate limit: 10 guest messages per hour per IP per workspace.
+        // Behind nginx, RemoteIpAddress is loopback — take the client IP from X-Forwarded-For's first hop.
+        var ip = (ctx.Request.Headers["X-Forwarded-For"].ToString().Split(',').FirstOrDefault() ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(ip))
+        {
+            ip = ctx.Connection.RemoteIpAddress?.ToString() ?? "?";
+        }
+        var actor = "guest:" + ip;
+        var recent = await ai.MessagesAsync(ws.Id, 300, ctx.RequestAborted).ConfigureAwait(false);
+        var hourAgo = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 3600;
+        if (recent.Count(m => m.FromActor == actor && m.Direction == "inbound" && m.CreatedAt >= hourAgo) >= 10)
+        {
+            return Results.Redirect(back + "?m=" + Uri.EscapeDataString("Please wait a little before sending more messages."));
+        }
+
+        var agents = await ai.AgentsAsync(ws.Id, ctx.RequestAborted).ConfigureAwait(false);
+        var agent = isPlatform
+            ? (agents.FirstOrDefault(a => a.TemplateKey == "platform_ai_manager") ?? agents.FirstOrDefault())
+            : (agents.FirstOrDefault(a => a.TemplateKey == "support_agent") ?? agents.FirstOrDefault(a => a.IsManager) ?? agents.FirstOrDefault());
+        var mid = await ai.PostMessageAsync(new AiMessage(0, ws.Id, "inbound", null, actor, agent?.Id, text, null, "open", "", 0), ctx.RequestAborted).ConfigureAwait(false);
+        var flash = "Our assistant is unavailable right now — please try again shortly.";
+        if (agent is not null && agent.Status == "active")
+        {
+            var row = await runtime.RunAsync(ws.TenantKey, tenant?.DatabaseName, agent.Id, "guest", text, ctx.RequestAborted).ConfigureAwait(false);
+            if (row.OutputSummary is not null)
+            {
+                await ai.PostMessageAsync(new AiMessage(0, ws.Id, "outbound", agent.Id, agent.Name, null, row.OutputSummary, mid, "answered", "", 0), ctx.RequestAborted).ConfigureAwait(false);
+                flash = row.OutputSummary;
+            }
+            else if (row.Error is not null && row.Error != "agent_suspended")
+            {
+                flash = "Assistant error: " + row.Error;
+            }
+        }
+        // Replies ride in the redirect URL — cap it so long/non-ASCII answers can't break the next request.
+        const int MaxFlashChars = 600;
+        if (flash.Length > MaxFlashChars)
+        {
+            flash = flash[..MaxFlashChars] + "…";
+        }
+        return Results.Redirect(back + "?m=" + Uri.EscapeDataString(flash));
+    }
+
+    private static async Task<IResult> HandleAsync(HttpContext ctx, IAiPlatform ai, IAiAgentRuntime runtime, ILegacySessionValidator sessions)
+    {
+        // Cross-site write protection — this cookie-authenticated endpoint sits outside the admin-surface guard.
+        if (CrossSite(ctx))
         {
             return Results.StatusCode(StatusCodes.Status403Forbidden);
         }
