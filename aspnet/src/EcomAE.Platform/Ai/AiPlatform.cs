@@ -48,14 +48,10 @@ public sealed class AiPlatform : IAiPlatform
     {
         await EnsureSchemaAsync(cancellationToken).ConfigureAwait(false);
         await using var c = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
+        // Provision is idempotent and tops up newly added agent templates on existing workspaces.
+        await ProvisionTenantAsync(tenantKey, displayName, cancellationToken).ConfigureAwait(false);
         var id = await ErpDb.LongAsync(c, null, ErpDb.Positional(
             "SELECT `id` FROM `ai_tenant_workspaces` WHERE `tenant_key` = ? LIMIT 1"), cancellationToken, tenantKey).ConfigureAwait(false);
-        if (id <= 0)
-        {
-            await ProvisionTenantAsync(tenantKey, displayName, cancellationToken).ConfigureAwait(false);
-            id = await ErpDb.LongAsync(c, null, ErpDb.Positional(
-                "SELECT `id` FROM `ai_tenant_workspaces` WHERE `tenant_key` = ? LIMIT 1"), cancellationToken, tenantKey).ConfigureAwait(false);
-        }
         return await LoadWorkspaceAsync(c, id, cancellationToken).ConfigureAwait(false);
     }
 
@@ -313,12 +309,12 @@ public sealed class AiPlatform : IAiPlatform
         };
         foreach (var t in rows)
         {
-            var exists = await ErpDb.LongAsync(c, null, ErpDb.Positional(
-                "SELECT `id` FROM `ai_agent_templates` WHERE `key` = ? LIMIT 1"), ct, t.Key).ConfigureAwait(false);
-            if (exists > 0) continue;
+            // Upsert so template upgrades (instructions/risk) reach existing registries.
             await using var cmd = c.CreateCommand();
             cmd.CommandText = ErpDb.Positional(
-                "INSERT INTO `ai_agent_templates` (`key`,`name`,`scope`,`department`,`instructions`,`risk_level`,`created_at`,`updated_at`) VALUES (?,?,?,?,?,?,?,?)");
+                "INSERT INTO `ai_agent_templates` (`key`,`name`,`scope`,`department`,`instructions`,`risk_level`,`created_at`,`updated_at`) VALUES (?,?,?,?,?,?,?,?)"
+                + " ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `scope` = VALUES(`scope`), `department` = VALUES(`department`),"
+                + " `instructions` = VALUES(`instructions`), `risk_level` = VALUES(`risk_level`), `updated_at` = VALUES(`updated_at`)");
             ErpDb.AddParameters(cmd, t.Key, t.Name, t.Scope, t.Dept, t.Instructions, t.Risk, Now(), Now());
             await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
         }
