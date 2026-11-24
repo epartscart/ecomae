@@ -91,12 +91,14 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
     private readonly ITenantDbConnectionFactory _connections;
     private readonly IAiModelClient _model;
     private readonly IConfiguration _config;
+    private readonly IAiPlatform _platform;
 
-    public AiAgentRuntime(ITenantDbConnectionFactory connections, IAiModelClient model, IConfiguration config)
+    public AiAgentRuntime(ITenantDbConnectionFactory connections, IAiModelClient model, IConfiguration config, IAiPlatform platform)
     {
         _connections = connections;
         _model = model;
         _config = config;
+        _platform = platform;
     }
 
     private string DefaultModel => _config["AI_MODEL_DEFAULT"] ?? "gpt-4o-mini";
@@ -150,10 +152,25 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
         // Gather authorized context (read-only business snapshot through tenant DB).
         var context = await GatherTenantContextAsync(tenantKey, cancellationToken).ConfigureAwait(false);
         var system = instructions + "\n\nYou operate inside tenant '" + tenantKey + "'. "
-            + "Never request or fabricate another tenant's data. Reply concise, structured: findings, risks, recommended actions (each marked AUTO or NEEDS-APPROVAL).";
+            + "Never request or fabricate another tenant's data. Reply concise, structured: findings, risks, recommended actions (each marked AUTO or NEEDS-APPROVAL). "
+            + "If the task is a request for a new module, feature or platform-level improvement that you cannot fulfil inside the tenant, "
+            + "append one line starting 'ESCALATE:' with a one-sentence hand-off to the platform AI Manager.";
         var result = await _model.CompleteAsync(DefaultModel, system, "Task: " + taskText + "\n\nTenant snapshot (authorized):\n" + context, cancellationToken).ConfigureAwait(false);
 
         var status = result.Error is null ? "completed" : "failed";
+
+        // Auto-escalation: agent flagged a platform-level request -> platform workspace inbox (audited).
+        var escalate = result.Text is null ? null : result.Text.Split('\n')
+            .Select(l => l.Trim())
+            .FirstOrDefault(l => l.StartsWith("ESCALATE:", StringComparison.OrdinalIgnoreCase));
+        if (escalate is not null && !string.Equals(tenantKey, "platform", StringComparison.OrdinalIgnoreCase))
+        {
+            var platformWs = await _platform.WorkspaceForAsync("platform", "Ecomae Platform", cancellationToken).ConfigureAwait(false);
+            var handoff = "[" + tenantKey + "] " + escalate["ESCALATE:".Length..].Trim();
+            await _platform.PostMessageAsync(new AiMessage(0, platformWs.Id, "escalate", agentId, "agent:" + agentName + "@" + tenantKey, null, handoff, null, "open", corr, 0), cancellationToken).ConfigureAwait(false);
+            await _platform.PostMessageAsync(new AiMessage(0, wsId, "escalate", agentId, agentName, null, handoff, null, "open", corr, 0), cancellationToken).ConfigureAwait(false);
+        }
+
         var row = Finish(reg, wsId, agentId, agentName, trigger, status, result.Model,
             result.TokensIn, result.TokensOut, result.CostUsd, started, result.Error ?? Trim(result.Text, 3000), corr, cancellationToken);
 
