@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Globalization;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Erp;
@@ -80,6 +81,19 @@ public static class AiModelPricing
     }
 }
 
+/// <summary>Shared system map injected into every agent so each one understands the whole platform.</summary>
+internal static class AiSystemContext
+{
+    internal const string SYSTEM_CONTEXT =
+    "You are an AI agent inside the Ecomae / ePartsCart multi-tenant ERP+BOS+storefront platform. " +
+    "The whole system: country-domain storefronts, a Control Panel (CP), a multi-country ERP (legal entities, business units, per-country tax rules, warehouses tagged by country), payment gateways (Stripe + others), shared catalog providers (UMAPI/TUR/Laximo), and a platform-level Super BOS. " +
+    "You work with peer agents: website, CP, ERP, support, sales, purchase, inventory, operations (order-lifecycle orchestrator), accounts, finance (payments + ERP accounting), marketing, IT-monitoring and BI. " +
+    "On any bug, error, failed job or anomaly you detect, report it immediately as a finding marked URGENT and name the responsible party. " +
+    "Protocol: when the platform ships modifications or improvements, your system context and your workspace's tenant snapshot are refreshed automatically every run — always advise from the current snapshot, never from memory of older states. " +
+    "When a new tenant onboards, its workspace and agent fleet are provisioned automatically on first access; when a tenant gains a new client or business unit, treat it as part of that tenant's isolated data from the next snapshot. " +
+    "All money movement, refunds, order changes and publishing require human approval — you propose, humans execute.\n\n";
+}
+
 public interface IAiAgentRuntime
 {
     /// <summary>Run one agent once; the tenant is resolved server-side — never from model input.</summary>
@@ -112,11 +126,11 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
         var started = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         // Server-side context: agent + template resolved from trusted registry rows only.
-        string agentName = "", instructions = "", risk = "read";
+        string agentName = "", instructions = "", risk = "read", templateKey = "";
         await using (var cmd = reg.CreateCommand())
         {
             cmd.CommandText = ErpDb.Positional(
-                "SELECT a.`name`, IFNULL(t.`instructions`,''), IFNULL(t.`risk_level`,'read'), a.`status`"
+                "SELECT a.`name`, IFNULL(t.`instructions`,''), IFNULL(t.`risk_level`,'read'), a.`status`, a.`template_key`"
                 + " FROM `ai_agents` a LEFT JOIN `ai_agent_templates` t ON t.`key` = a.`template_key`"
                 + " WHERE a.`id` = ? AND a.`workspace_id` = ? LIMIT 1");
             ErpDb.AddParameters(cmd, agentId, wsId);
@@ -126,6 +140,7 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
                 agentName = r.GetString(0);
                 instructions = r.GetString(1);
                 risk = r.GetString(2);
+                templateKey = r.GetString(4);
                 if (r.GetString(3) != "active")
                 {
                     return Finish(reg, wsId, agentId, agentName, trigger, "suspended", "", 0, 0, 0, started, "agent_suspended", corr, cancellationToken);
@@ -150,8 +165,8 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
         }
 
         // Gather authorized context (read-only business snapshot through tenant DB).
-        var context = await GatherTenantContextAsync(tenantDbName ?? tenantKey, cancellationToken).ConfigureAwait(false);
-        var system = instructions + "\n\nYou operate inside tenant '" + tenantKey + "'. "
+        var context = await GatherTenantContextAsync(tenantDbName ?? tenantKey, templateKey, cancellationToken).ConfigureAwait(false);
+        var system = AiSystemContext.SYSTEM_CONTEXT + instructions + "\n\nYou operate inside tenant '" + tenantKey + "'. "
             + "Never request or fabricate another tenant's data. Reply concise, structured: findings, risks, recommended actions (each marked AUTO or NEEDS-APPROVAL). "
             + "If the task is a request for a new module, feature or platform-level improvement that you cannot fulfil inside the tenant, "
             + "append one line starting 'ESCALATE:' with a one-sentence hand-off to the platform AI Manager.";
@@ -190,8 +205,8 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
         return row;
     }
 
-    /// <summary>Read-only tenant snapshot via tenant DB — cheap counts only.</summary>
-    private async Task<string> GatherTenantContextAsync(string tenantKey, CancellationToken ct)
+    /// <summary>Read-only tenant snapshot via tenant DB — cheap counts; order-lifecycle rows for the operations orchestrator.</summary>
+    private async Task<string> GatherTenantContextAsync(string tenantKey, string templateKey, CancellationToken ct)
     {
         try
         {
@@ -200,7 +215,26 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
             var orders = await Scalar(c, "SELECT COUNT(*) FROM `orders`", ct);
             var users = await Scalar(c, "SELECT COUNT(*) FROM `users`", ct);
             var products = await Scalar(c, "SELECT COUNT(*) FROM `products`", ct);
-            return "orders=" + orders + " users=" + users + " products=" + products;
+            var sb = new StringBuilder("orders=" + orders + " users=" + users + " products=" + products);
+            if (templateKey == "operations_agent")
+            {
+                sb.Append("\nrecent_orders (latest first, all available columns):");
+                try
+                {
+                    await using var cmd = c.CreateCommand();
+                    cmd.CommandText = "SELECT * FROM `orders` ORDER BY `id` DESC LIMIT 15";
+                    await using var r = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+                    while (await r.ReadAsync(ct).ConfigureAwait(false))
+                    {
+                        var cols = new List<string>(r.FieldCount);
+                        for (var i = 0; i < r.FieldCount && i < 25; i++)
+                            cols.Add(r.GetName(i) + "=" + (r.IsDBNull(i) ? "null" : Convert.ToString(r.GetValue(i), CultureInfo.InvariantCulture)));
+                        sb.Append('\n').Append(string.Join(" ", cols));
+                    }
+                }
+                catch (DbException) { sb.Append(" unavailable"); }
+            }
+            return sb.ToString();
         }
         catch (DbException)
         {

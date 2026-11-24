@@ -48,14 +48,10 @@ public sealed class AiPlatform : IAiPlatform
     {
         await EnsureSchemaAsync(cancellationToken).ConfigureAwait(false);
         await using var c = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
+        // Provision is idempotent and tops up newly added agent templates on existing workspaces.
+        await ProvisionTenantAsync(tenantKey, displayName, cancellationToken).ConfigureAwait(false);
         var id = await ErpDb.LongAsync(c, null, ErpDb.Positional(
             "SELECT `id` FROM `ai_tenant_workspaces` WHERE `tenant_key` = ? LIMIT 1"), cancellationToken, tenantKey).ConfigureAwait(false);
-        if (id <= 0)
-        {
-            await ProvisionTenantAsync(tenantKey, displayName, cancellationToken).ConfigureAwait(false);
-            id = await ErpDb.LongAsync(c, null, ErpDb.Positional(
-                "SELECT `id` FROM `ai_tenant_workspaces` WHERE `tenant_key` = ? LIMIT 1"), cancellationToken, tenantKey).ConfigureAwait(false);
-        }
         return await LoadWorkspaceAsync(c, id, cancellationToken).ConfigureAwait(false);
     }
 
@@ -96,7 +92,7 @@ public sealed class AiPlatform : IAiPlatform
             ? ["platform_ai_manager","platform_tenant_agent","platform_infra_agent","platform_bi_agent"]
             : ["ai_manager","website_agent","cp_agent","erp_agent","support_agent","sales_agent",
                "purchase_agent","inventory_agent","accounts_agent","finance_agent","marketing_agent",
-               "it_monitor_agent","bi_agent"];
+               "it_monitor_agent","bi_agent","operations_agent"];
         foreach (var key in specs)
         {
             var exists = await ErpDb.LongAsync(c, null, ErpDb.Positional(
@@ -127,6 +123,7 @@ public sealed class AiPlatform : IAiPlatform
         "marketing_agent" => "Marketing Agent",
         "it_monitor_agent" => "IT & Technical Monitoring Agent",
         "bi_agent" => "Business Intelligence & Reporting Agent",
+        "operations_agent" => "Operations Agent",
         "platform_ai_manager" => "Ecomae AI Manager",
         "platform_tenant_agent" => "Tenant Management Agent",
         "platform_infra_agent" => "IT & Infrastructure Agent",
@@ -299,10 +296,11 @@ public sealed class AiPlatform : IAiPlatform
             ("purchase_agent", "Purchase Management Agent", "tenant", "purchase", "Analyze purchasing, suppliers, low stock. Prepare purchase recommendations for approval.", "write"),
             ("inventory_agent", "Inventory Management Agent", "tenant", "inventory", "Detect low stock, dead stock, discrepancies. Recommend adjustments for approval.", "write"),
             ("accounts_agent", "Accounts Management Agent", "tenant", "accounts", "Review receivables/payables, anomalies, reconciliations. Flag unusual transactions.", "read"),
-            ("finance_agent", "Finance Management Agent", "tenant", "finance", "Summarize financial position, flag anomalies. Never move funds or post entries.", "read"),
+            ("finance_agent", "Finance Management Agent", "tenant", "finance", "Monitor all payments (Stripe and every gateway), verify each order's payment status, and review ERP accounting records across the tenant's legal entities and countries (multi-country finance operations, per-entity tax rules). Flag unpaid, mismatched, refunded or anomalous transactions immediately. Never move funds or post entries.", "write"),
             ("marketing_agent", "Marketing Agent", "tenant", "marketing", "SEO/marketing monitoring and recommendations for the tenant. Publishing requires approval.", "write"),
-            ("it_monitor_agent", "IT Monitoring Agent", "tenant", "it", "Monitor tenant infrastructure signals and scheduled jobs. Report incidents.", "read"),
+            ("it_monitor_agent", "IT Monitoring Agent", "tenant", "it", "Monitor tenant infrastructure signals and scheduled jobs. Report incidents. On any bug, error or outage symptom, report immediately with a notification to the responsible party.", "read"),
             ("bi_agent", "BI & Reporting Agent", "tenant", "reporting", "Produce daily/weekly/monthly tenant business summaries and improvement advice.", "read"),
+            ("operations_agent", "Operations Agent", "tenant", "operations", "You are the operations orchestrator. For each customer order you track its full lifecycle: check payment status with the finance agent, check item fulfilment and supplier status with the purchase agent, follow inbound material until order confirmation, then shipment and tracking until delivered. Flag any order stuck at a stage, name the stage and the responsible agent, and propose the unblocking action. Prepare a daily order-flow report for the AI Manager.", "write"),
             // Platform scope
             ("platform_ai_manager", "Ecomae AI Manager", "platform", "management", "Coordinate all platform agents and tenant AI health across the fleet. Report to management daily.", "read"),
             ("platform_tenant_agent", "Tenant Management Agent", "platform", "tenants", "Monitor tenant onboarding, health, lifecycle and provisioning.", "read"),
@@ -311,12 +309,12 @@ public sealed class AiPlatform : IAiPlatform
         };
         foreach (var t in rows)
         {
-            var exists = await ErpDb.LongAsync(c, null, ErpDb.Positional(
-                "SELECT `id` FROM `ai_agent_templates` WHERE `key` = ? LIMIT 1"), ct, t.Key).ConfigureAwait(false);
-            if (exists > 0) continue;
+            // Upsert so template upgrades (instructions/risk) reach existing registries.
             await using var cmd = c.CreateCommand();
             cmd.CommandText = ErpDb.Positional(
-                "INSERT INTO `ai_agent_templates` (`key`,`name`,`scope`,`department`,`instructions`,`risk_level`,`created_at`,`updated_at`) VALUES (?,?,?,?,?,?,?,?)");
+                "INSERT INTO `ai_agent_templates` (`key`,`name`,`scope`,`department`,`instructions`,`risk_level`,`created_at`,`updated_at`) VALUES (?,?,?,?,?,?,?,?)"
+                + " ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `scope` = VALUES(`scope`), `department` = VALUES(`department`),"
+                + " `instructions` = VALUES(`instructions`), `risk_level` = VALUES(`risk_level`), `updated_at` = VALUES(`updated_at`)");
             ErpDb.AddParameters(cmd, t.Key, t.Name, t.Scope, t.Dept, t.Instructions, t.Risk, Now(), Now());
             await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
         }
