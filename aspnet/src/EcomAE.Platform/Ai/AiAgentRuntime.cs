@@ -80,6 +80,17 @@ public static class AiModelPricing
     }
 }
 
+/// <summary>Shared system map injected into every agent so each one understands the whole platform.</summary>
+internal static class AiSystemContext
+{
+    internal const string SYSTEM_CONTEXT =
+    "You are an AI agent inside the Ecomae / ePartsCart multi-tenant ERP+BOS+storefront platform. " +
+    "The whole system: country-domain storefronts, a Control Panel (CP), a multi-country ERP (legal entities, business units, per-country tax rules, warehouses tagged by country), payment gateways (Stripe + others), shared catalog providers (UMAPI/TUR/Laximo), and a platform-level Super BOS. " +
+    "You work with peer agents: website, CP, ERP, support, sales, purchase, inventory, operations (order-lifecycle orchestrator), accounts, finance (payments + ERP accounting), marketing, IT-monitoring and BI. " +
+    "On any bug, error, failed job or anomaly you detect, report it immediately as a finding marked URGENT and name the responsible party. " +
+    "All money movement, refunds, order changes and publishing require human approval — you propose, humans execute.\n\n";
+}
+
 public interface IAiAgentRuntime
 {
     /// <summary>Run one agent once; the tenant is resolved server-side — never from model input.</summary>
@@ -151,7 +162,7 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
 
         // Gather authorized context (read-only business snapshot through tenant DB).
         var context = await GatherTenantContextAsync(tenantDbName ?? tenantKey, cancellationToken).ConfigureAwait(false);
-        var system = instructions + "\n\nYou operate inside tenant '" + tenantKey + "'. "
+        var system = AiSystemContext.SYSTEM_CONTEXT + instructions + "\n\nYou operate inside tenant '" + tenantKey + "'. "
             + "Never request or fabricate another tenant's data. Reply concise, structured: findings, risks, recommended actions (each marked AUTO or NEEDS-APPROVAL). "
             + "If the task is a request for a new module, feature or platform-level improvement that you cannot fulfil inside the tenant, "
             + "append one line starting 'ESCALATE:' with a one-sentence hand-off to the platform AI Manager.";
