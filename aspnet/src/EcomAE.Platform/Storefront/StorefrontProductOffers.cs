@@ -185,18 +185,17 @@ public static class StorefrontProductOffers
                 .Append((await T(caption)).Trim()).Append("<div><small>").Append((await T(city)).Trim()).Append(", ").Append((await T(address)).Trim()).Append("</small></div>")
                 .Append("</span>\n\t\t\t</div>\n\t\t\t");
 
-            var rows = await RowsAsync(connection, officeId, request.ProductId, cancellationToken).ConfigureAwait(false);
+            var rawRows = await RowsAsync(connection, officeId, request.ProductId, cancellationToken).ConfigureAwait(false);
             var visitorCc = (request.VisitorCountryCode ?? string.Empty).Trim().ToUpperInvariant();
+            // Country-scoped stock: a warehouse tagged with a country only sells on that country's domains.
+            // Filter BEFORE the empty-state check so a fully-foreign office still gets its inquiry link.
+            var rows = rawRows.Where(row =>
+                visitorCc.Length == 0
+                || !stockCountries.TryGetValue(row.StorageId, out var rowCountry)
+                || rowCountry.Length == 0
+                || string.Equals(rowCountry, visitorCc, StringComparison.OrdinalIgnoreCase)).ToList();
             foreach (var row in rows)
             {
-                // Country-scoped stock: a warehouse tagged with a country only sells on that country's domains.
-                if (visitorCc.Length > 0
-                    && stockCountries.TryGetValue(row.StorageId, out var rowCountry)
-                    && rowCountry.Length > 0
-                    && !string.Equals(rowCountry, visitorCc, StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
                 var divId = officeId.ToString(CultureInfo.InvariantCulture) + "_" + row.StorageId.ToString(CultureInfo.InvariantCulture) + "_" + row.Id.ToString(CultureInfo.InvariantCulture);
                 var price = await PriceAsync(connection, officeId, row, groupId, request.PriceRounding, cancellationToken).ConfigureAwait(false);
                 var timeToExe = TimeToExe(row, request.Now);
