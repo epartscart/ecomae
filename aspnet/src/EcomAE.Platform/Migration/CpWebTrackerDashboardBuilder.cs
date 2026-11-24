@@ -173,12 +173,19 @@ public static class CpWebTrackerDashboardBuilder
 
         try
         {
+            // Host-derived keys (auto247_ae, stylenlook_ecomae_com) resolve to the
+            // canonical tenant site_key so sessions stored under it are found.
+            var canon = await CpWebTrackerCollectService.ResolveTenantSiteKeyAsync(connections, filters.SiteKey, cancellationToken).ConfigureAwait(false);
+            if (!string.IsNullOrEmpty(canon) && !string.Equals(canon, filters.SiteKey, StringComparison.OrdinalIgnoreCase))
+            {
+                filters = filters with { SiteKey = canon };
+            }
             await using var connection = await OpenTrackerConnectionAsync(connections, fromUnix, toUnix, cancellationToken, filters.SiteKey).ConfigureAwait(false);
             const string dbLabel = "tracker";
 
             var allSites = filters.IsSuper && (filters.SiteKey is "" or "_all");
             var siteOptions = filters.IsSuper
-                ? await LoadSiteOptionsAsync(connection, cancellationToken).ConfigureAwait(false)
+                ? await LoadSiteOptionsAsync(connection, connections, cancellationToken).ConfigureAwait(false)
                 : new List<string> { filters.SiteKey };
 
             var filterSql = BuildSessionFilterSql(filters, alias: string.Empty, out var filterParams);
@@ -251,6 +258,11 @@ public static class CpWebTrackerDashboardBuilder
 
         try
         {
+            var canon = await CpWebTrackerCollectService.ResolveTenantSiteKeyAsync(connections, siteKey, cancellationToken).ConfigureAwait(false);
+            if (!string.IsNullOrEmpty(canon) && !string.Equals(canon, siteKey, StringComparison.OrdinalIgnoreCase))
+            {
+                siteKey = canon;
+            }
             await using var connection = await OpenTrackerConnectionAsync(connections, 0, 0, cancellationToken, siteKey).ConfigureAwait(false);
             await using var cmd = connection.CreateCommand();
             cmd.CommandText = """
@@ -1242,9 +1254,30 @@ public static class CpWebTrackerDashboardBuilder
         return new(countries, devices, browsers);
     }
 
-    private static async Task<IReadOnlyList<string>> LoadSiteOptionsAsync(DbConnection connection, CancellationToken cancellationToken)
+    private static async Task<IReadOnlyList<string>> LoadSiteOptionsAsync(DbConnection connection, ITenantDbConnectionFactory connections, CancellationToken cancellationToken)
     {
         var list = new List<string> { "_all", "ecomae", "epartscart" };
+        // Canonical tenant list comes from the portal registry so the picker keeps
+        // every tenant even when the picked DB only holds one site's rows.
+        try
+        {
+            await using var reg = await connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
+            await using var regCmd = reg.CreateCommand();
+            regCmd.CommandText = "SELECT `site_key` FROM `epc_portal_tenants` WHERE `is_active` = 1 AND `site_key` <> '' ORDER BY `site_key`";
+            await using var rr = await regCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await rr.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var sk = Convert.ToString(rr["site_key"], CultureInfo.InvariantCulture) ?? string.Empty;
+                if (!string.IsNullOrEmpty(sk) && !list.Contains(sk, StringComparer.OrdinalIgnoreCase))
+                {
+                    list.Add(sk);
+                }
+            }
+        }
+        catch
+        {
+            // optional
+        }
         try
         {
             await using var cmd = connection.CreateCommand();

@@ -388,10 +388,22 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
         DbConnection conn;
         try
         {
-            conn = string.IsNullOrEmpty(trustedSiteKey)
-                ? await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false)
-                : (await TryOpenSiteDbAsync(_connections, payload.SiteKey, _log, cancellationToken).ConfigureAwait(false)
-                   ?? await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false));
+            if (string.IsNullOrEmpty(trustedSiteKey))
+            {
+                // Untrusted beacon key on a platform host: if it happens to name a
+                // tenant, restamp it under the platform bucket so forged beacons can
+                // never be counted as that tenant's traffic in shared reports.
+                if (await ResolveTenantSiteKeyAsync(_connections, payload.SiteKey, cancellationToken).ConfigureAwait(false) is not null)
+                {
+                    payload.SiteKey = "ecomae";
+                }
+                conn = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                conn = await TryOpenSiteDbAsync(_connections, payload.SiteKey, _log, cancellationToken).ConfigureAwait(false)
+                    ?? await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
         catch (Exception ex)
         {
@@ -434,13 +446,7 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
             return null;
         }
 
-        var variants = new List<string> { key };
-        // Legacy beacons used host-derived keys like stylenlook_ecomae_com.
-        if (key.EndsWith("_ecomae_com", StringComparison.Ordinal))
-        {
-            variants.Add(key[..^"_ecomae_com".Length]);
-        }
-
+        var variants = SiteKeyVariants(key);
         string? dbName = null, dbUser = null, dbPass = null;
         try
         {
@@ -472,6 +478,51 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
         return !string.IsNullOrWhiteSpace(dbUser) && !string.IsNullOrWhiteSpace(dbPass)
             ? await connections.OpenAsync(dbName, dbUser, dbPass, ct).ConfigureAwait(false)
             : await connections.OpenAsync(dbName, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>site_key + progressively stripped prefixes (auto247_ae→auto247, stylenlook_ecomae_com→stylenlook).</summary>
+    internal static List<string> SiteKeyVariants(string key)
+    {
+        var variants = new List<string> { key };
+        var k = key;
+        while (k.Contains('_', StringComparison.Ordinal))
+        {
+            k = k[..k.LastIndexOf('_')];
+            if (k.Length > 0 && !variants.Contains(k))
+            {
+                variants.Add(k);
+            }
+        }
+        return variants;
+    }
+
+    /// <summary>Returns the canonical tenant site_key that <paramref name="siteKey"/> maps to, or null.</summary>
+    internal static async Task<string?> ResolveTenantSiteKeyAsync(
+        ITenantDbConnectionFactory connections,
+        string? siteKey,
+        CancellationToken ct)
+    {
+        var key = NormalizeSiteKey(siteKey);
+        if (key.Length == 0)
+        {
+            return null;
+        }
+        var variants = SiteKeyVariants(key);
+        try
+        {
+            await using var reg = await connections.OpenRegistryAsync(ct).ConfigureAwait(false);
+            var marks = string.Join(",", variants.Select(_ => "?"));
+            await using var cmd = reg.CreateCommand();
+            cmd.CommandText = ErpDb.Positional(
+                "SELECT `site_key` FROM `epc_portal_tenants` WHERE `site_key` IN (" + marks + ") AND `is_active` = 1"
+                + " ORDER BY FIELD(`site_key`," + marks + ") LIMIT 1");
+            ErpDb.AddParameters(cmd, variants.Cast<object>().Concat(variants.Cast<object>()).ToArray());
+            return await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false) is { } v ? Convert.ToString(v, CultureInfo.InvariantCulture) : null;
+        }
+        catch (DbException)
+        {
+            return null;
+        }
     }
 
     /// <summary>Creates the three tracker tables in a tenant DB that never received them (production DDL).</summary>
