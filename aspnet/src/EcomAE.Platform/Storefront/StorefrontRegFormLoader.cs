@@ -47,6 +47,18 @@ public static class StorefrontRegFormLoader
             return StorefrontRegForm.Render(new StorefrontRegForm.Input { LoggedIn = true }, T);
         }
 
+        var hostCountry = string.Empty;
+        try
+        {
+            if (http.RequestServices.GetService(typeof(IStorefrontCountryService)) is IStorefrontCountryService countries)
+            {
+                hostCountry = (await countries.ResolveAsync(http.Request.Host.Host, cancellationToken).ConfigureAwait(false)).CountryCode;
+            }
+        }
+        catch (DbException)
+        {
+        }
+
         var fields = new List<StorefrontRegForm.AdditionalField>();
         foreach (var row in await RowsAsync(connection, "SELECT * FROM `reg_fields` WHERE `main_flag` = ? ORDER BY `order` ASC", cancellationToken, 0).ConfigureAwait(false))
         {
@@ -92,18 +104,6 @@ public static class StorefrontRegFormLoader
         }
 
         var siteKey = request.Tenant?.SiteKey;
-        var hostCountry = string.Empty;
-        try
-        {
-            if (http.RequestServices.GetService(typeof(IStorefrontCountryService)) is IStorefrontCountryService countries)
-            {
-                hostCountry = (await countries.ResolveAsync(http.Request.Host.Host, cancellationToken).ConfigureAwait(false)).CountryCode;
-            }
-        }
-        catch (DbException)
-        {
-        }
-
         return StorefrontRegForm.Render(
             new StorefrontRegForm.Input
             {
