@@ -1467,6 +1467,13 @@ app.UseMiddleware<EcomAE.Platform.Packages.PackageGateMiddleware>();
 app.Use(async (context, next) =>
 {
     var subdomain = EcomAE.Platform.Storefront.StorefrontCountryDefaults.SubdomainOf(context.Request.Host.Host);
+    // The country code this host explicitly maps to: a built-in {cc}. alias, or the domain
+    // map's pinned code for a whole-domain storefront. The lock below applies only when the
+    // RESOLVED country has this same code — a fallback resolution never locks a currency.
+    var hostMappedCode = subdomain is not null
+        ? EcomAE.Platform.Storefront.StorefrontCountryDefaults.CanonicalCode(
+            EcomAE.Platform.Storefront.StorefrontCountryDefaults.Default(subdomain).CountryCode)
+        : null;
     if (subdomain is null)
     {
         // Whole-domain country storefronts (auto247.pk → PK): apply the same country rules as
@@ -1482,6 +1489,7 @@ app.Use(async (context, next) =>
             if (mappedCountry is not null && !mappedCountry.IsDefault)
             {
                 subdomain = mappedCountry.Subdomain;
+                hostMappedCode = EcomAE.Platform.Storefront.StorefrontCountryDefaults.CanonicalCode(mappedCountry.CountryCode);
             }
         }
     }
@@ -1517,11 +1525,16 @@ app.Use(async (context, next) =>
         var storefrontCountry = storefrontCountrySvc is not null && (subdomain is not null || hostSeedPresent)
             ? await storefrontCountrySvc.ResolveAsync(context.Request.Host.Host, context.RequestAborted).ConfigureAwait(false)
             : null;
-        // The host IS a country storefront when it resolves to a non-default country — by
-        // built-in {cc}. alias OR domain map. Comparing country.Subdomain to the host's
-        // subdomain token would mis-handle an operator renaming a country's subdomain (the
-        // built-in alias still resolves the same country code).
-        var hostIsCountryStorefront = storefrontCountry is { IsDefault: false };
+        // The host IS a country storefront when its mapped country code resolves to an
+        // active non-default country of the SAME code. Comparing country.Subdomain to the
+        // host's token would mis-handle a renamed subdomain; skipping the code check would
+        // let a deactivated country's fallback resolution lock an unrelated currency.
+        var hostIsCountryStorefront = storefrontCountry is { IsDefault: false }
+            && hostMappedCode is not null
+            && string.Equals(
+                EcomAE.Platform.Storefront.StorefrontCountryDefaults.CanonicalCode(storefrontCountry.CountryCode),
+                hostMappedCode,
+                StringComparison.OrdinalIgnoreCase);
 
         var parts = rawCookieHeader
             .Split(';', StringSplitOptions.RemoveEmptyEntries).ToList();
