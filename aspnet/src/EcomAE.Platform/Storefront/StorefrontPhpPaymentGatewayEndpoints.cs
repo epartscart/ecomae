@@ -38,6 +38,7 @@ public static class StorefrontPhpPaymentGatewayEndpoints
         Route(endpoints, root + "/pay_page.php", (context, _, ct) => PayPageAsync(context, false, ct));
         Route(endpoints, root + "/crypto_pay_page.php", CryptoPayPageAsync);
         Route(endpoints, root + "/nowpayments/notification.php", NowPaymentsNotificationAsync);
+        Route(endpoints, root + "/stripe/webhook.php", StripeWebhookAsync);
     }
 
     private static void Route(IEndpointRouteBuilder endpoints, string path, Func<HttpContext, ITenantDbConnectionFactory, CancellationToken, Task<IResult>> handler)
@@ -51,10 +52,12 @@ public static class StorefrontPhpPaymentGatewayEndpoints
     private static async Task<IResult> GoToPayAsync(HttpContext context, ITenantDbConnectionFactory connections, string handler, CancellationToken cancellationToken)
     {
         var request = await RequestAsync(context, cancellationToken).ConfigureAwait(false);
+        var stripeClient = StripeClient(context);
+        var baseUrl = BaseUrl(context);
         return await WithDbAsync(
             context,
             connections,
-            (connection, ct) => StorefrontPhpAjax.GoToPayAsync(connection, handler, request, ct),
+            (connection, ct) => StorefrontPhpAjax.GoToPayAsync(connection, handler, request, ct, stripeClient, baseUrl),
             Results.Text("{\"result\":false}", HtmlType),
             cancellationToken).ConfigureAwait(false);
     }
@@ -90,10 +93,12 @@ public static class StorefrontPhpPaymentGatewayEndpoints
     {
         var request = await RequestAsync(context, cancellationToken).ConfigureAwait(false);
         var payments = Payments(context);
+        var stripeClient = StripeClient(context);
+        var baseUrl = BaseUrl(context);
         return await WithDbAsync(
             context,
             connections,
-            (connection, ct) => StorefrontPhpAjax.GatewayNotificationAsync(connection, payments, handler, request, ct),
+            (connection, ct) => StorefrontPhpAjax.GatewayNotificationAsync(connection, payments, handler, request, ct, stripeClient, baseUrl),
             Results.Text("{\"result\":false}", HtmlType),
             cancellationToken).ConfigureAwait(false);
     }
@@ -118,6 +123,40 @@ public static class StorefrontPhpPaymentGatewayEndpoints
             Results.Text("{\"result\":false}", HtmlType, statusCode: StatusCodes.Status500InternalServerError),
             cancellationToken).ConfigureAwait(false);
     }
+
+    private static async Task<IResult> StripeWebhookAsync(HttpContext context, ITenantDbConnectionFactory connections, CancellationToken cancellationToken)
+    {
+        context.Request.EnableBuffering();
+        string raw;
+        using (var reader = new StreamReader(context.Request.Body, Encoding.UTF8, leaveOpen: true))
+        {
+            raw = await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        context.Request.Body.Position = 0;
+        var request = await RequestAsync(context, cancellationToken).ConfigureAwait(false);
+        var payments = Payments(context);
+        var signature = context.Request.Headers["Stripe-Signature"].ToString();
+        return await WithDbAsync(
+            context,
+            connections,
+            (connection, ct) => StorefrontPhpAjax.StripeWebhookAsync(connection, payments, request, raw, signature, ct),
+            Results.Text("{\"result\":false}", "application/json", statusCode: StatusCodes.Status500InternalServerError),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>Public base URL for Stripe redirect URLs; honors <c>X-Forwarded-Proto</c> behind TLS termination.</summary>
+    private static string BaseUrl(HttpContext context)
+    {
+        var proto = context.Request.Headers["X-Forwarded-Proto"].FirstOrDefault();
+        var scheme = string.IsNullOrEmpty(proto) ? context.Request.Scheme : proto.Split(',')[0].Trim();
+        return scheme + "://" + context.Request.Host;
+    }
+
+    private static Func<HttpClient>? StripeClient(HttpContext context)
+        => context.RequestServices.GetService<IHttpClientFactory>() is { } http
+            ? () => { var c = http.CreateClient(); c.Timeout = TimeSpan.FromSeconds(30); return c; }
+            : (Func<HttpClient>?)(() => new HttpClient { Timeout = TimeSpan.FromSeconds(30) });
 
     private static IStorefrontPaymentWriteService Payments(HttpContext context)
         => context.RequestServices.GetService<IStorefrontPaymentWriteService>()

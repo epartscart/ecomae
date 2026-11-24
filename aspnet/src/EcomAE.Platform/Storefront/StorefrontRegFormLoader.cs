@@ -86,9 +86,22 @@ public static class StorefrontRegFormLoader
         }
 
         var siteKey = request.Tenant?.SiteKey;
+        var hostCountry = string.Empty;
+        try
+        {
+            if (http.RequestServices.GetService(typeof(IStorefrontCountryService)) is IStorefrontCountryService countries)
+            {
+                hostCountry = (await countries.ResolveAsync(http.Request.Host.Host, cancellationToken).ConfigureAwait(false)).CountryCode;
+            }
+        }
+        catch (DbException)
+        {
+        }
+
         return StorefrontRegForm.Render(
             new StorefrontRegForm.Input
             {
+                HostCountry = hostCountry,
                 AdditionalFields = fields,
                 Variants = variants,
                 Communications = await StorefrontPhpAjax.AvailableCommunicationsAsync(connection, request.Config, cancellationToken).ConfigureAwait(false),

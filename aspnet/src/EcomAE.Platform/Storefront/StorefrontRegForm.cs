@@ -52,6 +52,9 @@ public static class StorefrontRegForm
 
         public string DomainPath { get; init; } = string.Empty;
 
+        /// <summary>ISO-2 country resolved from the request host (e.g. PK on auto247.pk); empty when unmapped.</summary>
+        public string HostCountry { get; init; } = string.Empty;
+
         public StorefrontAuthPartials.AuthLayout Layout { get; init; } = new();
     }
 
@@ -182,6 +185,32 @@ public static class StorefrontRegForm
             sb.Append("                </div> <!-- panel panel-primary -->\n");
             sb.Append("                ");
         }
+        if (input.Enhanced)
+        {
+            // Simple flow: the Retail/Wholesale tabs pick the matching variant — the selector stays hidden.
+            sb.Append("\t\t<script>\n");
+            sb.Append("\t\tdocument.getElementById('RegVariantsSelector').style.display='none';\n");
+            sb.Append("\t\tfunction epcSyncRegVariant(t){\n");
+            sb.Append("\t\t\tvar sel=document.getElementById('reg_variant_selector');if(!sel)return;\n");
+            sb.Append("\t\t\tvar wsRe=/entity|company|llc|business|trade|wholesale|corporate|firm|entrepreneur/i;\n");
+            sb.Append("\t\t\tvar rtRe=/individual|customer|retail|private|person|personal/i;\n");
+            sb.Append("\t\t\tvar pick=-1,i,tx;\n");
+            sb.Append("\t\t\tif(t==='wholesale'){\n");
+            sb.Append("\t\t\t\tfor(i=0;i<sel.options.length;i++){tx=sel.options[i].text;if(wsRe.test(tx)&&!rtRe.test(tx)){pick=i;break;}}\n");
+            sb.Append("\t\t\t\tif(pick<0){for(i=0;i<sel.options.length;i++){if(wsRe.test(sel.options[i].text)){pick=i;break;}}}\n");
+            sb.Append("\t\t\t\tif(pick<0){for(i=sel.options.length-1;i>=0;i--){if(!rtRe.test(sel.options[i].text)){pick=i;break;}}}\n");
+            sb.Append("\t\t\t}else{\n");
+            sb.Append("\t\t\t\tfor(i=0;i<sel.options.length;i++){tx=sel.options[i].text;if(rtRe.test(tx)&&!wsRe.test(tx)){pick=i;break;}}\n");
+            sb.Append("\t\t\t\tif(pick<0){for(i=0;i<sel.options.length;i++){if(!wsRe.test(sel.options[i].text)){pick=i;break;}}}\n");
+            sb.Append("\t\t\t}\n");
+            sb.Append("\t\t\tif(pick>=0){sel.selectedIndex=pick;}\n");
+            sb.Append("\t\t\tif(typeof regenerateFields==='function'){regenerateFields();}\n");
+            sb.Append("\t\t}\n");
+            sb.Append("\t\t// Delegated listener: the retail/wholesale tabs render later in AccountTabs.\n");
+            sb.Append("\t\tdocument.addEventListener('click',function(e){var el=e.target&&e.target.closest?e.target.closest('[data-epc-type]'):null;if(el){epcSyncRegVariant(el.getAttribute('data-epc-type'));}});\n");
+            sb.Append("\t\tepcSyncRegVariant('retail');\n");
+            sb.Append("\t\t</script>\n");
+        }
         sb.Append("        </div>\n");
         sb.Append("        \n");
         sb.Append("        \n");
@@ -288,7 +317,7 @@ public static class StorefrontRegForm
         sb.Append("\t\t");
         if (input.Enhanced)
         {
-            sb.Append(EpcRegistrationEnhancedRender.AccountTabs());
+            sb.Append(EpcRegistrationEnhancedRender.AccountTabs(input.HostCountry));
         }
         else
         {
