@@ -30,6 +30,8 @@ public sealed class TopMenuIntegrityTests
         "CpAdminSessionsApp.razor", "CpPrintDocsApp.razor", "CpBulkUploadApp.razor", "CpFinanceCloseApp.razor",
         // Super CP utilities reached from the CP chrome nav, not the cached top-menu snapshots.
         "CpPlatformAlertsApp.razor", "CpTenantCountriesApp.razor", "CpPackagesApp.razor",
+        // AI Manager is reached at /AI per tenant; it is not a top-menu destination.
+        "CpAiManagerApp.razor",
         // Linked from the ERP Activities workspace catalog, not the top menu.
         "ErpWhatsappShareApp.razor",
     ];
