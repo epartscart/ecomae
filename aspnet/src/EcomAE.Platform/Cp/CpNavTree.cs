@@ -698,6 +698,7 @@ public static class CpNavTree
         new("Workshop", "/<backend>/shop/workshop", "fa-wrench", "744", false),
         new("VIN fields", "/<backend>/shop/vin_fields", "fa-barcode", "744", false),
         new("LifeOS guide", "/<backend>/control/portal/epc_lifeos_guide", "fa-heartbeat", "epc_cp_group_portal", false),
+        new("AI Manager", "/cp/ai-manager-app", "fa-magic", "epc_cp_group_ai", false),
         new("LifeOS clients", "/<backend>/control/portal/epc_lifeos_clients", "fa-users", "epc_cp_group_customers", false),
         new("Ops guides", "/<backend>/control/portal/epc_ops_guides", "fa-list-alt", "epc_cp_group_portal", false),
     ];
