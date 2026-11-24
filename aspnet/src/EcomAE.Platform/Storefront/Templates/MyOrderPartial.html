@@ -279,7 +279,7 @@
 					//Обработка кнопки оплаты. direct_pay == 0 (оплата с баланса), direct_pay == 1 (прямая оплата), direct_pay == 2 (определить из радиокнопок)
 					function set_pay(v)
 					{
-						document.getElementById('pay_value').value = parseFloat(v).toFixed(2);
+						document.getElementById('pay_value').value = (Math.ceil(parseFloat(v)*100)/100).toFixed(2);
 						add_payment_to_order(2);
 					}
 					function add_payment_to_order(direct_pay)

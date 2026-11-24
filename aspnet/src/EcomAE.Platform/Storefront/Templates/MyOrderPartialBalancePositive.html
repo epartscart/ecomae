@@ -244,6 +244,10 @@
 							
 							<div class="form-group col-md-6">
 															<label>{{T:4534}}:</label>
+								<div style="margin-bottom:8px;">
+									<button onclick="set_pay({{MIN_PAY}});" type="button" class="btn btn-ar btn-primary" style="margin-right:6px;">{{PERCENT}}% — {{MIN_PAY}}</button>
+									<button onclick="set_pay({{LEFT}});" type="button" class="btn btn-ar btn-default">{{T:4533}} — {{LEFT_MONEY}}</button>
+								</div>
 								<div class="header-search-box">
 									<div class="input-group">
 										<input style="padding-left:7px;!important;" type="number" class="form-control" placeholder="{{T:3524}}" value="{{LEFT}}" id="pay_value" />
@@ -261,6 +265,11 @@
 					
 					<script>
 					//Обработка кнопки оплаты. direct_pay == 0 (оплата с баланса), direct_pay == 1 (прямая оплата), direct_pay == 2 (определить из радиокнопок)
+					function set_pay(v)
+					{
+						document.getElementById('pay_value').value = (Math.ceil(parseFloat(v)*100)/100).toFixed(2);
+						add_payment_to_order(2);
+					}
 					function add_payment_to_order(direct_pay)
 					{
 						//Сумма из поля ввода
