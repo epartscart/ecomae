@@ -382,11 +382,16 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
 
         // Tenant-isolation law: visitor sessions are tenant transactional data — each
         // beacon lands ONLY in that site's own tenant DB, never broadcast to shared
-        // stores. Resolve site_key -> tenant record from the portal registry.
+        // stores. Routing keys on the server-resolved tenant (trustedSiteKey): a
+        // caller on a platform host can no longer pick another tenant's DB by
+        // claiming its site_key — untrusted keys stay on the registry store.
         DbConnection conn;
         try
         {
-            conn = await OpenSiteDbAsync(payload.SiteKey ?? string.Empty, cancellationToken).ConfigureAwait(false);
+            conn = string.IsNullOrEmpty(trustedSiteKey)
+                ? await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false)
+                : (await TryOpenSiteDbAsync(_connections, payload.SiteKey, _log, cancellationToken).ConfigureAwait(false)
+                   ?? await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false));
         }
         catch (Exception ex)
         {
@@ -398,7 +403,7 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
         {
             try
             {
-                if (!await SessionsTableExistsAsync(conn, cancellationToken).ConfigureAwait(false))
+                if (!await TrackerTablesExistAsync(conn, cancellationToken).ConfigureAwait(false))
                 {
                     await EnsureTrackerTablesAsync(conn, cancellationToken).ConfigureAwait(false);
                 }
@@ -412,10 +417,23 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
         }
     }
 
-    /// <summary>Opens the owning tenant DB for a site_key; unknown/platform keys land in the registry DB.</summary>
-    private async Task<DbConnection> OpenSiteDbAsync(string siteKey, CancellationToken ct)
+    /// <summary>
+    /// Opens the owning tenant DB for a site_key, or null when the key maps to no
+    /// tenant record (platform/unknown keys). Shared by ingest and the tracker
+    /// dashboard so both resolve a site to the same store.
+    /// </summary>
+    internal static async Task<DbConnection?> TryOpenSiteDbAsync(
+        ITenantDbConnectionFactory connections,
+        string? siteKey,
+        ILogger? log,
+        CancellationToken ct)
     {
         var key = NormalizeSiteKey(siteKey);
+        if (key.Length == 0)
+        {
+            return null;
+        }
+
         var variants = new List<string> { key };
         // Legacy beacons used host-derived keys like stylenlook_ecomae_com.
         if (key.EndsWith("_ecomae_com", StringComparison.Ordinal))
@@ -426,7 +444,7 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
         string? dbName = null, dbUser = null, dbPass = null;
         try
         {
-            await using var reg = await _connections.OpenRegistryAsync(ct).ConfigureAwait(false);
+            await using var reg = await connections.OpenRegistryAsync(ct).ConfigureAwait(false);
             var marks = string.Join(",", variants.Select(_ => "?"));
             await using var cmd = reg.CreateCommand();
             cmd.CommandText = ErpDb.Positional(
@@ -443,17 +461,17 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
         }
         catch (DbException ex)
         {
-            _log.LogWarning(ex, "Tenant registry lookup failed for site {SiteKey}", key);
+            log?.LogWarning(ex, "Tenant registry lookup failed for site {SiteKey}", key);
+            return null;
         }
 
         if (string.IsNullOrWhiteSpace(dbName))
         {
-            // Platform / unresolved hosts keep writing to the registry DB (its own tenant space).
-            return await _connections.OpenRegistryAsync(ct).ConfigureAwait(false);
+            return null;
         }
         return !string.IsNullOrWhiteSpace(dbUser) && !string.IsNullOrWhiteSpace(dbPass)
-            ? await _connections.OpenAsync(dbName, dbUser, dbPass, ct).ConfigureAwait(false)
-            : await _connections.OpenAsync(dbName, ct).ConfigureAwait(false);
+            ? await connections.OpenAsync(dbName, dbUser, dbPass, ct).ConfigureAwait(false)
+            : await connections.OpenAsync(dbName, ct).ConfigureAwait(false);
     }
 
     /// <summary>Creates the three tracker tables in a tenant DB that never received them (production DDL).</summary>
@@ -531,13 +549,16 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
         }
     }
 
-    private static async Task<bool> SessionsTableExistsAsync(DbConnection connection, CancellationToken cancellationToken)
+    private static async Task<bool> TrackerTablesExistAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         try
         {
-            await ErpDb.ScalarAsync(connection, null, "SELECT 1 FROM `epc_web_tracker_sessions` LIMIT 1", cancellationToken)
-                .ConfigureAwait(false);
-            return true;
+            var n = await ErpDb.ScalarAsync(
+                connection, null,
+                "SELECT COUNT(*) FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE()"
+                + " AND `TABLE_NAME` IN ('epc_web_tracker_sessions','epc_web_tracker_pageviews','epc_web_tracker_events')",
+                cancellationToken).ConfigureAwait(false);
+            return Convert.ToInt64(n, CultureInfo.InvariantCulture) == 3;
         }
         catch (DbException)
         {

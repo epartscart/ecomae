@@ -173,7 +173,7 @@ public static class CpWebTrackerDashboardBuilder
 
         try
         {
-            await using var connection = await OpenTrackerConnectionAsync(connections, fromUnix, toUnix, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTrackerConnectionAsync(connections, fromUnix, toUnix, cancellationToken, filters.SiteKey).ConfigureAwait(false);
             const string dbLabel = "tracker";
 
             var allSites = filters.IsSuper && (filters.SiteKey is "" or "_all");
@@ -251,7 +251,7 @@ public static class CpWebTrackerDashboardBuilder
 
         try
         {
-            await using var connection = await OpenTrackerConnectionAsync(connections, 0, 0, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTrackerConnectionAsync(connections, 0, 0, cancellationToken, siteKey).ConfigureAwait(false);
             await using var cmd = connection.CreateCommand();
             cmd.CommandText = """
                 SELECT `id`, IFNULL(`session_uid`,'') AS session_uid, IFNULL(`site_key`,'') AS site_key,
@@ -288,7 +288,7 @@ public static class CpWebTrackerDashboardBuilder
             await using (var pv = connection.CreateCommand())
             {
                 pv.CommandText = """
-                    SELECT `id`, IFNULL(`ts`,0) AS ts, IFNULL(`path`,'') AS path, IFNULL(`query`,'') AS query,
+                    SELECT `id`, IFNULL(`ts`,0) AS ts, IFNULL(`path`,'') AS path, IFNULL(`query_string`,'') AS query,
                            IFNULL(`title`,'') AS title, IFNULL(`time_on_page_ms`,0) AS time_on_page_ms,
                            IFNULL(`scroll_max_pct`,0) AS scroll_max_pct, IFNULL(`load_time_ms`,0) AS load_time_ms
                     FROM `epc_web_tracker_pageviews`
@@ -447,7 +447,8 @@ public static class CpWebTrackerDashboardBuilder
         ITenantDbConnectionFactory connections,
         long fromUnix,
         long toUnix,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? siteKey = null)
     {
         var opened = new List<DbConnection>();
         var probes = new List<TrackerProbe>();
@@ -467,11 +468,41 @@ public static class CpWebTrackerDashboardBuilder
             }
         }
 
+        // Tenant-isolated tracker reads: a specific site resolves to its owning
+        // tenant DB first — dedicated tenants' beacons now land only there.
+        var tenantDbIdx = -1;
+        if (!string.IsNullOrEmpty(siteKey) && siteKey != "_all")
+        {
+            try
+            {
+                var siteConn = await CpWebTrackerCollectService
+                    .TryOpenSiteDbAsync(connections, siteKey, log: null, cancellationToken)
+                    .ConfigureAwait(false);
+                if (siteConn is not null)
+                {
+                    tenantDbIdx = opened.Count;
+                    opened.Add(siteConn);
+                    await EnsureTrackerIndexesAsync(siteConn, cancellationToken).ConfigureAwait(false);
+                    probes.Add(await ProbeSessionsSafeAsync(siteConn, fromUnix, toUnix, cancellationToken).ConfigureAwait(false));
+                }
+            }
+            catch
+            {
+                // fall through to shared candidates
+            }
+        }
+
         await TryOpen(connections.OpenRegistryAsync).ConfigureAwait(false);
         await TryOpen(ct => connections.OpenAsync(null, ct)).ConfigureAwait(false);
         await TryOpen(ct => connections.OpenAsync("docpart", ct)).ConfigureAwait(false);
 
         var pick = PickFreshestTrackerIndex(probes);
+        // Prefer the resolved tenant DB when it has the tracker table — it is the
+        // owning store even while historical rows still exist in shared DBs.
+        if (tenantDbIdx >= 0 && probes[tenantDbIdx].Count >= 0)
+        {
+            pick = tenantDbIdx;
+        }
         if (pick < 0)
         {
             foreach (var conn in opened)
