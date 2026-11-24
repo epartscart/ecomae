@@ -6,6 +6,7 @@
 @inject ILegacySessionValidator Sessions
 @inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
 @inject ITenantPresentationProvider TenantPresentation
+@inject IStorefrontCountryService StorefrontCountriesSvc
 @*
   PHP nero storefront chrome on ASP.NET (same-to-same vs templates/nero/desktop.php).
   Interim: catalog/search/cart/login point at working PHP /en/… pages (tenant /storefront/*
@@ -576,7 +577,7 @@
                             </div>
                             <div class="epc-currency-switcher">
                                 <select id="epc_currency_select" aria-label="Display currency" onchange="var v=this.value;document.cookie='epc_currency='+v+';max-age=31536000;path=/;secure;samesite=lax';document.cookie='epc_currency_host=;max-age=0;path=/';location.reload();">
-                                    @foreach (var iso in EcomAE.Platform.Storefront.EpcCurrency.SupportedIsoCodes)
+                                    @foreach (var iso in (_lockedCurrencyIso is { } locked ? new[] { locked } : EcomAE.Platform.Storefront.EpcCurrency.SupportedIsoCodes))
                                     {
                                         var currency = EcomAE.Platform.Storefront.EpcCurrency.DefaultForIso(iso);
                                         <option value="@iso">@(currency?.IsoName ?? iso)</option>
@@ -1170,6 +1171,7 @@
 
     private bool _signedIn;
     private string _userLabel = "Account";
+    private string? _lockedCurrencyIso;
     private int _userId;
     private int _bookmarkCount;
     private int _compareCount;
@@ -1196,6 +1198,26 @@
         {
             _tenantCss = css;
             _tenantAttrs = presentation.Attributes();
+        }
+
+        // Country storefronts (auto247.pk, pk.auto247.ae, …) lock the display currency to that
+        // country's currency; the tenant's home domain keeps the full currency switcher.
+        try
+        {
+            var host = ctx.Request.Host.Host;
+            var mappedCode = await StorefrontCountriesSvc.ResolveMappedCountryCodeAsync(host, ctx.RequestAborted).ConfigureAwait(false);
+            if (mappedCode is not null)
+            {
+                var country = await StorefrontCountriesSvc.ResolveAsync(host, ctx.RequestAborted).ConfigureAwait(false);
+                if (country is { IsDefault: false })
+                {
+                    _lockedCurrencyIso = EcomAE.Platform.Storefront.EpcCurrency.IsoForAlpha(country.CurrencyCode)
+                        ?? (EcomAE.Platform.Storefront.EpcCurrency.CountryMap.TryGetValue(country.CountryCode, out var mapped) ? mapped : null);
+                }
+            }
+        }
+        catch
+        {
         }
 
         _bookmarkCount = StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.BookmarksName, StorefrontIntListCookie.BookmarksMax).Count;

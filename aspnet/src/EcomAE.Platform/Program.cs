@@ -1467,6 +1467,32 @@ app.UseMiddleware<EcomAE.Platform.Packages.PackageGateMiddleware>();
 app.Use(async (context, next) =>
 {
     var subdomain = EcomAE.Platform.Storefront.StorefrontCountryDefaults.SubdomainOf(context.Request.Host.Host);
+    // The country code this host explicitly maps to: a built-in {cc}. alias, or the domain
+    // map's pinned code for a whole-domain storefront. The lock below applies only when the
+    // RESOLVED country has this same code — a fallback resolution never locks a currency.
+    var hostMappedCode = subdomain is not null
+        ? EcomAE.Platform.Storefront.StorefrontCountryDefaults.CanonicalCode(
+            EcomAE.Platform.Storefront.StorefrontCountryDefaults.Default(subdomain).CountryCode)
+        : null;
+    if (subdomain is null)
+    {
+        // Whole-domain country storefronts (auto247.pk → PK): apply the same country rules as
+        // a {cc}. subdomain when the domain map pins a NON-default country for this host. The
+        // tenant's home domain (auto247.ae → default AE) stays a normal multi-currency host.
+        var mapSvc = context.RequestServices.GetService<EcomAE.Platform.Storefront.IStorefrontCountryService>();
+        var mappedCode = mapSvc is null
+            ? null
+            : await mapSvc.ResolveMappedCountryCodeAsync(context.Request.Host.Host, context.RequestAborted).ConfigureAwait(false);
+        if (mappedCode is not null)
+        {
+            var mappedCountry = await mapSvc!.ResolveAsync(context.Request.Host.Host, context.RequestAborted).ConfigureAwait(false);
+            if (mappedCountry is not null && !mappedCountry.IsDefault)
+            {
+                subdomain = mappedCountry.Subdomain;
+                hostMappedCode = EcomAE.Platform.Storefront.StorefrontCountryDefaults.CanonicalCode(mappedCountry.CountryCode);
+            }
+        }
+    }
     if (subdomain is not null)
     {
         // A non-English country host lands on its language home (sa. → /ar/, ru. → /ru/)
@@ -1491,7 +1517,29 @@ app.Use(async (context, next) =>
             }
         }
 
-        var parts = context.Request.Headers.Cookie.ToString().Split(';', StringSplitOptions.RemoveEmptyEntries);
+        // Resolve the host's country once: needed by the storefront lock below and by the
+        // stale-seed cleanup after this block (only resolve when a country could matter).
+        var rawCookieHeader = context.Request.Headers.Cookie.ToString();
+        var hostSeedPresent = rawCookieHeader.Contains("epc_currency_host=", StringComparison.OrdinalIgnoreCase);
+        var storefrontCountrySvc = context.RequestServices.GetService<EcomAE.Platform.Storefront.IStorefrontCountryService>();
+        var storefrontCountry = storefrontCountrySvc is not null && (subdomain is not null || hostSeedPresent)
+            ? await storefrontCountrySvc.ResolveAsync(context.Request.Host.Host, context.RequestAborted).ConfigureAwait(false)
+            : null;
+        // The host IS a country storefront when its mapped country resolves to an active
+        // non-default row — either the row's own saved subdomain is the host's alias (an
+        // operator may assign 'pk' to another country's row), or its code equals the host's
+        // mapped code. A deactivated/removed country resolves to a different-code fallback
+        // whose subdomain also differs, so neither side fires and no currency is locked.
+        var hostIsCountryStorefront = storefrontCountry is { IsDefault: false }
+            && (string.Equals(storefrontCountry.Subdomain, subdomain, StringComparison.OrdinalIgnoreCase)
+                || (hostMappedCode is not null
+                    && string.Equals(
+                        EcomAE.Platform.Storefront.StorefrontCountryDefaults.CanonicalCode(storefrontCountry.CountryCode),
+                        hostMappedCode,
+                        StringComparison.OrdinalIgnoreCase)));
+
+        var parts = rawCookieHeader
+            .Split(';', StringSplitOptions.RemoveEmptyEntries).ToList();
         string? CookieValue(string name) => parts
             .Select(p => p.TrimStart())
             .Where(p => p.StartsWith(name + "=", StringComparison.OrdinalIgnoreCase))
@@ -1501,6 +1549,66 @@ app.Use(async (context, next) =>
         var userCurrency = CookieValue("epc_currency");
         var userCountry = CookieValue("epc_country");
         var hostSeed = CookieValue("epc_currency_host");
+
+        // Locked country storefront: a non-default mapped country (auto247.pk → PK, or a {cc}.
+        // subdomain the tenant runs). The currency picker only offers the country's currency,
+        // so foreign currency/country cookies can never pin prices to another currency.
+        if (hostIsCountryStorefront)
+        {
+            var lockIso = EcomAE.Platform.Storefront.EpcCurrency.IsoForAlpha(storefrontCountry!.CurrencyCode)
+                ?? (EcomAE.Platform.Storefront.EpcCurrency.CountryMap.TryGetValue(storefrontCountry!.CountryCode, out var lockMapped) ? lockMapped : null);
+
+            // A foreign epc_country pick can't pin its currency here.
+            if (userCountry is not null
+                && !string.Equals(userCountry, storefrontCountry!.CountryCode, StringComparison.OrdinalIgnoreCase))
+            {
+                parts = parts.Where(p => !p.TrimStart().StartsWith("epc_country=", StringComparison.OrdinalIgnoreCase)).ToList();
+                context.Request.Headers.Cookie = string.Join("; ", parts);
+                context.Response.Cookies.Delete("epc_country");
+                userCountry = null;
+            }
+
+            // A foreign epc_currency (stale or user-picked) is re-pinned to the country's currency.
+            if (lockIso is not null && userCurrency is not null
+                && !string.Equals(userCurrency, lockIso, StringComparison.Ordinal))
+            {
+                parts = parts.Where(p =>
+                {
+                    var t = p.TrimStart();
+                    return !t.StartsWith("epc_currency=", StringComparison.OrdinalIgnoreCase)
+                        && !t.StartsWith("epc_currency_host=", StringComparison.OrdinalIgnoreCase);
+                }).ToList();
+                context.Request.Headers.Cookie = string.Join("; ", parts.Append($"epc_currency={lockIso}"));
+                var lockOpts = new CookieOptions
+                {
+                    Path = "/",
+                    MaxAge = TimeSpan.FromDays(365),
+                    SameSite = SameSiteMode.Lax,
+                    Secure = true,
+                };
+                context.Response.Cookies.Append("epc_currency", lockIso, lockOpts);
+                context.Response.Cookies.Append("epc_currency_host", lockIso, lockOpts);
+                userCurrency = lockIso;
+            }
+        }
+        else if (!hostIsCountryStorefront
+            && hostSeed is not null
+            && userCurrency is not null
+            && string.Equals(userCurrency, hostSeed, StringComparison.Ordinal))
+        {
+            // This subdomain was a country storefront but the country was removed: drop the
+            // seed we wrote (epc_currency still equals its epc_currency_host marker).
+            parts = parts.Where(t =>
+            {
+                var x = t.TrimStart();
+                return !x.StartsWith("epc_currency=", StringComparison.OrdinalIgnoreCase)
+                    && !x.StartsWith("epc_currency_host=", StringComparison.OrdinalIgnoreCase);
+            }).ToList();
+            context.Request.Headers.Cookie = string.Join("; ", parts);
+            context.Response.Cookies.Delete("epc_currency");
+            context.Response.Cookies.Delete("epc_currency_host");
+            userCurrency = null;
+        }
 
         // An explicit epc_country pick wins over the host seed: pin the currency to that
         // country's mapping as a permanent choice (clears the refresh marker). It only
@@ -1570,6 +1678,33 @@ app.Use(async (context, next) =>
                     context.Response.Cookies.Append("epc_currency_host", iso, options);
                 }
             }
+        }
+    }
+    else if (context.Request.Headers.Cookie.ToString().Contains("epc_currency_host=", StringComparison.OrdinalIgnoreCase))
+    {
+        // Stale host seed on a non-country host (country removed in settings, or a mapped
+        // domain un-pinned): the visitor carries a currency WE seeded — epc_currency still
+        // equals its epc_currency_host marker — so drop both and let the shop currency apply.
+        // A currency the visitor picked themselves (no marker match) is never touched.
+        var list = context.Request.Headers.Cookie.ToString()
+            .Split(';', StringSplitOptions.RemoveEmptyEntries).ToList();
+        string? Val(string n) => list
+            .Select(t => t.TrimStart())
+            .Where(t => t.StartsWith(n + "=", StringComparison.OrdinalIgnoreCase))
+            .Select(t => t[(n.Length + 1)..].Trim())
+            .FirstOrDefault(v => v.Length > 0);
+        var cur = Val("epc_currency");
+        var seed = Val("epc_currency_host");
+        if (cur is not null && string.Equals(cur, seed, StringComparison.Ordinal))
+        {
+            context.Request.Headers.Cookie = string.Join("; ", list.Where(t =>
+            {
+                var x = t.TrimStart();
+                return !x.StartsWith("epc_currency=", StringComparison.OrdinalIgnoreCase)
+                    && !x.StartsWith("epc_currency_host=", StringComparison.OrdinalIgnoreCase);
+            }));
+            context.Response.Cookies.Delete("epc_currency");
+            context.Response.Cookies.Delete("epc_currency_host");
         }
     }
 

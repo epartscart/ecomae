@@ -67,6 +67,13 @@ public static class EpcUserPrefs
             // Only plausible values are persisted: numeric ISO for currencies, a short
             // language token — never arbitrary cookie text.
             var cookieCurrency = request.Cookies["epc_currency"] ?? string.Empty;
+            // A host-seeded value (epc_currency == epc_currency_host marker) isn't the shopper's
+            // own pick — a country's default currency must not overwrite their saved preference.
+            if (cookieCurrency.Length > 0
+                && string.Equals(cookieCurrency, request.Cookies["epc_currency_host"], StringComparison.Ordinal))
+            {
+                cookieCurrency = string.Empty;
+            }
             if (cookieCurrency.Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(cookieCurrency, "^[0-9]{1,4}$"))
             {
                 cookieCurrency = string.Empty;
