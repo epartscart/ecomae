@@ -50,10 +50,16 @@ public static class StorefrontRegFormLoader
         var fields = new List<StorefrontRegForm.AdditionalField>();
         foreach (var row in await RowsAsync(connection, "SELECT * FROM `reg_fields` WHERE `main_flag` = ? ORDER BY `order` ASC", cancellationToken, 0).ConfigureAwait(false))
         {
+            var caption = await translator.TextAsync(Col(row, "caption"), cancellationToken).ConfigureAwait(false);
+            if (hostCountry == "PK")
+            {
+                caption = caption.Replace("Emirates ID", "CNIC", StringComparison.OrdinalIgnoreCase);
+            }
+
             fields.Add(new StorefrontRegForm.AdditionalField(
                 Col(row, "main_flag"),
                 Col(row, "name"),
-                await translator.TextAsync(Col(row, "caption"), cancellationToken).ConfigureAwait(false),
+                caption,
                 Col(row, "show_for"),
                 Col(row, "required_for"),
                 Col(row, "maxlen"),
