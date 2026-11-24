@@ -466,7 +466,7 @@ public static partial class StorefrontPhpAjax
         // Post-payment redirects bounce to the shopper's balance page on the SAME host they paid on — a
         // country domain (auto247.pk) must not land on the tenant's main domain after checkout.
         string BalansRedirect(string message)
-            => (baseUrl ?? Config(request.Config, "domain_path")).TrimEnd('/') + request.LangHref.TrimStart('/')
+            => (baseUrl ?? Config(request.Config, "domain_path")).TrimEnd('/') + "/" + request.LangHref.TrimStart('/')
                + "/shop/balans?success_message=" + OAuthStart.PhpUrlEncode(message);
 
         // A paid-and-credited operation reopened from the Stripe success link: show the credited page
