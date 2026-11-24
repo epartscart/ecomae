@@ -1,0 +1,143 @@
+@page "/cp/ai-manager-app"
+@page "/AI"
+@page "/en/AI"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Ai
+@using EcomAE.Platform.Auth
+@inject IAiPlatform Ai
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>AI Manager · @(_ws?.DisplayName ?? "Control Panel")</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+
+<style>
+    .epc-ai-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+    .epc-ai-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px}
+    .epc-ai-card b{display:block;font-size:20px;color:#0f172a}
+    .epc-ai-card span{font-size:12px;color:#64748b}
+    .epc-ai-run{display:flex;gap:8px;margin:10px 0}
+    .epc-ai-run input{flex:1}
+    .epc-ai-badge{padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
+    .epc-ai-ok{background:#dcfce7;color:#166534}.epc-ai-err{background:#fee2e2;color:#991b1b}.epc-ai-warn{background:#fef9c3;color:#854d0e}
+    form.epc-ai-inline{display:inline}
+</style>
+
+<div class="col-lg-12">
+    <div class="hpanel"><div class="panel-body">
+        <h3 style="margin-top:0">@(_isPlatform ? "AI Control Center" : "AI Manager") <small>@_ws?.DisplayName</small></h3>
+        @if (!_isAdmin) { <div class="alert alert-warning">Sign in with an administrator account to manage AI agents.</div> }
+        @if (!string.IsNullOrEmpty(_flash)) { <div class="alert alert-info">@_flash</div> }
+        <div class="epc-ai-cards">
+            <div class="epc-ai-card"><b>@_usage.ActiveAgents</b><span>Active agents</span></div>
+            <div class="epc-ai-card"><b>@_usage.ExecutionsToday</b><span>Runs today</span></div>
+            <div class="epc-ai-card"><b>@_usage.TodayTokens</b><span>Tokens today</span></div>
+            <div class="epc-ai-card"><b>$@_usage.TodayCostUsd.ToString("F3")</b><span>Cost today</span></div>
+            <div class="epc-ai-card"><b>$@_usage.MonthCostUsd.ToString("F2")</b><span>Cost this month</span></div>
+            <div class="epc-ai-card"><b>@_usage.PendingApprovals</b><span>Pending approvals</span></div>
+        </div>
+
+        <h4>Agents</h4>
+        <table class="table table-condensed"><thead><tr><th>Agent</th><th>Status</th><th></th></tr></thead><tbody>
+        @foreach (var a in _agents)
+        {
+            <tr>
+                <td>@a.Name @(a.IsManager ? "★" : "") <small class="text-muted">@a.TemplateKey</small></td>
+                <td><span class="epc-ai-badge @(a.Status=="active"?"epc-ai-ok":"epc-ai-warn")">@a.Status</span></td>
+                <td>
+                    <form method="post" action="/ai-manager-action" class="epc-ai-inline">
+                        <input type="hidden" name="action" value="run" /><input type="hidden" name="id" value="@a.Id" />
+                        <input type="hidden" name="task" value="Daily health check and improvement advice" />
+                        <button class="btn btn-xs btn-default" type="submit">Run</button>
+                    </form>
+                    <form method="post" action="/ai-manager-action" class="epc-ai-inline">
+                        <input type="hidden" name="action" value="@(a.Status=="active"?"suspend":"activate")" /><input type="hidden" name="id" value="@a.Id" />
+                        <button class="btn btn-xs btn-default" type="submit">@(a.Status=="active"?"Suspend":"Activate")</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody></table>
+
+        <h4>Talk to your AI Manager</h4>
+        <form method="post" action="/ai-manager-action" class="epc-ai-run">
+            <input type="hidden" name="action" value="chat" />
+            <input class="form-control" name="text" placeholder="Ask anything about your business…" />
+            <button class="btn btn-primary btn-sm" type="submit">Send</button>
+        </form>
+        @if (!_isPlatform)
+        {
+            <form method="post" action="/ai-manager-action" class="epc-ai-run">
+                <input type="hidden" name="action" value="escalate" />
+                <input class="form-control" name="text" placeholder="Request a new module or improvement from Ecomae…" />
+                <button class="btn btn-warning btn-sm" type="submit">Escalate to Ecomae</button>
+            </form>
+        }
+        @foreach (var m in _messages.OrderBy(x => x.Id))
+        {
+            <div style="margin:4px 0"><span class="epc-ai-badge @(m.Direction=="inbound"?"epc-ai-warn":m.Direction=="escalate"?"epc-ai-err":"epc-ai-ok")">@(m.Direction=="inbound"?"You":m.Direction=="escalate"?"→ Ecomae":m.FromActor)</span> @m.Body</div>
+        }
+
+        @if (_approvals.Count > 0)
+        {
+            <h4>Pending approvals</h4>
+            <table class="table table-condensed"><thead><tr><th>Agent</th><th>Action</th><th>Risk</th><th></th></tr></thead><tbody>
+            @foreach (var p in _approvals)
+            {
+                <tr><td>@p.AgentName</td><td>@p.Action — @p.Reason</td><td>@p.Risk</td>
+                    <td>
+                        <form method="post" action="/ai-manager-action" class="epc-ai-inline"><input type="hidden" name="action" value="approve" /><input type="hidden" name="id" value="@p.Id" /><button class="btn btn-xs btn-success" type="submit">Approve</button></form>
+                        <form method="post" action="/ai-manager-action" class="epc-ai-inline"><input type="hidden" name="action" value="reject" /><input type="hidden" name="id" value="@p.Id" /><button class="btn btn-xs btn-danger" type="submit">Reject</button></form>
+                    </td></tr>
+            }
+            </tbody></table>
+        }
+
+        <h4>Recent executions</h4>
+        <table class="table table-condensed"><thead><tr><th>Agent</th><th>Trigger</th><th>Status</th><th>Tokens</th><th>Cost</th><th>Result</th></tr></thead><tbody>
+        @foreach (var e in _execs)
+        {
+            <tr>
+                <td>@e.AgentName</td><td>@e.Trigger</td>
+                <td><span class="epc-ai-badge @(e.Status=="completed"?"epc-ai-ok":e.Status=="running"?"epc-ai-warn":"epc-ai-err")">@e.Status</span></td>
+                <td>@(e.TokensIn + e.TokensOut)</td><td>$@e.CostUsd.ToString("F4")</td>
+                <td style="max-width:420px;white-space:pre-wrap;font-size:12px">@(e.Error ?? e.OutputSummary)</td>
+            </tr>
+        }
+        </tbody></table>
+    </div></div>
+</div>
+</PhpCpDesktopChrome>
+
+@code {
+    private bool _isAdmin, _isPlatform;
+    private AiWorkspace? _ws;
+    private List<AiAgentRow> _agents = [];
+    private List<AiExecutionRow> _execs = [];
+    private List<AiApprovalRow> _approvals = [];
+    private List<AiMessage> _messages = [];
+    private AiUsageSummary _usage = new(0,0,0,0,0,0,0);
+    private string? _flash;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext; if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = EcomAE.Platform.Presentation.PhpParityDumpCatalog.HasStaffAccess(session);
+        var tenant = ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] as EcomAE.Platform.Services.TenantContext;
+        _isPlatform = tenant?.SiteKey == "platform" || tenant?.Mode == EcomAE.Platform.Services.TenantMode.Platform;
+        // Data loads only for staff — /AI is a public route and guests must not see conversations.
+        var key = _isPlatform ? "platform" : (tenant?.SiteKey ?? tenant?.DatabaseName ?? ctx.Request.Host.Host);
+        if (_isAdmin)
+        {
+            _ws = await Ai.WorkspaceForAsync(key, tenant?.DisplayName ?? ctx.Request.Host.Host, ctx.RequestAborted);
+            _agents = (await Ai.AgentsAsync(_ws.Id, ctx.RequestAborted)).ToList();
+            _execs = (await Ai.RecentExecutionsAsync(_ws.Id, 30, ctx.RequestAborted)).ToList();
+            _approvals = (await Ai.PendingApprovalsAsync(_ws.Id, ctx.RequestAborted)).ToList();
+            _usage = await Ai.UsageSummaryAsync(_ws.Id, ctx.RequestAborted);
+            _messages = (await Ai.MessagesAsync(_ws.Id, 50, ctx.RequestAborted)).ToList();
+        }
+        _flash = ctx.Request.Query["m"].ToString() is { Length: > 0 } f ? f : null;
+    }
+}

@@ -14,6 +14,7 @@
     <PackageReference Include="ExcelDataReader" Version="3.7.0" />
     <PackageReference Include="FluentFTP" Version="54.2.1" />
     <PackageReference Include="MailKit" Version="4.18.1" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.28.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
     <PackageReference Include="MySqlConnector" Version="2.6.1" />
     <PackageReference Include="SharpCompress" Version="0.50.4" />
@@ -48,13 +49,9 @@
   <Target Name="BuildPackageAssemblies" AfterTargets="Build;Publish">
     <Exec Command="dotnet build &quot;$(MSBuildThisFileDirectory)..\EcomAE.Package.AutoParts\EcomAE.Package.AutoParts.csproj&quot; -c $(Configuration) --no-dependencies -v q" />
     <Exec Command="dotnet build &quot;$(MSBuildThisFileDirectory)..\EcomAE.Customer.Auto247\EcomAE.Customer.Auto247.csproj&quot; -c $(Configuration) --no-dependencies -v q" />
-    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\EcomAE.Package.AutoParts\bin\$(Configuration)\net10.0\EcomAE.Package.AutoParts.dll"
-          DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\EcomAE.Customer.Auto247\bin\$(Configuration)\net10.0\EcomAE.Customer.Auto247.dll"
-          DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\EcomAE.Package.AutoParts\bin\$(Configuration)\net10.0\EcomAE.Package.AutoParts.dll"
-          DestinationFolder="$(PublishDir)" Condition="'$(PublishDir)' != ''" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\EcomAE.Customer.Auto247\bin\$(Configuration)\net10.0\EcomAE.Customer.Auto247.dll"
-          DestinationFolder="$(PublishDir)" Condition="'$(PublishDir)' != ''" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\EcomAE.Package.AutoParts\bin\$(Configuration)\net10.0\EcomAE.Package.AutoParts.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\EcomAE.Customer.Auto247\bin\$(Configuration)\net10.0\EcomAE.Customer.Auto247.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\EcomAE.Package.AutoParts\bin\$(Configuration)\net10.0\EcomAE.Package.AutoParts.dll" DestinationFolder="$(PublishDir)" Condition="'$(PublishDir)' != ''" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\EcomAE.Customer.Auto247\bin\$(Configuration)\net10.0\EcomAE.Customer.Auto247.dll" DestinationFolder="$(PublishDir)" Condition="'$(PublishDir)' != ''" SkipUnchangedFiles="true" />
   </Target>
 </Project>
