@@ -47,6 +47,9 @@ public static class StorefrontLoginForm
         public StorefrontAuthPartials.AuthLayout Layout { get; init; } = new();
 
         public StorefrontOtpModal Modal { get; init; } = new();
+
+        /// <summary>Where the login page sends the customer after sign-in; null falls back to the lang root.</summary>
+        public string? Target { get; init; }
     }
 
     private sealed record Method(string Key, string Type, string Caption, string Icon, string Placeholder);
@@ -70,7 +73,7 @@ public static class StorefrontLoginForm
             .Append("</div>\n\t<div class=\"panel-body\">\n\t\t<p class=\"help-block\">Sign in to browse, track orders, and checkout. New customer? <a href=\"")
             .Append(H(SignupUrl(lang)))
             .Append("\"><strong>Sign up</strong></a> — retail accounts are approved instantly and can see prices; wholesale requires manager approval before prices and stock details unlock.</p>\n\t\t")
-            .Append(General(input, t, "login_page_1", lang.TrimEnd('/') + "/"))
+            .Append(General(input, t, "login_page_1", string.IsNullOrEmpty(input.Target) ? lang.TrimEnd('/') + "/" : input.Target))
             .Append("\t</div>\n</div>\n")
             .Append(StorefrontAuthPartials.AuthLayout.Close())
             .Append(AuthLinksStyles);

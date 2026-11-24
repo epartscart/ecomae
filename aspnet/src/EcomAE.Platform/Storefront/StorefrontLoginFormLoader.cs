@@ -115,12 +115,46 @@ public static class StorefrontLoginFormLoader
         {
             LangHref = request.LangHref,
             CsrfGuardKey = csrf,
+            // Signing in must return the customer to the page they came from — never dump them on the
+            // frontpage. Prefer an explicit ?target= link param, else a same-host Referer.
+            Target = ResolvePostLoginTarget(http),
             Sms = (await StorefrontPhpAjax.AvailableCommunicationsAsync(connection, request.Config, cancellationToken).ConfigureAwait(false)).Sms,
             SocialButtons = buttons,
             TemplateId = long.TryParse(templateId, out var template) ? template : 0,
             TenantKey = tenantKey,
             LoginLabel = loginLabel,
         }, T);
+    }
+
+    /// <summary>
+    /// Post-login destination: an explicit <c>target</c> query parameter (must be a site-relative path), else the
+    /// Referer when it points at this host and is not the login page itself. Null means the lang root fallback.
+    /// </summary>
+    private static string? ResolvePostLoginTarget(HttpContext http)
+    {
+        if (http.Request.Query.TryGetValue("target", out var queryTarget))
+        {
+            var safe = StorefrontLoginPost.SafeTarget(queryTarget.ToString());
+            if (safe != "/")
+            {
+                return safe;
+            }
+        }
+
+        var referer = http.Request.Headers.Referer.ToString();
+        if (!Uri.TryCreate(referer, UriKind.Absolute, out var uri)
+            || !string.Equals(uri.Host, http.Request.Host.Host, StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var path = uri.PathAndQuery;
+        if (path.Length == 0 || path == "/" || path.EndsWith("/users/login", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        return StorefrontLoginPost.SafeTarget(path) is "/" ? null : path;
     }
 
     private static async Task<string> TryStringAsync(DbConnection connection, string sql, CancellationToken cancellationToken, params object?[] args)
