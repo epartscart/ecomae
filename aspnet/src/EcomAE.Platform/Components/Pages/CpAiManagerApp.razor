@@ -46,12 +46,12 @@
                 <td>@a.Name @(a.IsManager ? "★" : "") <small class="text-muted">@a.TemplateKey</small></td>
                 <td><span class="epc-ai-badge @(a.Status=="active"?"epc-ai-ok":"epc-ai-warn")">@a.Status</span></td>
                 <td>
-                    <form method="post" action="/ai-manager-action" class="epc-ai-inline">
+                    <form method="post" action="@_actionPath" class="epc-ai-inline">
                         <input type="hidden" name="action" value="run" /><input type="hidden" name="id" value="@a.Id" />
                         <input type="hidden" name="task" value="Daily health check and improvement advice" />
                         <button class="btn btn-xs btn-default" type="submit">Run</button>
                     </form>
-                    <form method="post" action="/ai-manager-action" class="epc-ai-inline">
+                    <form method="post" action="@_actionPath" class="epc-ai-inline">
                         <input type="hidden" name="action" value="@(a.Status=="active"?"suspend":"activate")" /><input type="hidden" name="id" value="@a.Id" />
                         <button class="btn btn-xs btn-default" type="submit">@(a.Status=="active"?"Suspend":"Activate")</button>
                     </form>
@@ -61,14 +61,14 @@
         </tbody></table>
 
         <h4>Talk to your AI Manager</h4>
-        <form method="post" action="/ai-manager-action" class="epc-ai-run">
+        <form method="post" action="@_actionPath" class="epc-ai-run">
             <input type="hidden" name="action" value="chat" />
             <input class="form-control" name="text" placeholder="Ask anything about your business…" />
             <button class="btn btn-primary btn-sm" type="submit">Send</button>
         </form>
         @if (!_isPlatform)
         {
-            <form method="post" action="/ai-manager-action" class="epc-ai-run">
+            <form method="post" action="@_actionPath" class="epc-ai-run">
                 <input type="hidden" name="action" value="escalate" />
                 <input class="form-control" name="text" placeholder="Request a new module or improvement from Ecomae…" />
                 <button class="btn btn-warning btn-sm" type="submit">Escalate to Ecomae</button>
@@ -87,8 +87,8 @@
             {
                 <tr><td>@p.AgentName</td><td>@p.Action — @p.Reason</td><td>@p.Risk</td>
                     <td>
-                        <form method="post" action="/ai-manager-action" class="epc-ai-inline"><input type="hidden" name="action" value="approve" /><input type="hidden" name="id" value="@p.Id" /><button class="btn btn-xs btn-success" type="submit">Approve</button></form>
-                        <form method="post" action="/ai-manager-action" class="epc-ai-inline"><input type="hidden" name="action" value="reject" /><input type="hidden" name="id" value="@p.Id" /><button class="btn btn-xs btn-danger" type="submit">Reject</button></form>
+                        <form method="post" action="@_actionPath" class="epc-ai-inline"><input type="hidden" name="action" value="approve" /><input type="hidden" name="id" value="@p.Id" /><button class="btn btn-xs btn-success" type="submit">Approve</button></form>
+                        <form method="post" action="@_actionPath" class="epc-ai-inline"><input type="hidden" name="action" value="reject" /><input type="hidden" name="id" value="@p.Id" /><button class="btn btn-xs btn-danger" type="submit">Reject</button></form>
                     </td></tr>
             }
             </tbody></table>
@@ -119,6 +119,7 @@
     private List<AiMessage> _messages = [];
     private AiUsageSummary _usage = new(0,0,0,0,0,0,0);
     private string? _flash;
+    private string _actionPath = "/cp/ai-manager-action";
 
     protected override async Task OnInitializedAsync()
     {
@@ -137,6 +138,12 @@
             _approvals = (await Ai.PendingApprovalsAsync(_ws.Id, ctx.RequestAborted)).ToList();
             _usage = await Ai.UsageSummaryAsync(_ws.Id, ctx.RequestAborted);
             _messages = (await Ai.MessagesAsync(_ws.Id, 50, ctx.RequestAborted)).ToList();
+        }
+        // Post to the endpoint under the same proxied prefix as this page (/en/ on storefront, /cp/ in CP).
+        if (ctx.Request.Path.StartsWithSegments("/en", StringComparison.OrdinalIgnoreCase)
+            || ctx.Request.Path.StartsWithSegments("/AI", StringComparison.OrdinalIgnoreCase))
+        {
+            _actionPath = "/en/ai-manager-action";
         }
         _flash = ctx.Request.Query["m"].ToString() is { Length: > 0 } f ? f : null;
     }

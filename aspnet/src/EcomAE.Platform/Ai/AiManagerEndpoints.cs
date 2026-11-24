@@ -11,13 +11,32 @@ public static class AiManagerEndpoints
 {
     public static WebApplication MapAiManagerEndpoints(this WebApplication app)
     {
-        // Same surface as the page that submits — /cp/ routes get platform fallback on directory hosts.
-        app.MapPost("/ai-manager-action", HandleAsync);
+        // Same surface as the page that submits: /cp/ for the CP screen, /en/ for the storefront /AI page.
+        // Both prefixes are nginx-proxied to the app; a root-level path is not (it rewrites to /storefront/app).
+        app.MapPost("/cp/ai-manager-action", HandleAsync);
+        app.MapPost("/en/ai-manager-action", HandleAsync);
         return app;
     }
 
     private static async Task<IResult> HandleAsync(HttpContext ctx, IAiPlatform ai, IAiAgentRuntime runtime, ILegacySessionValidator sessions)
     {
+        // Cross-site write protection — this cookie-authenticated endpoint sits outside the admin-surface guard.
+        var secSite = ctx.Request.Headers["Sec-Fetch-Site"].ToString();
+        if (string.Equals(secSite, "cross-site", StringComparison.OrdinalIgnoreCase))
+        {
+            return Results.StatusCode(StatusCodes.Status403Forbidden);
+        }
+        var src = ctx.Request.Headers.Origin.ToString();
+        if (string.IsNullOrWhiteSpace(src) || string.Equals(src, "null", StringComparison.OrdinalIgnoreCase))
+        {
+            src = ctx.Request.Headers.Referer.ToString();
+        }
+        if (!string.IsNullOrWhiteSpace(src)
+            && (!Uri.TryCreate(src, UriKind.Absolute, out var su) || !string.Equals(su.Host, ctx.Request.Host.Host, StringComparison.OrdinalIgnoreCase)))
+        {
+            return Results.StatusCode(StatusCodes.Status403Forbidden);
+        }
+
         var session = await sessions.ValidateAsync(ctx, ctx.RequestAborted).ConfigureAwait(false);
         if (!PhpParityDumpCatalog.HasStaffAccess(session))
         {
