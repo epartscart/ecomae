@@ -401,6 +401,13 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
             }
             else
             {
+                // Stamp rows under the tenant's canonical site_key (auto247, not
+                // auto247_ae) so storage and dashboard filtering agree.
+                var canon = await ResolveTenantSiteKeyAsync(_connections, payload.SiteKey, cancellationToken).ConfigureAwait(false);
+                if (canon is not null)
+                {
+                    payload.SiteKey = canon;
+                }
                 conn = await TryOpenSiteDbAsync(_connections, payload.SiteKey, _log, cancellationToken).ConfigureAwait(false)
                     ?? await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -455,8 +462,11 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
             await using var cmd = reg.CreateCommand();
             cmd.CommandText = ErpDb.Positional(
                 "SELECT `db_name`,`db_user`,`db_password` FROM `epc_portal_tenants`"
-                + " WHERE `site_key` IN (" + marks + ") AND `is_active` = 1 LIMIT 1");
-            ErpDb.AddParameters(cmd, variants.Cast<object>().ToArray());
+                + " WHERE `site_key` IN (" + marks + ") AND `is_active` = 1"
+                // Exact key wins over stripped prefixes so an 'auto247_ae' claim
+                // can't be routed into the 'auto247' tenant DB when both exist.
+                + " ORDER BY FIELD(`site_key`," + marks + ") LIMIT 1");
+            ErpDb.AddParameters(cmd, variants.Cast<object>().Concat(variants.Cast<object>()).ToArray());
             await using var r = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
             if (await r.ReadAsync(ct).ConfigureAwait(false))
             {
@@ -485,7 +495,9 @@ public sealed class CpWebTrackerCollectService : ICpWebTrackerCollectService
     {
         var variants = new List<string> { key };
         var k = key;
-        while (k.Contains('_', StringComparison.Ordinal))
+        // Bound the expansion: site_key is user-supplied on platform beacons, so a
+        // key full of underscores must not grow the retained list unboundedly.
+        while (k.Contains('_', StringComparison.Ordinal) && variants.Count < 8)
         {
             k = k[..k.LastIndexOf('_')];
             if (k.Length > 0 && !variants.Contains(k))
