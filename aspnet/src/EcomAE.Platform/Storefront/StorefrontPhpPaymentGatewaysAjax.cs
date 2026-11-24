@@ -463,6 +463,30 @@ public static partial class StorefrontPhpAjax
         var operationId = ShopPayForOrderService.PhpIntCast(
             request.Form.TryGetValue("operation_id", out var posted) ? posted : request.Query.TryGetValue("operation_id", out var queried) ? queried : null);
 
+        // Post-payment redirects bounce to the shopper's balance page on the SAME host they paid on — a
+        // country domain (auto247.pk) must not land on the tenant's main domain after checkout.
+        string BalansRedirect(string message)
+            => (baseUrl ?? Config(request.Config, "domain_path")).TrimEnd('/') + request.LangHref.TrimStart('/')
+               + "/shop/balans?success_message=" + OAuthStart.PhpUrlEncode(message);
+
+        // A paid-and-credited operation reopened from the Stripe success link: show the credited page
+        // instead of a bare Forbidden once the idempotent credit already landed.
+        if (operationId > 0)
+        {
+            var alreadyActive = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `active` FROM `shop_users_accounting` WHERE `id` = ?"),
+                cancellationToken,
+                operationId).ConfigureAwait(false);
+            if (alreadyActive == 1)
+            {
+                var doneTranslator = new StorefrontPhpTranslator(connection, GatewayLang(request.LangHref));
+                var doneMessage = await doneTranslator.TextAsync(4355, cancellationToken).ConfigureAwait(false);
+                return new GatewayRedirect(BalansRedirect(doneMessage));
+            }
+        }
+
         // Stripe Checkout success URL: the shopper is bounced back here with the session id; the session is
         // re-fetched from Stripe with the tenant's secret key so only a genuinely paid session credits the order.
         if (string.Equals(handlerName, "stripe", StringComparison.Ordinal)
@@ -486,7 +510,7 @@ public static partial class StorefrontPhpAjax
                 await payments.ApplyIpnAsync(connection, operationId, paid, cancellationToken).ConfigureAwait(false);
                 var stripeTranslator = new StorefrontPhpTranslator(connection, GatewayLang(request.LangHref));
                 var paidMessage = await stripeTranslator.TextAsync(4355, cancellationToken).ConfigureAwait(false);
-                return new GatewayRedirect(Config(request.Config, "domain_path") + request.LangHref.TrimStart('/') + "/shop/balans?success_message=" + OAuthStart.PhpUrlEncode(paidMessage));
+                return new GatewayRedirect(BalansRedirect(paidMessage));
             }
 
             return new RawHttp("Forbidden", GatewayHtmlType);
@@ -502,7 +526,7 @@ public static partial class StorefrontPhpAjax
         await payments.NotifyAsync(connection, 0, operationId, (decimal)sum, token, handlerName, cancellationToken).ConfigureAwait(false);
         var translator = new StorefrontPhpTranslator(connection, GatewayLang(request.LangHref));
         var message = await translator.TextAsync(4355, cancellationToken).ConfigureAwait(false);
-        return new GatewayRedirect(Config(request.Config, "domain_path") + request.LangHref.TrimStart('/') + "/shop/balans?success_message=" + OAuthStart.PhpUrlEncode(message));
+        return new GatewayRedirect(BalansRedirect(message));
     }
 
     /// <summary>
