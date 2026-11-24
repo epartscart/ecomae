@@ -1467,6 +1467,24 @@ app.UseMiddleware<EcomAE.Platform.Packages.PackageGateMiddleware>();
 app.Use(async (context, next) =>
 {
     var subdomain = EcomAE.Platform.Storefront.StorefrontCountryDefaults.SubdomainOf(context.Request.Host.Host);
+    if (subdomain is null)
+    {
+        // Whole-domain country storefronts (auto247.pk → PK): apply the same country rules as
+        // a {cc}. subdomain when the domain map pins a NON-default country for this host. The
+        // tenant's home domain (auto247.ae → default AE) stays a normal multi-currency host.
+        var mapSvc = context.RequestServices.GetService<EcomAE.Platform.Storefront.IStorefrontCountryService>();
+        var mappedCode = mapSvc is null
+            ? null
+            : await mapSvc.ResolveMappedCountryCodeAsync(context.Request.Host.Host, context.RequestAborted).ConfigureAwait(false);
+        if (mappedCode is not null)
+        {
+            var mappedCountry = await mapSvc!.ResolveAsync(context.Request.Host.Host, context.RequestAborted).ConfigureAwait(false);
+            if (mappedCountry is not null && !mappedCountry.IsDefault)
+            {
+                subdomain = mappedCountry.Subdomain;
+            }
+        }
+    }
     if (subdomain is not null)
     {
         // A non-English country host lands on its language home (sa. → /ar/, ru. → /ru/)
