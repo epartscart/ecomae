@@ -261,6 +261,34 @@ public sealed class AiAgentRuntime : IAiAgentRuntime
                 }
                 catch (DbException) { sb.Append(" unavailable"); }
             }
+            else if (templateKey == "storefront_agent")
+            {
+                // Warm leads: engaged visitor sessions in the last 24h (multi-page, or returning/registered).
+                sb.Append("\nrecent_visitor_sessions (last 24h, most engaged first):");
+                try
+                {
+                    await using var cmd = c.CreateCommand();
+                    cmd.CommandText =
+                        "SELECT `session_uid`,`is_registered`,`user_id`,`pageview_count`,`duration_ms`,`landing_path`,`exit_path`,"
+                        + "`referrer_host`,`utm_source`,`utm_campaign`,`country_name`,`city`,`device_type`,`first_seen_at`,`last_seen_at`"
+                        + " FROM `epc_web_tracker_sessions`"
+                        + " WHERE `last_seen_at` >= UNIX_TIMESTAMP(NOW() - INTERVAL 1 DAY) AND `pageview_count` >= 2"
+                        + " ORDER BY `pageview_count` DESC, `duration_ms` DESC LIMIT 20";
+                    await using var r = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+                    while (await r.ReadAsync(ct).ConfigureAwait(false))
+                    {
+                        var cols = new List<string>(r.FieldCount);
+                        for (var i = 0; i < r.FieldCount; i++)
+                        {
+                            cols.Add(r.GetName(i) + "=" + (r.IsDBNull(i) ? "null" : Convert.ToString(r.GetValue(i), CultureInfo.InvariantCulture)));
+                        }
+                        sb.Append('\n').Append(string.Join(" ", cols));
+                    }
+                }
+                catch (DbException) { sb.Append(" unavailable"); }
+                sb.Append("\nnew_leads_24h=" + await Scalar(c,
+                    "SELECT COUNT(*) FROM `epc_crm_leads` WHERE `status` = 'new'", ct));
+            }
             sb.Append("\nindustry: " + industry);
             return sb.ToString();
         }

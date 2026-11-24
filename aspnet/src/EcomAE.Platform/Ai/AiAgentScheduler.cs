@@ -29,6 +29,7 @@ public sealed class AiAgentScheduler : BackgroundService
     {
         ["operations_agent"] = 60,
         ["it_monitor_agent"] = 60,
+        ["storefront_agent"] = 240,
         ["ai_manager"] = 24 * 60,
         ["platform_ai_manager"] = 24 * 60,
         ["platform_tenant_agent"] = 24 * 60,
@@ -46,6 +47,7 @@ public sealed class AiAgentScheduler : BackgroundService
         ["platform_tenant_agent"] = "Daily tenant onboarding check: new or idle workspaces, provisioning gaps, tenants needing outreach.",
         ["platform_infra_agent"] = "Daily infrastructure check: deploy health, service and job failures, capacity risks. Report incidents as URGENT.",
         ["platform_bi_agent"] = "Daily BI digest: platform KPIs, tenant AI usage/cost trend, anomalies worth surfacing.",
+        ["storefront_agent"] = "Visitor engagement sweep: review the warm visitor sessions attached, identify leads to convert, draft a short personalized outreach message per lead (NEEDS-APPROVAL), and note which sources/pages bring engaged visitors.",
     };
 
     private readonly IServiceScopeFactory _scopes;
