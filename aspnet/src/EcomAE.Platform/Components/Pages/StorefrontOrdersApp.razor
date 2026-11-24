@@ -301,6 +301,17 @@
                                 <input type="hidden" name="amount" value="@_split.AdvanceDue.ToString("0.00", CultureInfo.InvariantCulture)" />
                                 <button type="submit" style="padding:.5rem .9rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Pay 30% advance — @_split.AdvanceDue.ToString("N2", CultureInfo.InvariantCulture)</button>
                             </form>
+                            var fullLeft = _split.EffectiveTotal - _split.PaidSum;
+                            if (fullLeft > _split.AdvanceDue + 0.005m)
+                            {
+                                <form method="post" action="/storefront/payment/create-operation" style="margin-top:.4rem">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="order_id" value="@_selected!.Id.ToString(CultureInfo.InvariantCulture)" />
+                                    <input type="hidden" name="pay_handler" value="epc_demo" />
+                                    <input type="hidden" name="amount" value="@fullLeft.ToString("0.00", CultureInfo.InvariantCulture)" />
+                                    <button type="submit" style="padding:.5rem .9rem;border:0;border-radius:.4rem;background:#1d4ed8;color:#fff;font-weight:800;cursor:pointer">Pay in full now — @fullLeft.ToString("N2", CultureInfo.InvariantCulture)</button>
+                                </form>
+                            }
                         }
                         @if (_split.ConfirmedTotal.HasValue && !_split.BalancePaid && _split.BalanceDue > 0m)
                         {
