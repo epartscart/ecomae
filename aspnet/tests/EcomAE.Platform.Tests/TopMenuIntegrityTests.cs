@@ -24,14 +24,11 @@ public sealed class TopMenuIntegrityTests
         // Sign-in pages and the generic module host are not menu destinations.
         "CpLoginApp.razor", "ErpLoginApp.razor", "ErpModuleApp.razor",
         // Linked from other pages, not from the top menu.
-        "CpDashboardSummaryApp.razor", "ErpNavigationCoverageApp.razor", "ErpFitOutWorkspaceApp.razor",
+        "ErpNavigationCoverageApp.razor", "ErpFitOutWorkspaceApp.razor",
         "ErpAutoPartsWorkspaceApp.razor", "ErpJewelleryWorkspaceApp.razor", "ErpFmcgWorkspaceApp.razor",
-        "CpPriceListsApp.razor", "CpPricesEditApp.razor", "CpPoApprovalsApp.razor", "CpCrmActivitiesApp.razor",
-        "CpAdminSessionsApp.razor", "CpPrintDocsApp.razor", "CpBulkUploadApp.razor", "CpFinanceCloseApp.razor",
+        "CpPriceListsApp.razor", "CpBulkUploadApp.razor", "CpFinanceCloseApp.razor",
         // Super CP utilities reached from the CP chrome nav, not the cached top-menu snapshots.
-        "CpPlatformAlertsApp.razor", "CpTenantCountriesApp.razor", "CpPackagesApp.razor",
-        // AI Manager is reached at /AI per tenant; it is not a top-menu destination.
-        "CpAiManagerApp.razor",
+        "CpPackagesApp.razor",
         // Linked from the ERP Activities workspace catalog, not the top menu.
         "ErpWhatsappShareApp.razor",
     ];
