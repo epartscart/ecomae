@@ -784,7 +784,7 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
             return new ErpOnlyShopEnsureResult(false, false, false, false, "shop bootstrap not registered");
         }
 
-        return await _shopBootstrap.EnsureForSiteKeyAsync(siteKey, password, cancellationToken).ConfigureAwait(false);
+        return await _shopBootstrap.EnsureForSiteKeyAsync(siteKey, password, cancellationToken, seedReference: true).ConfigureAwait(false);
     }
 
     private async Task<ErpOnlyShopEnsureResult> EnsureOperatorLoginAsync(

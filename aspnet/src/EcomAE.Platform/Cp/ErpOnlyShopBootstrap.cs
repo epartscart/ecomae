@@ -18,7 +18,8 @@ public interface IErpOnlyShopBootstrap
     Task<ErpOnlyShopEnsureResult> EnsureForSiteKeyAsync(
         string siteKey,
         string? passwordOverride = null,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        bool seedReference = false);
 
     Task<ErpOnlyShopEnsureResult> EnsureOperatorLoginAsync(
         string siteKey,
@@ -110,7 +111,8 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
     public async Task<ErpOnlyShopEnsureResult> EnsureForSiteKeyAsync(
         string siteKey,
         string? passwordOverride = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        bool seedReference = false)
     {
         var key = CpTenantsWriteService.NormalizeSiteKey(siteKey);
         if (key.Length == 0)
@@ -170,8 +172,12 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
             {
                 if (await ShopAlreadyServesLoginAsync(shop, cancellationToken).ConfigureAwait(false))
                 {
-                    // Schema-cloned shops skipped bootstrap; backfill reference data anyway.
-                    await SeedStorefrontReferenceAsync(shop, cancellationToken).ConfigureAwait(false);
+                    // Schema-cloned shops skipped bootstrap; backfill reference data —
+                    // but only for provisioning callers, never on the sign-in path.
+                    if (seedReference)
+                    {
+                        await SeedStorefrontReferenceAsync(shop, cancellationToken).ConfigureAwait(false);
+                    }
                     return new ErpOnlyShopEnsureResult(
                         true,
                         true,
@@ -180,7 +186,7 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
                         "Shop login already ready on `" + dbName + "`.");
                 }
 
-                await EnsureSchemaAsync(shop, cancellationToken).ConfigureAwait(false);
+                await EnsureSchemaAsync(shop, cancellationToken, seedReference).ConfigureAwait(false);
                 await EnsureIndustryProfileAsync(
                     shop,
                     RouteTenantResolver.ResolveIndustryCode(key, industryCode, host: null),
@@ -234,7 +240,10 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
         }
     }
 
-    public static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+    public static async Task EnsureSchemaAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken,
+        bool seedReference = true)
     {
         await ErpDb.TryExecuteAsync(connection, CreateUsersSql, cancellationToken).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(connection, CreateSessionsSql, cancellationToken).ConfigureAwait(false);
@@ -250,7 +259,10 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
         await ErpUaeTaxComplianceSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpProcurementSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpRfqSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
-        await SeedStorefrontReferenceAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (seedReference)
+        {
+            await SeedStorefrontReferenceAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     /// <summary>
