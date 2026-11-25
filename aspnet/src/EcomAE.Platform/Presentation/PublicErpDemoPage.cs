@@ -182,7 +182,7 @@ public static class PublicErpDemoPage
         sb.Append("""
              &middot; sample data, no signup</div>
                 </div>
-                <div class="epcdemo-cred">Want full ERP access? <a href="/platform/contact" style="color:var(--a);font-weight:700">Request a live ERP demo login</a> &middot; storefront demo: <b>demo@ecomae.com</b> / <b>demo1234</b></div>
+                <div class="epcdemo-cred">Want full ERP access? <a href="mailto:hello@ecomae.com?subject=ERP%20demo%20access" style="color:var(--a);font-weight:700">Request a live ERP demo login</a> &middot; storefront demo: <b>demo@ecomae.com</b> / <b>demo1234</b></div>
               </div>
               <div class="epcdemo-picker">
             """);
