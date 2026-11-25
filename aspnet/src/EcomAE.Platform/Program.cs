@@ -2149,13 +2149,16 @@ async Task<IResult> RecordMarketingLeadAsync(
         .Append("<li><b>Company:</b> ").Append(System.Net.WebUtility.HtmlEncode(company)).Append("</li>")
         .Append("<li><b>Phone:</b> ").Append(System.Net.WebUtility.HtmlEncode(contactPhone ?? string.Empty)).Append("</li>")
         .Append("<li><b>Industry:</b> ").Append(System.Net.WebUtility.HtmlEncode(industryCode ?? string.Empty)).Append("</li>")
-        // Newlines are collapsed into <br>: the mailer writes the body raw into SMTP DATA,
-        // so a lone ".\r\n" from visitor text could terminate or inject into the session.
+        // The mailer writes the body raw into SMTP DATA: visitor newlines become "<br>\r\n"
+        // (keeps real line breaks without ever emitting a bare "." line that could terminate
+        // the DATA phase or inject commands), and every line is hard-wrapped under the
+        // RFC 5321 998-octet limit.
         .Append("<li><b>Message:</b> ").Append(
-            System.Net.WebUtility.HtmlEncode(message)
-                .Replace("\r\n", "<br>", StringComparison.Ordinal)
-                .Replace("\r", "<br>", StringComparison.Ordinal)
-                .Replace("\n", "<br>", StringComparison.Ordinal)).Append("</li>")
+            WrapMarketingLeadText(
+                System.Net.WebUtility.HtmlEncode(message)
+                    .Replace("\r\n", "<br>\r\n", StringComparison.Ordinal)
+                    .Replace("\r", "<br>\r\n", StringComparison.Ordinal)
+                    .Replace("\n", "<br>\r\n", StringComparison.Ordinal))).Append("</li>")
         .Append("<li><b>IP:</b> ").Append(System.Net.WebUtility.HtmlEncode(ip)).Append("</li></ul>")
         .ToString();
     var mailed = false;
@@ -2181,6 +2184,33 @@ async Task<IResult> RecordMarketingLeadAsync(
         ? "Demo request received — our team will email your 3-day ERP login within 24 hours."
         : "Thanks — we'll be in touch shortly.";
     return Results.Json(new { ok = true, message = reply });
+}
+
+static string WrapMarketingLeadText(string text)
+{
+    var builder = new System.Text.StringBuilder(text.Length + 16);
+    var column = 0;
+    foreach (var ch in text)
+    {
+        if (ch == '\n')
+        {
+            column = 0;
+            builder.Append(ch);
+            continue;
+        }
+        if (ch == '\r')
+        {
+            continue;
+        }
+        if (column >= 900)
+        {
+            builder.Append("<br>\r\n");
+            column = 0;
+        }
+        builder.Append(ch);
+        column++;
+    }
+    return builder.ToString();
 }
 
 app.MapPost("/platform/contact", (HttpContext context, EcomAE.Platform.Erp.IErpWriteConnectionFactory connections, EcomAE.Platform.Cp.ICpPlatformMailer mailer, CancellationToken cancellationToken) =>
