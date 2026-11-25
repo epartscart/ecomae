@@ -182,7 +182,13 @@ public static class PublicErpDemoPage
         sb.Append("""
              &middot; sample data, no signup</div>
                 </div>
-                <div class="epcdemo-cred"><b>Live ERP demo</b> — sign in at <a href="https://erp-demo.ecomae.com/erp/login" style="color:var(--a);font-weight:700">erp-demo.ecomae.com/erp/login</a> with <b>erp.demo@ecomae.com</b> / <b>ErpDemo2026!</b> (shared sandbox tenant). Want a private 3-day tenant? <a href="https://www.ecomae.com/platform/demo" style="color:var(--a);font-weight:700">Request your own ERP demo</a></div>
+                <div class="epcdemo-cred"><b>Live ERP demo</b> — sign in at <a href="https://erp-demo.ecomae.com/erp/login" style="color:var(--a);font-weight:700">erp-demo.ecomae.com/erp/login</a> with <b>erp.demo@ecomae.com</b> / <b>ErpDemo2026!</b> (shared sandbox tenant). Want a private 3-day tenant? <a href="https://www.ecomae.com/platform/demo" style="color:var(--a);font-weight:700">Request your own ERP demo</a>
+                <div style="margin-top:8px">One login, every industry workspace — switch business unit inside the ERP or jump straight in:
+                <a href="https://erp-demo.ecomae.com/erp/login?redirect=%2Ferp%2F%3Fcompany%3D3" style="color:var(--a);font-weight:600">Auto Parts</a> &middot;
+                <a href="https://erp-demo.ecomae.com/erp/login?redirect=%2Ferp%2F%3Fcompany%3D5" style="color:var(--a);font-weight:600">Jewellery</a> &middot;
+                <a href="https://erp-demo.ecomae.com/erp/login?redirect=%2Ferp%2F%3Fcompany%3D6" style="color:var(--a);font-weight:600">Fit-out</a> &middot;
+                <a href="https://erp-demo.ecomae.com/erp/login?redirect=%2Ferp%2F%3Fcompany%3D7" style="color:var(--a);font-weight:600">Real Estate</a> &middot;
+                <a href="https://erp-demo.ecomae.com/erp/login?redirect=%2Ferp%2F%3Fcompany%3D8" style="color:var(--a);font-weight:600">FMCG</a></div></div>
               </div>
               <div class="epcdemo-picker">
             """);

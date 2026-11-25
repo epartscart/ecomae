@@ -365,6 +365,7 @@ else
 
                 _brand = LoginHostBrand.ForErpOnly(row.SiteKey, row.TradeName, row.IndustryCode);
                 _content = LoginIndustryContent.For(_brand, "erp");
+                ApplyRequestedRedirect();
                 await OverlayRealEstateStatsAsync();
                 return;
             }
@@ -377,7 +378,42 @@ else
 
         _brand = LoginHostBrand.Resolve(host, "erp");
         _content = LoginIndustryContent.For(_brand, "erp");
+        ApplyRequestedRedirect();
         await OverlayRealEstateStatsAsync();
+    }
+
+    /// <summary>Honour ?redirect=/erp/… deep links (e.g. per-industry demo workspace links):
+    /// same safety rule as LegacyLoginBridgeMiddleware — local path only, never '//'.</summary>
+    private void ApplyRequestedRedirect()
+    {
+        var dest = RequestedRedirect();
+        if (dest is not null)
+        {
+            _redirect = dest;
+        }
+
+        // Already signed in (e.g. a demo visitor following another industry link):
+        // go straight to the requested workspace instead of showing the form again.
+        if (Http.HttpContext?.User?.Identity?.IsAuthenticated == true)
+        {
+            Nav.NavigateTo(_redirect, replace: true);
+        }
+    }
+
+    private string? RequestedRedirect()
+    {
+        var uri = new Uri(Nav.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (!query.TryGetValue("redirect", out var requested))
+        {
+            return null;
+        }
+
+        var dest = requested.ToString().Trim();
+        return dest.StartsWith('/') && !dest.StartsWith("//", StringComparison.Ordinal)
+            && !dest.Contains('\\')
+            ? dest
+            : null;
     }
 
     private async Task OverlayRealEstateStatsAsync()
