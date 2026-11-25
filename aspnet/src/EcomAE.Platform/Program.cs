@@ -2078,6 +2078,158 @@ app.MapGet(EcomAeRoutes.MigrationPlatformJobs, async (int? limit, IPlatformJobsS
     });
 });
 
+async Task<IResult> RecordMarketingLeadAsync(
+    HttpContext context,
+    EcomAE.Platform.Erp.IErpWriteConnectionFactory connections,
+    EcomAE.Platform.Cp.ICpPlatformMailer mailer,
+    string? contactPhone,
+    string? industryCode,
+    bool isDemoRequest,
+    CancellationToken cancellationToken)
+{
+    var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+    var contactName = (form["contact_name"].ToString() ?? string.Empty).Trim();
+    var contactEmail = (form["contact_email"].ToString() ?? string.Empty).Trim();
+    var company = (form["company"].ToString() ?? string.Empty).Trim();
+    var message = (form["message"].ToString() ?? string.Empty).Trim();
+    var honeypot = (form["website"].ToString() ?? string.Empty).Trim();
+
+    if (honeypot.Length > 0)
+    {
+        return Results.Json(new { ok = true, message = "Thanks — we'll be in touch." });
+    }
+    if (contactName.Length < 2 || contactEmail.Length < 5 || !contactEmail.Contains('@'))
+    {
+        return Results.Json(new { ok = false, error = "name_email_required" }, statusCode: 400);
+    }
+
+    var ip = context.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
+    var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+    var notes = string.IsNullOrEmpty(message) ? null : message;
+    var saved = false;
+
+    if (connections.IsConfigured)
+    {
+        try
+        {
+            await using var connection = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText =
+                    "INSERT INTO `epc_portal_demo_requests` " +
+                    "(`email`,`contact_name`,`company`,`contact_phone`,`industry_code`,`site_key`,`status`,`ip_address`,`notes`,`created_at`) " +
+                    "VALUES (@email,@name,@company,@phone,@industry,'','requested',@ip,@notes,@created)";
+                void Add(string n, object? v)
+                {
+                    var p = command.CreateParameter();
+                    p.ParameterName = n;
+                    p.Value = v ?? DBNull.Value;
+                    command.Parameters.Add(p);
+                }
+                Add("@email", contactEmail);
+                Add("@name", contactName);
+                Add("@company", company);
+                Add("@phone", contactPhone ?? string.Empty);
+                Add("@industry", industryCode ?? string.Empty);
+                Add("@ip", ip);
+                Add("@notes", (object?)notes);
+                Add("@created", now);
+                await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                saved = true;
+            }
+        }
+        catch (Exception)
+        {
+            // Never lose the lead — still mail below.
+        }
+    }
+
+    var body = new System.Text.StringBuilder()
+        .Append("<h3>New marketing request</h3><ul>")
+        .Append("<li><b>Name:</b> ").Append(System.Net.WebUtility.HtmlEncode(contactName)).Append("</li>")
+        .Append("<li><b>Email:</b> ").Append(System.Net.WebUtility.HtmlEncode(contactEmail)).Append("</li>")
+        .Append("<li><b>Company:</b> ").Append(System.Net.WebUtility.HtmlEncode(company)).Append("</li>")
+        .Append("<li><b>Phone:</b> ").Append(System.Net.WebUtility.HtmlEncode(contactPhone ?? string.Empty)).Append("</li>")
+        .Append("<li><b>Industry:</b> ").Append(System.Net.WebUtility.HtmlEncode(industryCode ?? string.Empty)).Append("</li>")
+        // The mailer writes the body raw into SMTP DATA: visitor newlines become "<br>\r\n"
+        // (keeps real line breaks without ever emitting a bare "." line that could terminate
+        // the DATA phase or inject commands), and every line is hard-wrapped under the
+        // RFC 5321 998-octet limit.
+        .Append("<li><b>Message:</b> ").Append(
+            WrapMarketingLeadText(
+                System.Net.WebUtility.HtmlEncode(message)
+                    .Replace("\r\n", "\n", StringComparison.Ordinal)
+                    .Replace("\r", "\n", StringComparison.Ordinal)
+                    .Replace("\n", "<br>\r\n", StringComparison.Ordinal))).Append("</li>")
+        .Append("<li><b>IP:</b> ").Append(System.Net.WebUtility.HtmlEncode(ip)).Append("</li></ul>")
+        .ToString();
+    var mailed = false;
+    try
+    {
+        var outcome = await mailer.SendHtmlAsync(
+            "hello@ecomae.com",
+            isDemoRequest ? "Demo request: " + contactName : "ecomae.com request: " + contactName,
+            body,
+            cancellationToken).ConfigureAwait(false);
+        mailed = outcome.Ok;
+    }
+    catch (Exception)
+    {
+    }
+
+    if (!saved && !mailed)
+    {
+        return Results.Json(new { ok = false, error = "delivery_failed" }, statusCode: 502);
+    }
+
+    var reply = isDemoRequest
+        ? "Demo request received — our team will email your 3-day ERP login within 24 hours."
+        : "Thanks — we'll be in touch shortly.";
+    return Results.Json(new { ok = true, message = reply });
+}
+
+static string WrapMarketingLeadText(string text)
+{
+    var builder = new System.Text.StringBuilder(text.Length + 16);
+    var column = 0;
+    var inEntity = false;
+    foreach (var ch in text)
+    {
+        if (ch == '\n')
+        {
+            column = 0;
+            builder.Append(ch);
+            continue;
+        }
+        if (ch == '\r')
+        {
+            continue;
+        }
+        if (ch == '&')
+        {
+            inEntity = true;
+        }
+        if (!inEntity && column >= 900)
+        {
+            builder.Append("<br>\r\n");
+            column = 0;
+        }
+        builder.Append(ch);
+        column++;
+        if (inEntity && ch == ';')
+        {
+            inEntity = false;
+        }
+    }
+    return builder.ToString();
+}
+
+app.MapPost("/platform/contact", (HttpContext context, EcomAE.Platform.Erp.IErpWriteConnectionFactory connections, EcomAE.Platform.Cp.ICpPlatformMailer mailer, CancellationToken cancellationToken) =>
+    RecordMarketingLeadAsync(context, connections, mailer, null, null, false, cancellationToken));
+
+app.MapPost("/epc-demo-provision-public.php", (HttpContext context, EcomAE.Platform.Erp.IErpWriteConnectionFactory connections, EcomAE.Platform.Cp.ICpPlatformMailer mailer, CancellationToken cancellationToken) =>
+    RecordMarketingLeadAsync(context, connections, mailer, context.Request.HasFormContentType ? context.Request.Form["contact_phone"].ToString() : null, context.Request.HasFormContentType ? context.Request.Form["industry_code"].ToString() : null, true, cancellationToken));
+
 app.MapGet(EcomAeRoutes.SurfaceParity, (ISurfaceParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.PresentationParity, (IPresentationParityReporter reporter) => Results.Ok(reporter.BuildReport()));

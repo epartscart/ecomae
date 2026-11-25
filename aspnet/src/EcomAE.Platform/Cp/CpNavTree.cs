@@ -271,6 +271,14 @@ public static class CpNavTree
     public static string AspNetHref(string resolvedUrl)
     {
         var url = (resolvedUrl ?? string.Empty).Trim();
+        // Already an ASP.NET route (e.g. ExtraTopLinks "/cp/…-app" destinations):
+        // sending it through the legacy PHP map collapses it to "/cp".
+        if (url.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase)
+            || url.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase))
+        {
+            return url;
+        }
+
         if (url.StartsWith("/" + BackendDir + "/", StringComparison.OrdinalIgnoreCase)
             || url.Equals("/" + BackendDir, StringComparison.OrdinalIgnoreCase))
         {
@@ -701,6 +709,26 @@ public static class CpNavTree
         new("AI Manager", "/cp/ai-manager-app", "fa-magic", "epc_cp_group_ai", false),
         new("LifeOS clients", "/<backend>/control/portal/epc_lifeos_clients", "fa-users", "epc_cp_group_customers", false),
         new("Ops guides", "/<backend>/control/portal/epc_ops_guides", "fa-list-alt", "epc_cp_group_portal", false),
+        new("Dashboard summary", "/cp/dashboard-summary-app", "fa-tachometer", "epc_cp_group_portal", false),
+        new("AI service", "/cp/ai-service-app", "fa-robot", "epc_cp_group_portal", false),
+        new("Admin sessions", "/cp/admin-sessions-app", "fa-user-secret", "epc_cp_group_portal", false),
+        new("Tenant admins", "/cp/tenant-admins-app", "fa-users", "epc_cp_group_portal", false),
+        new("Tenant countries", "/cp/tenant-countries-app", "fa-globe", "epc_cp_group_portal", false),
+        new("Config sandbox", "/cp/config-sandbox-app", "fa-flask", "epc_cp_group_portal", false),
+        new("Design tokens", "/cp/design-tokens-app", "fa-paint-brush", "epc_cp_group_portal", false),
+        new("Metabase", "/cp/metabase-app", "fa-bar-chart", "epc_cp_group_portal", false),
+        new("NL reporting", "/cp/nl-reporting-app", "fa-commenting", "epc_cp_group_portal", false),
+        new("Platform alerts", "/cp/platform-alerts-app", "fa-bell", "epc_cp_group_portal", false),
+        new("SOC2 compliance", "/cp/soc2-compliance-app", "fa-shield", "epc_cp_group_portal", false),
+        new("Isolation audit", "/cp/isolation-audit-app", "fa-lock", "epc_cp_group_portal", false),
+        new("Prices edit", "/cp/prices-edit-app", "fa-pencil", "744", false),
+        new("SEO", "/cp/seo-app", "fa-search", "744", false),
+        new("Promotions", "/cp/promotions-app", "fa-tags", "744", false),
+        new("CRM board", "/cp/crm-board-app", "fa-trello", "epc_cp_group_customers", false),
+        new("CRM activities", "/cp/crm-activities-app", "fa-tasks", "epc_cp_group_customers", false),
+        new("Collections & dunning", "/cp/collections-dunning-app", "fa-money", "epc_cp_group_customers", false),
+        new("PO approvals", "/cp/po-approvals-app", "fa-check-square-o", "epc_cp_group_portal", false),
+        new("Print docs", "/cp/print-docs-app", "fa-print", "epc_cp_group_portal", false),
     ];
 
     public static bool IsMailMenuUrl(string? url)
