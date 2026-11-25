@@ -170,6 +170,8 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
             {
                 if (await ShopAlreadyServesLoginAsync(shop, cancellationToken).ConfigureAwait(false))
                 {
+                    // Schema-cloned shops skipped bootstrap; backfill reference data anyway.
+                    await SeedStorefrontReferenceAsync(shop, cancellationToken).ConfigureAwait(false);
                     return new ErpOnlyShopEnsureResult(
                         true,
                         true,
@@ -261,7 +263,9 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
     /// </summary>
     private static async Task SeedStorefrontReferenceAsync(DbConnection connection, CancellationToken cancellationToken)
     {
-        // Verbatim copies from the reference tenant (same MySQL server).
+        // Verbatim copies from the reference tenant (same MySQL server). Fresh
+        // databases may not have the tables yet — clone the definition first so
+        // ERP-only onboards still get seeded.
         foreach (var table in new[]
         {
             "shop_obtaining_modes",
@@ -274,6 +278,10 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
         {
             try
             {
+                await ErpDb.TryExecuteAsync(
+                    connection,
+                    "CREATE TABLE IF NOT EXISTS `" + table + "` LIKE `ecomae`.`" + table + "`",
+                    cancellationToken).ConfigureAwait(false);
                 var count = await ErpDb.LongAsync(
                     connection,
                     null,
