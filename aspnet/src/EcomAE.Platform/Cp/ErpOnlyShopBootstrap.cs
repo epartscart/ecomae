@@ -486,7 +486,7 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
         bool replacePassword,
         CancellationToken cancellationToken = default)
     {
-        var prepared = await EnsureForSiteKeyAsync(siteKey, passwordOverride: null, cancellationToken).ConfigureAwait(false);
+        var prepared = await EnsureForSiteKeyAsync(siteKey, passwordOverride: null, cancellationToken, seedReference: true).ConfigureAwait(false);
         if (!prepared.DatabaseReady || !prepared.SchemaReady)
         {
             return prepared;
