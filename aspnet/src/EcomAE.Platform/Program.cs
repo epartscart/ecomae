@@ -2082,6 +2082,7 @@ async Task<IResult> RecordMarketingLeadAsync(
     EcomAE.Platform.Cp.ICpPlatformMailer mailer,
     string? contactPhone,
     string? industryCode,
+    bool isDemoRequest,
     CancellationToken cancellationToken)
 {
     var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
@@ -2103,6 +2104,7 @@ async Task<IResult> RecordMarketingLeadAsync(
     var ip = context.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
     var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     var notes = string.IsNullOrEmpty(message) ? null : message;
+    var saved = false;
 
     if (connections.IsConfigured)
     {
@@ -2131,6 +2133,7 @@ async Task<IResult> RecordMarketingLeadAsync(
                 Add("@notes", (object?)notes);
                 Add("@created", now);
                 await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                saved = true;
             }
         }
         catch (Exception)
@@ -2146,25 +2149,45 @@ async Task<IResult> RecordMarketingLeadAsync(
         .Append("<li><b>Company:</b> ").Append(System.Net.WebUtility.HtmlEncode(company)).Append("</li>")
         .Append("<li><b>Phone:</b> ").Append(System.Net.WebUtility.HtmlEncode(contactPhone ?? string.Empty)).Append("</li>")
         .Append("<li><b>Industry:</b> ").Append(System.Net.WebUtility.HtmlEncode(industryCode ?? string.Empty)).Append("</li>")
-        .Append("<li><b>Message:</b> ").Append(System.Net.WebUtility.HtmlEncode(message)).Append("</li>")
+        // Newlines are collapsed into <br>: the mailer writes the body raw into SMTP DATA,
+        // so a lone ".\r\n" from visitor text could terminate or inject into the session.
+        .Append("<li><b>Message:</b> ").Append(
+            System.Net.WebUtility.HtmlEncode(message)
+                .Replace("\r\n", "<br>", StringComparison.Ordinal)
+                .Replace("\r", "<br>", StringComparison.Ordinal)
+                .Replace("\n", "<br>", StringComparison.Ordinal)).Append("</li>")
         .Append("<li><b>IP:</b> ").Append(System.Net.WebUtility.HtmlEncode(ip)).Append("</li></ul>")
         .ToString();
+    var mailed = false;
     try
     {
-        await mailer.SendHtmlAsync("hello@ecomae.com", "ecomae.com request: " + contactName, body, cancellationToken).ConfigureAwait(false);
+        var outcome = await mailer.SendHtmlAsync(
+            "hello@ecomae.com",
+            isDemoRequest ? "Demo request: " + contactName : "ecomae.com request: " + contactName,
+            body,
+            cancellationToken).ConfigureAwait(false);
+        mailed = outcome.Ok;
     }
     catch (Exception)
     {
     }
 
-    return Results.Json(new { ok = true, message = "Thanks — we'll be in touch shortly." });
+    if (!saved && !mailed)
+    {
+        return Results.Json(new { ok = false, error = "delivery_failed" }, statusCode: 502);
+    }
+
+    var reply = isDemoRequest
+        ? "Demo request received — our team will email your 3-day ERP login within 24 hours."
+        : "Thanks — we'll be in touch shortly.";
+    return Results.Json(new { ok = true, message = reply });
 }
 
 app.MapPost("/platform/contact", (HttpContext context, EcomAE.Platform.Erp.IErpWriteConnectionFactory connections, EcomAE.Platform.Cp.ICpPlatformMailer mailer, CancellationToken cancellationToken) =>
-    RecordMarketingLeadAsync(context, connections, mailer, null, null, cancellationToken));
+    RecordMarketingLeadAsync(context, connections, mailer, null, null, false, cancellationToken));
 
 app.MapPost("/epc-demo-provision-public.php", (HttpContext context, EcomAE.Platform.Erp.IErpWriteConnectionFactory connections, EcomAE.Platform.Cp.ICpPlatformMailer mailer, CancellationToken cancellationToken) =>
-    RecordMarketingLeadAsync(context, connections, mailer, context.Request.HasFormContentType ? context.Request.Form["contact_phone"].ToString() : null, context.Request.HasFormContentType ? context.Request.Form["industry_code"].ToString() : null, cancellationToken));
+    RecordMarketingLeadAsync(context, connections, mailer, context.Request.HasFormContentType ? context.Request.Form["contact_phone"].ToString() : null, context.Request.HasFormContentType ? context.Request.Form["industry_code"].ToString() : null, true, cancellationToken));
 
 app.MapGet(EcomAeRoutes.SurfaceParity, (ISurfaceParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
