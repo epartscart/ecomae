@@ -271,10 +271,11 @@ public static class CpNavTree
     public static string AspNetHref(string resolvedUrl)
     {
         var url = (resolvedUrl ?? string.Empty).Trim();
-        // Already an ASP.NET route (e.g. ExtraTopLinks "/cp/…-app" destinations):
-        // sending it through the legacy PHP map collapses it to "/cp".
+        // Already an ASP.NET app route (e.g. ExtraTopLinks "/cp/…-app" destinations):
+        // sending it through the legacy PHP map collapses it to "/cp". Legacy two-segment
+        // CP paths ("/cp/users/usermanager") must still route through the map.
         if (url.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase)
-            || url.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase))
+            && url.EndsWith("-app", StringComparison.OrdinalIgnoreCase))
         {
             return url;
         }
