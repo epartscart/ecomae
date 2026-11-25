@@ -6215,20 +6215,14 @@ body.epc-cp-topnav-only .epc-cp-topnav {
 	align-items: stretch;
 	flex: 1 1 auto;
 	min-width: 0;
+	/* Wrap to extra rows instead of clipping: a horizontal scroll container
+	   also clips the dropdown panels vertically, hiding most of each submenu. */
+	flex-wrap: wrap;
 	overflow: visible;
-	scrollbar-width: thin;
-	scrollbar-color: rgba(220, 38, 38, 0.35) transparent;
 }
-/* Always horizontally scrollable: with many menu groups the nav is wider than
-   any viewport, so items after the fold must be reachable via slider at every width. */
 .epc-cp-topnav-inner {
-	overflow-x: auto;
-	overflow-y: visible;
-	scrollbar-width: thin;
-	scrollbar-color: rgba(220, 38, 38, 0.45) transparent;
+	overflow: visible;
 }
-.epc-cp-topnav-inner::-webkit-scrollbar { height: 6px; }
-.epc-cp-topnav-inner::-webkit-scrollbar-thumb { background: rgba(220, 38, 38, 0.4); border-radius: 3px; }
 .epc-cp-topnav-item {
 	position: relative;
 	flex: 0 0 auto;
