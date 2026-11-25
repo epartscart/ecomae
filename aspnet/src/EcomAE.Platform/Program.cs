@@ -2156,8 +2156,8 @@ async Task<IResult> RecordMarketingLeadAsync(
         .Append("<li><b>Message:</b> ").Append(
             WrapMarketingLeadText(
                 System.Net.WebUtility.HtmlEncode(message)
-                    .Replace("\r\n", "<br>\r\n", StringComparison.Ordinal)
-                    .Replace("\r", "<br>\r\n", StringComparison.Ordinal)
+                    .Replace("\r\n", "\n", StringComparison.Ordinal)
+                    .Replace("\r", "\n", StringComparison.Ordinal)
                     .Replace("\n", "<br>\r\n", StringComparison.Ordinal))).Append("</li>")
         .Append("<li><b>IP:</b> ").Append(System.Net.WebUtility.HtmlEncode(ip)).Append("</li></ul>")
         .ToString();
@@ -2190,6 +2190,7 @@ static string WrapMarketingLeadText(string text)
 {
     var builder = new System.Text.StringBuilder(text.Length + 16);
     var column = 0;
+    var inEntity = false;
     foreach (var ch in text)
     {
         if (ch == '\n')
@@ -2202,13 +2203,21 @@ static string WrapMarketingLeadText(string text)
         {
             continue;
         }
-        if (column >= 900)
+        if (ch == '&')
+        {
+            inEntity = true;
+        }
+        if (!inEntity && column >= 900)
         {
             builder.Append("<br>\r\n");
             column = 0;
         }
         builder.Append(ch);
         column++;
+        if (inEntity && ch == ';')
+        {
+            inEntity = false;
+        }
     }
     return builder.ToString();
 }
