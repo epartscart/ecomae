@@ -178,7 +178,8 @@ public sealed class LegacyAdminLoginServiceTests
         public Task<ErpOnlyShopEnsureResult> EnsureForSiteKeyAsync(
             string siteKey,
             string? passwordOverride = null,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            bool seedReference = false)
         {
             Called = true;
             SiteKey = siteKey;
