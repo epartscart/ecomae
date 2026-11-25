@@ -2076,6 +2076,96 @@ app.MapGet(EcomAeRoutes.MigrationPlatformJobs, async (int? limit, IPlatformJobsS
     });
 });
 
+async Task<IResult> RecordMarketingLeadAsync(
+    HttpContext context,
+    EcomAE.Platform.Erp.IErpWriteConnectionFactory connections,
+    EcomAE.Platform.Cp.ICpPlatformMailer mailer,
+    string? contactPhone,
+    string? industryCode,
+    CancellationToken cancellationToken)
+{
+    var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+    var contactName = (form["contact_name"].ToString() ?? string.Empty).Trim();
+    var contactEmail = (form["contact_email"].ToString() ?? string.Empty).Trim();
+    var company = (form["company"].ToString() ?? string.Empty).Trim();
+    var message = (form["message"].ToString() ?? string.Empty).Trim();
+    var honeypot = (form["website"].ToString() ?? string.Empty).Trim();
+
+    if (honeypot.Length > 0)
+    {
+        return Results.Json(new { ok = true, message = "Thanks — we'll be in touch." });
+    }
+    if (contactName.Length < 2 || contactEmail.Length < 5 || !contactEmail.Contains('@'))
+    {
+        return Results.Json(new { ok = false, error = "name_email_required" }, statusCode: 400);
+    }
+
+    var ip = context.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
+    var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+    var notes = string.IsNullOrEmpty(message) ? null : message;
+
+    if (connections.IsConfigured)
+    {
+        try
+        {
+            await using var connection = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText =
+                    "INSERT INTO `epc_portal_demo_requests` " +
+                    "(`email`,`contact_name`,`company`,`contact_phone`,`industry_code`,`site_key`,`status`,`ip_address`,`notes`,`created_at`) " +
+                    "VALUES (@email,@name,@company,@phone,@industry,'','requested',@ip,@notes,@created)";
+                void Add(string n, object? v)
+                {
+                    var p = command.CreateParameter();
+                    p.ParameterName = n;
+                    p.Value = v ?? DBNull.Value;
+                    command.Parameters.Add(p);
+                }
+                Add("@email", contactEmail);
+                Add("@name", contactName);
+                Add("@company", company);
+                Add("@phone", contactPhone ?? string.Empty);
+                Add("@industry", industryCode ?? string.Empty);
+                Add("@ip", ip);
+                Add("@notes", (object?)notes);
+                Add("@created", now);
+                await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (Exception)
+        {
+            // Never lose the lead — still mail below.
+        }
+    }
+
+    var body = new System.Text.StringBuilder()
+        .Append("<h3>New marketing request</h3><ul>")
+        .Append("<li><b>Name:</b> ").Append(System.Net.WebUtility.HtmlEncode(contactName)).Append("</li>")
+        .Append("<li><b>Email:</b> ").Append(System.Net.WebUtility.HtmlEncode(contactEmail)).Append("</li>")
+        .Append("<li><b>Company:</b> ").Append(System.Net.WebUtility.HtmlEncode(company)).Append("</li>")
+        .Append("<li><b>Phone:</b> ").Append(System.Net.WebUtility.HtmlEncode(contactPhone ?? string.Empty)).Append("</li>")
+        .Append("<li><b>Industry:</b> ").Append(System.Net.WebUtility.HtmlEncode(industryCode ?? string.Empty)).Append("</li>")
+        .Append("<li><b>Message:</b> ").Append(System.Net.WebUtility.HtmlEncode(message)).Append("</li>")
+        .Append("<li><b>IP:</b> ").Append(System.Net.WebUtility.HtmlEncode(ip)).Append("</li></ul>")
+        .ToString();
+    try
+    {
+        await mailer.SendHtmlAsync("hello@ecomae.com", "ecomae.com request: " + contactName, body, cancellationToken).ConfigureAwait(false);
+    }
+    catch (Exception)
+    {
+    }
+
+    return Results.Json(new { ok = true, message = "Thanks — we'll be in touch shortly." });
+}
+
+app.MapPost("/platform/contact", (HttpContext context, EcomAE.Platform.Erp.IErpWriteConnectionFactory connections, EcomAE.Platform.Cp.ICpPlatformMailer mailer, CancellationToken cancellationToken) =>
+    RecordMarketingLeadAsync(context, connections, mailer, null, null, cancellationToken));
+
+app.MapPost("/epc-demo-provision-public.php", (HttpContext context, EcomAE.Platform.Erp.IErpWriteConnectionFactory connections, EcomAE.Platform.Cp.ICpPlatformMailer mailer, CancellationToken cancellationToken) =>
+    RecordMarketingLeadAsync(context, connections, mailer, context.Request.HasFormContentType ? context.Request.Form["contact_phone"].ToString() : null, context.Request.HasFormContentType ? context.Request.Form["industry_code"].ToString() : null, cancellationToken));
+
 app.MapGet(EcomAeRoutes.SurfaceParity, (ISurfaceParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.PresentationParity, (IPresentationParityReporter reporter) => Results.Ok(reporter.BuildReport()));
