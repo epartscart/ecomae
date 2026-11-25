@@ -59,7 +59,8 @@ public sealed class EcomaeMarketingHomeParityTests
         Assert.Contains("Try ecomae live", demo, StringComparison.Ordinal);
         Assert.Contains("demo@ecomae.com", demo, StringComparison.Ordinal);
         Assert.Contains("demo1234", demo, StringComparison.Ordinal);
-        Assert.Contains("erp-demo?demo=1", demo, StringComparison.Ordinal);
+        Assert.Contains("erp-demo.ecomae.com/erp/login", demo, StringComparison.Ordinal);
+        Assert.Contains("erp.demo@ecomae.com", demo, StringComparison.Ordinal);
 
         var layla = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeLaylaWidget.razor"));
         Assert.Contains("epc-layla-splash", layla, StringComparison.Ordinal);

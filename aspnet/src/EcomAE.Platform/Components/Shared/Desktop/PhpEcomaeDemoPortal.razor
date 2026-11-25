@@ -9,44 +9,43 @@
 
 <section class="epc-demo-portal" id="demo" dir="auto">
     <div class="epc-demo-card">
-        <div class="epc-demo-badge">@EcomaeMarketingPages.DemoDays-DAY FREE DEMO · NO SIGNUP</div>
+        <div class="epc-demo-badge">LIVE DEMO · NO SIGNUP</div>
         <h2>Try ecomae live</h2>
-        <p class="epc-demo-sub">Explore the <strong>storefront</strong> and the full <strong>ERP</strong> with shared demo access. (Control panel is not part of the demo.)</p>
+        <p class="epc-demo-sub">Explore the <strong>storefront</strong> and the full <strong>ERP backend</strong> with shared demo access.</p>
 
         <div class="epc-demo-cred">
-            <div><span>Demo email</span><code>demo@ecomae.com</code></div>
-            <div><span>Demo password</span><code>demo1234</code></div>
+            <div><span>ERP backend — sign in at <a href="https://erp-demo.ecomae.com/erp/login" style="color:inherit">erp-demo.ecomae.com</a></span><code>erp.demo@ecomae.com / ErpDemo2026!</code></div>
+            <div><span>Storefront — sign in at <a href="https://www.ecomae.com" style="color:inherit">ecomae.com</a></span><code>demo@ecomae.com / demo1234</code></div>
         </div>
 
         <div class="epc-demo-actions">
-            <a class="epc-demo-btn primary" href="@ErpDemoUrl">Open ERP demo</a>
+            <a class="epc-demo-btn primary" href="https://erp-demo.ecomae.com/erp/login">Open ERP demo</a>
             <a class="epc-demo-btn" href="@StorefrontDemoUrl">View storefront</a>
         </div>
 
         <div class="epc-demo-industries">
-            <span>Preview your industry:</span>
+            <span>One login, every industry workspace:</span>
             @foreach (var ind in Industries)
             {
-                <a class="epc-demo-chip" href="@($"{ErpDemoUrl}&industry={Uri.EscapeDataString(ind.Code)}")">@ind.Name</a>
+                <a class="epc-demo-chip" href="@($"https://erp-demo.ecomae.com/erp/login?redirect=%2Ferp%2F%3Fcompany%3D{ind.CompanyId}")">@ind.Name</a>
             }
         </div>
 
-        <p class="epc-demo-note">Shared 3-day demo. Storefront + ERP only. No CP. Data resets periodically.</p>
+        <p class="epc-demo-note">Shared sandbox tenant with seeded data across 7 business units. Sign in, then switch industry under Business Unit. Want a private 3-day tenant? <a href="https://www.ecomae.com/platform/demo" style="color:inherit">Request your own demo</a>.</p>
     </div>
 </section>
 
 @code {
-    private const string ErpDemoUrl = "https://www.ecomae.com/erp-demo?demo=1";
     private const string StorefrontDemoUrl = "https://www.ecomae.com/?demo=1";
 
     private static readonly IndustryChip[] Industries =
     [
-        new("jewellery", "Jewellery & Bullion"),
-        new("trading", "Trading / Import-Export"),
-        new("construction", "Construction & Contracting"),
-        new("retail", "Retail / POS"),
-        new("manufacturing", "Manufacturing"),
+        new(3, "Auto Parts"),
+        new(5, "Jewellery & Bullion"),
+        new(6, "Fit-out & Contracting"),
+        new(7, "Real Estate"),
+        new(8, "FMCG / Trading"),
     ];
 
-    private sealed record IndustryChip(string Code, string Name);
+    private sealed record IndustryChip(int CompanyId, string Name);
 }
