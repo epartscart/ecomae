@@ -365,6 +365,7 @@ else
 
                 _brand = LoginHostBrand.ForErpOnly(row.SiteKey, row.TradeName, row.IndustryCode);
                 _content = LoginIndustryContent.For(_brand, "erp");
+                ApplyRequestedRedirect();
                 await OverlayRealEstateStatsAsync();
                 return;
             }
@@ -377,7 +378,24 @@ else
 
         _brand = LoginHostBrand.Resolve(host, "erp");
         _content = LoginIndustryContent.For(_brand, "erp");
+        ApplyRequestedRedirect();
         await OverlayRealEstateStatsAsync();
+    }
+
+    /// <summary>Honour ?redirect=/erp/… deep links (e.g. per-industry demo workspace links):
+    /// same safety rule as LegacyLoginBridgeMiddleware — local path only, never '//'.</summary>
+    private void ApplyRequestedRedirect()
+    {
+        var uri = new Uri(Nav.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("redirect", out var requested))
+        {
+            var dest = requested.ToString().Trim();
+            if (dest.StartsWith('/') && !dest.StartsWith("//", StringComparison.Ordinal))
+            {
+                _redirect = dest;
+            }
+        }
     }
 
     private async Task OverlayRealEstateStatsAsync()
