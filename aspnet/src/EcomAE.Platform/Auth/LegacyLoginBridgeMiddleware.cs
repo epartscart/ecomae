@@ -154,7 +154,8 @@ public sealed class LegacyLoginBridgeMiddleware
 
             var dest = string.IsNullOrWhiteSpace(redirect) ? outcome.Success.RedirectPath : redirect;
             dest = Erp.ErpLandingPage.Prefer(dest, outcome.Success.LandingPath);
-            if (!dest.StartsWith('/') || dest.StartsWith("//", StringComparison.Ordinal))
+            if (!dest.StartsWith('/') || dest.StartsWith("//", StringComparison.Ordinal)
+                || dest.StartsWith("/\\", StringComparison.Ordinal) || dest.Contains('\\'))
             {
                 dest = outcome.Success.RedirectPath;
             }
@@ -247,9 +248,21 @@ public sealed class LegacyLoginBridgeMiddleware
             var login = ClientErpPath.TryParseSiteKey(context.Request.Path.Value, out var key)
                 ? ClientErpPath.LoginUrl(key)
                 : $"/{LegacyLoginSurfaceParser.Key(surface)}/login";
+            var redirectParam = "";
+            if (context.Request.HasFormContentType
+                && context.Request.Form.TryGetValue("redirect", out var requestedRedirect))
+            {
+                var requested = requestedRedirect.ToString().Trim();
+                if (requested.StartsWith('/') && !requested.StartsWith("//", StringComparison.Ordinal)
+                    && !requested.Contains('\\'))
+                {
+                    redirectParam = "&redirect=" + Uri.EscapeDataString(requested);
+                }
+            }
+
             context.Response.Headers.Location =
                 login + (login.Contains('?', StringComparison.Ordinal) ? "&" : "?")
-                + new LegacyLoginFailure(message, code, waitMinutes).Query;
+                + new LegacyLoginFailure(message, code, waitMinutes).Query + redirectParam;
             return;
         }
 

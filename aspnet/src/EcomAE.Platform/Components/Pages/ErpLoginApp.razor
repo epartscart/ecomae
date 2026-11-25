@@ -386,16 +386,34 @@ else
     /// same safety rule as LegacyLoginBridgeMiddleware — local path only, never '//'.</summary>
     private void ApplyRequestedRedirect()
     {
+        var dest = RequestedRedirect();
+        if (dest is not null)
+        {
+            _redirect = dest;
+        }
+
+        // Already signed in (e.g. a demo visitor following another industry link):
+        // go straight to the requested workspace instead of showing the form again.
+        if (Http.HttpContext?.User?.Identity?.IsAuthenticated == true)
+        {
+            Nav.NavigateTo(_redirect, replace: true);
+        }
+    }
+
+    private string? RequestedRedirect()
+    {
         var uri = new Uri(Nav.Uri);
         var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
-        if (query.TryGetValue("redirect", out var requested))
+        if (!query.TryGetValue("redirect", out var requested))
         {
-            var dest = requested.ToString().Trim();
-            if (dest.StartsWith('/') && !dest.StartsWith("//", StringComparison.Ordinal))
-            {
-                _redirect = dest;
-            }
+            return null;
         }
+
+        var dest = requested.ToString().Trim();
+        return dest.StartsWith('/') && !dest.StartsWith("//", StringComparison.Ordinal)
+            && !dest.Contains('\\')
+            ? dest
+            : null;
     }
 
     private async Task OverlayRealEstateStatsAsync()
